@@ -1,8 +1,7 @@
 using System.Buffers;
 using System.Diagnostics;
-using System.Text.Json;
 
-namespace HotChocolate.Text.Json;
+namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument
 {
@@ -115,7 +114,7 @@ public sealed partial class CompositeResultDocument
             return false;
         }
 
-        int endIndex = checked(row.NumberOfRows + startIndex);
+        var endIndex = checked(row.NumberOfRows + startIndex);
 
         return TryGetNamedPropertyValue(
             startIndex + 1,
@@ -130,7 +129,6 @@ public sealed partial class CompositeResultDocument
         ReadOnlySpan<byte> propertyName,
         out CompositeResultElement value)
     {
-        ReadOnlySpan<byte> documentSpan = _utf8Json.Span;
         Span<byte> utf8UnescapedStack = stackalloc byte[StackallocByteThreshold];
         var index = endIndex;
 
@@ -142,7 +140,7 @@ public sealed partial class CompositeResultDocument
 
             row = _metaDb.Get(index);
             Debug.Assert(row.TokenType == ElementTokenType.PropertyName);
-            var currentPropertyName = documentSpan.Slice(row.Location, row.SizeOrLength);
+            var currentPropertyName = ReadRawValue(row);
 
             if (row.HasComplexChildren)
             {
@@ -155,7 +153,7 @@ public sealed partial class CompositeResultDocument
 
                     // If everything up to where the property name has a backslash matches, keep going.
                     if (propertyName.Length > idx
-                        && currentPropertyName.Slice(0, idx).SequenceEqual(propertyName.Slice(0, idx)))
+                        && currentPropertyName[..idx].SequenceEqual(propertyName[..idx]))
                     {
                         var remaining = currentPropertyName.Length - idx;
                         var written = 0;
@@ -168,13 +166,13 @@ public sealed partial class CompositeResultDocument
                                 : (rented = ArrayPool<byte>.Shared.Rent(remaining));
 
                             // Only unescape the part we haven't processed.
-                            JsonReaderHelper.Unescape(currentPropertyName.Slice(idx), utf8Unescaped, 0, out written);
+                            JsonReaderHelper.Unescape(currentPropertyName[idx..], utf8Unescaped, 0, out written);
 
                             // If the unescaped remainder matches the input remainder, it's a match.
-                            if (utf8Unescaped.Slice(0, written).SequenceEqual(propertyName.Slice(idx)))
+                            if (utf8Unescaped[..written].SequenceEqual(propertyName[idx..]))
                             {
                                 // If the property name is a match, the answer is the next element.
-                                value = new JsonElement(this, index + DbRow.Size);
+                                value = new CompositeResultElement(this, index + 1);
                                 return true;
                             }
                         }
@@ -192,12 +190,12 @@ public sealed partial class CompositeResultDocument
             else if (currentPropertyName.SequenceEqual(propertyName))
             {
                 // If the property name is a match, the answer is the next element.
-                value = new JsonElement(this, index + DbRow.Size);
+                value = new CompositeResultElement(this, index + 1);
                 return true;
             }
 
             // Move to the previous value
-            index -= DbRow.Size;
+            index--;
         }
 
         value = default;

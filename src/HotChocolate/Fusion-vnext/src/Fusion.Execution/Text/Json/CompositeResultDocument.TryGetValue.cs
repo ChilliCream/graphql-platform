@@ -1,33 +1,9 @@
-using System.Buffers;
 using System.Buffers.Text;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
 
-namespace HotChocolate.Text.Json;
+namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument
 {
-    internal bool TryGetValue(int index, [NotNullWhen(true)] out byte[]? value)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        var row = _metaDb.Get(index);
-
-        CheckExpectedType(ElementTokenType.String, row.TokenType);
-
-        var rawValue = ReadRawValue(row);
-
-        // Segment needs to be unescaped
-        if (row.HasComplexChildren)
-        {
-            return JsonReaderHelper.TryGetUnescapedBase64Bytes(rawValue, out value);
-        }
-
-        Debug.Assert(rawValue.IndexOf(JsonConstants.BackSlash) == -1);
-        return JsonReaderHelper.TryDecodeBase64(rawValue, out value);
-    }
-
     internal bool TryGetValue(int index, out sbyte value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -257,44 +233,5 @@ public sealed partial class CompositeResultDocument
 
         value = 0;
         return false;
-    }
-
-    internal bool TryGetValue(int index, out DateTime value)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        var row = _metaDb.Get(index);
-
-        CheckExpectedType(ElementTokenType.String, row.TokenType);
-
-        var rawValue = ReadRawValue(row);
-
-        return JsonReaderHelper.TryGetValue(rawValue, row.HasComplexChildren, out value);
-    }
-
-    internal bool TryGetValue(int index, out DateTimeOffset value)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        var row = _metaDb.Get(index);
-
-        CheckExpectedType(ElementTokenType.String, row.TokenType);
-
-        var rawValue = ReadRawValue(row);
-
-        return JsonReaderHelper.TryGetValue(rawValue, row.HasComplexChildren, out value);
-    }
-
-    internal bool TryGetValue(int index, out Guid value)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        var row = _metaDb.Get(index);
-
-        CheckExpectedType(ElementTokenType.String, row.TokenType);
-
-        var rawValue = ReadRawValue(row);
-
-        return JsonReaderHelper.TryGetValue(rawValue, row.HasComplexChildren, out value);
     }
 }

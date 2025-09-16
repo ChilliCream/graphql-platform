@@ -34,4 +34,34 @@
     <ProjectReference Include="..\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\FusionExecutionResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FusionExecutionResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\FusionExecutionResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FusionExecutionResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\CompositeResultDocument.DbRow.cs">
+      <DependentUpon>CompositeResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\CompositeResultDocument.MetaDb.cs">
+      <DependentUpon>CompositeResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\CompositeResultDocument.Text.cs">
+      <DependentUpon>CompositeResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\CompositeResultDocument.TryGetProperty.cs">
+      <DependentUpon>CompositeResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\CompositeResultDocument.TryGetValue.cs">
+      <DependentUpon>CompositeResultDocument.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

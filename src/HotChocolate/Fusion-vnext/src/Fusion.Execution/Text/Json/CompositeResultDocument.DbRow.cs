@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace HotChocolate.Text.Json;
+namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument
 {

@@ -1,7 +1,9 @@
-namespace HotChocolate.Text.Json;
+namespace HotChocolate.Fusion.Text.Json;
 
 internal static partial class JsonConstants
 {
+    public const int StackallocByteThreshold = 256;
+
     public const byte OpenBrace = (byte)'{';
     public const byte CloseBrace = (byte)'}';
     public const byte OpenBracket = (byte)'[';

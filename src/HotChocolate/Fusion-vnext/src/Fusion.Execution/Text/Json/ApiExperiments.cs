@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace HotChocolate.Text.Json;
+namespace HotChocolate.Fusion.Text.Json;
 
 public class ApiExperiments
 {

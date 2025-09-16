@@ -2,8 +2,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
-namespace HotChocolate.Text.Json;
+namespace HotChocolate.Fusion.Text.Json;
 
 public struct CompositeResultElement
 {
@@ -346,7 +347,13 @@ public struct CompositeResultElement
 
         static bool ThrowJsonElementWrongTypeException(ElementTokenType actualType)
         {
-            throw ThrowHelper.GetJsonElementWrongTypeException(nameof(Boolean), actualType.ToValueKind());
+            throw new InvalidOperationException(string.Format(
+                CompositeResultElement_GetBoolean_JsonElementHasWrongType,
+                nameof(Boolean),
+                actualType.ToValueKind()))
+            {
+                Source = CompositeResultElement_Rethrowable
+            };
         }
     }
 
@@ -984,159 +991,6 @@ public struct CompositeResultElement
     public decimal GetDecimal()
     {
         if (!TryGetDecimal(out decimal value))
-        {
-            ThrowHelper.ThrowFormatException();
-        }
-
-        return value;
-    }
-
-    /// <summary>
-    ///   Attempts to represent the current JSON string as a <see cref="DateTime"/>.
-    /// </summary>
-    /// <param name="value">Receives the value.</param>
-    /// <remarks>
-    ///   This method does not create a DateTime representation of values other than JSON strings.
-    /// </remarks>
-    /// <returns>
-    ///   <see langword="true"/> if the string can be represented as a <see cref="DateTime"/>,
-    ///   <see langword="false"/> otherwise.
-    /// </returns>
-    /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.String"/>.
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
-    /// </exception>
-    public bool TryGetDateTime(out DateTime value)
-    {
-        CheckValidInstance();
-
-        return _parent.TryGetValue(_index, out value);
-    }
-
-    /// <summary>
-    ///   Gets the value of the element as a <see cref="DateTime"/>.
-    /// </summary>
-    /// <remarks>
-    ///   This method does not create a DateTime representation of values other than JSON strings.
-    /// </remarks>
-    /// <returns>The value of the element as a <see cref="DateTime"/>.</returns>
-    /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.String"/>.
-    /// </exception>
-    /// <exception cref="FormatException">
-    ///   The value cannot be represented as a <see cref="DateTime"/>.
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
-    /// </exception>
-    /// <seealso cref="ToString"/>
-    public DateTime GetDateTime()
-    {
-        if (!TryGetDateTime(out DateTime value))
-        {
-            ThrowHelper.ThrowFormatException();
-        }
-
-        return value;
-    }
-
-    /// <summary>
-    ///   Attempts to represent the current JSON string as a <see cref="DateTimeOffset"/>.
-    /// </summary>
-    /// <param name="value">Receives the value.</param>
-    /// <remarks>
-    ///   This method does not create a DateTimeOffset representation of values other than JSON strings.
-    /// </remarks>
-    /// <returns>
-    ///   <see langword="true"/> if the string can be represented as a <see cref="DateTimeOffset"/>,
-    ///   <see langword="false"/> otherwise.
-    /// </returns>
-    /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.String"/>.
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
-    /// </exception>
-    public bool TryGetDateTimeOffset(out DateTimeOffset value)
-    {
-        CheckValidInstance();
-
-        return _parent.TryGetValue(_index, out value);
-    }
-
-    /// <summary>
-    ///   Gets the value of the element as a <see cref="DateTimeOffset"/>.
-    /// </summary>
-    /// <remarks>
-    ///   This method does not create a DateTimeOffset representation of values other than JSON strings.
-    /// </remarks>
-    /// <returns>The value of the element as a <see cref="DateTimeOffset"/>.</returns>
-    /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.String"/>.
-    /// </exception>
-    /// <exception cref="FormatException">
-    ///   The value cannot be represented as a <see cref="DateTimeOffset"/>.
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
-    /// </exception>
-    /// <seealso cref="ToString"/>
-    public DateTimeOffset GetDateTimeOffset()
-    {
-        if (!TryGetDateTimeOffset(out DateTimeOffset value))
-        {
-            ThrowHelper.ThrowFormatException();
-        }
-
-        return value;
-    }
-
-    /// <summary>
-    ///   Attempts to represent the current JSON string as a <see cref="Guid"/>.
-    /// </summary>
-    /// <param name="value">Receives the value.</param>
-    /// <remarks>
-    ///   This method does not create a Guid representation of values other than JSON strings.
-    /// </remarks>
-    /// <returns>
-    ///   <see langword="true"/> if the string can be represented as a <see cref="Guid"/>,
-    ///   <see langword="false"/> otherwise.
-    /// </returns>
-    /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.String"/>.
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
-    /// </exception>
-    public bool TryGetGuid(out Guid value)
-    {
-        CheckValidInstance();
-
-        return _parent.TryGetValue(_index, out value);
-    }
-
-    /// <summary>
-    ///   Gets the value of the element as a <see cref="Guid"/>.
-    /// </summary>
-    /// <remarks>
-    ///   This method does not create a Guid representation of values other than JSON strings.
-    /// </remarks>
-    /// <returns>The value of the element as a <see cref="Guid"/>.</returns>
-    /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.String"/>.
-    /// </exception>
-    /// <exception cref="FormatException">
-    ///   The value cannot be represented as a <see cref="Guid"/>.
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
-    /// </exception>
-    /// <seealso cref="ToString"/>
-    public Guid GetGuid()
-    {
-        if (!TryGetGuid(out Guid value))
         {
             ThrowHelper.ThrowFormatException();
         }

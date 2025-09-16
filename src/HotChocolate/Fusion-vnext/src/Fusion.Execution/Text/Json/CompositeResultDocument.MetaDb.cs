@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using static HotChocolate.Text.Json.MetaDbConstants;
+using static HotChocolate.Fusion.Text.Json.MetaDbConstants;
 
-namespace HotChocolate.Text.Json;
+namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument
 {

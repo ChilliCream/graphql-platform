@@ -1,15 +1,11 @@
-using System.Buffers;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Types;
-using static HotChocolate.Text.Json.MetaDbConstants;
+using static HotChocolate.Fusion.Text.Json.MetaDbConstants;
 
-namespace HotChocolate.Text.Json;
+namespace HotChocolate.Fusion.Text.Json;
 
 public class SourceResultDocument
 {
@@ -29,8 +25,6 @@ public struct SourceResultElement
 
 public sealed partial class CompositeResultDocument
 {
-    public const int StackallocByteThreshold = 256;
-
     private static Encoding s_utf8Encoding = Encoding.UTF8;
     private MetaDb _metaDb;
     private byte[][] _dataChunks;
