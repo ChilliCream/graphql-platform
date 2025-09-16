@@ -352,74 +352,52 @@ public struct CompositeResultElement
                 nameof(Boolean),
                 actualType.ToValueKind()))
             {
-                Source = CompositeResultElement_Rethrowable
+                Source = Rethrowable
             };
         }
     }
 
     /// <summary>
-    ///   Gets the value of the element as a <see cref="string"/>.
+    /// Gets the value of the element as a <see cref="string"/>.
     /// </summary>
     /// <remarks>
-    ///   This method does not create a string representation of values other than JSON strings.
+    /// This method does not create a string representation of values other than JSON strings.
     /// </remarks>
     /// <returns>The value of the element as a <see cref="string"/>.</returns>
     /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is neither <see cref="JsonValueKind.String"/> nor <see cref="JsonValueKind.Null"/>.
+    /// This value's <see cref="ValueKind"/> is neither <see cref="JsonValueKind.String"/> nor <see cref="JsonValueKind.Null"/>.
     /// </exception>
     /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
+    /// The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
     /// <seealso cref="ToString"/>
     public string? GetString()
     {
         CheckValidInstance();
 
-        return _parent.GetString(_index, JsonTokenType.String);
+        return _parent.GetString(_index, ElementTokenType.String);
     }
 
     /// <summary>
-    ///   Attempts to represent the current JSON string as bytes assuming it is Base64 encoded.
+    /// Gets the value of the element as a <see cref="string"/> and throws an error if it does not exist.
     /// </summary>
-    /// <param name="value">Receives the value.</param>
     /// <remarks>
-    ///  This method does not create a byte[] representation of values other than base 64 encoded JSON strings.
+    /// This method does not create a string representation of values other than JSON strings.
     /// </remarks>
-    /// <returns>
-    ///   <see langword="true"/> if the entire token value is encoded as valid Base64 text and can be successfully decoded to bytes.
-    ///   <see langword="false"/> otherwise.
-    /// </returns>
+    /// <returns>The value of the element as a <see cref="string"/>.</returns>
     /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.String"/>.
+    /// This value's <see cref="ValueKind"/> is neither <see cref="JsonValueKind.String"/> nor <see cref="JsonValueKind.Null"/>.
     /// </exception>
     /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
+    /// The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public bool TryGetBytesFromBase64([NotNullWhen(true)] out byte[]? value)
+    /// <seealso cref="ToString"/>
+    public string GetRequiredString()
     {
         CheckValidInstance();
 
-        return _parent.TryGetValue(_index, out value);
+        return _parent.GetRequiredString(_index, ElementTokenType.String);
     }
-
-    /// <summary>
-    ///   Gets the value of the element as bytes.
-    /// </summary>
-    /// <remarks>
-    ///   This method does not create a byte[] representation of values other than Base64 encoded JSON strings.
-    /// </remarks>
-    /// <returns>The value decode to bytes.</returns>
-    /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.String"/>.
-    /// </exception>
-    /// <exception cref="FormatException">
-    ///   The value is not encoded as Base64 text and hence cannot be decoded to bytes.
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
-    /// </exception>
-    /// <seealso cref="ToString"/>
-    public byte[] GetBytesFromBase64() => TryGetBytesFromBase64(out var value) ? value : throw new FormatException();
 
     /// <summary>
     ///   Attempts to represent the current JSON number as an <see cref="sbyte"/>.
@@ -1059,195 +1037,6 @@ public struct CompositeResultElement
             CheckValidInstance();
 
             return _parent.GetRawValue(_index, includeQuotes: false).Span;
-        }
-    }
-
-    /// <summary>
-    /// Compares the values of two <see cref="JsonElement"/> values for equality, including the values of all descendant elements.
-    /// </summary>
-    /// <param name="element1">The first <see cref="JsonElement"/> to compare.</param>
-    /// <param name="element2">The second <see cref="JsonElement"/> to compare.</param>
-    /// <returns><see langword="true"/> if the two values are equal; otherwise, <see langword="false"/>.</returns>
-    /// <remarks>
-    /// Deep equality of two JSON values is defined as follows:
-    /// <list type="bullet">
-    /// <item>JSON values of different kinds are not equal.</item>
-    /// <item>JSON constants <see langword="null"/>, <see langword="false"/>, and <see langword="true"/> only equal themselves.</item>
-    /// <item>JSON numbers are equal if and only if they have they have equivalent decimal representations, with no rounding being used.</item>
-    /// <item>JSON strings are equal if and only if they are equal using ordinal string comparison.</item>
-    /// <item>JSON arrays are equal if and only if they are of equal length and each of their elements are pairwise equal.</item>
-    /// <item>
-    ///     JSON objects are equal if and only if they have the same number of properties and each property in the first object
-    ///     has a corresponding property in the second object with the same name and equal value. The order of properties is not
-    ///     significant, with the exception of repeated properties that must be specified in the same order (with interleaving allowed).
-    /// </item>
-    /// </list>
-    /// </remarks>
-    public static bool DeepEquals(JsonElement element1, JsonElement element2)
-    {
-        if (!StackHelper.TryEnsureSufficientExecutionStack())
-        {
-            ThrowHelper.ThrowInsufficientExecutionStackException_JsonElementDeepEqualsInsufficientExecutionStack();
-        }
-
-        element1.CheckValidInstance();
-        element2.CheckValidInstance();
-
-        JsonValueKind kind = element1.ValueKind;
-        if (kind != element2.ValueKind)
-        {
-            return false;
-        }
-
-        switch (kind)
-        {
-            case JsonValueKind.Null or JsonValueKind.False or JsonValueKind.True:
-                return true;
-
-            case JsonValueKind.Number:
-                return JsonHelpers.AreEqualJsonNumbers(element1.GetRawValue().Span, element2.GetRawValue().Span);
-
-            case JsonValueKind.String:
-                if (element2.ValueIsEscaped)
-                {
-                    if (element1.ValueIsEscaped)
-                    {
-                        // Need to unescape and compare both inputs.
-                        return JsonReaderHelper.UnescapeAndCompareBothInputs(element1.ValueSpan, element2.ValueSpan);
-                    }
-
-                    // Swap values so that unescaping is handled by the LHS.
-                    (element1, element2) = (element2, element1);
-                }
-
-                return element1.ValueEquals(element2.ValueSpan);
-
-            case JsonValueKind.Array:
-                if (element1.GetArrayLength() != element2.GetArrayLength())
-                {
-                    return false;
-                }
-
-                JsonElement.ArrayEnumerator arrayEnumerator2 = element2.EnumerateArray();
-                foreach (JsonElement e1 in element1.EnumerateArray())
-                {
-                    bool success = arrayEnumerator2.MoveNext();
-                    Debug.Assert(success, "enumerators must have matching length");
-
-                    if (!DeepEquals(e1, arrayEnumerator2.Current))
-                    {
-                        return false;
-                    }
-                }
-
-                Debug.Assert(!arrayEnumerator2.MoveNext());
-                return true;
-
-            default:
-                Debug.Assert(kind is JsonValueKind.Object);
-
-                int count = element1.GetPropertyCount();
-                if (count != element2.GetPropertyCount())
-                {
-                    return false;
-                }
-
-                JsonElement.ObjectEnumerator objectEnumerator1 = element1.EnumerateObject();
-                JsonElement.ObjectEnumerator objectEnumerator2 = element2.EnumerateObject();
-
-                // Two JSON objects are considered equal if they define the same set of properties.
-                // Start optimistically with pairwise comparison, but fall back to unordered
-                // comparison as soon as a mismatch is encountered.
-
-                while (objectEnumerator1.MoveNext())
-                {
-                    bool success = objectEnumerator2.MoveNext();
-                    Debug.Assert(success, "enumerators should have matching lengths");
-
-                    JsonProperty prop1 = objectEnumerator1.Current;
-                    JsonProperty prop2 = objectEnumerator2.Current;
-
-                    if (!NameEquals(prop1, prop2))
-                    {
-                        // We have our first mismatch, fall back to unordered comparison.
-                        return UnorderedObjectDeepEquals(objectEnumerator1, objectEnumerator2, remainingProps: count);
-                    }
-
-                    if (!DeepEquals(prop1.Value, prop2.Value))
-                    {
-                        return false;
-                    }
-
-                    count--;
-                }
-
-                Debug.Assert(!objectEnumerator2.MoveNext());
-                return true;
-
-                static bool UnorderedObjectDeepEquals(JsonElement.ObjectEnumerator objectEnumerator1,
-                    JsonElement.ObjectEnumerator objectEnumerator2, int remainingProps)
-                {
-                    // JsonElement objects allow duplicate property names, which is optional per the JSON RFC.
-                    // Even though this implementation of equality does not take property ordering into account,
-                    // repeated property names must be specified in the same order (although they may be interleaved).
-                    // This is to preserve a degree of coherence with JSON serialization, where either the first
-                    // or last occurrence of a repeated property name is used. It also simplifies the implementation
-                    // and keeps it at O(n + m) complexity.
-
-                    Dictionary<string, ValueQueue<JsonElement>> properties2 = new(capacity: remainingProps,
-                        StringComparer.Ordinal);
-                    do
-                    {
-                        JsonProperty prop2 = objectEnumerator2.Current;
-#if NET
-                        ref ValueQueue<JsonElement> values =
-                            ref CollectionsMarshal.GetValueRefOrAddDefault(properties2, prop2.Name, out bool _);
-#else
-                            properties2.TryGetValue(prop2.Name, out ValueQueue<JsonElement> values);
-#endif
-                        values.Enqueue(prop2.Value);
-#if !NET
-                            properties2[prop2.Name] = values;
-#endif
-                    } while (objectEnumerator2.MoveNext());
-
-                    do
-                    {
-                        JsonProperty prop = objectEnumerator1.Current;
-#if NET
-                        ref ValueQueue<JsonElement> values =
-                            ref CollectionsMarshal.GetValueRefOrAddDefault(properties2, prop.Name, out bool exists);
-#else
-                            bool exists = properties2.TryGetValue(prop.Name, out ValueQueue<JsonElement> values);
-#endif
-                        if (!exists || !values.TryDequeue(out JsonElement value) || !DeepEquals(prop.Value, value))
-                        {
-                            return false;
-                        }
-#if !NET
-                            properties2[prop.Name] = values;
-#endif
-                    } while (objectEnumerator1.MoveNext());
-
-                    return true;
-                }
-
-                static bool NameEquals(JsonProperty left, JsonProperty right)
-                {
-                    if (right.NameIsEscaped)
-                    {
-                        if (left.NameIsEscaped)
-                        {
-                            // Need to unescape and compare both inputs.
-                            return JsonReaderHelper.UnescapeAndCompareBothInputs(left.NameSpan, right.NameSpan);
-                        }
-
-                        // Swap values so that unescaping is handled by the LHS
-                        (left, right) = (right, left);
-                    }
-
-                    return left.NameEquals(right.NameSpan);
-                }
         }
     }
 

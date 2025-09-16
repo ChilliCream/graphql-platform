@@ -1,6 +1,6 @@
 namespace HotChocolate.Fusion.Text.Json;
 
-internal static partial class JsonConstants
+internal static class JsonConstants
 {
     public const int StackallocByteThreshold = 256;
 
@@ -94,8 +94,8 @@ internal static partial class JsonConstants
     public const int DateTimeNumFractionDigits = 7;  // TimeSpan and DateTime formats allow exactly up to many digits for specifying the fraction after the seconds.
     public const int MaxDateTimeFraction = 9_999_999;  // The largest fraction expressible by TimeSpan and DateTime formats
     public const int DateTimeParseNumFractionDigits = 16; // The maximum number of fraction digits the Json DateTime parser allows
-    public const int MaximumDateTimeOffsetParseLength = (MaximumFormatDateTimeOffsetLength +
-        (DateTimeParseNumFractionDigits - DateTimeNumFractionDigits)); // Like StandardFormat 'O' for DateTimeOffset, but allowing 9 additional (up to 16) fraction digits.
+    public const int MaximumDateTimeOffsetParseLength = MaximumFormatDateTimeOffsetLength
+        + (DateTimeParseNumFractionDigits - DateTimeNumFractionDigits); // Like StandardFormat 'O' for DateTimeOffset, but allowing 9 additional (up to 16) fraction digits.
     public const int MinimumDateTimeParseLength = 10; // YYYY-MM-DD
     public const int MaximumEscapedDateTimeOffsetParseLength = MaxExpansionFactorWhileEscaping * MaximumDateTimeOffsetParseLength;
 
@@ -124,5 +124,4 @@ internal static partial class JsonConstants
     public const int DefaultIndentSize = 2;
     public const int MinimumIndentSize = 0;
     public const int MaximumIndentSize = 127; // If this value is changed, the impact on the options masking used in the JsonWriterOptions struct must be checked carefully.
-
 }

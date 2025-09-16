@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument
@@ -34,5 +36,21 @@ public sealed partial class CompositeResultDocument
         }
 
         return value;
+    }
+
+    internal string GetNameOfPropertyValue(int index)
+    {
+        // The property name is one row before the property value
+        return GetString(index - 1, ElementTokenType.PropertyName)!;
+    }
+
+    internal ReadOnlySpan<byte> GetPropertyNameRaw(int index)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var row = _metaDb.Get(index - 1);
+        Debug.Assert(row.TokenType is ElementTokenType.PropertyName);
+
+        return ReadRawValue(row);
     }
 }
