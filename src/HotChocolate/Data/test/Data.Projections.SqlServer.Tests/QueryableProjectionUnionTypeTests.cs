@@ -214,6 +214,61 @@ public class QueryableProjectionUnionTypeTests
             .MatchAsync();
     }
 
+    [Fact]
+    public async Task Create_Union_Typename_Only()
+    {
+        // arrange
+        var tester =
+            _cache.CreateSchema(s_barEntities, OnModelCreating, configure: ConfigureSchema);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    @"
+                        {
+                            root {
+                                __typename
+                            }
+                        }")
+                .Build());
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
+    }
+
+    [Fact]
+    public async Task Create_Union_Typename_Concrete_Mixed()
+    {
+        // arrange
+        var tester =
+            _cache.CreateSchema(s_barEntities, OnModelCreating, configure: ConfigureSchema);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    @"
+                        {
+                            root {
+                                __typename
+                                ... on Foo {
+                                    fooProp
+                                }
+                            }
+                        }")
+                .Build());
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
+    }
+
     private static void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AbstractType>()
