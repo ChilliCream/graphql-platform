@@ -417,11 +417,12 @@ public static class PagingObjectFieldDescriptorExtensions
             : TypeReference.Create(
                 connectionName + "Connection",
                 TypeContext.Output,
-                factory: _ => new ConnectionType(
+                factory: c => new ConnectionType(
                     connectionName,
                     nodeType,
                     includeTotalCount,
-                    includeNodesField));
+                    includeNodesField,
+                    c.Naming));
     }
 
     private static string EnsureConnectionNameCasing(string connectionName)
