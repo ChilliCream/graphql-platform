@@ -1,4 +1,4 @@
-using HotChocolate.ModelContextProtocol.Types;
+using HotChocolate.ModelContextProtocol.Directives;
 
 namespace HotChocolate.ModelContextProtocol.Extensions;
 
