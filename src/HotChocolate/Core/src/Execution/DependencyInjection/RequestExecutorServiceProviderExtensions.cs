@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -287,7 +288,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IRequestExecutorBuilder builder,
-        string query,
+        [StringSyntax("graphql")] string query,
         string? schemaName = null,
         CancellationToken cancellationToken = default)
     {

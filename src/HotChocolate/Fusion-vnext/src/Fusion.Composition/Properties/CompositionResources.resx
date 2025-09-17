@@ -408,12 +408,6 @@
   <data name="SatisfiabilityValidator_UnableToTransitionBetweenSchemas" xml:space="preserve">
     <value>Unable to transition between schemas '{0}' and '{1}' for access to field '{2}'.</value>
   </data>
-  <data name="SchemaNameMutableDirectiveDefinition_Argument_Value_Description" xml:space="preserve">
-    <value>The name of the source schema.</value>
-  </data>
-  <data name="SchemaNameMutableDirectiveDefinition_Description" xml:space="preserve">
-    <value>The @schemaName directive is used to specify the name of a source schema.</value>
-  </data>
   <data name="ShareableMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked.</value>
   </data>

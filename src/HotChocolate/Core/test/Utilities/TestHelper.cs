@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
@@ -22,7 +23,7 @@ public static class TestHelper
     }
 
     public static Task<IExecutionResult> ExpectValid(
-        string query,
+        [StringSyntax("graphql")] string query,
         Action<IRequestExecutorBuilder>? configure = null,
         Action<OperationRequestBuilder>? request = null,
         IServiceProvider? requestServices = null)

@@ -1,4 +1,9 @@
+using System.Collections.Immutable;
+using HotChocolate.Fusion.Definitions;
+using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
@@ -8,9 +13,14 @@ namespace HotChocolate.Fusion.Extensions;
 
 internal static class MutableOutputFieldDefinitionExtensions
 {
-    public static void ApplyLookupDirective(this MutableOutputFieldDefinition field)
+    public static void ApplyShareableDirective(this MutableOutputFieldDefinition field)
     {
-        field.Directives.Add(new Directive(new MutableDirectiveDefinition(DirectiveNames.Lookup)));
+        if (field.Directives.ContainsName(DirectiveNames.Shareable))
+        {
+            return;
+        }
+
+        field.Directives.Add(new Directive(new ShareableMutableDirectiveDefinition()));
     }
 
     public static bool ExistsInSchema(this MutableOutputFieldDefinition field, string schemaName)
@@ -39,6 +49,23 @@ internal static class MutableOutputFieldDefinitionExtensions
         return null;
     }
 
+    // productById(id: ID!) -> ["id"].
+    // productByIdAndCategoryId(id: ID!, categoryId: Int) -> ["id", "categoryId"].
+    // personByAddressId(id: ID! @is(field: "address.id")) -> ["address.id"].
+    public static List<string> GetFusionLookupMap(this MutableOutputFieldDefinition field)
+    {
+        var items = new List<string>();
+
+        foreach (var argument in field.Arguments)
+        {
+            var @is = argument.GetIsFieldSelectionMap();
+
+            items.Add(@is ?? argument.Name);
+        }
+
+        return items;
+    }
+
     public static SelectionSetNode? GetFusionRequiresRequirements(
         this MutableOutputFieldDefinition field,
         string schemaName)
@@ -59,6 +86,24 @@ internal static class MutableOutputFieldDefinitionExtensions
         var requirements = (string)fusionRequiresDirective.Arguments[ArgumentNames.Requirements].Value!;
 
         return ParseSelectionSet($"{{ {requirements} }}");
+    }
+
+    public static string GetKeyFields(
+        this MutableOutputFieldDefinition field,
+        List<string> lookupMap,
+        MutableSchemaDefinition schema)
+    {
+        var selectedValues = lookupMap.Select(a => new FieldSelectionMapParser(a).Parse());
+        var valueSelectionToSelectionSetRewriter = new ValueSelectionToSelectionSetRewriter(schema);
+        var fieldType = field.Type.AsTypeDefinition();
+        var selectionSets = selectedValues
+            .Select(s => valueSelectionToSelectionSetRewriter.Rewrite(s, fieldType))
+            .ToImmutableArray();
+        var mergedSelectionSet = selectionSets.Length == 1
+            ? selectionSets[0]
+            : new MergeSelectionSetRewriter(schema).Merge(selectionSets, fieldType);
+
+        return mergedSelectionSet.ToString(indented: false).AsSpan()[2..^2].ToString();
     }
 
     public static bool HasInternalDirective(this MutableOutputFieldDefinition type)

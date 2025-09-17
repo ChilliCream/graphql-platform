@@ -1,4 +1,5 @@
 using HotChocolate.Caching.Memory;
+using HotChocolate.Execution.Relay;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 
@@ -188,6 +189,23 @@ public sealed class FusionRequestOptions : ICloneable
     }
 
     /// <summary>
+    /// Specifies the format for Global Object Identifiers.
+    /// </summary>
+    public NodeIdSerializerFormat NodeIdSerializerFormat
+    {
+        get;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new InvalidOperationException("The request options are read-only.");
+            }
+
+            field = value;
+        }
+    } = NodeIdSerializerFormat.Base64;
+
+    /// <summary>
     /// Clones the request options into a new mutable instance.
     /// </summary>
     /// <returns>
@@ -203,6 +221,7 @@ public sealed class FusionRequestOptions : ICloneable
         clone._collectOperationPlanTelemetry = _collectOperationPlanTelemetry;
         clone._defaultErrorHandlingMode = _defaultErrorHandlingMode;
         clone._allowErrorHandlingModeOverride = _allowErrorHandlingModeOverride;
+        clone.NodeIdSerializerFormat = NodeIdSerializerFormat;
         return clone;
     }
 
