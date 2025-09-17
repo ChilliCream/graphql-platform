@@ -45,6 +45,7 @@ public sealed partial class CompositeResultDocument
             int sourceDocumentId = 0,
             int parentRow = 0,
             int selectionSetId = 0,
+            int numberOfRows = 0,
             ElementFlags flags = ElementFlags.None)
         {
             // Check if we need to allocate a new chunk
@@ -89,6 +90,7 @@ public sealed partial class CompositeResultDocument
                 sourceDocumentId,
                 parentRow,
                 selectionSetId,
+                numberOfRows,
                 flags);
 
             // Write the row to the current chunk
@@ -109,6 +111,7 @@ public sealed partial class CompositeResultDocument
             int sourceDocumentId = 0,
             int parentRow = 0,
             int selectionSetId = 0,
+            int numberOfRows = 0,
             ElementFlags flags = ElementFlags.None)
         {
             Debug.Assert(index >= 0);
@@ -132,6 +135,7 @@ public sealed partial class CompositeResultDocument
                 sourceDocumentId,
                 parentRow,
                 selectionSetId,
+                numberOfRows,
                 flags);
 
             // Then write it all back to the chunk.

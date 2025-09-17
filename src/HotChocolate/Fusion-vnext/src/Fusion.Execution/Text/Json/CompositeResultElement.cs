@@ -212,9 +212,9 @@ public partial struct CompositeResultElement
     }
 
     /// <summary>
-    ///   Looks for a property named <paramref name="propertyName"/> in the current object, returning
-    ///   whether or not such a property existed. When the property exists <paramref name="value"/>
-    ///   is assigned to the value of that property.
+    /// Looks for a property named <paramref name="propertyName"/> in the current object, returning
+    /// whether or not such a property existed. When the property exists <paramref name="value"/>
+    /// is assigned to the value of that property.
     /// </summary>
     /// <remarks>
     ///   <para>

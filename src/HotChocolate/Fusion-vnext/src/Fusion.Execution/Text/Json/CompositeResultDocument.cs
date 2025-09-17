@@ -33,15 +33,17 @@ public sealed partial class CompositeResultDocument
     private bool _disposed;
 #pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
 
-    private CompositeResultDocument(Operation operation)
+    public CompositeResultDocument(Operation operation)
     {
+        _metaDb = MetaDb.CreateForEstimatedRows(10_000);
+
         // we initialize the data chunks so that we can store local data on this document.
         _dataChunks = new byte[16][];
         _dataChunks[0] = JsonMemoryPool.Rent();
         _operation =  operation;
 
         // we create the root data object.
-        CreateObject(0, operation.RootSelectionSet);
+        Data = CreateObject(0, operation.RootSelectionSet);
     }
 
     public CompositeResultElement Data { get; }
@@ -87,7 +89,7 @@ public sealed partial class CompositeResultDocument
 
         CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
 
-        return row.NumberOfRows;
+        return row.SizeOrLength;
     }
 
     private ReadOnlySpan<byte> ReadRawValue(DbRow row)
@@ -121,7 +123,10 @@ public sealed partial class CompositeResultDocument
     private CompositeResultElement CreateObject(int parentRow, SelectionSet selectionSet)
     {
         // change to int
-        var index = WriteStartObject(parentRow, (int)selectionSet.Id);
+        var index = WriteStartObject(
+            parentRow,
+            (int)selectionSet.Id,
+            selectionSet.Selections.Length);
 
         foreach (var selection in selectionSet.Selections)
         {
@@ -130,7 +135,7 @@ public sealed partial class CompositeResultDocument
 
         WriteEndObject();
 
-        throw new NotImplementedException();
+        return new CompositeResultElement(this, index);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -146,7 +151,7 @@ public sealed partial class CompositeResultDocument
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private int WriteStartObject(int parentRow = 0, int selectionSetId = 0)
+    private int WriteStartObject(int parentRow = 0, int selectionSetId = 0, int length = 0)
     {
         var flags = ElementFlags.None;
 
@@ -158,9 +163,11 @@ public sealed partial class CompositeResultDocument
 
         return _metaDb.Append(
             ElementTokenType.StartObject,
+            sizeOrLength: length,
             parentRow: parentRow,
             selectionSetId: selectionSetId,
-            flags: flags);
+            numberOfRows: (length * 2) + 2,
+            flags: flags );
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
