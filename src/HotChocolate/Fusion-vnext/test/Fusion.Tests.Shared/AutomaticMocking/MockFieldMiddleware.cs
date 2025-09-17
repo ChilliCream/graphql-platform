@@ -46,7 +46,7 @@ internal sealed class MockFieldMiddleware
                 }
                 else if (namedFieldType.IsScalarType() || namedFieldType.IsEnumType())
                 {
-                    var currentListIndex = context.Parent<ObjectTypeInst>()?.Index;
+                    var currentListIndex = context.Parent<MockObject>()?.Index;
                     if (currentListIndex.HasValue && currentListIndex == nullIndex)
                     {
                         throw new GraphQLException(CreateError(context));
@@ -66,7 +66,7 @@ internal sealed class MockFieldMiddleware
 
                 if (namedFieldType.IsScalarType() || namedFieldType.IsEnumType())
                 {
-                    var currentListIndex = context.Parent<ObjectTypeInst>()?.Index;
+                    var currentListIndex = context.Parent<MockObject>()?.Index;
                     if (currentListIndex.HasValue && currentListIndex == nullIndex)
                     {
                         context.Result = null;
@@ -81,23 +81,15 @@ internal sealed class MockFieldMiddleware
             }
         }
 
-        if (fieldName.EndsWith("ById") || fieldName is "node" or "nodes")
+        if ((fieldName.EndsWith("ById") || fieldName is "node" or "nodes")
+            && field.Arguments.Count == 1
+            && field.Arguments[0].Type.NamedType().Name == "ID")
         {
-            if (context.Selection.Arguments.ContainsName("id"))
-            {
-                var id = context.ArgumentValue<object>("id");
-                if (namedFieldType.IsCompositeType())
-                {
-                    var type = GetConcreteTypes(requestedTypes, context, [id], 1).First();
+            var argument = field.Arguments[0];
 
-                    context.Result = CreateObject(id, type);
-                    return ValueTask.CompletedTask;
-                }
-            }
-
-            if (context.Selection.Arguments.ContainsName("ids"))
+            if (argument.Type.IsListType())
             {
-                var ids = context.ArgumentValue<object[]>("ids");
+                var ids = context.ArgumentValue<object[]>(argument.Name);
 
                 IType nullableType = fieldType;
                 if (fieldType.IsNonNullType())
@@ -119,10 +111,21 @@ internal sealed class MockFieldMiddleware
                     }
                 }
             }
+            else
+            {
+                var id = context.ArgumentValue<object>(argument.Name);
+                if (namedFieldType.IsCompositeType())
+                {
+                    var type = GetConcreteTypes(requestedTypes, context, [id], 1).First();
+
+                    context.Result = CreateObject(id, type);
+                    return ValueTask.CompletedTask;
+                }
+            }
         }
         else if (fieldName.EqualsInvariantIgnoreCase("id") && fieldType.NamedType() is IdType)
         {
-            context.Result = context.Parent<ObjectTypeInst>().Id;
+            context.Result = context.Parent<MockObject>().Id;
             return ValueTask.CompletedTask;
         }
 
@@ -152,7 +155,7 @@ internal sealed class MockFieldMiddleware
             {
                 context.Result = CreateListOfScalars(
                     scalarType,
-                    context.Parent<ObjectTypeInst?>() ?? new ObjectTypeInst(null, context.Operation.RootType, null),
+                    context.Parent<MockObject?>() ?? new MockObject(null, context.Operation.RootType, null),
                     nullIndex,
                     mockingContext);
             }
@@ -165,7 +168,7 @@ internal sealed class MockFieldMiddleware
         {
             context.Result = CreateScalarValue(
                 scalarType,
-                context.Parent<ObjectTypeInst?>() ?? new ObjectTypeInst(null, context.Operation.RootType, null),
+                context.Parent<MockObject?>() ?? new MockObject(null, context.Operation.RootType, null),
                 mockingContext);
         }
 
@@ -174,7 +177,7 @@ internal sealed class MockFieldMiddleware
 
     private object? CreateScalarValue(
         IScalarTypeDefinition scalarType,
-        ObjectTypeInst parentObject,
+        MockObject parentObject,
         AutomaticMockingContext mockingContext)
     {
         return scalarType switch
@@ -250,12 +253,12 @@ internal sealed class MockFieldMiddleware
         ObjectType type,
         int? index = null)
     {
-        return new ObjectTypeInst(id, type, index);
+        return new MockObject(id, type, index);
     }
 
     private object?[] CreateListOfScalars(
         IScalarTypeDefinition scalarType,
-        ObjectTypeInst parentObject,
+        MockObject parentObject,
         int? nullIndex,
         AutomaticMockingContext mockingContext)
     {
@@ -318,8 +321,3 @@ internal sealed class MockFieldMiddleware
         public int IdCounter { get; set; }
     }
 }
-
-internal record ObjectTypeInst(
-    object? Id,
-    ObjectType Type,
-    int? Index = null);

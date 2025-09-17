@@ -8,7 +8,9 @@ public static class RequestExecutorBuilderAutomaticMockingExtensions
 {
     public static IRequestExecutorBuilder AddResolverMocking(this IRequestExecutorBuilder builder)
     {
-        return builder.UseField<MockFieldMiddleware>().TryAddTypeInterceptor<AbstractTypeMockingTypeInterceptor>();
+        return builder
+            .UseField<MockFieldMiddleware>()
+            .TryAddTypeInterceptor<AbstractTypeMockingTypeInterceptor>();
     }
 
     public static IRequestExecutorBuilder AddTestDirectives(this IRequestExecutorBuilder builder)

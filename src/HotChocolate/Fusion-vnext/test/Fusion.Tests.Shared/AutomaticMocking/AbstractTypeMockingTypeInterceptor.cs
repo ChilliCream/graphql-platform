@@ -22,9 +22,9 @@ internal sealed class AbstractTypeMockingTypeInterceptor : TypeInterceptor
 
     private ObjectType ResolveAbstractType(IResolverContext context, object resolverResult)
     {
-        if (resolverResult is ObjectTypeInst inst)
+        if (resolverResult is MockObject obj)
         {
-            return inst.Type;
+            return obj.Type;
         }
 
         throw new InvalidOperationException();
