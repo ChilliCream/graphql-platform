@@ -164,6 +164,7 @@ type Query {
   human(id: ID!): Human
   droid(id: ID!): Droid
   search(text: String): [SearchResult]
+  someDeprecatedField(deprecatedArg: String @deprecated(reason: "use something else") deprecatedWithNullReason: String @deprecated(reason: null)): String @deprecated(reason: "use something else")
 }
 
 type Mutation {

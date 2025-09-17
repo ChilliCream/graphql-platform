@@ -329,7 +329,7 @@ internal static class IntrospectionFormatter
                     new ArgumentNode
                     (
                         WellKnownDirectives.DeprecationReasonArgument,
-                        new StringValueNode(deprecationReason)
+                        deprecationReason is not null ? new StringValueNode(deprecationReason) : NullValueNode.Default
                     )
                 )
             };
