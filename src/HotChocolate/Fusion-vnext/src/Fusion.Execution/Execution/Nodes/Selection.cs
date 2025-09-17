@@ -1,3 +1,5 @@
+using System.Text;
+using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -6,12 +8,15 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class Selection : ISelection
 {
+    private static readonly Cache<byte[]> s_cache = new(capacity: 4096);
+    private static readonly Encoding s_utf8 = Encoding.UTF8;
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
+    private readonly byte[] _rawResponseName;
     private Flags _flags;
 
     public Selection(
-        uint id,
+        int id,
         string responseName,
         IOutputFieldDefinition field,
         FieldSelectionNode[] syntaxNodes,
@@ -38,15 +43,17 @@ public sealed class Selection : ISelection
         {
             _flags |= Flags.Leaf;
         }
+
+        _rawResponseName = s_cache.GetOrCreate(responseName, static key => s_utf8.GetBytes(key));
     }
 
-    public uint Id { get; }
+    public int Id { get; }
 
     public string ResponseName { get; }
 
-    internal ReadOnlySpan<byte> RawResponseName => throw new NotImplementedException();
+    internal ReadOnlySpan<byte> RawResponseName => _rawResponseName;
 
-    internal ReadOnlyMemory<byte> RawResponseNameAsMemory => throw new NotImplementedException();
+    internal ReadOnlyMemory<byte> RawResponseNameAsMemory => _rawResponseName;
 
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
 

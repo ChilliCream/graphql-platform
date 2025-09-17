@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace HotChocolate.Fusion.Text.Json;
 
 public class CompositeResultDocumentTests : FusionTestBase
@@ -28,5 +30,8 @@ public class CompositeResultDocumentTests : FusionTestBase
 
         // assert
         Assert.Equal(1, compositeResult.Data.GetPropertyCount());
+        var propertyValue = compositeResult.Data.GetProperty("productBySlug");
+        Assert.Equal("productBySlug", propertyValue.GetPropertyName());
+        Assert.Equal(JsonValueKind.Undefined, propertyValue.ValueKind);
     }
 }

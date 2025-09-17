@@ -11,7 +11,7 @@ public sealed class SelectionSet : ISelectionSet
     private readonly FrozenDictionary<string, Selection> _responseNameLookup;
     private bool _isSealed;
 
-    public SelectionSet(uint id, IObjectTypeDefinition type, Selection[] selections, bool isConditional)
+    public SelectionSet(int id, IObjectTypeDefinition type, Selection[] selections, bool isConditional)
     {
         ArgumentNullException.ThrowIfNull(selections);
 
@@ -30,7 +30,7 @@ public sealed class SelectionSet : ISelectionSet
     /// <summary>
     /// Gets an operation unique selection-set identifier of this selection.
     /// </summary>
-    public uint Id { get; }
+    public int Id { get; }
 
     /// <summary>
     /// Defines if this list needs post-processing for skip and include.
