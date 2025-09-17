@@ -62,5 +62,17 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("JsonReaderHelper_TranscodeHelper_CannotTranscodeInvalidUtf8", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_ReadInvalidUTF16 {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ReadInvalidUTF16", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_ReadIncompleteUTF16 {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ReadIncompleteUTF16", resourceCulture);
+            }
+        }
     }
 }

@@ -10,7 +10,6 @@ namespace HotChocolate.Fusion.Text.Json;
 public class SourceResultDocument
 {
     internal int Id;
-
 }
 
 public struct SourceResultElement
@@ -30,7 +29,9 @@ public sealed partial class CompositeResultDocument
     private byte[][] _dataChunks;
     private List<SourceResultDocument> _sources = [];
     private Operation _operation;
+#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
     private bool _disposed;
+#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
 
     private CompositeResultDocument(Operation operation)
     {

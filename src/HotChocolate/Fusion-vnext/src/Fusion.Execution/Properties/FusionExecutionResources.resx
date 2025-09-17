@@ -27,4 +27,10 @@
   <data name="JsonReaderHelper_TranscodeHelper_CannotTranscodeInvalidUtf8" xml:space="preserve">
     <value>Cannot transcode invalid UTF-8 JSON text to UTF-16 string.</value>
   </data>
+  <data name="ThrowHelper_ReadInvalidUTF16" xml:space="preserve">
+    <value>Cannot read invalid UTF-16 JSON text as string. Invalid surrogate value: '{0}'.</value>
+  </data>
+  <data name="ThrowHelper_ReadIncompleteUTF16" xml:space="preserve">
+    <value>Cannot read incomplete UTF-16 JSON text as string with missing low surrogate.</value>
+  </data>
 </root>

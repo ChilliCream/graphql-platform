@@ -3,7 +3,6 @@ using System.Buffers.Text;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using HotChocolate.Fusion.Types;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Text.Json;

@@ -20,7 +20,7 @@ public sealed partial class CompositeResultDocument
         internal static MetaDb CreateForEstimatedRows(int estimatedRows)
         {
             var chunksNeeded = Math.Max(4, (estimatedRows / RowsPerChunk) + 1);
-            var chunks = new byte[][chunksNeeded];
+            var chunks = new byte[chunksNeeded][];
 
             chunks[0] = MetaDbMemoryPool.Rent();
 

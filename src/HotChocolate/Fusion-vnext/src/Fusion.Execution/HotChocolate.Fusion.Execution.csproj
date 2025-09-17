@@ -62,6 +62,9 @@
     <Compile Update="Text\Json\CompositeResultDocument.TryGetValue.cs">
       <DependentUpon>CompositeResultDocument.cs</DependentUpon>
     </Compile>
+    <Compile Update="Text\Json\CompositeResultElement.ArrayEnumerator.cs">
+      <DependentUpon>CompositeResultElement.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

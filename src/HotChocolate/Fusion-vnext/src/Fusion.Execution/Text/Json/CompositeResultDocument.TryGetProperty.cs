@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -26,9 +27,9 @@ public sealed partial class CompositeResultDocument
         var maxBytes = s_utf8Encoding.GetMaxByteCount(propertyName.Length);
         var endIndex = startIndex + row.NumberOfRows;
 
-        if (maxBytes < StackallocByteThreshold)
+        if (maxBytes < JsonConstants.StackallocByteThreshold)
         {
-            Span<byte> utf8Name = stackalloc byte[StackallocByteThreshold];
+            Span<byte> utf8Name = stackalloc byte[JsonConstants.StackallocByteThreshold];
             var len = s_utf8Encoding.GetBytes(propertyName, utf8Name);
             utf8Name = utf8Name[..len];
 
@@ -129,7 +130,7 @@ public sealed partial class CompositeResultDocument
         ReadOnlySpan<byte> propertyName,
         out CompositeResultElement value)
     {
-        Span<byte> utf8UnescapedStack = stackalloc byte[StackallocByteThreshold];
+        Span<byte> utf8UnescapedStack = stackalloc byte[JsonConstants.StackallocByteThreshold];
         var index = endIndex;
 
         while (index > startIndex)

@@ -3,10 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
+#pragma warning disable CS1574, CS1584, CS1581, CS1580
 
 namespace HotChocolate.Fusion.Text.Json;
 
-public struct CompositeResultElement
+public partial struct CompositeResultElement
 {
     private readonly CompositeResultDocument _parent;
     private readonly int _index;
@@ -416,7 +417,6 @@ public struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    [CLSCompliant(false)]
     public bool TryGetSByte(out sbyte value)
     {
         CheckValidInstance();
@@ -437,7 +437,6 @@ public struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    [CLSCompliant(false)]
     public sbyte GetSByte() => TryGetSByte(out var value) ? value : throw new FormatException();
 
     /// <summary>
@@ -554,7 +553,6 @@ public struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    [CLSCompliant(false)]
     public bool TryGetUInt16(out ushort value)
     {
         CheckValidInstance();
@@ -578,7 +576,6 @@ public struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    [CLSCompliant(false)]
     public ushort GetUInt16()
     {
         if (TryGetUInt16(out ushort value))
@@ -653,7 +650,6 @@ public struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    [CLSCompliant(false)]
     public bool TryGetUInt32(out uint value)
     {
         CheckValidInstance();
@@ -677,7 +673,6 @@ public struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    [CLSCompliant(false)]
     public uint GetUInt32()
     {
         if (!TryGetUInt32(out uint value))
@@ -755,7 +750,6 @@ public struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    [CLSCompliant(false)]
     public bool TryGetUInt64(out ulong value)
     {
         CheckValidInstance();
@@ -779,7 +773,6 @@ public struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    [CLSCompliant(false)]
     public ulong GetUInt64()
     {
         if (!TryGetUInt64(out ulong value))
@@ -1125,42 +1118,7 @@ public struct CompositeResultElement
         return _parent.TextEquals(_index, text, isPropertyName);
     }
 
-    internal bool ValueIsEscapedHelper(bool isPropertyName)
-    {
-        CheckValidInstance();
-
-        return _parent.ValueIsEscaped(_index, isPropertyName);
-    }
-
-    /// <summary>
-    ///   Write the element into the provided writer as a JSON value.
-    /// </summary>
-    /// <param name="writer">The writer.</param>
-    /// <exception cref="ArgumentNullException">
-    ///   The <paramref name="writer"/> parameter is <see langword="null"/>.
-    /// </exception>
-    /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is <see cref="JsonValueKind.Undefined"/>.
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
-    /// </exception>
-    public void WriteTo(Utf8JsonWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-
-        CheckValidInstance();
-
-        _parent.WriteElementTo(_index, writer);
-    }
-
-    internal void WritePropertyNameTo(Utf8JsonWriter writer)
-    {
-        CheckValidInstance();
-
-        _parent.WritePropertyName(_index, writer);
-    }
-
+    /*
     /// <summary>
     ///   Get an enumerator to enumerate the values in the JSON array represented by this JsonElement.
     /// </summary>
@@ -1177,16 +1135,24 @@ public struct CompositeResultElement
     {
         CheckValidInstance();
 
-        JsonTokenType tokenType = TokenType;
+        var tokenType = TokenType;
 
-        if (tokenType != JsonTokenType.StartArray)
+        if (tokenType != ElementTokenType.StartArray)
         {
-            ThrowHelper.ThrowJsonElementWrongTypeException(JsonTokenType.StartArray, tokenType);
+            throw new InvalidOperationException(string.Format(
+                "The requested operation requires an element of type '{0}', but the target element has type '{1}'.",
+                ElementTokenType.StartArray,
+                tokenType))
+            {
+                Source = Rethrowable
+            };
         }
 
         return new JsonElement.ArrayEnumerator(this);
     }
+    */
 
+    /*
     /// <summary>
     ///   Get an enumerator to enumerate the properties in the JSON object represented by this JsonElement.
     /// </summary>
@@ -1212,7 +1178,9 @@ public struct CompositeResultElement
 
         return new JsonElement.ObjectEnumerator(this);
     }
+    */
 
+    /*
     /// <summary>
     ///   Gets a string representation for the current value appropriate to the value type.
     /// </summary>
@@ -1303,6 +1271,7 @@ public struct CompositeResultElement
 
         return _parent.CloneElement(_index);
     }
+    */
 
     private void CheckValidInstance()
     {
