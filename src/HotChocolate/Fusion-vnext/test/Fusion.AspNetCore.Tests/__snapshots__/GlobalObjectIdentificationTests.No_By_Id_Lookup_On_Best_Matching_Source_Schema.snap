@@ -1,13 +1,13 @@
 {
   "data": {
     "node": {
-      "commentCount": 3
+      "commentCount": 123
     }
   },
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "196519488810dc4bc797d579e2b38aa56e263f05daac5c75f4d0a48769632d37",
+        "id": "2c74b568fc6bdd248cd5b3372f1750446818cad99800909607a5e7da8fe90b73",
         "operation": {
           "kind": "Query",
           "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      commentCount\n    }\n    title @fusion__requirement\n  }\n}",
@@ -77,12 +77,12 @@
               "commentCount"
             ],
             "source": "$.discussionByName",
-            "target": "$.node",
+            "target": "$.node<Discussion>",
             "requirements": [
               {
                 "name": "__fusion_1_title",
                 "type": "String!",
-                "path": "$.node",
+                "path": "$.node<Discussion>",
                 "selectionMap": "title"
               }
             ],
