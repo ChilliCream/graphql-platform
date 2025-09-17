@@ -3,24 +3,18 @@
 ## SQL
 
 ```text
-.param set @keys '[1]'
+.param set @keys1 1
 .param set @p_startswith 'Product%'
 
 SELECT "p"."Id", "p"."AvailableStock", "p"."BrandId", "p"."Description", "p"."ImageFileName", "p"."MaxStockThreshold", "p"."Name", "p"."OnReorder", "p"."Price", "p"."RestockThreshold", "p"."TypeId"
 FROM "Products" AS "p"
-WHERE "p"."BrandId" IN (
-    SELECT "k"."value"
-    FROM json_each(@keys) AS "k"
-) AND "p"."Name" LIKE @p_startswith ESCAPE '\'
-.param set @keys '[1]'
+WHERE "p"."BrandId" = @keys1 AND "p"."Name" LIKE @p_startswith ESCAPE '\'
+.param set @keys1 1
 .param set @p 'Product 0-0'
 
 SELECT "p"."Id", "p"."AvailableStock", "p"."BrandId", "p"."Description", "p"."ImageFileName", "p"."MaxStockThreshold", "p"."Name", "p"."OnReorder", "p"."Price", "p"."RestockThreshold", "p"."TypeId"
 FROM "Products" AS "p"
-WHERE "p"."BrandId" IN (
-    SELECT "k"."value"
-    FROM json_each(@keys) AS "k"
-) AND "p"."Name" = @p
+WHERE "p"."BrandId" = @keys1 AND "p"."Name" = @p
 ```
 
 ## Result
