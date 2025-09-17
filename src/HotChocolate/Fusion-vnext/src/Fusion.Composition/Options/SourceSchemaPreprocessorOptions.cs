@@ -1,6 +1,9 @@
 namespace HotChocolate.Fusion.Options;
 
-internal sealed class SourceSchemaPreprocessorOptions
+public sealed class SourceSchemaPreprocessorOptions
 {
-    public bool ApplyShareableToAllTypes { get; set; } = true;
+    /// <summary>
+    /// Applies inferred key directives to types that are returned by lookup fields.
+    /// </summary>
+    public bool ApplyInferredKeyDirectives { get; set; } = true;
 }

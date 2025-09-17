@@ -967,7 +967,7 @@ public sealed class SatisfiabilityValidatorTests
                     pId: ID!
                     compositeId: CompositeID!
                     name: String! @external
-                    nameInB: String! @requires(fields: "name")
+                    nameInB: String! @require(fields: "name")
                 }
 
                 type CompositeID {
@@ -1026,7 +1026,7 @@ public sealed class SatisfiabilityValidatorTests
                 type Product @key(fields: "id") {
                     id: ID!
                     price: Float! @external
-                    isExpensive: Boolean! @requires(fields: "price")
+                    isExpensive: Boolean! @require(fields: "price")
                     isAvailable: Boolean!
                 }
 
