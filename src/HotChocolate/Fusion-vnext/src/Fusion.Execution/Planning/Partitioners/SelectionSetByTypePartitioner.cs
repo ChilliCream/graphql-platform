@@ -153,7 +153,13 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
                         {
                             var newSelectionSet = new SelectionSetNode(selectionSetNode.Selections);
 
-                            context.SelectionSetIndexBuilder.Register(newSelectionSet);
+                            // Since we're cloning the selection set,
+                            // we also need to keep track of the original
+                            // selection set the cloned one belongs to,
+                            // so we can later insert requirements in the original one.
+                            context.SelectionSetIndexBuilder.RegisterCloned(
+                                selectionSetNode,
+                                newSelectionSet);
 
                             return newSelectionSet;
                         }

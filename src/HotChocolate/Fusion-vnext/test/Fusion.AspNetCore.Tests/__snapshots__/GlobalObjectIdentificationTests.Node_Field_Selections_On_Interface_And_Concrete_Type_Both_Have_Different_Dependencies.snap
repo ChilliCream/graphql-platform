@@ -22,11 +22,11 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "b1c40ffdf7dcf87ebf6e2bfe8a7c84c9a54428d79128dba7de758ed613205dea",
+        "id": "b06f29241f48495885f55b3546424d15fbf57ab61160797453953a3962a329f9",
         "operation": {
           "name": "testQuery",
           "kind": "Query",
-          "document": "query testQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    id\n    ... on ProductList {\n      products {\n        id\n        name\n      }\n    }\n    ... on Item2 {\n      singularProduct {\n        name\n        id @fusion__requirement\n      }\n    }\n  }\n}",
+          "document": "query testQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    id\n    ... on ProductList {\n      products {\n        id\n        id @fusion__requirement\n        name\n      }\n    }\n    ... on Item2 {\n      singularProduct {\n        name\n        id @fusion__requirement\n      }\n    }\n  }\n}",
           "id": "f7a0a31d1db29f17823b689486c82f42",
           "hash": "f7a0a31d1db29f17823b689486c82f42",
           "shortHash": "f7a0a31d"

@@ -1346,7 +1346,6 @@ public class GlobalObjectIdentificationTests : FusionTestBase
                 id
                 ... on ProductList {
                   products {
-                    id
                     name
                   }
                 }
