@@ -6,8 +6,6 @@ using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public abstract class FieldBase

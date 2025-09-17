@@ -33,6 +33,7 @@ public class QueryableSortVisitorEnumTests
     public async Task Create_Enum_OrderBy()
     {
         // arrange
+        var snapshot = Snapshot.Create();
         var tester = _cache.CreateSchema<Foo, FooSortType>(s_fooEntities);
 
         // act
@@ -47,8 +48,7 @@ public class QueryableSortVisitorEnumTests
                 .Build());
 
         // assert
-        await Snapshot
-            .Create()
+        await snapshot
             .Add(res1, "ASC")
             .Add(res2, "DESC")
             .MatchAsync();

@@ -1,8 +1,6 @@
 using HotChocolate.Types;
 using static HotChocolate.Utilities.ErrorHelper;
 
-#nullable enable
-
 namespace HotChocolate.Configuration.Validation;
 
 internal static class TypeValidationHelper

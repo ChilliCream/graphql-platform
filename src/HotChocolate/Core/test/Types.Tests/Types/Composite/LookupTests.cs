@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -180,7 +178,7 @@ public static class LookupTests
             """
             directive @lookup on FIELD_DEFINITION
 
-            "The `@oneOf` directive is used within the type system definition language to indicate that an input object is a oneof input object."
+            "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
             directive @oneOf on INPUT_OBJECT
 
             scalar FieldSelectionMap
@@ -253,7 +251,7 @@ public static class LookupTests
             => new(id, "Abc");
     }
 
-    [Key("id")]
+    [EntityKey("id")]
     public record Book3(int Id, string Title);
 
     public class Query4
@@ -266,7 +264,7 @@ public static class LookupTests
     [OneOf]
     public record Book4ByInput(int? Id, string? Title);
 
-    [Key("id")]
+    [EntityKey("id")]
     public record Book4(int Id, string Title);
 
     public class Query5

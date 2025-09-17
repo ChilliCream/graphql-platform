@@ -23,7 +23,7 @@ public class IntrospectionTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -62,7 +62,7 @@ public class IntrospectionTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -99,7 +99,7 @@ public class IntrospectionTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -134,7 +134,7 @@ public class IntrospectionTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -169,7 +169,7 @@ public class IntrospectionTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -204,7 +204,7 @@ public class IntrospectionTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -238,7 +238,7 @@ public class IntrospectionTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // act
@@ -276,7 +276,7 @@ public class IntrospectionTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // act
@@ -297,6 +297,34 @@ public class IntrospectionTests : FusionTestBase
         // assert
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Download_Schema()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = gateway.CreateClient();
+
+        using var result = await client.GetAsync("http://localhost:5000/graphql/schema");
+        var sdl = await result.Content.ReadAsStringAsync();
+
+        // assert
+        sdl.MatchSnapshot(extension: ".graphql");
     }
 
     public static class SourceSchema1

@@ -4,8 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Resolvers.Expressions;
 using static System.Linq.Expressions.Expression;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers;
 
 internal static class SubscribeResultHelper

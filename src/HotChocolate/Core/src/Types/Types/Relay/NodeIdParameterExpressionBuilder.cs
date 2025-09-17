@@ -4,8 +4,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types.Relay;
 
 internal sealed class NodeIdParameterExpressionBuilder

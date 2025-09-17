@@ -21,6 +21,9 @@ public sealed class GraphQLRequest
     /// <param name="operationName">
     /// The name of an operation in the operation document that shall be executed.
     /// </param>
+    /// <param name="errorHandlingMode">
+    /// The requested error handling mode.
+    /// </param>
     /// <param name="variables">
     /// A list of variables for the operation.
     /// </param>
@@ -35,6 +38,7 @@ public sealed class GraphQLRequest
         OperationDocumentId? documentId = null,
         OperationDocumentHash? documentHash = null,
         string? operationName = null,
+        ErrorHandlingMode? errorHandlingMode = null,
         IReadOnlyList<IReadOnlyDictionary<string, object?>>? variables = null,
         IReadOnlyDictionary<string, object?>? extensions = null)
     {
@@ -47,6 +51,7 @@ public sealed class GraphQLRequest
         DocumentHash = documentHash;
         Document = document;
         OperationName = operationName;
+        ErrorHandlingMode = errorHandlingMode;
         Variables = variables;
         Extensions = extensions;
     }
@@ -72,6 +77,11 @@ public sealed class GraphQLRequest
     /// If this property is <c>null</c> the document only contains a single operation.
     /// </summary>
     public string? OperationName { get; }
+
+    /// <summary>
+    /// Get the requested error handling mode.
+    /// </summary>
+    public ErrorHandlingMode? ErrorHandlingMode { get; }
 
     /// <summary>
     /// Gets a list of variables for the operation.

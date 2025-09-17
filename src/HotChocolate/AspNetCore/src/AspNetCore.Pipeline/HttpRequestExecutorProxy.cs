@@ -22,16 +22,10 @@ public sealed class HttpRequestExecutorProxy(
         return executor.Features.GetRequired<ExecutorSession>();
     }
 
-    protected override void OnRequestExecutorUpdated(IRequestExecutor? executor)
+    protected override void OnConfigureRequestExecutor(IRequestExecutor newExecutor, IRequestExecutor? oldExecutor)
     {
-        if (executor is null)
-        {
-            _session = null;
-            return;
-        }
-
-        var session = new ExecutorSession(executor);
-        executor.Features.Set(session);
+        var session = new ExecutorSession(newExecutor);
+        newExecutor.Features.Set(session);
         _session = session;
     }
 

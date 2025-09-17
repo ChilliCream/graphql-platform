@@ -221,57 +221,7 @@ namespace Foo.Bar
 
         public static GetSomethingQueryDocument Instance { get; } = new GetSomethingQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x71,
-            0x75,
-            0x65,
-            0x72,
-            0x79,
-            0x20,
-            0x47,
-            0x65,
-            0x74,
-            0x53,
-            0x6f,
-            0x6d,
-            0x65,
-            0x74,
-            0x68,
-            0x69,
-            0x6e,
-            0x67,
-            0x28,
-            0x24,
-            0x62,
-            0x61,
-            0x72,
-            0x3a,
-            0x20,
-            0x42,
-            0x61,
-            0x72,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x66,
-            0x6f,
-            0x6f,
-            0x28,
-            0x62,
-            0x61,
-            0x72,
-            0x3a,
-            0x20,
-            0x24,
-            0x62,
-            0x61,
-            0x72,
-            0x29,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetSomething($bar: Bar) { foo(bar: $bar) }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "da8906d1f936b0ba2f53ecc3b4f994f97a74891d");
 
         public override global::System.String ToString()
@@ -300,14 +250,14 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetSomethingResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _barFormatter;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetSomethingQuery(global::StrawberryShake.IOperationExecutor<IGetSomethingResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _barFormatter = serializerResolver.GetInputValueFormatter("Bar");
         }
 
-        private GetSomethingQuery(global::StrawberryShake.IOperationExecutor<IGetSomethingResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter barFormatter)
+        private GetSomethingQuery(global::StrawberryShake.IOperationExecutor<IGetSomethingResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter barFormatter)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

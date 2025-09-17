@@ -9,12 +9,14 @@ public sealed class InlineFragmentOperationRewriter(
     ISchemaDefinition schema,
     bool removeStaticallyExcludedSelections = false)
 {
+    private List<ISelectionNode>? _selections;
+
     private static readonly FieldNode s_typeNameField =
         new FieldNode(
             null,
             new NameNode(IntrospectionFieldNames.TypeName),
             null,
-            [new DirectiveNode("fusion__requirement")],
+            [new DirectiveNode("fusion__empty")],
             ImmutableArray<ArgumentNode>.Empty,
             null);
 
@@ -55,7 +57,6 @@ public sealed class InlineFragmentOperationRewriter(
                     {
                         context.AddField(field);
                     }
-
                     break;
 
                 case InlineFragmentNode inlineFragment:
@@ -63,7 +64,6 @@ public sealed class InlineFragmentOperationRewriter(
                     {
                         CollectInlineFragment(inlineFragment, context);
                     }
-
                     break;
 
                 case FragmentSpreadNode fragmentSpread:
@@ -71,7 +71,6 @@ public sealed class InlineFragmentOperationRewriter(
                     {
                         CollectFragmentSpread(fragmentSpread, context);
                     }
-
                     break;
             }
         }
@@ -114,16 +113,22 @@ public sealed class InlineFragmentOperationRewriter(
 
                 if (mergedField.SelectionSet is not null)
                 {
-                    mergedField = mergedField.WithSelectionSet(
-                        new SelectionSetNode(field.SelectMany(t => t.SelectionSet!.Selections).ToList()));
+                    ctx.Observer.OnMerge(field);
+                    var temp = Interlocked.Exchange(ref _selections, null) ?? [];
+                    temp.AddRange(field.SelectMany(t => t.SelectionSet!.Selections));
+                    var selections = temp.ToArray();
+                    temp.Clear();
+                    Interlocked.Exchange(ref _selections, temp);
+                    mergedField = mergedField.WithSelectionSet(new SelectionSetNode(selections));
                 }
 
                 if (removeStaticallyExcludedSelections)
                 {
-                    mergedField = mergedField.WithDirectives(
-                        RemoveStaticIncludeConditions(mergedField.Directives));
+                    var directives = RemoveStaticIncludeConditions(mergedField.Directives);
+                    mergedField = mergedField.WithDirectives(directives);
                 }
 
+                ctx.Observer.OnMerge(field.Key, mergedField);
                 RewriteField(mergedField, ctx);
             }
         }
@@ -159,6 +164,8 @@ public sealed class InlineFragmentOperationRewriter(
                 RewriteDirectives(fieldNode.Directives),
                 RewriteArguments(fieldNode.Arguments),
                 newSelectionSetNode);
+
+            context.Observer.OnMerge(fieldNode, newFieldNode);
 
             if (context.Visited.Add(newFieldNode))
             {
@@ -200,6 +207,7 @@ public sealed class InlineFragmentOperationRewriter(
             RewriteDirectives(inlineFragment.Directives),
             newSelectionSetNode);
 
+        context.Observer.OnMerge(inlineFragment, newInlineFragment);
         context.Selections.Add(newInlineFragment);
     }
 
@@ -240,6 +248,8 @@ public sealed class InlineFragmentOperationRewriter(
             new NamedTypeNode(typeCondition.Name),
             RewriteDirectives(fragmentSpread.Directives),
             selectionSet);
+
+        context.Observer.OnMerge(fragmentDefinition.SelectionSet, inlineFragment.SelectionSet);
 
         if (context.Visited.Add(inlineFragment))
         {
@@ -522,9 +532,13 @@ public sealed class InlineFragmentOperationRewriter(
 
     public readonly ref struct Context(
         ITypeDefinition type,
-        Dictionary<string, FragmentDefinitionNode> fragments)
+        Dictionary<string, FragmentDefinitionNode> fragments,
+        ISelectionSetMergeObserver? mergeObserver = null)
     {
         public ITypeDefinition Type { get; } = type;
+
+        public ISelectionSetMergeObserver Observer { get; } =
+            mergeObserver ?? NoopSelectionSetMergeObserver.Instance;
 
         public ImmutableArray<ISelectionNode>.Builder Selections { get; } =
             ImmutableArray.CreateBuilder<ISelectionNode>();
@@ -560,7 +574,7 @@ public sealed class InlineFragmentOperationRewriter(
         }
 
         public Context Branch(ITypeDefinition type)
-            => new(type, fragments);
+            => new(type, fragments, Observer);
     }
 
     private sealed class FieldComparer : IEqualityComparer<FieldNode>

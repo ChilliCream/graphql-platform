@@ -56,7 +56,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
         // with a 400 Bad Request.
         if (headerResult.HasError)
         {
-            // in this case accept headers were specified and we will
+            // in this case accept headers were specified, and we will
             // respond with proper error codes
             acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
             statusCode = HttpStatusCode.BadRequest;
@@ -73,7 +73,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
         // media type then we will fail the request with 406 Not Acceptable.
         if (requestFlags is None)
         {
-            // in this case accept headers were specified and we will
+            // in this case accept headers were specified, and we will
             // respond with proper error codes
             acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
             statusCode = HttpStatusCode.NotAcceptable;

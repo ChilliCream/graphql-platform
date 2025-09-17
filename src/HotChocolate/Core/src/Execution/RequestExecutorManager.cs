@@ -24,7 +24,7 @@ using static HotChocolate.Execution.ThrowHelper;
 namespace HotChocolate.Execution;
 
 internal sealed partial class RequestExecutorManager
-    : IRequestExecutorProvider
+    : IRequestExecutorManager
     , IRequestExecutorEvents
     , IRequestExecutorWarmup
     , IDisposable
@@ -60,7 +60,7 @@ internal sealed partial class RequestExecutorManager
 
         ConsumeExecutorEvictionsAsync(executorEvictionChannel.Reader, _cts.Token).FireAndForget();
 
-        _optionsMonitor.OnChange(EvictRequestExecutor);
+        _optionsMonitor.OnChange(EvictExecutor);
         var schemaNames = _applicationServices.GetService<IEnumerable<SchemaName>>()?
             .Select(x => x.Value).Distinct().Order().ToImmutableArray();
         SchemaNames = schemaNames ?? [];
@@ -103,10 +103,9 @@ internal sealed partial class RequestExecutorManager
         }
     }
 
-    public void EvictRequestExecutor(string? schemaName = null)
+    public void EvictExecutor(string? schemaName = null)
     {
         schemaName ??= ISchemaDefinition.DefaultName;
-
         _executorEvictionChannelWriter.TryWrite(schemaName);
     }
 
@@ -226,7 +225,7 @@ internal sealed partial class RequestExecutorManager
         previousExecutor.TypeModuleChangeMonitor.Dispose();
 
         // This will hot swap the request executor.
-        await CreateRequestExecutorAsync(schemaName, false, CancellationToken.None)
+        await CreateRequestExecutorAsync(schemaName, isInitialCreation: false, CancellationToken.None)
             .ConfigureAwait(false);
 
         previousExecutor.DiagnosticEvents.ExecutorEvicted(schemaName, previousExecutor.Executor);
@@ -592,7 +591,7 @@ internal sealed partial class RequestExecutorManager
         }
     }
 
-    private sealed class TypeModuleChangeMonitor(RequestExecutorManager resolver, string schemaName) : IDisposable
+    private sealed class TypeModuleChangeMonitor(RequestExecutorManager manager, string schemaName) : IDisposable
     {
         private readonly List<ITypeModule> _typeModules = [];
         private bool _disposed;
@@ -621,7 +620,7 @@ internal sealed partial class RequestExecutorManager
             => new TypeModuleEnumerable(_typeModules, context);
 
         private void EvictRequestExecutor(object? sender, EventArgs args)
-            => resolver.EvictRequestExecutor(schemaName);
+            => manager.EvictExecutor(schemaName);
 
         public void Dispose()
         {

@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Comparers;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 using static HotChocolate.Fusion.WellKnownTypeNames;
@@ -96,5 +97,47 @@ public sealed class SourceSchemaMergerTests
         // assert
         Assert.True(result.IsSuccess);
         SchemaFormatter.FormatAsString(result.Value).MatchSnapshot(extension: ".graphql");
+    }
+
+    [Fact]
+    public void Merge_WithRequireInputObject_RetainsInputObjectType()
+    {
+        // arrange
+        var sourceSchemaTextA =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    product: Product
+                }
+
+                type Product {
+                    weight: Int!
+                }
+                """);
+        var sourceSchemaTextB =
+            new SourceSchemaText(
+                "B",
+                """
+                type Product {
+                    deliveryEstimate(
+                        zip: String!
+                        dimension: ProductDimensionInput! @require(field: "{ weight }")
+                    ): Int!
+                }
+
+                input ProductDimensionInput @inaccessible {
+                    weight: Int!
+                }
+                """);
+        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaTextA, sourceSchemaTextB], new CompositionLog());
+        var merger = new SourceSchemaMerger(sourceSchemaParser.Parse().Value);
+
+        // act
+        var result = merger.Merge();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Value.Types.ContainsName("ProductDimensionInput"));
     }
 }

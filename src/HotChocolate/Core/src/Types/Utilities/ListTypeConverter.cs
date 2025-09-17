@@ -5,8 +5,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Internal;
 
-#nullable enable
-
 namespace HotChocolate.Utilities;
 
 internal sealed class ListTypeConverter : IChangeTypeProvider

@@ -8,7 +8,7 @@ public class InterfaceTests : FusionTestBase
     public void Interface_Field()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               votable: Votable
@@ -30,8 +30,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1);
 
         // act
         var plan = PlanOperation(
@@ -52,7 +51,7 @@ public class InterfaceTests : FusionTestBase
     public void Interface_Field_Linked_Field_With_Dependency()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               authorable: Authorable
@@ -75,7 +74,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -87,8 +86,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -112,7 +110,7 @@ public class InterfaceTests : FusionTestBase
     public void Interface_Field_Linked_Field_With_Dependency_Same_Selection_In_Concrete_Type()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               authorable: Authorable
@@ -135,7 +133,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -147,8 +145,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -178,7 +175,7 @@ public class InterfaceTests : FusionTestBase
     public void Interface_Field_Linked_Field_With_Dependency_Different_Selection_In_Concrete_Type()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               authorable: Authorable
@@ -201,7 +198,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -214,8 +211,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -244,7 +240,7 @@ public class InterfaceTests : FusionTestBase
     public void Interface_Field_Concrete_Type()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               votable: Votable
@@ -266,8 +262,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1);
 
         // act
         var plan = PlanOperation(
@@ -291,7 +286,7 @@ public class InterfaceTests : FusionTestBase
     public void Interface_Field_Concrete_Type_With_Dependency()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               votable: Votable
@@ -313,7 +308,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               discussionById(id: ID!): Discussion @lookup
@@ -325,8 +320,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -350,7 +344,7 @@ public class InterfaceTests : FusionTestBase
     public void Interface_Field_Concrete_Type_Linked_Field_With_Dependency()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               votable: Votable
@@ -376,7 +370,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -388,8 +382,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -419,7 +412,7 @@ public class InterfaceTests : FusionTestBase
     public void Interface_List_Field()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               votables: [Votable]
@@ -441,8 +434,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1);
 
         // act
         var plan = PlanOperation(
@@ -463,7 +455,7 @@ public class InterfaceTests : FusionTestBase
     public void Interface_List_Field_Linked_Field_With_Dependency()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               authorables: [Authorable]
@@ -486,7 +478,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -498,8 +490,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -523,7 +514,7 @@ public class InterfaceTests : FusionTestBase
     public void Interface_List_Field_Linked_Field_With_Dependency_Same_Selection_In_Concrete_Type()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               authorables: [Authorable]
@@ -546,7 +537,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -558,8 +549,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -589,7 +579,7 @@ public class InterfaceTests : FusionTestBase
     public void Interface_List_Field_Linked_Field_With_Dependency_Different_Selection_In_Concrete_Type()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               authorables: [Authorable]
@@ -612,7 +602,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -625,8 +615,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -655,7 +644,7 @@ public class InterfaceTests : FusionTestBase
     public void Interface_List_Field_Concrete_Type()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               votables: [Votable]
@@ -677,8 +666,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1);
 
         // act
         var plan = PlanOperation(
@@ -702,7 +690,7 @@ public class InterfaceTests : FusionTestBase
     public void Interface_List_Field_Concrete_Type_With_Dependency()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               votables: [Votable]
@@ -724,7 +712,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               discussionById(id: ID!): Discussion @lookup
@@ -736,8 +724,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -761,7 +748,7 @@ public class InterfaceTests : FusionTestBase
     public void Interface_List_Field_Concrete_Type_Linked_Field_With_Dependency()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               votables: [Votable]
@@ -787,7 +774,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -799,8 +786,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -830,7 +816,7 @@ public class InterfaceTests : FusionTestBase
     public void List_Field_Interface_Object_Property_Linked_Field_With_Dependency()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               wrappers: [Wrapper]
@@ -857,7 +843,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -869,8 +855,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -895,7 +880,7 @@ public class InterfaceTests : FusionTestBase
     public void List_Field_Interface_Object_Property_Linked_Field_With_Dependency_Same_Selection_In_Concrete_Type()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               wrappers: [Wrapper]
@@ -922,7 +907,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -934,8 +919,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -965,7 +949,7 @@ public class InterfaceTests : FusionTestBase
     public void List_Field_Interface_Object_Property_Linked_Field_With_Dependency_Different_Selection_In_Concrete_Type()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               wrappers: [Wrapper]
@@ -992,7 +976,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -1005,8 +989,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -1036,7 +1019,7 @@ public class InterfaceTests : FusionTestBase
     public void List_Field_Interface_Object_Property_Concrete_Type()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               wrappers: [Wrapper]
@@ -1062,8 +1045,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1);
 
         // act
         var plan = PlanOperation(
@@ -1089,7 +1071,7 @@ public class InterfaceTests : FusionTestBase
     public void List_Field_Interface_Object_Property_Concrete_Type_With_Dependency()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               wrappers: [Wrapper]
@@ -1115,7 +1097,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               discussionById(id: ID!): Discussion @lookup
@@ -1127,8 +1109,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -1154,7 +1135,7 @@ public class InterfaceTests : FusionTestBase
     public void List_Field_Interface_Object_Property_Concrete_Type_Linked_Field_With_Dependency()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               wrappers: [Wrapper]
@@ -1184,7 +1165,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -1196,8 +1177,7 @@ public class InterfaceTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(

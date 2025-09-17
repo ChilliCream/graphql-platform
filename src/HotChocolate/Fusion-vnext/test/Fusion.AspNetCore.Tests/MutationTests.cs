@@ -22,7 +22,7 @@ public class MutationTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -62,7 +62,7 @@ public class MutationTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert

@@ -10,8 +10,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.WellKnownMiddleware;
 
-#nullable enable
-
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>

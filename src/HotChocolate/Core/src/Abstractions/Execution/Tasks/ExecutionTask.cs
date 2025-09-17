@@ -12,6 +12,11 @@ public abstract class ExecutionTask : IExecutionTask
     private Task? _task;
 
     /// <summary>
+    /// Gets or sets the internal execution identifier.
+    /// </summary>
+    public uint Id { get; set; }
+
+    /// <summary>
     /// Gets the execution engine task context.
     /// </summary>
     protected abstract IExecutionTaskContext Context { get; }

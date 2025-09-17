@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Collections;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -213,6 +211,27 @@ public class CodeFirstTests
                 .AddGraphQLServer()
                 .AddQueryType<QueryWithEnumerableArg>()
                 .BuildSchemaAsync();
+
+        schema.MatchInlineSnapshot(
+            """
+            schema {
+              query: QueryWithEnumerableArg
+            }
+
+            type QueryWithEnumerableArg {
+              foo(foo: [String!]!): String!
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Schema_Name_With_Hyphen()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer("abc-def")
+                .AddQueryType<QueryWithEnumerableArg>()
+                .BuildSchemaAsync("abc-def");
 
         schema.MatchInlineSnapshot(
             """

@@ -12,7 +12,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
 
-        return Configure(
+        return FusionSetupUtilities.Configure(
             builder,
             options => options.ParserOptionsModifiers.Add(configure));
     }

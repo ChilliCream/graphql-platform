@@ -12,7 +12,7 @@ public class UnionTests : FusionTestBase
     public void Union_Field_Just_Typename_Selected()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               post: Post
@@ -31,8 +31,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1);
 
         // act
         var plan = PlanOperation(
@@ -53,7 +52,7 @@ public class UnionTests : FusionTestBase
     public void Union_Field_Concrete_Type_Has_Dependency()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               post: Post
@@ -71,7 +70,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               photoById(id: ID!): Photo @lookup
@@ -83,8 +82,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -110,7 +108,7 @@ public class UnionTests : FusionTestBase
     public void Union_Field_Concrete_Type_Selection_Has_Dependency()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               post: Post
@@ -137,7 +135,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               productById(id: ID!): Product @lookup
@@ -149,7 +147,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph3 = new TestSubgraph(
+        var source3 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -161,8 +159,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2, subgraph3);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2, source3);
 
         // act
         var plan = PlanOperation(
@@ -192,7 +189,7 @@ public class UnionTests : FusionTestBase
     public void Union_Field_Concrete_Type_Selections_Have_Dependency_To_Same_Subgraph()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               post: Post
@@ -219,7 +216,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               productById(id: ID!): Product @lookup
@@ -237,8 +234,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -268,7 +264,7 @@ public class UnionTests : FusionTestBase
     public void Union_Field_Concrete_Type_Selections_Have_Same_Dependency()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               post: Post
@@ -291,7 +287,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               productById(id: ID!): Product @lookup
@@ -303,8 +299,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -338,7 +333,7 @@ public class UnionTests : FusionTestBase
     public void Union_List_Concrete_Type_Has_Dependency()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               posts: [Post]
@@ -356,7 +351,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               photoById(id: ID!): Photo @lookup
@@ -368,8 +363,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -395,7 +389,7 @@ public class UnionTests : FusionTestBase
     public void Union_List_Concrete_Type_Selection_Has_Dependency()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               posts: [Post]
@@ -422,7 +416,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               productById(id: ID!): Product @lookup
@@ -434,7 +428,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph3 = new TestSubgraph(
+        var source3 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -446,8 +440,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2, subgraph3);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2, source3);
 
         // act
         var plan = PlanOperation(
@@ -477,7 +470,7 @@ public class UnionTests : FusionTestBase
     public void Union_List_Concrete_Type_Selections_Have_Dependency_To_Same_Subgraph()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               posts: [Post]
@@ -504,7 +497,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               productById(id: ID!): Product @lookup
@@ -522,8 +515,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -553,7 +545,7 @@ public class UnionTests : FusionTestBase
     public void Union_List_Concrete_Type_Selections_Have_Same_Dependency()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               posts: [Post]
@@ -576,7 +568,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               productById(id: ID!): Product @lookup
@@ -588,8 +580,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -623,7 +614,7 @@ public class UnionTests : FusionTestBase
     public void Object_List_Union_Field_Concrete_Type_Has_Dependency()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               postEdges: [PostEdge]
@@ -645,7 +636,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               photoById(id: ID!): Photo @lookup
@@ -657,8 +648,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -686,7 +676,7 @@ public class UnionTests : FusionTestBase
     public void Object_List_Union_Field_Concrete_Type_Selection_Has_Dependency()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               postEdges: [PostEdge]
@@ -717,7 +707,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               productById(id: ID!): Product @lookup
@@ -729,7 +719,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph3 = new TestSubgraph(
+        var source3 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -741,8 +731,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2, subgraph3);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2, source3);
 
         // act
         var plan = PlanOperation(
@@ -774,7 +763,7 @@ public class UnionTests : FusionTestBase
     public void Object_List_Union_Field_Concrete_Type_Selections_Have_Dependency_To_Same_Subgraph()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               postEdges: [PostEdge]
@@ -805,7 +794,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               productById(id: ID!): Product @lookup
@@ -823,8 +812,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -856,7 +844,7 @@ public class UnionTests : FusionTestBase
     public void Object_List_Union_Field_Concrete_Type_Selections_Have_Same_Dependency()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               postEdges: [PostEdge]
@@ -883,7 +871,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               productById(id: ID!): Product @lookup
@@ -895,8 +883,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -932,7 +919,7 @@ public class UnionTests : FusionTestBase
     public void Object_List_Union_List_Concrete_Type_Has_Dependency()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               users: [User]
@@ -954,7 +941,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               photoById(id: ID!): Photo @lookup
@@ -966,8 +953,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -995,7 +981,7 @@ public class UnionTests : FusionTestBase
     public void Object_List_Union_List_Concrete_Type_Selection_Has_Dependency()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               users: [User]
@@ -1026,7 +1012,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               productById(id: ID!): Product @lookup
@@ -1038,7 +1024,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph3 = new TestSubgraph(
+        var source3 = new TestSourceSchema(
             """
             type Query {
               authorById(id: ID!): Author @lookup
@@ -1050,8 +1036,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2, subgraph3);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2, source3);
 
         // act
         var plan = PlanOperation(
@@ -1083,7 +1068,7 @@ public class UnionTests : FusionTestBase
     public void Object_List_Union_List_Concrete_Type_Selections_Have_Dependency_To_Same_Subgraph()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               users: [User]
@@ -1114,7 +1099,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               productById(id: ID!): Product @lookup
@@ -1132,8 +1117,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -1165,7 +1149,7 @@ public class UnionTests : FusionTestBase
     public void Object_List_Union_List_Concrete_Type_Selections_Have_Same_Dependency()
     {
         // arrange
-        var subgraph1 = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               users: [User]
@@ -1192,7 +1176,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraph2 = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               productById(id: ID!): Product @lookup
@@ -1204,8 +1188,7 @@ public class UnionTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraph1, subgraph2);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(

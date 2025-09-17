@@ -39,9 +39,9 @@ public static class ExecutionContextData
     public const string ValidationErrors = "HotChocolate.Execution.ValidationErrors";
 
     /// <summary>
-    /// Includes the query plan in the response.
+    /// Includes the operation plan in the response.
     /// </summary>
-    public const string IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan";
+    public const string IncludeOperationPlan = "HotChocolate.Execution.EmitOperationPlan";
 
     /// <summary>
     /// The key to get the user provided transport operation session id when executing

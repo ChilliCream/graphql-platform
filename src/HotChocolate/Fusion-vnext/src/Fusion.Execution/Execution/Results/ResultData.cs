@@ -2,7 +2,7 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
 /// Represents a result data object like an object or list.
@@ -19,7 +19,13 @@ public abstract class ResultData : IResultDataJsonFormatter
     /// <summary>
     /// Gets the index under which this data is stored in the parent result.
     /// </summary>
-    protected internal int ParentIndex { get; private set; }
+    protected internal int ParentIndex { get; private set; } = -1;
+
+    /// <summary>
+    /// Gets a value indicating if this result data object was invalidated do to an error
+    /// or null propagation.
+    /// </summary>
+    public bool IsInvalidated { get; set; }
 
     /// <summary>
     /// Gets the path of the result.
@@ -30,6 +36,7 @@ public abstract class ResultData : IResultDataJsonFormatter
         {
             if (_path is null)
             {
+                // todo : we should rent this.
                 var stack = new Stack<ResultData>();
                 var current = this;
 
@@ -157,6 +164,7 @@ public abstract class ResultData : IResultDataJsonFormatter
     /// </summary>
     public virtual bool Reset()
     {
+        IsInvalidated = false;
         Parent = null;
         ParentIndex = -1;
         _path = null;

@@ -2,8 +2,6 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using HotChocolate.Utilities.CompilerServices;
 
-#nullable enable
-
 namespace HotChocolate.Utilities;
 
 internal readonly struct NullableHelper

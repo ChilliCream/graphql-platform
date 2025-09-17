@@ -6,335 +6,273 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
-public sealed class OperationPlanExecutor
+internal sealed class OperationPlanExecutor
 {
     public async Task<IExecutionResult> ExecuteAsync(
         RequestContext requestContext,
         IVariableValueCollection variables,
         OperationPlan operationPlan,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        var context = new OperationPlanContext(requestContext, variables, operationPlan);
+        // We create a new CancellationTokenSource that can be used to halt the execution engine,
+        // without also cancelling the entire request pipeline.
+        using var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        var context = new OperationPlanContext(requestContext, variables, operationPlan, executionCts);
         context.Begin();
-        var strategy = DetermineExecutionStrategy(context);
-        await ExecutorSession.ExecuteAsync(context, strategy, cancellationToken);
+
+        switch (operationPlan.Operation.Definition.Operation)
+        {
+            case OperationType.Query:
+                await ExecuteQueryAsync(context, operationPlan, executionCts.Token);
+                break;
+
+            case OperationType.Mutation:
+                await ExecuteMutationAsync(context, operationPlan, executionCts.Token);
+                break;
+
+            default:
+                throw new InvalidOperationException("Only queries and mutations can be executed.");
+        }
+
+        // If the original CancellationToken of the request was cancelled,
+        // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
+        // so we throw here to properly cancel the request execution.
+        cancellationToken.ThrowIfCancellationRequested();
+
         return context.Complete();
     }
 
     public async Task<IExecutionResult> SubscribeAsync(
         RequestContext requestContext,
         OperationPlan operationPlan,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         // subscription plans must have a single root,
         // which represents the subscription to a source schema.
         var root = operationPlan.RootNodes.Single();
 
+        // In the case of a subscription the initial node must always be an operation node
+        // that represents the subscription to a specific source schema.
         if (root is not OperationExecutionNode subscriptionNode)
         {
-            // TODO : error handling
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("The specified operation plan is not supported.");
         }
 
-        var context = new OperationPlanContext(requestContext, operationPlan);
-        var subscription = await subscriptionNode.SubscribeAsync(context, cancellationToken);
-        var strategy = DetermineExecutionStrategy(context);
-        var session = new ExecutorSession(context, strategy, cancellationToken);
+        // We create a new CancellationTokenSource that can be used to halt the execution engine,
+        // without also cancelling the entire request pipeline.
+        var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        if (subscription.Status is not ExecutionStatus.Success)
+        try
         {
-            // TODO : error handling
-            throw new InvalidOperationException();
-        }
+            var context = new OperationPlanContext(requestContext, operationPlan, executionCts);
+            var subscriptionResult = await subscriptionNode.SubscribeAsync(context, executionCts.Token);
+            var executionState = context.ExecutionState;
 
-        var stream = new ResponseStream(CreateResponseStream);
-        stream.RegisterForCleanup(context);
-        return stream;
+            executionCts.Token.Register(() => executionState.Signal.TryResetToIdle());
 
-        async IAsyncEnumerable<IOperationResult> CreateResponseStream()
-        {
-            await foreach (var eventArgs in subscription.ReadStreamAsync().WithCancellation(cancellationToken))
+            if (subscriptionResult.Status is not ExecutionStatus.Success)
             {
-                IOperationResult result;
-
-                try
-                {
-                    context.Begin(eventArgs.StartTimestamp, eventArgs.Activity?.TraceId.ToHexString());
-                    await session.ExecuteAsync(subscriptionNode, eventArgs);
-                    result = context.Complete();
-                }
-                finally
-                {
-                    // disposing the eventArgs disposes the telemetry scope.
-                    eventArgs.Dispose();
-                }
-
-                yield return result;
+                throw new InvalidOperationException("We could not subscribe to the underlying source schema.");
             }
+
+            var subscriptionEnumerable = CreateSubscriptionEnumerable(
+                context,
+                subscriptionNode,
+                subscriptionResult,
+                executionCts.Token,
+                cancellationToken);
+
+            var stream = new ResponseStream(() => subscriptionEnumerable);
+            stream.RegisterForCleanup(context);
+            stream.RegisterForCleanup(executionCts);
+            return stream;
+        }
+        catch
+        {
+            executionCts.Dispose();
+
+            throw;
         }
     }
 
-    private static ExecutionStrategy DetermineExecutionStrategy(OperationPlanContext context)
-        => context.OperationPlan.Operation.Definition.Operation switch
-        {
-            OperationType.Query => ExecutionStrategy.Query,
-            OperationType.Mutation => ExecutionStrategy.Mutation,
-            OperationType.Subscription => ExecutionStrategy.Subscription,
-            _ => throw new InvalidOperationException()
-        };
-
-    private sealed class ExecutorSession
+    private static async Task ExecuteQueryAsync(
+        OperationPlanContext context,
+        OperationPlan plan,
+        CancellationToken cancellationToken)
     {
-        private readonly List<ExecutionNode> _stack = [];
-        private readonly HashSet<ExecutionNode> _completed = [];
-        private readonly HashSet<Task<ExecutionNodeResult>> _activeTasks = [];
-        private readonly List<Task<ExecutionNodeResult>> _completedTasks = [];
-        private readonly List<ExecutionNode> _backlog;
-        private readonly OperationPlanContext _context;
-        private readonly OperationPlan _plan;
-        private readonly ImmutableArray<ExecutionNodeTrace>.Builder? _traces;
-        private readonly CancellationToken _cancellationToken;
-        private readonly ExecutionStrategy _strategy;
-        private int _nextRootNode;
+        var executionState = context.ExecutionState;
 
-        public ExecutorSession(
-            OperationPlanContext context,
-            ExecutionStrategy strategy,
-            CancellationToken cancellationToken)
+        cancellationToken.Register(() => executionState.Signal.TryResetToIdle());
+
+        // GraphQL queries allow us to execute the plan by using full parallelism.
+        // We fill the backlog with all nodes from the operation plan.
+        executionState.FillBacklog(plan);
+
+        // Then we start all root nodes as they can be processed in parallel.
+        foreach (var root in plan.RootNodes)
         {
-            _context = context;
-            _strategy = strategy;
-            _cancellationToken = cancellationToken;
-            _plan = context.OperationPlan;
-            _backlog = [.. context.OperationPlan.AllNodes];
+            executionState.StartNode(context, root, cancellationToken);
+        }
 
-            // For sequential execution (mutations), remove root nodes from backlog initially
-            if (_strategy is ExecutionStrategy.Mutation or ExecutionStrategy.Subscription)
+        while (!cancellationToken.IsCancellationRequested && executionState.IsProcessing())
+        {
+            while (executionState.TryDequeueCompletedResult(out var result))
             {
-                foreach (var root in context.OperationPlan.RootNodes)
+                var node = plan.GetNodeById(result.Id);
+                executionState.CompleteNode(node, result);
+            }
+
+            executionState.EnqueueNextNodes(context, cancellationToken);
+
+            if (cancellationToken.IsCancellationRequested || !executionState.IsProcessing())
+            {
+                break;
+            }
+
+            // The signal will be set every time a node completes and will release the executor
+            // from the async wait to go through the completed results.
+            await executionState.Signal;
+        }
+
+        if (context.CollectTelemetry)
+        {
+            context.Traces = executionState.Traces.ToImmutableDictionary();
+        }
+    }
+
+    private static async Task ExecuteMutationAsync(
+        OperationPlanContext context,
+        OperationPlan plan,
+        CancellationToken cancellationToken)
+    {
+        var executionState = context.ExecutionState;
+
+        cancellationToken.Register(() => executionState.Signal.TryResetToIdle());
+
+        // For mutations, we fill the backlog with all nodes from the operation plan just like for queries.
+        executionState.FillBacklog(plan);
+
+        // The difference here is that the planner has one root node for each mutation field.
+        // We execute the root nodes one after the other to cater for the GraphQL spec mutation algorithm
+        // that requires sequential execution the roots but allows for parallel execution of their subtrees.
+        foreach (var root in plan.RootNodes)
+        {
+            // We start the first root ...
+            executionState.StartNode(context, root, cancellationToken);
+
+            // ... and then process the subtree until its complete.
+            // This is why in the mutation algorithm check for `HasActiveNodes` instead of `IsProcessing` which
+            // would be true as long as there are items on the backlog. `HasActiveNodes` however will be true
+            // as long as there are active nodes that result from processing the current subtree.
+            while (!cancellationToken.IsCancellationRequested && executionState.HasActiveNodes())
+            {
+                while (executionState.TryDequeueCompletedResult(out var result))
                 {
-                    _backlog.Remove(root);
+                    var node = plan.GetNodeById(result.Id);
+                    executionState.CompleteNode(node, result);
                 }
-            }
 
-            _traces = context.CollectTelemetry
-                ? ImmutableArray.CreateBuilder<ExecutionNodeTrace>()
-                : null;
-        }
+                executionState.EnqueueNextNodes(context, cancellationToken);
 
-        public static Task ExecuteAsync(
-            OperationPlanContext context,
-            ExecutionStrategy strategy,
-            CancellationToken cancellationToken)
-            => new ExecutorSession(context, strategy, cancellationToken).ExecuteInternalAsync();
-
-        public async Task ExecuteAsync(ExecutionNode node, EventMessageResult result)
-        {
-            // pre-seed state for the first node
-            _completed.Add(node);
-            _traces?.Add(new ExecutionNodeTrace
-            {
-                Id = node.Id,
-                SpanId = result.Activity?.SpanId.ToHexString(),
-                Status = result.Status,
-                Duration = result.Duration
-            });
-
-            // process the rest of the nodes
-            while (EnqueueNextNodes())
-            {
-                await WaitForNextCompletionAsync();
-            }
-
-            // add the traces to the context
-            if (_traces is { Count: > 0 })
-            {
-                _context.Traces = [.. _traces];
-            }
-
-            // reset the state for the next execution
-            _backlog.AddRange(_plan.AllNodes);
-
-            foreach (var root in _plan.RootNodes)
-            {
-                _backlog.Remove(root);
-            }
-
-            _traces?.Clear();
-            _stack.Clear();
-            _completed.Clear();
-            _activeTasks.Clear();
-            _completedTasks.Clear();
-        }
-
-        private async Task ExecuteInternalAsync()
-        {
-            if (_strategy == ExecutionStrategy.Query)
-            {
-                await ExecuteQueryAsync();
-            }
-            else
-            {
-                await ExecuteMutationAsync();
-            }
-
-            if (_traces is { Count: > 0 })
-            {
-                _context.Traces = [.. _traces];
-            }
-        }
-
-        private async Task ExecuteQueryAsync()
-        {
-            // Start all root nodes immediately for parallel execution
-            StartAllRootNodes();
-
-            // Process until all nodes complete
-            while (IsProcessing())
-            {
-                await WaitForNextCompletionAsync();
-                EnqueueNextNodes();
-            }
-        }
-
-        private async Task ExecuteMutationAsync()
-        {
-            // Sequential root processing - one root at a time
-            while (StartNextRootNode())
-            {
-                // Complete the entire subtree of current root before starting next
-                var enqueued = true;
-                while (enqueued)
+                if (cancellationToken.IsCancellationRequested || !executionState.HasActiveNodes())
                 {
-                    await WaitForNextCompletionAsync();
-                    enqueued = EnqueueNextNodes();
+                    break;
                 }
+
+                // The signal will be set every time a node completes and will release the executor
+                // from the async wait to go through the completed results.
+                await executionState.Signal;
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
             }
         }
 
-        private void StartAllRootNodes()
+        if (context.CollectTelemetry)
         {
-            foreach (var node in _context.OperationPlan.RootNodes)
-            {
-                StartNode(node);
-            }
+            context.Traces = executionState.Traces.ToImmutableDictionary();
         }
+    }
 
-        private bool StartNextRootNode()
+    private static async IAsyncEnumerable<IOperationResult> CreateSubscriptionEnumerable(
+        OperationPlanContext context,
+        OperationExecutionNode subscriptionNode,
+        SubscriptionResult subscriptionResult,
+        [EnumeratorCancellation] CancellationToken executionCancellationToken,
+        CancellationToken requestCancellationToken)
+    {
+        var plan = context.OperationPlan;
+        var executionState = context.ExecutionState;
+        var stream = subscriptionResult.ReadStreamAsync()
+            .WithCancellation(executionCancellationToken);
+
+        await foreach (var eventArgs in stream)
         {
-            var roots = _context.OperationPlan.RootNodes;
-            if (_nextRootNode < roots.Length)
+            IOperationResult result;
+
+            try
             {
-                StartNode(roots[_nextRootNode++]);
-                return true;
-            }
+                context.Begin(eventArgs.StartTimestamp, eventArgs.Activity?.TraceId.ToHexString());
 
-            return false;
-        }
+                executionState.Reset();
+                executionState.FillBacklog(plan);
+                executionState.EnqueueForCompletion(
+                    new ExecutionNodeResult(
+                        subscriptionNode.Id,
+                        eventArgs.Activity,
+                        eventArgs.Status,
+                        eventArgs.Duration,
+                        Exception: null,
+                        DependentsToExecute: [],
+                        VariableValueSets: eventArgs.VariableValueSets));
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool IsProcessing() => _backlog.Count > 0 || _activeTasks.Count > 0;
-
-        private void SkipNode(ExecutionNode node)
-        {
-            _stack.Clear();
-            _stack.Push(node);
-
-            while (_stack.TryPop(out var current))
-            {
-                _backlog.Remove(current);
-
-                foreach (var enqueuedNode in _backlog)
+                while (!executionCancellationToken.IsCancellationRequested && executionState.IsProcessing())
                 {
-                    if (enqueuedNode.Dependencies.Contains(current))
+                    while (executionState.TryDequeueCompletedResult(out var nodeResult))
                     {
-                        _stack.Push(enqueuedNode);
-                    }
-                }
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void StartNode(ExecutionNode node)
-        {
-            _backlog.Remove(node);
-            _activeTasks.Add(node.ExecuteAsync(_context, _cancellationToken));
-        }
-
-        private async Task WaitForNextCompletionAsync()
-        {
-            await Task.WhenAny(_activeTasks);
-
-            foreach (var task in _activeTasks)
-            {
-                if (task.IsCompletedSuccessfully)
-                {
-                    var node = _plan.GetNodeById(task.Result.Id);
-
-                    _completedTasks.Add(task);
-                    _completed.Add(node);
-                    _traces?.Add(new ExecutionNodeTrace
-                    {
-                        Id = task.Result.Id,
-                        SpanId = task.Result.Activity?.SpanId.ToHexString(),
-                        Status = task.Result.Status,
-                        Duration = task.Result.Duration
-                    });
-
-                    if (task.Result.Status is ExecutionStatus.Skipped or ExecutionStatus.Failed)
-                    {
-                        SkipNode(node);
-                    }
-                }
-                else if (task.IsFaulted || task.IsCanceled)
-                {
-                    // execution nodes are not expected to throw as exception should be handled within.
-                    // if they do it's a fatal error for the execution, so we await failed task here
-                    // so that they can throw and terminate the execution.
-                    await task;
-                }
-            }
-
-            foreach (var task in _completedTasks)
-            {
-                _activeTasks.Remove(task);
-            }
-
-            _completedTasks.Clear();
-        }
-
-        private bool EnqueueNextNodes()
-        {
-            var enqueued = false;
-            _stack.Clear();
-
-            foreach (var node in _backlog)
-            {
-                var dependenciesFulfilled = true;
-
-                foreach (var dependency in node.Dependencies)
-                {
-                    if (_completed.Contains(dependency))
-                    {
-                        continue;
+                        var node = plan.GetNodeById(nodeResult.Id);
+                        executionState.CompleteNode(node, nodeResult);
                     }
 
-                    dependenciesFulfilled = false;
+                    executionState.EnqueueNextNodes(context, executionCancellationToken);
+
+                    if (executionCancellationToken.IsCancellationRequested || !executionState.IsProcessing())
+                    {
+                        break;
+                    }
+
+                    // The signal will be set every time a node completes and will release the executor
+                    // from the async wait to go through the completed results.
+                    await executionState.Signal;
                 }
 
-                if (dependenciesFulfilled)
-                {
-                    _stack.Push(node);
-                    enqueued = true;
-                }
+                // If the original CancellationToken of the request was cancelled,
+                // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
+                // so we throw here to properly cancel the request execution.
+                requestCancellationToken.ThrowIfCancellationRequested();
+
+                result = context.Complete();
             }
-
-            foreach (var node in _stack)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                StartNode(node);
+                context.DiagnosticEvents.SubscriptionEventError(
+                    context,
+                    subscriptionNode,
+                    subscriptionNode.SchemaName ?? context.GetDynamicSchemaName(subscriptionNode),
+                    subscriptionResult.Id,
+                    ex);
+                throw;
+            }
+            finally
+            {
+                // disposing the eventArgs disposes the telemetry scope.
+                eventArgs.Dispose();
             }
 
-            return enqueued;
+            yield return result;
         }
     }
 }

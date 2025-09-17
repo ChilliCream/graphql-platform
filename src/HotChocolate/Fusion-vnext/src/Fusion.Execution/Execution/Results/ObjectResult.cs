@@ -6,8 +6,9 @@ using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Types;
+using static HotChocolate.Fusion.Execution.Results.ResultPoolEventSource;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
 /// Represents an object result.
@@ -70,6 +71,15 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
         field.SetParent(target, field.ParentIndex);
         target._fields[field.ParentIndex] = field;
         target._fieldMap[fieldName] = field;
+    }
+
+    /// <inheritdoc />
+    public override bool TrySetValueNull(int index)
+    {
+        var field = _fields[index];
+        field.SetNextValueNull();
+
+        return !field.Selection.Type.IsNonNullType();
     }
 
     /// <summary>
@@ -227,12 +237,25 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
         }
 
 #if NET9_0_OR_GREATER
+        if (_fieldMap.Capacity > _maxAllowedCapacity)
+        {
+            Log.CapacityExceeded(nameof(ObjectResult), _fieldMap.Capacity, _maxAllowedCapacity);
+            return false;
+        }
+
         _fieldMap.Clear();
-        return base.Reset() && _fieldMap.Capacity < _maxAllowedCapacity;
+
+        return base.Reset();
 #else
-        var retainResult = _fieldMap.Count < _maxAllowedCapacity;
+        if (_fieldMap.Count > _maxAllowedCapacity)
+        {
+            Log.CapacityExceeded(nameof(ObjectResult), _fieldMap.Count, _maxAllowedCapacity);
+            return false;
+        }
+
         _fieldMap.Clear();
-        return base.Reset() && retainResult;
+
+        return base.Reset();
 #endif
     }
 

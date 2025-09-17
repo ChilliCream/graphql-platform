@@ -1,7 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
 /// Represents the result of a list field in a GraphQL operation.
@@ -91,9 +91,7 @@ public sealed class ListFieldResult : FieldResult
     }
 
     protected internal override KeyValuePair<string, object?> AsKeyValuePair()
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotSupportedException();
 
     public override bool Reset()
     {

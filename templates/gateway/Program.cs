@@ -5,7 +5,7 @@ builder.Services
 
 builder.Services
     .AddGraphQLGatewayServer()
-    .AddFileSystemConfiguration("./gateway.graphql");
+    .AddFileSystemConfiguration("./gateway.far");
 
 var app = builder.Build();
 

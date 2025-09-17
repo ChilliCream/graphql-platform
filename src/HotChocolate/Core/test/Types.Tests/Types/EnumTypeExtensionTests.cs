@@ -135,7 +135,7 @@ public class EnumTypeExtensionTests
 
     public class DummyQuery
     {
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
     }
 
     public class FooType : EnumType<Foo>

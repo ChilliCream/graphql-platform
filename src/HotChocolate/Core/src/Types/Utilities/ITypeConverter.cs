@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Utilities;
 
 public interface ITypeConverter

@@ -170,6 +170,7 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition
                 .OfType<IObjectTypeDefinition>()
+                .Where(t => !t.IsIntrospectionType)
                 .OrderBy(t => t.Name))
             {
                 if (context.Schema?.QueryType == type
@@ -185,6 +186,7 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition
                 .OfType<IInterfaceTypeDefinition>()
+                .Where(t => !t.IsIntrospectionType)
                 .OrderBy(t => t.Name))
             {
                 VisitType(type, context);
@@ -193,6 +195,7 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition
                 .OfType<IUnionTypeDefinition>()
+                .Where(t => !t.IsIntrospectionType)
                 .OrderBy(t => t.Name))
             {
                 VisitType(type, context);
@@ -201,6 +204,7 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition
                 .OfType<IInputObjectTypeDefinition>()
+                .Where(t => !t.IsIntrospectionType)
                 .OrderBy(t => t.Name))
             {
                 VisitType(type, context);
@@ -209,6 +213,7 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition
                 .OfType<IEnumTypeDefinition>()
+                .Where(t => !t.IsIntrospectionType)
                 .OrderBy(t => t.Name))
             {
                 VisitType(type, context);
@@ -217,6 +222,7 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition
                 .OfType<IScalarTypeDefinition>()
+                .Where(t => !t.IsIntrospectionType)
                 .OrderBy(t => t.Name))
             {
                 if (!context.PrintSpecScalars
@@ -402,6 +408,11 @@ public static class SchemaFormatter
 
             foreach (var field in fields.AsEnumerable().OrderBy(t => t.Name, context.OrderByName))
             {
+                if (field.IsIntrospectionField)
+                {
+                    continue;
+                }
+
                 VisitOutputField(field, context);
                 fieldNodes.Add((FieldDefinitionNode)context.Result!);
             }

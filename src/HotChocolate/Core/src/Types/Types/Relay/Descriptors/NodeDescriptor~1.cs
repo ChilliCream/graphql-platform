@@ -5,8 +5,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
-#nullable enable
-
 namespace HotChocolate.Types.Relay.Descriptors;
 
 /// <summary>

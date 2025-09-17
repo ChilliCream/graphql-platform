@@ -2,8 +2,6 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>

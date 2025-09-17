@@ -25,7 +25,7 @@ public class SubscriptionsOverHttpStoreTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert

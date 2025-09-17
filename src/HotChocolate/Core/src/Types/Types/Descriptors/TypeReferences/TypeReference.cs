@@ -3,8 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Types.Descriptors.SchemaTypeReference;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>

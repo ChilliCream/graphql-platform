@@ -3,6 +3,7 @@ using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Moq;
 
 namespace HotChocolate.ApolloFederation;
@@ -24,6 +25,7 @@ public static class TestHelper
         mock.Setup(c => c.Parent<_Service>()).Returns(new _Service());
         mock.Setup(c => c.Clone()).Returns(mock.Object);
         mock.SetupGet(c => c.Schema).Returns(schema);
+        mock.Setup(c => c.Service<ITypeConverter>()).Returns(new DefaultTypeConverter());
 
         if (type is not null)
         {

@@ -1,3 +1,5 @@
+#nullable disable
+
 using HotChocolate.Properties;
 
 namespace HotChocolate.Types;

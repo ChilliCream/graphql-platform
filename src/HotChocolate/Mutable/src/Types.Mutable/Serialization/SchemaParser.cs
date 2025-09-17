@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using HotChocolate.Language;
 
@@ -6,7 +7,7 @@ namespace HotChocolate.Types.Mutable.Serialization;
 
 public static class SchemaParser
 {
-    public static MutableSchemaDefinition Parse(string sourceText)
+    public static MutableSchemaDefinition Parse([StringSyntax("graphql")] string sourceText)
         => Parse(Encoding.UTF8.GetBytes(sourceText));
 
     public static MutableSchemaDefinition Parse(ReadOnlySpan<byte> sourceText)
@@ -28,6 +29,14 @@ public static class SchemaParser
         SchemaParserOptions options = default)
     {
         var document = Utf8GraphQLParser.Parse(sourceText);
+        Parse(schema, document, options);
+    }
+
+    public static void Parse(
+        MutableSchemaDefinition schema,
+        DocumentNode document,
+        SchemaParserOptions options = default)
+    {
         var existingTypeNames = schema.Types.Select(t => t.Name);
         var existingDirectiveNames = schema.DirectiveDefinitions.AsEnumerable().Select(d => d.Name);
         var skippedNodes = new HashSet<ISyntaxNode>();
@@ -422,6 +431,7 @@ public static class SchemaParser
             var field = new MutableOutputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
             field.Type = schema.Types.BuildType(fieldNode.Type).ExpectOutputType();
+            field.DeclaringMember = type;
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 
@@ -443,6 +453,7 @@ public static class SchemaParser
                 argument.Description = argumentNode.Description?.Value;
                 argument.Type = schema.Types.BuildType(argumentNode.Type).ExpectInputType();
                 argument.DefaultValue = argumentNode.DefaultValue;
+                argument.DeclaringMember = field;
 
                 BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
 
@@ -487,6 +498,7 @@ public static class SchemaParser
             field.Description = fieldNode.Description?.Value;
             field.Type = schema.Types.BuildType(fieldNode.Type).ExpectInputType();
             field.DefaultValue = fieldNode.DefaultValue;
+            field.DeclaringMember = type;
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 
@@ -525,6 +537,7 @@ public static class SchemaParser
 
             var value = new MutableEnumValue(enumValue.Name.Value);
             value.Description = enumValue.Description?.Value;
+            value.DeclaringType = type;
 
             BuildDirectiveCollection(schema, value.Directives, enumValue.Directives);
 
@@ -620,6 +633,7 @@ public static class SchemaParser
             argument.Description = argumentNode.Description?.Value;
             argument.Type = schema.Types.BuildType(argumentNode.Type).ExpectInputType();
             argument.DefaultValue = argumentNode.DefaultValue;
+            argument.DeclaringMember = type;
 
             BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
 
@@ -692,21 +706,18 @@ public static class SchemaParser
                 directiveNode.Name.Value,
                 out var directiveType))
             {
-                if (directiveNode.Name.Value == BuiltIns.Deprecated.Name)
+                directiveType = directiveNode.Name.Value switch
                 {
-                    directiveType = BuiltIns.Deprecated.Create(schema);
-                }
-                else if (directiveNode.Name.Value == BuiltIns.SpecifiedBy.Name)
-                {
-                    directiveType = BuiltIns.SpecifiedBy.Create(schema);
-                }
-                else
-                {
-                    directiveType = new MutableDirectiveDefinition(directiveNode.Name.Value);
-                    // TODO: This is problematic, but currently necessary for the Fusion
-                    // directives to work, since they don't have definitions in the source schema.
-                    directiveType.IsRepeatable = true;
-                }
+                    BuiltIns.Deprecated.Name => BuiltIns.Deprecated.Create(schema),
+                    BuiltIns.OneOf.Name => BuiltIns.OneOf.Create(),
+                    BuiltIns.SpecifiedBy.Name => BuiltIns.SpecifiedBy.Create(schema),
+                    _ =>
+                        new MutableDirectiveDefinition(directiveNode.Name.Value)
+                        {
+                            IsRepeatable = true,
+                            Locations = DirectiveLocation.TypeSystem
+                        }
+                };
 
                 schema.DirectiveDefinitions.Add(directiveType);
             }

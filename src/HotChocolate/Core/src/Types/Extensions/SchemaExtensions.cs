@@ -3,8 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using TypeThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
-#nullable enable
-
 namespace HotChocolate;
 
 /// <summary>

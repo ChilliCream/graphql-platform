@@ -65,7 +65,7 @@ internal sealed class DocumentValidationMiddleware
                         }
 
                         context.Result = OperationResultBuilder.CreateError(result.Errors, resultContextData);
-                        _diagnosticEvents.ExecutionError(context, ErrorKind.ValidationError, result.Errors);
+                        _diagnosticEvents.ValidationErrors(context, result.Errors);
                         return;
                     }
                 }

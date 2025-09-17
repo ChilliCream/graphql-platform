@@ -74,6 +74,8 @@ public static class EndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
 
+        TryResolveSchemaName(endpointRouteBuilder.ServiceProvider, ref schemaName);
+
         path = path.ToString().TrimEnd('/');
         var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
         var pattern = Parse(path + "/{**slug}");
@@ -158,7 +160,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static GraphQLHttpEndpointConventionBuilder MapGraphQLHttp(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern = GraphQLHttpPath,
+        [StringSyntax("Route")] string pattern = GraphQLHttpPath,
         string? schemaName = null)
         => MapGraphQLHttp(endpointRouteBuilder, Parse(pattern), schemaName);
 
@@ -188,6 +190,8 @@ public static class EndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
         ArgumentNullException.ThrowIfNull(pattern);
+
+        TryResolveSchemaName(endpointRouteBuilder.ServiceProvider, ref schemaName);
 
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
@@ -235,7 +239,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static WebSocketEndpointConventionBuilder MapGraphQLWebSocket(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern = GraphQLWebSocketPath,
+        [StringSyntax("Route")] string pattern = GraphQLWebSocketPath,
         string? schemaName = null)
         => MapGraphQLWebSocket(endpointRouteBuilder, Parse(pattern), schemaName);
 
@@ -265,6 +269,8 @@ public static class EndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
         ArgumentNullException.ThrowIfNull(pattern);
+
+        TryResolveSchemaName(endpointRouteBuilder.ServiceProvider, ref schemaName);
 
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
@@ -311,7 +317,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static IEndpointConventionBuilder MapGraphQLSchema(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern = GraphQLSchemaPath,
+        [StringSyntax("Route")] string pattern = GraphQLSchemaPath,
         string? schemaName = null)
         => MapGraphQLSchema(endpointRouteBuilder, Parse(pattern), schemaName);
 
@@ -341,6 +347,8 @@ public static class EndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
         ArgumentNullException.ThrowIfNull(pattern);
+
+        TryResolveSchemaName(endpointRouteBuilder.ServiceProvider, ref schemaName);
 
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
@@ -483,6 +491,8 @@ public static class EndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpointRouteBuilder);
         ArgumentNullException.ThrowIfNull(path);
 
+        TryResolveSchemaName(endpointRouteBuilder.ServiceProvider, ref schemaName);
+
         schemaName ??= ISchemaDefinition.DefaultName;
         var group = endpointRouteBuilder.MapGroup(path);
         group.MapPersistedOperationMiddleware(endpointRouteBuilder.ServiceProvider, schemaName, requireOperationName);
@@ -571,6 +581,16 @@ public static class EndpointRouteBuilderExtensions
         this WebSocketEndpointConventionBuilder builder,
         GraphQLSocketOptions socketOptions) =>
         builder.WithMetadata(new GraphQLServerOptions { Sockets = socketOptions });
+
+    private static void TryResolveSchemaName(IServiceProvider services, ref string? schemaName)
+    {
+        if (schemaName is null
+            && services.GetService<IRequestExecutorProvider>() is { } provider
+            && provider.SchemaNames.Length == 1)
+        {
+            schemaName = provider.SchemaNames[0];
+        }
+    }
 
     internal static NitroAppOptions ToNitroAppOptions(this GraphQLToolOptions options)
         => new()

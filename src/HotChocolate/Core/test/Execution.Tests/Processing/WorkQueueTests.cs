@@ -125,6 +125,7 @@ public class WorkQueueTests
 
     public class MockExecutionTask : IExecutionTask
     {
+        public uint Id { get; set; }
         public ExecutionTaskKind Kind { get; }
         public ExecutionTaskStatus Status { get; }
         public IExecutionTask? Next { get; set; }

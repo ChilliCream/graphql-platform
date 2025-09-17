@@ -1,5 +1,4 @@
 using HotChocolate.Execution;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -28,25 +27,28 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     public virtual IDisposable ExecuteRequest(RequestContext context) => EmptyScope;
 
     /// <inheritdoc />
+    public virtual void RequestError(RequestContext context, Exception error)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void RequestError(RequestContext context, IError error)
+    {
+    }
+
+    /// <inheritdoc />
     public virtual IDisposable ParseDocument(RequestContext context) => EmptyScope;
 
     /// <inheritdoc />
     public virtual IDisposable ValidateDocument(RequestContext context) => EmptyScope;
 
     /// <inheritdoc />
+    public virtual void ValidationErrors(RequestContext context, IReadOnlyList<IError> errors)
+    {
+    }
+
+    /// <inheritdoc />
     public virtual IDisposable CoerceVariables(RequestContext context) => EmptyScope;
-
-    /// <inheritdoc />
-    public virtual IDisposable ExecuteOperation(RequestContext context) => EmptyScope;
-
-    /// <inheritdoc />
-    public virtual IDisposable ExecuteSubscription(RequestContext context) => EmptyScope;
-
-    /// <inheritdoc />
-    public virtual IDisposable OnSubscriptionEvent(RequestContext context) => EmptyScope;
-
-    /// <inheritdoc />
-    public virtual void ExecutionError(RequestContext context, ErrorKind kind, IReadOnlyList<IError> errors, object? state = null) { }
 
     /// <inheritdoc />
     public virtual void AddedDocumentToCache(RequestContext context) { }
@@ -60,13 +62,108 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     /// <inheritdoc />
     public virtual void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId) { }
 
-    public virtual IDisposable ExecuteOperation(OperationPlanContext context, OperationExecutionNode node)
+    /// <inheritdoc />
+    public virtual void UntrustedDocumentRejected(RequestContext context) { }
+
+    /// <inheritdoc />
+    public virtual IDisposable PlanOperation(RequestContext context, string operationPlanId)
         => EmptyScope;
 
-    public virtual IDisposable ExecuteSubscriptionEvent(OperationPlanContext context, OperationExecutionNode node)
+    /// <inheritdoc />
+    public virtual void AddedOperationPlanToCache(RequestContext context, string operationPlanId) { }
+
+    /// <inheritdoc />
+    public virtual void RetrievedOperationPlanFromCache(RequestContext context, string operationPlanId) { }
+
+    /// <inheritdoc />
+    public virtual void PlanOperationError(
+        RequestContext context,
+        string operationId,
+        Exception error)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteOperation(RequestContext context) => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteOperationNode(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        string schemaName)
         => EmptyScope;
 
-    public virtual IDisposable ExecuteIntrospection(OperationPlanContext context, IntrospectionExecutionNode node)
+    /// <inheritdoc />
+    public virtual void SourceSchemaTransportError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        Exception error)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void SourceSchemaStoreError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        Exception error)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void SourceSchemaResultError(
+        OperationPlanContext context,
+        ExecutionNode node, string schemaName,
+        IReadOnlyList<IError> errors)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void ExecutionNodeError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        Exception error)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteSubscription(RequestContext context, ulong subscriptionId)
+        => EmptyScope;
+
+    public virtual IDisposable ExecuteSubscriptionNode(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        string schemaName,
+        ulong subscriptionId)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual void SubscriptionTransportError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId,
+        Exception exception)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void SubscriptionEventError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId,
+        Exception exception)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteNodeFieldNode(OperationPlanContext context, NodeFieldExecutionNode node)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteIntrospectionNode(OperationPlanContext context, IntrospectionExecutionNode node)
         => EmptyScope;
 
     /// <inheritdoc />

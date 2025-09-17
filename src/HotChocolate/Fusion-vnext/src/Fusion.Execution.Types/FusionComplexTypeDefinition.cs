@@ -1,5 +1,6 @@
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;

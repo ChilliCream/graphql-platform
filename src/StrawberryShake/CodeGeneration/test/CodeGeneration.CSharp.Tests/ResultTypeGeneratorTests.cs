@@ -44,23 +44,25 @@ public class ResultTypeGeneratorTests
                         nestedMatrix { str }
                     }
                 }",
-            @"type Query {
-                    foo: Baz
-                }
+            """
+            type Query {
+                foo: Baz
+            }
 
-                ""Baz Type""
-                type Baz {
-                    ""Field str""
-                    str: String
-                    ""Field strNonNullable""
-                    strNonNullable: String!
-                    ""Field nested""
-                    nested: Baz
-                    ""Field nestedList""
-                    nestedList: [Baz!]!
-                    ""Field nestedMatrix""
-                    nestedMatrix: [[Baz]]
-                }",
+            "Baz Type"
+            type Baz {
+                "Field str"
+                str: String
+                "Field strNonNullable"
+                strNonNullable: String!
+                "Field nested"
+                nested: Baz
+                "Field nestedList"
+                nestedList: [Baz!]!
+                "Field nestedMatrix"
+                nestedMatrix: [[Baz]]
+            }
+            """,
             "extend schema @key(fields: \"id\")");
     }
 

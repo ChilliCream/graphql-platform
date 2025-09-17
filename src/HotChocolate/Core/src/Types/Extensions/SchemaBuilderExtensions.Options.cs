@@ -1,8 +1,6 @@
 using HotChocolate.Features;
 using HotChocolate.Types.Pagination;
 
-#nullable enable
-
 // ReSharper disable once CheckNamespace
 namespace HotChocolate;
 

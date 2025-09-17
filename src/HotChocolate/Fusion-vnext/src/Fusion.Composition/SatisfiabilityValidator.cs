@@ -219,19 +219,10 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
     {
         foreach (var possibleType in schema.GetPossibleTypes(nodeType))
         {
-            var unionTypes =
-                schema.Types.OfType<MutableUnionTypeDefinition>().Where(u => u.Types.Contains(possibleType));
-            var byIdLookups = possibleType.GetFusionLookupDirectivesById(unionTypes).ToList();
+            var byIdLookups = schema
+                .GetPossibleFusionLookupDirectivesById(possibleType);
 
-            if (byIdLookups.Count == 0)
-            {
-                var error = new SatisfiabilityError(
-                    string.Format(SatisfiabilityValidator_NodeTypeHasNoLookupById, possibleType.Name));
-
-                log.Write(new LogEntry(error.ToString(), LogEntryCodes.Unsatisfiable, extension: error));
-
-                continue;
-            }
+            var hasNodeLookup = false;
 
             var nodePathItem = new SatisfiabilityPathItem(nodeField, queryType, "*");
             context.Path.Push(nodePathItem);
@@ -241,13 +232,20 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                 var schemaName = (string)lookup.Arguments[WellKnownArgumentNames.Schema].Value!;
                 var fieldDirectiveArgument = (string)lookup.Arguments[WellKnownArgumentNames.Field].Value!;
                 var lookupFieldDefinition = ParseFieldDefinition(fieldDirectiveArgument);
+                var lookupFieldTypeName = lookupFieldDefinition.Type.NamedType().Name.Value;
 
-                if (!schema.Types.TryGetType(lookupFieldDefinition.Type.NamedType().Name.Value, out var namedType))
+                if (!schema.Types.TryGetType(lookupFieldTypeName, out var lookupFieldNamedType))
                 {
                     continue;
                 }
 
-                var lookupFieldType = CreateType(lookupFieldDefinition.Type, namedType).ExpectOutputType();
+                var lookupFieldType = CreateType(lookupFieldDefinition.Type, lookupFieldNamedType).ExpectOutputType();
+
+                if (lookupFieldType is IInterfaceTypeDefinition { Name: "Node" })
+                {
+                    hasNodeLookup = true;
+                }
+
                 var lookupField = new MutableOutputFieldDefinition(lookupFieldDefinition.Name.Value, lookupFieldType);
 
                 var lookupPathItem = new SatisfiabilityPathItem(lookupField, queryType, schemaName);
@@ -256,6 +254,14 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                 VisitObjectType(possibleType, context);
 
                 context.Path.Pop();
+            }
+
+            if (!hasNodeLookup)
+            {
+                var error = new SatisfiabilityError(
+                    string.Format(SatisfiabilityValidator_NodeTypeHasNoNodeLookup, possibleType.Name));
+
+                log.Write(new LogEntry(error.ToString(), LogEntryCodes.Unsatisfiable, extension: error));
             }
 
             context.Path.Pop();
@@ -269,15 +275,10 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
     {
         var errors = new List<SatisfiabilityError>();
 
-        // Get the list of union types that contain the current type.
-        var unionTypes =
-            schema.Types.OfType<MutableUnionTypeDefinition>().Where(u => u.Types.Contains(type));
-
-        // Get the list of lookups for the current type in the destination schema.
         var lookupDirectives =
-            type.GetFusionLookupDirectives(transitionToSchemaName, unionTypes).ToImmutableArray();
+            schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
 
-        if (!lookupDirectives.Any())
+        if (!lookupDirectives.Any() && !CanTransitionToSchemaThroughPath(context.Path, transitionToSchemaName))
         {
             errors.Add(
                 new SatisfiabilityError(
@@ -326,6 +327,39 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         }
 
         return [.. errors];
+    }
+
+    /// <summary>
+    /// We check whether the path we're currently on exists one-to-one
+    /// on the given schema or whether a type on the path has a lookup
+    /// on the given schema.
+    /// </summary>
+    private bool CanTransitionToSchemaThroughPath(
+        SatisfiabilityPath path,
+        string schemaName)
+    {
+        foreach (var pathItem in path)
+        {
+            var lookupDirectives =
+                schema.GetPossibleFusionLookupDirectives(
+                    pathItem.Type,
+                    schemaName);
+
+            var hasLookups = lookupDirectives.Count > 0;
+            var fieldExists = pathItem.Field.ExistsInSchema(schemaName);
+
+            if (hasLookups && fieldExists)
+            {
+                return true;
+            }
+
+            if (!fieldExists)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static IType CreateType(ITypeNode typeNode, ITypeDefinition namedType)

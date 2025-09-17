@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
+using System.Net.Http.Headers;
+using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
-using HotChocolate.Caching.Memory;
 using HotChocolate.Language;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
@@ -11,21 +12,17 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 {
     private readonly GraphQLHttpClient _client;
     private readonly SourceSchemaHttpClientConfiguration _configuration;
-    private readonly Cache<string> _operationStringCache;
     private bool _disposed;
 
     public SourceSchemaHttpClient(
         GraphQLHttpClient client,
-        SourceSchemaHttpClientConfiguration configuration,
-        Cache<string> operationStringCache)
+        SourceSchemaHttpClientConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(client);
         ArgumentNullException.ThrowIfNull(configuration);
-        ArgumentNullException.ThrowIfNull(operationStringCache);
 
         _client = client;
         _configuration = configuration;
-        _operationStringCache = operationStringCache;
     }
 
     public async ValueTask<SourceSchemaClientResponse> ExecuteAsync(
@@ -52,35 +49,44 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         };
 
         var httpResponse = await _client.SendAsync(httpRequest, cancellationToken);
-        return new Response(request.Operation.Operation, httpResponse, request.Variables);
+        return new Response(
+            request.OperationType,
+            httpRequest,
+            httpResponse,
+            request.Variables);
     }
 
     private GraphQLHttpRequest CreateHttpRequest(
         SourceSchemaClientRequest originalRequest)
     {
-        var operationSourceText =
-            _operationStringCache.GetOrCreate(
-                originalRequest.OperationId,
-                static (_, o) => o.ToString(),
-                originalRequest.Operation);
+        var defaultAccept = originalRequest.OperationType is OperationType.Subscription
+            ? AcceptContentTypes.Subscription
+            : AcceptContentTypes.Default;
+        var operationSourceText = originalRequest.OperationSourceText;
 
         switch (originalRequest.Variables.Length)
         {
             case 0:
-                return new GraphQLHttpRequest(
-                    CreateSingleRequest(operationSourceText));
+                return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText))
+                {
+                    Uri = _configuration.BaseAddress,
+                    Accept = defaultAccept
+                };
 
             case 1:
-                return new GraphQLHttpRequest(
-                    CreateSingleRequest(
-                        operationSourceText,
-                        originalRequest.Variables[0].Values));
+                var variableValues = originalRequest.Variables[0].Values;
+                return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText, variableValues))
+                {
+                    Uri = _configuration.BaseAddress,
+                    Accept = defaultAccept
+                };
 
             default:
-                return new GraphQLHttpRequest(
-                    CreateBatchRequest(
-                        operationSourceText,
-                        originalRequest));
+                return new GraphQLHttpRequest(CreateBatchRequest(operationSourceText, originalRequest))
+                {
+                    Uri = _configuration.BaseAddress,
+                    Accept = AcceptContentTypes.VariableBatching
+                };
         }
     }
 
@@ -92,6 +98,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             operationSourceText,
             id: null,
             operationName: null,
+            onError: null,
             variables: variables,
             extensions: null);
     }
@@ -111,6 +118,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             operationSourceText,
             id: null,
             operationName: null,
+            onError: null,
             variables: variables,
             extensions: null);
     }
@@ -130,6 +138,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
     private sealed class Response(
         OperationType operation,
+        GraphQLHttpRequest request,
         GraphQLHttpResponse response,
         ImmutableArray<VariableValues> variables)
         : SourceSchemaClientResponse
@@ -179,9 +188,22 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
                     default:
                     {
+                        SourceSchemaResult? errorResult = null;
+
                         await foreach (var result in response.ReadAsResultStreamAsync()
                             .WithCancellation(cancellationToken))
                         {
+                            if (result.VariableIndex is null)
+                            {
+                                errorResult = new SourceSchemaResult(
+                                    variables[0].Path,
+                                    result,
+                                    result.Data,
+                                    result.Errors,
+                                    result.Extensions);
+                                break;
+                            }
+
                             var index = result.VariableIndex!.Value;
                             var (path, _) = variables[index];
                             yield return new SourceSchemaResult(
@@ -192,14 +214,57 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                 result.Extensions);
                         }
 
+                        if (errorResult is not null)
+                        {
+                            yield return errorResult;
+
+                            for (var i = 1; i < variables.Length; i++)
+                            {
+                                var (path, _) = variables[i];
+                                yield return new SourceSchemaResult(
+                                    path,
+                                    Disposable.Empty,
+                                    default,
+                                    default,
+                                    default);
+                            }
+                        }
+
                         break;
                     }
                 }
             }
         }
 
+        public override Uri Uri => request.Uri ?? new Uri("http://unknown");
+
+        public override string ContentType => response.ContentHeaders.ContentType?.ToString() ?? "unknown";
+
         public override bool IsSuccessful => response.IsSuccessStatusCode;
 
         public override void Dispose() => response.Dispose();
+    }
+
+    private static class AcceptContentTypes
+    {
+        public static readonly ImmutableArray<MediaTypeWithQualityHeaderValue> Default =
+        [
+            new("application/graphql-response+json") { CharSet = "utf-8" },
+            new("application/json") { CharSet = "utf-8" },
+            new("application/jsonl") { CharSet = "utf-8" },
+            new("text/event-stream") { CharSet = "utf-8" }
+        ];
+
+        public static ImmutableArray<MediaTypeWithQualityHeaderValue> VariableBatching { get; } =
+        [
+            new("application/jsonl") { CharSet = "utf-8" },
+            new("text/event-stream") { CharSet = "utf-8" }
+        ];
+
+        public static ImmutableArray<MediaTypeWithQualityHeaderValue> Subscription { get; } =
+        [
+            new("application/jsonl") { CharSet = "utf-8" },
+            new("text/event-stream") { CharSet = "utf-8" }
+        ];
     }
 }

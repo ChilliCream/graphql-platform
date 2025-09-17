@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Threading.Channels;
 using StrawberryShake.Extensions;
 
@@ -8,12 +7,6 @@ namespace StrawberryShake;
 
 public sealed partial class OperationStore : IOperationStore
 {
-    private static readonly MethodInfo s_setGeneric = typeof(OperationStore)
-        .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-        .First(t =>
-            t.IsGenericMethodDefinition
-            && t.Name.Equals(nameof(Set), StringComparison.Ordinal));
-
     private readonly CancellationTokenSource _cts = new();
     private readonly ConcurrentDictionary<OperationRequest, IStoredOperation> _results = new();
     private readonly IEntityStore _entityStore;
@@ -41,13 +34,6 @@ public sealed partial class OperationStore : IOperationStore
         var storedOperation = GetOrAddStoredOperation<T>(operationRequest);
         storedOperation.SetResult(operationResult);
         OnUpdate(storedOperation, OperationUpdateKind.Updated);
-    }
-
-    public void Set(OperationRequest operationRequest, IOperationResult operationResult)
-    {
-        s_setGeneric
-            .MakeGenericMethod(operationResult.DataType)
-            .Invoke(this, [operationRequest, operationResult]);
     }
 
     public void Reset(OperationRequest operationRequest)

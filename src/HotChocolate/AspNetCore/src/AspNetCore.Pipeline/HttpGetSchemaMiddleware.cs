@@ -71,7 +71,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         return false;
     }
 
-    private async Task HandleRequestAsync(HttpContext context, ExecutorSession session, GraphQLServerOptions options)
+    private static async Task HandleRequestAsync(HttpContext context, ExecutorSession session, GraphQLServerOptions options)
     {
         if (!options.EnableSchemaFileSupport)
         {
@@ -101,7 +101,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         }
     }
 
-    private async Task WriteTypesAsync(
+    private static async Task WriteTypesAsync(
         HttpContext context,
         ExecutorSession session,
         string typeNames,
@@ -141,7 +141,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         await PrintTypesAsync(types, context.Response.Body, indent, context.RequestAborted);
     }
 
-    private string GetTypesFileName(List<ITypeDefinition> types)
+    private static string GetTypesFileName(List<ITypeDefinition> types)
         => types.Count == 1
             ? $"{types[0].Name}.graphql"
             : "types.graphql";

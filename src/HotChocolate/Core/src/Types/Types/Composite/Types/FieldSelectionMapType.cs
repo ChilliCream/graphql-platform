@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 

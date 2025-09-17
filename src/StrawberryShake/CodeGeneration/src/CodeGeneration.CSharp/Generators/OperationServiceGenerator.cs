@@ -73,7 +73,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
 
         if (descriptor is not SubscriptionOperationDescriptor)
         {
-            const string arrayType = "System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>";
+            const string arrayType = "global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>";
 
             var privateConstructorBuilder = classBuilder
                 .AddConstructor()

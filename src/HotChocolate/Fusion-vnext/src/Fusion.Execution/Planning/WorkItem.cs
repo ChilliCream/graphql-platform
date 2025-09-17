@@ -5,4 +5,6 @@ namespace HotChocolate.Fusion.Planning;
 public abstract record WorkItem
 {
     public ImmutableHashSet<int> Dependents { get; init; } = [];
+
+    public virtual double Cost => 1;
 }
