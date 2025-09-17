@@ -860,7 +860,7 @@ public sealed partial class OperationPlanner
         var resolvableSelections = resolvable.Selections;
         if (!resolvableSelections.Any(IsTypeNameSelection))
         {
-            resolvableSelections = [new FieldNode(IntrospectionFieldNames.TypeName), ..resolvableSelections];
+            resolvableSelections = [new FieldNode(IntrospectionFieldNames.TypeName), .. resolvableSelections];
         }
 
         var selectionSetNode = resolvable.WithSelections(resolvableSelections);
@@ -897,7 +897,11 @@ public sealed partial class OperationPlanner
             RootSelectionSetId = index.GetId(resolvable),
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, index),
             Dependents = workItem.Dependents,
+#if NET10_0_OR_GREATER
+            Requirements = [],
+#else
             Requirements = ImmutableDictionary<string, OperationRequirement>.Empty,
+#endif
             Target = SelectionPath.Root,
             Source = SelectionPath.Root
         };
@@ -961,7 +965,7 @@ public sealed partial class OperationPlanner
         var sharedSelections = sharedSelectionSet?.Selections ?? [];
         if (sharedSelections.Count < 1 || !sharedSelections.Any(IsTypeNameSelection))
         {
-            sharedSelections = [new FieldNode(IntrospectionFieldNames.TypeName), ..sharedSelections];
+            sharedSelections = [new FieldNode(IntrospectionFieldNames.TypeName), .. sharedSelections];
         }
 
         var nodeFieldSelectionSet = new SelectionSetNode(sharedSelections);
@@ -991,7 +995,11 @@ public sealed partial class OperationPlanner
             RootSelectionSetId = index.GetId(fallbackQuery.SelectionSet),
             SelectionSets = SelectionSetIndexer.CreateIdSet(fallbackQuery.SelectionSet, index),
             Dependents = [],
+#if NET10_0_OR_GREATER
+            Requirements = [],
+#else
             Requirements = ImmutableDictionary<string, OperationRequirement>.Empty,
+#endif
             Target = SelectionPath.Root,
             Source = SelectionPath.Root
         };
@@ -1380,7 +1388,7 @@ public sealed partial class OperationPlanner
         var rewriter = SyntaxRewriter.Create<Stack<ITypeDefinition>>(
             (node, path) =>
             {
-                if (node is not FieldNode { SelectionSet: {} selectionSet } fieldNode)
+                if (node is not FieldNode { SelectionSet: { } selectionSet } fieldNode)
                 {
                     return node;
                 }
@@ -1399,7 +1407,7 @@ public sealed partial class OperationPlanner
                         .WithDirectives([new DirectiveNode("fusion__requirement")]);
 
                     return fieldNode.WithSelectionSet(new SelectionSetNode([
-                        typenameNode, ..selectionSet.Selections
+                        typenameNode, .. selectionSet.Selections
                     ]));
                 }
 
@@ -1653,7 +1661,7 @@ file static class Extensions
             // type or if we can just reuse the entire path we came from, e.g. viewer { ... }.
             if (!hasEnqueuedDirectLookup)
             {
-                foreach (var (lookupThroughPathWorkItem, cost, index) in  GetPossibleLookupsThroughPath(
+                foreach (var (lookupThroughPathWorkItem, cost, index) in GetPossibleLookupsThroughPath(
                     planNodeTemplate,
                     workItem,
                     toSchema,

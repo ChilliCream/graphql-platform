@@ -47,29 +47,35 @@ public class DataLoaderTests
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: withDataLoader(key: ""a"")
-                            b: withDataLoader(key: ""b"")
+                        """
+                        {
+                            a: withDataLoader(key: "a")
+                            b: withDataLoader(key: "b")
                             bar {
-                                c: withDataLoader(key: ""c"")
+                                c: withDataLoader(key: "c")
                             }
-                        }")
+                        }
+                        """)
                     .Build()));
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: withDataLoader(key: ""a"")
-                        }")
+                        """
+                        {
+                            a: withDataLoader(key: "a")
+                        }
+                        """)
                     .Build()));
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            c: withDataLoader(key: ""c"")
-                        }")
+                        """
+                        {
+                            c: withDataLoader(key: "c")
+                        }
+                        """)
                     .Build()));
 
         // assert
@@ -201,28 +207,34 @@ public class DataLoaderTests
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: withStackedDataLoader(key: ""a"")
-                            b: withStackedDataLoader(key: ""b"")
-                        }")
+                        """
+                        {
+                            a: withStackedDataLoader(key: "a")
+                            b: withStackedDataLoader(key: "b")
+                        }
+                        """)
                     .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: withStackedDataLoader(key: ""a"")
-                        }")
+                        """
+                        {
+                            a: withStackedDataLoader(key: "a")
+                        }
+                        """)
                     .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            c: withStackedDataLoader(key: ""c"")
-                        }")
+                        """
+                        {
+                            c: withStackedDataLoader(key: "c")
+                        }
+                        """)
                     .Build()));
 
         // assert
@@ -259,28 +271,34 @@ public class DataLoaderTests
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: dataLoaderWithInterface(key: ""a"")
-                            b: dataLoaderWithInterface(key: ""b"")
-                        }")
+                        """
+                        {
+                            a: dataLoaderWithInterface(key: "a")
+                            b: dataLoaderWithInterface(key: "b")
+                        }
+                        """)
                     .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: dataLoaderWithInterface(key: ""a"")
-                        }")
+                        """
+                        {
+                            a: dataLoaderWithInterface(key: "a")
+                        }
+                        """)
                     .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            c: dataLoaderWithInterface(key: ""c"")
-                        }")
+                        """
+                        {
+                            c: dataLoaderWithInterface(key: "c")
+                        }
+                        """)
                     .Build()));
 
         // assert
@@ -320,28 +338,34 @@ public class DataLoaderTests
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: dataLoaderWithInterface(key: ""a"")
-                            b: dataLoaderWithInterface(key: ""b"")
-                        }")
+                        """
+                        {
+                            a: dataLoaderWithInterface(key: "a")
+                            b: dataLoaderWithInterface(key: "b")
+                        }
+                        """)
                     .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            a: dataLoaderWithInterface(key: ""a"")
-                        }")
+                        """
+                        {
+                            a: dataLoaderWithInterface(key: "a")
+                        }
+                        """)
                     .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
-                        @"{
-                            c: dataLoaderWithInterface(key: ""c"")
-                        }")
+                        """
+                        {
+                            c: dataLoaderWithInterface(key: "c")
+                        }
+                        """)
                     .Build()));
 
         // assert

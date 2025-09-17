@@ -11,7 +11,9 @@ namespace HotChocolate.Fusion.Types.Completion;
 
 internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderContext
 {
+#pragma warning disable IDE0052 // WIP
     private readonly DocumentNode _document;
+#pragma warning restore IDE0052
     private readonly Dictionary<ITypeNode, IType> _compositeTypes = new(SyntaxComparer.BySyntax);
     private readonly Dictionary<string, ITypeDefinition> _typeDefinitionLookup;
     private ImmutableDictionary<string, ITypeDefinitionNode> _typeDefinitionNodeLookup;
@@ -37,7 +39,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         IFeatureCollection features,
         CompositeTypeInterceptor interceptor)
     {
-        _document =  document;
+        _document = document;
         _sourceUnions = UnionMemberDirectiveParser.Parse(document.Definitions.OfType<UnionTypeDefinitionNode>());
 
         _typeDefinitionLookup = typeDefinitions.ToDictionary(t => t.Name);
@@ -202,7 +204,11 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
     {
         return _sourceUnions.TryGetValue(objectTypeName, out var sourceUnions)
             ? sourceUnions
+#if NET10_0_OR_GREATER
+            : [];
+#else
             : ImmutableDictionary<SchemaKey, ImmutableHashSet<string>>.Empty;
+#endif
     }
 
     private void AddSpecDirectives()

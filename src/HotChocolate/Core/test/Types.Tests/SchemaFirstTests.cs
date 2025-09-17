@@ -479,12 +479,14 @@ public class SchemaFirstTests
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddDocumentFromString(@"
-                    type Query {
-                        book(input: Foo): String
-                    }
+            .AddDocumentFromString(
+                """
+                type Query {
+                    book(input: Foo): String
+                }
 
-                    input Foo { bar: String = ""baz"" }")
+                input Foo { bar: String = "baz" }
+                """)
             .AddResolver<QueryWithFooInput>("Query")
             .ExecuteRequestAsync("{ book(input: { bar: \"baz123\" }) }")
             .MatchSnapshotAsync();

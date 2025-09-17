@@ -77,7 +77,7 @@ public sealed class ResultPoolSession
 
     public void Reset()
     {
-        var totalUsedBatches = 0;
+        int totalUsedBatches;
 
         unchecked
         {

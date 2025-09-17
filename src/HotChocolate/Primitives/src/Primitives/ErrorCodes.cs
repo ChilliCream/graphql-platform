@@ -355,6 +355,11 @@ public static class ErrorCodes
         public const string NoPagingBoundaries = "HC0052";
 
         /// <summary>
+        /// You must provide a `first` value to properly paginate the connection.
+        /// </summary>
+        public const string FirstValueNotSet = "HC0090";
+
+        /// <summary>
         /// The requested number of values per page must be at least 0.
         /// </summary>
         public const string MinPaginationItems = "HC0079";

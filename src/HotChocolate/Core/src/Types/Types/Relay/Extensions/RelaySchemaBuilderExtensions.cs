@@ -1,5 +1,4 @@
 using HotChocolate.Features;
-using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate;
