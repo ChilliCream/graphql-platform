@@ -100,24 +100,28 @@ public class NoStoreStarWarsGeneratorTests
     public void StarWarsTypeNameOnUnions() =>
         AssertStarWarsResult(
             new AssertSettings { NoStore = true },
-            @"query SearchHero {
-                    search(text: ""l"") {
-                        __typename
-                    }
-                }");
+            """
+            query SearchHero {
+                search(text: "l") {
+                    __typename
+                }
+            }
+            """);
 
     [Fact]
     public void StarWarsUnionList() =>
         AssertStarWarsResult(
             new AssertSettings { NoStore = true },
-            @"query SearchHero {
-                    search(text: ""l"") {
-                        ... on Human {
-                            name
-                        }
-                        ... on Droid {
-                            name
-                        }
+            """
+            query SearchHero {
+                search(text: "l") {
+                    ... on Human {
+                        name
                     }
-                }");
+                    ... on Droid {
+                        name
+                    }
+                }
+            }
+            """);
 }

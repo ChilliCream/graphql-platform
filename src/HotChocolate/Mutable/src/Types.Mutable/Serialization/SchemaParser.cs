@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using HotChocolate.Language;
 
@@ -6,7 +7,7 @@ namespace HotChocolate.Types.Mutable.Serialization;
 
 public static class SchemaParser
 {
-    public static MutableSchemaDefinition Parse(string sourceText)
+    public static MutableSchemaDefinition Parse([StringSyntax("graphql")] string sourceText)
         => Parse(Encoding.UTF8.GetBytes(sourceText));
 
     public static MutableSchemaDefinition Parse(ReadOnlySpan<byte> sourceText)
@@ -705,21 +706,18 @@ public static class SchemaParser
                 directiveNode.Name.Value,
                 out var directiveType))
             {
-                if (directiveNode.Name.Value == BuiltIns.Deprecated.Name)
+                directiveType = directiveNode.Name.Value switch
                 {
-                    directiveType = BuiltIns.Deprecated.Create(schema);
-                }
-                else if (directiveNode.Name.Value == BuiltIns.SpecifiedBy.Name)
-                {
-                    directiveType = BuiltIns.SpecifiedBy.Create(schema);
-                }
-                else
-                {
-                    directiveType = new MutableDirectiveDefinition(directiveNode.Name.Value);
-                    // TODO: This is problematic, but currently necessary for the Fusion
-                    // directives to work, since they don't have definitions in the source schema.
-                    directiveType.IsRepeatable = true;
-                }
+                    BuiltIns.Deprecated.Name => BuiltIns.Deprecated.Create(schema),
+                    BuiltIns.OneOf.Name => BuiltIns.OneOf.Create(),
+                    BuiltIns.SpecifiedBy.Name => BuiltIns.SpecifiedBy.Create(schema),
+                    _ =>
+                        new MutableDirectiveDefinition(directiveNode.Name.Value)
+                        {
+                            IsRepeatable = true,
+                            Locations = DirectiveLocation.TypeSystem
+                        }
+                };
 
                 schema.DirectiveDefinitions.Add(directiveType);
             }

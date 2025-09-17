@@ -1,4 +1,4 @@
-schema @schemaName(value: "Schema1") {
+schema {
   query: Query
 }
 

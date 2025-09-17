@@ -1011,19 +1011,8 @@ internal sealed class SourceSchemaMerger
         foreach (var (sourceField, sourcePath, sourceSchema) in lookupFieldGroup)
         {
             var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema]);
-            var lookupMap = GetFusionLookupMap(sourceField);
-            var selectedValues = lookupMap.Select(a => new FieldSelectionMapParser(a).Parse());
-            var selectedValueToSelectionSetRewriter =
-                GetSelectedValueToSelectionSetRewriter(sourceSchema);
-            var selectionSets = selectedValues
-                .Select(
-                    s => selectedValueToSelectionSetRewriter.Rewrite(s, type))
-                .ToImmutableArray();
-            var mergedSelectionSet = selectionSets.Length == 1
-                ? selectionSets[0]
-                : GetMergeSelectionSetRewriter(sourceSchema).Merge(selectionSets, type);
-            var keyArgument =
-                mergedSelectionSet.ToString(indented: false).AsSpan()[2..^2].ToString();
+            var lookupMap = sourceField.GetFusionLookupMap();
+            var keyArgument = sourceField.GetKeyFields(lookupMap, sourceSchema);
 
             var fieldArgument =
                 s_fieldDefinitionRewriter
@@ -1048,23 +1037,6 @@ internal sealed class SourceSchemaMerger
                     new ArgumentAssignment(ArgumentNames.Path, pathArgument),
                     new ArgumentAssignment(ArgumentNames.Internal, @internal)));
         }
-    }
-
-    // productById(id: ID!) -> ["id"].
-    // productByIdAndCategoryId(id: ID!, categoryId: Int) -> ["id", "categoryId"].
-    // personByAddressId(id: ID! @is(field: "address.id")) -> ["address.id"].
-    private static List<string> GetFusionLookupMap(MutableOutputFieldDefinition field)
-    {
-        var items = new List<string>();
-
-        foreach (var argument in field.Arguments)
-        {
-            var @is = argument.GetIsFieldSelectionMap();
-
-            items.Add(@is ?? argument.Name);
-        }
-
-        return items;
     }
 
     private void AddFusionRequiresDirectives(

@@ -15,8 +15,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Duende.IdentityModel" />
     <PackageReference Include="Glob" />
-    <PackageReference Include="IdentityModel" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" />
   </ItemGroup>
 
