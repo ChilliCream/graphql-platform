@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.PostMergeValidationRules;
@@ -38,6 +39,16 @@ public sealed class SchemaComposer
         if (isParseFailure)
         {
             return parseErrors;
+        }
+
+        // Preprocess Source Schemas
+        var preprocessorOptions = _schemaComposerOptions.Preprocessor;
+        var preprocessResult =
+            schemas.Select(schema => new SourceSchemaPreprocessor(schema, preprocessorOptions).Process()).Combine();
+
+        if (preprocessResult.IsFailure)
+        {
+            return preprocessResult;
         }
 
         // Validate Source Schemas

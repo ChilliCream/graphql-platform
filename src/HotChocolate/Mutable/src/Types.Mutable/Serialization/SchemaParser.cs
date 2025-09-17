@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using HotChocolate.Language;
 
@@ -6,7 +7,7 @@ namespace HotChocolate.Types.Mutable.Serialization;
 
 public static class SchemaParser
 {
-    public static MutableSchemaDefinition Parse(string sourceText)
+    public static MutableSchemaDefinition Parse([StringSyntax("graphql")] string sourceText)
         => Parse(Encoding.UTF8.GetBytes(sourceText));
 
     public static MutableSchemaDefinition Parse(ReadOnlySpan<byte> sourceText)
