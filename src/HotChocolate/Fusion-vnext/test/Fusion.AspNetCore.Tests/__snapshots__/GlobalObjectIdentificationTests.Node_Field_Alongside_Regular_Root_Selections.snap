@@ -1,11 +1,11 @@
 {
   "data": {
     "viewer": {
-      "username": "string"
+      "username": "Viewer"
     },
     "node": {
       "__typename": "Discussion",
-      "title": "string"
+      "title": "Discussion: RGlzY3Vzc2lvbjox"
     }
   },
   "extensions": {

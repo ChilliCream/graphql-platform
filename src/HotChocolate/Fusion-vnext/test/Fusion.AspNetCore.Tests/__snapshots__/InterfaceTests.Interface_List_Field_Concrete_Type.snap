@@ -3,15 +3,15 @@
     "votables": [
       {
         "viewerCanVote": true,
-        "title": "string"
+        "title": "Discussion: 1"
       },
       {
         "viewerCanVote": true,
-        "title": "string"
+        "title": "Discussion: 2"
       },
       {
         "viewerCanVote": true,
-        "title": "string"
+        "title": "Discussion: 3"
       }
     ]
   },

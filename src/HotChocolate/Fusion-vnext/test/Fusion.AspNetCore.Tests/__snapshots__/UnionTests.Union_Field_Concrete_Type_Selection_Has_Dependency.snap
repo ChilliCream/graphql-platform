@@ -2,7 +2,7 @@
   "data": {
     "post": {
       "product": {
-        "subgraph2": "string"
+        "subgraph2": "Product: 2"
       }
     }
   },

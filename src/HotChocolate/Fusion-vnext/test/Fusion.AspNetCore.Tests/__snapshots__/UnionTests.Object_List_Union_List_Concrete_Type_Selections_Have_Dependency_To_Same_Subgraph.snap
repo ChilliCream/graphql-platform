@@ -5,17 +5,17 @@
         "posts": [
           {
             "product": {
-              "subgraph2": "string"
+              "subgraph2": "Product: 15"
             }
           },
           {
             "product": {
-              "subgraph2": "string"
+              "subgraph2": "Product: 14"
             }
           },
           {
             "product": {
-              "subgraph2": "string"
+              "subgraph2": "Product: 13"
             }
           }
         ]
@@ -24,17 +24,17 @@
         "posts": [
           {
             "product": {
-              "subgraph2": "string"
+              "subgraph2": "Product: 18"
             }
           },
           {
             "product": {
-              "subgraph2": "string"
+              "subgraph2": "Product: 17"
             }
           },
           {
             "product": {
-              "subgraph2": "string"
+              "subgraph2": "Product: 16"
             }
           }
         ]
@@ -43,17 +43,17 @@
         "posts": [
           {
             "product": {
-              "subgraph2": "string"
+              "subgraph2": "Product: 21"
             }
           },
           {
             "product": {
-              "subgraph2": "string"
+              "subgraph2": "Product: 20"
             }
           },
           {
             "product": {
-              "subgraph2": "string"
+              "subgraph2": "Product: 19"
             }
           }
         ]

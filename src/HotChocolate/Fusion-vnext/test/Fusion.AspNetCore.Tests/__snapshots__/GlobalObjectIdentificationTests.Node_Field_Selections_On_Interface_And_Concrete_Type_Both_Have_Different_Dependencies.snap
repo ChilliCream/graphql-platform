@@ -6,15 +6,15 @@
       "products": [
         {
           "id": "1",
-          "name": "string"
+          "name": "Product: 1"
         },
         {
           "id": "2",
-          "name": "string"
+          "name": "Product: 2"
         },
         {
           "id": "3",
-          "name": "string"
+          "name": "Product: 3"
         }
       ]
     }

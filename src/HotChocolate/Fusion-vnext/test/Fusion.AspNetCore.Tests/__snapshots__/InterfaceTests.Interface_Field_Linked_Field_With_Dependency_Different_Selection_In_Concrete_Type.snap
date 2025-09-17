@@ -2,9 +2,9 @@
   "data": {
     "authorable": {
       "author": {
-        "id": "1",
-        "displayName": "string",
-        "email": "string"
+        "id": "2",
+        "displayName": "Author: 2",
+        "email": "Author: 2"
       }
     }
   },

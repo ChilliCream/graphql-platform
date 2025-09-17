@@ -3,20 +3,20 @@
     "authorables": [
       {
         "author": {
-          "id": "3",
-          "displayName": "string"
+          "id": "6",
+          "displayName": "Author: 6"
         }
       },
       {
         "author": {
-          "id": "2",
-          "displayName": "string"
+          "id": "5",
+          "displayName": "Author: 5"
         }
       },
       {
         "author": {
-          "id": "1",
-          "displayName": "string"
+          "id": "4",
+          "displayName": "Author: 4"
         }
       }
     ]

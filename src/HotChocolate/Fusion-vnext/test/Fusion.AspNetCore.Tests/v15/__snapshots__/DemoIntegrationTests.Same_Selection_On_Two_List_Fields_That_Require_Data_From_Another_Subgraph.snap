@@ -3,19 +3,19 @@
     "productsA": [
       {
         "id": "1",
-        "name": "string",
+        "name": "Product: 1",
         "price": 123.456,
         "reviewCount": 123
       },
       {
         "id": "2",
-        "name": "string",
+        "name": "Product: 2",
         "price": 123.456,
         "reviewCount": 123
       },
       {
         "id": "3",
-        "name": "string",
+        "name": "Product: 3",
         "price": 123.456,
         "reviewCount": 123
       }
@@ -23,19 +23,19 @@
     "productsB": [
       {
         "id": "4",
-        "name": "string",
+        "name": "Product: 4",
         "price": 123.456,
         "reviewCount": 123
       },
       {
         "id": "5",
-        "name": "string",
+        "name": "Product: 5",
         "price": 123.456,
         "reviewCount": 123
       },
       {
         "id": "6",
-        "name": "string",
+        "name": "Product: 6",
         "price": 123.456,
         "reviewCount": 123
       }

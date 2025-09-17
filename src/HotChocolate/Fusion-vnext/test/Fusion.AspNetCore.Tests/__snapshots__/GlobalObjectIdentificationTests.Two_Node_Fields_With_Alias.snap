@@ -1,10 +1,10 @@
 {
   "data": {
     "a": {
-      "title": "string"
+      "title": "Discussion: 1"
     },
     "b": {
-      "title": "string",
+      "title": "Discussion: 1",
       "commentCount": 123
     }
   },

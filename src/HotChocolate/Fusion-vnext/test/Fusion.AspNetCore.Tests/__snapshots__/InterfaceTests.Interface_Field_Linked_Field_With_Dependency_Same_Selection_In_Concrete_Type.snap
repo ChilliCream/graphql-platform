@@ -2,8 +2,8 @@
   "data": {
     "authorable": {
       "author": {
-        "id": "1",
-        "displayName": "string"
+        "id": "2",
+        "displayName": "Author: 2"
       }
     }
   },

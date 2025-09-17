@@ -1,7 +1,7 @@
 {
   "data": {
     "viewer": {
-      "name": "string"
+      "name": "Viewer"
     },
     "other": {
       "userId": null

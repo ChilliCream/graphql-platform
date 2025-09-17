@@ -3,17 +3,17 @@
     "posts": [
       {
         "product": {
-          "subgraph2": "string"
+          "subgraph2": "Product: 6"
         }
       },
       {
         "product": {
-          "subgraph2": "string"
+          "subgraph2": "Product: 5"
         }
       },
       {
         "product": {
-          "subgraph2": "string"
+          "subgraph2": "Product: 4"
         }
       }
     ]

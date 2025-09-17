@@ -6,8 +6,8 @@
         "subgraph1Only": true,
         "sharedLinked": {
           "subgraph2Only": true,
-          "sharedScalar": "string",
-          "subgraph1Only": "string"
+          "sharedScalar": "ProductAvailabilityMail: 2",
+          "subgraph1Only": "ProductAvailabilityMail: 2"
         }
       }
     }

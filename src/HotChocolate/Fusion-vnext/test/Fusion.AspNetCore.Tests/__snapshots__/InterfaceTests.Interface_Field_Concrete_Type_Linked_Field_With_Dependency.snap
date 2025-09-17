@@ -3,7 +3,7 @@
     "votable": {
       "viewerCanVote": true,
       "author": {
-        "displayName": "string"
+        "displayName": "Author: 2"
       }
     }
   },

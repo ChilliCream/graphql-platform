@@ -1,12 +1,12 @@
 {
   "data": {
     "viewer": {
-      "subgraphA": "string",
-      "subgraphB": "string"
+      "subgraphA": "Viewer",
+      "subgraphB": "Viewer"
     },
     "subgraphC": {
-      "someField": "string",
-      "anotherField": "string"
+      "someField": "SubgraphC: 1",
+      "anotherField": "SubgraphC: 1"
     }
   },
   "extensions": {

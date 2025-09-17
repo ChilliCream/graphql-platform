@@ -4,39 +4,39 @@
       {
         "posts": [
           {
-            "subgraph2": "string"
+            "subgraph2": "Photo: 10"
           },
           {
-            "subgraph2": "string"
+            "subgraph2": "Photo: 11"
           },
           {
-            "subgraph2": "string"
+            "subgraph2": "Photo: 12"
           }
         ]
       },
       {
         "posts": [
           {
-            "subgraph2": "string"
+            "subgraph2": "Photo: 7"
           },
           {
-            "subgraph2": "string"
+            "subgraph2": "Photo: 8"
           },
           {
-            "subgraph2": "string"
+            "subgraph2": "Photo: 9"
           }
         ]
       },
       {
         "posts": [
           {
-            "subgraph2": "string"
+            "subgraph2": "Photo: 4"
           },
           {
-            "subgraph2": "string"
+            "subgraph2": "Photo: 5"
           },
           {
-            "subgraph2": "string"
+            "subgraph2": "Photo: 6"
           }
         ]
       }

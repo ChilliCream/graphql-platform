@@ -3,17 +3,17 @@
     "postEdges": [
       {
         "node": {
-          "subgraph2": "string"
+          "subgraph2": "Photo: 6"
         }
       },
       {
         "node": {
-          "subgraph2": "string"
+          "subgraph2": "Photo: 5"
         }
       },
       {
         "node": {
-          "subgraph2": "string"
+          "subgraph2": "Photo: 4"
         }
       }
     ]

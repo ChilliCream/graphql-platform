@@ -3,7 +3,7 @@
     "node": {
       "product": {
         "id": "1",
-        "name": "string"
+        "name": "Product: 1"
       }
     }
   },

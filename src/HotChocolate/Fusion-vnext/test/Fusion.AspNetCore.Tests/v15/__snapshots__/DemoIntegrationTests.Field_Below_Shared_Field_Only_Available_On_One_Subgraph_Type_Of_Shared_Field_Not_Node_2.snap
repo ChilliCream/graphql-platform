@@ -5,7 +5,7 @@
         "subgraph2Only": true,
         "sharedLinked": {
           "subgraph2Only": true,
-          "sharedScalar": "string"
+          "sharedScalar": "ProductAvailabilityMail: 2"
         }
       }
     }

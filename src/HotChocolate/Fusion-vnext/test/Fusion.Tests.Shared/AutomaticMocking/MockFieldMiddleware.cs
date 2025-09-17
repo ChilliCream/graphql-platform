@@ -13,12 +13,9 @@ internal sealed class MockFieldMiddleware
 
     public ValueTask InvokeAsync(IMiddlewareContext context)
     {
-        var mockingContext = context.GetGlobalStateOrDefault<AutomaticMockingContext>(nameof(AutomaticMockingContext));
-        if (mockingContext is null)
-        {
-            mockingContext = new AutomaticMockingContext();
-            context.SetGlobalState(nameof(AutomaticMockingContext), mockingContext);
-        }
+        var mockingContext = context.GetOrSetGlobalState(
+            nameof(AutomaticMockingContext),
+            _ => new AutomaticMockingContext());
 
         var field = context.Selection.Field;
         var fieldName = field.Name;
@@ -87,7 +84,7 @@ internal sealed class MockFieldMiddleware
                     var type = DetermineTypeForAbstractSelection(possibleTypes, context.Selection, context.Schema);
 
                     context.ValueType = type;
-                    context.Result = CreateObject(id);
+                    context.Result = CreateObject(id, type);
                     return ValueTask.CompletedTask;
                 }
             }
@@ -110,7 +107,7 @@ internal sealed class MockFieldMiddleware
                         var type = DetermineTypeForAbstractSelection(possibleTypes, context.Selection, context.Schema);
 
                         context.ValueType = type;
-                        context.Result = CreateListOfObjects(ids, nullIndex);
+                        context.Result = CreateListOfObjects(ids, type, nullIndex);
                         return ValueTask.CompletedTask;
                     }
                 }
@@ -120,35 +117,31 @@ internal sealed class MockFieldMiddleware
         {
             var potentialId = context.Parent<ObjectTypeInst>().Id;
 
-            if (potentialId is not null)
-            {
-                context.Result = potentialId;
-                return ValueTask.CompletedTask;
-            }
+            context.Result = potentialId;
+            return ValueTask.CompletedTask;
         }
-
-        var hasIdFieldSelection = context.Select().IsSelected("id");
 
         if (fieldType.IsCompositeType())
         {
-            int? id = hasIdFieldSelection ? ++mockingContext.IdCounter : null;
+            var id = ++mockingContext.IdCounter;
             var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
             var type = DetermineTypeForAbstractSelection(possibleTypes, context.Selection, context.Schema);
 
             context.ValueType = type;
-            context.Result = CreateObject(id);
+            context.Result = CreateObject(id, type);
         }
         else if (fieldType.IsListType())
         {
             if (namedFieldType.IsCompositeType())
             {
                 var ids = Enumerable.Range(0, DefaultListSize)
-                    .Select(_ => (object?)(hasIdFieldSelection ? ++mockingContext.IdCounter : null)).ToArray();
+                    .Select(_ => (object)++mockingContext.IdCounter)
+                    .ToArray();
                 var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
                 var type = DetermineTypeForAbstractSelection(possibleTypes, context.Selection, context.Schema);
 
                 context.ValueType = type;
-                context.Result = CreateListOfObjects(ids, nullIndex);
+                context.Result = CreateListOfObjects(ids, type, nullIndex);
             }
             else if (namedFieldType is EnumType enumType)
             {
@@ -156,7 +149,11 @@ internal sealed class MockFieldMiddleware
             }
             else if (namedFieldType is ScalarType scalarType)
             {
-                context.Result = CreateListOfScalars(scalarType, nullIndex, mockingContext);
+                context.Result = CreateListOfScalars(
+                    scalarType,
+                    context.Parent<ObjectTypeInst?>() ?? new ObjectTypeInst(null, context.Operation.RootType),
+                    nullIndex,
+                    mockingContext);
             }
         }
         else if (namedFieldType is EnumType enumType)
@@ -165,13 +162,16 @@ internal sealed class MockFieldMiddleware
         }
         else if (namedFieldType is ScalarType scalarType)
         {
-            context.Result = CreateScalarValue(scalarType, mockingContext);
+            context.Result = CreateScalarValue(
+                scalarType,
+                context.Parent<ObjectTypeInst?>() ?? new ObjectTypeInst(null, context.Operation.RootType),
+                mockingContext);
         }
 
         return ValueTask.CompletedTask;
     }
 
-    private IType DetermineTypeForAbstractSelection(
+    private ITypeDefinition DetermineTypeForAbstractSelection(
         IReadOnlyList<ObjectType> possibleTypes,
         ISelection selection,
         ISchemaDefinition schema)
@@ -189,12 +189,18 @@ internal sealed class MockFieldMiddleware
         return possibleTypes.First();
     }
 
-    private object? CreateScalarValue(IScalarTypeDefinition scalarType, AutomaticMockingContext mockingContext)
+    private object? CreateScalarValue(
+        IScalarTypeDefinition scalarType,
+        ObjectTypeInst parentObject,
+        AutomaticMockingContext mockingContext)
     {
         return scalarType switch
         {
-            IdType => ++mockingContext.IdCounter,
-            StringType => "string",
+            IdType => parentObject.Id ?? ++mockingContext.IdCounter,
+            StringType => parentObject.Type.Name
+                + (parentObject.Id is not null && parentObject.Type.Name != "Viewer"
+                    ? ": " + parentObject.Id
+                    : string.Empty),
             IntType => 123,
             FloatType => 123.456,
             BooleanType => true,
@@ -207,15 +213,19 @@ internal sealed class MockFieldMiddleware
         return enumType.Values.FirstOrDefault()?.Value;
     }
 
-    private object CreateObject(object? id, int? index = null)
+    private object CreateObject(object id, ITypeDefinition type, int? index = null)
     {
-        return new ObjectTypeInst(id, index);
+        return new ObjectTypeInst(id, type, index);
     }
 
-    private object?[] CreateListOfScalars(IScalarTypeDefinition scalarType, int? nullIndex, AutomaticMockingContext mockingContext)
+    private object?[] CreateListOfScalars(
+        IScalarTypeDefinition scalarType,
+        ObjectTypeInst parentObject,
+        int? nullIndex,
+        AutomaticMockingContext mockingContext)
     {
         return Enumerable.Range(0, DefaultListSize)
-            .Select(index => nullIndex == index ? null : CreateScalarValue(scalarType, mockingContext))
+            .Select(index => nullIndex == index ? null : CreateScalarValue(scalarType, parentObject, mockingContext))
             .ToArray();
     }
 
@@ -226,10 +236,10 @@ internal sealed class MockFieldMiddleware
             .ToArray();
     }
 
-    private object?[] CreateListOfObjects(object?[] ids, int? nullIndex)
+    private object?[] CreateListOfObjects(object[] ids, ITypeDefinition type, int? nullIndex)
     {
         return ids
-            .Select((itemId, index) => nullIndex == index ? null : CreateObject(itemId, index))
+            .Select((itemId, index) => nullIndex == index ? null : CreateObject(itemId, type, index))
             .ToArray();
     }
 
@@ -249,7 +259,7 @@ internal sealed class MockFieldMiddleware
             .Build();
     }
 
-    private record ObjectTypeInst(object? Id = null, int? Index = null);
+    private record ObjectTypeInst(object? Id, ITypeDefinition Type, int? Index = null);
 
     private class AutomaticMockingContext
     {

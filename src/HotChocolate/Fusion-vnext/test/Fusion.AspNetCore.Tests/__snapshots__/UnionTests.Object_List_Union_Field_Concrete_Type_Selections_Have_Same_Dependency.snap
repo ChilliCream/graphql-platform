@@ -4,21 +4,21 @@
       {
         "node": {
           "product": {
-            "subgraph2": "string"
+            "subgraph2": "Product: 7"
           }
         }
       },
       {
         "node": {
           "product": {
-            "subgraph2": "string"
+            "subgraph2": "Product: 8"
           }
         }
       },
       {
         "node": {
           "product": {
-            "subgraph2": "string"
+            "subgraph2": "Product: 9"
           }
         }
       }
