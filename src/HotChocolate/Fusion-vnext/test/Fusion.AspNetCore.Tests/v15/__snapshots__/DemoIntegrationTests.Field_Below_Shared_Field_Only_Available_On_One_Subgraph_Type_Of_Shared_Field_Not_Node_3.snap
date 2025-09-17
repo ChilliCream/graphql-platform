@@ -6,8 +6,8 @@
         "subgraph1Only": true,
         "sharedLinked": {
           "subgraph2Only": true,
-          "sharedScalar": "ProductAvailabilityMail: 2",
-          "subgraph1Only": "ProductAvailabilityMail: 2"
+          "sharedScalar": "ProductAvailabilityMail: UHJvZHVjdEF2YWlsYWJpbGl0eU1haWw6Mg==",
+          "subgraph1Only": "ProductAvailabilityMail: UHJvZHVjdEF2YWlsYWJpbGl0eU1haWw6Mg=="
         }
       }
     }

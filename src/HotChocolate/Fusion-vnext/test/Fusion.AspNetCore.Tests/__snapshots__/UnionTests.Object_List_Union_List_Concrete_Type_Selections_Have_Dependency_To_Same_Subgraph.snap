@@ -5,17 +5,17 @@
         "posts": [
           {
             "product": {
-              "subgraph2": "Product: 15"
+              "subgraph2": "Product: UHJvZHVjdDoxNQ=="
+            }
+          },
+          {
+            "author": {
+              "subgraph2": "Author: QXV0aG9yOjE0"
             }
           },
           {
             "product": {
-              "subgraph2": "Product: 14"
-            }
-          },
-          {
-            "product": {
-              "subgraph2": "Product: 13"
+              "subgraph2": "Product: UHJvZHVjdDoxMw=="
             }
           }
         ]
@@ -24,17 +24,17 @@
         "posts": [
           {
             "product": {
-              "subgraph2": "Product: 18"
+              "subgraph2": "Product: UHJvZHVjdDoxOA=="
+            }
+          },
+          {
+            "author": {
+              "subgraph2": "Author: QXV0aG9yOjE3"
             }
           },
           {
             "product": {
-              "subgraph2": "Product: 17"
-            }
-          },
-          {
-            "product": {
-              "subgraph2": "Product: 16"
+              "subgraph2": "Product: UHJvZHVjdDoxNg=="
             }
           }
         ]
@@ -43,17 +43,17 @@
         "posts": [
           {
             "product": {
-              "subgraph2": "Product: 21"
+              "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+            }
+          },
+          {
+            "author": {
+              "subgraph2": "Author: QXV0aG9yOjIw"
             }
           },
           {
             "product": {
-              "subgraph2": "Product: 20"
-            }
-          },
-          {
-            "product": {
-              "subgraph2": "Product: 19"
+              "subgraph2": "Product: UHJvZHVjdDoxOQ=="
             }
           }
         ]

@@ -3,17 +3,17 @@
     "posts": [
       {
         "product": {
-          "subgraph2": "Product: 6"
+          "subgraph2": "Product: UHJvZHVjdDo2"
+        }
+      },
+      {
+        "author": {
+          "subgraph2": "Author: QXV0aG9yOjU="
         }
       },
       {
         "product": {
-          "subgraph2": "Product: 5"
-        }
-      },
-      {
-        "product": {
-          "subgraph2": "Product: 4"
+          "subgraph2": "Product: UHJvZHVjdDo0"
         }
       }
     ]

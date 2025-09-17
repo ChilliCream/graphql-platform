@@ -41,8 +41,8 @@ public class AutomaticMockingTests
             {
               "data": {
                 "obj": {
-                  "id": "1",
-                  "str": "Object: 1"
+                  "id": "T2JqZWN0OjE=",
+                  "str": "Object: T2JqZWN0OjE="
                 }
               }
             }
@@ -176,16 +176,16 @@ public class AutomaticMockingTests
               "data": {
                 "objs": [
                   {
-                    "id": "1",
-                    "str": "Object: 1"
+                    "id": "T2JqZWN0OjE=",
+                    "str": "Object: T2JqZWN0OjE="
                   },
                   {
-                    "id": "2",
-                    "str": "Object: 2"
+                    "id": "T2JqZWN0OjI=",
+                    "str": "Object: T2JqZWN0OjI="
                   },
                   {
-                    "id": "3",
-                    "str": "Object: 3"
+                    "id": "T2JqZWN0OjM=",
+                    "str": "Object: T2JqZWN0OjM="
                   }
                 ]
               }
@@ -233,30 +233,30 @@ public class AutomaticMockingTests
               "data": {
                 "objsA": [
                   {
-                    "id": "1",
-                    "str": "Object: 1"
+                    "id": "T2JqZWN0OjE=",
+                    "str": "Object: T2JqZWN0OjE="
                   },
                   {
-                    "id": "2",
-                    "str": "Object: 2"
+                    "id": "T2JqZWN0OjI=",
+                    "str": "Object: T2JqZWN0OjI="
                   },
                   {
-                    "id": "3",
-                    "str": "Object: 3"
+                    "id": "T2JqZWN0OjM=",
+                    "str": "Object: T2JqZWN0OjM="
                   }
                 ],
                 "objsB": [
                   {
-                    "id": "4",
-                    "str": "Object: 4"
+                    "id": "T2JqZWN0OjQ=",
+                    "str": "Object: T2JqZWN0OjQ="
                   },
                   {
-                    "id": "5",
-                    "str": "Object: 5"
+                    "id": "T2JqZWN0OjU=",
+                    "str": "Object: T2JqZWN0OjU="
                   },
                   {
-                    "id": "6",
-                    "str": "Object: 6"
+                    "id": "T2JqZWN0OjY=",
+                    "str": "Object: T2JqZWN0OjY="
                   }
                 ]
               }
@@ -297,11 +297,11 @@ public class AutomaticMockingTests
               "data": {
                 "objs": [
                   {
-                    "id": "1"
+                    "id": "T2JqZWN0OjE="
                   },
                   null,
                   {
-                    "id": "3"
+                    "id": "T2JqZWN0OjI="
                   }
                 ]
               }
@@ -357,11 +357,11 @@ public class AutomaticMockingTests
               "data": {
                 "objs": [
                   {
-                    "id": "1"
+                    "id": "T2JqZWN0OjE="
                   },
                   null,
                   {
-                    "id": "3"
+                    "id": "T2JqZWN0OjI="
                   }
                 ]
               }
@@ -402,13 +402,13 @@ public class AutomaticMockingTests
               "data": {
                 "objs": [
                   {
-                    "str": "Object: 1"
+                    "str": "Object: T2JqZWN0OjE="
                   },
                   {
                     "str": null
                   },
                   {
-                    "str": "Object: 3"
+                    "str": "Object: T2JqZWN0OjM="
                   }
                 ]
               }
@@ -465,13 +465,13 @@ public class AutomaticMockingTests
               "data": {
                 "objs": [
                   {
-                    "str": "Object: 1"
+                    "str": "Object: T2JqZWN0OjE="
                   },
                   {
                     "str": null
                   },
                   {
-                    "str": "Object: 3"
+                    "str": "Object: T2JqZWN0OjM="
                   }
                 ]
               }
@@ -490,7 +490,7 @@ public class AutomaticMockingTests
         const string schema =
             """
             type Query {
-              intrface: Interface
+              intrface: Interface @returns(types: "Object")
             }
 
             interface Interface {
@@ -499,6 +499,12 @@ public class AutomaticMockingTests
             }
 
             type Object implements Interface {
+              id: ID!
+              str: String!
+              num: Int!
+            }
+
+            type Object2 implements Interface {
               id: ID!
               str: String!
               num: Int!
@@ -528,8 +534,8 @@ public class AutomaticMockingTests
               "data": {
                 "intrface": {
                   "__typename": "Object",
-                  "id": "1",
-                  "str": "Object: 1",
+                  "id": "T2JqZWN0OjE=",
+                  "str": "Object: T2JqZWN0OjE=",
                   "num": 123
                 }
               }
@@ -669,6 +675,16 @@ public class AutomaticMockingTests
               str: String!
               num: Int!
             }
+
+            type Object2 implements Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object3 implements Interface {
+              id: ID!
+              str: String!
+            }
             """;
         const string request =
             """
@@ -695,20 +711,94 @@ public class AutomaticMockingTests
                 "interfaces": [
                   {
                     "__typename": "Object",
-                    "id": "1",
-                    "str": "Object: 1",
+                    "id": "T2JqZWN0OjE=",
+                    "str": "Object: T2JqZWN0OjE=",
                     "num": 123
                   },
                   {
-                    "__typename": "Object",
-                    "id": "2",
-                    "str": "Object: 2",
-                    "num": 123
+                    "__typename": "Object2",
+                    "id": "T2JqZWN0Mjoy",
+                    "str": "Object2: T2JqZWN0Mjoy"
+                  },
+                  {
+                    "__typename": "Object3",
+                    "id": "T2JqZWN0Mzoz",
+                    "str": "Object3: T2JqZWN0Mzoz"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Interface_List_With_Returns_Directive()
+    {
+        // arrange
+        const string schema =
+            """
+            type Query {
+              interfaces: [Interface] @returns(types: ["Object2", "Object2", "Object"])
+            }
+
+            interface Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object implements Interface {
+              id: ID!
+              str: String!
+              num: Int!
+            }
+
+            type Object2 implements Interface {
+              id: ID!
+              str: String!
+            }
+
+            type Object3 implements Interface {
+              id: ID!
+              str: String!
+            }
+            """;
+        const string request =
+            """
+            query {
+              interfaces {
+                __typename
+                id
+                str
+                ... on Object {
+                  num
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "interfaces": [
+                  {
+                    "__typename": "Object2",
+                    "id": "T2JqZWN0Mjox",
+                    "str": "Object2: T2JqZWN0Mjox"
+                  },
+                  {
+                    "__typename": "Object2",
+                    "id": "T2JqZWN0Mjoy",
+                    "str": "Object2: T2JqZWN0Mjoy"
                   },
                   {
                     "__typename": "Object",
-                    "id": "3",
-                    "str": "Object: 3",
+                    "id": "T2JqZWN0OjM=",
+                    "str": "Object: T2JqZWN0OjM=",
                     "num": 123
                   }
                 ]
@@ -875,15 +965,15 @@ public class AutomaticMockingTests
                 "interfaces": [
                   {
                     "__typename": "Object",
-                    "id": "1",
-                    "str": "Object: 1",
+                    "id": "T2JqZWN0OjE=",
+                    "str": "Object: T2JqZWN0OjE=",
                     "num": 123
                   },
                   null,
                   {
                     "__typename": "Object",
-                    "id": "3",
-                    "str": "Object: 3",
+                    "id": "T2JqZWN0OjI=",
+                    "str": "Object: T2JqZWN0OjI=",
                     "num": 123
                   }
                 ]
@@ -953,15 +1043,15 @@ public class AutomaticMockingTests
                 "interfaces": [
                   {
                     "__typename": "Object",
-                    "id": "1",
-                    "str": "Object: 1",
+                    "id": "T2JqZWN0OjE=",
+                    "str": "Object: T2JqZWN0OjE=",
                     "num": 123
                   },
                   null,
                   {
                     "__typename": "Object",
-                    "id": "3",
-                    "str": "Object: 3",
+                    "id": "T2JqZWN0OjI=",
+                    "str": "Object: T2JqZWN0OjI=",
                     "num": 123
                   }
                 ]
@@ -1016,20 +1106,20 @@ public class AutomaticMockingTests
                 "interfaces": [
                   {
                     "__typename": "Object",
-                    "id": "1",
-                    "str": "Object: 1",
+                    "id": "T2JqZWN0OjE=",
+                    "str": "Object: T2JqZWN0OjE=",
                     "num": 123
                   },
                   {
                     "__typename": "Object",
-                    "id": "2",
-                    "str": "Object: 2",
+                    "id": "T2JqZWN0OjI=",
+                    "str": "Object: T2JqZWN0OjI=",
                     "num": null
                   },
                   {
                     "__typename": "Object",
-                    "id": "3",
-                    "str": "Object: 3",
+                    "id": "T2JqZWN0OjM=",
+                    "str": "Object: T2JqZWN0OjM=",
                     "num": 123
                   }
                 ]
@@ -1100,20 +1190,20 @@ public class AutomaticMockingTests
                 "interfaces": [
                   {
                     "__typename": "Object",
-                    "id": "1",
-                    "str": "Object: 1",
+                    "id": "T2JqZWN0OjE=",
+                    "str": "Object: T2JqZWN0OjE=",
                     "num": 123
                   },
                   {
                     "__typename": "Object",
-                    "id": "2",
-                    "str": "Object: 2",
+                    "id": "T2JqZWN0OjI=",
+                    "str": "Object: T2JqZWN0OjI=",
                     "num": null
                   },
                   {
                     "__typename": "Object",
-                    "id": "3",
-                    "str": "Object: 3",
+                    "id": "T2JqZWN0OjM=",
+                    "str": "Object: T2JqZWN0OjM=",
                     "num": 123
                   }
                 ]
@@ -1129,7 +1219,7 @@ public class AutomaticMockingTests
         const string schema =
             """
             type Query {
-              intrface: Interface
+              intrface: Interface @returns(types: "Object2")
             }
 
             interface Interface {
@@ -1172,8 +1262,8 @@ public class AutomaticMockingTests
               "data": {
                 "intrface": {
                   "__typename": "Object2",
-                  "id": "1",
-                  "str": "Object2: 1",
+                  "id": "T2JqZWN0Mjox",
+                  "str": "Object2: T2JqZWN0Mjox",
                   "num": 123
                 }
               }
@@ -1225,8 +1315,8 @@ public class AutomaticMockingTests
               "data": {
                 "unon": {
                   "__typename": "Object",
-                  "id": "1",
-                  "str": "Object: 1"
+                  "id": "T2JqZWN0OjE=",
+                  "str": "Object: T2JqZWN0OjE="
                 }
               }
             }
@@ -1345,9 +1435,19 @@ public class AutomaticMockingTests
               unions: [Union]
             }
 
-            union Union = Object
+            union Union = Object | Object2 | Object3
 
             type Object {
+              id: ID!
+              str: String!
+            }
+
+            type Object2 {
+              id: ID!
+              str: String!
+            }
+
+            type Object3 {
               id: ID!
               str: String!
             }
@@ -1376,18 +1476,80 @@ public class AutomaticMockingTests
                 "unions": [
                   {
                     "__typename": "Object",
-                    "id": "1",
-                    "str": "Object: 1"
+                    "id": "T2JqZWN0OjE=",
+                    "str": "Object: T2JqZWN0OjE="
+                  },
+                  {
+                    "__typename": "Object2"
+                  },
+                  {
+                    "__typename": "Object3"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Union_List_With_Returns_Directive()
+    {
+        // arrange
+        const string schema =
+            """
+            type Query {
+              unions: [Union] @returns(types: ["Object2", "Object", "Object2"])
+            }
+
+            union Union = Object | Object2 | Object3
+
+            type Object {
+              id: ID!
+              str: String!
+            }
+
+            type Object2 {
+              id: ID!
+              str: String!
+            }
+
+            type Object3 {
+              id: ID!
+              str: String!
+            }
+            """;
+        const string request =
+            """
+            query {
+              unions {
+                __typename
+                ... on Object {
+                  id
+                  str
+                }
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "unions": [
+                  {
+                    "__typename": "Object2"
                   },
                   {
                     "__typename": "Object",
-                    "id": "2",
-                    "str": "Object: 2"
+                    "id": "T2JqZWN0OjI=",
+                    "str": "Object: T2JqZWN0OjI="
                   },
                   {
-                    "__typename": "Object",
-                    "id": "3",
-                    "str": "Object: 3"
+                    "__typename": "Object2"
                   }
                 ]
               }
@@ -1538,14 +1700,14 @@ public class AutomaticMockingTests
                 "unions": [
                   {
                     "__typename": "Object",
-                    "id": "1",
-                    "str": "Object: 1"
+                    "id": "T2JqZWN0OjE=",
+                    "str": "Object: T2JqZWN0OjE="
                   },
                   null,
                   {
                     "__typename": "Object",
-                    "id": "3",
-                    "str": "Object: 3"
+                    "id": "T2JqZWN0OjI=",
+                    "str": "Object: T2JqZWN0OjI="
                   }
                 ]
               }
@@ -1609,14 +1771,14 @@ public class AutomaticMockingTests
                 "unions": [
                   {
                     "__typename": "Object",
-                    "id": "1",
-                    "str": "Object: 1"
+                    "id": "T2JqZWN0OjE=",
+                    "str": "Object: T2JqZWN0OjE="
                   },
                   null,
                   {
                     "__typename": "Object",
-                    "id": "3",
-                    "str": "Object: 3"
+                    "id": "T2JqZWN0OjI=",
+                    "str": "Object: T2JqZWN0OjI="
                   }
                 ]
               }
@@ -1665,18 +1827,18 @@ public class AutomaticMockingTests
                 "unions": [
                   {
                     "__typename": "Object",
-                    "id": "1",
-                    "str": "Object: 1"
+                    "id": "T2JqZWN0OjE=",
+                    "str": "Object: T2JqZWN0OjE="
                   },
                   {
                     "__typename": "Object",
-                    "id": "2",
+                    "id": "T2JqZWN0OjI=",
                     "str": null
                   },
                   {
                     "__typename": "Object",
-                    "id": "3",
-                    "str": "Object: 3"
+                    "id": "T2JqZWN0OjM=",
+                    "str": "Object: T2JqZWN0OjM="
                   }
                 ]
               }
@@ -1741,18 +1903,18 @@ public class AutomaticMockingTests
                 "unions": [
                   {
                     "__typename": "Object",
-                    "id": "1",
-                    "str": "Object: 1"
+                    "id": "T2JqZWN0OjE=",
+                    "str": "Object: T2JqZWN0OjE="
                   },
                   {
                     "__typename": "Object",
-                    "id": "2",
+                    "id": "T2JqZWN0OjI=",
                     "str": null
                   },
                   {
                     "__typename": "Object",
-                    "id": "3",
-                    "str": "Object: 3"
+                    "id": "T2JqZWN0OjM=",
+                    "str": "Object: T2JqZWN0OjM="
                   }
                 ]
               }
@@ -2741,6 +2903,62 @@ public class AutomaticMockingTests
     }
 
     [Fact]
+    public async Task NodeField_Type_Is_Taken_From_Id()
+    {
+        // arrange
+        const string schema =
+            """
+            type Query {
+              node(id: ID!): Node
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              title: String!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+
+            type Author implements Node {
+              id: ID!
+              fullName: String!
+            }
+            """;
+        const string request =
+            """
+            query {
+              node(id: "UHJvZHVjdDox") {
+                __typename
+                id
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "node": {
+                  "__typename": "Product",
+                  "id": "UHJvZHVjdDox"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task NodeField_Null()
     {
         // arrange
@@ -2895,6 +3113,80 @@ public class AutomaticMockingTests
                   {
                     "id": "6",
                     "name": "Product: 6"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NodesField_Types_Are_Taken_From_Ids()
+    {
+        // arrange
+        const string schema =
+            """
+            type Query {
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              title: String!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+
+            type Author implements Node {
+              id: ID!
+              fullName: String!
+            }
+            """;
+        const string request =
+            """
+            query {
+              nodes(ids: ["UHJvZHVjdDox", "UHJvZHVjdDoz", "QXV0aG9yOjM=", "RGlzY3Vzc2lvbjoz", "QXV0aG9yOjEw"]) {
+                __typename
+                id
+              }
+            }
+            """;
+
+        // act
+        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "nodes": [
+                  {
+                    "__typename": "Product",
+                    "id": "UHJvZHVjdDox"
+                  },
+                  {
+                    "__typename": "Product",
+                    "id": "UHJvZHVjdDoz"
+                  },
+                  {
+                    "__typename": "Author",
+                    "id": "QXV0aG9yOjM="
+                  },
+                  {
+                    "__typename": "Discussion",
+                    "id": "RGlzY3Vzc2lvbjoz"
+                  },
+                  {
+                    "__typename": "Author",
+                    "id": "QXV0aG9yOjEw"
                   }
                 ]
               }

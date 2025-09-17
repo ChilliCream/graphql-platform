@@ -2,40 +2,40 @@
   "data": {
     "productsA": [
       {
-        "id": "1",
-        "name": "Product: 1",
+        "id": "UHJvZHVjdDox",
+        "name": "Product: UHJvZHVjdDox",
         "price": 123.456,
         "reviewCount": 123
       },
       {
-        "id": "2",
-        "name": "Product: 2",
+        "id": "UHJvZHVjdDoy",
+        "name": "Product: UHJvZHVjdDoy",
         "price": 123.456,
         "reviewCount": 123
       },
       {
-        "id": "3",
-        "name": "Product: 3",
+        "id": "UHJvZHVjdDoz",
+        "name": "Product: UHJvZHVjdDoz",
         "price": 123.456,
         "reviewCount": 123
       }
     ],
     "productsB": [
       {
-        "id": "4",
-        "name": "Product: 4",
+        "id": "UHJvZHVjdDo0",
+        "name": "Product: UHJvZHVjdDo0",
         "price": 123.456,
         "reviewCount": 123
       },
       {
-        "id": "5",
-        "name": "Product: 5",
+        "id": "UHJvZHVjdDo1",
+        "name": "Product: UHJvZHVjdDo1",
         "price": 123.456,
         "reviewCount": 123
       },
       {
-        "id": "6",
-        "name": "Product: 6",
+        "id": "UHJvZHVjdDo2",
+        "name": "Product: UHJvZHVjdDo2",
         "price": 123.456,
         "reviewCount": 123
       }

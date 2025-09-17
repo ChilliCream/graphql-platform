@@ -295,7 +295,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         response.MatchSnapshot();
     }
 
-    [Fact(Skip = "Automatic mocking needs to be able to return a product here")]
+    [Fact]
     public async Task Id_Of_Type_Different_From_Concrete_Type_Selections_Requested()
     {
         // arrange

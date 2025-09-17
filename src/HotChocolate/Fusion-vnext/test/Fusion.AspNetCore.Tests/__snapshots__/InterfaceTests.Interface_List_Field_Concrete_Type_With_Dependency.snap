@@ -6,8 +6,7 @@
         "viewerRating": 123.456
       },
       {
-        "viewerCanVote": true,
-        "viewerRating": 123.456
+        "viewerCanVote": true
       },
       {
         "viewerCanVote": true,

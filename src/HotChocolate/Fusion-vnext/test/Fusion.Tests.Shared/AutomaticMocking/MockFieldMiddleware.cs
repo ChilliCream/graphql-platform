@@ -1,4 +1,6 @@
+using System.Text;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -10,6 +12,7 @@ namespace HotChocolate.Fusion;
 internal sealed class MockFieldMiddleware
 {
     private const int DefaultListSize = 3;
+    private static readonly INodeIdParser _nodeIdParser = new DefaultNodeIdParser();
 
     public ValueTask InvokeAsync(IMiddlewareContext context)
     {
@@ -25,6 +28,11 @@ internal sealed class MockFieldMiddleware
 
         var errorDirective = field.Directives["error"].FirstOrDefault()?.ToValue<ErrorDirective>();
         var nullDirective = field.Directives["null"].FirstOrDefault()?.ToValue<NullDirective>();
+        var returnsDirective = field.Directives["returns"].FirstOrDefault()?.ToValue<ReturnsDirective>();
+        var requestedTypes = returnsDirective?.Types
+                .Select(v => (ObjectType)context.Schema.Types[v].ExpectObjectType())
+                .ToArray() ??
+            [];
 
         if (errorDirective is not null)
         {
@@ -80,10 +88,8 @@ internal sealed class MockFieldMiddleware
                 var id = context.ArgumentValue<object>("id");
                 if (namedFieldType.IsCompositeType())
                 {
-                    var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
-                    var type = DetermineTypeForAbstractSelection(possibleTypes, context.Selection, context.Schema);
+                    var type = GetConcreteTypes(requestedTypes, context, [id], 1).First();
 
-                    context.ValueType = type;
                     context.Result = CreateObject(id, type);
                     return ValueTask.CompletedTask;
                 }
@@ -103,11 +109,12 @@ internal sealed class MockFieldMiddleware
                 {
                     if (namedFieldType.IsCompositeType())
                     {
-                        var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
-                        var type = DetermineTypeForAbstractSelection(possibleTypes, context.Selection, context.Schema);
-
-                        context.ValueType = type;
-                        context.Result = CreateListOfObjects(ids, type, nullIndex);
+                        context.Result = CreateListOfObjects(
+                            ids,
+                            requestedTypes,
+                            context,
+                            mockingContext,
+                            nullIndex);
                         return ValueTask.CompletedTask;
                     }
                 }
@@ -115,33 +122,27 @@ internal sealed class MockFieldMiddleware
         }
         else if (fieldName.EqualsInvariantIgnoreCase("id") && fieldType.NamedType() is IdType)
         {
-            var potentialId = context.Parent<ObjectTypeInst>().Id;
-
-            context.Result = potentialId;
+            context.Result = context.Parent<ObjectTypeInst>().Id;
             return ValueTask.CompletedTask;
         }
 
         if (fieldType.IsCompositeType())
         {
-            var id = ++mockingContext.IdCounter;
-            var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
-            var type = DetermineTypeForAbstractSelection(possibleTypes, context.Selection, context.Schema);
+            var type = GetConcreteTypes(requestedTypes, context, null, 1).First();
+            var id = CreateId(type, ++mockingContext.IdCounter);
 
-            context.ValueType = type;
             context.Result = CreateObject(id, type);
         }
         else if (fieldType.IsListType())
         {
             if (namedFieldType.IsCompositeType())
             {
-                var ids = Enumerable.Range(0, DefaultListSize)
-                    .Select(_ => (object)++mockingContext.IdCounter)
-                    .ToArray();
-                var possibleTypes = context.Schema.GetPossibleTypes(namedFieldType);
-                var type = DetermineTypeForAbstractSelection(possibleTypes, context.Selection, context.Schema);
-
-                context.ValueType = type;
-                context.Result = CreateListOfObjects(ids, type, nullIndex);
+                context.Result = CreateListOfObjects(
+                    null,
+                    requestedTypes,
+                    context,
+                    mockingContext,
+                    nullIndex);
             }
             else if (namedFieldType is EnumType enumType)
             {
@@ -151,7 +152,7 @@ internal sealed class MockFieldMiddleware
             {
                 context.Result = CreateListOfScalars(
                     scalarType,
-                    context.Parent<ObjectTypeInst?>() ?? new ObjectTypeInst(null, context.Operation.RootType),
+                    context.Parent<ObjectTypeInst?>() ?? new ObjectTypeInst(null, context.Operation.RootType, null),
                     nullIndex,
                     mockingContext);
             }
@@ -164,29 +165,11 @@ internal sealed class MockFieldMiddleware
         {
             context.Result = CreateScalarValue(
                 scalarType,
-                context.Parent<ObjectTypeInst?>() ?? new ObjectTypeInst(null, context.Operation.RootType),
+                context.Parent<ObjectTypeInst?>() ?? new ObjectTypeInst(null, context.Operation.RootType, null),
                 mockingContext);
         }
 
         return ValueTask.CompletedTask;
-    }
-
-    private ITypeDefinition DetermineTypeForAbstractSelection(
-        IReadOnlyList<ObjectType> possibleTypes,
-        ISelection selection,
-        ISchemaDefinition schema)
-    {
-        var inlineFragmentNode = selection.SelectionSet?.Selections
-            .FirstOrDefault(s =>
-                s is InlineFragmentNode inlineFragmentNode && inlineFragmentNode.TypeCondition is not null);
-
-        if (inlineFragmentNode is InlineFragmentNode { TypeCondition: {} typeCondition }
-            && schema.Types.TryGetType<ITypeDefinition>(typeCondition.Name.Value, out var type))
-        {
-            return type;
-        }
-
-        return possibleTypes.First();
     }
 
     private object? CreateScalarValue(
@@ -196,7 +179,7 @@ internal sealed class MockFieldMiddleware
     {
         return scalarType switch
         {
-            IdType => parentObject.Id ?? ++mockingContext.IdCounter,
+            IdType => parentObject.Id ?? CreateId(parentObject.Type, ++mockingContext.IdCounter),
             StringType => parentObject.Type.Name
                 + (parentObject.Id is not null && parentObject.Type.Name != "Viewer"
                     ? ": " + parentObject.Id
@@ -208,12 +191,64 @@ internal sealed class MockFieldMiddleware
         };
     }
 
+    private string CreateId(ITypeDefinition type, int id)
+    {
+        var idString = type.Name + ":" + id;
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(idString));
+    }
+
+    private IEnumerable<ObjectType> GetConcreteTypes(
+        ObjectType[] requestedTypes,
+        IMiddlewareContext context,
+        object[]? ids,
+        int listSize)
+    {
+        if (context.Selection.Field.Type.NamedType() is ObjectType objectType)
+        {
+            for (var i = 0; i < listSize; i++)
+            {
+                yield return objectType;
+            }
+
+            yield break;
+        }
+
+        var possibleTypes = context.Schema
+            .GetPossibleTypes(context.Selection.Field.Type.AsTypeDefinition());
+
+        for (var i = 0; i < listSize; i++)
+        {
+            var id = ids?.ElementAtOrDefault(i);
+
+            if (id is string idString
+                && _nodeIdParser.TryParseTypeName(idString, out var typeName)
+                && possibleTypes.FirstOrDefault(t => t.Name == typeName) is { } requestedType)
+            {
+                yield return requestedType;
+                continue;
+            }
+
+            if (i < requestedTypes.Length)
+            {
+                yield return requestedTypes[i];
+            }
+            else
+            {
+                var typeIndex = (i - requestedTypes.Length) % possibleTypes.Count;
+                yield return possibleTypes[typeIndex];
+            }
+        }
+    }
+
     private object? CreateEnumValue(EnumType enumType)
     {
         return enumType.Values.FirstOrDefault()?.Value;
     }
 
-    private object CreateObject(object id, ITypeDefinition type, int? index = null)
+    private object CreateObject(
+        object id,
+        ObjectType type,
+        int? index = null)
     {
         return new ObjectTypeInst(id, type, index);
     }
@@ -236,10 +271,29 @@ internal sealed class MockFieldMiddleware
             .ToArray();
     }
 
-    private object?[] CreateListOfObjects(object[] ids, ITypeDefinition type, int? nullIndex)
+    private object?[] CreateListOfObjects(
+        object[]? ids,
+        ObjectType[] requestedTypes,
+        IMiddlewareContext context,
+        AutomaticMockingContext mockingContext,
+        int? nullIndex)
     {
-        return ids
-            .Select((itemId, index) => nullIndex == index ? null : CreateObject(itemId, type, index))
+        var listLength = ids?.Length ?? DefaultListSize;
+        var concreteTypes = GetConcreteTypes(requestedTypes, context, ids, listLength).ToArray();
+
+        return Enumerable.Range(0, listLength)
+            .Select(index =>
+            {
+                if (index == nullIndex)
+                {
+                    return null;
+                }
+
+                var concreteType = concreteTypes[index];
+                var id = ids?.ElementAtOrDefault(index) ?? CreateId(concreteType, ++mockingContext.IdCounter);
+
+                return CreateObject(id, concreteType, index);
+            })
             .ToArray();
     }
 
@@ -259,10 +313,13 @@ internal sealed class MockFieldMiddleware
             .Build();
     }
 
-    private record ObjectTypeInst(object? Id, ITypeDefinition Type, int? Index = null);
-
     private class AutomaticMockingContext
     {
         public int IdCounter { get; set; }
     }
 }
+
+internal record ObjectTypeInst(
+    object? Id,
+    ObjectType Type,
+    int? Index = null);
