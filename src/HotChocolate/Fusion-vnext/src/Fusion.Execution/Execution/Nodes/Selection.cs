@@ -46,6 +46,8 @@ public sealed class Selection : ISelection
 
     internal ReadOnlySpan<byte> RawResponseName => throw new NotImplementedException();
 
+    internal ReadOnlyMemory<byte> RawResponseNameAsMemory => throw new NotImplementedException();
+
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
 
     public bool IsConditional => _includeFlags.Length > 0;

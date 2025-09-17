@@ -1013,23 +1013,6 @@ public struct CompositeResultElement
         return _parent.GetRawValue(_index, includeQuotes: true);
     }
 
-    internal string GetPropertyRawText()
-    {
-        CheckValidInstance();
-
-        return _parent.GetPropertyRawValueAsString(_index);
-    }
-
-    internal bool ValueIsEscaped
-    {
-        get
-        {
-            CheckValidInstance();
-
-            return _parent.ValueIsEscaped(_index, isPropertyName: false);
-        }
-    }
-
     internal ReadOnlySpan<byte> ValueSpan
     {
         get
@@ -1059,7 +1042,7 @@ public struct CompositeResultElement
     {
         // CheckValidInstance is done in the helper
 
-        if (TokenType == JsonTokenType.Null)
+        if (TokenType == ElementTokenType.Null)
         {
             return text == null;
         }
@@ -1087,9 +1070,9 @@ public struct CompositeResultElement
     {
         // CheckValidInstance is done in the helper
 
-        if (TokenType == JsonTokenType.Null)
+        if (TokenType == ElementTokenType.Null)
         {
-            // This is different than Length == 0, in that it tests true for null, but false for ""
+            // This is different from Length == 0, in that it tests true for null, but false for ""
 #pragma warning disable CA2265
             return utf8Text.Slice(0, 0) == default;
 #pragma warning restore CA2265
@@ -1117,7 +1100,7 @@ public struct CompositeResultElement
     {
         // CheckValidInstance is done in the helper
 
-        if (TokenType == JsonTokenType.Null)
+        if (TokenType == ElementTokenType.Null)
         {
             // This is different than Length == 0, in that it tests true for null, but false for ""
 #pragma warning disable CA2265

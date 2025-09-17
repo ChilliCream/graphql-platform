@@ -25,15 +25,25 @@ public struct SourceResultElement
 
 public sealed partial class CompositeResultDocument
 {
-    private static Encoding s_utf8Encoding = Encoding.UTF8;
+    private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
     private MetaDb _metaDb;
     private byte[][] _dataChunks;
-    private List<SourceResultDocument> _sources;
+    private List<SourceResultDocument> _sources = [];
     private Operation _operation;
     private bool _disposed;
 
-    public CompositeResultElement RootElement { get; }
+    private CompositeResultDocument(Operation operation)
+    {
+        // we initialize the data chunks so that we can store local data on this document.
+        _dataChunks = new byte[16][];
+        _dataChunks[0] = JsonMemoryPool.Rent();
+        _operation =  operation;
 
+        // we create the root data object.
+        CreateObject(0, operation.RootSelectionSet);
+    }
+
+    public CompositeResultElement Data { get; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ElementTokenType GetElementTokenType(int index)
@@ -84,6 +94,20 @@ public sealed partial class CompositeResultDocument
         if (row.TokenType == ElementTokenType.PropertyName)
         {
             return _operation.GetSelectionById(row.SelectionSetId).RawResponseName;
+        }
+
+        if (row.TokenType == ElementTokenType.Reference)
+        {
+        }
+
+        throw new NotImplementedException();
+    }
+
+    private ReadOnlyMemory<byte> ReadRawValueAsMemory(DbRow row)
+    {
+        if (row.TokenType == ElementTokenType.PropertyName)
+        {
+            return _operation.GetSelectionById(row.SelectionSetId).RawResponseNameAsMemory;
         }
 
         if (row.TokenType == ElementTokenType.Reference)
@@ -174,11 +198,23 @@ public sealed partial class CompositeResultDocument
 
     private static void CheckExpectedType(ElementTokenType expected, ElementTokenType actual)
     {
-        ArgumentOutOfRangeException.ThrowIfNotEqual(expected, actual);
+        if (expected != actual)
+        {
+            throw new ArgumentOutOfRangeException();
+        }
     }
 }
 
 internal static class MetaDbMemoryPool
+{
+    public static byte[] Rent() => new byte[ChunkSize];
+
+    public static void Return(byte[] chunk)
+    {
+    }
+}
+
+internal static class JsonMemoryPool
 {
     public static byte[] Rent() => new byte[ChunkSize];
 
