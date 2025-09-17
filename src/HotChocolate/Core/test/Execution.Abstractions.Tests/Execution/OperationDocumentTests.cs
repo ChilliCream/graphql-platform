@@ -67,7 +67,7 @@ public class OperationDocumentTests
         byte[] buffer;
 
         // act
-        using (var stream = new MemoryStream())
+        await using (var stream = new MemoryStream())
         {
             await query.WriteToAsync(stream);
             buffer = stream.ToArray();

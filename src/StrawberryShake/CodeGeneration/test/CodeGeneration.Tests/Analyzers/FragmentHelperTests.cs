@@ -20,9 +20,10 @@ public class FragmentHelperTests
                 .BuildSchemaAsync();
 
         var document =
-            Utf8GraphQLParser.Parse(@"
+            Utf8GraphQLParser.Parse(
+                """
                 query GetHero {
-                    hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
+                    hero(episode: NEW_HOPE) @returns(fragment: "Hero") {
                         ... Characters
                     }
                 }
@@ -44,7 +45,8 @@ public class FragmentHelperTests
                 fragment Droid on Droid {
                     ... Hero
                     primaryFunction
-                }");
+                }
+                """);
 
         var context = new DocumentAnalyzerContext(schema, document);
         var selectionSetVariants = context.CollectFields();
@@ -118,9 +120,10 @@ public class FragmentHelperTests
                 .BuildSchemaAsync();
 
         var document =
-            Utf8GraphQLParser.Parse(@"
+            Utf8GraphQLParser.Parse(
+                """
                 query GetHero {
-                    hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
+                    hero(episode: NEW_HOPE) @returns(fragment: "Hero") {
                         ... Characters
                     }
                 }
@@ -142,7 +145,8 @@ public class FragmentHelperTests
                 fragment Droid on Droid {
                     ... Hero
                     primaryFunction
-                }");
+                }
+                """);
 
         var context = new DocumentAnalyzerContext(schema, document);
         var selectionSetVariants = context.CollectFields();
@@ -428,9 +432,10 @@ public class FragmentHelperTests
                 .BuildSchemaAsync();
 
         var document =
-            Utf8GraphQLParser.Parse(@"
+            Utf8GraphQLParser.Parse(
+                """
                 query GetHero {
-                    hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
+                    hero(episode: NEW_HOPE) @returns(fragment: "Hero") {
                         ... Characters
                     }
                 }
@@ -452,7 +457,8 @@ public class FragmentHelperTests
                 fragment Droid on Droid {
                     ... Hero
                     primaryFunction
-                }");
+                }
+                """);
 
         var context = new DocumentAnalyzerContext(schema, document);
         var selectionSetVariants = context.CollectFields();

@@ -121,6 +121,7 @@ resharper_enforce_if_statement_braces_highlighting = error
 resharper_enforce_lock_statement_braces_highlighting = error
 resharper_enforce_using_statement_braces_highlighting = error
 resharper_enforce_while_statement_braces_highlighting = error
+resharper_use_utf8_string_literal_highlighting = error
 
 # ReSharper properties
 resharper_align_multiline_binary_expressions_chain = false
@@ -221,9 +222,7 @@ dotnet_diagnostic.IDE0059.severity = warning
 # Use compound assignment.
 dotnet_diagnostic.IDE0074.severity = warning
 # Remove unnecessary suppression.
-dotnet_diagnostic.IDE0079.severity = warning
-# See https://github.com/dotnet/roslyn/issues/75887
-dotnet_remove_unnecessary_suppression_exclusions = CA1822, InconsistentNaming, RCS1102, xUnit1044
+dotnet_diagnostic.IDE0079.severity = none # see https://github.com/dotnet/roslyn/issues/75887
 # Use pattern matching (not operator).
 dotnet_diagnostic.IDE0083.severity = warning
 # Remove unnecessary lambda expression.
@@ -258,6 +257,8 @@ dotnet_diagnostic.RCS1021.severity = warning
 dotnet_diagnostic.IDE0053.severity = none # see https://github.com/dotnet/roslyn/issues/79246
 # Remove unnecessary braces in switch section.
 dotnet_diagnostic.RCS1031.severity = warning
+# Simplify boolean comparison.
+dotnet_diagnostic.RCS1049.severity = warning
 # Remove redundant 'ToString' call.
 dotnet_diagnostic.RCS1097.severity = warning
 # Mark local variable as const.
@@ -280,6 +281,10 @@ dotnet_diagnostic.RCS1251.severity = warning
 # Add/remove trailing comma.
 dotnet_diagnostic.RCS1260.severity = warning
 roslynator_trailing_comma_style = omit
+# Resource can be disposed asynchronously.
+dotnet_diagnostic.RCS1261.severity = warning
+# Use raw string literal.
+dotnet_diagnostic.RCS1266.severity = warning
 # Unnecessary conditional access.
 dotnet_diagnostic.RCS9003.severity = warning
 

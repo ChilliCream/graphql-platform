@@ -16,14 +16,12 @@ BarAndFoo Result:
 
 BarAndFoo SQL:
 ---------------
-.param set @p '[1,0]'
+.param set @p1 1
+.param set @p2 0
 
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" NOT IN (
-    SELECT "p"."value"
-    FROM json_each(@p) AS "p"
-)
+WHERE "d"."BarEnum" NOT IN (@p1, @p2)
 ---------------
 
 FOO Result:
@@ -47,14 +45,11 @@ FOO Result:
 
 FOO SQL:
 ---------------
-.param set @p '[0]'
+.param set @p1 0
 
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" NOT IN (
-    SELECT "p"."value"
-    FROM json_each(@p) AS "p"
-)
+WHERE "d"."BarEnum" <> @p1
 ---------------
 
 nullAndFoo Result:

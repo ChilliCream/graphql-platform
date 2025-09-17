@@ -44,6 +44,10 @@ The `@skip` and `@include` directives are now disallowed on root subscription fi
 
 Deprecating a field now requires the implemented field in the interface to also be deprecated, as specified in the [draft specification](https://spec.graphql.org/draft/#sec-Objects.Type-Validation).
 
+## Global ID formatter conditionally added to filter fields
+
+Previously, the global ID input value formatter was added to ID filter fields regardless of whether or not Global Object Identification was enabled. This is now conditional.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

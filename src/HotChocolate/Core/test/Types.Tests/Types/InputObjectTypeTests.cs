@@ -685,11 +685,12 @@ public class InputObjectTypeTests : TypeTestBase
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
-            .AddDocumentFromString(@"
-                    input Foo {
-                        bar: String @deprecated(reason: ""reason"")
-                    }
-                ")
+            .AddDocumentFromString(
+                """
+                input Foo {
+                    bar: String @deprecated(reason: "reason")
+                }
+                """)
             .BuildSchemaAsync();
 
         // assert
@@ -704,11 +705,12 @@ public class InputObjectTypeTests : TypeTestBase
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
-            .AddDocumentFromString(@"
-                    input Foo {
-                        bar: String! @deprecated(reason: ""reason"")
-                    }
-                ")
+            .AddDocumentFromString(
+                """
+                input Foo {
+                    bar: String! @deprecated(reason: "reason")
+                }
+                """)
             .BuildSchemaAsync();
 
         // assert

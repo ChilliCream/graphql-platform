@@ -1,7 +1,7 @@
-using System.Runtime.InteropServices;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using System.Runtime.InteropServices;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -185,7 +185,10 @@ internal sealed partial class ResolverTask
                 {
                     count++;
                     next = await enumerator.MoveNextAsync().ConfigureAwait(false);
-                    list.Add(enumerator.Current);
+                    if (next)
+                    {
+                        list.Add(enumerator.Current);
+                    }
 
                     if (count >= initialCount)
                     {

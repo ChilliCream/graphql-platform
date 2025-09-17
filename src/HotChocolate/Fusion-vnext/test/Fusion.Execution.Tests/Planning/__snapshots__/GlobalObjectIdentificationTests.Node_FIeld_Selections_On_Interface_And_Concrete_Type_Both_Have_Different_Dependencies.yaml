@@ -4,7 +4,6 @@ operation:
         $id: ID!
       ) {
         node(id: $id) {
-          __typename @fusion__requirement
           __typename
           id
           ... on ProductList {
@@ -42,7 +41,6 @@ nodes:
       ) {
         node(id: $id) {
           __typename
-          __typename
           id
         }
       }
@@ -58,7 +56,6 @@ nodes:
         node(id: $id) {
           __typename
           ... on Item2 {
-            __typename
             __typename
             id
             products {
@@ -126,7 +123,6 @@ nodes:
         node(id: $id) {
           __typename
           ... on Item1 {
-            __typename
             __typename
             id
             products {
