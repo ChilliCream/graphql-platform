@@ -1,7 +1,9 @@
+using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Tests;
 
@@ -235,6 +237,35 @@ public class SortInputTypeTest : SortTestBase
         // assert
         schema.MatchSnapshot();
         schema.Print().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SortInput_FieldIgnoredWithTypeInterceptor()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(s => s
+            .TryAddTypeInterceptor(new IgnoreSortInputFieldTypeInterceptor(entityType: typeof(User), fieldName: "id"))
+            .AddType(new SortInputType<User>()));
+
+        // assert
+        Assert.False(((SortInputType)schema.Types["UserSortInput"]).Fields.ContainsField("id"));
+    }
+
+    private sealed class IgnoreSortInputFieldTypeInterceptor(Type entityType, string fieldName) : TypeInterceptor
+    {
+        public override void OnBeforeCompleteType(
+            ITypeCompletionContext completionContext,
+            TypeSystemConfiguration configuration)
+        {
+            if (configuration is SortInputTypeConfiguration sortInputType
+                && sortInputType.EntityType == entityType)
+            {
+                sortInputType.Fields.Single(f => f.Name == fieldName).Ignore = true;
+            }
+
+            base.OnBeforeCompleteType(completionContext, configuration);
+        }
     }
 
     public class IgnoreTest
