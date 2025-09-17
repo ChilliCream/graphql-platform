@@ -61,9 +61,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _clientScope = requestContext.CreateClientScope();
         _nodeIdParser = requestContext.Schema.Services.GetRequiredService<INodeIdParser>();
         _diagnosticEvents = requestContext.Schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>();
+        var errorHandler = requestContext.Schema.Services.GetRequiredService<IErrorHandler>();
 
         _resultStore = new FetchResultStore(
             requestContext.Schema,
+            errorHandler,
             _resultPoolSessionHolder,
             operationPlan.Operation,
             requestContext.ErrorHandlingMode(),
@@ -93,7 +95,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public IFeatureCollection Features => RequestContext.Features;
 
     public ImmutableDictionary<int, ExecutionNodeTrace> Traces { get; internal set; } =
+#if NET10_0_OR_GREATER
+        [];
+#else
         ImmutableDictionary<int, ExecutionNodeTrace>.Empty;
+#endif
 
     public IFusionExecutionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 

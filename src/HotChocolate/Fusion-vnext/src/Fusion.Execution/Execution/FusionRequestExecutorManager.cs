@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
 using HotChocolate.Caching.Memory;
+using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
@@ -301,8 +302,15 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton(static sp => sp.GetRequiredService<RequestExecutorAccessor>().RequestExecutor);
         services.AddSingleton<IRequestExecutor>(sp => sp.GetRequiredService<FusionRequestExecutor>());
         services.AddSingleton(static sp => sp.GetRequiredService<ISchemaDefinition>().GetRequestOptions());
+        services.TryAddSingleton<INodeIdParser>(
+            static sp => new DefaultNodeIdParser(
+                sp.GetRequiredService<FusionRequestOptions>().NodeIdSerializerFormat));
         services.AddSingleton<IErrorHandler>(static sp => new DefaultErrorHandler(sp.GetServices<IErrorFilter>()));
-        services.TryAddSingleton<INodeIdParser, DefaultNodeIdParser>();
+
+        if (requestOptions.IncludeExceptionDetails)
+        {
+            services.AddSingleton<IErrorFilter>(static _ => new AddDebugInformationErrorFilter());
+        }
 
         services.AddSingleton(static _ => new SchemaDefinitionAccessor());
         services.AddSingleton(static sp => sp.GetRequiredService<SchemaDefinitionAccessor>().Schema);
@@ -641,6 +649,51 @@ internal sealed class FusionRequestExecutorManager
             }
 
             _disposed = true;
+        }
+    }
+
+    private sealed class AddDebugInformationErrorFilter : IErrorFilter
+    {
+        private const string ExceptionProperty = "exception";
+        private const string MessageProperty = "message";
+        private const string StackTraceProperty = "stackTrace";
+
+        public IError OnError(IError error)
+        {
+            if (error.Exception is not null)
+            {
+                switch (error.Extensions)
+                {
+                    case ImmutableOrderedDictionary<string, object?> d when !d.ContainsKey(ExceptionProperty):
+                    {
+                        var extensions = d.Add(ExceptionProperty, CreateExceptionInfo(error.Exception));
+                        return error.WithExtensions(extensions);
+                    }
+
+                    case { } d when !d.ContainsKey("exception"):
+                        var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
+                        builder.AddRange(d);
+                        builder.Add(ExceptionProperty, CreateExceptionInfo(error.Exception));
+                        return error.WithExtensions(builder.ToImmutable());
+
+                    default:
+                    {
+                        var extensions =
+                            ImmutableOrderedDictionary<string, object?>.Empty
+                                .Add(ExceptionProperty, CreateExceptionInfo(error.Exception));
+                        return error.WithExtensions(extensions);
+                    }
+                }
+            }
+
+            return error;
+
+            static ImmutableOrderedDictionary<string, object?> CreateExceptionInfo(Exception exception)
+            {
+                return ImmutableOrderedDictionary<string, object?>.Empty
+                    .Add(MessageProperty, exception.Message)
+                    .Add(StackTraceProperty, exception.StackTrace);
+            }
         }
     }
 }

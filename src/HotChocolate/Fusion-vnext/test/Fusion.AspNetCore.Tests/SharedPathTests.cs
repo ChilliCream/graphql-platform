@@ -599,7 +599,7 @@ public class SharedPathTests : FusionTestBase
         {
             public string Schema1 => "schema1";
 
-            public SharedProduct2 ? Shared2 => new SharedProduct2();
+            public SharedProduct2? Shared2 => new SharedProduct2();
         }
 
         public class SharedProduct2
@@ -662,7 +662,7 @@ public class SharedPathTests : FusionTestBase
         {
             public string Schema2 => "schema2";
 
-            public SharedProduct2 ? Shared2 => new SharedProduct2();
+            public SharedProduct2? Shared2 => new SharedProduct2();
         }
 
         public class SharedProduct2

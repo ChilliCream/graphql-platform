@@ -23,7 +23,10 @@ public class FusionRunCommand : Command
         archiveOption.AddAlias("-f");
         archiveOption.LegalFilePathsOnly();
 
+        var portOption = new Option<int>("--port");
+
         AddOption(archiveOption);
+        AddOption(portOption);
 
         this.SetHandler(async context =>
         {
@@ -31,13 +34,16 @@ public class FusionRunCommand : Command
 
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
 
-            await ExecuteAsync(archiveFile, console, context.GetCancellationToken());
+            var port = context.ParseResult.GetValueForOption(portOption);
+
+            await ExecuteAsync(archiveFile, console, port, context.GetCancellationToken());
         });
     }
 
     private static async Task ExecuteAsync(
         FileInfo archiveFile,
         IAnsiConsole console,
+        int? port,
         CancellationToken cancellationToken)
     {
         if (!archiveFile.Exists)
@@ -45,21 +51,40 @@ public class FusionRunCommand : Command
             throw new ExitException($"Archive file '{archiveFile.FullName}' does not exist.");
         }
 
-        var port = GetRandomUnusedPort();
+        port ??= GetRandomUnusedPort();
 
         var host = new WebHostBuilder()
             .UseKestrel()
-            .UseUrls(new UriBuilder("http", "localhost", port).ToString())
+            .UseUrls(new UriBuilder("http", "localhost", port.Value).ToString())
             .ConfigureServices(services =>
             {
+                services
+                    .AddCors()
+                    .AddHeaderPropagation(c =>
+                    {
+                        c.Headers.Add("GraphQL-Preflight");
+                        c.Headers.Add("Authorization");
+                    });
+
+                services
+                    .AddHttpClient("fusion")
+                    .AddHeaderPropagation();
+
                 services.AddRouting()
                     .AddGraphQLGatewayServer()
-                    .AddFileSystemConfiguration(archiveFile.FullName);
+                    .AddFileSystemConfiguration(archiveFile.FullName)
+                    .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true);
             })
             .Configure(app =>
             {
                 app.UseRouting();
-                app.UseEndpoints(e => e.MapGraphQL());
+                app.UseHeaderPropagation();
+                app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+                app.UseEndpoints(e => e.MapGraphQL()
+                    .WithOptions(new HotChocolate.AspNetCore.GraphQLServerOptions
+                    {
+                        Tool = { ServeMode = HotChocolate.AspNetCore.GraphQLToolServeMode.Insider }
+                    }));
             })
             .Build();
 

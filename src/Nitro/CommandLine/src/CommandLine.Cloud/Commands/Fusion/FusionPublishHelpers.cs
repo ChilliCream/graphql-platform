@@ -165,7 +165,8 @@ internal static class FusionPublishHelpers
     {
         var input = new CommitFusionConfigurationPublishInput
         {
-            RequestId = requestId, Configuration = new(stream, "gateway.far")
+            RequestId = requestId,
+            Configuration = new(stream, "gateway.far")
         };
 
         var result =

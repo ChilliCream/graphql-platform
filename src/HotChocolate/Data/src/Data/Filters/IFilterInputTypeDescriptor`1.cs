@@ -85,7 +85,7 @@ public interface IFilterInputTypeDescriptor<T> : IFilterInputTypeDescriptor
     /// <summary>
     /// Ignore the specified property.
     /// </summary>
-    /// <param  name="propertyOrMember">
+    /// <param name="propertyOrMember">
     /// The property that shall be ignored.
     /// </param>
     IFilterInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> propertyOrMember);
