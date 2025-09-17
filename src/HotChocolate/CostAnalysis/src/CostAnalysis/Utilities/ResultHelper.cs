@@ -10,7 +10,7 @@ internal static class ResultHelper
             .Add(ExecutionContextData.ValidationErrors, true);
     private static readonly ImmutableDictionary<string, object?> s_ok
         = ImmutableDictionary<string, object?>.Empty
-            .Add(WellKnownContextData.HttpStatusCode, 200);
+            .Add(ExecutionContextData.HttpStatusCode, 200);
 
     public static IExecutionResult CreateError(IError error, CostMetrics? costMetrics)
     {
@@ -75,12 +75,9 @@ internal static class ResultHelper
                 return AddCostMetrics(r, costMetrics);
 
             case ResponseStream r:
-            {
                 return AddCostMetrics(r, costMetrics);
-            }
 
             case OperationResultBatch r:
-            {
                 var results = new IExecutionResult[r.Results.Count];
                 IImmutableDictionary<string, object?>? costMetricsMap = null;
 
@@ -103,7 +100,6 @@ internal static class ResultHelper
                 }
 
                 return new OperationResultBatch(results);
-            }
 
             default:
                 throw new NotSupportedException();

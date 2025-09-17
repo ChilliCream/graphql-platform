@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
@@ -60,9 +60,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             .ConfigureSchemaServices(s =>
             {
                 s.TryAddSingleton<ISocketSessionInterceptor, DefaultSocketSessionInterceptor>();
-                s.TryAddSingleton<IWebSocketPayloadFormatter>(
-                    _ => new DefaultWebSocketPayloadFormatter(
-                            new WebSocketPayloadFormatterOptions()));
+                s.TryAddSingleton<IWebSocketPayloadFormatter>(_ => new DefaultWebSocketPayloadFormatter());
             })
             .AddApolloProtocol()
             .AddGraphQLOverWebSocketProtocol();

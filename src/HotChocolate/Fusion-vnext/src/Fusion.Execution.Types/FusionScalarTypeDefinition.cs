@@ -45,6 +45,8 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives
         => _directives;
 
+    public Uri? SpecifiedBy { get; private set; }
+
     public ScalarValueKind ValueKind { get; private set; }
 
     public IFeatureCollection Features
@@ -62,6 +64,7 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
         ThrowHelper.EnsureNotSealed(_completed);
         Directives = context.Directives;
         ValueKind = context.ValueKind;
+        SpecifiedBy = context.SpecifiedBy;
 
         // if the value kind is any, we need to determine the value kind based on the name
         // for the spec scalars.
@@ -122,7 +125,6 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
     public bool Equals(IType? other)
         => Equals(other, TypeComparison.Reference);
 
-    /// <inheritdoc />
     public bool Equals(IType? other, TypeComparison comparison)
     {
         if (comparison is TypeComparison.Reference)

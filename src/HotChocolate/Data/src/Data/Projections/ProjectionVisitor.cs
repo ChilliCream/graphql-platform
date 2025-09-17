@@ -22,8 +22,8 @@ public class ProjectionVisitor<TContext>
 
     protected override TContext OnBeforeLeave(ISelection selection, TContext localContext)
     {
-        if (selection is IProjectionSelection projectionSelection &&
-            projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
+        if (selection is IProjectionSelection projectionSelection
+            && projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
         {
             return handler.OnBeforeLeave(localContext, selection);
         }
@@ -36,8 +36,8 @@ public class ProjectionVisitor<TContext>
         TContext localContext,
         ISelectionVisitorAction result)
     {
-        if (selection is IProjectionSelection projectionSelection &&
-            projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
+        if (selection is IProjectionSelection projectionSelection
+            && projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
         {
             return handler.OnAfterLeave(localContext, selection, result);
         }
@@ -50,8 +50,8 @@ public class ProjectionVisitor<TContext>
         TContext localContext,
         ISelectionVisitorAction result)
     {
-        if (selection is IProjectionSelection projectionSelection &&
-            projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
+        if (selection is IProjectionSelection projectionSelection
+            && projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
         {
             return handler.OnAfterEnter(localContext, selection, result);
         }
@@ -61,8 +61,8 @@ public class ProjectionVisitor<TContext>
 
     protected override TContext OnBeforeEnter(ISelection selection, TContext context)
     {
-        if (selection is IProjectionSelection projectionSelection &&
-            projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
+        if (selection is IProjectionSelection projectionSelection
+            && projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
         {
             return handler.OnBeforeEnter(context, selection);
         }
@@ -76,9 +76,9 @@ public class ProjectionVisitor<TContext>
     {
         base.Enter(selection, context);
 
-        if (selection is IProjectionSelection projectionSelection &&
-            projectionSelection.Handler is IProjectionFieldHandler<TContext> handler &&
-            handler.TryHandleEnter(
+        if (selection is IProjectionSelection projectionSelection
+            && projectionSelection.Handler is IProjectionFieldHandler<TContext> handler
+            && handler.TryHandleEnter(
                 context,
                 selection,
                 out var handlerResult))
@@ -95,9 +95,9 @@ public class ProjectionVisitor<TContext>
     {
         base.Leave(selection, context);
 
-        if (selection is IProjectionSelection projectionSelection &&
-            projectionSelection.Handler is IProjectionFieldHandler<TContext> handler &&
-            handler.TryHandleLeave(
+        if (selection is IProjectionSelection projectionSelection
+            && projectionSelection.Handler is IProjectionFieldHandler<TContext> handler
+            && handler.TryHandleLeave(
                 context,
                 selection,
                 out var handlerResult))

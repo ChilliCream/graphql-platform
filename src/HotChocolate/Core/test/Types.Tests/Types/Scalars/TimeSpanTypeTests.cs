@@ -17,7 +17,7 @@ public class TimeSpanTypeTests
         var timeSpan = TimeSpan.FromMinutes(5);
 
         // act
-        var serializedValue = (string)timeSpanType.Serialize(timeSpan);
+        var serializedValue = (string?)timeSpanType.Serialize(timeSpan);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
@@ -33,7 +33,7 @@ public class TimeSpanTypeTests
         var timeSpan = TimeSpan.MaxValue;
 
         // act
-        var serializedValue = (string)timeSpanType.Serialize(timeSpan);
+        var serializedValue = (string?)timeSpanType.Serialize(timeSpan);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
@@ -49,7 +49,7 @@ public class TimeSpanTypeTests
         var timeSpan = TimeSpan.MinValue;
 
         // act
-        var serializedValue = (string)timeSpanType.Serialize(timeSpan);
+        var serializedValue = (string?)timeSpanType.Serialize(timeSpan);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
@@ -61,10 +61,10 @@ public class TimeSpanTypeTests
         // arrange
         var timeSpanType = new TimeSpanType();
         var timeSpan = TimeSpan.FromMinutes(5);
-        var expectedValue = "PT5M";
+        const string expectedValue = "PT5M";
 
         // act
-        var serializedValue = (string)timeSpanType.Serialize(timeSpan);
+        var serializedValue = (string?)timeSpanType.Serialize(timeSpan);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
@@ -107,7 +107,7 @@ public class TimeSpanTypeTests
         var expectedTimeSpan = TimeSpan.FromMinutes(5);
 
         // act
-        var timeSpan = (TimeSpan)timeSpanType
+        var timeSpan = (TimeSpan?)timeSpanType
             .ParseLiteral(literal);
 
         // assert
@@ -124,7 +124,7 @@ public class TimeSpanTypeTests
         var timeSpan = TimeSpan.FromMinutes(5);
 
         // act
-        var deserializedValue = (TimeSpan)timeSpanType
+        var deserializedValue = (TimeSpan?)timeSpanType
             .Deserialize(actualValue);
 
         // assert
@@ -139,7 +139,7 @@ public class TimeSpanTypeTests
         var timeSpan = TimeSpan.FromDays(79);
 
         // act
-        var deserializedValue = (TimeSpan)timeSpanType
+        var deserializedValue = (TimeSpan?)timeSpanType
             .Deserialize("P2M2W5D");
 
         // assert
@@ -154,7 +154,7 @@ public class TimeSpanTypeTests
 
         // act
         var success = timeSpanType
-            .TryDeserialize("PT5", out var deserialized);
+            .TryDeserialize("PT5", out _);
 
         // assert
         Assert.False(success);
@@ -170,7 +170,7 @@ public class TimeSpanTypeTests
         var timeSpan = TimeSpan.MaxValue;
 
         // act
-        var deserializedValue = (TimeSpan)timeSpanType
+        var deserializedValue = (TimeSpan?)timeSpanType
             .Deserialize(actualValue);
 
         // assert
@@ -187,7 +187,7 @@ public class TimeSpanTypeTests
         var timeSpan = TimeSpan.MinValue;
 
         // act
-        var deserializedValue = (TimeSpan)timeSpanType
+        var deserializedValue = (TimeSpan?)timeSpanType
             .Deserialize(actualValue);
 
         // assert
@@ -202,7 +202,7 @@ public class TimeSpanTypeTests
 
         // act
         var success = timeSpanType
-            .TryDeserialize("bad", out var deserialized);
+            .TryDeserialize("bad", out _);
 
         // assert
         Assert.False(success);

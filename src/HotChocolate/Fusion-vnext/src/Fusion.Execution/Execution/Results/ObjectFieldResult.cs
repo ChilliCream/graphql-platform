@@ -1,7 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
 /// Represents the result of a field that returns an object.
@@ -36,7 +37,11 @@ public sealed class ObjectFieldResult : FieldResult
         }
 
         Value = objectResult;
+        objectResult.SetParent(Parent!, ParentIndex);
     }
+
+    protected override void OnSetParent(ResultData parent, int index)
+        => Value?.SetParent(parent, index);
 
     /// <summary>
     /// Writes the object result to a JSON writer.
@@ -70,6 +75,10 @@ public sealed class ObjectFieldResult : FieldResult
             Value.WriteTo(writer, options, nullIgnoreCondition);
         }
     }
+
+    /// <inheritdoc />
+    [MemberNotNullWhen(false, nameof(Value))]
+    public override bool HasNullValue => Value is null;
 
     /// <summary>
     /// Returns the object result as a key-value pair.

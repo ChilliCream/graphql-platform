@@ -187,8 +187,8 @@ public sealed partial class OperationCompiler
 
         for (var i = 0; i < selection.Directives.Count; i++)
         {
-            if (schema.DirectiveTypes.TryGetDirective(selection.Directives[i].Name.Value, out var type) &&
-                type.Middleware is not null)
+            if (schema.DirectiveTypes.TryGetDirective(selection.Directives[i].Name.Value, out var type)
+                && type.Middleware is not null)
             {
                 return null;
             }

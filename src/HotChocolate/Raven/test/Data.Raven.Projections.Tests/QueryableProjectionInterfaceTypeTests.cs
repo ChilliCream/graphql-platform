@@ -203,9 +203,9 @@ public class QueryableProjectionInterfaceTypeTests
         var tester = _cache
             .CreateSchema(
                 s_barEntities,
+                usePaging: true,
                 configure: ConfigureSchema,
-                schemaType: typeof(InterfaceType<AbstractType>),
-                usePaging: true);
+                schemaType: typeof(InterfaceType<AbstractType>));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -241,9 +241,9 @@ public class QueryableProjectionInterfaceTypeTests
         var tester = _cache
             .CreateSchema(
                 s_barEntities,
+                useOffsetPaging: true,
                 configure: ConfigureSchema,
-                schemaType: typeof(InterfaceType<AbstractType>),
-                useOffsetPaging: true);
+                schemaType: typeof(InterfaceType<AbstractType>));
 
         // act
         var res1 = await tester.ExecuteAsync(

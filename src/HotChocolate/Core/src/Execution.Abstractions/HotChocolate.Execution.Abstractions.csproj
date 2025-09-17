@@ -23,6 +23,7 @@
     <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
     <ProjectReference Include="..\..\..\Language\src\Language.Web\HotChocolate.Language.Web.csproj" />
     <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities.Tasks\HotChocolate.Utilities.Tasks.csproj" />
     <ProjectReference Include="..\Features\HotChocolate.Features.csproj" />
     <ProjectReference Include="..\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
   </ItemGroup>

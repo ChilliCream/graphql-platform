@@ -48,7 +48,7 @@ internal sealed class AuthorizeRequestMiddleware(
     private static IOperationResult CreateErrorResult(AuthorizeResult result)
         => OperationResultBuilder.New()
             .AddError(CreateError(result))
-            .SetContextData(WellKnownContextData.HttpStatusCode, 401)
+            .SetContextData(ExecutionContextData.HttpStatusCode, 401)
             .Build();
 
     private static IError CreateError(AuthorizeResult result)

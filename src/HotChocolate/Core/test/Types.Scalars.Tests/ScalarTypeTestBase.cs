@@ -18,8 +18,8 @@ public class ScalarTypeTestBase
     protected ScalarType CreateType<TType>()
         where TType : ScalarType
     {
-        return BuildSchema<TType>().Types.GetType<ObjectType>("Query").Fields["scalar"].Type as
-            ScalarType ?? throw new InvalidOperationException();
+        return BuildSchema<TType>().Types.GetType<ObjectType>("Query").Fields["scalar"].Type
+            as ScalarType ?? throw new InvalidOperationException();
     }
 
     protected IValueNode CreateValueNode(Type type, object? value)

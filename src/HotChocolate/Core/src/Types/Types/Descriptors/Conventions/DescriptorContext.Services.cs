@@ -3,8 +3,6 @@ using HotChocolate.Internal;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.ObjectPool;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public sealed partial class DescriptorContext

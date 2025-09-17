@@ -82,8 +82,8 @@ public sealed class KeyInvalidFieldsRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'Product' in schema 'A' specifies an invalid field " +
-                    "selection."
+                    "A @key directive on type 'Product' in schema 'A' specifies an invalid field "
+                    + "selection."
                 ]
             }
         };

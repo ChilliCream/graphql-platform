@@ -64,8 +64,8 @@ public static class VariableRewriter
             var oneOf = type.Directives.ContainsDirective(DirectiveNames.OneOf.Name);
             var value = node.Fields[0];
 
-            if (type.Fields.TryGetField(value.Name.Value, out var field) &&
-                TryRewriteField(value, field, variableValues, out var rewritten))
+            if (type.Fields.TryGetField(value.Name.Value, out var field)
+                && TryRewriteField(value, field, variableValues, out var rewritten))
             {
                 if (oneOf && rewritten.Value.Kind is SyntaxKind.NullValue)
                 {
@@ -86,8 +86,8 @@ public static class VariableRewriter
         {
             var value = node.Fields[i];
 
-            if (type.Fields.TryGetField(value.Name.Value, out var field) &&
-                TryRewriteField(value, field, variableValues, out var rewritten))
+            if (type.Fields.TryGetField(value.Name.Value, out var field)
+                && TryRewriteField(value, field, variableValues, out var rewritten))
             {
                 if (rewrittenItems is null)
                 {
@@ -144,8 +144,8 @@ public static class VariableRewriter
             type.ElementType,
             NullValueNode.Default,
             variableValues,
-            out var rewritten) &&
-            rewritten is ObjectValueNode rewrittenObj
+            out var rewritten)
+            && rewritten is ObjectValueNode rewrittenObj
                 ? rewrittenObj
                 : node;
     }

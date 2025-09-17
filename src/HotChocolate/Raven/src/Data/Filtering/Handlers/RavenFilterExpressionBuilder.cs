@@ -10,16 +10,16 @@ public static class RavenFilterExpressionBuilder
     private static readonly MethodInfo s_inMethod =
         typeof(RavenQueryableExtensions)
             .GetMethods()
-            .Single(x => x.Name == nameof(RavenQueryableExtensions.In) &&
-                x.GetParameters() is [_, { ParameterType.IsArray: false }]);
+            .Single(x => x.Name == nameof(RavenQueryableExtensions.In)
+                && x.GetParameters() is [_, { ParameterType.IsArray: false }]);
 
     private static readonly MethodInfo s_isMatch =
         typeof(Regex)
             .GetMethods()
-            .Single(x => x.Name == nameof(Regex.IsMatch) &&
-                x.GetParameters() is [{ } first, { } second] &&
-                first.ParameterType == typeof(string) &&
-                second.ParameterType == typeof(string));
+            .Single(x => x.Name == nameof(Regex.IsMatch)
+                && x.GetParameters() is [{ } first, { } second]
+                && first.ParameterType == typeof(string)
+                && second.ParameterType == typeof(string));
 
     public static Expression In(
         Expression property,

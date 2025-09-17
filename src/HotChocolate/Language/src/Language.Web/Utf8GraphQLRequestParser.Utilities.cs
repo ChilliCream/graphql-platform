@@ -6,7 +6,7 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLRequestParser
 {
-    private OperationDocumentId? ParseOperationId(Utf8GraphQLReader reader)
+    private OperationDocumentId? ParseOperationId()
     {
         switch (_reader.Kind)
         {

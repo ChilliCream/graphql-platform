@@ -2,8 +2,6 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>

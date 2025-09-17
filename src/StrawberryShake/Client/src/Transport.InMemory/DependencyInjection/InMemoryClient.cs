@@ -107,7 +107,7 @@ public class InMemoryClient : IInMemoryClient
             case IEnumerable<KeyValuePair<string, object?>> pairs:
             {
                 var response = new Dictionary<string, object?>();
-                foreach (KeyValuePair<string, object?> pair in pairs)
+                foreach (var pair in pairs)
                 {
                     GetFileValueOrDefault(fileValue, pair.Key, out var currentFileValue);
                     response[pair.Key] = CreateVariableValue(pair.Value, currentFileValue);
@@ -129,7 +129,7 @@ public class InMemoryClient : IInMemoryClient
             default:
                 if (fileValue is Upload upload)
                 {
-                    return new StreamFile(upload.FileName, () => upload.Content);
+                    return new StreamFile(upload.FileName, () => upload.Content, null, upload.ContentType);
                 }
 
                 return variables;

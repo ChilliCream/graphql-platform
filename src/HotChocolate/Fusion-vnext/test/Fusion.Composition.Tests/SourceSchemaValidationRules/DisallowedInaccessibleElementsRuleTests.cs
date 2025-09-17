@@ -127,8 +127,8 @@ public sealed class DisallowedInaccessibleElementsRuleTests
                     """
                 ],
                 [
-                    "The introspection argument '__Type.fields(includeDeprecated:)' in schema " +
-                    "'A' is not accessible."
+                    "The introspection argument '__Type.fields(includeDeprecated:)' in schema "
+                    + "'A' is not accessible."
                 ]
             },
             // Inaccessible built-in directive argument.

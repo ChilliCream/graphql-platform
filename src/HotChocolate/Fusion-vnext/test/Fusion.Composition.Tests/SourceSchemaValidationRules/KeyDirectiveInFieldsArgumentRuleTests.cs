@@ -81,8 +81,8 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'User' in schema 'A' references field 'name', " +
-                    "which must not include directive applications."
+                    "A @key directive on type 'User' in schema 'A' references field 'name', "
+                    + "which must not include directive applications."
                 ]
             },
             // In this example, the "fields" argument includes a directive application @lowercase
@@ -104,8 +104,8 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'User' in schema 'A' references field " +
-                    "'name.firstName', which must not include directive applications."
+                    "A @key directive on type 'User' in schema 'A' references field "
+                    + "'name.firstName', which must not include directive applications."
                 ]
             },
             // Multiple keys.
@@ -121,11 +121,11 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'User' in schema 'A' references field 'id', " +
-                    "which must not include directive applications.",
+                    "A @key directive on type 'User' in schema 'A' references field 'id', "
+                    + "which must not include directive applications.",
 
-                    "A @key directive on type 'User' in schema 'A' references field 'name', " +
-                    "which must not include directive applications."
+                    "A @key directive on type 'User' in schema 'A' references field 'name', "
+                    + "which must not include directive applications."
                 ]
             }
         };

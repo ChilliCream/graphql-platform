@@ -125,11 +125,11 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests
                     """
                 ],
                 [
-                    "The default value of 'Query.field(arg:)' references the inaccessible enum " +
-                    "value 'Enum1.FOO'.",
+                    "The default value of 'Query.field(arg:)' references the inaccessible enum "
+                    + "value 'Enum1.FOO'.",
 
-                    "The default value of 'Input1.field' references the inaccessible enum value " +
-                    "'Enum1.FOO'."
+                    "The default value of 'Input1.field' references the inaccessible enum value "
+                    + "'Enum1.FOO'."
                 ]
             },
             // The following example violates this rule because the default value for the argument
@@ -159,11 +159,11 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests
                     """
                 ],
                 [
-                    "The default value of 'Query.field(arg:)' references the inaccessible enum " +
-                    "value 'Enum1.FOO'.",
+                    "The default value of 'Query.field(arg:)' references the inaccessible enum "
+                    + "value 'Enum1.FOO'.",
 
-                    "The default value of 'Input1.field2' references the inaccessible enum value " +
-                    "'Enum1.FOO'."
+                    "The default value of 'Input1.field2' references the inaccessible enum value "
+                    + "'Enum1.FOO'."
                 ]
             },
             // The following example violates this rule because the default value for the argument
@@ -188,11 +188,11 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests
                     """
                 ],
                 [
-                    "The default value of 'Query.field(arg:)' references the inaccessible enum " +
-                    "value 'Enum1.FOO'.",
+                    "The default value of 'Query.field(arg:)' references the inaccessible enum "
+                    + "value 'Enum1.FOO'.",
 
-                    "The default value of 'Input1.field' references the inaccessible enum value " +
-                    "'Enum1.FOO'."
+                    "The default value of 'Input1.field' references the inaccessible enum value "
+                    + "'Enum1.FOO'."
                 ]
             }
         };

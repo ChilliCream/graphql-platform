@@ -174,9 +174,9 @@ internal static class CostAnalyzerUtilities
                 }
             }
 
-            if (argumentCount > 0 &&
-                argumentCount == variableCount &&
-                argumentCount <= listSizeDirective.SlicingArguments.Length)
+            if (argumentCount > 0
+                && argumentCount == variableCount
+                && argumentCount <= listSizeDirective.SlicingArguments.Length)
             {
                 return;
             }

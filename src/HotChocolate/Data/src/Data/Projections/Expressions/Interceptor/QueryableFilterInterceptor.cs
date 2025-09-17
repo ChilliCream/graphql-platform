@@ -15,9 +15,9 @@ namespace HotChocolate.Data.Projections.Handlers;
 public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableProjectionContext>
 {
     public bool CanHandle(ISelection selection) =>
-        selection.Field.Member is PropertyInfo propertyInfo &&
-        propertyInfo.CanWrite &&
-        selection.HasFilterFeature();
+        selection.Field.Member is PropertyInfo propertyInfo
+        && propertyInfo.CanWrite
+        && selection.HasFilterFeature();
 
     public void BeforeProjection(
         QueryableProjectionContext context,
@@ -26,12 +26,12 @@ public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableP
         var field = selection.Field;
         var filterFeature = selection.GetFilterFeature();
 
-        if (filterFeature is not null &&
-            context.Selection.Count > 0 &&
-            context.Selection.Peek().Arguments.TryCoerceArguments(context.ResolverContext, out var coercedArgs) &&
-            coercedArgs.TryGetValue(filterFeature.ArgumentName, out var argumentValue) &&
-            argumentValue.Type is IFilterInputType filterInputType &&
-            argumentValue.ValueLiteral is { } valueNode and not NullValueNode)
+        if (filterFeature is not null
+            && context.Selection.Count > 0
+            && context.Selection.Peek().Arguments.TryCoerceArguments(context.ResolverContext, out var coercedArgs)
+            && coercedArgs.TryGetValue(filterFeature.ArgumentName, out var argumentValue)
+            && argumentValue.Type is IFilterInputType filterInputType
+            && argumentValue.ValueLiteral is { } valueNode and not NullValueNode)
         {
             var filterContext = filterFeature.ArgumentVisitor.Invoke(valueNode, filterInputType, false);
             var instance = context.PopInstance();

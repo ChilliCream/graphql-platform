@@ -22,12 +22,12 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         bool skipValidation = false)
         : base(cleanupTasks)
     {
-        if (!skipValidation &&
-            data is null &&
-            items is null &&
-            errors is null &&
-            incremental is null &&
-            hasNext is not false)
+        if (!skipValidation
+            && data is null
+            && items is null
+            && errors is null
+            && incremental is null
+            && hasNext is not false)
         {
             throw new ArgumentException(
                 ExecutionAbstractionsResources.QueryResult_DataAndResultAreNull,
@@ -64,11 +64,11 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         int? requestIndex = null,
         int? variableIndex = null)
     {
-        if (data is null &&
-            items is null &&
-            errors is null &&
-            incremental is null &&
-            hasNext is not false)
+        if (data is null
+            && items is null
+            && errors is null
+            && incremental is null
+            && hasNext is not false)
         {
             throw new ArgumentException(
                 ExecutionAbstractionsResources.QueryResult_DataAndResultAreNull,

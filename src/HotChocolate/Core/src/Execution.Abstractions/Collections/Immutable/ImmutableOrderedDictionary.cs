@@ -37,7 +37,11 @@ public sealed class ImmutableOrderedDictionary<TKey, TValue> : IImmutableDiction
     /// </summary>
     /// <value>An empty immutable ordered dictionary.</value>
     public static ImmutableOrderedDictionary<TKey, TValue> Empty { get; } =
+#if NET10_0_OR_GREATER
+        new([], []);
+#else
         new([], ImmutableDictionary<TKey, TValue>.Empty);
+#endif
 
     /// <summary>
     /// Gets the number of key/value pairs in the immutable ordered dictionary.

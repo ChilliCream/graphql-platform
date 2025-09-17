@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ThrowHelper_DefaultHttpRequestParser_RequestIsEmpty" xml:space="preserve">
+    <value>The GraphQL request is empty.</value>
+  </data>
+  <data name="ThrowHelper_DefaultHttpRequestParser_QueryAndIdMissing" xml:space="preserve">
+    <value>Either the parameter query or the parameter id has to be set.</value>
+  </data>
+  <data name="ThrowHelper_DefaultHttpRequestParser_MaxRequestSizeExceeded" xml:space="preserve">
+    <value>Max GraphQL request size reached.</value>
+  </data>
+  <data name="ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported" xml:space="preserve">
+    <value>The response type is not supported.</value>
+  </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_Invalid_Form" xml:space="preserve">
+    <value>The multipart form could not be read.</value>
+  </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_No_Operations_Specified" xml:space="preserve">
+    <value>No 'operations' specified.</value>
+  </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_Fields_Misordered" xml:space="preserve">
+    <value>Misordered multipart fields; 'map' should follow 'operations'.</value>
+  </data>
+  <data name="HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable" xml:space="preserve">
+    <value>The variables are expected to mutable at this point.</value>
+  </data>
+  <data name="VariablePath_Parse_FirstSegmentMustBeKey" xml:space="preserve">
+    <value>The first path segment must be a key.</value>
+  </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_NoObjectPath" xml:space="preserve">
+    <value>No object paths specified for key '{0}' in 'map'.</value>
+  </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_FileMissing" xml:space="preserve">
+    <value>File of key '{0}' is missing.</value>
+  </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_VariableNotFound" xml:space="preserve">
+    <value>The variable path '{0}' is invalid.</value>
+  </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid" xml:space="preserve">
+    <value>The variable structure is invalid.</value>
+  </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_InvalidPath" xml:space="preserve">
+    <value>Invalid variable path `{0}` in `map`.</value>
+  </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_PathMustStartWithVariable" xml:space="preserve">
+    <value>The variable path must start with `variables`.</value>
+  </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_InvalidMapJson" xml:space="preserve">
+    <value>Invalid JSON in the `map` multipart field; Expected type of Dictionary&lt;string, string[]&gt;.</value>
+  </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_MapNotSpecified" xml:space="preserve">
+    <value>No `map` specified.</value>
+  </data>
+  <data name="ErrorHelper_InvalidRequest" xml:space="preserve">
+    <value>Invalid GraphQL Request.</value>
+  </data>
+  <data name="ErrorHelper_RequestHasNoElements" xml:space="preserve">
+    <value>The GraphQL batch request has no elements.</value>
+  </data>
+  <data name="WebSocketSession_SessionEnded" xml:space="preserve">
+    <value>Session ended.</value>
+  </data>
+  <data name="DataStartMessageHandler_Not_A_SubscriptionResult" xml:space="preserve">
+    <value>The specified result object is not a valid subscription result.</value>
+  </data>
+  <data name="TerminateConnectionMessageHandler_Message" xml:space="preserve">
+    <value>Connection terminated by user.</value>
+  </data>
+  <data name="Apollo_OnReceive_MessageMustBeJson" xml:space="preserve">
+    <value>A message must be a json object.</value>
+  </data>
+  <data name="Apollo_OnReceive_TypePropMissing" xml:space="preserve">
+    <value>The type property on the message is mandatory.</value>
+  </data>
+  <data name="Apollo_OnReceive_ToManyInitializations" xml:space="preserve">
+    <value>Too many initialization requests.</value>
+  </data>
+  <data name="Apollo_OnReceive_InvalidSubscribeMessage" xml:space="preserve">
+    <value>Invalid subscribe message structure.</value>
+  </data>
+  <data name="Apollo_OnReceive_SubscriptionIdNotUnique" xml:space="preserve">
+    <value>The subscription id is not unique.</value>
+  </data>
+  <data name="Apollo_OnReceive_InvalidMessageType" xml:space="preserve">
+    <value>Invalid message type.</value>
+  </data>
+  <data name="ConnectionStatus_Reject_Message_cannot_be_null_or_empty_" xml:space="preserve">
+    <value>Message cannot be null or empty.</value>
+  </data>
+  <data name="ErrorHelper_NoSupportedAcceptMediaType" xml:space="preserve">
+    <value>None of the `Accept` header values is supported.</value>
+  </data>
+  <data name="ThrowHelper_Formatter_ResultKindNotSupported" xml:space="preserve">
+    <value>The execution result kind is not supported.</value>
+  </data>
+  <data name="ThrowHelper_Formatter_ResponseContentTypeNotSupported" xml:space="preserve">
+    <value>The specified response content-type `{0}` is not supported.</value>
+  </data>
+  <data name="ThrowHelper_Formatter_InvalidAcceptMediaType" xml:space="preserve">
+    <value>Invalid accept media types specified.</value>
+  </data>
+  <data name="ErrorHelper_InvalidAcceptMediaType" xml:space="preserve">
+    <value>Unable to parse the accept header value `{0}`.</value>
+  </data>
+  <data name="ErrorHelper_TypeNotFound" xml:space="preserve">
+    <value>The type `{0}` does not exist.</value>
+  </data>
+  <data name="ErrorHelper_InvalidTypeName" xml:space="preserve">
+    <value>The type name is invalid.</value>
+  </data>
+  <data name="ErrorHelper_TypeNameIsEmpty" xml:space="preserve">
+    <value>The specified types argument is empty.</value>
+  </data>
+  <data name="ErrorHelper_MultiPartRequestPreflightRequired" xml:space="preserve">
+    <value>Multi-part requests must include a GraphQL preflight header.</value>
+  </data>
+</root>

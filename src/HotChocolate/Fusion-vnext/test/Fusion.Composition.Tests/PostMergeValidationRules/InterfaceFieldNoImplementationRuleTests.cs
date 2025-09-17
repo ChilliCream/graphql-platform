@@ -170,8 +170,8 @@ public sealed class InterfaceFieldNoImplementationRuleTests
                     """
                 ],
                 [
-                    "The merged object type 'GuestUser' must implement the field 'email' on " +
-                    "interface 'User'."
+                    "The merged object type 'GuestUser' must implement the field 'email' on "
+                    + "interface 'User'."
                 ]
             }
         };

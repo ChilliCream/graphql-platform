@@ -110,8 +110,8 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests
                     """
                 ],
                 [
-                    "The default value '\"de\"' of external argument 'Product.name(language:)' " +
-                    "in schema 'B' differs from the default value of '\"en\"' in schema 'A'."
+                    "The default value '\"de\"' of external argument 'Product.name(language:)' "
+                    + "in schema 'B' differs from the default value of '\"en\"' in schema 'A'."
                 ]
             },
             // In the following example, the "name" field on "Product" is defined in one source
@@ -133,8 +133,8 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests
                     """
                 ],
                 [
-                    "The default value '(null)' of external argument 'Product.name(language:)' " +
-                    "in schema 'B' differs from the default value of '\"en\"' in schema 'A'."
+                    "The default value '(null)' of external argument 'Product.name(language:)' "
+                    + "in schema 'B' differs from the default value of '\"en\"' in schema 'A'."
                 ]
             },
             // Here, the "name" field on "Product" is defined without a default value for the
@@ -153,8 +153,8 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests
                     """
                 ],
                 [
-                    "The default value '\"en\"' of external argument 'Product.name(language:)' " +
-                    "in schema 'B' differs from the default value of '(null)' in schema 'A'."
+                    "The default value '\"en\"' of external argument 'Product.name(language:)' "
+                    + "in schema 'B' differs from the default value of '(null)' in schema 'A'."
                 ]
             },
             // Here, the "name" field on "Product" is defined with multiple arguments. One argument
@@ -173,9 +173,9 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests
                     """
                 ],
                 [
-                    "The default value '\"sa\"' of external argument " +
-                    "'Product.name(localization:)' in schema 'B' differs from the default value " +
-                    "of '\"sr\"' in schema 'A'."
+                    "The default value '\"sa\"' of external argument "
+                    + "'Product.name(localization:)' in schema 'B' differs from the default value "
+                    + "of '\"sr\"' in schema 'A'."
                 ]
             },
             // Here, the "name" field on "Product" is defined with multiple arguments. One argument
@@ -195,9 +195,9 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests
                     """
                 ],
                 [
-                    "The default value '(null)' of external argument " +
-                    "'Product.name(localization:)' in schema 'B' differs from the default value " +
-                    "of '\"sr\"' in schema 'A'."
+                    "The default value '(null)' of external argument "
+                    + "'Product.name(localization:)' in schema 'B' differs from the default value "
+                    + "of '\"sr\"' in schema 'A'."
                 ]
             }
         };

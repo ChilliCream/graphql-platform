@@ -87,8 +87,8 @@ public sealed class IsInvalidSyntaxRuleTests
                     """
                 ],
                 [
-                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' " +
-                    "contains invalid syntax in the 'field' argument."
+                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' "
+                    + "contains invalid syntax in the 'field' argument."
                 ]
             }
         };

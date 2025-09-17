@@ -290,126 +290,7 @@ namespace Foo.Bar
 
         public static GetSessionsQueryDocument Instance { get; } = new GetSessionsQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x71,
-            0x75,
-            0x65,
-            0x72,
-            0x79,
-            0x20,
-            0x47,
-            0x65,
-            0x74,
-            0x53,
-            0x65,
-            0x73,
-            0x73,
-            0x69,
-            0x6f,
-            0x6e,
-            0x73,
-            0x20,
-            0x7b,
-            0x20,
-            0x73,
-            0x65,
-            0x73,
-            0x73,
-            0x69,
-            0x6f,
-            0x6e,
-            0x73,
-            0x28,
-            0x6f,
-            0x72,
-            0x64,
-            0x65,
-            0x72,
-            0x3a,
-            0x20,
-            0x7b,
-            0x20,
-            0x74,
-            0x69,
-            0x74,
-            0x6c,
-            0x65,
-            0x3a,
-            0x20,
-            0x41,
-            0x53,
-            0x43,
-            0x20,
-            0x7d,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x6e,
-            0x6f,
-            0x64,
-            0x65,
-            0x73,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x74,
-            0x69,
-            0x74,
-            0x6c,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x53,
-            0x65,
-            0x73,
-            0x73,
-            0x69,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetSessions { sessions(order: { title: ASC }) { __typename nodes { __typename title ... on Session { id } } } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "4198cc75513f14cb8a7abfa91bb409dcdb89138b");
 
         public override global::System.String ToString()
@@ -444,13 +325,13 @@ namespace Foo.Bar
     public partial class GetSessionsQuery : global::Foo.Bar.IGetSessionsQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetSessionsResult> _operationExecutor;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetSessionsQuery(global::StrawberryShake.IOperationExecutor<IGetSessionsResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        private GetSessionsQuery(global::StrawberryShake.IOperationExecutor<IGetSessionsResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        private GetSessionsQuery(global::StrawberryShake.IOperationExecutor<IGetSessionsResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

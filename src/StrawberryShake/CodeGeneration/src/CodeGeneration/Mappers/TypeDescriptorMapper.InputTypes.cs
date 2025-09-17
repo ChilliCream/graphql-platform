@@ -14,11 +14,9 @@ public static partial class TypeDescriptorMapper
     {
         foreach (var inputType in model.InputObjectTypes)
         {
-            if (!typeDescriptors.TryGetValue(
-                    inputType.Name,
-                    out var descriptorModel))
+            if (!typeDescriptors.ContainsKey(inputType.Name))
             {
-                descriptorModel = new InputTypeDescriptorModel(
+                var descriptorModel = new InputTypeDescriptorModel(
                     inputType,
                     new InputObjectTypeDescriptor(
                         inputType.Type.Name,

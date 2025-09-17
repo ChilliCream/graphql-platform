@@ -1,0 +1,12 @@
+mutation CancelFusionConfigurationPublish(
+  $input: CancelFusionConfigurationCompositionInput!
+) {
+  cancelFusionConfigurationComposition(input: $input) {
+    errors {
+      ...UnauthorizedOperation
+      ...FusionConfigurationRequestNotFoundError
+      ...InvalidProcessingStateTransitionError
+      ...Error
+    }
+  }
+}

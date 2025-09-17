@@ -34,6 +34,22 @@ public static class FeatureCollectionExtensions
         TFeature value)
         => GetOrSet(featureCollection, static state => state, value);
 
+    public static TFeature GetOrSet<TFeature>(
+        this IFeatureCollection featureCollection,
+        Func<TFeature> factory)
+    {
+        ArgumentNullException.ThrowIfNull(featureCollection);
+
+        if (featureCollection.TryGet(out TFeature? feature))
+        {
+            return feature;
+        }
+
+        feature = factory();
+        featureCollection.Set(feature);
+        return feature;
+    }
+
     public static TFeature GetOrSet<TFeature, TState>(
         this IFeatureCollection featureCollection,
         Func<TState, TFeature> factory,

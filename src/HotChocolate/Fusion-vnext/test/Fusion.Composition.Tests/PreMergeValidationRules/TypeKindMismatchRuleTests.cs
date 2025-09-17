@@ -95,8 +95,8 @@ public sealed class TypeKindMismatchRuleTests
                     """
                 ],
                 [
-                    "The type 'User' has a different kind in schema 'A' (Object) than it does in " +
-                    "schema 'B' (Interface)."
+                    "The type 'User' has a different kind in schema 'A' (Object) than it does in "
+                    + "schema 'B' (Interface)."
                 ]
             }
         };

@@ -27,8 +27,8 @@ public abstract class CacheDataLoader<TKey, TValue>
         {
             try
             {
-                var value = await LoadSingleAsync(keys[i], cancellationToken).ConfigureAwait(false);
-                results.Span[i] = value;
+                var result = await LoadSingleAsync(keys[i], cancellationToken).ConfigureAwait(false);
+                results.Span[i] = result;
             }
             catch (Exception ex)
             {

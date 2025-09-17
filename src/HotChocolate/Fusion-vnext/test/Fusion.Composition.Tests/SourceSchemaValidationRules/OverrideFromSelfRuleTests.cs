@@ -89,8 +89,8 @@ public sealed class OverrideFromSelfRuleTests
                     """
                 ],
                 [
-                    "The @override directive on field 'Bill.amount' in schema 'A' must not " +
-                    "reference the same schema."
+                    "The @override directive on field 'Bill.amount' in schema 'A' must not "
+                    + "reference the same schema."
                 ]
             }
         };

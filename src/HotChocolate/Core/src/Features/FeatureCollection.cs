@@ -61,8 +61,7 @@ public sealed class FeatureCollection : IFeatureCollection
         {
             if (_features is not null)
             {
-                return _features.Count == 0
-                    || _features.Values.All(f => f is null);
+                return _features.Count == 0;
             }
 
             if (_defaults is not null)
@@ -114,10 +113,10 @@ public sealed class FeatureCollection : IFeatureCollection
             if (feature is null && Nullable.GetUnderlyingType(typeof(TFeature)) is null)
             {
                 throw new InvalidOperationException(
-                    $"{typeof(TFeature).FullName} does not exist in the feature collection " +
-                    $"and because it is a struct the method can't return null. " +
-                    $"Use 'featureCollection[typeof({typeof(TFeature).FullName})] is not null' " +
-                    $"to check if the feature exists.");
+                    $"{typeof(TFeature).FullName} does not exist in the feature collection "
+                    + $"and because it is a struct the method can't return null. "
+                    + $"Use 'featureCollection[typeof({typeof(TFeature).FullName})] is not null' "
+                    + $"to check if the feature exists.");
             }
             return (TFeature?)feature;
         }
@@ -180,8 +179,8 @@ public sealed class FeatureCollection : IFeatureCollection
 
     private sealed class KeyComparer : IEqualityComparer<KeyValuePair<Type, object>>
     {
-        public bool Equals(KeyValuePair<Type, object> x, KeyValuePair<Type, object> y) =>
-            x.Key.Equals(y.Key);
+        public bool Equals(KeyValuePair<Type, object> x, KeyValuePair<Type, object> y)
+            => x.Key.Equals(y.Key);
 
         public int GetHashCode(KeyValuePair<Type, object> obj) =>
             obj.Key.GetHashCode();

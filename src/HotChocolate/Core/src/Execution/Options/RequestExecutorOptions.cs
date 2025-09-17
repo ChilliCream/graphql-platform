@@ -53,11 +53,6 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     public bool IncludeExceptionDetails { get; set; } = Debugger.IsAttached;
 
     /// <summary>
-    /// Specifies that the transport is allowed to provide the schema SDL document as a file.
-    /// </summary>
-    public bool EnableSchemaFileSupport { get; set; } = true;
-
-    /// <summary>
     /// Specifies the behavior of the persisted operation pipeline.
     /// </summary>
     public PersistedOperationOptions PersistedOperations

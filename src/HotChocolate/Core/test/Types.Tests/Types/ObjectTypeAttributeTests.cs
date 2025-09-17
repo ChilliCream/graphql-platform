@@ -3,8 +3,6 @@ using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class ObjectTypeAttributeTests
@@ -187,7 +185,7 @@ public class ObjectTypeAttributeTests
     }
 
     [ObjectType("Query")]
-    public struct StructQuery
+    public readonly struct StructQuery
     {
         public string? Foo { get; }
     }

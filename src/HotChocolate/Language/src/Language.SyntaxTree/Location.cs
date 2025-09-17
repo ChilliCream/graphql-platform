@@ -66,10 +66,10 @@ public sealed class Location : IEquatable<Location>
             return true;
         }
 
-        return Start == other.Start &&
-            End == other.End &&
-            Line == other.Line &&
-            Column == other.Column;
+        return Start == other.Start
+            && End == other.End
+            && Line == other.Line
+            && Column == other.Column;
     }
 
     /// <summary>
@@ -83,9 +83,9 @@ public sealed class Location : IEquatable<Location>
     /// otherwise, <c>false</c>.
     /// </returns>
     public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            obj is Location other &&
-            Equals(other);
+        => ReferenceEquals(this, obj)
+            || obj is Location other
+            && Equals(other);
 
     /// <summary>
     /// Serves as the default hash function.

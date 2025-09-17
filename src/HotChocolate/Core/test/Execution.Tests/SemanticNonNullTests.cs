@@ -13,10 +13,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -32,10 +29,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -51,10 +45,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -70,10 +61,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -89,10 +77,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -108,10 +93,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -131,10 +113,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -150,10 +129,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -169,10 +145,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -188,10 +161,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -207,10 +177,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -226,10 +193,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -249,10 +213,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -268,10 +229,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -287,10 +245,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -306,10 +261,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -325,10 +277,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -344,10 +293,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -367,10 +313,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -388,10 +331,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -409,10 +349,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -430,10 +367,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -451,10 +385,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -472,10 +403,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -497,10 +425,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -518,10 +443,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -539,10 +461,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -560,10 +479,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -581,10 +497,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -602,10 +515,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -627,10 +537,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -648,10 +555,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -669,10 +573,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -690,10 +591,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -711,10 +609,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -732,10 +627,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
                                  {
@@ -778,10 +670,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddMutationConventions()
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
@@ -802,10 +691,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddMutationConventions()
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
@@ -826,10 +712,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddMutationConventions()
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""
@@ -846,10 +729,7 @@ public class SemanticNonNullTests
     {
         var result = await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddMutationConventions()
             .AddQueryType<Query>()
             .ExecuteRequestAsync("""

@@ -41,26 +41,39 @@ public class RequestExecutorProxyTests
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<RequestExecutorManager>();
-        var evicted = false;
         var updated = false;
 
-        var proxy = new RequestExecutorProxy(resolver, resolver, ISchemaDefinition.DefaultName);
-        proxy.ExecutorEvicted += (_, _) =>
+        var proxy = new TestProxy(resolver, resolver, ISchemaDefinition.DefaultName);
+        proxy.ExecutorUpdated += () =>
         {
-            evicted = true;
+            updated = true;
             executorUpdatedResetEvent.Set();
         };
-        proxy.ExecutorUpdated += (_, _) => updated = true;
 
         // act
         var a = await proxy.GetExecutorAsync(CancellationToken.None);
-        resolver.EvictRequestExecutor();
+        resolver.EvictExecutor();
         executorUpdatedResetEvent.Wait(cts.Token);
         var b = await proxy.GetExecutorAsync(CancellationToken.None);
 
         // assert
         Assert.NotSame(a, b);
-        Assert.True(evicted);
         Assert.True(updated);
+    }
+
+    private class TestProxy(
+        IRequestExecutorProvider executorProvider,
+        IRequestExecutorEvents executorEvents,
+        string schemaName)
+        : RequestExecutorProxy(executorProvider, executorEvents, schemaName)
+    {
+        public event Action? ExecutorUpdated;
+
+        protected override void OnAfterRequestExecutorSwapped(
+            IRequestExecutor newExecutor,
+            IRequestExecutor oldExecutor)
+        {
+            ExecutorUpdated?.Invoke();
+        }
     }
 }

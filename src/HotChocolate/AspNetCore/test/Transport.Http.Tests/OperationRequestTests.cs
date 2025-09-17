@@ -19,7 +19,7 @@ public class OperationRequestTests
                 ["hij"] = null
             });
 
-        using var memory = new MemoryStream();
+        await using var memory = new MemoryStream();
         await using var writer = new Utf8JsonWriter(memory);
 
         // act

@@ -18,8 +18,8 @@ internal static class ThrowHelper
     internal static GraphQLClientException DateTimeSerializer_InvalidFormat(
         string serializedValue) =>
         new(new ClientError(
-            "The serialized format for DateTime must be `yyyy-MM-ddTHH\\:mm\\:ss.fffzzz`. " +
-            "For more information read: `https://www.graphql-scalars.com/date-time`.",
+            "The serialized format for DateTime must be `yyyy-MM-ddTHH\\:mm\\:ss.fffzzz`. "
+            + "For more information read: `https://www.graphql-scalars.com/date-time`.",
             extensions: new Dictionary<string, object?>
             {
                     { "serializedValue", serializedValue }
@@ -69,15 +69,15 @@ internal static class ThrowHelper
         string value,
         TimeSpanFormat format) =>
         new(new ClientError(
-            $"The TimeSpan serializer could not parse value {value}. The provided value was " +
-            $"not in format {format.ToString()}"));
+            $"The TimeSpan serializer could not parse value {value}. The provided value was "
+            + $"not in format {format.ToString()}"));
 
     internal static GraphQLClientException TimeSpanSerializer_CouldNotFormatValue(
         TimeSpan value,
         TimeSpanFormat format) =>
         new(new ClientError(
-            $"The TimeSpan serializer could not serialize value {value}. The provided value " +
-            $"was not in format {format.ToString()}"));
+            $"The TimeSpan serializer could not serialize value {value}. The provided value "
+            + $"was not in format {format.ToString()}"));
 
     internal static GraphQLClientException UuidSerializer_CouldNotParse(string guid) =>
         new(new ClientError(

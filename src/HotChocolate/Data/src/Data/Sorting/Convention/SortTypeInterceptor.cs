@@ -123,8 +123,8 @@ public sealed class SortTypeInterceptor : TypeInterceptor
             descriptor.CreateConfiguration(),
             configuration);
 
-        if (!string.IsNullOrEmpty(configuration.Name) &&
-            configuration is IHasScope { Scope: not null })
+        if (!string.IsNullOrEmpty(configuration.Name)
+            && configuration is IHasScope { Scope: not null })
         {
             configuration.Name = completionContext.Scope + "_" + configuration.Name;
         }
@@ -152,8 +152,8 @@ public sealed class SortTypeInterceptor : TypeInterceptor
             descriptor.CreateConfiguration(),
             configuration);
 
-        if (!string.IsNullOrEmpty(configuration.Name) &&
-            configuration is IHasScope { Scope: not null })
+        if (!string.IsNullOrEmpty(configuration.Name)
+            && configuration is IHasScope { Scope: not null })
         {
             configuration.Name = completionContext.Scope + "_" + configuration.Name;
         }
@@ -169,8 +169,8 @@ public sealed class SortTypeInterceptor : TypeInterceptor
         {
             if (field is SortFieldConfiguration sortFieldDefinition)
             {
-                if (completionContext.TryPredictTypeKind(sortFieldDefinition.Type!, out var kind) &&
-                    kind != TypeKind.Enum)
+                if (completionContext.TryPredictTypeKind(sortFieldDefinition.Type!, out var kind)
+                    && kind != TypeKind.Enum)
                 {
                     field.Type = field.Type!.With(scope: completionContext.Scope);
                 }

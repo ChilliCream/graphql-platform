@@ -3,8 +3,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -71,12 +69,26 @@ public abstract partial class ScalarType
         ScalarTypeConfiguration configuration)
     {
         _converter = context.DescriptorContext.TypeConverter;
-        var directiveDefinitions = configuration.GetDirectives();
-        Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
 
         if (configuration.SpecifiedBy is not null)
         {
             SpecifiedBy = configuration.SpecifiedBy;
         }
+    }
+
+    protected sealed override void OnBeforeCompleteMetadata(
+        ITypeCompletionContext context,
+        TypeSystemConfiguration configuration)
+    {
+        OnBeforeCompleteMetadata(context, (ScalarTypeConfiguration)configuration);
+        base.OnBeforeCompleteMetadata(context, configuration);
+    }
+
+    protected virtual void OnBeforeCompleteMetadata(
+        ITypeCompletionContext context,
+        ScalarTypeConfiguration configuration)
+    {
+        var directiveDefinitions = configuration.GetDirectives();
+        Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
     }
 }

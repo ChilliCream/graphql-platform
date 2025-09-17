@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Buffers;
 using static HotChocolate.Transport.Properties.TransportAbstractionResources;
 using static HotChocolate.Transport.Serialization.Utf8GraphQLResultProperties;
 
@@ -16,8 +17,7 @@ public sealed class OperationResult : IDisposable
     /// specified JSON document and optional data, errors, and extensions.
     /// </summary>
     /// <param name="memoryOwner">
-    /// The memory owner of the json elements.
-    /// operation.
+    /// The memory owner of the JSON elements.
     /// </param>
     /// <param name="data">
     /// A <see cref="JsonElement"/> object representing the data returned by the operation.
@@ -86,6 +86,21 @@ public sealed class OperationResult : IDisposable
     public void Dispose()
         => _memoryOwner?.Dispose();
 
+    public static OperationResult Parse(JsonDocumentOwner documentOwner)
+    {
+        ArgumentNullException.ThrowIfNull(documentOwner);
+
+        var root = documentOwner.Document.RootElement;
+
+        return new OperationResult(
+            documentOwner,
+            root.TryGetProperty(DataProp, out var data) ? data : default,
+            root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
+            root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default,
+            root.TryGetProperty(RequestIndexProp, out var requestIndex) ? requestIndex.GetInt32() : null,
+            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null);
+    }
+
     public static OperationResult Parse(JsonDocument document)
     {
         ArgumentNullException.ThrowIfNull(document);
@@ -110,11 +125,39 @@ public sealed class OperationResult : IDisposable
                 nameof(span));
         }
 
-        var reader = new Utf8JsonReader(span, true, default);
-        var root = JsonElement.ParseValue(ref reader);
+        var buffer = new PooledArrayWriter();
+        var bufferSpan = buffer.GetSpan(span.Length);
+        span.CopyTo(bufferSpan);
+        buffer.Advance(span.Length);
+
+        var document = JsonDocument.Parse(buffer.WrittenMemory);
+        var root = document.RootElement;
+        var documentOwner = new JsonDocumentOwner(document, buffer);
 
         return new OperationResult(
-            null,
+            documentOwner,
+            root.TryGetProperty(DataProp, out var data) ? data : default,
+            root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
+            root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default,
+            root.TryGetProperty(RequestIndexProp, out var requestIndex) ? requestIndex.GetInt32() : null,
+            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null);
+    }
+
+    public static OperationResult Parse(PooledArrayWriter buffer)
+    {
+        if (buffer.WrittenSpan.Length == 0)
+        {
+            throw new ArgumentException(
+                OperationResult_Parse_JsonDataIsEmpty,
+                nameof(buffer));
+        }
+
+        var document = JsonDocument.Parse(buffer.WrittenMemory);
+        var root = document.RootElement;
+        var documentOwner = new JsonDocumentOwner(document, buffer);
+
+        return new OperationResult(
+            documentOwner,
             root.TryGetProperty(DataProp, out var data) ? data : default,
             root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
             root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default,

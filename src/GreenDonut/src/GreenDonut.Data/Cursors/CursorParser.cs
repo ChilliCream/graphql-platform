@@ -133,17 +133,17 @@ public static class CursorParser
 
         var separatorIndex = ExpectSeparator(span, separator);
         var part = span[..separatorIndex];
-        ParseNumber(part, out var offset, out var consumed);
+        ParseNumber(part, out var offset, out _);
         var start = separatorIndex + 1;
 
         separatorIndex = ExpectSeparator(span[start..], separator);
         part = span.Slice(start, separatorIndex);
-        ParseNumber(part, out var page, out consumed);
+        ParseNumber(part, out var page, out _);
         start += separatorIndex + 1;
 
         separatorIndex = ExpectSeparator(span[start..], close);
         part = span.Slice(start, separatorIndex);
-        ParseNumber(part, out var totalCount, out consumed);
+        ParseNumber(part, out var totalCount, out _);
         start += separatorIndex + 1;
 
         // Advance span beyond closing `}`

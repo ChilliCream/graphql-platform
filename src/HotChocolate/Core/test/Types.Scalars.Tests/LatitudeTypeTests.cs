@@ -104,7 +104,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        var valueSyntax = "92° 0' 0.000\" S";
+        const string valueSyntax = "92° 0' 0.000\" S";
 
         // act
         var result = Record.Exception(() => scalar.ParseResult(valueSyntax));

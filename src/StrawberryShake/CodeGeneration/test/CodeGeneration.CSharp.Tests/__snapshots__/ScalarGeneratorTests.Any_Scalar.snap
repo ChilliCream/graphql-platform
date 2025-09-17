@@ -196,60 +196,7 @@ namespace Foo.Bar
 
         public static GetPersonQueryDocument Instance { get; } = new GetPersonQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x71,
-            0x75,
-            0x65,
-            0x72,
-            0x79,
-            0x20,
-            0x47,
-            0x65,
-            0x74,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x70,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x64,
-            0x61,
-            0x74,
-            0x61,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetPerson { person { __typename name data } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "368598981f25055985a805466e9d638691b4b1e6");
 
         public override global::System.String ToString()
@@ -279,13 +226,13 @@ namespace Foo.Bar
     public partial class GetPersonQuery : global::Foo.Bar.IGetPersonQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetPersonResult> _operationExecutor;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetPersonQuery(global::StrawberryShake.IOperationExecutor<IGetPersonResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        private GetPersonQuery(global::StrawberryShake.IOperationExecutor<IGetPersonResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        private GetPersonQuery(global::StrawberryShake.IOperationExecutor<IGetPersonResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

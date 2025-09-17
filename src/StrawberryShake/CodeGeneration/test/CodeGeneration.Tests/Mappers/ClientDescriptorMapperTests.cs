@@ -11,7 +11,8 @@ public class ClientDescriptorMapperTests
     {
         // arrange
         var clientModel = await CreateClientModelAsync(
-            @"query GetHero {
+            """
+            query GetHero {
                 hero(episode: NEW_HOPE) {
                     name
                     appearsIn
@@ -19,7 +20,7 @@ public class ClientDescriptorMapperTests
             }
 
             mutation CreateReview {
-                createReview(episode: NEW_HOPE, review: {stars: 5, commentary: ""splendid""}) {
+                createReview(episode: NEW_HOPE, review: { stars: 5, commentary: "splendid" }) {
                     stars
                     commentary
                 }
@@ -30,10 +31,11 @@ public class ClientDescriptorMapperTests
                     stars
                     commentary
                 }
-            }");
+            }
+            """);
 
         // act
-        var clientName = "FooClient";
+        const string clientName = "FooClient";
         var context = new MapperContext(
             "Foo.Bar",
             clientName,

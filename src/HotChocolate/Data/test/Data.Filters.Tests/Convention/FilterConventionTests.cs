@@ -50,10 +50,7 @@ public class FilterConventionTests
     {
         // arrange
         var provider = new QueryableFilterProvider(
-            descriptor =>
-            {
-                descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-            });
+            descriptor => descriptor.AddFieldHandler<QueryableDefaultFieldHandler>());
 
         var convention = new FilterConvention(
             descriptor =>
@@ -78,10 +75,7 @@ public class FilterConventionTests
     {
         // arrange
         var provider = new QueryableFilterProvider(
-            descriptor =>
-            {
-                descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-            });
+            descriptor => descriptor.AddFieldHandler<QueryableStringEqualsHandler>());
 
         var convention = new FilterConvention(
             descriptor =>
@@ -226,10 +220,7 @@ public class FilterConventionTests
             });
 
         var extension2 = new FilterConventionExtension(
-            descriptor =>
-            {
-                descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
-            });
+            descriptor => descriptor.Operation(DefaultFilterOperations.Equals).Name("eq"));
 
         var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
         var type = new FooFilterInput();
@@ -291,10 +282,7 @@ public class FilterConventionTests
     {
         // arrange
         var provider = new QueryableFilterProvider(
-            descriptor =>
-            {
-                descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-            });
+            descriptor => descriptor.AddFieldHandler<QueryableDefaultFieldHandler>());
 
         var convention = new FilterConvention(
             descriptor =>

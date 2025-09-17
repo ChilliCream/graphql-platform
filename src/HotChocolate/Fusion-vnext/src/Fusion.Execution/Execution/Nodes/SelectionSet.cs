@@ -1,11 +1,17 @@
+using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Execution;
+using HotChocolate.Types;
+
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public sealed class SelectionSet
+public sealed class SelectionSet : ISelectionSet
 {
     private readonly Selection[] _selections;
+    private readonly FrozenDictionary<string, Selection> _responseNameLookup;
     private bool _isSealed;
 
-    public SelectionSet(uint id, Selection[] selections, bool isConditional)
+    public SelectionSet(uint id, IObjectTypeDefinition type, Selection[] selections, bool isConditional)
     {
         ArgumentNullException.ThrowIfNull(selections);
 
@@ -15,8 +21,10 @@ public sealed class SelectionSet
         }
 
         Id = id;
+        Type = type;
         IsConditional = isConditional;
         _selections = selections;
+        _responseNameLookup = _selections.ToFrozenDictionary(t => t.ResponseName);
     }
 
     /// <summary>
@@ -30,14 +38,38 @@ public sealed class SelectionSet
     public bool IsConditional { get; }
 
     /// <summary>
+    /// Gets the type that declares this selection set.
+    /// </summary>
+    public IObjectTypeDefinition Type { get; }
+
+    /// <summary>
     /// Gets the selections that shall be executed.
     /// </summary>
     public ReadOnlySpan<Selection> Selections => _selections;
+
+    IEnumerable<ISelection> ISelectionSet.GetSelections() => _selections;
+
+    /// <summary>
+    /// Tries to resolve a selection by name.
+    /// </summary>
+    /// <param name="responseName">
+    /// The selection response name.
+    /// </param>
+    /// <param name="selection">
+    /// The resolved selection.
+    /// </param>
+    /// <returns>
+    /// Returns true if the selection was successfully resolved.
+    /// </returns>
+    public bool TryGetSelection(string responseName, [NotNullWhen(true)] out Selection? selection)
+        => _responseNameLookup.TryGetValue(responseName, out selection);
 
     /// <summary>
     /// Gets the declaring operation.
     /// </summary>
     public Operation DeclaringOperation { get; private set; } = null!;
+
+    IOperation ISelectionSet.DeclaringOperation => DeclaringOperation;
 
     internal void Seal(Operation operation)
     {
@@ -48,5 +80,10 @@ public sealed class SelectionSet
 
         _isSealed = true;
         DeclaringOperation = operation;
+
+        foreach (var selection in Selections)
+        {
+            selection.Seal(this);
+        }
     }
 }

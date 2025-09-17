@@ -1,20 +1,13 @@
+using System.Collections.Immutable;
 using System.Reflection;
-
-#nullable enable
 
 namespace HotChocolate.Internal;
 
-internal sealed class ExtendedMethodInfo
+internal sealed class ExtendedMethodInfo(
+    IExtendedType returnType,
+    ImmutableDictionary<ParameterInfo, IExtendedType> parameterTypes)
 {
-    public ExtendedMethodInfo(
-        IExtendedType returnType,
-        IReadOnlyDictionary<ParameterInfo, IExtendedType> parameterTypes)
-    {
-        ReturnType = returnType;
-        ParameterTypes = parameterTypes;
-    }
+    public IExtendedType ReturnType { get; } = returnType;
 
-    public IExtendedType ReturnType { get; }
-
-    public IReadOnlyDictionary<ParameterInfo, IExtendedType> ParameterTypes { get; }
+    public ImmutableDictionary<ParameterInfo, IExtendedType> ParameterTypes { get; } = parameterTypes;
 }

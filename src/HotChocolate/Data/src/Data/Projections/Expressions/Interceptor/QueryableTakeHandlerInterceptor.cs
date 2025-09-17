@@ -21,8 +21,8 @@ public abstract class QueryableTakeHandlerInterceptor
     }
 
     public bool CanHandle(ISelection selection) =>
-        selection.Field.Member is PropertyInfo { CanWrite: true } &&
-        selection.IsSelectionFlags(_selectionFlags);
+        selection.Field.Member is PropertyInfo { CanWrite: true }
+        && selection.IsSelectionFlags(_selectionFlags);
 
     public void BeforeProjection(
         QueryableProjectionContext context,

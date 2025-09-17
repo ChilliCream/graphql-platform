@@ -3,7 +3,7 @@ using HotChocolate.Fusion.Types.Collections;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
-internal ref struct CompositeInputObjectTypeCompletionContext(
+internal readonly ref struct CompositeInputObjectTypeCompletionContext(
     FusionDirectiveCollection directives,
     IFeatureCollection features)
 {

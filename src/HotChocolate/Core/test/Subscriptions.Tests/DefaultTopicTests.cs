@@ -1,4 +1,4 @@
-﻿using HotChocolate.Subscriptions.Diagnostics;
+using HotChocolate.Subscriptions.Diagnostics;
 using HotChocolate.Tests;
 using Xunit.Abstractions;
 

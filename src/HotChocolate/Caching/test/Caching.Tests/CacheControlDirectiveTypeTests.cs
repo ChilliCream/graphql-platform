@@ -51,7 +51,7 @@ public class CacheControlDirectiveTypeTests
                 Assert.IsType<StringType>(t.Type.ElementType());
             });
         Assert.Collection(
-            directive.Locations.AsEnumerable(),
+            DirectiveLocationUtils.AsEnumerable(directive.Locations),
             t => Assert.Equal(Types.DirectiveLocation.Object, t),
             t => Assert.Equal(Types.DirectiveLocation.FieldDefinition, t),
             t => Assert.Equal(Types.DirectiveLocation.Interface, t),

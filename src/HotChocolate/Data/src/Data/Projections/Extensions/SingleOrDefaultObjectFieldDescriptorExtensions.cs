@@ -36,8 +36,8 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
                 {
                     definition.AddSelectionFlags(selectionFlags | SelectionFlags.MemberIsList);
 
-                    if (definition.ResultType is null ||
-                        !context.TypeInspector.TryCreateTypeInfo(
+                    if (definition.ResultType is null
+                        || !context.TypeInspector.TryCreateTypeInfo(
                             definition.ResultType,
                             out var typeInfo))
                     {

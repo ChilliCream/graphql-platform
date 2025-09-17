@@ -5,7 +5,11 @@ namespace HotChocolate.Execution.Processing;
 internal partial class MiddlewareContext
 {
     private static readonly ImmutableDictionary<string, object?> s_emptyLocalContextData =
+#if NET10_0_OR_GREATER
+        [];
+#else
         ImmutableDictionary<string, object?>.Empty;
+#endif
 
     public MiddlewareContext()
     {

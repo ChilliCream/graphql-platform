@@ -12,13 +12,13 @@ directive @fusion__field(
 ) repeatable on FIELD_DEFINITION
 */
 internal class FieldDirective(
-    string schemaName,
+    SchemaKey schemaKey,
     string? sourceName,
     ITypeNode? sourceType,
     SelectionSetNode? provides,
     bool isExternal)
 {
-    public string SchemaName { get; } = schemaName;
+    public SchemaKey SchemaKey { get; } = schemaKey;
 
     public string? SourceName { get; } = sourceName;
 

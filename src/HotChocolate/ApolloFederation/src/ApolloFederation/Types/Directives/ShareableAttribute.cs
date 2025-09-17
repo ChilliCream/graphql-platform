@@ -41,15 +41,12 @@ public sealed class ShareableAttribute : DescriptorAttribute
         switch (descriptor)
         {
             case IObjectTypeDescriptor objectTypeDescriptor:
-            {
                 objectTypeDescriptor.Shareable();
                 break;
-            }
+
             case IObjectFieldDescriptor objectFieldDescriptor:
-            {
                 objectFieldDescriptor.Shareable();
                 break;
-            }
         }
     }
 }

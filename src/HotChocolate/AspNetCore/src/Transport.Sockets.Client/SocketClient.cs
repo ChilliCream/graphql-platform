@@ -29,16 +29,19 @@ public sealed class SocketClient : ISocket
         _protocol = protocol;
         _context = new SocketClientContext(socket);
         _pipeline = new MessagePipeline(this, new MessageHandler(_context, protocol));
-        _pipeline.Completed += (_, _) =>
-        {
-            if (_context.Socket.CloseStatus is not null)
+        _pipeline.OnCompleted(
+            static context =>
             {
-                _context.Messages.OnError(new SocketClosedException(
-                    _context.Socket.CloseStatusDescription ?? "Socket was closed.",
-                    _context.Socket.CloseStatus.Value));
-            }
-            _context.Messages.OnCompleted();
-        };
+                if (context.Socket.CloseStatus is not null)
+                {
+                    context.Messages.OnError(
+                        new SocketClosedException(
+                            context.Socket.CloseStatusDescription ?? "Socket was closed.",
+                            context.Socket.CloseStatus.Value));
+                }
+                context.Messages.OnCompleted();
+            },
+            _context);
         _ct = _cts.Token;
     }
 

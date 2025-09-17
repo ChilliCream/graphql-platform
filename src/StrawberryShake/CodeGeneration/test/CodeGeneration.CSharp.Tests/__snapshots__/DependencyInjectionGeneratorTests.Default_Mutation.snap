@@ -190,95 +190,7 @@ namespace Foo.Bar
 
         public static CreatePersonMutationDocument Instance { get; } = new CreatePersonMutationDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x6d,
-            0x75,
-            0x74,
-            0x61,
-            0x74,
-            0x69,
-            0x6f,
-            0x6e,
-            0x20,
-            0x43,
-            0x72,
-            0x65,
-            0x61,
-            0x74,
-            0x65,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x63,
-            0x72,
-            0x65,
-            0x61,
-            0x74,
-            0x65,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x28,
-            0x69,
-            0x64,
-            0x3a,
-            0x20,
-            0x31,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "mutation CreatePerson { createPerson(id: 1) { __typename name ... on Person { id } } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "36eb0176de845ee1b1deda2d3edd28d5debbc50a");
 
         public override global::System.String ToString()
@@ -310,13 +222,13 @@ namespace Foo.Bar
     public partial class CreatePersonMutation : global::Foo.Bar.ICreatePersonMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<ICreatePersonResult> _operationExecutor;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public CreatePersonMutation(global::StrawberryShake.IOperationExecutor<ICreatePersonResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        private CreatePersonMutation(global::StrawberryShake.IOperationExecutor<ICreatePersonResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        private CreatePersonMutation(global::StrawberryShake.IOperationExecutor<ICreatePersonResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

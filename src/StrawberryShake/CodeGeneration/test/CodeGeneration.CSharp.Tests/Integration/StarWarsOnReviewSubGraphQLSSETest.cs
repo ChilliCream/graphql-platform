@@ -35,7 +35,7 @@ public class StarWarsOnReviewSubGraphQLSSETest : ServerTestBase
 
         // act
         var topicEventSender = host.Services.GetRequiredService<ITopicEventSender>();
-        var topic = Episode.NewHope;
+        const Episode topic = Episode.NewHope;
 
         var connectCompletionSource = new TaskCompletionSource();
         var subscribeCompletionSource = new TaskCompletionSource();

@@ -31,12 +31,12 @@ public static partial class RequestExecutorBuilderExtensions
         {
             builder.Services.TryAddSingleton<T>();
 
-            foreach (var attribute in
-                typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true))
+            builder.ConfigureSchemaServices(static s =>
             {
+                var attribute = typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
                 var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
-                builder.Services.AddSingleton(listener, s => s.GetRequiredService<T>());
-            }
+                s.AddSingleton(listener, sp => sp.GetRootServiceProvider().GetRequiredService<T>());
+            });
         }
         else
         {
@@ -68,10 +68,22 @@ public static partial class RequestExecutorBuilderExtensions
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
-            foreach (var attribute in
-                typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true))
+            var attribute =
+                (DiagnosticEventSourceAttribute)typeof(T)
+                    .GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true)
+                    .First();
+
+            if (attribute.IsSchemaService)
             {
-                var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
+                builder.ConfigureSchemaServices(s =>
+                {
+                    var listener = attribute.Listener;
+                    s.AddSingleton(listener, sp => diagnosticEventListener(sp.GetCombinedServices()));
+                });
+            }
+            else
+            {
+                var listener = attribute.Listener;
                 builder.Services.AddSingleton(listener, diagnosticEventListener);
             }
         }

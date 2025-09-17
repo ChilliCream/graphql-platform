@@ -16,7 +16,7 @@ public class InMemoryClientTests
     public void Constructor_AllArgs_NoException()
     {
         // arrange
-        var name = "Foo";
+        const string name = "Foo";
 
         // act
         var ex = Record.Exception(() => new InMemoryClient(name));
@@ -29,10 +29,10 @@ public class InMemoryClientTests
     public void Constructor_NoName_ThrowException()
     {
         // arrange
-        string name = null!;
+        const string name = null!;
 
         // act
-        var ex = Record.Exception(() => new InMemoryClient(name));
+        var ex = Record.Exception(() => new InMemoryClient(name!));
 
         // assert
         Assert.IsType<ArgumentException>(ex);
@@ -130,6 +130,8 @@ public class InMemoryClientTests
 
         public ulong Version { get; }
 
+        public IFeatureCollection Features { get; } = new FeatureCollection();
+
         public Task<IExecutionResult> ExecuteAsync(
             IOperationRequest request,
             CancellationToken cancellationToken = default)
@@ -202,7 +204,7 @@ public class InMemoryClientTests
     {
         public OperationKind Kind => OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => Encoding.UTF8.GetBytes("{ foo }");
+        public ReadOnlySpan<byte> Body => "{ foo }"u8;
 
         public DocumentHash Hash { get; } = new("MD5", "ABC");
     }

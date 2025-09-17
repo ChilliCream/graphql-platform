@@ -103,7 +103,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         // Last we write the end of the part.
         MessageHelper.WriteEnd(buffer);
 
-        await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
+        await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
         await outputStream.FlushAsync(ct).ConfigureAwait(false);
     }
 
@@ -123,7 +123,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
                     MessageHelper.WriteResultHeader(buffer);
                     MessageHelper.WritePayload(buffer, operationResult, _payloadFormatter);
                     MessageHelper.WriteEnd(buffer);
-                    await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
+                    await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
                     await outputStream.FlushAsync(ct).ConfigureAwait(false);
                     break;
 
@@ -172,7 +172,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
                 }
 
                 // Now we can write the part to the output stream and flush this chunk.
-                await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
+                await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
                 await outputStream.FlushAsync(ct).ConfigureAwait(false);
             }
             finally
@@ -186,7 +186,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         // After all parts have been written, we need to write the final boundary.
         buffer.Reset();
         MessageHelper.WriteEnd(buffer);
-        await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
+        await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
         await outputStream.FlushAsync(ct).ConfigureAwait(false);
     }
 

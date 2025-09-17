@@ -35,22 +35,22 @@ public class QueryableFilterVisitorInterfacesTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { test: { prop: { eq: \"a\"}}}) " +
-                    "{ test{ prop }}}")
+                    "{ root(where: { test: { prop: { eq: \"a\"}}}) "
+                    + "{ test{ prop }}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { test: { prop: { eq: \"b\"}}}) " +
-                    "{ test{ prop }}}")
+                    "{ root(where: { test: { prop: { eq: \"b\"}}}) "
+                    + "{ test{ prop }}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { test: { prop: { eq: null}}}) " +
-                    "{ test{ prop}}}")
+                    "{ root(where: { test: { prop: { eq: null}}}) "
+                    + "{ test{ prop}}}")
                 .Build());
 
         // assert

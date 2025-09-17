@@ -1,4 +1,3 @@
-#nullable enable
 using HotChocolate.Features;
 using HotChocolate.Types.Descriptors;
 

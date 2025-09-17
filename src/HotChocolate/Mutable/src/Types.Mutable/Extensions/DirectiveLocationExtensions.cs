@@ -191,8 +191,8 @@ internal static class DirectiveLocationExtensions
             yield return DirectiveLocation.Field;
         }
 
-        if ((locations & DirectiveLocation.FragmentDefinition) ==
-            DirectiveLocation.FragmentDefinition)
+        if ((locations & DirectiveLocation.FragmentDefinition)
+            == DirectiveLocation.FragmentDefinition)
         {
             yield return DirectiveLocation.FragmentDefinition;
         }
@@ -207,8 +207,8 @@ internal static class DirectiveLocationExtensions
             yield return DirectiveLocation.InlineFragment;
         }
 
-        if ((locations & DirectiveLocation.VariableDefinition) ==
-            DirectiveLocation.VariableDefinition)
+        if ((locations & DirectiveLocation.VariableDefinition)
+            == DirectiveLocation.VariableDefinition)
         {
             yield return DirectiveLocation.VariableDefinition;
         }
@@ -228,14 +228,14 @@ internal static class DirectiveLocationExtensions
             yield return DirectiveLocation.Object;
         }
 
-        if ((locations & DirectiveLocation.FieldDefinition) ==
-            DirectiveLocation.FieldDefinition)
+        if ((locations & DirectiveLocation.FieldDefinition)
+            == DirectiveLocation.FieldDefinition)
         {
             yield return DirectiveLocation.FieldDefinition;
         }
 
-        if ((locations & DirectiveLocation.ArgumentDefinition) ==
-            DirectiveLocation.ArgumentDefinition)
+        if ((locations & DirectiveLocation.ArgumentDefinition)
+            == DirectiveLocation.ArgumentDefinition)
         {
             yield return DirectiveLocation.ArgumentDefinition;
         }
@@ -265,8 +265,8 @@ internal static class DirectiveLocationExtensions
             yield return DirectiveLocation.InputObject;
         }
 
-        if ((locations & DirectiveLocation.InputFieldDefinition) ==
-            DirectiveLocation.InputFieldDefinition)
+        if ((locations & DirectiveLocation.InputFieldDefinition)
+            == DirectiveLocation.InputFieldDefinition)
         {
             yield return DirectiveLocation.InputFieldDefinition;
         }

@@ -83,8 +83,8 @@ public sealed class KeyInvalidFieldsTypeRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'User' in schema 'A' must specify a string value " +
-                    "for the 'fields' argument."
+                    "A @key directive on type 'User' in schema 'A' must specify a string value "
+                    + "for the 'fields' argument."
                 ]
             },
             // Multiple keys.
@@ -97,11 +97,11 @@ public sealed class KeyInvalidFieldsTypeRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'User' in schema 'A' must specify a string value " +
-                    "for the 'fields' argument.",
+                    "A @key directive on type 'User' in schema 'A' must specify a string value "
+                    + "for the 'fields' argument.",
 
-                    "A @key directive on type 'User' in schema 'A' must specify a string value " +
-                    "for the 'fields' argument."
+                    "A @key directive on type 'User' in schema 'A' must specify a string value "
+                    + "for the 'fields' argument."
                 ]
             }
         };

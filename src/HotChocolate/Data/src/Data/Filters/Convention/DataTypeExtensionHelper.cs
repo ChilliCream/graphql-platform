@@ -91,8 +91,8 @@ internal static class DataTypeExtensionHelper
             typeFields,
             (_, extensionField, typeField) =>
             {
-                if (typeField is FilterFieldConfiguration filterTypeField &&
-                    extensionField is FilterFieldConfiguration filterExtensionField)
+                if (typeField is FilterFieldConfiguration filterTypeField
+                    && extensionField is FilterFieldConfiguration filterExtensionField)
                 {
                     filterTypeField.Handler ??= filterExtensionField.Handler;
                 }
@@ -113,8 +113,8 @@ internal static class DataTypeExtensionHelper
             typeFields,
             (_, extensionField, typeField) =>
             {
-                if (typeField is SortEnumValueConfiguration filterTypeField &&
-                    extensionField is SortEnumValueConfiguration filterExtensionField)
+                if (typeField is SortEnumValueConfiguration filterTypeField
+                    && extensionField is SortEnumValueConfiguration filterExtensionField)
                 {
                     filterTypeField.Handler ??= filterExtensionField.Handler;
                 }
@@ -134,8 +134,8 @@ internal static class DataTypeExtensionHelper
             typeFields,
             (_, extensionField, typeField) =>
             {
-                if (typeField is SortFieldConfiguration filterTypeField &&
-                    extensionField is SortFieldConfiguration filterExtensionField)
+                if (typeField is SortFieldConfiguration filterTypeField
+                    && extensionField is SortFieldConfiguration filterExtensionField)
                 {
                     filterTypeField.Handler ??= filterExtensionField.Handler;
                 }

@@ -157,22 +157,22 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barShort: { eq: 12}}}) " +
-                "{ foo{ barShort}}}")
+                "{ root(where: { foo: { barShort: { eq: 12}}}) "
+                + "{ foo{ barShort}}}")
             .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barShort: { eq: 13}}}) " +
-                "{ foo{ barShort}}}")
+                "{ root(where: { foo: { barShort: { eq: 13}}}) "
+                + "{ foo{ barShort}}}")
             .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barShort: { eq: null}}}) " +
-                "{ foo{ barShort}}}")
+                "{ root(where: { foo: { barShort: { eq: null}}}) "
+                + "{ foo{ barShort}}}")
             .Build());
 
         // assert
@@ -194,22 +194,22 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ null, 14 ]}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { in: [ null, 14 ]}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         // assert
@@ -231,22 +231,22 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barShort: { eq: 12}}}) " +
-                "{ foo{ barShort}}}")
+                "{ root(where: { foo: { barShort: { eq: 12}}}) "
+                + "{ foo{ barShort}}}")
             .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barShort: { eq: 13}}}) " +
-                "{ foo{ barShort}}}")
+                "{ root(where: { foo: { barShort: { eq: 13}}}) "
+                + "{ foo{ barShort}}}")
             .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barShort: { eq: null}}}) " +
-                "{ foo{ barShort}}}")
+                "{ root(where: { foo: { barShort: { eq: null}}}) "
+                + "{ foo{ barShort}}}")
             .Build());
 
         // assert
@@ -268,22 +268,22 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) " +
-                "{ foo{ barShort}}}")
+                "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) "
+                + "{ foo{ barShort}}}")
             .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) " +
-                "{ foo{ barShort}}}")
+                "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) "
+                + "{ foo{ barShort}}}")
             .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barShort: { in: [ 13, null ]}}}) " +
-                "{ foo{ barShort}}}")
+                "{ root(where: { foo: { barShort: { in: [ 13, null ]}}}) "
+                + "{ foo{ barShort}}}")
             .Build());
 
         // assert
@@ -305,15 +305,15 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barBool: { eq: true}}}) " +
-                "{ foo{ barBool}}}")
+                "{ root(where: { foo: { barBool: { eq: true}}}) "
+                + "{ foo{ barBool}}}")
             .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barBool: { eq: false}}}) " +
-                "{ foo{ barBool}}}")
+                "{ root(where: { foo: { barBool: { eq: false}}}) "
+                + "{ foo{ barBool}}}")
             .Build());
 
         // assert
@@ -334,22 +334,22 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barBool: { eq: true}}}) " +
-                "{ foo{ barBool}}}")
+                "{ root(where: { foo: { barBool: { eq: true}}}) "
+                + "{ foo{ barBool}}}")
             .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barBool: { eq: false}}}) " +
-                "{ foo{ barBool}}}")
+                "{ root(where: { foo: { barBool: { eq: false}}}) "
+                + "{ foo{ barBool}}}")
             .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barBool: { eq: null}}}) " +
-                "{ foo{ barBool}}}")
+                "{ root(where: { foo: { barBool: { eq: null}}}) "
+                + "{ foo{ barBool}}}")
             .Build());
 
         // assert
@@ -371,22 +371,22 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { eq: BAR}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { eq: BAR}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { eq: FOO}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { eq: FOO}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { eq: null}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { eq: null}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         // assert
@@ -408,22 +408,22 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         // assert
@@ -445,22 +445,22 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { eq: BAR}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { eq: BAR}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { eq: FOO}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { eq: FOO}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { eq: null}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { eq: null}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         // assert
@@ -482,22 +482,22 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
         OperationRequestBuilder.New()
             .SetDocument(
-                "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
-                "{ foo{ barEnum}}}")
+                "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) "
+                + "{ foo{ barEnum}}}")
             .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         // assert
@@ -519,15 +519,15 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barString: { eq: \"testatest\"}}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(where: { foo: { barString: { eq: \"testatest\"}}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barString: { eq: \"testbtest\"}}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(where: { foo: { barString: { eq: \"testbtest\"}}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
@@ -555,22 +555,22 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                   "{ root(where: { foo: { barString: { in: [ \"testatest\"  \"testbtest\" ]}}}) " +
-                   "{ foo{ barString}}}")
+                    "{ root(where: { foo: { barString: { in: [ \"testatest\"  \"testbtest\" ]}}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barString: { in: [\"testbtest\" null]}}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(where: { foo: { barString: { in: [\"testbtest\" null]}}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barString: { in: [ \"testatest\" ]}}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(where: { foo: { barString: { in: [ \"testatest\" ]}}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         // assert
@@ -592,25 +592,25 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo:{ objectArray: { " +
-                             "some: { foo: { barString: { eq: \"a\"}}}}}}) " +
-                    "{ foo { objectArray { foo { barString}}}}}")
+                    "{ root(where: { foo:{ objectArray: { "
+                    + "some: { foo: { barString: { eq: \"a\"}}}}}}) "
+                    + "{ foo { objectArray { foo { barString}}}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo:{ objectArray: { " +
-                             "some: { foo: { barString: { eq: \"d\"}}}}}}) " +
-                    "{ foo { objectArray { foo { barString}}}}}")
+                    "{ root(where: { foo:{ objectArray: { "
+                    + "some: { foo: { barString: { eq: \"d\"}}}}}}) "
+                    + "{ foo { objectArray { foo { barString}}}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo:{ objectArray: { " +
-                             "some: { foo: { barString: { eq: null}}}}}}) " +
-                    "{ foo { objectArray { foo {barString}}}}}")
+                    "{ root(where: { foo:{ objectArray: { "
+                    + "some: { foo: { barString: { eq: null}}}}}}) "
+                    + "{ foo { objectArray { foo {barString}}}}}")
                 .Build());
 
         // assert
@@ -632,22 +632,22 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { objectArray: { any: false}}}) " +
-                    "{ foo { objectArray  { foo { barString }}}}}")
+                    "{ root(where: { foo: { objectArray: { any: false}}}) "
+                    + "{ foo { objectArray  { foo { barString }}}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { objectArray: { any: true}}}) " +
-                    "{ foo { objectArray  { foo { barString }}}}}")
+                    "{ root(where: { foo: { objectArray: { any: true}}}) "
+                    + "{ foo { objectArray  { foo { barString }}}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { objectArray: { any: null}}}) " +
-                    "{ foo { objectArray  { foo { barString }}}}}")
+                    "{ root(where: { foo: { objectArray: { any: null}}}) "
+                    + "{ foo { objectArray  { foo { barString }}}}}")
                 .Build());
 
         // assert
@@ -669,8 +669,8 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { neq: BAR}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { neq: BAR}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()

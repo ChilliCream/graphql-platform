@@ -17,7 +17,7 @@ public class SchemaCache : SortVisitorTestBase, IDisposable
         (Type, Type, T?[] entites) key = (typeof(T), typeof(TType), entities);
         return _cache.GetOrAdd(
             key,
-            _ => base.CreateSchema<T, TType>(entities, convention, configure));
+            _ => CreateSchema<T, TType>(entities, convention, configure));
     }
 
     public void Dispose() { }

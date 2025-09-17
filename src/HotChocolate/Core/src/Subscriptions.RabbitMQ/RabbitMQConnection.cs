@@ -40,10 +40,9 @@ internal sealed class RabbitMQConnection : IRabbitMQConnection, IDisposable
         {
             var channel = connection.CreateModel();
 
-            channel.CallbackException += (_, args) =>
-            {
-                _diagnosticEvents.ProviderInfo(args.Exception.Message);
-            };
+            channel.CallbackException +=
+                (_, args) => _diagnosticEvents.ProviderInfo(args.Exception.Message);
+
             _connection = connection;
 
             return _channel ??= channel;

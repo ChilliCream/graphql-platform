@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Text;
+using HotChocolate.AspNetCore.Parsers;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +21,7 @@ public sealed class DefaultHttpRequestParserTests
             }
             """;
 
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
         // act
         var parser = new DefaultHttpRequestParser(
@@ -50,7 +51,7 @@ public sealed class DefaultHttpRequestParserTests
         // act
         async Task Parse()
         {
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
             var parser = new DefaultHttpRequestParser(
                 new DefaultDocumentCache(),

@@ -17,12 +17,12 @@ public class MongoDbOffsetPagingProvider : OffsetPagingProvider
 
     public override bool CanHandle(IExtendedType source)
     {
-        return typeof(IMongoDbExecutable).IsAssignableFrom(source.Source) ||
-            source.Source.IsGenericType &&
-            source.Source.GetGenericTypeDefinition() is { } type && (
-                type == typeof(IAggregateFluent<>) ||
-                type == typeof(IFindFluent<,>) ||
-                type == typeof(IMongoCollection<>));
+        return typeof(IMongoDbExecutable).IsAssignableFrom(source.Source)
+            || source.Source.IsGenericType
+            && source.Source.GetGenericTypeDefinition() is { } type && (
+                type == typeof(IAggregateFluent<>)
+                || type == typeof(IFindFluent<,>)
+                || type == typeof(IMongoCollection<>));
     }
 
     protected override OffsetPagingHandler CreateHandler(

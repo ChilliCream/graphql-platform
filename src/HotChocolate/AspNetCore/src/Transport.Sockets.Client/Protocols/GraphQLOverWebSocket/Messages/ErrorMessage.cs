@@ -26,17 +26,21 @@ internal sealed class ErrorMessage : IDataMessage
         var arrayWriter = new PooledArrayWriter();
         arrayWriter.Write(message);
 
-        var document = JsonDocument.Parse(arrayWriter.GetWrittenMemory());
+        var document = JsonDocument.Parse(arrayWriter.WrittenMemory);
+
         var root = document.RootElement;
         var id = root.GetProperty(Utf8MessageProperties.IdProp).GetString();
 
         if (id is null)
         {
+            arrayWriter.Dispose();
+            document.Dispose();
             throw ThrowHelper.MessageHasNoId();
         }
 
+        var documentOwner = new JsonDocumentOwner(document, arrayWriter);
         var payload = root.GetProperty(Utf8MessageProperties.PayloadProp);
-        var result = new OperationResult(arrayWriter, errors: payload);
+        var result = new OperationResult(documentOwner, errors: payload);
 
         return new ErrorMessage(id, result);
     }

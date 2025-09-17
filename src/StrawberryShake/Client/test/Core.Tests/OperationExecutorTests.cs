@@ -17,9 +17,9 @@ public class OperationExecutorTests
         var request = new OperationRequest("abc", document.Object);
         var observer = new ResultObserver();
 
-        var cacheResult = "cache result";
-        var networkResult = "network result";
-        var storeUpdateResult = "store result";
+        const string cacheResult = "cache result";
+        const string networkResult = "network result";
+        const string storeUpdateResult = "store result";
 
         var executor = new OperationExecutor<string, string>(
             connection.Object,
@@ -61,8 +61,8 @@ public class OperationExecutorTests
         var request = new OperationRequest("abc", document.Object);
         var observer = new ResultObserver();
 
-        var networkResult = "network result";
-        var storeUpdateResult = "store result";
+        const string networkResult = "network result";
+        const string storeUpdateResult = "store result";
 
         var executor = new OperationExecutor<string, string>(
             connection.Object,
@@ -104,9 +104,9 @@ public class OperationExecutorTests
         var request = new OperationRequest("abc", document.Object);
         var observer = new ResultObserver();
 
-        var cacheResult = "cache result";
-        var networkResult = "network result";
-        var storeUpdateResult = "store result";
+        const string cacheResult = "cache result";
+        const string networkResult = "network result";
+        const string storeUpdateResult = "store result";
 
         var executor = new OperationExecutor<string, string>(
             connection.Object,
@@ -151,8 +151,8 @@ public class OperationExecutorTests
         var request = new OperationRequest("abc", document.Object);
         var observer = new ResultObserver();
 
-        var networkResult = "network result";
-        var storeUpdateResult = "store result";
+        const string networkResult = "network result";
+        const string storeUpdateResult = "store result";
 
         var executor = new OperationExecutor<string, string>(
             connection.Object,
@@ -194,9 +194,9 @@ public class OperationExecutorTests
         var request = new OperationRequest("abc", document.Object);
         var observer = new ResultObserver();
 
-        var cacheResult = "cache result";
-        var networkResult = "network result";
-        var storeUpdateResult = "store result";
+        const string cacheResult = "cache result";
+        const string networkResult = "network result";
+        const string storeUpdateResult = "store result";
 
         var executor = new OperationExecutor<string, string>(
             connection.Object,
@@ -238,8 +238,8 @@ public class OperationExecutorTests
         var request = new OperationRequest("abc", document.Object);
         var observer = new ResultObserver();
 
-        var networkResult = "network result";
-        var storeUpdateResult = "store result";
+        const string networkResult = "network result";
+        const string storeUpdateResult = "store result";
 
         var executor = new OperationExecutor<string, string>(
             connection.Object,

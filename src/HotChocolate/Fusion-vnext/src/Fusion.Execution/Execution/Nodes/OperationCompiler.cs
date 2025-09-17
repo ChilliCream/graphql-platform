@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -8,7 +9,9 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public sealed class OperationCompiler
 {
     private readonly ISchemaDefinition _schema;
+    private readonly InlineFragmentOperationRewriter _inlineRewriter;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
+    private readonly TypeNameField _typeNameField;
 
     public OperationCompiler(
         ISchemaDefinition schema,
@@ -19,12 +22,19 @@ public sealed class OperationCompiler
 
         _schema = schema;
         _fieldsPool = fieldsPool;
+        _inlineRewriter = new InlineFragmentOperationRewriter(schema, removeStaticallyExcludedSelections: true);
+        var nonNullStringType = new NonNullType(_schema.Types.GetType<IScalarTypeDefinition>(SpecScalarNames.String));
+        _typeNameField = new TypeNameField(nonNullStringType);
     }
 
-    public Operation Compile(string id, OperationDefinitionNode operationDefinition)
+    public Operation Compile(string id, string hash, OperationDefinitionNode operationDefinition)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(operationDefinition);
+
+        var document = new DocumentNode(new IDefinitionNode[] { operationDefinition });
+        document = _inlineRewriter.RewriteDocument(document);
+        operationDefinition = (OperationDefinitionNode)document.Definitions[0];
 
         var includeConditions = new IncludeConditionCollection();
         IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
@@ -50,6 +60,7 @@ public sealed class OperationCompiler
 
             return new Operation(
                 id,
+                hash,
                 operationDefinition,
                 rootType,
                 _schema,
@@ -174,12 +185,7 @@ public sealed class OperationCompiler
             includeFlags.Clear();
 
             var first = nodes[0];
-            var isInternal = true;
-
-            if (!IsInternal(first.Node))
-            {
-                isInternal = false;
-            }
+            var isInternal = IsInternal(first.Node);
 
             if (first.PathIncludeFlags > 0)
             {
@@ -215,7 +221,9 @@ public sealed class OperationCompiler
                 CollapseIncludeFlags(includeFlags);
             }
 
-            var field = typeContext.Fields[first.Node.Name.Value];
+            var field = first.Node.Name.Value.Equals(IntrospectionFieldNames.TypeName)
+                ? _typeNameField
+                : typeContext.Fields[first.Node.Name.Value];
 
             selections[i++] = new Selection(
                 ++lastId,
@@ -231,7 +239,7 @@ public sealed class OperationCompiler
             }
         }
 
-        return new SelectionSet(++lastId, selections, isConditional);
+        return new SelectionSet(++lastId, typeContext, selections, isConditional);
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)
@@ -308,7 +316,7 @@ public sealed class OperationCompiler
 
     private bool IsInternal(FieldNode fieldNode)
     {
-        const string isInternal = "fusion_internal";
+        const string isInternal = "fusion__requirement";
         var directives = fieldNode.Directives;
 
         if (directives.Count == 0)

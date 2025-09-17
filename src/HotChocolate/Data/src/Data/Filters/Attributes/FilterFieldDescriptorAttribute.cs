@@ -16,8 +16,8 @@ public abstract class FilterFieldDescriptorAttribute
         IDescriptor descriptor,
         ICustomAttributeProvider element)
     {
-        if (descriptor is IFilterFieldDescriptor d &&
-            element is MemberInfo m)
+        if (descriptor is IFilterFieldDescriptor d
+            && element is MemberInfo m)
         {
             OnConfigure(context, d, m);
         }

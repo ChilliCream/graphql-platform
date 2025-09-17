@@ -1,5 +1,3 @@
-using HotChocolate.Execution.Instrumentation;
-
 namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class OperationContext : IExecutionTaskContext
@@ -41,13 +39,13 @@ internal sealed partial class OperationContext : IExecutionTaskContext
                 foreach (var ie in ar.Errors)
                 {
                     Result.AddError(ie);
-                    _diagnosticEvents.ExecutionError(_requestContext, ErrorKind.OtherError, [ie]);
+                    _diagnosticEvents.TaskError(task, ie);
                 }
             }
             else
             {
                 Result.AddError(handled);
-                _diagnosticEvents.ExecutionError(_requestContext, ErrorKind.OtherError, [handled]);
+                _diagnosticEvents.TaskError(task, handled);
             }
         }
     }

@@ -90,8 +90,8 @@ public sealed class OverrideOnInterfaceRuleTests
                     """
                 ],
                 [
-                    "The interface field 'Bill.amount' in schema 'A' must not be annotated with " +
-                    "the @override directive."
+                    "The interface field 'Bill.amount' in schema 'A' must not be annotated with "
+                    + "the @override directive."
                 ]
             }
         };

@@ -232,7 +232,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer();
 
-        var query = @"
+        const string query = @"
                 query ($upload: Upload!) {
                     singleUpload(file: $upload)
                 }";
@@ -269,7 +269,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer();
 
-        var query = @"
+        const string query = @"
                 query ($upload: Upload) {
                     optionalUpload(file: $upload)
                 }";
@@ -306,7 +306,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer();
 
-        var query = @"
+        const string query = @"
                 query ($input: InputWithOptionalFileInput!) {
                     optionalObjectUpload(input: $input)
                 }";
@@ -343,7 +343,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer();
 
-        var query = @"
+        const string query = @"
                 query ($upload: Upload!) {
                     optionalObjectUpload(input: { file: $upload })
                 }";
@@ -380,7 +380,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer();
 
-        var query = @"
+        const string query = @"
                 query ($input: InputWithFileInput!) {
                     objectUpload(input: $input)
                 }";
@@ -417,7 +417,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer();
 
-        var query = @"
+        const string query = @"
             query ($upload: Upload!) {
                 objectUpload(input: { file: $upload })
             }";
@@ -500,7 +500,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer();
 
-        var query = @"
+        const string query = @"
                 query ($upload: Upload!) {
                     singleUpload(file: $upload)
                 }";
@@ -515,7 +515,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 }
             });
 
-        var count = 1024 * 1024 * 129;
+        const int count = 1024 * 1024 * 129;
         var buffer = new byte[count];
 
         for (var i = 0; i < buffer.Length; i++)

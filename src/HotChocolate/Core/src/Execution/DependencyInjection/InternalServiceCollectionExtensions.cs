@@ -156,6 +156,7 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddSingleton<IRequestExecutorProvider>(sp => sp.GetRequiredService<RequestExecutorManager>());
         services.TryAddSingleton<IRequestExecutorWarmup>(sp => sp.GetRequiredService<RequestExecutorManager>());
         services.TryAddSingleton<IRequestExecutorEvents>(sp => sp.GetRequiredService<RequestExecutorManager>());
+        services.TryAddSingleton<IRequestExecutorManager>(sp => sp.GetRequiredService<RequestExecutorManager>());
         return services;
     }
 
@@ -180,9 +181,8 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddDefaultBatchDispatcher(
         this IServiceCollection services)
     {
-        services.TryAddScoped<IBatchHandler, BatchScheduler>();
         services.TryAddScoped<IBatchScheduler, AutoBatchScheduler>();
-        services.TryAddScoped<IBatchDispatcher>(sp => sp.GetRequiredService<IBatchHandler>());
+        services.TryAddScoped<IBatchDispatcher, BatchDispatcher>();
         return services;
     }
 
@@ -244,7 +244,7 @@ internal static class InternalServiceCollectionExtensions
 
             // if work related to the operation context has completed we can
             // reuse the operation context.
-            if (obj.Scheduler.IsCompleted)
+            if (!obj.Scheduler.IsInitialized || obj.Scheduler.IsCompleted)
             {
                 obj.Clean();
                 return true;

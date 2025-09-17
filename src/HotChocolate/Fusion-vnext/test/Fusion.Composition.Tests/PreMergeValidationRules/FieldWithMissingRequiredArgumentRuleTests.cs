@@ -116,8 +116,8 @@ public sealed class FieldWithMissingRequiredArgumentRuleTests
                     """
                 ],
                 [
-                    "The argument 'Query.books(author:)' must be defined as required in schema " +
-                    "'B'. Arguments marked with @require are treated as non-required."
+                    "The argument 'Query.books(author:)' must be defined as required in schema "
+                    + "'B'. Arguments marked with @require are treated as non-required."
                 ]
             },
             // In the following example, the "author" argument on the "books" field in Schema A
@@ -146,8 +146,8 @@ public sealed class FieldWithMissingRequiredArgumentRuleTests
                     """
                 ],
                 [
-                    "The argument 'Collection.books(author:)' must be defined as required in " +
-                    "schema 'A'. Arguments marked with @require are treated as non-required."
+                    "The argument 'Collection.books(author:)' must be defined as required in "
+                    + "schema 'A'. Arguments marked with @require are treated as non-required."
                 ]
             }
         };

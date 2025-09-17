@@ -43,8 +43,8 @@ public class ArgumentUniquenessRuleTests
             }
             """,
             t => Assert.Equal(
-                "More than one argument with the same name in an argument " +
-                "set is ambiguous and invalid.",
+                "More than one argument with the same name in an argument "
+                + "set is ambiguous and invalid.",
                 t.Message));
     }
 }

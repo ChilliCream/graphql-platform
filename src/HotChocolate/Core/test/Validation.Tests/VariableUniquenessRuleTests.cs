@@ -32,9 +32,9 @@ public class VariableUniquenessRuleTests
         Assert.Single(context.Errors);
         Assert.Collection(context.Errors,
             t => Assert.Equal(
-                "A document containing operations that " +
-                "define more than one variable with the same " +
-                "name is invalid for execution.", t.Message));
+                "A document containing operations that "
+                + "define more than one variable with the same "
+                + "name is invalid for execution.", t.Message));
     }
 
     [Fact]

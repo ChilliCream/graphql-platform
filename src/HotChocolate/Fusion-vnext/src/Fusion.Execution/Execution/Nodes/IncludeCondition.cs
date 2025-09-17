@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 

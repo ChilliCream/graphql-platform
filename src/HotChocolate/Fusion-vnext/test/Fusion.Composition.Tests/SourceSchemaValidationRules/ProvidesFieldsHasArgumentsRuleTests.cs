@@ -92,8 +92,8 @@ public sealed class ProvidesFieldsHasArgumentsRuleTests
                     """
                 ],
                 [
-                    "The @provides directive on field 'Article.author' in schema 'A' references " +
-                    "field 'User.tags', which must not have arguments."
+                    "The @provides directive on field 'Article.author' in schema 'A' references "
+                    + "field 'User.tags', which must not have arguments."
                 ]
             },
             // Nested field.
@@ -121,8 +121,8 @@ public sealed class ProvidesFieldsHasArgumentsRuleTests
                     """
                 ],
                 [
-                    "The @provides directive on field 'Article.author' in schema 'A' references " +
-                    "field 'UserInfo.tags', which must not have arguments."
+                    "The @provides directive on field 'Article.author' in schema 'A' references "
+                    + "field 'UserInfo.tags', which must not have arguments."
                 ]
             }
         };

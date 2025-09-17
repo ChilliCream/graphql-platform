@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -109,13 +107,13 @@ public class InputObjectTypeDescriptor
 
             foreach (var member in members)
             {
-                if (member is PropertyInfo propertyInfo &&
-                    (propertyInfo.CanWrite || HasConstructorParameter(type, propertyInfo)))
+                if (member is PropertyInfo propertyInfo
+                    && (propertyInfo.CanWrite || HasConstructorParameter(type, propertyInfo)))
                 {
                     var name = naming.GetMemberName(propertyInfo, MemberKind.InputObjectField);
 
-                    if (handledMembers.Add(propertyInfo) &&
-                        !fields.ContainsKey(name))
+                    if (handledMembers.Add(propertyInfo)
+                        && !fields.ContainsKey(name))
                     {
                         var descriptor = InputFieldDescriptor.New(Context, propertyInfo);
 
@@ -224,7 +222,7 @@ public class InputObjectTypeDescriptor
     {
         return type.GetConstructors(NonPublic | Public | Instance).Any(
             c => c.GetParameters().Any(
-                p => p.Name.EqualsInvariantIgnoreCase(property.Name) &&
-                    p.ParameterType == property.PropertyType));
+                p => p.Name.EqualsInvariantIgnoreCase(property.Name)
+                    && p.ParameterType == property.PropertyType));
     }
 }

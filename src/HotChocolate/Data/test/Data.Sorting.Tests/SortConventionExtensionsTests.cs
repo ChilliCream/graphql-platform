@@ -361,6 +361,6 @@ public class SortConventionExtensionsTests
         {
         }
 
-        public SortConventionConfiguration? DefinitionAccessor => base.Configuration;
+        public SortConventionConfiguration? DefinitionAccessor => Configuration;
     }
 }

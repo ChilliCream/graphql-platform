@@ -3,8 +3,6 @@ using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class ObjectTypeParameterExpressionBuilder()
@@ -15,8 +13,8 @@ internal sealed class ObjectTypeParameterExpressionBuilder()
     public override ArgumentKind Kind => ArgumentKind.ObjectType;
 
     public override bool CanHandle(ParameterInfo parameter)
-        => typeof(ObjectType) == parameter.ParameterType ||
-           typeof(IObjectTypeDefinition) == parameter.ParameterType;
+        => typeof(ObjectType) == parameter.ParameterType
+            || typeof(IObjectTypeDefinition) == parameter.ParameterType;
 
     public override Expression Build(ParameterExpressionBuilderContext context)
     {

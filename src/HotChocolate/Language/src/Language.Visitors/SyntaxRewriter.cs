@@ -57,10 +57,7 @@ public static class SyntaxRewriter
         }
         else
         {
-            leaveFunc = (_, context) =>
-            {
-                context.Navigator.Pop();
-            };
+            leaveFunc = (_, context) => context.Navigator.Pop();
         }
 
         return new DelegateSyntaxRewriter<TContext>(rewrite, enterFunc, leaveFunc);

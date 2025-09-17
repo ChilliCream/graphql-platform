@@ -13,11 +13,9 @@ internal sealed class OperationVariableCoercionMiddleware
     private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
     private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
 
-    public OperationVariableCoercionMiddleware(
+    private OperationVariableCoercionMiddleware(
         ICoreExecutionDiagnosticEvents diagnosticEvents)
     {
-        ArgumentNullException.ThrowIfNull(diagnosticEvents);
-
         _diagnosticEvents = diagnosticEvents;
     }
 
@@ -41,7 +39,7 @@ internal sealed class OperationVariableCoercionMiddleware
             : default;
     }
 
-    public static bool TryCoerceVariables(
+    private static bool TryCoerceVariables(
         RequestContext context,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
         ICoreExecutionDiagnosticEvents diagnosticEvents)
@@ -71,11 +69,9 @@ internal sealed class OperationVariableCoercionMiddleware
                     context.VariableValues = [new VariableValueCollection(coercedValues)];
                     return true;
                 }
-                else
-                {
-                    context.Result = OperationResultBuilder.CreateError(error);
-                    return false;
-                }
+
+                context.Result = OperationResultBuilder.CreateError(error);
+                return false;
             }
         }
 
@@ -83,7 +79,6 @@ internal sealed class OperationVariableCoercionMiddleware
         {
             using (diagnosticEvents.CoerceVariables(context))
             {
-                var schema = context.Schema;
                 var variableSetCount = variableBatchRequest.VariableValues?.Count ?? 0;
                 var variableSetInput = variableBatchRequest.VariableValues!;
                 var variableSet = new IVariableValueCollection[variableSetCount];
@@ -115,8 +110,7 @@ internal sealed class OperationVariableCoercionMiddleware
     }
 
     public static RequestMiddlewareConfiguration Create()
-    {
-        return new RequestMiddlewareConfiguration(
+        => new RequestMiddlewareConfiguration(
             (fc, next) =>
             {
                 var diagnosticEvents = fc.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
@@ -124,5 +118,4 @@ internal sealed class OperationVariableCoercionMiddleware
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
             nameof(OperationVariableCoercionMiddleware));
-    }
 }

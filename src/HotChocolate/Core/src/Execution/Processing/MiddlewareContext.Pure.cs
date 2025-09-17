@@ -233,8 +233,8 @@ internal partial class MiddlewareContext
                 parentContext.Services.GetService<ITypeConverter>() ??
                 DefaultTypeConverter.Default;
 
-            if (value is T castedValue ||
-                _typeConverter.TryConvert(value, out castedValue))
+            if (value is T castedValue
+                || _typeConverter.TryConvert(value, out castedValue))
             {
                 return castedValue;
             }

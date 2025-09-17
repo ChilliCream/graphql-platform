@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Language;
 using HotChocolate.Transport.Serialization;
 using static System.Net.Http.HttpCompletionOption;
 
@@ -135,17 +136,14 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
         var message = new HttpRequestMessage
         {
-            Method = method,
-            Headers =
-            {
-                Accept =
-                {
-                    new MediaTypeWithQualityHeaderValue(ContentType.GraphQL),
-                    new MediaTypeWithQualityHeaderValue(ContentType.Json),
-                    new MediaTypeWithQualityHeaderValue(ContentType.EventStream)
-                }
-            }
+            Method = method
         };
+
+        message.Headers.Accept.Clear();
+        foreach (var contentType in request.Accept)
+        {
+            message.Headers.Accept.Add(contentType);
+        }
 
         if (method == GraphQLHttpMethod.Post)
         {
@@ -181,7 +179,8 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         request.Body.WriteTo(jsonWriter);
         jsonWriter.Flush();
 
-        var content = new ByteArrayContent(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
+        var internalBuffer = PooledArrayWriterMarshal.GetUnderlyingBuffer(arrayWriter);
+        var content = new ByteArrayContent(internalBuffer, 0, arrayWriter.Length);
         content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
         return content;
     }
@@ -200,7 +199,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
         var start = arrayWriter.Length;
         WriteOperationJson(arrayWriter, request);
-        var buffer = arrayWriter.GetInternalBuffer();
+        var buffer = PooledArrayWriterMarshal.GetUnderlyingBuffer(arrayWriter);
 
         var form = new MultipartFormDataContent();
 
@@ -214,8 +213,13 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
         foreach (var fileInfo in fileInfos)
         {
-            var file = new StreamContent(fileInfo.File.OpenRead());
-            form.Add(file, fileInfo.Name, fileInfo.File.FileName);
+            var fileContent = new StreamContent(fileInfo.File.OpenRead());
+            if (!string.IsNullOrEmpty(fileInfo.File.ContentType))
+            {
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(fileInfo.File.ContentType);
+            }
+
+            form.Add(fileContent, fileInfo.Name, fileInfo.File.FileName);
         }
 
         return form;
@@ -273,6 +277,13 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             sb.Append(Uri.EscapeDataString(or.OperationName!));
         }
 
+        if (or.OnError is { } errorHandlingMode)
+        {
+            AppendAmpersand(sb, ref appendAmpersand);
+            sb.Append("onError=");
+            sb.Append(GetErrorHandlingModeAsString(errorHandlingMode));
+        }
+
         if (or.VariablesNode is not null)
         {
             AppendAmpersand(sb, ref appendAmpersand);
@@ -312,6 +323,17 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         }
     }
 
+    private static string GetErrorHandlingModeAsString(ErrorHandlingMode mode)
+    {
+        return mode switch
+        {
+            ErrorHandlingMode.Propagate => "PROPAGATE",
+            ErrorHandlingMode.Null => "NULL",
+            ErrorHandlingMode.Halt => "HALT",
+            _ => throw new ArgumentOutOfRangeException(nameof(mode))
+        };
+    }
+
     private static string FormatDocumentAsJson(PooledArrayWriter arrayWriter, object? obj)
     {
         arrayWriter.Reset();
@@ -320,7 +342,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         Utf8JsonWriterHelper.WriteFieldValue(jsonWriter, obj);
         jsonWriter.Flush();
 
-        return Encoding.UTF8.GetString(arrayWriter.GetWrittenSpan());
+        return Encoding.UTF8.GetString(arrayWriter.WrittenSpan);
     }
 
     protected override void Dispose(bool disposing)

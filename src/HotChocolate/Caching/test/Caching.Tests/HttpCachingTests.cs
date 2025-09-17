@@ -356,7 +356,7 @@ public class HttpCachingTests : ServerTestBase
                     d.Name("Query")
                         .Field("field")
                         .Resolve("")
-                        .CacheControl(sharedMaxAge: 2000, scope: CacheControlScope.Public));
+                        .CacheControl(scope: CacheControlScope.Public, sharedMaxAge: 2000));
         });
 
         var client = server.CreateClient();

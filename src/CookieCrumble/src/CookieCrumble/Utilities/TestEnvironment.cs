@@ -33,8 +33,8 @@ public static class TestEnvironment
     {
         return bool.TryParse(
             Environment.GetEnvironmentVariable("CI_BUILD"),
-            out var result) &&
-            result;
+            out var result)
+            && result;
     }
 
     public static CancellationTokenSource CreateCancellationTokenSource(TimeSpan? timeSpan = null)

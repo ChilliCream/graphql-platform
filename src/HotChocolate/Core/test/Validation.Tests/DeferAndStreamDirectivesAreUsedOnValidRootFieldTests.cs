@@ -22,8 +22,8 @@ public class DeferAndStreamDirectivesAreUsedOnValidRootFieldTests
             }
             """,
             t => Assert.Equal(
-                "The defer and stream directives are not allowed to " +
-                "be used on root fields of the mutation or subscription type.",
+                "The defer and stream directives are not allowed to "
+                + "be used on root fields of the mutation or subscription type.",
                 t.Message));
     }
 
@@ -47,8 +47,8 @@ public class DeferAndStreamDirectivesAreUsedOnValidRootFieldTests
             }
             """,
             t => Assert.Equal(
-                "The defer and stream directives are not allowed to " +
-                "be used on root fields of the mutation or subscription type.",
+                "The defer and stream directives are not allowed to "
+                + "be used on root fields of the mutation or subscription type.",
                 t.Message));
     }
 
@@ -62,8 +62,8 @@ public class DeferAndStreamDirectivesAreUsedOnValidRootFieldTests
             }
             """,
             t => Assert.Equal(
-                "The defer and stream directives are not allowed to " +
-                "be used on root fields of the mutation or subscription type.",
+                "The defer and stream directives are not allowed to "
+                + "be used on root fields of the mutation or subscription type.",
                 t.Message));
     }
 

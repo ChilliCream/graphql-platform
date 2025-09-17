@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;

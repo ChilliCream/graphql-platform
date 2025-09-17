@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static partial class CoreFusionGatewayBuilderExtensions
 {
     /// <summary>
-    /// Adds a http client configuration to the fusion gateway.
+    /// Adds an http client configuration to the fusion gateway.
     /// </summary>
     /// <param name="builder">
     /// The fusion gateway builder.
@@ -47,7 +47,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             onAfterReceive);
 
     /// <summary>
-    /// Adds a http client configuration to the fusion gateway.
+    /// Adds an http client configuration to the fusion gateway.
     /// </summary>
     /// <param name="builder">
     /// The fusion gateway builder.
@@ -99,7 +99,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a http client configuration to the fusion gateway.
+    /// Adds an http client configuration to the fusion gateway.
     /// </summary>
     /// <param name="builder">
     /// The fusion gateway builder.
@@ -121,7 +121,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a http client configuration to the fusion gateway.
+    /// Adds an http client configuration to the fusion gateway.
     /// </summary>
     /// <param name="builder">
     /// The fusion gateway builder.
@@ -139,7 +139,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(create);
 
-        return Configure(
+        return FusionSetupUtilities.Configure(
             builder,
             setup => setup.ClientConfigurationModifiers.Add(create));
     }

@@ -12,8 +12,8 @@ public class SortVisitor<TContext, T>
         ISortField field,
         ObjectFieldNode node)
     {
-        if (field.Handler is ISortFieldHandler<TContext, T> handler &&
-            handler.TryHandleEnter(
+        if (field.Handler is ISortFieldHandler<TContext, T> handler
+            && handler.TryHandleEnter(
                 context,
                 field,
                 node,
@@ -30,8 +30,8 @@ public class SortVisitor<TContext, T>
         ISortField field,
         ObjectFieldNode node)
     {
-        if (field.Handler is ISortFieldHandler<TContext, T> handler &&
-            handler.TryHandleLeave(
+        if (field.Handler is ISortFieldHandler<TContext, T> handler
+            && handler.TryHandleLeave(
                 context,
                 field,
                 node,
@@ -49,8 +49,8 @@ public class SortVisitor<TContext, T>
         SortEnumValue? sortValue,
         EnumValueNode valueNode)
     {
-        if (sortValue?.Handler is ISortOperationHandler<TContext, T> handler &&
-            handler.TryHandleEnter(
+        if (sortValue?.Handler is ISortOperationHandler<TContext, T> handler
+            && handler.TryHandleEnter(
                 context,
                 field,
                 sortValue,

@@ -92,8 +92,8 @@ public sealed class ProvidesFieldsMissingExternalRuleTests
                     """
                 ],
                 [
-                    "The @provides directive on field 'Order.buyer' in schema 'A' references " +
-                    "field 'User.address', which must be marked as external."
+                    "The @provides directive on field 'Order.buyer' in schema 'A' references "
+                    + "field 'User.address', which must be marked as external."
                 ]
             },
             // Nested field.
@@ -116,11 +116,11 @@ public sealed class ProvidesFieldsMissingExternalRuleTests
                     """
                 ],
                 [
-                    "The @provides directive on field 'Order.buyer' in schema 'A' references " +
-                    "field 'User.info', which must be marked as external.",
+                    "The @provides directive on field 'Order.buyer' in schema 'A' references "
+                    + "field 'User.info', which must be marked as external.",
 
-                    "The @provides directive on field 'Order.buyer' in schema 'A' references " +
-                    "field 'UserInfo.address', which must be marked as external."
+                    "The @provides directive on field 'Order.buyer' in schema 'A' references "
+                    + "field 'UserInfo.address', which must be marked as external."
                 ]
             }
         };

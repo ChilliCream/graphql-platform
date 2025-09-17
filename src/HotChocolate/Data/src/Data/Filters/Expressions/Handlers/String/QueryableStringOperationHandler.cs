@@ -16,8 +16,8 @@ public abstract class QueryableStringOperationHandler : QueryableOperationHandle
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration)
     {
-        return context.Type is StringOperationFilterInputType &&
-            fieldConfiguration is FilterOperationFieldConfiguration operationField &&
-            operationField.Id == Operation;
+        return context.Type is StringOperationFilterInputType
+            && fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id == Operation;
     }
 }

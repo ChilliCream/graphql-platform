@@ -43,8 +43,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"barkVolume\" must not have a selection since type \"Int\" has no " +
-                "subfields.",
+                "Field \"barkVolume\" must not have a selection since type \"Int\" has no "
+                + "subfields.",
                 t.Message));
     }
 
@@ -58,8 +58,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"human\" of type \"Human\" must have a selection of subfields. Did you " +
-                "mean \"human { ... }\"?",
+                "Field \"human\" of type \"Human\" must have a selection of subfields. Did you "
+                + "mean \"human { ... }\"?",
                 t.Message));
     }
 
@@ -73,8 +73,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"human\" of type \"Human\" must have a selection of subfields. Did you " +
-                "mean \"human { ... }\"?",
+                "Field \"human\" of type \"Human\" must have a selection of subfields. Did you "
+                + "mean \"human { ... }\"?",
                 t.Message));
     }
 
@@ -88,8 +88,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"pet\" of type \"Human\" must have a selection of subfields. Did you mean " +
-                "\"pet { ... }\"?",
+                "Field \"pet\" of type \"Human\" must have a selection of subfields. Did you mean "
+                + "\"pet { ... }\"?",
                 t.Message));
     }
 
@@ -103,8 +103,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"pet\" of type \"Human\" must have a selection of subfields. Did you mean " +
-                "\"pet { ... }\"?",
+                "Field \"pet\" of type \"Human\" must have a selection of subfields. Did you mean "
+                + "\"pet { ... }\"?",
                 t.Message));
     }
 
@@ -118,8 +118,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"catOrDog\" of type \"CatOrDog\" must have a selection of subfields. Did " +
-                "you mean \"catOrDog { ... }\"?",
+                "Field \"catOrDog\" of type \"CatOrDog\" must have a selection of subfields. Did "
+                + "you mean \"catOrDog { ... }\"?",
                 t.Message));
     }
 
@@ -133,8 +133,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"catOrDog\" of type \"CatOrDog\" must have a selection of subfields. Did " +
-                "you mean \"catOrDog { ... }\"?",
+                "Field \"catOrDog\" of type \"CatOrDog\" must have a selection of subfields. Did "
+                + "you mean \"catOrDog { ... }\"?",
                 t.Message));
     }
 
@@ -148,8 +148,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"pets\" of type \"[Pet]\" must have a selection of subfields. Did you " +
-                "mean \"pets { ... }\"?",
+                "Field \"pets\" of type \"[Pet]\" must have a selection of subfields. Did you "
+                + "mean \"pets { ... }\"?",
                 t.Message));
     }
 
@@ -163,8 +163,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"pets\" of type \"[Pet]\" must have a selection of subfields. Did you " +
-                "mean \"pets { ... }\"?",
+                "Field \"pets\" of type \"[Pet]\" must have a selection of subfields. Did you "
+                + "mean \"pets { ... }\"?",
                 t.Message));
     }
 
@@ -176,8 +176,8 @@ public class LeafFieldSelectionsRuleTests()
             { }
             """,
             t => Assert.Equal(
-                "Operation `Unnamed` has an empty selection set. Root types without " +
-                "subfields are disallowed.",
+                "Operation `Unnamed` has an empty selection set. Root types without "
+                + "subfields are disallowed.",
                 t.Message));
     }
 
@@ -189,8 +189,8 @@ public class LeafFieldSelectionsRuleTests()
             query Foo { }
             """,
             t => Assert.Equal(
-                "Operation `Foo` has an empty selection set. Root types without " +
-                "subfields are disallowed.",
+                "Operation `Foo` has an empty selection set. Root types without "
+                + "subfields are disallowed.",
                 t.Message));
     }
 
@@ -202,8 +202,8 @@ public class LeafFieldSelectionsRuleTests()
             mutation { }
             """,
             t => Assert.Equal(
-                "Operation `Unnamed` has an empty selection set. Root types without " +
-                "subfields are disallowed.",
+                "Operation `Unnamed` has an empty selection set. Root types without "
+                + "subfields are disallowed.",
                 t.Message));
     }
 
@@ -215,8 +215,8 @@ public class LeafFieldSelectionsRuleTests()
             mutation Foo { }
             """,
             t => Assert.Equal(
-                "Operation `Foo` has an empty selection set. Root types without " +
-                "subfields are disallowed.",
+                "Operation `Foo` has an empty selection set. Root types without "
+                + "subfields are disallowed.",
                 t.Message));
     }
 
@@ -228,8 +228,8 @@ public class LeafFieldSelectionsRuleTests()
             subscription { }
             """,
             t => Assert.Equal(
-                "Operation `Unnamed` has an empty selection set. Root types without " +
-                "subfields are disallowed.",
+                "Operation `Unnamed` has an empty selection set. Root types without "
+                + "subfields are disallowed.",
                 t.Message));
     }
 
@@ -241,8 +241,8 @@ public class LeafFieldSelectionsRuleTests()
             subscription Foo { }
             """,
             t => Assert.Equal(
-                "Operation `Foo` has an empty selection set. Root types without " +
-                "subfields are disallowed.",
+                "Operation `Foo` has an empty selection set. Root types without "
+                + "subfields are disallowed.",
                 t.Message));
     }
 
@@ -260,8 +260,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"barks\" must not have a selection since type \"Boolean!\" has no " +
-                "subfields.",
+                "Field \"barks\" must not have a selection since type \"Boolean!\" has no "
+                + "subfields.",
                 t.Message));
     }
 
@@ -281,8 +281,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"furColor\" must not have a selection since type \"FurColor\" has no " +
-                "subfields.",
+                "Field \"furColor\" must not have a selection since type \"FurColor\" has no "
+                + "subfields.",
                 t.Message));
     }
 
@@ -298,8 +298,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"listOfScalars\" must not have a selection since type \"[String]\" has " +
-                "no subfields.",
+                "Field \"listOfScalars\" must not have a selection since type \"[String]\" has "
+                + "no subfields.",
                 t.Message));
     }
 
@@ -315,8 +315,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"listOfListOfScalars\" must not have a selection since type " +
-                "\"[[String]]\" has no subfields.",
+                "Field \"listOfListOfScalars\" must not have a selection since type "
+                + "\"[[String]]\" has no subfields.",
                 t.Message));
     }
 
@@ -332,8 +332,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"doesKnowCommand\" must not have a selection since type \"Boolean!\" has " +
-                "no subfields.",
+                "Field \"doesKnowCommand\" must not have a selection since type \"Boolean!\" has "
+                + "no subfields.",
                 t.Message));
     }
 
@@ -365,8 +365,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"doesKnowCommand\" must not have a selection since type \"Boolean!\" has " +
-                "no subfields.",
+                "Field \"doesKnowCommand\" must not have a selection since type \"Boolean!\" has "
+                + "no subfields.",
                 t.Message));
     }
 }

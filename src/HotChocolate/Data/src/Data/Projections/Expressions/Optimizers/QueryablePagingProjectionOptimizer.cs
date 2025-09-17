@@ -10,8 +10,8 @@ namespace HotChocolate.Data.Projections.Handlers;
 public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
 {
     public bool CanHandle(ISelection field) =>
-        field.DeclaringType is IPageType &&
-        field.Field.Name is "edges" or "items" or "nodes";
+        field.DeclaringType is IPageType
+        && field.Field.Name is "edges" or "items" or "nodes";
 
     public Selection RewriteSelection(
         SelectionSetOptimizerContext context,
@@ -75,9 +75,9 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             nodesField.Type,
             combinedField,
             CombinedEdgeField,
-            resolverPipeline: nodesPipeline,
             arguments: selection.Arguments,
-            isInternal: true);
+            isInternal: true,
+            resolverPipeline: nodesPipeline);
     }
 
     private static (string filedName, ObjectField field) TryGetObjectField(IPageType type)
@@ -116,9 +116,9 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         {
             foreach (var edgeSubField in edgeSelection.SelectionSet!.Selections)
             {
-                if (edgeSubField is FieldNode edgeSubFieldNode &&
-                    edgeSubFieldNode.Name.Value is "node" &&
-                    edgeSubFieldNode.SelectionSet?.Selections is not null)
+                if (edgeSubField is FieldNode edgeSubFieldNode
+                    && edgeSubFieldNode.Name.Value is "node"
+                    && edgeSubFieldNode.SelectionSet?.Selections is not null)
                 {
                     foreach (var nodeField in edgeSubFieldNode.SelectionSet.Selections)
                     {

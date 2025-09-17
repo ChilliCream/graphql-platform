@@ -15,7 +15,7 @@ public sealed class SelectedValueToSelectionSetRewriterTests
 
         // act
         var selectionSetNode =
-            s_selectedValueToSelectionSetRewriter.SelectedValueToSelectionSet(
+            s_selectedValueToSelectionSetRewriter.Rewrite(
                 selectedValueNode,
                 s_schema.Types[typeName]);
 
@@ -62,7 +62,7 @@ public sealed class SelectedValueToSelectionSetRewriterTests
             },
             {
                 "Product",
-                "dimensions.{ size weight }",
+                "dimensions.{ size, weight }",
                 """
                 {
                     dimensions {
@@ -74,7 +74,7 @@ public sealed class SelectedValueToSelectionSetRewriterTests
             },
             {
                 "Product",
-                "{ size: dimensions.size weight: dimensions.weight }",
+                "{ size: dimensions.size, weight: dimensions.weight }",
                 """
                 {
                     dimensions {
@@ -97,7 +97,7 @@ public sealed class SelectedValueToSelectionSetRewriterTests
             },
             {
                 "Product",
-                "parts[{ id name }]",
+                "parts[{ id, name }]",
                 """
                 {
                     parts {
@@ -109,7 +109,7 @@ public sealed class SelectedValueToSelectionSetRewriterTests
             },
             {
                 "Product",
-                "parts[[{ id name }]]",
+                "parts[[{ id, name }]]",
                 """
                 {
                     parts {
@@ -121,7 +121,7 @@ public sealed class SelectedValueToSelectionSetRewriterTests
             },
             {
                 "Location",
-                "{ coordinates: coordinates[{ lat: x lon: y }] }",
+                "{ coordinates: coordinates[{ lat: x, lon: y }] }",
                 """
                 {
                     coordinates {
@@ -248,6 +248,6 @@ public sealed class SelectedValueToSelectionSetRewriterTests
         }
         """);
 
-    private static readonly SelectedValueToSelectionSetRewriter
+    private static readonly ValueSelectionToSelectionSetRewriter
         s_selectedValueToSelectionSetRewriter = new(s_schema);
 }

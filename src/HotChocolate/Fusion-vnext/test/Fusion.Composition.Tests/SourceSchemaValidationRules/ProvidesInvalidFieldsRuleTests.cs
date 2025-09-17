@@ -88,8 +88,8 @@ public sealed class ProvidesInvalidFieldsRuleTests
                     """
                 ],
                 [
-                    "The @provides directive on field 'User.details' in schema 'A' specifies an " +
-                    "invalid field selection."
+                    "The @provides directive on field 'User.details' in schema 'A' specifies an "
+                    + "invalid field selection."
                 ]
             }
         };

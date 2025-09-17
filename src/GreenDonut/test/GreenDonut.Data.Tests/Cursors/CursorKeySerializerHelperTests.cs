@@ -38,7 +38,7 @@ public static class CursorKeySerializerHelperTests
     {
         // arrange
         var formattedKey = "testvalue"u8.ToArray();
-        var expectedValue = "testvalue";
+        const string expectedValue = "testvalue";
 
         // act
         var result = CursorKeySerializerHelper.Parse(formattedKey, s_serializer);
@@ -52,7 +52,7 @@ public static class CursorKeySerializerHelperTests
     {
         // arrange
         var formattedKey = "part1\\:part2"u8.ToArray();
-        var expectedValue = "part1:part2";
+        const string expectedValue = "part1:part2";
 
         // act
         var result = CursorKeySerializerHelper.Parse(formattedKey, s_serializer);

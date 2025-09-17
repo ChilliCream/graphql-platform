@@ -52,9 +52,9 @@ public readonly struct FieldInfo : IEquatable<FieldInfo>
     /// <c>true</c> if the field infos are equal.
     /// </returns>
     public bool Equals(FieldInfo other)
-        => SyntaxNode.Equals(other.SyntaxNode) &&
-            DeclaringType.Equals(other.DeclaringType) &&
-            Type.Equals(other.Type);
+        => SyntaxNode.Equals(other.SyntaxNode)
+            && DeclaringType.Equals(other.DeclaringType)
+            && Type.Equals(other.Type);
 
     /// <summary>
     /// Compares this field info to another object.

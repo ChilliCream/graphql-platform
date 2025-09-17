@@ -9,8 +9,6 @@ using HotChocolate.Utilities;
 using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>

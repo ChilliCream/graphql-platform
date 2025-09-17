@@ -261,101 +261,7 @@ namespace Foo.Bar
 
         public static SearchSomethingQueryDocument Instance { get; } = new SearchSomethingQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x71,
-            0x75,
-            0x65,
-            0x72,
-            0x79,
-            0x20,
-            0x53,
-            0x65,
-            0x61,
-            0x72,
-            0x63,
-            0x68,
-            0x53,
-            0x6f,
-            0x6d,
-            0x65,
-            0x74,
-            0x68,
-            0x69,
-            0x6e,
-            0x67,
-            0x20,
-            0x7b,
-            0x20,
-            0x73,
-            0x65,
-            0x61,
-            0x72,
-            0x63,
-            0x68,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x41,
-            0x75,
-            0x74,
-            0x68,
-            0x6f,
-            0x72,
-            0x20,
-            0x7b,
-            0x20,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x7d,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x42,
-            0x6f,
-            0x6f,
-            0x6b,
-            0x20,
-            0x7b,
-            0x20,
-            0x74,
-            0x69,
-            0x74,
-            0x6c,
-            0x65,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query SearchSomething { search { __typename ... on Author { name } ... on Book { title } } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "66043ca93911dbadcf22907978f9c38f3cc096ae");
 
         public override global::System.String ToString()
@@ -389,13 +295,13 @@ namespace Foo.Bar
     public partial class SearchSomethingQuery : global::Foo.Bar.ISearchSomethingQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<ISearchSomethingResult> _operationExecutor;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public SearchSomethingQuery(global::StrawberryShake.IOperationExecutor<ISearchSomethingResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        private SearchSomethingQuery(global::StrawberryShake.IOperationExecutor<ISearchSomethingResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        private SearchSomethingQuery(global::StrawberryShake.IOperationExecutor<ISearchSomethingResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

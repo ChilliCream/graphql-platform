@@ -379,7 +379,7 @@ public class CodeFirstTests
             .AddQueryType<QueryLists>()
             .BuildRequestExecutorAsync();
 
-        var query =
+        const string query =
             """
             query {
               input(arg: [[1], null])

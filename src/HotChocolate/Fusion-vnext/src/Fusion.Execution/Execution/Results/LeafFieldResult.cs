@@ -1,7 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
 /// Represents the result of a leaf field (a scalar or enum field) in a GraphQL operation.
@@ -62,6 +62,9 @@ public sealed class LeafFieldResult : FieldResult
             Value.WriteTo(writer);
         }
     }
+
+    /// <inheritdoc />
+    public override bool HasNullValue => Value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
 
     /// <inheritdoc />
     protected internal override KeyValuePair<string, object?> AsKeyValuePair()

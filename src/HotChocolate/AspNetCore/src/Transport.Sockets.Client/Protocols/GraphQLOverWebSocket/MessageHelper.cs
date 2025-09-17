@@ -34,7 +34,7 @@ internal static class MessageHelper
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
-        await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.WrittenMemory, Text, true, ct).ConfigureAwait(false);
     }
 
     public static async ValueTask SendSubscribeMessageAsync(
@@ -56,7 +56,7 @@ internal static class MessageHelper
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
-        await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.WrittenMemory, Text, true, ct).ConfigureAwait(false);
     }
 
     public static async ValueTask SendCompleteMessageAsync(
@@ -72,7 +72,7 @@ internal static class MessageHelper
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
-        await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.WrittenMemory, Text, true, ct).ConfigureAwait(false);
     }
 
     public static async ValueTask SendPongMessageAsync(
@@ -86,6 +86,6 @@ internal static class MessageHelper
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
-        await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.WrittenMemory, Text, true, ct).ConfigureAwait(false);
     }
 }

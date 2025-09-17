@@ -1,4 +1,4 @@
-﻿// ReSharper disable CollectionNeverUpdated.Global
+// ReSharper disable CollectionNeverUpdated.Global
 
 using System.ComponentModel.DataAnnotations;
 

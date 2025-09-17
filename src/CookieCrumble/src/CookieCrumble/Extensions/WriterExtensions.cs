@@ -35,13 +35,7 @@ public static class WriterExtensions
     public static void AppendSeparator(this IBufferWriter<byte> snapshot)
     {
         const byte hyphen = (byte)'-';
-        var span = snapshot.GetSpan(15);
-
-        for (var i = 0; i < 15; i++)
-        {
-            span[i] = hyphen;
-        }
-
+        snapshot.GetSpan(15).Fill(hyphen);
         snapshot.Advance(15);
     }
 }

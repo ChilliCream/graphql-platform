@@ -121,8 +121,8 @@ public sealed class NonNullInputFieldIsInaccessibleRuleTests
                     """
                 ],
                 [
-                    "The non-null input field 'BookFilter.age' in schema 'A' must be accessible " +
-                    "in the composed schema."
+                    "The non-null input field 'BookFilter.age' in schema 'A' must be accessible "
+                    + "in the composed schema."
                 ]
             },
             // Another invalid case is when a non-null input field is removed during merging.
@@ -142,8 +142,8 @@ public sealed class NonNullInputFieldIsInaccessibleRuleTests
                     """
                 ],
                 [
-                    "The non-null input field 'BookFilter.age' in schema 'A' must be accessible " +
-                    "in the composed schema."
+                    "The non-null input field 'BookFilter.age' in schema 'A' must be accessible "
+                    + "in the composed schema."
                 ]
             }
         };

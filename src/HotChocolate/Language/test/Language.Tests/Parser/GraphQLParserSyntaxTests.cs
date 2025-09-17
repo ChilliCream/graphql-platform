@@ -27,12 +27,12 @@ public class GraphQLParserSyntaxTests
 
     [Fact]
     public void Parse_SelectionSetNode_From_ByteArray() =>
-        Utf8GraphQLParser.Syntax.ParseSelectionSet(GraphQLParserSyntaxTests.GetUtf8Bytes(@"{ foo(a: ""baz"") }")).MatchSnapshot();
+        Utf8GraphQLParser.Syntax.ParseSelectionSet(GetUtf8Bytes(@"{ foo(a: ""baz"") }")).MatchSnapshot();
 
     [Fact]
     public void Parse_SelectionSetNode_From_Reader()
     {
-        var reader = new Utf8GraphQLReader(GraphQLParserSyntaxTests.GetUtf8Bytes(@"{ foo(a: ""baz"") }"));
+        var reader = new Utf8GraphQLReader(GetUtf8Bytes(@"{ foo(a: ""baz"") }"));
         reader.MoveNext();
 
         Utf8GraphQLParser.Syntax.ParseSelectionSet(reader).MatchSnapshot();
@@ -44,12 +44,12 @@ public class GraphQLParserSyntaxTests
 
     [Fact]
     public void Parse_ValueNode_From_ByteArray() =>
-        Utf8GraphQLParser.Syntax.ParseValueLiteral(GraphQLParserSyntaxTests.GetUtf8Bytes(@"""baz""")).MatchSnapshot();
+        Utf8GraphQLParser.Syntax.ParseValueLiteral(GetUtf8Bytes(@"""baz""")).MatchSnapshot();
 
     [Fact]
     public void Parse_ValueNode_From_Reader()
     {
-        var reader = new Utf8GraphQLReader(GraphQLParserSyntaxTests.GetUtf8Bytes(@"""baz"""));
+        var reader = new Utf8GraphQLReader(GetUtf8Bytes(@"""baz"""));
         reader.MoveNext();
 
         Utf8GraphQLParser.Syntax.ParseValueLiteral(reader).MatchSnapshot();

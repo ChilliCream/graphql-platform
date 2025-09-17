@@ -9,44 +9,46 @@ internal sealed class OperationResultSnapshotValueFormatter : SnapshotValueForma
 {
     protected override void Format(IBufferWriter<byte> snapshot, OperationResult value)
     {
-        var next = false;
+        var writer = new Utf8JsonWriter(
+            snapshot,
+            new JsonWriterOptions
+            {
+                Indented = true,
+                SkipValidation = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+
+        writer.WriteStartObject();
 
         if (value.RequestIndex.HasValue)
         {
-            snapshot.Append("RequestIndex: ");
-            snapshot.Append(value.RequestIndex.Value.ToString());
-            next = true;
+            writer.WriteNumber("requestIndex", value.RequestIndex.Value);
         }
 
         if (value.VariableIndex.HasValue)
         {
-            snapshot.AppendLine(appendWhenTrue: next);
-            snapshot.Append("VariableIndex: ");
-            snapshot.Append(value.VariableIndex.Value.ToString());
-            next = true;
+            writer.WriteNumber("variableIndex", value.VariableIndex.Value);
         }
 
         if (value.Data.ValueKind is JsonValueKind.Object)
         {
-            snapshot.AppendLine(appendWhenTrue: next);
-            snapshot.Append("Data: ");
-            snapshot.Append(value.Data.ToString());
-            next = true;
+            writer.WritePropertyName("data");
+            value.Data.WriteTo(writer);
         }
 
         if (value.Errors.ValueKind is JsonValueKind.Array)
         {
-            snapshot.AppendLine(appendWhenTrue: next);
-            snapshot.Append("Errors: ");
-            snapshot.Append(value.Errors.ToString());
-            next = true;
+            writer.WritePropertyName("errors");
+            value.Errors.WriteTo(writer);
         }
 
         if (value.Extensions.ValueKind is JsonValueKind.Object)
         {
-            snapshot.AppendLine(appendWhenTrue: next);
-            snapshot.Append("Extensions: ");
-            snapshot.Append(value.Extensions.ToString());
+            writer.WritePropertyName("extensions");
+            value.Extensions.WriteTo(writer);
         }
+
+        writer.WriteEndObject();
+        writer.Flush();
     }
 }

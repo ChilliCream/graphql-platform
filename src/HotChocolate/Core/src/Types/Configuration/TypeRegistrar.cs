@@ -3,8 +3,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed partial class TypeRegistrar : ITypeRegistrar
@@ -66,8 +64,8 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
 
         RegisterTypeAndResolveReferences(registeredType);
 
-        if (obj is not IHasRuntimeType hasRuntimeType ||
-            hasRuntimeType.RuntimeType == typeof(object))
+        if (obj is not IHasRuntimeType hasRuntimeType
+            || hasRuntimeType.RuntimeType == typeof(object))
         {
             return;
         }

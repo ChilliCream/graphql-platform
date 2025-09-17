@@ -24,8 +24,8 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
-            "{ ... on Entity { id name } } }");
+            "{ node(id: \"RW50aXR5OmZvbw==\")  "
+            + "{ ... on Entity { id name } } }");
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -43,7 +43,7 @@ public class NodeResolverTests
                 {
                     d.ImplementsNode()
                         .ResolveNode<string>(
-                            (_, id) => Task.FromResult(new Entity { Name = id }))
+                            (_, id) => Task.FromResult<Entity?>(new Entity { Name = id }))
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                 })
                 .AddQueryType<Query>()
@@ -51,8 +51,8 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
-            "{ ... on Entity { id name } } }");
+            "{ node(id: \"RW50aXR5OmZvbw==\")  "
+            + "{ ... on Entity { id name } } }");
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -70,7 +70,7 @@ public class NodeResolverTests
                 {
                     d.ImplementsNode()
                         .ResolveNode<string>((_, id) =>
-                            Task.FromResult(new Entity { Name = id }))
+                            Task.FromResult<Entity?>(new Entity { Name = id }))
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                 })
                 .AddQueryType<Query>()
@@ -78,8 +78,8 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
-            "{ ... on Entity { id name } } }");
+            "{ node(id: \"RW50aXR5OmZvbw==\")  "
+            + "{ ... on Entity { id name } } }");
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -98,7 +98,7 @@ public class NodeResolverTests
                     d.Name("Entity");
                     d.ImplementsNode()
                         .ResolveNode<string>(
-                            (_, id) => Task.FromResult<object>(new Entity { Name = id }))
+                            (_, id) => Task.FromResult<object?>(new Entity { Name = id }))
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                     d.Field("name")
                         .Type<StringType>()
@@ -115,8 +115,8 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
-            "{ ... on Entity { id name } } }");
+            "{ node(id: \"RW50aXR5OmZvbw==\")  "
+            + "{ ... on Entity { id name } } }");
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -135,7 +135,7 @@ public class NodeResolverTests
                     d.Name("Entity");
                     d.ImplementsNode()
                         .ResolveNode<string>(
-                            (_, id) => Task.FromResult<object>(new Entity { Name = id }))
+                            (_, id) => Task.FromResult<object?>(new Entity { Name = id }))
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                     d.Field("name")
                         .Type<StringType>()
@@ -152,8 +152,8 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
-            "{ ... on Entity { id name } } }");
+            "{ node(id: \"RW50aXR5OmZvbw==\")  "
+            + "{ ... on Entity { id name } } }");
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -314,7 +314,7 @@ public class NodeResolverTests
             descriptor
                 .ImplementsNode()
                 .IdField(t => t.Id)
-                .ResolveNode((_, id) => Task.FromResult(new Entity { Name = id }));
+                .ResolveNode((_, id) => Task.FromResult<Entity?>(new Entity { Name = id }));
         }
     }
 
@@ -326,13 +326,13 @@ public class NodeResolverTests
             set => Name = value;
         }
 
-        public string Name { get; set; }
+        public required string Name { get; set; }
     }
 
     public class Entity2
     {
         public string Id => Name;
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         public static Entity2 Get(string id) => new() { Name = id };
     }
@@ -340,7 +340,7 @@ public class NodeResolverTests
     [Node]
     public class Entity3 : EntityBase, IResolvable<Entity3>
     {
-        public string Message { get; set; }
+        public string? Message { get; set; }
     }
 
     public class EntityBase

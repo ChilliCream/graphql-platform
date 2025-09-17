@@ -3,18 +3,32 @@
 ## Result 1
 
 ```text
-Data: {"onError":"hello1"}
+{
+  "data": {
+    "onError": "hello1"
+  }
+}
 ```
 
 ## Result 2
 
 ```text
-Data: {"onError":"hello2"}
+{
+  "data": {
+    "onError": "hello2"
+  }
+}
 ```
 
 ## Result 3
 
 ```text
-Errors: [{"message":"Unexpected Execution Error"}]
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error"
+    }
+  ]
+}
 ```
 

@@ -86,8 +86,8 @@ internal static class GeneratorUtils
             return defaultValue.ToString()!.ToLower();
         }
 
-        if (type.SpecialType == SpecialType.System_Double ||
-            type.SpecialType == SpecialType.System_Single)
+        if (type.SpecialType == SpecialType.System_Double
+            || type.SpecialType == SpecialType.System_Single)
         {
             return $"{defaultValue}d";
         }
@@ -97,8 +97,8 @@ internal static class GeneratorUtils
             return $"{defaultValue}m";
         }
 
-        if (type.SpecialType == SpecialType.System_Int64 ||
-            type.SpecialType == SpecialType.System_UInt64)
+        if (type.SpecialType == SpecialType.System_Int64
+            || type.SpecialType == SpecialType.System_UInt64)
         {
             return $"{defaultValue}L";
         }

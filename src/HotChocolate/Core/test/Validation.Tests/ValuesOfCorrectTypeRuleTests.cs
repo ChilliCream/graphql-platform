@@ -62,8 +62,8 @@ public class ValuesOfCorrectTypeRuleTests
             t =>
             {
                 Assert.Equal(
-                    "The specified argument value does not" +
-                    " match the argument type.",
+                    "The specified argument value does not"
+                    + " match the argument type.",
                     t.Message);
                 Assert.Equal("[Boolean!]", t.Extensions!["locationType"]);
                 Assert.Equal("booleanListArg", t.Extensions["argument"]);
@@ -82,8 +82,8 @@ public class ValuesOfCorrectTypeRuleTests
             t =>
             {
                 Assert.Equal(
-                    "The specified argument value does not" +
-                    " match the argument type.",
+                    "The specified argument value does not"
+                    + " match the argument type.",
                     t.Message);
                 Assert.Equal("[Boolean!]", t.Extensions!["locationType"]);
                 Assert.Equal("booleanListArg", t.Extensions["argument"]);
@@ -120,6 +120,19 @@ public class ValuesOfCorrectTypeRuleTests
     }
 
     [Fact]
+    public void GoodOneOfDefaultValue()
+    {
+        ExpectValid(
+            """
+            mutation addPet($pet: PetInput! = { cat: { name: "Brontie" } }) {
+                addPet(pet: $pet) {
+                    name
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public void StringIntoInt()
     {
         ExpectErrors(
@@ -135,8 +148,8 @@ public class ValuesOfCorrectTypeRuleTests
             }
             """,
             t => Assert.Equal(
-                "The specified argument value does not match the " +
-                "argument type.",
+                "The specified argument value does not match the "
+                + "argument type.",
                 t.Message));
     }
 
@@ -150,8 +163,8 @@ public class ValuesOfCorrectTypeRuleTests
             }
             """,
             t => Assert.Equal(
-                "The specified value type of field `name` " +
-                "does not match the field type.",
+                "The specified value type of field `name` "
+                + "does not match the field type.",
                 t.Message));
     }
 
@@ -165,8 +178,59 @@ public class ValuesOfCorrectTypeRuleTests
             }
             """,
             t => Assert.Equal(
-                "The specified value type of field `name` " +
-                "does not match the field type.",
+                "The specified value type of field `name` "
+                + "does not match the field type.",
+                t.Message));
+    }
+
+    [Fact]
+    public void BadOneOfWithNoFields()
+    {
+        ExpectErrors(
+            """
+            mutation oneOfWithNoFields {
+                addPet(pet: {}) {
+                    name
+                }
+            }
+            """,
+            t => Assert.Equal(
+                "The OneOf Input Object `PetInput` requires that exactly one field must be "
+                + "supplied and that field must not be `null`.",
+                t.Message));
+    }
+
+    [Fact]
+    public void BadOneOfWithTwoFields()
+    {
+        ExpectErrors(
+            """
+            mutation oneOfWithTwoFields($dog: DogInput) {
+                addPet(pet: { cat: { name: "Brontie" }, dog: $dog }) {
+                    name
+                }
+            }
+            """,
+            t => Assert.Equal(
+                "The OneOf Input Object `PetInput` requires that exactly one field must be "
+                + "supplied and that field must not be `null`.",
+                t.Message));
+    }
+
+    [Fact]
+    public void BadListOfOneOfWithNullableVariable()
+    {
+        ExpectErrors(
+            """
+            mutation listOfOneOfWithNullableVariable($dog: DogInput) {
+                addPets(pets: [{ dog: $dog }]) {
+                    name
+                }
+            }
+            """,
+            t => Assert.Equal(
+                "The variable `$dog` assigned to the field `dog` of the OneOf Input Object "
+                + "`PetInput` must be non-null.",
                 t.Message));
     }
 
@@ -180,8 +244,8 @@ public class ValuesOfCorrectTypeRuleTests
             }
             """,
             t => Assert.Equal(
-                "The specified value type of variable `search` " +
-                "does not match the variable type.",
+                "The specified value type of variable `search` "
+                + "does not match the variable type.",
                 t.Message));
     }
 
@@ -731,8 +795,8 @@ public class ValuesOfCorrectTypeRuleTests
             """);
     }
 
-    [Fact(Skip = "This really should be caught! " +
-        "=> Spec issue https://spec.graphql.org/draft/#sel-JALTHHDHFFCAACEQl_M")]
+    [Fact(Skip = "This really should be caught! "
+        + "=> Spec issue https://spec.graphql.org/draft/#sel-JALTHHDHFFCAACEQl_M")]
     public void BadNullToString()
     {
         ExpectErrors(
@@ -1174,6 +1238,7 @@ public class ValuesOfCorrectTypeRuleTests
                 $b: String = "ok",
                 $c: Complex3Input = { requiredField: true, intField: 3 }
                 $d: Int! = 123
+                $e: [String!]! = ["default"]
             ) {
                 dog { name }
             }

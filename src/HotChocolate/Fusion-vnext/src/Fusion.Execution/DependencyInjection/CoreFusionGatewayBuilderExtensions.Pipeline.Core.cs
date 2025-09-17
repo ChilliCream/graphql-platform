@@ -13,7 +13,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(middleware);
 
-        return Configure(
+        return FusionSetupUtilities.Configure(
             builder,
             options => options.PipelineModifiers.Add(
                 pipeline => pipeline.Add(
@@ -28,7 +28,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(middleware);
 
-        return Configure(
+        return FusionSetupUtilities.Configure(
             builder,
             options => options.PipelineModifiers.Add(
                 pipeline => pipeline.Add(
@@ -42,7 +42,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        return Configure(
+        return FusionSetupUtilities.Configure(
             builder,
             options => options.PipelineModifiers.Add(
                 pipeline => pipeline.Add(configuration)));
@@ -58,7 +58,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ArgumentException.ThrowIfNullOrEmpty(after);
         ArgumentNullException.ThrowIfNull(middleware);
 
-        return Configure(
+        return FusionSetupUtilities.Configure(
             builder,
             options =>
             {
@@ -88,7 +88,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ArgumentException.ThrowIfNullOrEmpty(after);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        return Configure(
+        return FusionSetupUtilities.Configure(
             builder,
             options =>
             {
@@ -116,7 +116,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ArgumentException.ThrowIfNullOrEmpty(before);
         ArgumentNullException.ThrowIfNull(middleware);
 
-        return Configure(
+        return FusionSetupUtilities.Configure(
             builder,
             options =>
             {
@@ -146,7 +146,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ArgumentException.ThrowIfNullOrEmpty(before);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        return Configure(
+        return FusionSetupUtilities.Configure(
             builder,
             options =>
             {

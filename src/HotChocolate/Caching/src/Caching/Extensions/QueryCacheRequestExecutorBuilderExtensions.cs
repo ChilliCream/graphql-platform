@@ -88,11 +88,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(modifyOptions);
 
-        builder.ConfigureSchemaServices(
-            services =>
-            {
-                services.Configure(modifyOptions);
-            });
+        builder.ConfigureSchemaServices(services => services.Configure(modifyOptions));
 
         return builder;
     }

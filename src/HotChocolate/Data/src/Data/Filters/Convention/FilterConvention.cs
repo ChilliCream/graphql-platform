@@ -124,27 +124,27 @@ public class FilterConvention
     {
         ArgumentNullException.ThrowIfNull(runtimeType);
 
-        if (typeof(IEnumOperationFilterInputType).IsAssignableFrom(runtimeType) &&
-            runtimeType.GenericTypeArguments.Length == 1 &&
-            runtimeType.GetGenericTypeDefinition() == typeof(EnumOperationFilterInputType<>))
+        if (typeof(IEnumOperationFilterInputType).IsAssignableFrom(runtimeType)
+            && runtimeType.GenericTypeArguments.Length == 1
+            && runtimeType.GetGenericTypeDefinition() == typeof(EnumOperationFilterInputType<>))
         {
             var genericName = _namingConventions.GetTypeName(runtimeType.GenericTypeArguments[0]);
 
             return genericName + "OperationFilterInput";
         }
 
-        if (typeof(IComparableOperationFilterInputType).IsAssignableFrom(runtimeType) &&
-            runtimeType.GenericTypeArguments.Length == 1 &&
-            runtimeType.GetGenericTypeDefinition() ==
-            typeof(ComparableOperationFilterInputType<>))
+        if (typeof(IComparableOperationFilterInputType).IsAssignableFrom(runtimeType)
+            && runtimeType.GenericTypeArguments.Length == 1
+            && runtimeType.GetGenericTypeDefinition()
+            == typeof(ComparableOperationFilterInputType<>))
         {
             var genericName = _namingConventions.GetTypeName(runtimeType.GenericTypeArguments[0]);
 
             return $"Comparable{genericName}OperationFilterInput";
         }
 
-        if (typeof(IListFilterInputType).IsAssignableFrom(runtimeType) &&
-            runtimeType.GenericTypeArguments.Length == 1)
+        if (typeof(IListFilterInputType).IsAssignableFrom(runtimeType)
+            && runtimeType.GenericTypeArguments.Length == 1)
         {
             var genericType = runtimeType.GenericTypeArguments[0];
 
@@ -299,8 +299,8 @@ public class FilterConvention
 
         if (runtimeType.IsArrayOrList)
         {
-            if (runtimeType.ElementType is { } &&
-                TryCreateFilterType(runtimeType.ElementType, out var elementType))
+            if (runtimeType.ElementType is { }
+                && TryCreateFilterType(runtimeType.ElementType, out var elementType))
             {
                 type = typeof(ListFilterInputType<>).MakeGenericType(elementType);
 

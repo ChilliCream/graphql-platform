@@ -16,12 +16,12 @@ using GreenDonut;
 namespace TestNamespace.DataLoaderGen
 {
     public interface IEntityByIdDataLoader
-        : global::GreenDonut.IDataLoader<int, global::DataLoaderGen.Result.TestResultClass>
+        : global::GreenDonut.IDataLoader<int, global::DataLoaderGen.Result.TestResultClass?>
     {
     }
 
     public sealed partial class EntityByIdDataLoader
-        : global::GreenDonut.DataLoaderBase<int, global::DataLoaderGen.Result.TestResultClass>
+        : global::GreenDonut.DataLoaderBase<int, global::DataLoaderGen.Result.TestResultClass?>
         , IEntityByIdDataLoader
     {
         private readonly global::System.IServiceProvider _services;
@@ -39,7 +39,7 @@ namespace TestNamespace.DataLoaderGen
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
             global::System.Memory<GreenDonut.Result<global::DataLoaderGen.Result.TestResultClass?>> results,
-            global::GreenDonut.DataLoaderFetchContext<global::DataLoaderGen.Result.TestResultClass> context,
+            global::GreenDonut.DataLoaderFetchContext<global::DataLoaderGen.Result.TestResultClass?> context,
             global::System.Threading.CancellationToken ct)
         {
             var temp = await global::TestNamespace.DataLoaderGen.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);

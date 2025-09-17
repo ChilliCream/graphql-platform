@@ -27,9 +27,9 @@ public abstract class QueryableListOperationHandlerBase
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration)
     {
-        return context.Type is IListFilterInputType &&
-            fieldConfiguration is FilterOperationFieldConfiguration operationField &&
-            operationField.Id == Operation;
+        return context.Type is IListFilterInputType
+            && fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id == Operation;
     }
 
     /// <inheritdoc />
@@ -49,8 +49,8 @@ public abstract class QueryableListOperationHandlerBase
             return true;
         }
 
-        if (context.RuntimeTypes.Count > 0 &&
-            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args)
+        if (context.RuntimeTypes.Count > 0
+            && context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args)
         {
             var nestedProperty = context.GetInstance();
             context.PushInstance(nestedProperty);

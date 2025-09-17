@@ -39,9 +39,9 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is IComplexTypeDefinition ct &&
-            ct.Fields.TryGetField(node.Name.Value, out var of))
+        if (context.Types.TryPeek(out var type)
+            && type.NamedType() is IComplexTypeDefinition ct
+            && ct.Fields.TryGetField(node.Name.Value, out var of))
         {
             CollectAuthorizeDirective(of.Directives, context.GetDirectives());
             CollectAuthorizeDirective(context.Schema, of.Type.NamedType(), context.GetDirectives());
@@ -120,9 +120,9 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
         SelectionSetNode node,
         DocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is { Kind: TypeKind.Union } &&
-            HasFields(node))
+        if (context.Types.TryPeek(out var type)
+            && type.NamedType() is { Kind: TypeKind.Union }
+            && HasFields(node))
         {
             return Skip;
         }

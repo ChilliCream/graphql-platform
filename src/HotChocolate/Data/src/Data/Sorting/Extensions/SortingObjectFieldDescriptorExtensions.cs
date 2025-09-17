@@ -129,9 +129,9 @@ public static class SortingObjectFieldDescriptorExtensions
                     {
                         var convention = c.GetSortConvention(scope);
 
-                        if (definition.ResultType is null ||
-                            definition.ResultType == typeof(object) ||
-                            !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
+                        if (definition.ResultType is null
+                            || definition.ResultType == typeof(object)
+                            || !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 SortObjectFieldDescriptorExtensions_UseSorting_CannotHandleType,

@@ -1,7 +1,5 @@
 using HotChocolate.Resolvers;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public static class ResolveObjectFieldDescriptorExtensions

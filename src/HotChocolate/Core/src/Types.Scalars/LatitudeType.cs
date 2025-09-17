@@ -100,8 +100,8 @@ public class LatitudeType : ScalarType<double, StringValueNode>
     /// <inheritdoc />
     public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
     {
-        if (resultValue is string s &&
-            Latitude.TryDeserialize(s, out var value))
+        if (resultValue is string s
+            && Latitude.TryDeserialize(s, out var value))
         {
             runtimeValue = value;
             return true;
@@ -118,8 +118,8 @@ public class LatitudeType : ScalarType<double, StringValueNode>
         private const int MaxPrecision = 8;
 
         private const string SexagesimalRegex =
-            "^([0-9]{1,3})°\\s*([0-9]{1,3}(?:\\.(?:[0-9]{1,}))?)['′]\\s*(([0-9]{1,3}" +
-            "(\\.([0-9]{1,}))?)[\"″]\\s*)?([NEOSW]?)$";
+            "^([0-9]{1,3})°\\s*([0-9]{1,3}(?:\\.(?:[0-9]{1,}))?)['′]\\s*(([0-9]{1,3}"
+            + "(\\.([0-9]{1,}))?)[\"″]\\s*)?([NEOSW]?)$";
 
         private static readonly Regex s_validationPattern =
             new(SexagesimalRegex, RegexOptions.Compiled | RegexOptions.IgnoreCase);

@@ -23,8 +23,8 @@ public class MongoDbNotInOperationHandler
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration)
     {
-        return fieldConfiguration is FilterOperationFieldConfiguration operationField &&
-            operationField.Id is DefaultFilterOperations.NotIn;
+        return fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id is DefaultFilterOperations.NotIn;
     }
 
     /// <inheritdoc />

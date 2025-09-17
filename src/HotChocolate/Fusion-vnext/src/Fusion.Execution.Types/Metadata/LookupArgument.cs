@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Types;
+namespace HotChocolate.Fusion.Types.Metadata;
 
 public sealed class LookupArgument(string name, ITypeNode type)
 {

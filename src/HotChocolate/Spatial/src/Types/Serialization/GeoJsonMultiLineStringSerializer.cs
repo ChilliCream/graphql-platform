@@ -34,8 +34,8 @@ internal class GeoJsonMultiLineStringSerializer
 
                 for (var index = 0; index < list.Count; index++)
                 {
-                    if (list[index] is IList nestedCoords &&
-                        nestedCoords.TryConvertToCoordinates(out var coordinate))
+                    if (list[index] is IList nestedCoords
+                        && nestedCoords.TryConvertToCoordinates(out var coordinate))
                     {
                         temp[index] = coordinate;
                     }

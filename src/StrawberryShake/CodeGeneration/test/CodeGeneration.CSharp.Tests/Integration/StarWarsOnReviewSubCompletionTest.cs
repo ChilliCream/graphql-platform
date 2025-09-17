@@ -41,7 +41,7 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
             result => commentary = result.Data?.OnReview.Commentary,
             () => completionTriggered = true);
 
-        var topic = Episode.NewHope;
+        const Episode topic = Episode.NewHope;
 
         // try to send message 10 times
         // make sure the subscription connection is successful
@@ -100,7 +100,7 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
             result => commentary = result.Data?.OnReview.Commentary,
             () => completionTriggered = true);
 
-        var topic = Episode.NewHope;
+        const Episode topic = Episode.NewHope;
 
         // try to send message 10 times
         // make sure the subscription connection is successful
@@ -187,7 +187,7 @@ public class SubscriptionSocketStateMonitor
                 _receiverClientField ??= _receiverType.GetField("_client", NonPublicAndInstance)!;
                 var client = _receiverClientField.GetValue(receiver) as ISocketClient;
 
-                if (client!.IsClosed is false && client is WebSocketClient webSocketClient)
+                if (client is WebSocketClient { IsClosed: false } webSocketClient)
                 {
                     var socket = typeof(WebSocketClient).GetField("_socket", NonPublicAndInstance)!
                         .GetValue(webSocketClient) as ClientWebSocket;

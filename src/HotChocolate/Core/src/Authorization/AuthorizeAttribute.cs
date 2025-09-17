@@ -8,10 +8,10 @@ namespace HotChocolate.Authorization;
 /// Applies the authorization directive to object types or object fields.
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Struct |
-    AttributeTargets.Property |
-    AttributeTargets.Method,
+    AttributeTargets.Class
+    | AttributeTargets.Struct
+    | AttributeTargets.Property
+    | AttributeTargets.Method,
     AllowMultiple = true)]
 public class AuthorizeAttribute : DescriptorAttribute
 {
@@ -87,6 +87,6 @@ public class AuthorizeAttribute : DescriptorAttribute
 
     private AuthorizeDirective CreateDirective()
     {
-        return new AuthorizeDirective(apply: Apply, policy: Policy, roles: Roles);
+        return new AuthorizeDirective(Policy, Roles, Apply);
     }
 }

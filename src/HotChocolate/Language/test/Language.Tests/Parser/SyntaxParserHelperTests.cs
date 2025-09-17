@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace HotChocolate.Language;
 
 public static class SyntaxParserHelperTests
@@ -46,7 +44,7 @@ public static class SyntaxParserHelperTests
     public static void ParseTypeReference()
     {
         // arrange
-        var sourceText = "[[String!]]";
+        const string sourceText = "[[String!]]";
 
         // act
         var type = Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText);
@@ -64,7 +62,7 @@ public static class SyntaxParserHelperTests
     public static void ParseTypeReference_Span()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes("[[String!]]");
+        var sourceText = "[[String!]]"u8.ToArray();
 
         // act
         var type = Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText);
@@ -82,7 +80,7 @@ public static class SyntaxParserHelperTests
     public static void ParseTypeReference_Reader()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes("[[String!]]");
+        var sourceText = "[[String!]]"u8.ToArray();
         var reader = new Utf8GraphQLReader(sourceText);
         reader.MoveNext();
 

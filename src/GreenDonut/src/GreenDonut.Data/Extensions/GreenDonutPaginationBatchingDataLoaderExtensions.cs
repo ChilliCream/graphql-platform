@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using GreenDonut.Data.Internal;

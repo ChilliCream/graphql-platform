@@ -10,14 +10,17 @@ public class EnumTypeSchemaFirstTests
     public void Declare_EnumType_With_Explicit_Value_Binding()
     {
         // arrange
-        var sdl =
-            @"type Query {
-                    hello(greetings: Greetings): Greetings
-                }
+        const string sdl =
+            // lang=graphql
+            """
+            type Query {
+                hello(greetings: Greetings): Greetings
+            }
 
-                enum Greetings {
-                    GOOD @bind(to: ""GoodMorning"")
-                }";
+            enum Greetings {
+                GOOD @bind(to: "GoodMorning")
+            }
+            """;
 
         // act
         // assert
@@ -35,7 +38,7 @@ public class EnumTypeSchemaFirstTests
     public void Declare_EnumType_With_Implicit_Value_Binding()
     {
         // arrange
-        var sdl =
+        const string sdl =
             @"type Query {
                     hello(greetings: Greetings): Greetings
                 }
@@ -60,7 +63,7 @@ public class EnumTypeSchemaFirstTests
     public void Declare_EnumType_With_Type_Extension()
     {
         // arrange
-        var sdl =
+        const string sdl =
             @"type Query {
                     hello(greetings: Greetings): Greetings
                 }
@@ -89,14 +92,17 @@ public class EnumTypeSchemaFirstTests
     public async Task RequestBuilder_Declare_EnumType_With_Explicit_Value_Binding()
     {
         // arrange
-        var sdl =
-            @"type Query {
-                    hello(greetings: Greetings): Greetings
-                }
+        const string sdl =
+            // lang=graphql
+            """
+            type Query {
+                hello(greetings: Greetings): Greetings
+            }
 
-                enum Greetings {
-                    GOOD @bind(to: ""GoodMorning"")
-                }";
+            enum Greetings {
+                GOOD @bind(to: "GoodMorning")
+            }
+            """;
 
         // act
         // assert
@@ -112,7 +118,7 @@ public class EnumTypeSchemaFirstTests
     public async Task RequestBuilder_Declare_EnumType_With_Implicit_Value_Binding()
     {
         // arrange
-        var sdl =
+        const string sdl =
             @"type Query {
                     hello(greetings: Greetings): Greetings
                 }
@@ -135,7 +141,7 @@ public class EnumTypeSchemaFirstTests
     public async Task RequestBuilder_Declare_EnumType_With_Type_Extension()
     {
         // arrange
-        var sdl =
+        const string sdl =
             @"type Query {
                     hello(greetings: Greetings): Greetings
                 }
@@ -165,7 +171,7 @@ public class EnumTypeSchemaFirstTests
     public async Task Try_Using_A_Enum_Value_That_Is_Not_Bound(string value)
     {
         // arrange
-        var sdl =
+        const string sdl =
             @"type Query {
                     hello(greetings: Greetings): Greetings
                 }

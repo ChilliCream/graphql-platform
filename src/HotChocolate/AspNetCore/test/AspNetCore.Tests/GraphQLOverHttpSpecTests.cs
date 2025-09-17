@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
@@ -73,8 +73,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-                " +
-                @"{""data"":{""__typename"":""Query""}}");
+                "
+                + @"{""data"":{""__typename"":""Query""}}");
     }
 
     [Theory]
@@ -98,8 +98,9 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
-                Content-Type: multipart/mixed; boundary=""-""
+                """
+                Headers:
+                Content-Type: multipart/mixed; boundary="-"
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -107,9 +108,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {""data"":{""__typename"":""Query""}}
+                {"data":{"__typename":"Query"}}
                 -----
-                ");
+
+                """);
     }
 
     [Theory]
@@ -155,8 +157,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 -------------------------->
                 Status Code: {expectedStatusCode}
                 -------------------------->
-                " +
-                @"{""errors"":[{""message"":""The GraphQL request is empty."",""extensions"":{""code"":""HC0009""}}]}");
+                "
+                + @"{""errors"":[{""message"":""The GraphQL request is empty."",""extensions"":{""code"":""HC0009""}}]}");
     }
 
     [Theory]
@@ -193,10 +195,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 -------------------------->
                 Status Code: {expectedStatusCode}
                 -------------------------->
-                " +
-                @"{""errors"":[{""message"":""Expected a `Name`-token, but found a " +
-                @"`Dollar`-token."",""locations"":[{""line"":1,""column"":8}]," +
-                @"""extensions"":{""code"":""HC0011""}}]}");
+                "
+                + @"{""errors"":[{""message"":""Expected a `Name`-token, but found a "
+                + @"`Dollar`-token."",""locations"":[{""line"":1,""column"":8}],"
+                + @"""extensions"":{""code"":""HC0011""}}]}");
     }
 
     [Theory]
@@ -249,14 +251,14 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
-                {""errors"":[{""message"":""Unable to parse the accept header value " +
-                @"`unsupported`."",""extensions"":{""code"":""HC0064""," +
-                @"""headerValue"":""unsupported""}}]}");
+                {"errors":[{"message":"Unable to parse the accept header value `unsupported`.","extensions":{"code":"HC0064","headerValue":"unsupported"}}]}
+                """);
     }
 
     [Fact]
@@ -279,13 +281,14 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: NotAcceptable
                 -------------------------->
-                {""errors"":[{""message"":""None of the `Accept` header values is supported.""," +
-                @"""extensions"":{""code"":""HC0063""}}]}");
+                {"errors":[{"message":"None of the `Accept` header values is supported.","extensions":{"code":"HC0063"}}]}
+                """);
     }
 
     [Theory]
@@ -313,9 +316,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Cache-Control: no-cache
-                Content-Type: multipart/mixed; boundary=""-""
+                Content-Type: multipart/mixed; boundary="-"
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -323,14 +327,14 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {""data"":{},""hasNext"":true}
+                {"data":{},"hasNext":true}
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {""incremental"":[{""data"":{""__typename"":""Query""}," +
-                @"""path"":[]}],""hasNext"":false}
+                {"incremental":[{"data":{"__typename":"Query"},"path":[]}],"hasNext":false}
                 -----
-                ");
+
+                """);
     }
 
     [Theory]
@@ -358,22 +362,23 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Cache-Control: no-cache
                 Content-Type: text/event-stream; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
                 event: next
-                data: {""data"":{},""hasNext"":true}
+                data: {"data":{},"hasNext":true}
 
                 event: next
-                data: {""incremental"":[{""data"":{""__typename"":""Query""}," +
-                @"""path"":[]}],""hasNext"":false}
+                data: {"incremental":[{"data":{"__typename":"Query"},"path":[]}],"hasNext":false}
 
                 event: complete
 
-                ");
+
+                """);
     }
 
     [Fact]
@@ -397,12 +402,14 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: MethodNotAllowed
                 -------------------------->
-                {""errors"":[{""message"":""The specified operation kind is not allowed.""}]}");
+                {"errors":[{"message":"The specified operation kind is not allowed."}]}
+                """);
     }
 
     [Fact]
@@ -656,7 +663,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     private HttpClient GetClient(HttpTransportVersion serverTransportVersion)
     {
         var server = CreateStarWarsServer(
-            configureServices: s => s.AddHttpResponseFormatter(
+            configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter(
                 new HttpResponseFormatterOptions
                 {
                     HttpTransportVersion = serverTransportVersion

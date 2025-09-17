@@ -1,6 +1,6 @@
 using System.CommandLine;
-using System.Text;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -16,9 +16,7 @@ internal sealed class ExportCommand : Command
     /// </summary>
     public ExportCommand() : base("export")
     {
-        Description =
-            "Export the graphql schema. If no output (--output) is specified the schema will be " +
-            "printed to the console.";
+        Description = "Export the graphql schema to a schema file";
 
         AddOption(Opt<OutputOption>.Instance);
         AddOption(Opt<SchemaNameOption>.Instance);
@@ -39,25 +37,31 @@ internal sealed class ExportCommand : Command
         string? schemaName,
         CancellationToken cancellationToken)
     {
-        schemaName ??= ISchemaDefinition.DefaultName;
+        var provider = host.Services.GetRequiredService<IRequestExecutorProvider>();
 
-        var schema = await host.Services
-            .GetRequiredService<IRequestExecutorProvider>()
-            .GetExecutorAsync(schemaName, cancellationToken);
-
-        var sdl = schema.Schema.ToString();
-
-        if (output is not null)
+        if (schemaName is null)
         {
-            await File.WriteAllTextAsync(
-                output.FullName,
-                sdl,
-                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
-                cancellationToken);
+            var schemaNames = provider.SchemaNames;
+
+            if (schemaNames.IsEmpty)
+            {
+                console.WriteLine("No schemas registered.");
+                return;
+            }
+
+            schemaName = schemaNames.Contains(ISchemaDefinition.DefaultName)
+                ? ISchemaDefinition.DefaultName
+                : schemaNames[0];
         }
-        else
-        {
-            console.WriteLine(sdl);
-        }
+
+        var executor = await provider.GetExecutorAsync(schemaName, cancellationToken);
+        output ??= new FileInfo(System.IO.Path.Combine(Environment.CurrentDirectory, "schema.graphqls"));
+        var result = await SchemaFileExporter.Export(output.FullName, executor, cancellationToken);
+
+        // ReSharper disable LocalizableElement
+        console.WriteLine("Exported Files:");
+        console.WriteLine($"- {result.SchemaFileName}");
+        console.WriteLine($"- {result.SettingsFileName}");
+        // ReSharper restore LocalizableElement
     }
 }

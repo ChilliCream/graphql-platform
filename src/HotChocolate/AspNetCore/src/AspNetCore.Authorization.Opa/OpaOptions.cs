@@ -54,9 +54,9 @@ public sealed class OpaOptions
                     k.Key,
                     new Regex(
                         k.Key,
-                        RegexOptions.Compiled |
-                        RegexOptions.Singleline |
-                        RegexOptions.CultureInvariant,
+                        RegexOptions.Compiled
+                        | RegexOptions.Singleline
+                        | RegexOptions.CultureInvariant,
                         TimeSpan.FromMilliseconds(500)));
                 return regex.IsMatch(policyPath);
             });

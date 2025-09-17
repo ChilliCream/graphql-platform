@@ -10,8 +10,8 @@ public class QueryableProjectionFieldHandler
     : QueryableProjectionHandlerBase
 {
     public override bool CanHandle(ISelection selection) =>
-        selection.Field.Member is { } &&
-        selection.SelectionSet is not null;
+        selection.Field.Member is { }
+        && selection.SelectionSet is not null;
 
     public override bool TryHandleEnter(
         QueryableProjectionContext context,

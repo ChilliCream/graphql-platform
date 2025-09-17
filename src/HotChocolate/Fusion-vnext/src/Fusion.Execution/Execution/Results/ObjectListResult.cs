@@ -1,7 +1,8 @@
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
 /// Represents list result of object values.
@@ -14,11 +15,28 @@ public sealed class ObjectListResult : ListResult
     public List<ObjectResult?> Items { get; } = [];
 
     /// <summary>
+    /// Gets the capacity of the leaf list result.
+    /// </summary>
+    public override int Capacity
+    {
+        get => Items.Capacity;
+        protected set => Items.Capacity = value;
+    }
+
+    /// <summary>
     /// Adds a null value to the list.
     /// </summary>
     public override void SetNextValueNull()
     {
         Items.Add(null);
+    }
+
+    /// <inheritdoc />
+    public override bool TrySetValueNull(int index)
+    {
+        Items[index] = null;
+
+        return !ElementType.IsNonNullType();
     }
 
     /// <summary>
@@ -35,6 +53,7 @@ public sealed class ObjectListResult : ListResult
             throw new ArgumentException("Value is not a ObjectResult.", nameof(value));
         }
 
+        objectResult.SetParent(this, Items.Count);
         Items.Add(objectResult);
     }
 
@@ -87,12 +106,6 @@ public sealed class ObjectListResult : ListResult
     public override bool Reset()
     {
         Items.Clear();
-
-        if (Items.Capacity > 512)
-        {
-            Items.Capacity = 512;
-        }
-
         return base.Reset();
     }
 }

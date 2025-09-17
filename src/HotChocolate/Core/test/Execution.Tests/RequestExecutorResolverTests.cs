@@ -28,14 +28,14 @@ public class RequestExecutorResolverTests
         }));
 
         // act
-        var firstExecutor = await manager.GetExecutorAsync();
+        var firstExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
         var firstOperationCache = firstExecutor.Schema.Services.GetCombinedServices()
             .GetRequiredService<IPreparedOperationCache>();
 
-        manager.EvictRequestExecutor();
+        manager.EvictExecutor();
         executorEvictedResetEvent.Wait(cts.Token);
 
-        var secondExecutor = await manager.GetExecutorAsync();
+        var secondExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
         var secondOperationCache = secondExecutor.Schema.Services.GetCombinedServices()
             .GetRequiredService<IPreparedOperationCache>();
 
@@ -54,13 +54,13 @@ public class RequestExecutorResolverTests
         var manager = new ServiceCollection()
             .AddGraphQL()
             .InitializeOnStartup(
-                keepWarm: true,
                 warmup: (_, _) =>
                 {
                     warmupResetEvent.Wait(cts.Token);
 
                     return Task.CompletedTask;
-                })
+                },
+                keepWarm: true)
             .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
             .GetRequiredService<RequestExecutorManager>();
@@ -78,7 +78,7 @@ public class RequestExecutorResolverTests
         var initialExecutor = await manager.GetExecutorAsync();
         warmupResetEvent.Reset();
 
-        manager.EvictRequestExecutor();
+        manager.EvictExecutor();
 
         var executorAfterEviction = await manager.GetExecutorAsync();
 
@@ -107,12 +107,12 @@ public class RequestExecutorResolverTests
         var manager = new ServiceCollection()
             .AddGraphQL()
             .InitializeOnStartup(
-                keepWarm: keepWarm,
                 warmup: (_, _) =>
                 {
                     warmups++;
                     return Task.CompletedTask;
-                })
+                },
+                keepWarm: keepWarm)
             .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
             .GetRequiredService<RequestExecutorManager>();
@@ -127,12 +127,12 @@ public class RequestExecutorResolverTests
 
         // act
         // assert
-        var initialExecutor = await manager.GetExecutorAsync();
+        var initialExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
 
-        manager.EvictRequestExecutor();
+        manager.EvictExecutor();
         executorEvictedResetEvent.Wait(cts.Token);
 
-        var executorAfterEviction = await manager.GetExecutorAsync();
+        var executorAfterEviction = await manager.GetExecutorAsync(cancellationToken: cts.Token);
 
         Assert.NotSame(initialExecutor, executorAfterEviction);
         Assert.Equal(expectedWarmups, warmups);
@@ -144,10 +144,7 @@ public class RequestExecutorResolverTests
         // arrange
         var manager = new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(d =>
-            {
-                d.Field("foo").Resolve("");
-            })
+            .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
             .GetRequiredService<RequestExecutorManager>();
 
@@ -179,10 +176,7 @@ public class RequestExecutorResolverTests
             });
         services
             .AddGraphQL("schema2")
-            .AddQueryType(d =>
-            {
-                d.Field("foo").Resolve("");
-            });
+            .AddQueryType(d => d.Field("foo").Resolve(""));
         var provider = services.BuildServiceProvider();
         var manager = provider.GetRequiredService<RequestExecutorManager>();
 

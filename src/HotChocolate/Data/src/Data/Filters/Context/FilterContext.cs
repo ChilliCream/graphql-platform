@@ -58,8 +58,8 @@ public class FilterContext : IFilterContext
     {
         var localContextData = _context.LocalContextData;
 
-        if (localContextData.TryGetValue(ContextAsPredicateKey, out var asPredicateObj) &&
-            asPredicateObj is AsPredicate<T> asPredicate)
+        if (localContextData.TryGetValue(ContextAsPredicateKey, out var asPredicateObj)
+            && asPredicateObj is AsPredicate<T> asPredicate)
         {
             return asPredicate(_context, false);
         }

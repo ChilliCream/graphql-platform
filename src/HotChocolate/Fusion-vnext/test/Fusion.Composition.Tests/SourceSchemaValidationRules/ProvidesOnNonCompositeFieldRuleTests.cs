@@ -90,8 +90,8 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests
                     """
                 ],
                 [
-                    "The field 'User.email' in schema 'A' includes a @provides directive, but " +
-                    "does not return a composite type."
+                    "The field 'User.email' in schema 'A' includes a @provides directive, but "
+                    + "does not return a composite type."
                 ]
             },
             // Here, the schema is defined with "email" being a non-null string.
@@ -105,8 +105,8 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests
                     """
                 ],
                 [
-                    "The field 'User.email' in schema 'A' includes a @provides directive, but " +
-                    "does not return a composite type."
+                    "The field 'User.email' in schema 'A' includes a @provides directive, but "
+                    + "does not return a composite type."
                 ]
             },
             // Here, the schema is defined with "emails" being a non-null list of non-null strings.
@@ -120,8 +120,8 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests
                     """
                 ],
                 [
-                    "The field 'User.emails' in schema 'A' includes a @provides directive, but " +
-                    "does not return a composite type."
+                    "The field 'User.emails' in schema 'A' includes a @provides directive, but "
+                    + "does not return a composite type."
                 ]
             }
         };

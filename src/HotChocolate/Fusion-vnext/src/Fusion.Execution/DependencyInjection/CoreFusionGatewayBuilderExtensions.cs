@@ -1,16 +1,23 @@
+using HotChocolate.Buffers;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class CoreFusionGatewayBuilderExtensions
 {
-    internal static IFusionGatewayBuilder Configure(
-        IFusionGatewayBuilder builder,
-        Action<FusionGatewaySetup> configure)
+    public static IFusionGatewayBuilder ConfigureSchemaFeatures(
+        this IFusionGatewayBuilder builder,
+        Action<IServiceProvider, IFeatureCollection> configure)
     {
-        builder.Services.Configure(builder.Name, configure);
-        return builder;
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.SchemaFeaturesModifiers.Add(configure));
     }
 
     public static IFusionGatewayBuilder ConfigureSchemaServices(
@@ -20,9 +27,21 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
 
-        return Configure(
+        return FusionSetupUtilities.Configure(
             builder,
             setup => setup.SchemaServiceModifiers.Add(configure));
+    }
+
+    public static IFusionGatewayBuilder AddConfigurationProvider(
+        this IFusionGatewayBuilder builder,
+        Func<IServiceProvider, IFusionConfigurationProvider> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.DocumentProvider = configure);
     }
 
     public static IFusionGatewayBuilder AddFileSystemConfiguration(
@@ -32,20 +51,37 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrEmpty(fileName);
 
-        return Configure(
+        return FusionSetupUtilities.Configure(
             builder,
-            setup => setup.DocumentProvider = _ => new FileSystemFusionConfigurationProvider(fileName));
+            setup => setup.DocumentProvider =
+                _ => new FileSystemFusionConfigurationProvider(
+                    fileName));
     }
 
     public static IFusionGatewayBuilder AddInMemoryConfiguration(
         this IFusionGatewayBuilder builder,
-        DocumentNode schemaDocument)
+        DocumentNode schemaDocument,
+        JsonDocumentOwner? schemaSettings = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(schemaDocument);
 
-        return Configure(
+        return FusionSetupUtilities.Configure(
             builder,
-            setup => setup.DocumentProvider = _ => new InMemoryFusionConfigurationProvider(schemaDocument));
+            setup => setup.DocumentProvider =
+                _ => new InMemoryFusionConfigurationProvider(
+                    schemaDocument,
+                    schemaSettings));
+    }
+
+    public static IFusionGatewayBuilder AddOperationPlannerInterceptor(
+        this IFusionGatewayBuilder builder,
+        Func<IServiceProvider, IOperationPlannerInterceptor> factory)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
+
+        builder.ConfigureSchemaServices((_, sc) => sc.AddSingleton(factory));
+        return builder;
     }
 }

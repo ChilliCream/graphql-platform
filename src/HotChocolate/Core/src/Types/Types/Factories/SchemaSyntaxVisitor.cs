@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Properties;
@@ -165,8 +163,8 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         DirectiveDefinitionNode node,
         SchemaSyntaxVisitorContext context)
     {
-        if (context.DescriptorContext.Options.EnableTag &&
-            node.Name.Value.EqualsOrdinal(DirectiveNames.Tag.Name))
+        if (context.DescriptorContext.Options.EnableTag
+            && node.Name.Value.EqualsOrdinal(DirectiveNames.Tag.Name))
         {
             goto EXIT;
         }

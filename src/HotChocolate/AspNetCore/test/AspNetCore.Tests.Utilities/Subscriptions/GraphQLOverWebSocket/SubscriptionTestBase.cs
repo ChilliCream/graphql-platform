@@ -5,13 +5,9 @@ using Microsoft.AspNetCore.TestHost;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 
-public class SubscriptionTestBase : ServerTestBase
+public class SubscriptionTestBase(TestServerFactory serverFactory)
+    : ServerTestBase(serverFactory)
 {
-    public SubscriptionTestBase(TestServerFactory serverFactory)
-        : base(serverFactory)
-    {
-    }
-
     protected Uri SubscriptionUri { get; } = new("ws://localhost:5000/graphql");
 
     protected Task<IReadOnlyDictionary<string, object?>?> WaitForMessage(
@@ -27,9 +23,7 @@ public class SubscriptionTestBase : ServerTestBase
         CancellationToken cancellationToken)
     {
         using var timeoutCts = new CancellationTokenSource(timeout);
-        using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(
-            cancellationToken,
-            timeoutCts.Token);
+        using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
         try
         {
@@ -53,7 +47,7 @@ public class SubscriptionTestBase : ServerTestBase
         }
         catch (OperationCanceledException)
         {
-            // no massage was received in the specified time.
+            // no message was received in the specified time.
         }
 
         return null;
@@ -110,7 +104,7 @@ public class SubscriptionTestBase : ServerTestBase
 
     protected static async Task TryTest(Func<CancellationToken, Task> action)
     {
-        // we will try four times ....
+        // we will try four times ...
         using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 15_000);
         var ct = cts.Token;
         var count = 0;

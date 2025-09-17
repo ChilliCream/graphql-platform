@@ -33,7 +33,7 @@ public sealed partial class OperationPlanner
 
             foreach (var variableDef in context.Variables)
             {
-                if (!context.UsedVariables.Contains(variableDef.Key))
+                if (context.UsedVariables.Remove(variableDef.Key))
                 {
                     variableDefinitions.Add(variableDef.Value);
                 }
@@ -41,13 +41,32 @@ public sealed partial class OperationPlanner
 
             foreach (var requirement in context.Requirements)
             {
-                if (!context.UsedVariables.Contains(requirement.Key))
+                if (context.UsedVariables.Remove(requirement.Key))
                 {
                     variableDefinitions.Add(requirement.Value);
                 }
             }
 
             return rewritten.WithVariableDefinitions(variableDefinitions);
+        }
+
+        protected override DirectiveNode? RewriteDirective(
+            DirectiveNode node,
+            Context context)
+        {
+            var name = RewriteNode(node.Name, context);
+            var arguments = RewriteList(node.Arguments, context);
+
+            if (!ReferenceEquals(name, node.Name)
+                || !ReferenceEquals(arguments, node.Arguments))
+            {
+                return new DirectiveNode(
+                    node.Location,
+                    name,
+                    arguments);
+            }
+
+            return node;
         }
 
         public sealed class Context

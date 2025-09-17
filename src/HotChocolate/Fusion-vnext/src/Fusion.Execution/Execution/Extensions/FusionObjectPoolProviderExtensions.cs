@@ -1,4 +1,3 @@
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 
 namespace Microsoft.Extensions.ObjectPool;

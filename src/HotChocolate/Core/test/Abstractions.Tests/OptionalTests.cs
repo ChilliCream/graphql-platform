@@ -60,7 +60,7 @@ public class OptionalTests
     {
         // arrange
         Optional<string> a = "abc";
-        var b = "abc";
+        const string b = "abc";
 
         // act
         var result = a.Equals(b);
@@ -102,7 +102,7 @@ public class OptionalTests
     {
         // arrange
         Optional<string> a = "abc";
-        var b = "abc";
+        const string b = "abc";
 
         // act
         var result = a == b;
@@ -144,7 +144,7 @@ public class OptionalTests
     {
         // arrange
         Optional<string> a = "abc";
-        var b = "abc";
+        const string b = "abc";
 
         // act
         var result = a != b;

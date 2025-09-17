@@ -1,4 +1,3 @@
-#nullable enable
 namespace HotChocolate.Types.Relay;
 
 internal sealed class BoundNodeIdValueSerializer : IEquatable<BoundNodeIdValueSerializer>
@@ -27,8 +26,8 @@ internal sealed class BoundNodeIdValueSerializer : IEquatable<BoundNodeIdValueSe
             return true;
         }
 
-        return TypeName == other.TypeName &&
-            Serializer.Equals(other.Serializer);
+        return TypeName == other.TypeName
+            && Serializer.Equals(other.Serializer);
     }
 
     public override bool Equals(object? obj)

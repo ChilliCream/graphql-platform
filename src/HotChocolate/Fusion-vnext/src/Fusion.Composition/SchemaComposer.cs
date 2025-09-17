@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging.Contracts;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.PostMergeValidationRules;
 using HotChocolate.Fusion.PreMergeValidationRules;
 using HotChocolate.Fusion.Results;
@@ -8,13 +10,25 @@ using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositionLog log)
+public sealed class SchemaComposer
 {
-    private readonly IEnumerable<string> _sourceSchemas = sourceSchemas
-        ?? throw new ArgumentNullException(nameof(sourceSchemas));
+    private readonly IEnumerable<SourceSchemaText> _sourceSchemas;
+    private readonly SchemaComposerOptions _schemaComposerOptions;
+    private readonly ICompositionLog _log;
 
-    private readonly ICompositionLog _log = log
-        ?? throw new ArgumentNullException(nameof(log));
+    public SchemaComposer(
+        IEnumerable<SourceSchemaText> sourceSchemas,
+        SchemaComposerOptions schemaComposerOptions,
+        ICompositionLog log)
+    {
+        ArgumentNullException.ThrowIfNull(sourceSchemas);
+        ArgumentNullException.ThrowIfNull(schemaComposerOptions);
+        ArgumentNullException.ThrowIfNull(log);
+
+        _sourceSchemas = sourceSchemas;
+        _schemaComposerOptions = schemaComposerOptions;
+        _log = log;
+    }
 
     public CompositionResult<MutableSchemaDefinition> Compose()
     {
@@ -25,6 +39,16 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         if (isParseFailure)
         {
             return parseErrors;
+        }
+
+        // Preprocess Source Schemas
+        var preprocessorOptions = _schemaComposerOptions.Preprocessor;
+        var preprocessResult =
+            schemas.Select(schema => new SourceSchemaPreprocessor(schema, preprocessorOptions).Process()).Combine();
+
+        if (preprocessResult.IsFailure)
+        {
+            return preprocessResult;
         }
 
         // Validate Source Schemas
@@ -46,8 +70,12 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         }
 
         // Merge Source Schemas
+        var sourceSchemaMergerOptions = new SourceSchemaMergerOptions
+        {
+            EnableGlobalObjectIdentification = _schemaComposerOptions.EnableGlobalObjectIdentification
+        };
         var (_, isMergeFailure, mergedSchema, mergeErrors) =
-            new SourceSchemaMerger(schemas).Merge();
+            new SourceSchemaMerger(schemas, sourceSchemaMergerOptions).Merge();
 
         if (isMergeFailure)
         {
@@ -105,8 +133,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new RequireInvalidSyntaxRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
-        new RootSubscriptionUsedRule(),
-        new TypeDefinitionInvalidRule()
+        new RootSubscriptionUsedRule()
     ];
 
     private static readonly ImmutableArray<object> s_preMergeRules =

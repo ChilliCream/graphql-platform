@@ -118,10 +118,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
     {
         // arrange
         var server = CreateTestServer(
-            builder =>
-            {
-                configure(builder);
-            },
+            configure,
             context =>
             {
                 context.User = new ClaimsPrincipal(
@@ -316,10 +313,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
                                 c.Type == ClaimTypes.DateOfBirth)));
                 });
             },
-            context =>
-            {
-                context.User = new ClaimsPrincipal(new ClaimsIdentity("testauth"));
-            });
+            context => context.User = new ClaimsPrincipal(new ClaimsIdentity("testauth")));
 
         // act
         var result =

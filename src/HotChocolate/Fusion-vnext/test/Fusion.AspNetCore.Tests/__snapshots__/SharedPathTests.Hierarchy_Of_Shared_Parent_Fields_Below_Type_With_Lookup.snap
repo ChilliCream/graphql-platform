@@ -1,0 +1,73 @@
+{
+  "data": {
+    "productById": {
+      "shared": {
+        "shared2": {
+          "schema2": "schema2",
+          "schema1": "schema1"
+        }
+      }
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "4abd86029abf0bd7b15a7d4875baac159db69fab17c572c17c7aee4bc0573409",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  productById(id: 1) {\n    shared {\n      shared2 {\n        schema2\n        schema1\n      }\n    }\n    id @fusion__requirement\n  }\n}",
+          "id": "43e07475ff5b123d9d3b06bd5d8fd13f",
+          "hash": "43e07475ff5b123d9d3b06bd5d8fd13f",
+          "shortHash": "43e07475"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_43e07475_1",
+              "kind": "Query",
+              "document": "query Op_43e07475_1 {\n  productById(id: 1) {\n    shared {\n      shared2 {\n        schema1\n      }\n    }\n    id\n  }\n}",
+              "hash": "6482be8635b3e361ee5cd775611cb123a73dab91a8d0bf190da77862d749214b",
+              "shortHash": "6482be86"
+            },
+            "responseNames": [
+              "productById"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_43e07475_2",
+              "kind": "Query",
+              "document": "query Op_43e07475_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    shared {\n      shared2 {\n        schema2\n      }\n    }\n  }\n}",
+              "hash": "2bf093fac7468aeb85c823474db46999f69e71d6dceae41c77c8d3cfe122c6fb",
+              "shortHash": "2bf093fa"
+            },
+            "responseNames": [
+              "shared"
+            ],
+            "source": "$.product",
+            "target": "$.productById",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "Int!",
+                "path": "$.productById",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

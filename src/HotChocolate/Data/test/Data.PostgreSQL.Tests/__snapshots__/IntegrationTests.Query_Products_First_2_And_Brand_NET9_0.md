@@ -29,7 +29,7 @@
 
 ```sql
 -- @__p_0='3'
-SELECT p."Name", p."BrandId", p."Id"
+SELECT p."BrandId", p."Name", p."Id"
 FROM "Products" AS p
 ORDER BY p."Name" DESC, p."Id"
 LIMIT @__p_0

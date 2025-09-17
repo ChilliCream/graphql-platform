@@ -11,8 +11,8 @@ internal static class ParameterExpressionBuilderHelpers
             return true;
         }
 
-        if (parameterType.IsGenericType &&
-            parameterType.GetGenericTypeDefinition() == typeof(SetState<>))
+        if (parameterType.IsGenericType
+            && parameterType.GetGenericTypeDefinition() == typeof(SetState<>))
         {
             return true;
         }

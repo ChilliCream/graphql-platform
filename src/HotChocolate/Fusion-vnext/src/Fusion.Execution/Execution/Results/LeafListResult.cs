@@ -1,7 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
 /// Represents list result of leaf values.
@@ -12,6 +12,15 @@ public sealed class LeafListResult : ListResult
     /// Gets the items of the leaf list result.
     /// </summary>
     public List<JsonElement> Items { get; } = [];
+
+    /// <summary>
+    /// Gets the capacity of the leaf list result.
+    /// </summary>
+    public override int Capacity
+    {
+        get => Items.Capacity;
+        protected set => Items.Capacity = value;
+    }
 
     /// <summary>
     /// Adds a null value to the list.
@@ -69,12 +78,6 @@ public sealed class LeafListResult : ListResult
     public override bool Reset()
     {
         Items.Clear();
-
-        if (Items.Capacity > 512)
-        {
-            Items.Capacity = 512;
-        }
-
         return base.Reset();
     }
 }

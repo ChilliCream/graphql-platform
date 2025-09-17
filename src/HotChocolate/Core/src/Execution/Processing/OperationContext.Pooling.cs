@@ -15,6 +15,7 @@ internal sealed partial class OperationContext
 {
     private readonly IFactory<ResolverTask> _resolverTaskFactory;
     private readonly WorkScheduler _workScheduler;
+    private WorkScheduler _currentWorkScheduler;
     private readonly DeferredWorkScheduler _deferredWorkScheduler;
     private readonly ResultBuilder _resultBuilder;
     private readonly AggregateServiceScopeInitializer _serviceScopeInitializer;
@@ -43,6 +44,7 @@ internal sealed partial class OperationContext
     {
         _resolverTaskFactory = resolverTaskFactory;
         _workScheduler = new WorkScheduler(this);
+        _currentWorkScheduler = _workScheduler;
         _deferredWorkScheduler = new DeferredWorkScheduler();
         _resultBuilder = resultBuilder;
         _serviceScopeInitializer = serviceScopeInitializer;
@@ -92,6 +94,8 @@ internal sealed partial class OperationContext
         {
             _resultBuilder.SetVariableIndex(variableIndex);
         }
+
+        _currentWorkScheduler = _workScheduler;
     }
 
     public void InitializeFrom(OperationContext context)
@@ -126,12 +130,15 @@ internal sealed partial class OperationContext
         {
             _resultBuilder.SetVariableIndex(context._variableIndex);
         }
+
+        _currentWorkScheduler = _workScheduler;
     }
 
     public void Clean()
     {
         if (_isInitialized)
         {
+            _currentWorkScheduler = _workScheduler;
             _workScheduler.Clear();
             _resultBuilder.Clear();
             _deferredWorkScheduler.Clear();

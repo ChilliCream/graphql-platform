@@ -24,8 +24,8 @@ public sealed class DataLoaderRegistrar
 
         foreach (var registration in map.Values.ToList())
         {
-            if (registration.ServiceType != registration.InstanceType &&
-                !map.ContainsKey(registration.InstanceType))
+            if (registration.ServiceType != registration.InstanceType
+                && !map.ContainsKey(registration.InstanceType))
             {
                 map[registration.InstanceType] = registration;
             }

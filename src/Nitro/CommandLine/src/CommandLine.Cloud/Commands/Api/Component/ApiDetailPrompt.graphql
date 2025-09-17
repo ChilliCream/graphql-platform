@@ -1,0 +1,15 @@
+fragment ApiDetailPrompt_Api on Api {
+  id
+  name
+  path
+  workspace {
+    id
+    name
+  }
+  settings {
+    schemaRegistry {
+      treatDangerousAsBreaking
+      allowBreakingSchemaChanges
+    }
+  }
+}

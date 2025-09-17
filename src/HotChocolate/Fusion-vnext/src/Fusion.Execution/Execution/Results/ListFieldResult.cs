@@ -1,7 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
 /// Represents the result of a list field in a GraphQL operation.
@@ -11,7 +11,18 @@ public sealed class ListFieldResult : FieldResult
     /// <summary>
     /// Gets or sets the value of the list field.
     /// </summary>
-    public ListResult? Value { get; set; }
+    public ListResult? Value
+    {
+        get;
+        set
+        {
+            field = value;
+            value?.SetParent(Parent!, ParentIndex);
+        }
+    }
+
+    /// <inheritdoc />
+    public override bool HasNullValue => Value is null;
 
     /// <summary>
     /// Sets the value of the list field to null.
@@ -38,7 +49,11 @@ public sealed class ListFieldResult : FieldResult
         }
 
         Value = listResult;
+        listResult.SetParent(Parent!, ParentIndex);
     }
+
+    protected override void OnSetParent(ResultData parent, int index)
+        => Value?.SetParent(parent, index);
 
     /// <summary>
     /// Writes the list field to the specified JSON writer.
@@ -76,9 +91,7 @@ public sealed class ListFieldResult : FieldResult
     }
 
     protected internal override KeyValuePair<string, object?> AsKeyValuePair()
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotSupportedException();
 
     public override bool Reset()
     {

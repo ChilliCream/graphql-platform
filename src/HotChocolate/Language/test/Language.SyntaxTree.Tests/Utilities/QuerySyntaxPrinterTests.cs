@@ -128,7 +128,7 @@ public class QuerySyntaxPrinterTests
     public void Serialize_FragmentWithVariableDefs_InOutShouldBeTheSame()
     {
         // arrange
-        var query = "fragment Foo ($bar: [String!]!) on Bar { baz }";
+        const string query = "fragment Foo ($bar: [String!]!) on Bar { baz }";
         var queryDocument = Utf8GraphQLParser.Parse(query,
             new ParserOptions(allowFragmentVariables: true));
 

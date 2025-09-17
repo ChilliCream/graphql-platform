@@ -69,7 +69,7 @@ internal sealed class DocumentParserMiddleware
                                 .Build());
 
                         context.Result = OperationResultBuilder.CreateError(error);
-                        _diagnosticEvents.ExecutionError(context, ErrorKind.SyntaxError, [error]);
+                        _diagnosticEvents.RequestError(context, ex);
                     }
                 }
             }

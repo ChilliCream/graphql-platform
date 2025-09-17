@@ -59,7 +59,7 @@ public abstract class FilterProvider<TContext>
         IFilterConvention convention)
     {
         _filterConvention = convention;
-        base.Initialize(context);
+        Initialize(context);
     }
 
     void IFilterProviderConvention.Complete(IConventionContext context)

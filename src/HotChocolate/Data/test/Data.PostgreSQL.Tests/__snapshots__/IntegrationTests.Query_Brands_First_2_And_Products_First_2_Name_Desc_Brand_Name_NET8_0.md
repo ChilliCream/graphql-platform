@@ -69,7 +69,7 @@ LIMIT @__p_0
 
 ```sql
 -- @__brandIds_0={ '11', '13' } (DbType = Object)
-SELECT t."BrandId", t0."Id", t0."Name", t0."BrandId"
+SELECT t."BrandId", t0."BrandId", t0."Id", t0."Name"
 FROM (
     SELECT p."BrandId"
     FROM "Products" AS p
@@ -77,9 +77,9 @@ FROM (
     GROUP BY p."BrandId"
 ) AS t
 LEFT JOIN (
-    SELECT t1."Id", t1."Name", t1."BrandId"
+    SELECT t1."BrandId", t1."Id", t1."Name"
     FROM (
-        SELECT p0."Id", p0."Name", p0."BrandId", ROW_NUMBER() OVER(PARTITION BY p0."BrandId" ORDER BY p0."Name" DESC, p0."Id") AS row
+        SELECT p0."BrandId", p0."Id", p0."Name", ROW_NUMBER() OVER(PARTITION BY p0."BrandId" ORDER BY p0."Name" DESC, p0."Id") AS row
         FROM "Products" AS p0
         WHERE p0."BrandId" = ANY (@__brandIds_0)
     ) AS t1

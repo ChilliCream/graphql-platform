@@ -64,7 +64,7 @@ public class BsonType : ScalarType
         }
     }
 
-    private BsonValue? ParseLiteralToBson(IValueNode literal)
+    private BsonValue ParseLiteralToBson(IValueNode literal)
     {
         switch (literal)
         {
@@ -89,7 +89,7 @@ public class BsonType : ScalarType
                 return new BsonBoolean(bvn.Value);
 
             case ListValueNode lvn:
-                BsonValue?[] values = new BsonValue[lvn.Items.Count];
+                var values = new BsonValue[lvn.Items.Count];
                 for (var i = 0; i < lvn.Items.Count; i++)
                 {
                     values[i] = ParseLiteralToBson(lvn.Items[i]);
@@ -195,9 +195,9 @@ public class BsonType : ScalarType
         var mappedValue = BsonTypeMapper.MapToDotNetValue(value);
         var type = mappedValue.GetType();
 
-        if (type.IsValueType &&
-            Converter.TryConvert(type, typeof(string), mappedValue, out var converted) &&
-            converted is string c)
+        if (type.IsValueType
+            && Converter.TryConvert(type, typeof(string), mappedValue, out var converted)
+            && converted is string c)
         {
             return new StringValueNode(c);
         }
@@ -303,9 +303,9 @@ public class BsonType : ScalarType
 
                 var type = dotNetValue.GetType();
 
-                if (type.IsValueType &&
-                    Converter.TryConvert(type, typeof(string), dotNetValue, out var c) &&
-                    c is string casted)
+                if (type.IsValueType
+                    && Converter.TryConvert(type, typeof(string), dotNetValue, out var c)
+                    && c is string casted)
                 {
                     resultValue = casted;
                     return true;
