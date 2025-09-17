@@ -51,6 +51,14 @@ public sealed class SchemaComposer
             return preprocessResult;
         }
 
+        // Enrich Source Schemas
+        var enrichmentResult = schemas.Select(schema => new SourceSchemaEnricher(schema).Enrich()).Combine();
+
+        if (enrichmentResult.IsFailure)
+        {
+            return enrichmentResult;
+        }
+
         // Validate Source Schemas
         var validationResult =
             new SourceSchemaValidator(schemas, s_sourceSchemaRules, _log).Validate();
