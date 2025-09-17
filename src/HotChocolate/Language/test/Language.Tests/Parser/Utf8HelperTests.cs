@@ -8,7 +8,7 @@ public class Utf8HelperTests
     public void Unescape_NothingIsEscaped_InputIsOutput()
     {
         // arrange
-        var inputData = Encoding.UTF8.GetBytes("hello_123");
+        var inputData = "hello_123"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);

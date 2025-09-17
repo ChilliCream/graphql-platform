@@ -107,8 +107,9 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
-                foos(first: 2 after: ""MQ=="") {
+            """
+            {
+                foos(first: 2, after: "MQ==") {
                     edges {
                         node {
                             bar
@@ -125,7 +126,8 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
                         endCursor
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         await Snapshot

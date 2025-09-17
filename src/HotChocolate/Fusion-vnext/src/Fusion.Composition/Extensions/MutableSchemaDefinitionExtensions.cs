@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Transactions;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
@@ -10,7 +9,7 @@ internal static class MutableSchemaDefinitionExtensions
 {
     public static void AddBuiltInFusionTypes(this MutableSchemaDefinition schema)
     {
-        foreach (var builtInScalar in FusionBuiltIns.SourceSchemaScalars)
+        foreach (var builtInScalar in FusionBuiltIns.SourceSchemaScalars.Values)
         {
             schema.Types.Add(builtInScalar);
         }
@@ -18,7 +17,7 @@ internal static class MutableSchemaDefinitionExtensions
 
     public static void AddBuiltInFusionDirectives(this MutableSchemaDefinition schema)
     {
-        foreach (var builtInDirective in FusionBuiltIns.SourceSchemaDirectives)
+        foreach (var builtInDirective in FusionBuiltIns.SourceSchemaDirectives.Values)
         {
             schema.DirectiveDefinitions.Add(builtInDirective);
         }

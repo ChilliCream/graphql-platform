@@ -1,0 +1,55 @@
+{
+  "data": {
+    "interface": {
+      "schema1": "schema1",
+      "schema2": "schema2"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "341d8ede94a31fc3eb9e77f1dacb434fa87b1cde3f32ec3e591206d446912907",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  interface {\n    __typename @fusion__requirement\n    ... on Review {\n      schema1\n      schema2\n    }\n  }\n}",
+          "id": "d8c31e9a49eb72a79cc47298402807f5",
+          "hash": "d8c31e9a49eb72a79cc47298402807f5",
+          "shortHash": "d8c31e9a"
+        },
+        "searchSpace": 2,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_d8c31e9a_1",
+              "kind": "Query",
+              "document": "query Op_d8c31e9a_1 {\n  interface {\n    __typename\n    ... on Review {\n      schema1\n    }\n  }\n}",
+              "hash": "4c776c642eeb8579761b1b6f61dba5265895ef58a7bd33f034cddbf0ac0ac807",
+              "shortHash": "4c776c64"
+            },
+            "responseNames": [
+              "interface"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_d8c31e9a_2",
+              "kind": "Query",
+              "document": "query Op_d8c31e9a_2 {\n  interface {\n    __typename\n    ... on Review {\n      schema2\n    }\n  }\n}",
+              "hash": "835863b49f2186bbc87f8a4ce5d587e733181a64ee7d54cf214a5478137cd040",
+              "shortHash": "835863b4"
+            },
+            "responseNames": [
+              "interface"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -431,11 +431,11 @@ public sealed partial class OperationPlanner
                     for (var i = items.Count - 1; i >= 0; i--)
                     {
                         if (items[i] is FieldNode
-                        {
-                            Alias: null,
-                            Name.Value: IntrospectionFieldNames.TypeName,
-                            Directives: [{ Name.Value: "fusion__empty" }]
-                        } field)
+                            {
+                                Alias: null,
+                                Name.Value: IntrospectionFieldNames.TypeName,
+                                Directives: [{ Name.Value: "fusion__empty" }]
+                            } field)
                         {
                             if (items.Count > 1)
                             {
@@ -465,7 +465,7 @@ public sealed partial class OperationPlanner
                     {
                         Alias: null,
                         Name.Value: IntrospectionFieldNames.TypeName,
-                        Directives: [{ Name.Value: "fusion__empty"}]
+                        Directives: [{ Name.Value: "fusion__empty" }]
                     }:
                         context[^1] = true;
                         break;

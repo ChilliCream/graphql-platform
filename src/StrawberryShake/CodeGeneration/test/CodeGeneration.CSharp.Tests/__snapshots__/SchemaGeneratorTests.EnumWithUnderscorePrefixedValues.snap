@@ -1,4 +1,4 @@
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -151,35 +151,7 @@ namespace Foo.Bar
 
         public static GetField1QueryDocument Instance { get; } = new GetField1QueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x71,
-            0x75,
-            0x65,
-            0x72,
-            0x79,
-            0x20,
-            0x47,
-            0x65,
-            0x74,
-            0x46,
-            0x69,
-            0x65,
-            0x6c,
-            0x64,
-            0x31,
-            0x20,
-            0x7b,
-            0x20,
-            0x66,
-            0x69,
-            0x65,
-            0x6c,
-            0x64,
-            0x31,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetField1 { field1 }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "b505bdfe64c0b4ef198f5363575dea66cf6092df");
 
         public override global::System.String ToString()

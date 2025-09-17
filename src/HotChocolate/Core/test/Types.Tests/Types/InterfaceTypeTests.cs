@@ -681,15 +681,16 @@ public class InterfaceTypeTests : TypeTestBase
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
-            .AddDocumentFromString(@"
-                    interface Interface  {
-                        bar(a: String @deprecated(reason:""reason"")): Int!
-                    }
+            .AddDocumentFromString(
+                """
+                interface Interface {
+                    bar(a: String @deprecated(reason: "reason")): Int!
+                }
 
-                    type Foo implements Interface  {
-                        bar(a: String @deprecated(reason:""reason"")): Int!
-                    }
-                ")
+                type Foo implements Interface {
+                    bar(a: String @deprecated(reason: "reason")): Int!
+                }
+                """)
             .AddResolver("Foo", "bar", x => 1)
             .BuildRequestExecutorAsync();
 
@@ -706,15 +707,16 @@ public class InterfaceTypeTests : TypeTestBase
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
-            .AddDocumentFromString(@"
-                    interface Interface  {
-                        bar(a: String! @deprecated(reason:""reason"")): Int!
-                    }
+            .AddDocumentFromString(
+                """
+                interface Interface {
+                    bar(a: String! @deprecated(reason: "reason")): Int!
+                }
 
-                    type Foo implements Interface  {
-                        bar(a: String! @deprecated(reason:""reason"")): Int!
-                    }
-                ")
+                type Foo implements Interface {
+                    bar(a: String! @deprecated(reason: "reason")): Int!
+                }
+                """)
             .AddResolver("Foo", "bar", x => 1)
             .BuildRequestExecutorAsync();
 

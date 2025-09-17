@@ -187,7 +187,7 @@ public class SubscriptionSocketStateMonitor
                 _receiverClientField ??= _receiverType.GetField("_client", NonPublicAndInstance)!;
                 var client = _receiverClientField.GetValue(receiver) as ISocketClient;
 
-                if (client!.IsClosed is false && client is WebSocketClient webSocketClient)
+                if (client is WebSocketClient { IsClosed: false } webSocketClient)
                 {
                     var socket = typeof(WebSocketClient).GetField("_socket", NonPublicAndInstance)!
                         .GetValue(webSocketClient) as ClientWebSocket;
