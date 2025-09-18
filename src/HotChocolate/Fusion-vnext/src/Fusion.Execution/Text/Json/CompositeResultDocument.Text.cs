@@ -89,6 +89,38 @@ public sealed partial class CompositeResultDocument
         throw new NotImplementedException();
     }
 
+    internal string GetPropertyRawValueAsString(int valueIndex)
+    {
+        var segment = GetPropertyRawValue(valueIndex);
+        return JsonReaderHelper.TranscodeHelper(segment.Span);
+    }
+
+    private ReadOnlyMemory<byte> GetPropertyRawValue(int valueIndex)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        // The property name is stored one row before the value
+        var row = _metaDb.Get(valueIndex - 1);
+        Debug.Assert(row.TokenType == ElementTokenType.PropertyName);
+
+        // Subtract one for the open quote.
+        // var start = row.Location - 1;
+        // int end;
+
+        row = _metaDb.Get(valueIndex);
+
+        if (row.IsSimpleValue)
+        {
+            return ReadRawValueAsMemory(row);
+        }
+
+        // var endElementIdx = GetEndIndex(valueIndex, includeEndElement: false);
+        // row = _parsedData.Get(endElementIdx);
+        // end = row.Location + row.SizeOrLength;
+        // return _utf8Json.Slice(start, end - start);
+        throw new NotImplementedException();
+    }
+
     internal bool TextEquals(int index, ReadOnlySpan<char> otherText, bool isPropertyName)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);

@@ -202,4 +202,11 @@ public sealed partial class CompositeResultDocument
         value = default;
         return false;
     }
+
+    internal int GetEndIndex(int index)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        var row = _metaDb.Get(index);
+        return row.NumberOfRows + index;
+    }
 }

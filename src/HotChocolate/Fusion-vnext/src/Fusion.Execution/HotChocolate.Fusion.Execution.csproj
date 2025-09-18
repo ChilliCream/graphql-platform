@@ -71,6 +71,9 @@
     <Compile Update="Text\Json\SourceResultDocument.MetaDb.cs">
       <DependentUpon>SourceResultDocument.cs</DependentUpon>
     </Compile>
+    <Compile Update="Text\Json\CompositeResultElement.ObjectEnumerator.cs">
+      <DependentUpon>CompositeResultElement.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

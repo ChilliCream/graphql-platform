@@ -1128,6 +1128,13 @@ public partial struct CompositeResultElement
         return _parent.TextEquals(_index, text, isPropertyName);
     }
 
+    internal string GetPropertyRawText()
+    {
+        CheckValidInstance();
+
+        return _parent.GetPropertyRawValueAsString(_index);
+    }
+
     /*
     /// <summary>
     ///   Get an enumerator to enumerate the values in the JSON array represented by this JsonElement.
@@ -1162,7 +1169,6 @@ public partial struct CompositeResultElement
     }
     */
 
-    /*
     /// <summary>
     ///   Get an enumerator to enumerate the properties in the JSON object represented by this JsonElement.
     /// </summary>
@@ -1175,20 +1181,21 @@ public partial struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public JsonElement.ObjectEnumerator EnumerateObject()
+    public ObjectEnumerator EnumerateObject()
     {
         CheckValidInstance();
 
-        JsonTokenType tokenType = TokenType;
+        var tokenType = TokenType;
 
-        if (tokenType != JsonTokenType.StartObject)
+        if (tokenType != ElementTokenType.StartObject)
         {
-            ThrowHelper.ThrowJsonElementWrongTypeException(JsonTokenType.StartObject, tokenType);
+            // TODO : rework exception
+            throw new InvalidOperationException();
+            // ThrowHelper.ThrowJsonElementWrongTypeException(JsonTokenType.StartObject, tokenType);
         }
 
-        return new JsonElement.ObjectEnumerator(this);
+        return new ObjectEnumerator(this);
     }
-    */
 
     /*
     /// <summary>
