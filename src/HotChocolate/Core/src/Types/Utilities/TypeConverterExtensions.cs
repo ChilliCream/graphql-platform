@@ -9,7 +9,7 @@ public static class TypeConverterExtensions
         Type to,
         object source,
         out object converted) =>
-        typeConverter.TryConvert(typeof(object), to, source, out converted);
+        typeConverter.TryConvert(typeof(object), to, source, out converted, out _);
 
     public static bool TryConvert<TFrom, TTo>(
         this ITypeConverter typeConverter,

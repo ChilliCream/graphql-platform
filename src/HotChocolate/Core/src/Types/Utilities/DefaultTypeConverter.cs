@@ -37,9 +37,6 @@ public partial class DefaultTypeConverter : ITypeConverter
         return converted;
     }
 
-    public bool TryConvert(Type from, Type to, object? source, out object? converted) =>
-        TryConvert(from, to, source, out converted, out _);
-
     public bool TryConvert(Type from, Type to, object? source, out object? converted, out Exception? conversionException)
     {
         ArgumentNullException.ThrowIfNull(from);
