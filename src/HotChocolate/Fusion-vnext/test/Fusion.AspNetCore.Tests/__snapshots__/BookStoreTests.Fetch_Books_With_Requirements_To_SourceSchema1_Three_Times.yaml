@@ -1,0 +1,256 @@
+name: Fetch_Books_With_Requirements_To_SourceSchema1_Three_Times
+request:
+  document: >-
+    {
+      books {
+        nodes {
+          idAndTitle
+        }
+      }
+    }
+response: >-
+  {
+    "data": {
+      "books": {
+        "nodes": [
+          {
+            "idAndTitle": "1 - C# in Depth"
+          },
+          {
+            "idAndTitle": "2 - The Lord of the Rings"
+          },
+          {
+            "idAndTitle": "3 - The Hobbit"
+          },
+          {
+            "idAndTitle": "4 - The Silmarillion"
+          }
+        ]
+      }
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "285badf44519b7efe6fc921920fe38fa134195559baed159b7d96e014f5c1e4f",
+          "operation": {
+            "kind": "Query",
+            "document": "{\n  books {\n    nodes {\n      idAndTitle\n      id @fusion__requirement\n      title @fusion__requirement\n    }\n  }\n}",
+            "id": "6721fc4fdf70192bf4714b55074672fb",
+            "hash": "6721fc4fdf70192bf4714b55074672fb",
+            "shortHash": "6721fc4f"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "Op_6721fc4f_1",
+                "kind": "Query",
+                "document": "query Op_6721fc4f_1 {\n  books {\n    nodes {\n      id\n      title\n    }\n  }\n}",
+                "hash": "143eb91f1c7a0689e795d4e1484a6768d9c06604bac3b3c7ed915de7fc8d8989",
+                "shortHash": "143eb91f"
+              },
+              "responseNames": [
+                "books"
+              ]
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "Op_6721fc4f_2",
+                "kind": "Query",
+                "document": "query Op_6721fc4f_2(\n  $__fusion_1_id: Int!\n  $__fusion_2_title: String!\n) {\n  bookById(id: $__fusion_1_id) {\n    idAndTitle(title: $__fusion_2_title)\n  }\n}",
+                "hash": "406b8eb9616e2745a82d8ad3bb93df4bf50f70e78773149f6c44ea904060ae92",
+                "shortHash": "406b8eb9"
+              },
+              "responseNames": [
+                "idAndTitle"
+              ],
+              "source": "$.bookById",
+              "target": "$.books.nodes",
+              "requirements": [
+                {
+                  "name": "__fusion_1_id",
+                  "type": "Int!",
+                  "path": "$.books.nodes",
+                  "selectionMap": "id"
+                },
+                {
+                  "name": "__fusion_2_title",
+                  "type": "String!",
+                  "path": "$.books.nodes",
+                  "selectionMap": "title"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                1
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        id: Int!
+      }
+      
+      type Book {
+        id: Int!
+        title: String!
+        author: Author!
+      }
+      
+      "A connection to a list of items."
+      type BooksConnection {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [BooksEdge!]
+        "A flattened list of the nodes."
+        nodes: [Book!]
+      }
+      
+      "An edge in a connection."
+      type BooksEdge {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: Book!
+      }
+      
+      "Information about pagination in a connection."
+      type PageInfo {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+      
+      type Query {
+        bookById(id: Int!): Book! @lookup
+        books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
+        formatTitle(title: String!): String!
+      }
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+    interactions:
+      - request: {"query":"query Op_6721fc4f_1 {\n  books {\n    nodes {\n      id\n      title\n    }\n  }\n}"}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        books: [Book!]!
+        id: Int!
+        name: String!
+      }
+      
+      "A connection to a list of items."
+      type AuthorsConnection {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [AuthorsEdge!]
+        "A flattened list of the nodes."
+        nodes: [Author!]
+      }
+      
+      "An edge in a connection."
+      type AuthorsEdge {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: Author!
+      }
+      
+      type Book {
+        idAndTitle(title: String! @require(field: "title")): String!
+        id: Int!
+        author: Author!
+      }
+      
+      "Information about pagination in a connection."
+      type PageInfo {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+      
+      type Query {
+        bookById(id: Int!): Book! @internal @lookup
+        authorById(id: Int!): Author! @internal @lookup
+        authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
+      }
+      
+      """
+      The @internal directive is used in combination with lookup fields and allows you
+      to declare internal types and fields. Internal types and fields do not appear in
+      the final client-facing composite schema and do not participate in the standard
+      schema-merging process. This allows a source schema to define lookup fields for
+      resolving entities that should not be accessible through the client-facing
+      composite schema.
+      
+      
+      
+      
+      
+      type User @internal {
+        id: ID!
+        name: String!
+      }
+                  
+      directive @internal on OBJECT | FIELD_DEFINITION
+      """
+      directive @internal on OBJECT | FIELD_DEFINITION
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      """
+      The @require directive is used to express data requirements with other source schemas.
+      Arguments annotated with the @require directive are removed from the composite schema
+      and the value for these will be resolved by the distributed executor.
+      
+      
+      directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+      """
+      directive @require("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+      
+      scalar FieldSelectionMap
+    interactions:
+      - request: {"query":"query Op_6721fc4f_2(\n  $__fusion_1_id: Int!\n  $__fusion_2_title: String!\n) {\n  bookById(id: $__fusion_1_id) {\n    idAndTitle(title: $__fusion_2_title)\n  }\n}","variables":[{"__fusion_1_id":1,"__fusion_2_title":"C# in Depth"},{"__fusion_1_id":2,"__fusion_2_title":"The Lord of the Rings"},{"__fusion_1_id":3,"__fusion_2_title":"The Hobbit"},{"__fusion_1_id":4,"__fusion_2_title":"The Silmarillion"}]}
+        response: 

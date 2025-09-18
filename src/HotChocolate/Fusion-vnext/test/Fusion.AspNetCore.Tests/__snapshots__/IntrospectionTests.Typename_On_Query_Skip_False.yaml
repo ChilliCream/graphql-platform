@@ -1,0 +1,177 @@
+name: Typename_On_Query_Skip_False
+request:
+  document: >-
+    query ($s: Boolean! = false) {
+      __typename @skip(if: $s)
+    }
+response: >-
+  {
+    "data": {
+      "__typename": "Query"
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "ec6a672b76c5a4804ddb9f0f36b67aecc02e265f1db7063520136e88539eba6f",
+          "operation": {
+            "kind": "Query",
+            "document": "query(\n  $s: Boolean! = false\n) {\n  __typename @skip(if: $s)\n}",
+            "id": "7000d58c5a91379479dee99795ff88dd",
+            "hash": "7000d58c5a91379479dee99795ff88dd",
+            "shortHash": "7000d58c"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Introspection",
+              "selections": [
+                {
+                  "id": 1,
+                  "responseName": "__typename",
+                  "fieldName": "__typename"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        id: Int!
+      }
+      
+      type Book {
+        id: Int!
+        title: String!
+        author: Author!
+      }
+      
+      "A connection to a list of items."
+      type BooksConnection {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [BooksEdge!]
+        "A flattened list of the nodes."
+        nodes: [Book!]
+      }
+      
+      "An edge in a connection."
+      type BooksEdge {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: Book!
+      }
+      
+      "Information about pagination in a connection."
+      type PageInfo {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+      
+      type Query {
+        bookById(id: Int!): Book! @lookup
+        books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
+      }
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        books: [Book!]!
+        id: Int!
+        name: String!
+      }
+      
+      "A connection to a list of items."
+      type AuthorsConnection {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [AuthorsEdge!]
+        "A flattened list of the nodes."
+        nodes: [Author!]
+      }
+      
+      "An edge in a connection."
+      type AuthorsEdge {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: Author!
+      }
+      
+      type Book {
+        id: Int!
+        author: Author!
+      }
+      
+      "Information about pagination in a connection."
+      type PageInfo {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+      
+      type Query {
+        authorById(id: Int!): Author! @internal @lookup
+        authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
+      }
+      
+      """
+      The @internal directive is used in combination with lookup fields and allows you
+      to declare internal types and fields. Internal types and fields do not appear in
+      the final client-facing composite schema and do not participate in the standard
+      schema-merging process. This allows a source schema to define lookup fields for
+      resolving entities that should not be accessible through the client-facing
+      composite schema.
+      
+      
+      
+      
+      
+      type User @internal {
+        id: ID!
+        name: String!
+      }
+                  
+      directive @internal on OBJECT | FIELD_DEFINITION
+      """
+      directive @internal on OBJECT | FIELD_DEFINITION
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION

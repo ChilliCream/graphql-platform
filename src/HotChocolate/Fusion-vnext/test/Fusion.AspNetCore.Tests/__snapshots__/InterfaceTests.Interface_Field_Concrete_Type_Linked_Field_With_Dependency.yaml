@@ -1,0 +1,164 @@
+name: Interface_Field_Concrete_Type_Linked_Field_With_Dependency
+request:
+  document: >-
+    query testQuery {
+      votable {
+        viewerCanVote
+        ... on Discussion {
+          author {
+            displayName
+          }
+        }
+      }
+    }
+response: >-
+  {
+    "data": {
+      "votable": {
+        "viewerCanVote": true,
+        "author": {
+          "displayName": "Author: QXV0aG9yOjI="
+        }
+      }
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "84f7a2e0303cd7e01608fcc66e0838bd4227d2ea350f5cdb8788d97737b42bbc",
+          "operation": {
+            "name": "testQuery",
+            "kind": "Query",
+            "document": "query testQuery {\n  votable {\n    __typename @fusion__requirement\n    viewerCanVote\n    ... on Discussion {\n      author {\n        displayName\n        id @fusion__requirement\n      }\n    }\n  }\n}",
+            "id": "b4cd91a7bd7792cc9829f051b0968852",
+            "hash": "b4cd91a7bd7792cc9829f051b0968852",
+            "shortHash": "b4cd91a7"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "testQuery_b4cd91a7_1",
+                "kind": "Query",
+                "document": "query testQuery_b4cd91a7_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}",
+                "hash": "4ff4b39b1a3194329d0ca7308fde73dcdfd598d8efc4154da9e98b2295cd3b2b",
+                "shortHash": "4ff4b39b"
+              },
+              "responseNames": [
+                "votable"
+              ]
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "testQuery_b4cd91a7_2",
+                "kind": "Query",
+                "document": "query testQuery_b4cd91a7_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}",
+                "hash": "6b62ad6bb5232efd4abf3910760474a3fb88e2bafb8810c68da93342d066be91",
+                "shortHash": "6b62ad6b"
+              },
+              "responseNames": [
+                "displayName"
+              ],
+              "source": "$.authorById",
+              "target": "$.votable\u003CDiscussion\u003E.author",
+              "requirements": [
+                {
+                  "name": "__fusion_1_id",
+                  "type": "ID!",
+                  "path": "$.votable\u003CDiscussion\u003E.author",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                1
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface Votable {
+        viewerCanVote: Boolean!
+      }
+      
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+      
+      type Comment implements Votable @key(fields: "id") {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+      
+      type Discussion implements Votable @key(fields: "id") {
+        id: ID!
+        viewerCanVote: Boolean!
+        author: Author
+      }
+      
+      type Query {
+        votable: Votable
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_b4cd91a7_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Author @key(fields: "id") {
+        id: ID!
+        displayName: String!
+      }
+      
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_b4cd91a7_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjI="}}
+        response: 

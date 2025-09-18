@@ -1,0 +1,196 @@
+name: Interface_Field_Linked_Field_With_Dependency_Same_Selection_In_Concrete_Type
+request:
+  document: >-
+    query testQuery {
+      authorable {
+        author {
+          id
+          displayName
+        }
+        ... on Discussion {
+          author {
+            id
+            displayName
+          }
+        }
+      }
+    }
+response: >-
+  {
+    "data": {
+      "authorable": {
+        "author": {
+          "id": "QXV0aG9yOjI=",
+          "displayName": "Author: QXV0aG9yOjI="
+        }
+      }
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "057081b761023ad9540a674df4ac52eaab45e6e6dc0a46a1ef0c5a0ef90a7260",
+          "operation": {
+            "name": "testQuery",
+            "kind": "Query",
+            "document": "query testQuery {\n  authorable {\n    __typename @fusion__requirement\n    author {\n      id\n      id @fusion__requirement\n      displayName\n    }\n    ... on Discussion {\n      author {\n        id\n        id @fusion__requirement\n        displayName\n      }\n    }\n  }\n}",
+            "id": "77a61d25bcbf9ac9675e65103f6dc4ed",
+            "hash": "77a61d25bcbf9ac9675e65103f6dc4ed",
+            "shortHash": "77a61d25"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "testQuery_77a61d25_1",
+                "kind": "Query",
+                "document": "query testQuery_77a61d25_1 {\n  authorable {\n    __typename\n    author {\n      id\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}",
+                "hash": "a4afa39266890103ad0891a4bfd732989fe1870f3d9c2832f0df39c7764e6003",
+                "shortHash": "a4afa392"
+              },
+              "responseNames": [
+                "authorable"
+              ]
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "testQuery_77a61d25_2",
+                "kind": "Query",
+                "document": "query testQuery_77a61d25_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}",
+                "hash": "a076a79299f4d20b827df4bded8ed4e2935e5300158e56051578b3450b866d1b",
+                "shortHash": "a076a792"
+              },
+              "responseNames": [
+                "displayName"
+              ],
+              "source": "$.authorById",
+              "target": "$.authorable\u003CDiscussion\u003E.author",
+              "requirements": [
+                {
+                  "name": "__fusion_1_id",
+                  "type": "ID!",
+                  "path": "$.authorable\u003CDiscussion\u003E.author",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                1
+              ]
+            },
+            {
+              "id": 3,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "testQuery_77a61d25_3",
+                "kind": "Query",
+                "document": "query testQuery_77a61d25_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    displayName\n  }\n}",
+                "hash": "6439c735abe95ebf766d75f47939dca60edb4c63304455522f6c13dc4c77a9fb",
+                "shortHash": "6439c735"
+              },
+              "responseNames": [
+                "displayName"
+              ],
+              "source": "$.authorById",
+              "target": "$.authorable.author",
+              "requirements": [
+                {
+                  "name": "__fusion_2_id",
+                  "type": "ID!",
+                  "path": "$.authorable.author",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                1
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface Authorable {
+        author: Author
+      }
+      
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+      
+      type Comment implements Authorable {
+        author: Author
+      }
+      
+      type Discussion implements Authorable {
+        author: Author
+      }
+      
+      type Query {
+        authorable: Authorable
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_77a61d25_1 {\n  authorable {\n    __typename\n    author {\n      id\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Author @key(fields: "id") {
+        id: ID!
+        displayName: String!
+      }
+      
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_77a61d25_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjI="}}
+        response: 
+      - request: {"query":"query testQuery_77a61d25_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    displayName\n  }\n}","variables":{"__fusion_2_id":"QXV0aG9yOjI="}}
+        response: 

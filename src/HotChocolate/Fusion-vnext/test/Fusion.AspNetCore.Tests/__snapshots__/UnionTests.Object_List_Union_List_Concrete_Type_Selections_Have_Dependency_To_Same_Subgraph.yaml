@@ -1,0 +1,265 @@
+name: Object_List_Union_List_Concrete_Type_Selections_Have_Dependency_To_Same_Subgraph
+request:
+  document: >-
+    query testQuery {
+      users {
+        posts {
+          ... on Photo {
+            product {
+              subgraph2
+            }
+          }
+          ... on Discussion {
+            author {
+              subgraph2
+            }
+          }
+        }
+      }
+    }
+response: >-
+  {
+    "data": {
+      "users": [
+        {
+          "posts": [
+            {
+              "product": {
+                "subgraph2": "Product: UHJvZHVjdDoxNQ=="
+              }
+            },
+            {
+              "author": {
+                "subgraph2": "Author: QXV0aG9yOjE0"
+              }
+            },
+            {
+              "product": {
+                "subgraph2": "Product: UHJvZHVjdDoxMw=="
+              }
+            }
+          ]
+        },
+        {
+          "posts": [
+            {
+              "product": {
+                "subgraph2": "Product: UHJvZHVjdDoxOA=="
+              }
+            },
+            {
+              "author": {
+                "subgraph2": "Author: QXV0aG9yOjE3"
+              }
+            },
+            {
+              "product": {
+                "subgraph2": "Product: UHJvZHVjdDoxNg=="
+              }
+            }
+          ]
+        },
+        {
+          "posts": [
+            {
+              "product": {
+                "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+              }
+            },
+            {
+              "author": {
+                "subgraph2": "Author: QXV0aG9yOjIw"
+              }
+            },
+            {
+              "product": {
+                "subgraph2": "Product: UHJvZHVjdDoxOQ=="
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "a8b82ff9cfc9272268adea129fff6b3fae09925722a417de58324b90fefe414a",
+          "operation": {
+            "name": "testQuery",
+            "kind": "Query",
+            "document": "query testQuery {\n  users {\n    posts {\n      __typename @fusion__requirement\n      ... on Photo {\n        product {\n          subgraph2\n          id @fusion__requirement\n        }\n      }\n      ... on Discussion {\n        author {\n          subgraph2\n          id @fusion__requirement\n        }\n      }\n    }\n  }\n}",
+            "id": "42ede54588c2356a02a9e3bfb1f8a283",
+            "hash": "42ede54588c2356a02a9e3bfb1f8a283",
+            "shortHash": "42ede545"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "testQuery_42ede545_1",
+                "kind": "Query",
+                "document": "query testQuery_42ede545_1 {\n  users {\n    posts {\n      __typename\n      ... on Photo {\n        product {\n          id\n        }\n      }\n      ... on Discussion {\n        author {\n          id\n        }\n      }\n    }\n  }\n}",
+                "hash": "a8681a5f511f2edad4c54e779db314665aa4bc5d4d15dccbf20d5af5b7f288a4",
+                "shortHash": "a8681a5f"
+              },
+              "responseNames": [
+                "users"
+              ]
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "testQuery_42ede545_2",
+                "kind": "Query",
+                "document": "query testQuery_42ede545_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}",
+                "hash": "0758311a24cf241a62d62263cbb55c8017d2a0bbf295ce00414ccb4923ae85ef",
+                "shortHash": "0758311a"
+              },
+              "responseNames": [
+                "subgraph2"
+              ],
+              "source": "$.authorById",
+              "target": "$.users.posts\u003CDiscussion\u003E.author",
+              "requirements": [
+                {
+                  "name": "__fusion_1_id",
+                  "type": "ID!",
+                  "path": "$.users.posts\u003CDiscussion\u003E.author",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                1
+              ]
+            },
+            {
+              "id": 3,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "testQuery_42ede545_3",
+                "kind": "Query",
+                "document": "query testQuery_42ede545_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}",
+                "hash": "882fbfe2bc0c7650d1b3932393830f4a0ebd57b5415d437acd6a7423b68765cf",
+                "shortHash": "882fbfe2"
+              },
+              "responseNames": [
+                "subgraph2"
+              ],
+              "source": "$.productById",
+              "target": "$.users.posts\u003CPhoto\u003E.product",
+              "requirements": [
+                {
+                  "name": "__fusion_2_id",
+                  "type": "ID!",
+                  "path": "$.users.posts\u003CPhoto\u003E.product",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                1
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+      
+      type Discussion {
+        id: ID!
+        author: Author
+      }
+      
+      type Photo {
+        id: ID!
+        product: Product
+      }
+      
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+      
+      type Query {
+        users: [User]
+      }
+      
+      type User {
+        posts: [Post]
+      }
+      
+      union Post = Photo | Discussion
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_42ede545_1 {\n  users {\n    posts {\n      __typename\n      ... on Photo {\n        product {\n          id\n        }\n      }\n      ... on Discussion {\n        author {\n          id\n        }\n      }\n    }\n  }\n}"}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Author @key(fields: "id") {
+        id: ID!
+        subgraph2: String!
+      }
+      
+      type Product @key(fields: "id") {
+        id: ID!
+        subgraph2: String!
+      }
+      
+      type Query {
+        productById(id: ID!): Product @lookup
+        authorById(id: ID!): Author @lookup
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_42ede545_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjE0"},{"__fusion_1_id":"QXV0aG9yOjE3"},{"__fusion_1_id":"QXV0aG9yOjIw"}]}
+        response: 
+      - request: {"query":"query testQuery_42ede545_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDoxNQ=="},{"__fusion_2_id":"UHJvZHVjdDoxMw=="},{"__fusion_2_id":"UHJvZHVjdDoxOA=="},{"__fusion_2_id":"UHJvZHVjdDoxNg=="},{"__fusion_2_id":"UHJvZHVjdDoyMQ=="},{"__fusion_2_id":"UHJvZHVjdDoxOQ=="}]}
+        response: 

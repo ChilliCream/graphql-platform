@@ -1,0 +1,309 @@
+name: Node_Field_Selections_On_Interface_And_Concrete_Type_Both_Have_Different_Dependencies
+request:
+  document: >-
+    query testQuery($id: ID!) {
+      node(id: $id) {
+        __typename
+        id
+        ... on ProductList {
+          products {
+            id
+            name
+          }
+        }
+        ... on Item2 {
+          singularProduct {
+            name
+          }
+        }
+      }
+    }
+  variables: >-
+    {
+      "id": "SXRlbTE6MQ=="
+    }
+response: >-
+  {
+    "data": {
+      "node": {
+        "__typename": "Item1",
+        "id": "SXRlbTE6MQ==",
+        "products": [
+          {
+            "id": "UHJvZHVjdDox",
+            "name": "Product: UHJvZHVjdDox"
+          },
+          {
+            "id": "UHJvZHVjdDoy",
+            "name": "Product: UHJvZHVjdDoy"
+          },
+          {
+            "id": "UHJvZHVjdDoz",
+            "name": "Product: UHJvZHVjdDoz"
+          }
+        ]
+      }
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "b06f29241f48495885f55b3546424d15fbf57ab61160797453953a3962a329f9",
+          "operation": {
+            "name": "testQuery",
+            "kind": "Query",
+            "document": "query testQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    id\n    ... on ProductList {\n      products {\n        id\n        id @fusion__requirement\n        name\n      }\n    }\n    ... on Item2 {\n      singularProduct {\n        name\n        id @fusion__requirement\n      }\n    }\n  }\n}",
+            "id": "f7a0a31d1db29f17823b689486c82f42",
+            "hash": "f7a0a31d1db29f17823b689486c82f42",
+            "shortHash": "f7a0a31d"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Node",
+              "idValue": "$id",
+              "responseName": "node",
+              "branches": {
+                "Item1": 6,
+                "Item2": 3
+              },
+              "fallback": 2
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "operation": {
+                "name": "testQuery_f7a0a31d_2",
+                "kind": "Query",
+                "document": "query testQuery_f7a0a31d_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    id\n  }\n}",
+                "hash": "de21fb639eaeaa58e275985ac1965eace611531648b143aa64094134c3bfe4e1",
+                "shortHash": "de21fb63"
+              },
+              "responseNames": [
+                "node"
+              ],
+              "dependencies": [
+                1
+              ]
+            },
+            {
+              "id": 3,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "testQuery_f7a0a31d_3",
+                "kind": "Query",
+                "document": "query testQuery_f7a0a31d_3(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Item2 {\n      __typename\n      id\n      products {\n        id\n      }\n      singularProduct {\n        id\n      }\n    }\n  }\n}",
+                "hash": "c3e4a4ecc49fa5487f7c2c1533bbf922f267c108200d57b8d77aba29750ffad2",
+                "shortHash": "c3e4a4ec"
+              },
+              "responseNames": [
+                "node"
+              ],
+              "dependencies": [
+                1
+              ]
+            },
+            {
+              "id": 4,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "testQuery_f7a0a31d_4",
+                "kind": "Query",
+                "document": "query testQuery_f7a0a31d_4(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}",
+                "hash": "d26d9b5ebaa177557dd4ffba406e3aeb38abd6226f061eaae3246d43b4ac7969",
+                "shortHash": "d26d9b5e"
+              },
+              "responseNames": [
+                "name"
+              ],
+              "source": "$.node\u003CProduct\u003E",
+              "target": "$.node\u003CItem2\u003E.singularProduct",
+              "requirements": [
+                {
+                  "name": "__fusion_1_id",
+                  "type": "ID!",
+                  "path": "$.node\u003CItem2\u003E.singularProduct",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                3
+              ]
+            },
+            {
+              "id": 5,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "testQuery_f7a0a31d_5",
+                "kind": "Query",
+                "document": "query testQuery_f7a0a31d_5(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}",
+                "hash": "f5845dc3c063905cf5bb1bfb162ba2e080bb781e8f3e040f29c79640d8d6ddf4",
+                "shortHash": "f5845dc3"
+              },
+              "responseNames": [
+                "name"
+              ],
+              "source": "$.node\u003CProduct\u003E",
+              "target": "$.node\u003CItem2\u003E.products",
+              "requirements": [
+                {
+                  "name": "__fusion_2_id",
+                  "type": "ID!",
+                  "path": "$.node\u003CItem2\u003E.products",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                3
+              ]
+            },
+            {
+              "id": 6,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "testQuery_f7a0a31d_6",
+                "kind": "Query",
+                "document": "query testQuery_f7a0a31d_6(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Item1 {\n      __typename\n      id\n      products {\n        id\n      }\n    }\n  }\n}",
+                "hash": "987e6879f1af81f21e354f1c81092ab12bdf6ab676a33216e2422875308b50c1",
+                "shortHash": "987e6879"
+              },
+              "responseNames": [
+                "node"
+              ],
+              "dependencies": [
+                1
+              ]
+            },
+            {
+              "id": 7,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "testQuery_f7a0a31d_7",
+                "kind": "Query",
+                "document": "query testQuery_f7a0a31d_7(\n  $__fusion_3_id: ID!\n) {\n  node(id: $__fusion_3_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}",
+                "hash": "386bc7d22117c392759998cf9a61f1929bbcc3803bfc3a6bafbb03d8b27896e1",
+                "shortHash": "386bc7d2"
+              },
+              "responseNames": [
+                "name"
+              ],
+              "source": "$.node\u003CProduct\u003E",
+              "target": "$.node\u003CItem1\u003E.products",
+              "requirements": [
+                {
+                  "name": "__fusion_3_id",
+                  "type": "ID!",
+                  "path": "$.node\u003CItem1\u003E.products",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                6
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      interface ProductList {
+        products: [Product]
+      }
+      
+      type Item1 implements Node & ProductList @key(fields: "id") {
+        id: ID!
+        products: [Product]
+      }
+      
+      type Item2 implements Node & ProductList @key(fields: "id") {
+        id: ID!
+        products: [Product]
+        singularProduct: Product
+      }
+      
+      type Product implements Node @key(fields: "id") {
+        id: ID!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_f7a0a31d_6(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Item1 {\n      __typename\n      id\n      products {\n        id\n      }\n    }\n  }\n}","variables":{"id":"SXRlbTE6MQ=="}}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Product implements Node @key(fields: "id") {
+        id: ID!
+        name: String
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_f7a0a31d_7(\n  $__fusion_3_id: ID!\n) {\n  node(id: $__fusion_3_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":[{"__fusion_3_id":"UHJvZHVjdDox"},{"__fusion_3_id":"UHJvZHVjdDoy"},{"__fusion_3_id":"UHJvZHVjdDoz"}]}
+        response: 

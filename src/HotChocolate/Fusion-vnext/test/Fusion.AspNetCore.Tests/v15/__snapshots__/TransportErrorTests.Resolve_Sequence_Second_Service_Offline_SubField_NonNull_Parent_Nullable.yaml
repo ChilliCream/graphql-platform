@@ -1,0 +1,146 @@
+name: Resolve_Sequence_Second_Service_Offline_SubField_NonNull_Parent_Nullable
+request:
+  document: >-
+    query {
+      product {
+        id
+        brand {
+          id
+          name
+        }
+      }
+    }
+response: >-
+  {
+    "data": {
+      "product": {
+        "id": "UHJvZHVjdDox",
+        "brand": null
+      }
+    },
+    "errors": [
+      {
+        "message": "Unexpected Execution Error",
+        "path": [
+          "product",
+          "brand",
+          "name"
+        ]
+      }
+    ],
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "a6271e927941ea7cd135a8582663cda40eb1573cdbb9d3c861aedd367cb7288b",
+          "operation": {
+            "kind": "Query",
+            "document": "{\n  product {\n    id\n    brand {\n      id\n      id @fusion__requirement\n      name\n    }\n  }\n}",
+            "id": "e358ecef0b90dbe58021a2df1c597e63",
+            "hash": "e358ecef0b90dbe58021a2df1c597e63",
+            "shortHash": "e358ecef"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "Op_e358ecef_1",
+                "kind": "Query",
+                "document": "query Op_e358ecef_1 {\n  product {\n    id\n    brand {\n      id\n    }\n  }\n}",
+                "hash": "36ac3de5bd2f2c016eb1aa01b78a40fcb43f445e43cc9bea8162bddddaf87a2d",
+                "shortHash": "36ac3de5"
+              },
+              "responseNames": [
+                "product"
+              ]
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "Op_e358ecef_2",
+                "kind": "Query",
+                "document": "query Op_e358ecef_2(\n  $__fusion_1_id: ID!\n) {\n  brandById(id: $__fusion_1_id) {\n    name\n  }\n}",
+                "hash": "8255c26881ab5e417903fd27dd734424787dc9bd2fdf37bdaaa911e5279a0c87",
+                "shortHash": "8255c268"
+              },
+              "responseNames": [
+                "name"
+              ],
+              "source": "$.brandById",
+              "target": "$.product.brand",
+              "requirements": [
+                {
+                  "name": "__fusion_1_id",
+                  "type": "ID!",
+                  "path": "$.product.brand",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                1
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Brand {
+        id: ID!
+      }
+      
+      type Product {
+        id: ID!
+        brand: Brand
+      }
+      
+      type Query {
+        product: Product
+      }
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query Op_e358ecef_1 {\n  product {\n    id\n    brand {\n      id\n    }\n  }\n}"}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Brand {
+        id: ID!
+        name: String!
+      }
+      
+      type Query {
+        brandById(id: ID!): Brand @lookup
+      }
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query Op_e358ecef_2(\n  $__fusion_1_id: ID!\n) {\n  brandById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":"QnJhbmQ6Mg=="}}
+        response: 

@@ -1,0 +1,159 @@
+name: Single_Mutation
+request:
+  document: >-
+    mutation {
+      a: createBook(input: { title: "Book1" }) {
+        book {
+          id
+          author
+        }
+      }
+    }
+response: >-
+  {
+    "data": {
+      "a": {
+        "book": {
+          "id": 1,
+          "author": "Abc"
+        }
+      }
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "959605bdd10546d849265f60e94a40590e9558fe69696f0dd14b83a7059c2039",
+          "operation": {
+            "kind": "Mutation",
+            "document": "mutation {\n  a: createBook(input: { title: \u0022Book1\u0022 }) {\n    book {\n      id\n      id @fusion__requirement\n      author\n    }\n  }\n}",
+            "id": "8adeedac0c987644c3244bc6ad459a3d",
+            "hash": "8adeedac0c987644c3244bc6ad459a3d",
+            "shortHash": "8adeedac"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "Op_8adeedac_1",
+                "kind": "Mutation",
+                "document": "mutation Op_8adeedac_1 {\n  a: createBook(input: { title: \u0022Book1\u0022 }) {\n    book {\n      id\n    }\n  }\n}",
+                "hash": "ed0fe40f4a8a90c497aa8d96b940c5ccfeceeec4f0774e75d27c96dee4fb51e0",
+                "shortHash": "ed0fe40f"
+              },
+              "responseNames": [
+                "a"
+              ]
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "Op_8adeedac_2",
+                "kind": "Query",
+                "document": "query Op_8adeedac_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}",
+                "hash": "ab391c70745d8f2fd34247970f2f24deb40e8f3a2c08efa2697fce435165d481",
+                "shortHash": "ab391c70"
+              },
+              "responseNames": [
+                "author"
+              ],
+              "source": "$.bookById",
+              "target": "$.a.book",
+              "requirements": [
+                {
+                  "name": "__fusion_1_id",
+                  "type": "Int!",
+                  "path": "$.a.book",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                1
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+        mutation: Mutation
+      }
+      
+      type Book {
+        id: Int!
+        title: String!
+      }
+      
+      type CreateBookPayload {
+        book: Book!
+      }
+      
+      type Mutation {
+        createBook(input: CreateBookInput!): CreateBookPayload!
+      }
+      
+      type Query {
+        foo: String!
+      }
+      
+      input CreateBookInput {
+        title: String!
+      }
+    interactions:
+      - request: {"query":"mutation Op_8adeedac_1 {\n  a: createBook(input: { title: \u0022Book1\u0022 }) {\n    book {\n      id\n    }\n  }\n}"}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Book {
+        id: Int!
+        author: String!
+      }
+      
+      type Query {
+        bookById(id: Int!): Book! @internal @lookup
+      }
+      
+      """
+      The @internal directive is used in combination with lookup fields and allows you
+      to declare internal types and fields. Internal types and fields do not appear in
+      the final client-facing composite schema and do not participate in the standard
+      schema-merging process. This allows a source schema to define lookup fields for
+      resolving entities that should not be accessible through the client-facing
+      composite schema.
+      
+      
+      
+      
+      
+      type User @internal {
+        id: ID!
+        name: String!
+      }
+                  
+      directive @internal on OBJECT | FIELD_DEFINITION
+      """
+      directive @internal on OBJECT | FIELD_DEFINITION
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+    interactions:
+      - request: {"query":"query Op_8adeedac_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}","variables":{"__fusion_1_id":1}}
+        response: 

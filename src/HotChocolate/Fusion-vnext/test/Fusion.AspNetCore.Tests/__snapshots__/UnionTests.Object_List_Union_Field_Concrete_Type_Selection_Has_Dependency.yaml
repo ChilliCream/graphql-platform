@@ -1,0 +1,253 @@
+name: Object_List_Union_Field_Concrete_Type_Selection_Has_Dependency
+request:
+  document: >-
+    query testQuery {
+      postEdges {
+        node {
+          ... on Photo {
+            product {
+              subgraph2
+            }
+          }
+          ... on Discussion {
+            author {
+              subgraph3
+            }
+          }
+        }
+      }
+    }
+response: >-
+  {
+    "data": {
+      "postEdges": [
+        {
+          "node": {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDo3"
+            }
+          }
+        },
+        {
+          "node": {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDo4"
+            }
+          }
+        },
+        {
+          "node": {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDo5"
+            }
+          }
+        }
+      ]
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "b0ba576b0db314ad1f39c40843f24cf2eff0ffe20fda804de6337ad9d07847f3",
+          "operation": {
+            "name": "testQuery",
+            "kind": "Query",
+            "document": "query testQuery {\n  postEdges {\n    node {\n      __typename @fusion__requirement\n      ... on Photo {\n        product {\n          subgraph2\n          id @fusion__requirement\n        }\n      }\n      ... on Discussion {\n        author {\n          subgraph3\n          id @fusion__requirement\n        }\n      }\n    }\n  }\n}",
+            "id": "1bceaa5dfded076569ff028d545598a4",
+            "hash": "1bceaa5dfded076569ff028d545598a4",
+            "shortHash": "1bceaa5d"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "testQuery_1bceaa5d_1",
+                "kind": "Query",
+                "document": "query testQuery_1bceaa5d_1 {\n  postEdges {\n    node {\n      __typename\n      ... on Photo {\n        product {\n          id\n        }\n      }\n      ... on Discussion {\n        author {\n          id\n        }\n      }\n    }\n  }\n}",
+                "hash": "4a68b2c217aa0f770c34dd2f7773eb105792645882a71a5d047d8b2d5fe4fd4b",
+                "shortHash": "4a68b2c2"
+              },
+              "responseNames": [
+                "postEdges"
+              ]
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "schema": "C",
+              "operation": {
+                "name": "testQuery_1bceaa5d_2",
+                "kind": "Query",
+                "document": "query testQuery_1bceaa5d_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    subgraph3\n  }\n}",
+                "hash": "e96708edc07120f3dd6127a4d6e502f7d404695754fb2013b7fb3ffe5addac2a",
+                "shortHash": "e96708ed"
+              },
+              "responseNames": [
+                "subgraph3"
+              ],
+              "source": "$.authorById",
+              "target": "$.postEdges.node\u003CDiscussion\u003E.author",
+              "requirements": [
+                {
+                  "name": "__fusion_1_id",
+                  "type": "ID!",
+                  "path": "$.postEdges.node\u003CDiscussion\u003E.author",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                1
+              ]
+            },
+            {
+              "id": 3,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "testQuery_1bceaa5d_3",
+                "kind": "Query",
+                "document": "query testQuery_1bceaa5d_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}",
+                "hash": "e98908b6cf96ba8999727f85cc920b97afdcd98f24b9c66435cfe46bf229d61f",
+                "shortHash": "e98908b6"
+              },
+              "responseNames": [
+                "subgraph2"
+              ],
+              "source": "$.productById",
+              "target": "$.postEdges.node\u003CPhoto\u003E.product",
+              "requirements": [
+                {
+                  "name": "__fusion_2_id",
+                  "type": "ID!",
+                  "path": "$.postEdges.node\u003CPhoto\u003E.product",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                1
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+      
+      type Discussion {
+        id: ID!
+        author: Author
+      }
+      
+      type Photo {
+        id: ID!
+        product: Product
+      }
+      
+      type PostEdge {
+        node: Post
+      }
+      
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+      
+      type Query {
+        postEdges: [PostEdge]
+      }
+      
+      union Post = Photo | Discussion
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_1bceaa5d_1 {\n  postEdges {\n    node {\n      __typename\n      ... on Photo {\n        product {\n          id\n        }\n      }\n      ... on Discussion {\n        author {\n          id\n        }\n      }\n    }\n  }\n}"}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Product @key(fields: "id") {
+        id: ID!
+        subgraph2: String!
+      }
+      
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_1bceaa5d_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDo3"},{"__fusion_2_id":"UHJvZHVjdDo4"},{"__fusion_2_id":"UHJvZHVjdDo5"}]}
+        response: 
+  - name: C
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Author @key(fields: "id") {
+        id: ID!
+        subgraph3: String!
+      }
+      
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet

@@ -1,0 +1,101 @@
+name: Interface_List_Field_Concrete_Type
+request:
+  document: >-
+    query testQuery {
+      votables {
+        viewerCanVote
+        ... on Discussion {
+          title
+        }
+      }
+    }
+response: >-
+  {
+    "data": {
+      "votables": [
+        {
+          "viewerCanVote": true,
+          "title": "Discussion: RGlzY3Vzc2lvbjox"
+        },
+        {
+          "viewerCanVote": true
+        },
+        {
+          "viewerCanVote": true,
+          "title": "Discussion: RGlzY3Vzc2lvbjoz"
+        }
+      ]
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "c7554a32ca5948f63b939fb78519af66b0190f6f7f4b5b9c9d22dfc939ad7c0a",
+          "operation": {
+            "name": "testQuery",
+            "kind": "Query",
+            "document": "query testQuery {\n  votables {\n    __typename @fusion__requirement\n    viewerCanVote\n    ... on Discussion {\n      title\n    }\n  }\n}",
+            "id": "00fdde4e326e6921b2781d072a80cb83",
+            "hash": "00fdde4e326e6921b2781d072a80cb83",
+            "shortHash": "00fdde4e"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "testQuery_00fdde4e_1",
+                "kind": "Query",
+                "document": "query testQuery_00fdde4e_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      title\n    }\n  }\n}",
+                "hash": "1a56882228b962f60ed7a92a63b56b02c4d90bb9b05ea5bfa48693cc4f9ca18d",
+                "shortHash": "1a568822"
+              },
+              "responseNames": [
+                "votables"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface Votable {
+        viewerCanVote: Boolean!
+      }
+      
+      type Comment implements Votable @key(fields: "id") {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+      
+      type Discussion implements Votable @key(fields: "id") {
+        id: ID!
+        viewerCanVote: Boolean!
+        title: String!
+      }
+      
+      type Query {
+        votables: [Votable]
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_00fdde4e_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      title\n    }\n  }\n}"}
+        response: 

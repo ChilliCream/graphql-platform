@@ -1,0 +1,136 @@
+name: List_Of_Abstract_Types
+request:
+  document: >-
+    {
+        abstractTypes {
+          id
+          ... on Discussion {
+            title
+          }
+          ... on Author {
+            name
+          }
+        }
+    }
+response: >-
+  {
+    "data": {
+      "abstractTypes": [
+        {
+          "id": 1,
+          "title": "Discussion 1"
+        },
+        {
+          "id": 2,
+          "name": "Author 2"
+        },
+        {
+          "id": 3
+        }
+      ]
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "54be55180c67c1da4006ec71479b058d9587500b06c0b89a987d8ccd9cf97a35",
+          "operation": {
+            "kind": "Query",
+            "document": "{\n  abstractTypes {\n    __typename @fusion__requirement\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}",
+            "id": "39311c2ef84caa365dbb7528f3c0948e",
+            "hash": "39311c2ef84caa365dbb7528f3c0948e",
+            "shortHash": "39311c2e"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "Op_39311c2e_1",
+                "kind": "Query",
+                "document": "query Op_39311c2e_1 {\n  abstractTypes {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}",
+                "hash": "d890fe24da77f3bba183baf6e8e4ad8f1b590ae17708a3c54b6db2a89a781db0",
+                "shortHash": "d890fe24"
+              },
+              "responseNames": [
+                "abstractTypes"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface SharedType {
+        id: Int!
+      }
+      
+      type Author implements SharedType {
+        id: Int!
+        name: String!
+      }
+      
+      type Discussion implements SharedType {
+        id: Int!
+        title: String!
+      }
+      
+      "A connection to a list of items."
+      type InterfaceConnectionConnection {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [InterfaceConnectionEdge!]
+        "A flattened list of the nodes."
+        nodes: [SharedType!]
+      }
+      
+      "An edge in a connection."
+      type InterfaceConnectionEdge {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: SharedType!
+      }
+      
+      "Information about pagination in a connection."
+      type PageInfo {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+      
+      type Product implements SharedType {
+        id: Int!
+      }
+      
+      type Query {
+        abstractType: SharedType!
+        otherAbstractType: SharedType!
+        abstractTypes: [SharedType!]!
+        interfaceConnection("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): InterfaceConnectionConnection
+        authorById(id: Int!): Author! @lookup
+      }
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+    interactions:
+      - request: {"query":"query Op_39311c2e_1 {\n  abstractTypes {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}"}
+        response: 

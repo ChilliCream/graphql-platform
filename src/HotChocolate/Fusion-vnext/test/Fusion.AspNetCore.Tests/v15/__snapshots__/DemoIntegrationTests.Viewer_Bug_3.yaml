@@ -1,0 +1,150 @@
+name: Viewer_Bug_3
+request:
+  document: >-
+    query {
+      viewer {
+        subgraphA
+        subgraphB
+      }
+      subgraphC {
+        someField
+        anotherField
+      }
+    }
+response: >-
+  {
+    "data": {
+      "viewer": {
+        "subgraphA": "Viewer",
+        "subgraphB": "Viewer"
+      },
+      "subgraphC": {
+        "someField": "SubgraphC: U3ViZ3JhcGhDOjE=",
+        "anotherField": "SubgraphC: U3ViZ3JhcGhDOjE="
+      }
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "1f2a99be2a613278b1773ee6f5b436be45700f47ba5fc266f2f5dca3f5ce52c8",
+          "operation": {
+            "kind": "Query",
+            "document": "{\n  viewer {\n    subgraphA\n    subgraphB\n  }\n  subgraphC {\n    someField\n    anotherField\n  }\n}",
+            "id": "dc7df637dd1675fdd7b22d5092e80eaa",
+            "hash": "dc7df637dd1675fdd7b22d5092e80eaa",
+            "shortHash": "dc7df637"
+          },
+          "searchSpace": 3,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Operation",
+              "schema": "C",
+              "operation": {
+                "name": "Op_dc7df637_1",
+                "kind": "Query",
+                "document": "query Op_dc7df637_1 {\n  subgraphC {\n    someField\n    anotherField\n  }\n}",
+                "hash": "1f92f19b7d7d2c45e170c0756b073452fdb3b337451e6e145a259bf1dda4fb38",
+                "shortHash": "1f92f19b"
+              },
+              "responseNames": [
+                "subgraphC"
+              ]
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "Op_dc7df637_2",
+                "kind": "Query",
+                "document": "query Op_dc7df637_2 {\n  viewer {\n    subgraphB\n  }\n}",
+                "hash": "7aff2ea67e96c4a910af4905dcaf74da0ed3e470c0c768d5237c7a6456d11ad5",
+                "shortHash": "7aff2ea6"
+              },
+              "responseNames": [
+                "viewer"
+              ]
+            },
+            {
+              "id": 3,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "Op_dc7df637_3",
+                "kind": "Query",
+                "document": "query Op_dc7df637_3 {\n  viewer {\n    subgraphA\n  }\n}",
+                "hash": "49610643f96f165bd770cac03302af6527343f773933ee56a7e87b49af37797d",
+                "shortHash": "49610643"
+              },
+              "responseNames": [
+                "viewer"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        viewer: Viewer!
+      }
+      
+      type Viewer {
+        subgraphA: String!
+      }
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query Op_dc7df637_3 {\n  viewer {\n    subgraphA\n  }\n}"}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        viewer: Viewer!
+      }
+      
+      type Viewer {
+        subgraphB: String!
+      }
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query Op_dc7df637_2 {\n  viewer {\n    subgraphB\n  }\n}"}
+        response: 
+  - name: C
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        subgraphC: SubgraphC!
+      }
+      
+      type SubgraphC {
+        someField: String!
+        anotherField: String!
+      }
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query Op_dc7df637_1 {\n  subgraphC {\n    someField\n    anotherField\n  }\n}"}
+        response: 

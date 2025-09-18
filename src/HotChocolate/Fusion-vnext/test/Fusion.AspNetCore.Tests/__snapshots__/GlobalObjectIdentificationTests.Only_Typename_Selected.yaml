@@ -1,0 +1,140 @@
+name: Only_Typename_Selected
+request:
+  document: >-
+    query testQuery($id: ID!) {
+      node(id: $id) {
+        __typename
+      }
+    }
+  variables: >-
+    {
+      "id": "RGlzY3Vzc2lvbjox"
+    }
+response: >-
+  {
+    "data": {
+      "node": {
+        "__typename": "Discussion"
+      }
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "97692b7c58c7518d77f31706c68082c3bbba5ee8a86cc7f5b727714651be120f",
+          "operation": {
+            "name": "testQuery",
+            "kind": "Query",
+            "document": "query testQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}",
+            "id": "539ebaa030bba518e0df8205ab40b139",
+            "hash": "539ebaa030bba518e0df8205ab40b139",
+            "shortHash": "539ebaa0"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Node",
+              "idValue": "$id",
+              "responseName": "node",
+              "branches": {},
+              "fallback": 2
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "operation": {
+                "name": "testQuery_539ebaa0_2",
+                "kind": "Query",
+                "document": "query testQuery_539ebaa0_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}",
+                "hash": "f171005ed388dc8f24525e072beda2808c58309b465dc7912bcf69fb0b789206",
+                "shortHash": "f171005e"
+              },
+              "responseNames": [
+                "node"
+              ],
+              "dependencies": [
+                1
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Discussion implements Node @key(fields: "id") {
+        id: ID!
+        title: String!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_539ebaa0_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}","variables":{"id":"RGlzY3Vzc2lvbjox"}}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Author implements Node @key(fields: "id") {
+        id: ID!
+        username: String!
+      }
+      
+      type Query {
+        authorById(id: ID!): Author @lookup
+        node(id: ID!): Node @lookup
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet

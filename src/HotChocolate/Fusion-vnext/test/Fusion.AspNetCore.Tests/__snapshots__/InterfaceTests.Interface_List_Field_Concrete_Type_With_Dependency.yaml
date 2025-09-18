@@ -1,0 +1,172 @@
+name: Interface_List_Field_Concrete_Type_With_Dependency
+request:
+  document: >-
+    query testQuery {
+      votables {
+        viewerCanVote
+        ... on Discussion {
+          viewerRating
+        }
+      }
+    }
+response: >-
+  {
+    "data": {
+      "votables": [
+        {
+          "viewerCanVote": true,
+          "viewerRating": 123.456
+        },
+        {
+          "viewerCanVote": true
+        },
+        {
+          "viewerCanVote": true,
+          "viewerRating": 123.456
+        }
+      ]
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "15ae672e8d914e8b9a644ea8e3dc542d26b2ef3f957b23e13830d6def552fda5",
+          "operation": {
+            "name": "testQuery",
+            "kind": "Query",
+            "document": "query testQuery {\n  votables {\n    __typename @fusion__requirement\n    viewerCanVote\n    ... on Discussion {\n      viewerRating\n      id @fusion__requirement\n    }\n  }\n}",
+            "id": "c8aa487a6cc92cc880c0ef61f2ea7166",
+            "hash": "c8aa487a6cc92cc880c0ef61f2ea7166",
+            "shortHash": "c8aa487a"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "testQuery_c8aa487a_1",
+                "kind": "Query",
+                "document": "query testQuery_c8aa487a_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      id\n    }\n  }\n}",
+                "hash": "54e0c00844255d444b2e27804202a9ba3074dd64cb512073a22b64d8e2d6aa13",
+                "shortHash": "54e0c008"
+              },
+              "responseNames": [
+                "votables"
+              ]
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "testQuery_c8aa487a_2",
+                "kind": "Query",
+                "document": "query testQuery_c8aa487a_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    viewerRating\n  }\n}",
+                "hash": "62ccd2aa6433113d52fb88d76b6ca7b5b19c962e40ec1a8b716c777ef003d09d",
+                "shortHash": "62ccd2aa"
+              },
+              "responseNames": [
+                "viewerRating"
+              ],
+              "source": "$.discussionById",
+              "target": "$.votables\u003CDiscussion\u003E",
+              "requirements": [
+                {
+                  "name": "__fusion_1_id",
+                  "type": "ID!",
+                  "path": "$.votables\u003CDiscussion\u003E",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                1
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface Votable {
+        viewerCanVote: Boolean!
+      }
+      
+      type Comment implements Votable @key(fields: "id") {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+      
+      type Discussion implements Votable @key(fields: "id") {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+      
+      type Query {
+        votables: [Votable]
+        discussionById(id: ID!): Discussion @lookup
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_c8aa487a_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      id\n    }\n  }\n}"}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Discussion @key(fields: "id") {
+        id: ID!
+        viewerRating: Float!
+      }
+      
+      type Query {
+        discussionById(id: ID!): Discussion @lookup
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_c8aa487a_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    viewerRating\n  }\n}","variables":[{"__fusion_1_id":"RGlzY3Vzc2lvbjox"},{"__fusion_1_id":"RGlzY3Vzc2lvbjoz"}]}
+        response: 

@@ -14,6 +14,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Language;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
@@ -53,7 +54,7 @@ public abstract class FusionTestBase : IDisposable
             services =>
             {
                 services.AddRouting();
-                var builder = services.AddGraphQLServer(schemaName);
+                var builder = services.AddGraphQLServer(schemaName, disableDefaultSecurity: true);
                 configureBuilder(builder);
                 configureServices?.Invoke(services);
 
@@ -241,7 +242,7 @@ public abstract class FusionTestBase : IDisposable
     }
 
     // TODO: We should strip fusion directive definitions from source schema text before printing
-    // TODO: Strip operation plan from response and render separately
+    // TODO: Properly print interactions and offline, etc status for source schema
     protected void MatchSnapshot(
         Gateway gateway,
         HotChocolate.Transport.OperationRequest request,
@@ -253,24 +254,16 @@ public abstract class FusionTestBase : IDisposable
         var writer = new CodeWriter(sb);
 
         writer.WriteLine("name: {0}", snapshot.Title);
+
         writer.WriteLine("request:");
         writer.Indent();
-
-        writer.WriteLine("document: >-");
-        writer.Indent();
-        WriteMultilineString(writer, request.Query!);
+        WriteOperationRequest(writer, request);
         writer.Unindent();
 
-        if (request.Variables is not null)
-        {
-            writer.WriteLine("variables: TODO");
-        }
-
-        writer.Unindent();
-
-        writer.WriteLine("response: ");
+        writer.WriteLine("response: >-");
         writer.Indent();
-
+        // TODO: Strip operation plan from response and render separately
+        WriteOperationResult(writer, response);
         writer.Unindent();
 
         writer.WriteLine("sourceSchemas:");
@@ -292,7 +285,6 @@ public abstract class FusionTestBase : IDisposable
                 writer.WriteLine("interactions:");
                 writer.Indent();
 
-                // TODO: Needs to also be able to represent transport errors or timeouts
                 foreach (var (id, requestResponse) in interactions.OrderBy(x => x.Key))
                 {
                     writer.WriteLine("- request: {0}", requestResponse.Request!);
@@ -312,6 +304,88 @@ public abstract class FusionTestBase : IDisposable
         snapshot.Add(sb.ToString());
 
         snapshot.Match();
+    }
+
+    private static void WriteOperationRequest(CodeWriter writer, HotChocolate.Transport.OperationRequest request)
+    {
+        if (request.OnError is not null && request.OnError != ErrorHandlingMode.Propagate)
+        {
+            writer.WriteLine("onError: {0}", request.OnError);
+        }
+
+        writer.WriteLine("document: >-");
+        writer.Indent();
+        WriteMultilineString(writer, request.Query!);
+        writer.Unindent();
+
+        if (request.Variables is not null)
+        {
+            writer.WriteLine("variables: >-");
+            writer.Indent();
+
+            var jsonVariables = JsonSerializer.Serialize(
+                request.Variables,
+                new JsonSerializerOptions { WriteIndented = true });
+
+            var reader = new StringReader(jsonVariables);
+            var line = reader.ReadLine();
+            while (line != null)
+            {
+                writer.WriteLine(line);
+                line = reader.ReadLine();
+            }
+
+            writer.Unindent();
+        }
+    }
+
+    private static void WriteOperationResult(CodeWriter writer, HotChocolate.Transport.OperationResult result)
+    {
+        var memoryStream = new MemoryStream();
+        using var jsonWriter = new Utf8JsonWriter(memoryStream, new JsonWriterOptions { Indented = true });
+
+        jsonWriter.WriteStartObject();
+
+        if (result.RequestIndex.HasValue)
+        {
+            jsonWriter.WriteNumber("requestIndex", result.RequestIndex.Value);
+        }
+
+        if (result.VariableIndex.HasValue)
+        {
+            jsonWriter.WriteNumber("variableIndex", result.VariableIndex.Value);
+        }
+
+        if (result.Data.ValueKind is JsonValueKind.Object)
+        {
+            jsonWriter.WritePropertyName("data");
+            result.Data.WriteTo(jsonWriter);
+        }
+
+        if (result.Errors.ValueKind is JsonValueKind.Array)
+        {
+            jsonWriter.WritePropertyName("errors");
+            result.Errors.WriteTo(jsonWriter);
+        }
+
+        if (result.Extensions.ValueKind is JsonValueKind.Object)
+        {
+            jsonWriter.WritePropertyName("extensions");
+            result.Extensions.WriteTo(jsonWriter);
+        }
+
+        jsonWriter.WriteEndObject();
+        jsonWriter.Flush();
+
+        memoryStream.Position = 0;
+
+        var reader = new StreamReader(memoryStream);
+        var line = reader.ReadLine();
+        while (line != null)
+        {
+            writer.WriteLine(line);
+            line = reader.ReadLine();
+        }
     }
 
     private static void WriteMultilineString(CodeWriter writer, string multilineString)

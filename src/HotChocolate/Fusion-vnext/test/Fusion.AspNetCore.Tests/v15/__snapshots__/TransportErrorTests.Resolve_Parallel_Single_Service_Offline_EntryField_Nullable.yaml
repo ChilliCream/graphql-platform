@@ -1,0 +1,75 @@
+name: Resolve_Parallel_Single_Service_Offline_EntryField_Nullable
+request:
+  document: >-
+    query {
+      viewer {
+        name
+      }
+    }
+response: >-
+  {
+    "data": {
+      "viewer": null
+    },
+    "errors": [
+      {
+        "message": "Unexpected Execution Error",
+        "path": [
+          "viewer"
+        ]
+      }
+    ],
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "6749c3251b2e87f0624b1c3a8de038ef4bddafad0726cdedd46d821149fe1610",
+          "operation": {
+            "kind": "Query",
+            "document": "{\n  viewer {\n    name\n  }\n}",
+            "id": "7a17934e8d91dcce72daf911b3f044f1",
+            "hash": "7a17934e8d91dcce72daf911b3f044f1",
+            "shortHash": "7a17934e"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "Op_7a17934e_1",
+                "kind": "Query",
+                "document": "query Op_7a17934e_1 {\n  viewer {\n    name\n  }\n}",
+                "hash": "d8f7f8dab6f3d904189a617769be30042dbb382deb22c0b02c924e55e4268be6",
+                "shortHash": "d8f7f8da"
+              },
+              "responseNames": [
+                "viewer"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        viewer: Viewer
+      }
+      
+      type Viewer {
+        name: String!
+      }
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query Op_7a17934e_1 {\n  viewer {\n    name\n  }\n}"}
+        response: 

@@ -1,0 +1,210 @@
+name: Abstract_Type_With_Concrete_Lookup
+request:
+  document: >-
+    {
+        abstractType {
+          id
+          ... on Discussion {
+            title
+            commentCount
+          }
+        }
+    }
+response: >-
+  {
+    "data": {
+      "abstractType": {
+        "id": 1,
+        "title": "Discussion 1",
+        "commentCount": 3
+      }
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "afc0e15cd63c8091500e4f22170d79dd3e722c79c7a4b8b22931705958388d4b",
+          "operation": {
+            "kind": "Query",
+            "document": "{\n  abstractType {\n    __typename @fusion__requirement\n    id\n    ... on Discussion {\n      title\n      commentCount\n      id @fusion__requirement\n    }\n  }\n}",
+            "id": "bf0deff65ebc6098ea48ca77515a25c9",
+            "hash": "bf0deff65ebc6098ea48ca77515a25c9",
+            "shortHash": "bf0deff6"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "Op_bf0deff6_1",
+                "kind": "Query",
+                "document": "query Op_bf0deff6_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n      id\n    }\n  }\n}",
+                "hash": "fbdf3e142755c8f68d2beaaf88f9422712cc435641b2241fa3ab08ac2d8a96dd",
+                "shortHash": "fbdf3e14"
+              },
+              "responseNames": [
+                "abstractType"
+              ]
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "Op_bf0deff6_2",
+                "kind": "Query",
+                "document": "query Op_bf0deff6_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    commentCount\n  }\n}",
+                "hash": "dc7822c133bcc3323fae835db78b85eb4ca8715c70722b2513f9ad375a173d6c",
+                "shortHash": "dc7822c1"
+              },
+              "responseNames": [
+                "commentCount"
+              ],
+              "source": "$.discussionById",
+              "target": "$.abstractType\u003CDiscussion\u003E",
+              "requirements": [
+                {
+                  "name": "__fusion_1_id",
+                  "type": "ID!",
+                  "path": "$.abstractType\u003CDiscussion\u003E",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                1
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface SharedType {
+        id: Int!
+      }
+      
+      type Author implements SharedType {
+        id: Int!
+        name: String!
+      }
+      
+      type Discussion implements SharedType {
+        id: Int!
+        title: String!
+      }
+      
+      "A connection to a list of items."
+      type InterfaceConnectionConnection {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [InterfaceConnectionEdge!]
+        "A flattened list of the nodes."
+        nodes: [SharedType!]
+      }
+      
+      "An edge in a connection."
+      type InterfaceConnectionEdge {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: SharedType!
+      }
+      
+      "Information about pagination in a connection."
+      type PageInfo {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+      
+      type Product implements SharedType {
+        id: Int!
+      }
+      
+      type Query {
+        abstractType: SharedType!
+        otherAbstractType: SharedType!
+        abstractTypes: [SharedType!]!
+        interfaceConnection("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): InterfaceConnectionConnection
+        authorById(id: Int!): Author! @lookup
+      }
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+    interactions:
+      - request: {"query":"query Op_bf0deff6_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n      id\n    }\n  }\n}"}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface OtherInterface {
+        id: Int!
+      }
+      
+      type Author implements OtherInterface {
+        id: Int!
+        age: Int!
+      }
+      
+      type Discussion {
+        id: Int!
+        commentCount: Int!
+      }
+      
+      type Query {
+        otherInterface(id: Int!): OtherInterface! @lookup
+        discussionById(id: ID!): Discussion @lookup @internal
+      }
+      
+      """
+      The @internal directive is used in combination with lookup fields and allows you
+      to declare internal types and fields. Internal types and fields do not appear in
+      the final client-facing composite schema and do not participate in the standard
+      schema-merging process. This allows a source schema to define lookup fields for
+      resolving entities that should not be accessible through the client-facing
+      composite schema.
+      
+      
+      
+      
+      
+      type User @internal {
+        id: ID!
+        name: String!
+      }
+                  
+      directive @internal on OBJECT | FIELD_DEFINITION
+      """
+      directive @internal on OBJECT | FIELD_DEFINITION
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+    interactions:
+      - request: {"query":"query Op_bf0deff6_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    commentCount\n  }\n}","variables":{"__fusion_1_id":1}}
+        response: 

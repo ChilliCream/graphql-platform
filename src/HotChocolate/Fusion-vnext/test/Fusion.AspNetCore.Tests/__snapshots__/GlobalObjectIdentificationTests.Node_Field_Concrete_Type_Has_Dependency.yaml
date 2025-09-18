@@ -1,0 +1,201 @@
+name: Node_Field_Concrete_Type_Has_Dependency
+request:
+  document: >-
+    query testQuery($id: ID!) {
+      node(id: $id) {
+        ... on Discussion {
+          name
+          commentCount
+        }
+      }
+    }
+  variables: >-
+    {
+      "id": "RGlzY3Vzc2lvbjox"
+    }
+response: >-
+  {
+    "data": {
+      "node": {
+        "name": "Discussion: RGlzY3Vzc2lvbjox",
+        "commentCount": 123
+      }
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "79acc1abb13b6a960e9c888bc6d853f0095bccab960d0a0aa5b23ed47c0409cc",
+          "operation": {
+            "name": "testQuery",
+            "kind": "Query",
+            "document": "query testQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename @fusion__requirement\n    ... on Discussion {\n      name\n      commentCount\n    }\n    id @fusion__requirement\n  }\n}",
+            "id": "6945dbcec93ca0669a6b3c1ca731d5e7",
+            "hash": "6945dbcec93ca0669a6b3c1ca731d5e7",
+            "shortHash": "6945dbce"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Node",
+              "idValue": "$id",
+              "responseName": "node",
+              "branches": {
+                "Discussion": 3
+              },
+              "fallback": 2
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "operation": {
+                "name": "testQuery_6945dbce_2",
+                "kind": "Query",
+                "document": "query testQuery_6945dbce_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}",
+                "hash": "8f9178246b7eb5b9fa066113aaad8dc63e0005dd4424f29a6f5a52b6e1f125a2",
+                "shortHash": "8f917824"
+              },
+              "responseNames": [
+                "node"
+              ],
+              "dependencies": [
+                1
+              ]
+            },
+            {
+              "id": 3,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "testQuery_6945dbce_3",
+                "kind": "Query",
+                "document": "query testQuery_6945dbce_3(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Discussion {\n      __typename\n      name\n      id\n    }\n  }\n}",
+                "hash": "5bc03b7e3b749ac7a8186815f92685526367b1813f3b4167f36324fe11f1be3f",
+                "shortHash": "5bc03b7e"
+              },
+              "responseNames": [
+                "node"
+              ],
+              "dependencies": [
+                1
+              ]
+            },
+            {
+              "id": 4,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "testQuery_6945dbce_4",
+                "kind": "Query",
+                "document": "query testQuery_6945dbce_4(\n  $__fusion_1_discussionId: ID!\n) {\n  discussionById(discussionId: $__fusion_1_discussionId) {\n    commentCount\n  }\n}",
+                "hash": "15e38775630cf8efc11b82fefa4a89dc7b2ec1c76f5d26206b169e152e4ebe9f",
+                "shortHash": "15e38775"
+              },
+              "responseNames": [
+                "commentCount"
+              ],
+              "source": "$.discussionById",
+              "target": "$.node\u003CDiscussion\u003E",
+              "requirements": [
+                {
+                  "name": "__fusion_1_discussionId",
+                  "type": "ID!",
+                  "path": "$.node\u003CDiscussion\u003E",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                3
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Discussion implements Node @key(fields: "id") {
+        id: ID!
+        name: String
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_6945dbce_3(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Discussion {\n      __typename\n      name\n      id\n    }\n  }\n}","variables":{"id":"RGlzY3Vzc2lvbjox"}}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Discussion implements Node @key(fields: "id") {
+        id: ID!
+        commentCount: Int
+      }
+      
+      type Query {
+        discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+      }
+      
+      """
+      The @is directive is utilized on lookup fields to describe how the arguments
+      can be mapped from the entity type that the lookup field resolves.
+      """
+      directive @is("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_6945dbce_4(\n  $__fusion_1_discussionId: ID!\n) {\n  discussionById(discussionId: $__fusion_1_discussionId) {\n    commentCount\n  }\n}","variables":{"__fusion_1_discussionId":"RGlzY3Vzc2lvbjox"}}
+        response: 

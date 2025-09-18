@@ -8,6 +8,7 @@ using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion;
 
+// TODO: Update to print request
 public class SourceSchemaErrorTests : FusionTestBase
 {
     #region Root

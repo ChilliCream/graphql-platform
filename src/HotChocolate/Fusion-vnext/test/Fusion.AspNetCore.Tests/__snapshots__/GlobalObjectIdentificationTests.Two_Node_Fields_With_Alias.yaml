@@ -1,0 +1,241 @@
+name: Two_Node_Fields_With_Alias
+request:
+  document: >-
+    {
+      # Discussion:1
+      a: node(id: "RGlzY3Vzc2lvbjox") {
+        ... on Discussion {
+          title
+        }
+      }
+      # Discussion:2
+      b: node(id: "RGlzY3Vzc2lvbjoy") {
+        ... on Discussion {
+          title
+          commentCount
+        }
+      }
+    }
+response: >-
+  {
+    "data": {
+      "a": {
+        "title": "Discussion: RGlzY3Vzc2lvbjox"
+      },
+      "b": {
+        "title": "Discussion: RGlzY3Vzc2lvbjoy",
+        "commentCount": 123
+      }
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "c8b177adf7b13feb7008465b4c31001b2098b9d6e0491bd705a93336554e8b7d",
+          "operation": {
+            "kind": "Query",
+            "document": "{\n  a: node(id: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n    }\n  }\n  b: node(id: \u0022RGlzY3Vzc2lvbjoy\u0022) {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n      commentCount\n    }\n    id @fusion__requirement\n  }\n}",
+            "id": "a361113ff8d3c2a57d63e65e469e73a7",
+            "hash": "a361113ff8d3c2a57d63e65e469e73a7",
+            "shortHash": "a361113f"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Node",
+              "idValue": "\u0022RGlzY3Vzc2lvbjoy\u0022",
+              "responseName": "b",
+              "branches": {
+                "Discussion": 3
+              },
+              "fallback": 2
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "operation": {
+                "name": "Op_a361113f_2",
+                "kind": "Query",
+                "document": "query Op_a361113f_2 {\n  b: node(id: \u0022RGlzY3Vzc2lvbjoy\u0022) {\n    __typename\n  }\n}",
+                "hash": "cd3c5cd5e9a983e974b1fa5b9567ef06c674f1d815bd2a21b5f773570ba2a8b8",
+                "shortHash": "cd3c5cd5"
+              },
+              "responseNames": [
+                "b"
+              ],
+              "dependencies": [
+                1
+              ]
+            },
+            {
+              "id": 3,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "Op_a361113f_3",
+                "kind": "Query",
+                "document": "query Op_a361113f_3 {\n  b: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjoy\u0022) {\n    __typename\n    title\n    id\n  }\n}",
+                "hash": "483d5442fbe6c92b6a8fd99a20314b5118008686f770e4c2d0bba042436e1aa0",
+                "shortHash": "483d5442"
+              },
+              "responseNames": [
+                "b"
+              ],
+              "dependencies": [
+                1
+              ]
+            },
+            {
+              "id": 4,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "Op_a361113f_4",
+                "kind": "Query",
+                "document": "query Op_a361113f_4(\n  $__fusion_1_id: ID!\n) {\n  discussion(id: $__fusion_1_id) {\n    commentCount\n  }\n}",
+                "hash": "a9a94e2b7ec5f478de66d0b5a67f2ba87de95d0256947066244bab797858da84",
+                "shortHash": "a9a94e2b"
+              },
+              "responseNames": [
+                "commentCount"
+              ],
+              "source": "$.discussion",
+              "target": "$.b\u003CDiscussion\u003E",
+              "requirements": [
+                {
+                  "name": "__fusion_1_id",
+                  "type": "ID!",
+                  "path": "$.b\u003CDiscussion\u003E",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                3
+              ]
+            },
+            {
+              "id": 5,
+              "type": "Node",
+              "idValue": "\u0022RGlzY3Vzc2lvbjox\u0022",
+              "responseName": "a",
+              "branches": {
+                "Discussion": 7
+              },
+              "fallback": 6
+            },
+            {
+              "id": 6,
+              "type": "Operation",
+              "operation": {
+                "name": "Op_a361113f_6",
+                "kind": "Query",
+                "document": "query Op_a361113f_6 {\n  a: node(id: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n  }\n}",
+                "hash": "404f98d9f7838aec56073a27e4270d51e74c71c9e9268883c5c247be076609d2",
+                "shortHash": "404f98d9"
+              },
+              "responseNames": [
+                "a"
+              ],
+              "dependencies": [
+                5
+              ]
+            },
+            {
+              "id": 7,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "Op_a361113f_7",
+                "kind": "Query",
+                "document": "query Op_a361113f_7 {\n  a: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n    title\n  }\n}",
+                "hash": "5caa572d6065b80271596f0c34523bf498766b7dadf140cf54e1e647df876925",
+                "shortHash": "5caa572d"
+              },
+              "responseNames": [
+                "a"
+              ],
+              "dependencies": [
+                5
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Discussion implements Node {
+        id: ID!
+        title: String!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+        discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+      }
+      
+      """
+      The @is directive is utilized on lookup fields to describe how the arguments
+      can be mapped from the entity type that the lookup field resolves.
+      """
+      directive @is("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query Op_a361113f_3 {\n  b: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjoy\u0022) {\n    __typename\n    title\n    id\n  }\n}"}
+        response: 
+      - request: {"query":"query Op_a361113f_7 {\n  a: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n    title\n  }\n}"}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Discussion implements Node {
+        id: ID!
+        commentCount: Int!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+        discussion(id: ID!): Discussion @lookup
+      }
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query Op_a361113f_4(\n  $__fusion_1_id: ID!\n) {\n  discussion(id: $__fusion_1_id) {\n    commentCount\n  }\n}","variables":{"__fusion_1_id":"RGlzY3Vzc2lvbjoy"}}
+        response: 

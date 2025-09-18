@@ -1,0 +1,244 @@
+name: Union_List_Concrete_Type_Selection_Has_Dependency
+request:
+  document: >-
+    query testQuery {
+      posts {
+        ... on Photo {
+          product {
+            subgraph2
+          }
+        }
+        ... on Discussion {
+          author {
+            subgraph3
+          }
+        }
+      }
+    }
+response: >-
+  {
+    "data": {
+      "posts": [
+        {
+          "product": {
+            "subgraph2": "Product: UHJvZHVjdDo2"
+          }
+        },
+        {
+          "author": {
+            "subgraph3": "Author: QXV0aG9yOjU="
+          }
+        },
+        {
+          "product": {
+            "subgraph2": "Product: UHJvZHVjdDo0"
+          }
+        }
+      ]
+    },
+    "extensions": {
+      "fusion": {
+        "operationPlan": {
+          "id": "867448a85e6d5f2e67d14758b2219b00d5a6cb7bf77d08c1ab938009a5b8588f",
+          "operation": {
+            "name": "testQuery",
+            "kind": "Query",
+            "document": "query testQuery {\n  posts {\n    __typename @fusion__requirement\n    ... on Photo {\n      product {\n        subgraph2\n        id @fusion__requirement\n      }\n    }\n    ... on Discussion {\n      author {\n        subgraph3\n        id @fusion__requirement\n      }\n    }\n  }\n}",
+            "id": "c164a236fc35b156db3c4c5634499687",
+            "hash": "c164a236fc35b156db3c4c5634499687",
+            "shortHash": "c164a236"
+          },
+          "searchSpace": 1,
+          "nodes": [
+            {
+              "id": 1,
+              "type": "Operation",
+              "schema": "A",
+              "operation": {
+                "name": "testQuery_c164a236_1",
+                "kind": "Query",
+                "document": "query testQuery_c164a236_1 {\n  posts {\n    __typename\n    ... on Photo {\n      product {\n        id\n      }\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}",
+                "hash": "d5c24c1e7bc924ef22c9c16905db835d674136eea4c3183be318746a6940f0c6",
+                "shortHash": "d5c24c1e"
+              },
+              "responseNames": [
+                "posts"
+              ]
+            },
+            {
+              "id": 2,
+              "type": "Operation",
+              "schema": "C",
+              "operation": {
+                "name": "testQuery_c164a236_2",
+                "kind": "Query",
+                "document": "query testQuery_c164a236_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    subgraph3\n  }\n}",
+                "hash": "99a286bfbb4679138e7d0efe955e75816cc152ff89f4a772934333042e591b12",
+                "shortHash": "99a286bf"
+              },
+              "responseNames": [
+                "subgraph3"
+              ],
+              "source": "$.authorById",
+              "target": "$.posts\u003CDiscussion\u003E.author",
+              "requirements": [
+                {
+                  "name": "__fusion_1_id",
+                  "type": "ID!",
+                  "path": "$.posts\u003CDiscussion\u003E.author",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                1
+              ]
+            },
+            {
+              "id": 3,
+              "type": "Operation",
+              "schema": "B",
+              "operation": {
+                "name": "testQuery_c164a236_3",
+                "kind": "Query",
+                "document": "query testQuery_c164a236_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}",
+                "hash": "9a9ebb4505a2377302c871186c4e2533f30542a5dd85909f755661179247adae",
+                "shortHash": "9a9ebb45"
+              },
+              "responseNames": [
+                "subgraph2"
+              ],
+              "source": "$.productById",
+              "target": "$.posts\u003CPhoto\u003E.product",
+              "requirements": [
+                {
+                  "name": "__fusion_2_id",
+                  "type": "ID!",
+                  "path": "$.posts\u003CPhoto\u003E.product",
+                  "selectionMap": "id"
+                }
+              ],
+              "forwardedVariables": [],
+              "dependencies": [
+                1
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+      
+      type Discussion {
+        id: ID!
+        author: Author
+      }
+      
+      type Photo {
+        id: ID!
+        product: Product
+      }
+      
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+      
+      type Query {
+        posts: [Post]
+      }
+      
+      union Post = Photo | Discussion
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_c164a236_1 {\n  posts {\n    __typename\n    ... on Photo {\n      product {\n        id\n      }\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
+        response: 
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Product @key(fields: "id") {
+        id: ID!
+        subgraph2: String!
+      }
+      
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_c164a236_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDo2"},{"__fusion_2_id":"UHJvZHVjdDo0"}]}
+        response: 
+  - name: C
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Author @key(fields: "id") {
+        id: ID!
+        subgraph3: String!
+      }
+      
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+      
+      """
+      The @key directive is used to designate an entity's unique key,
+      which identifies how to uniquely reference an instance of
+      an entity across different source schemas.
+      """
+      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+      
+      """
+      The @lookup directive is used within a source schema to specify output fields
+      that can be used by the distributed GraphQL executor to resolve an entity by
+      a stable key.
+      """
+      directive @lookup on FIELD_DEFINITION
+      
+      scalar FieldSelectionMap
+      
+      scalar FieldSelectionSet
+    interactions:
+      - request: {"query":"query testQuery_c164a236_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    subgraph3\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjU="}}
+        response: 
