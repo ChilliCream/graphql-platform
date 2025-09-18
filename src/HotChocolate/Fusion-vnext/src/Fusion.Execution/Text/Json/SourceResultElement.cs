@@ -2,9 +2,11 @@ using System.Diagnostics;
 using System.Text.Json;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
+#pragma warning disable CS1574, CS1584, CS1581, CS1580
+
 namespace HotChocolate.Fusion.Text.Json;
 
-internal readonly struct SourceResultElement
+public readonly struct SourceResultElement
 {
     internal readonly SourceResultDocument _parent;
     internal readonly int _index;
@@ -24,7 +26,7 @@ internal readonly struct SourceResultElement
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private JsonTokenType TokenType => _parent?.GetElementTokenType(_index) ?? JsonTokenType.None;
+    internal JsonTokenType TokenType => _parent?.GetElementTokenType(_index) ?? JsonTokenType.None;
 
     /// <summary>
     /// The <see cref="JsonValueKind"/> that the value is.
@@ -376,7 +378,7 @@ internal readonly struct SourceResultElement
     {
         CheckValidInstance();
 
-        return _parent.GetString(_index, ElementTokenType.String);
+        return _parent.GetString(_index, JsonTokenType.String);
     }
 
     /// <summary>
@@ -394,11 +396,7 @@ internal readonly struct SourceResultElement
     /// </exception>
     /// <seealso cref="ToString"/>
     public string GetRequiredString()
-    {
-        CheckValidInstance();
-
-        return _parent.GetRequiredString(_index, ElementTokenType.String);
-    }
+        => GetString() ?? throw new InvalidOperationException("The element value is null.");
 
     /// <summary>
     ///   Attempts to represent the current JSON number as an <see cref="sbyte"/>.
@@ -999,21 +997,21 @@ internal readonly struct SourceResultElement
         return _parent.GetRawValueAsString(_index);
     }
 
-    internal ReadOnlyMemory<byte> GetRawValue()
-    {
-        CheckValidInstance();
-
-        return _parent.GetRawValue(_index, includeQuotes: true);
-    }
-
     internal ReadOnlySpan<byte> ValueSpan
     {
         get
         {
             CheckValidInstance();
 
-            return _parent.GetRawValue(_index, includeQuotes: false).Span;
+            return _parent.GetRawValue(_index, includeQuotes: false);
         }
+    }
+
+    internal ValueRange GetValuePointer()
+    {
+        CheckValidInstance();
+
+        return _parent.GetRawValuePointer(_index, includeQuotes: true);
     }
 
     /// <summary>
@@ -1035,7 +1033,7 @@ internal readonly struct SourceResultElement
     {
         // CheckValidInstance is done in the helper
 
-        if (TokenType == ElementTokenType.Null)
+        if (TokenType == JsonTokenType.Null)
         {
             return text == null;
         }
@@ -1063,7 +1061,7 @@ internal readonly struct SourceResultElement
     {
         // CheckValidInstance is done in the helper
 
-        if (TokenType == ElementTokenType.Null)
+        if (TokenType == JsonTokenType.Null)
         {
             // This is different from Length == 0, in that it tests true for null, but false for ""
 #pragma warning disable CA2265
@@ -1093,7 +1091,7 @@ internal readonly struct SourceResultElement
     {
         // CheckValidInstance is done in the helper
 
-        if (TokenType == ElementTokenType.Null)
+        if (TokenType == JsonTokenType.Null)
         {
             // This is different than Length == 0, in that it tests true for null, but false for ""
 #pragma warning disable CA2265
@@ -1137,11 +1135,11 @@ internal readonly struct SourceResultElement
 
         var tokenType = TokenType;
 
-        if (tokenType != ElementTokenType.StartArray)
+        if (tokenType != JsonTokenType.StartArray)
         {
             throw new InvalidOperationException(string.Format(
                 "The requested operation requires an element of type '{0}', but the target element has type '{1}'.",
-                ElementTokenType.StartArray,
+                JsonTokenType.StartArray,
                 tokenType))
             {
                 Source = Rethrowable

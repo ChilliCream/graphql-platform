@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Buffers.Text;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
@@ -11,6 +12,7 @@ internal static class JsonReaderHelper
 {
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static JsonValueKind ToValueKind(this ElementTokenType tokenType)
     {
         switch (tokenType)
@@ -35,6 +37,41 @@ internal static class JsonReaderHelper
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ElementTokenType ToElementTokenType(this JsonTokenType tokenType)
+    {
+        switch (tokenType)
+        {
+            case JsonTokenType.None:
+                return ElementTokenType.None;
+            case JsonTokenType.StartArray:
+                return ElementTokenType.StartArray;
+            case JsonTokenType.EndArray:
+                return ElementTokenType.EndArray;
+            case JsonTokenType.StartObject:
+                return ElementTokenType.StartObject;
+            case JsonTokenType.EndObject:
+                return ElementTokenType.EndObject;
+            case JsonTokenType.PropertyName:
+                return ElementTokenType.PropertyName;
+            case JsonTokenType.Comment:
+                return ElementTokenType.Comment;
+            case JsonTokenType.String:
+                return ElementTokenType.String;
+            case JsonTokenType.Number:
+                return ElementTokenType.Number;
+            case JsonTokenType.True:
+                return ElementTokenType.True;
+            case JsonTokenType.False:
+                return ElementTokenType.False;
+            case JsonTokenType.Null:
+                return ElementTokenType.Null;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, null);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static JsonValueKind ToValueKind(this JsonTokenType tokenType)
     {
         switch (tokenType)
@@ -65,17 +102,17 @@ internal static class JsonReaderHelper
 
         byte[]? unescapedArray = null;
 
-        Span<byte> utf8Unescaped = utf8Source.Length <= JsonConstants.StackallocByteThreshold ?
+        var utf8Unescaped = utf8Source.Length <= JsonConstants.StackallocByteThreshold ?
             stackalloc byte[JsonConstants.StackallocByteThreshold] :
             (unescapedArray = ArrayPool<byte>.Shared.Rent(utf8Source.Length));
 
-        Unescape(utf8Source, utf8Unescaped, 0, out int written);
+        Unescape(utf8Source, utf8Unescaped, 0, out var written);
         Debug.Assert(written > 0);
 
         utf8Unescaped = utf8Unescaped.Slice(0, written);
         Debug.Assert(!utf8Unescaped.IsEmpty);
 
-        bool result = other.SequenceEqual(utf8Unescaped);
+        var result = other.SequenceEqual(utf8Unescaped);
 
         if (unescapedArray != null)
         {
@@ -90,20 +127,20 @@ internal static class JsonReaderHelper
     public static string GetUnescapedString(ReadOnlySpan<byte> utf8Source)
     {
         // The escaped name is always >= than the unescaped, so it is safe to use escaped name for the buffer length.
-        int length = utf8Source.Length;
+        var length = utf8Source.Length;
         byte[]? pooledName = null;
 
-        Span<byte> utf8Unescaped = length <= JsonConstants.StackallocByteThreshold ?
+        var utf8Unescaped = length <= JsonConstants.StackallocByteThreshold ?
             stackalloc byte[JsonConstants.StackallocByteThreshold] :
             (pooledName = ArrayPool<byte>.Shared.Rent(length));
 
-        Unescape(utf8Source, utf8Unescaped, out int written);
+        Unescape(utf8Source, utf8Unescaped, out var written);
         Debug.Assert(written > 0);
 
         utf8Unescaped = utf8Unescaped.Slice(0, written);
         Debug.Assert(!utf8Unescaped.IsEmpty);
 
-        string utf8String = TranscodeHelper(utf8Unescaped);
+        var utf8String = TranscodeHelper(utf8Unescaped);
 
         if (pooledName != null)
         {

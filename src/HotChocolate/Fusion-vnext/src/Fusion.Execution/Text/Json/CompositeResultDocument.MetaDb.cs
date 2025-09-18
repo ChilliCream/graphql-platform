@@ -160,6 +160,27 @@ public sealed partial class CompositeResultDocument
             return MemoryMarshal.Read<DbRow>(_chunks[chunkIndex].AsSpan(localOffset));
         }
 
+        internal int GetParentRow(int index)
+        {
+            Debug.Assert(index >= 0);
+            Debug.Assert(index < Length / DbRow.Size, "Index out of bounds");
+
+            // Convert row index to byte offset
+            var byteOffset = index * DbRow.Size;
+            var chunkIndex = byteOffset / ChunkSize;
+            var localOffset = byteOffset % ChunkSize;
+
+            Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
+            Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
+
+            // Read the two fields that contain the ParentRow bits
+            var sourceAndParentHigh = MemoryMarshal.Read<int>(_chunks[chunkIndex].AsSpan(localOffset + 12)); // Offset to 4th field
+            var selectionSetFlagsAndParentLow = MemoryMarshal.Read<int>(_chunks[chunkIndex].AsSpan(localOffset + 16)); // Offset to 5th field
+
+            // Reconstruct ParentRow from high and low bits (same logic as DbRow property)
+            return ((int)((uint)sourceAndParentHigh >> 15) << 11) | ((selectionSetFlagsAndParentLow >> 21) & 0x7FF);
+        }
+
         internal ElementTokenType GetElementTokenType(int index)
         {
             // We convert the row index back into a byte offset that we can

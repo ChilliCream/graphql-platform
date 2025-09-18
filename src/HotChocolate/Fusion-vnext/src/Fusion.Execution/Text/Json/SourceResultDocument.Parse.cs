@@ -35,12 +35,11 @@ public sealed partial class SourceResultDocument
         var sequence = new ReadOnlySequence<byte>(first, 0, previous, lastLength);
         var reader = new Utf8JsonReader(sequence, options);
 
-        // Estimate based on JSON size - roughly one token per 12 bytes
         var totalBytes = CalculateTotalBytes(dataChunks, lastLength);
         var estimatedTokens = Math.Max(totalBytes / 12, 100);
         var metaDb = MetaDb.CreateForEstimatedRows(estimatedTokens);
 
-        var containerStack = new Stack<int>(); // Track open containers (StartObject/StartArray)
+        var containerStack = new Stack<int>();
 
         try
         {
@@ -48,7 +47,7 @@ public sealed partial class SourceResultDocument
             {
                 var tokenType = reader.TokenType;
                 var startLocation = (int)reader.TokenStartIndex;
-                var tokenLength = (int)(reader.BytesConsumed - reader.TokenStartIndex);
+                var tokenLength = CalculateTokenLength(reader, tokenType);
 
                 switch (tokenType)
                 {
@@ -58,7 +57,8 @@ public sealed partial class SourceResultDocument
                         break;
 
                     case JsonTokenType.EndObject:
-                        CloseContainer(ref metaDb, containerStack, JsonTokenType.StartObject, startLocation, tokenLength);
+                        CloseContainer(ref metaDb, containerStack, JsonTokenType.StartObject, startLocation,
+                            tokenLength);
                         break;
 
                     case JsonTokenType.StartArray:
@@ -67,7 +67,8 @@ public sealed partial class SourceResultDocument
                         break;
 
                     case JsonTokenType.EndArray:
-                        CloseContainer(ref metaDb, containerStack, JsonTokenType.StartArray, startLocation, tokenLength);
+                        CloseContainer(ref metaDb, containerStack, JsonTokenType.StartArray, startLocation,
+                            tokenLength);
                         break;
 
                     case JsonTokenType.PropertyName:
@@ -97,8 +98,20 @@ public sealed partial class SourceResultDocument
         }
 
         Debug.Assert(containerStack.Count == 0, "Unclosed containers remain");
-
         return new SourceResultDocument(metaDb, dataChunks);
+    }
+
+    private static int CalculateTokenLength(Utf8JsonReader reader, JsonTokenType tokenType)
+    {
+        var totalLength = (int)(reader.BytesConsumed - reader.TokenStartIndex);
+
+        if (tokenType == JsonTokenType.PropertyName)
+        {
+            // Remove the colon
+            return totalLength - 1;
+        }
+
+        return totalLength;
     }
 
     private static int AppendContainer(ref MetaDb metaDb, JsonTokenType tokenType, int startLocation)
@@ -127,16 +140,24 @@ public sealed partial class SourceResultDocument
         }
 
         // Add the EndObject/EndArray token
-        metaDb.Append(expectedStartType == JsonTokenType.StartObject ? JsonTokenType.EndObject : JsonTokenType.EndArray,
-            startLocation, tokenLength);
+        var endTokenType = expectedStartType == JsonTokenType.StartObject
+            ? JsonTokenType.EndObject
+            : JsonTokenType.EndArray;
+        metaDb.Append(endTokenType, startLocation, tokenLength);
 
-        // Calculate how many elements are in this container
+        // Calculate how many rows are in this container (including start/end tokens)
         var rowsInContainer = (metaDb.Length - containerIndex) / DbRow.Size;
         var elementCount = CalculateElementCount(containerRow.TokenType, rowsInContainer);
 
-        // Update the container with actual element count and row span
+        // Update the StartObject/StartArray with actual element count and forward skip count
         metaDb.SetLength(containerIndex, elementCount);
         metaDb.SetNumberOfRows(containerIndex, rowsInContainer);
+
+        // Update the EndObject/EndArray with backward skip count (Microsoft's approach)
+        var endTokenIndex = metaDb.Length - DbRow.Size;
+        // Skip back to previous element before this container
+        var backwardSkipCount = rowsInContainer - 1;
+        metaDb.SetNumberOfRows(endTokenIndex, backwardSkipCount);
 
         // Check if this container has complex children (nested objects/arrays)
         if (ContainsComplexChildren(ref metaDb, containerIndex, metaDb.Length))
@@ -145,19 +166,18 @@ public sealed partial class SourceResultDocument
         }
     }
 
-    private static void AppendStringToken(ref MetaDb metaDb, JsonTokenType tokenType, int startLocation, int tokenLength,
-        Utf8JsonReader reader)
+    private static void AppendStringToken(ref MetaDb metaDb, JsonTokenType tokenType, int startLocation,
+        int tokenLength, Utf8JsonReader reader)
     {
-        metaDb.Append(tokenType, startLocation, tokenLength);
+        // For strings, skip the opening quote and reduce length to exclude both quotes
+        var adjustedLocation = startLocation + 1;
+        var adjustedLength = tokenLength - 2;
 
-        // Check if the string requires unescaping by comparing the span with the value
-        // If they differ, it means there are escape sequences
-        // -2 for quotes
-        if (reader.ValueSpan.Length != tokenLength - 2 || ContainsEscapeSequences(reader.ValueSpan))
+        metaDb.Append(tokenType, adjustedLocation, adjustedLength);
+
+        if (reader.ValueSpan.Length != adjustedLength || ContainsEscapeSequences(reader.ValueSpan))
         {
             var currentIndex = metaDb.Length - DbRow.Size;
-
-            // Use ComplexChildren flag for "needs unescaping"
             metaDb.SetHasComplexChildren(currentIndex);
         }
     }
@@ -181,12 +201,12 @@ public sealed partial class SourceResultDocument
         if (containerType == JsonTokenType.StartObject)
         {
             // For objects: count property name + value pairs, minus start/end tokens
-            return (totalRows - 2) / 2; // Each property is PropertyName + Value
+            return (totalRows - 2) / 2;
         }
-        else // StartArray
+        else
         {
             // For arrays: count all non-container tokens, minus start/end tokens
-            return totalRows - 2; // Simple count for now - could be more sophisticated
+            return totalRows - 2;
         }
     }
 

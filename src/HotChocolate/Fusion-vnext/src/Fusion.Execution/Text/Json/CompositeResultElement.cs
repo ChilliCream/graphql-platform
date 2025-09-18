@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
+
 #pragma warning disable CS1574, CS1584, CS1581, CS1580
 
 namespace HotChocolate.Fusion.Text.Json;

@@ -26,7 +26,7 @@ public sealed partial class SourceResultDocument
 
         var maxBytes = s_utf8Encoding.GetMaxByteCount(propertyName.Length);
         var startIndex = index + DbRow.Size;
-        var endIndex = checked(row.NumberOfRows * DbRow.Size + index);
+        var endIndex = checked((row.NumberOfRows * DbRow.Size) + index) - DbRow.Size;
 
         if (maxBytes < JsonConstants.StackallocByteThreshold)
         {

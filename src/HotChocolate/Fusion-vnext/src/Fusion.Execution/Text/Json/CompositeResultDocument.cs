@@ -125,7 +125,7 @@ public sealed partial class CompositeResultDocument
         // change to int
         var index = WriteStartObject(
             parentRow,
-            (int)selectionSet.Id,
+            selectionSet.Id,
             selectionSet.Selections.Length);
 
         foreach (var selection in selectionSet.Selections)
@@ -141,13 +141,15 @@ public sealed partial class CompositeResultDocument
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteLeaveValue(CompositeResultElement target, SourceResultElement source)
     {
+        var value = source.GetValuePointer();
+
         _metaDb.Replace(
             index: target.MetadataDbIndex,
-            tokenType: source.TokenType,
-            location: source._index,
-            sizeOrLength: source.Size,
+            tokenType: source.TokenType.ToElementTokenType(),
+            location: value.Location,
+            sizeOrLength: value.Size,
             sourceDocumentId: source._parent.Id,
-            parentRow: _metaDb.Get(target.MetadataDbIndex).ParentRow);
+            parentRow: _metaDb.GetParentRow(target.MetadataDbIndex));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -236,4 +238,10 @@ internal static class MetaDbConstants
     // 6552 rows × 20 bytes
     public const int ChunkSize = RowsPerChunk * CompositeResultDocument.DbRow.Size;
     public const int RowsPerChunk = 6552;
+}
+
+internal readonly ref struct ValueRange(int location, int size)
+{
+    public int Location { get; } = location;
+    public int Size { get; } = size;
 }

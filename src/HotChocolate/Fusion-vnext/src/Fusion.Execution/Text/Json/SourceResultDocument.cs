@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
-public sealed partial class SourceResultDocument
+public sealed partial class SourceResultDocument : IDisposable
 {
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
     private MetaDb _parsedData;
@@ -16,9 +16,12 @@ public sealed partial class SourceResultDocument
     {
         _parsedData = parsedData;
         _dataChunks = dataChunks;
+        Root = new SourceResultElement(this, 0);
     }
 
-    internal int Id;
+    internal int Id { get; set; } = -1;
+
+    public SourceResultElement Root { get; private set; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal JsonTokenType GetElementTokenType(int index)
@@ -95,14 +98,64 @@ public sealed partial class SourceResultDocument
         throw new IndexOutOfRangeException();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ReadOnlySpan<byte> ReadRawValue(DbRow row)
-        => throw new NotImplementedException();
+        => ReadRawValue(row.Location, row.SizeOrLength);
+
+    private ReadOnlySpan<byte> ReadRawValue(int location, int size)
+    {
+        const int chunkSize = 128 * 1024;
+
+        // Calculate which chunk contains the start of our data
+        var startChunkIndex = location / chunkSize;
+        var offsetInStartChunk = location % chunkSize;
+
+        // Fast path: Value fits entirely within one chunk
+        if (offsetInStartChunk + size <= chunkSize)
+        {
+            return _dataChunks[startChunkIndex].AsSpan(offsetInStartChunk, size);
+        }
+
+        // TODO : we need to use pooled memory in this case.
+        // TODO : also we should measure how often we end up here
+        // Slow path: Value spans across multiple chunks - create temporary array
+        var tempArray = new byte[size];
+        var bytesRead = 0;
+        var currentLocation = location;
+
+        while (bytesRead < size)
+        {
+            var chunkIndex = currentLocation / chunkSize;
+            var offsetInChunk = currentLocation % chunkSize;
+            var chunk = _dataChunks[chunkIndex];
+
+            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, chunkSize - offsetInChunk);
+
+            chunk.AsSpan(offsetInChunk, bytesToCopyFromThisChunk)
+                .CopyTo(tempArray.AsSpan(bytesRead));
+
+            bytesRead += bytesToCopyFromThisChunk;
+            currentLocation += bytesToCopyFromThisChunk;
+        }
+
+        return tempArray;
+    }
 
     private static void CheckExpectedType(JsonTokenType expected, JsonTokenType actual)
     {
         if (expected != actual)
         {
             throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            // TODO : implement
+
+            _disposed = true;
         }
     }
 }

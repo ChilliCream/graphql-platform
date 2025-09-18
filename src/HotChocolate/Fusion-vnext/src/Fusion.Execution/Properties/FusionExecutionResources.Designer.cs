@@ -51,6 +51,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
         
+        internal static string SourceResultElement_GetBoolean_JsonElementHasWrongType {
+            get {
+                return ResourceManager.GetString("SourceResultElement_GetBoolean_JsonElementHasWrongType", resourceCulture);
+            }
+        }
+        
         internal static string Rethrowable {
             get {
                 return ResourceManager.GetString("Rethrowable", resourceCulture);

@@ -21,6 +21,9 @@
   <data name="CompositeResultElement_GetBoolean_JsonElementHasWrongType" xml:space="preserve">
     <value>The requested operation requires an element of type '{0}', but the target element has type '{1}'.</value>
   </data>
+  <data name="SourceResultElement_GetBoolean_JsonElementHasWrongType" xml:space="preserve">
+    <value>The requested operation requires an element of type '{0}', but the target element has type '{1}'.</value>
+  </data>
   <data name="Rethrowable" xml:space="preserve">
     <value>HotChocolate.Text.Json.Rethrowable</value>
   </data>
