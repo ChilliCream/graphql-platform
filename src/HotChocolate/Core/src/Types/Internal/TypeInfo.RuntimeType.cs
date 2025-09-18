@@ -90,12 +90,11 @@ internal sealed partial class TypeInfo
             var current = type;
 
             while (
-                type.IsGeneric
-                && current.Definition is { } definition
+                current is { IsGeneric: true, Definition: { } definition }
                 && (ExtendedType.NonEssentialWrapperTypes.Contains(definition)
-                    || typeof(IFieldResult).IsAssignableFrom(type)))
+                    || typeof(IFieldResult).IsAssignableFrom(current)))
             {
-                current = type.TypeArguments[0];
+                current = current.TypeArguments[0];
 
                 if (i++ > 64)
                 {
