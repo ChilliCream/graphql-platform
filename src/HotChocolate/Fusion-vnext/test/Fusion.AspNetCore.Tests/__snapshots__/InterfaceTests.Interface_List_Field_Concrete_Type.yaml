@@ -98,4 +98,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_00fdde4e_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      title\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"votables":[{"__typename":"Discussion","viewerCanVote":true,"title":"Discussion: RGlzY3Vzc2lvbjox"},{"__typename":"Comment","viewerCanVote":true},{"__typename":"Discussion","viewerCanVote":true,"title":"Discussion: RGlzY3Vzc2lvbjoz"}]}}

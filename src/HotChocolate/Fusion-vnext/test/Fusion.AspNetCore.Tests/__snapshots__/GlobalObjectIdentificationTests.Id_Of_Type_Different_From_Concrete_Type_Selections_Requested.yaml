@@ -175,4 +175,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_83aee782_2 {\n  node(id: \u0022UHJvZHVjdDox\u0022) {\n    __typename\n    id\n  }\n}"}
-        response: 
+        response: {"data":{"node":{"__typename":"Product","id":"UHJvZHVjdDox"}}}

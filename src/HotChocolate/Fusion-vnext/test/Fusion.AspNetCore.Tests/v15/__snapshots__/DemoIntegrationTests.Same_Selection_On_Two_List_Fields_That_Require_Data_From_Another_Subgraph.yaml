@@ -208,7 +208,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_9ad18dbf_1 {\n  productsA {\n    id\n    name\n  }\n  productsB {\n    id\n    name\n  }\n}"}
-        response: 
+        response: {"data":{"productsA":[{"id":"UHJvZHVjdDox","name":"Product: UHJvZHVjdDox"},{"id":"UHJvZHVjdDoy","name":"Product: UHJvZHVjdDoy"},{"id":"UHJvZHVjdDoz","name":"Product: UHJvZHVjdDoz"}],"productsB":[{"id":"UHJvZHVjdDo0","name":"Product: UHJvZHVjdDo0"},{"id":"UHJvZHVjdDo1","name":"Product: UHJvZHVjdDo1"},{"id":"UHJvZHVjdDo2","name":"Product: UHJvZHVjdDo2"}]}}
   - name: B
     schema: >-
       schema {
@@ -242,6 +242,12 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_9ad18dbf_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Product {\n      price\n      reviewCount\n    }\n  }\n}","variables":[{"__fusion_1_id":"UHJvZHVjdDo0"},{"__fusion_1_id":"UHJvZHVjdDo1"},{"__fusion_1_id":"UHJvZHVjdDo2"}]}
-        response: 
+        response: {"variableIndex":0,"data":{"node":{"__typename":"Product","price":123.456,"reviewCount":123}}}
+{"variableIndex":1,"data":{"node":{"__typename":"Product","price":123.456,"reviewCount":123}}}
+{"variableIndex":2,"data":{"node":{"__typename":"Product","price":123.456,"reviewCount":123}}}
+
       - request: {"query":"query Op_9ad18dbf_3(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      price\n      reviewCount\n    }\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDox"},{"__fusion_2_id":"UHJvZHVjdDoy"},{"__fusion_2_id":"UHJvZHVjdDoz"}]}
-        response: 
+        response: {"variableIndex":0,"data":{"node":{"__typename":"Product","price":123.456,"reviewCount":123}}}
+{"variableIndex":1,"data":{"node":{"__typename":"Product","price":123.456,"reviewCount":123}}}
+{"variableIndex":2,"data":{"node":{"__typename":"Product","price":123.456,"reviewCount":123}}}
+

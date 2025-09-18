@@ -75,4 +75,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_a239ceba_1 {\n  post {\n    __typename\n  }\n}"}
-        response: 
+        response: {"data":{"post":{"__typename":"Photo"}}}

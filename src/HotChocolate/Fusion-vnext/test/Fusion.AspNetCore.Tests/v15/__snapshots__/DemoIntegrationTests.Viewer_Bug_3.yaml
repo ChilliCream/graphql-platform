@@ -106,7 +106,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_dc7df637_3 {\n  viewer {\n    subgraphA\n  }\n}"}
-        response: 
+        response: {"data":{"viewer":{"subgraphA":"Viewer"}}}
   - name: B
     schema: >-
       schema {
@@ -126,7 +126,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_dc7df637_2 {\n  viewer {\n    subgraphB\n  }\n}"}
-        response: 
+        response: {"data":{"viewer":{"subgraphB":"Viewer"}}}
   - name: C
     schema: >-
       schema {
@@ -147,4 +147,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_dc7df637_1 {\n  subgraphC {\n    someField\n    anotherField\n  }\n}"}
-        response: 
+        response: {"data":{"subgraphC":{"someField":"SubgraphC: U3ViZ3JhcGhDOjE=","anotherField":"SubgraphC: U3ViZ3JhcGhDOjE="}}}

@@ -152,7 +152,7 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_ddf05407_1 {\n  otherAbstractType {\n    __typename\n    id\n    ... on Author {\n      name\n      id\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"otherAbstractType":{"__typename":"Author","id":1,"name":"Author 1"}}}
   - name: B
     schema: >-
       schema {
@@ -207,4 +207,4 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_ddf05407_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: 
+        response: {"data":{"otherInterface":{"__typename":"Author","age":5}}}

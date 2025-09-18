@@ -135,7 +135,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_30e5fe2d_1 {\n  postEdges {\n    node {\n      __typename\n      ... on Photo {\n        id\n      }\n      ... on Discussion {\n        subgraph1\n      }\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"postEdges":[{"node":{"__typename":"Photo","id":"UGhvdG86Ng=="}},{"node":{"__typename":"Photo","id":"UGhvdG86NQ=="}},{"node":{"__typename":"Photo","id":"UGhvdG86NA=="}}]}}
   - name: B
     schema: >-
       schema {
@@ -170,4 +170,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_30e5fe2d_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_1_id":"UGhvdG86Ng=="},{"__fusion_1_id":"UGhvdG86NQ=="},{"__fusion_1_id":"UGhvdG86NA=="}]}
-        response: 
+        response: {"variableIndex":0,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86Ng=="}}}
+{"variableIndex":1,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86NQ=="}}}
+{"variableIndex":2,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86NA=="}}}
+

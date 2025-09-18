@@ -171,7 +171,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_5f4670e8_1 {\n  posts {\n    __typename\n    ... on Photo {\n      product {\n        id\n      }\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"posts":[{"__typename":"Photo","product":{"id":"UHJvZHVjdDo2"}},{"__typename":"Discussion","author":{"id":"QXV0aG9yOjU="}},{"__typename":"Photo","product":{"id":"UHJvZHVjdDo0"}}]}}
   - name: B
     schema: >-
       schema {
@@ -212,6 +212,8 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_5f4670e8_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjU="}}
-        response: 
+        response: {"data":{"authorById":{"subgraph2":"Author: QXV0aG9yOjU="}}}
       - request: {"query":"query testQuery_5f4670e8_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDo2"},{"__fusion_2_id":"UHJvZHVjdDo0"}]}
-        response: 
+        response: {"variableIndex":0,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDo2"}}}
+{"variableIndex":1,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDo0"}}}
+

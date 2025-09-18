@@ -163,9 +163,9 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_2deb87e6_3 {\n  viewer {\n    schema1\n  }\n}"}
-        response: 
+        response: {"data":{"viewer":{"schema1":"schema1"}}}
       - request: {"query":"query Op_2deb87e6_4 {\n  viewer {\n    settings {\n      schema1\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"viewer":{"settings":{"schema1":"schema1"}}}}
   - name: B
     schema: >-
       schema {
@@ -224,7 +224,7 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_2deb87e6_2 {\n  viewer {\n    settings {\n      schema2\n    }\n    schema2\n  }\n}"}
-        response: 
+        response: {"data":{"viewer":{"settings":{"schema2":"schema2"},"schema2":"schema2"}}}
   - name: C
     schema: >-
       schema {
@@ -240,4 +240,4 @@ sourceSchemas:
       }
     interactions:
       - request: {"query":"query Op_2deb87e6_1 {\n  viewer {\n    schema3\n  }\n}"}
-        response: 
+        response: {"data":{"viewer":{"schema3":"schema3"}}}

@@ -150,6 +150,6 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_a938b4c5_3(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Discussion {\n      __typename\n      title\n    }\n  }\n}","variables":{"id":"RGlzY3Vzc2lvbjox"}}
-        response: 
+        response: {"data":{"node":{"__typename":"Discussion","title":"Discussion: RGlzY3Vzc2lvbjox"}}}
       - request: {"query":"query testQuery_a938b4c5_4 {\n  viewer {\n    username\n  }\n}"}
-        response: 
+        response: {"data":{"viewer":{"username":"Viewer"}}}

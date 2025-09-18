@@ -215,7 +215,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_3579b174_1 {\n  users {\n    posts {\n      __typename\n      ... on Photo {\n        product {\n          id\n        }\n      }\n      ... on Discussion {\n        product {\n          id\n        }\n      }\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"users":[{"posts":[{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxNQ=="}},{"__typename":"Discussion","product":{"id":"UHJvZHVjdDoxNA=="}},{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxMw=="}}]},{"posts":[{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxOA=="}},{"__typename":"Discussion","product":{"id":"UHJvZHVjdDoxNw=="}},{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxNg=="}}]},{"posts":[{"__typename":"Photo","product":{"id":"UHJvZHVjdDoyMQ=="}},{"__typename":"Discussion","product":{"id":"UHJvZHVjdDoyMA=="}},{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxOQ=="}}]}]}}
   - name: B
     schema: >-
       schema {
@@ -250,6 +250,15 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_3579b174_2(\n  $__fusion_1_id: ID!\n) {\n  productById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_1_id":"UHJvZHVjdDoxNA=="},{"__fusion_1_id":"UHJvZHVjdDoxNw=="},{"__fusion_1_id":"UHJvZHVjdDoyMA=="}]}
-        response: 
+        response: {"variableIndex":0,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoxNA=="}}}
+{"variableIndex":1,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoxNw=="}}}
+{"variableIndex":2,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoyMA=="}}}
+
       - request: {"query":"query testQuery_3579b174_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDoxNQ=="},{"__fusion_2_id":"UHJvZHVjdDoxMw=="},{"__fusion_2_id":"UHJvZHVjdDoxOA=="},{"__fusion_2_id":"UHJvZHVjdDoxNg=="},{"__fusion_2_id":"UHJvZHVjdDoyMQ=="},{"__fusion_2_id":"UHJvZHVjdDoxOQ=="}]}
-        response: 
+        response: {"variableIndex":0,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoxNQ=="}}}
+{"variableIndex":1,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoxMw=="}}}
+{"variableIndex":2,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoxOA=="}}}
+{"variableIndex":3,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoxNg=="}}}
+{"variableIndex":4,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoyMQ=="}}}
+{"variableIndex":5,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoxOQ=="}}}
+

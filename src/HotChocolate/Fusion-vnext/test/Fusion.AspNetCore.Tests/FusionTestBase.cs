@@ -161,27 +161,21 @@ public abstract class FusionTestBase : IDisposable
                         var pair = schemaInteractions.GetOrAdd(node.Id, _ => new RequestResponsePair());
 
                         pair.Request = content;
-                    }
-                    // onAfterReceive: (context, node, response) =>
-                    // {
-                    //     var originalStream =  response.Content.ReadAsStream();
-                    //     using var reader = new StreamReader(originalStream, leaveOpen: true);
-                    //     var content = reader.ReadToEnd();
-                    //
-                    //     // TODO: Make this properly work
-                    //
-                    //     // response.Content = new StringContent(content);
-                    //
-                    //     var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
-                    //         ? staticSchemaName
-                    //         : context.GetDynamicSchemaName(node);
-                    //
-                    //     var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
-                    //     var pair = schemaInteractions.GetOrAdd(node.Id, _ => new RequestResponsePair());
-                    //
-                    //     pair.Response = content;
-                    // }
-                    );
+                    },
+                    onAfterReceive: (context, node, response) =>
+                    {
+                        response.Content.LoadIntoBufferAsync().GetAwaiter().GetResult();
+                        var content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+                        var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
+                            ? staticSchemaName
+                            : context.GetDynamicSchemaName(node);
+
+                        var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
+                        var pair = schemaInteractions.GetOrAdd(node.Id, _ => new RequestResponsePair());
+
+                        pair.Response = content;
+                    });
             }
         }
 

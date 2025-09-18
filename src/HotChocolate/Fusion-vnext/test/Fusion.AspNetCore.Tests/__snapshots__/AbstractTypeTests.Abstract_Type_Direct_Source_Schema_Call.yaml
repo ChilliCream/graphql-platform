@@ -129,4 +129,4 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_45eb4c09_1 {\n  interfaceConnection(first: 2) {\n    edges {\n      node {\n        __typename\n        id\n      }\n    }\n    pageInfo {\n      hasNextPage\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"interfaceConnection":{"edges":[{"node":{"__typename":"Discussion","id":1}}],"pageInfo":{"hasNextPage":false}}}}

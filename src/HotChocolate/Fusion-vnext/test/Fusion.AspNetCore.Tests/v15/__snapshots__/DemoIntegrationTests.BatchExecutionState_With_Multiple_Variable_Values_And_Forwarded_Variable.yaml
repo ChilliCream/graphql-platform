@@ -219,7 +219,10 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_b1ca18eb_4(\n  $arg2: String\n  $__fusion_3_id: ID!\n) {\n  node(id: $__fusion_3_id) {\n    __typename\n    ... on User {\n      displayName(arg: $arg2)\n    }\n  }\n}","variables":[{"arg2":"def","__fusion_3_id":"VXNlcjoxMw=="},{"arg2":"def","__fusion_3_id":"VXNlcjoxMg=="},{"arg2":"def","__fusion_3_id":"VXNlcjoxMQ=="}]}
-        response: 
+        response: {"variableIndex":0,"data":{"node":{"__typename":"User","displayName":"User: VXNlcjoxMw=="}}}
+{"variableIndex":1,"data":{"node":{"__typename":"User","displayName":"User: VXNlcjoxMg=="}}}
+{"variableIndex":2,"data":{"node":{"__typename":"User","displayName":"User: VXNlcjoxMQ=="}}}
+
   - name: B
     schema: >-
       schema {
@@ -253,9 +256,12 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_b1ca18eb_1 {\n  userBySlug(slug: \u0022me\u0022) {\n    id\n  }\n}"}
-        response: 
+        response: {"data":{"userBySlug":{"id":"VXNlcjox"}}}
       - request: {"query":"query Op_b1ca18eb_3(\n  $arg1: String\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on User {\n      relativeUrl(arg: $arg1)\n    }\n  }\n}","variables":[{"arg1":"abc","__fusion_2_id":"VXNlcjoxMw=="},{"arg1":"abc","__fusion_2_id":"VXNlcjoxMg=="},{"arg1":"abc","__fusion_2_id":"VXNlcjoxMQ=="}]}
-        response: 
+        response: {"variableIndex":0,"data":{"node":{"__typename":"User","relativeUrl":"User: VXNlcjoxMw=="}}}
+{"variableIndex":1,"data":{"node":{"__typename":"User","relativeUrl":"User: VXNlcjoxMg=="}}}
+{"variableIndex":2,"data":{"node":{"__typename":"User","relativeUrl":"User: VXNlcjoxMQ=="}}}
+
   - name: C
     schema: >-
       schema {
@@ -305,4 +311,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_b1ca18eb_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on User {\n      feedbacks {\n        edges {\n          node {\n            feedback {\n              buyer {\n                id\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}","variables":{"__fusion_1_id":"VXNlcjox"}}
-        response: 
+        response: {"data":{"node":{"__typename":"User","feedbacks":{"edges":[{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMw=="}}}},{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMg=="}}}},{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMQ=="}}}}]}}}}

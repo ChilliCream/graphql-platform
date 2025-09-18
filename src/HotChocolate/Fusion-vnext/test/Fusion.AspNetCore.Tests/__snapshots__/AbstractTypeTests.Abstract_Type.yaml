@@ -124,4 +124,4 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_05500418_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"abstractType":{"__typename":"Discussion","id":1,"title":"Discussion 1"}}}

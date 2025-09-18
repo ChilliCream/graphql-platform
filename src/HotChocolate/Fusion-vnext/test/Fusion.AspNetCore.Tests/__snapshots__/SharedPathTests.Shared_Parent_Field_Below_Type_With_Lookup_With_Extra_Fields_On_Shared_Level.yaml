@@ -174,7 +174,7 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_49906eea_1 {\n  productById(id: 1) {\n    schema1\n    shared {\n      schema1\n    }\n    id\n  }\n}"}
-        response: 
+        response: {"data":{"productById":{"schema1":"schema1","shared":{"schema1":"schema1"},"id":1}}}
   - name: B
     schema: >-
       schema {
@@ -233,6 +233,6 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_49906eea_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    schema2\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: 
+        response: {"data":{"product":{"schema2":"schema2"}}}
       - request: {"query":"query Op_49906eea_3(\n  $__fusion_2_id: Int!\n) {\n  product(id: $__fusion_2_id) {\n    shared {\n      schema2\n    }\n  }\n}","variables":{"__fusion_2_id":1}}
-        response: 
+        response: {"data":{"product":{"shared":{"schema2":"schema2"}}}}

@@ -156,7 +156,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_1703e95b_1 {\n  authorable {\n    __typename\n    author {\n      id\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjI="}}}}
   - name: B
     schema: >-
       schema {
@@ -192,6 +192,6 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_1703e95b_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    email\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjI="}}
-        response: 
+        response: {"data":{"authorById":{"email":"Author: QXV0aG9yOjI="}}}
       - request: {"query":"query testQuery_1703e95b_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    displayName\n  }\n}","variables":{"__fusion_2_id":"QXV0aG9yOjI="}}
-        response: 
+        response: {"data":{"authorById":{"displayName":"Author: QXV0aG9yOjI="}}}

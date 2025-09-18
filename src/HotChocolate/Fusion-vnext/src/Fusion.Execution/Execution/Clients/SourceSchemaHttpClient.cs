@@ -36,7 +36,6 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         ArgumentNullException.ThrowIfNull(request);
 
         var httpRequest = CreateHttpRequest(request);
-        // TODO: WE should only do this if it's necessary
         httpRequest.State = (context, node, _configuration);
 
         httpRequest.OnMessageCreated += static (_, requestMessage, state) =>

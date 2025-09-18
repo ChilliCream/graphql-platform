@@ -111,7 +111,7 @@ sourceSchemas:
       }
     interactions:
       - request: {"query":"mutation Op_8adeedac_1 {\n  a: createBook(input: { title: \u0022Book1\u0022 }) {\n    book {\n      id\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"a":{"book":{"id":1}}}}
   - name: B
     schema: >-
       schema {
@@ -156,4 +156,4 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_8adeedac_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: 
+        response: {"data":{"bookById":{"author":"Abc"}}}

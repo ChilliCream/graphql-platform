@@ -107,7 +107,7 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_577373a9_1(\n  $s: String!\n) {\n  formatTitle(title: $s)\n}","variables":{"s":""}}
-        response: 
+        response: {"data":{"formatTitle":""}}
   - name: b
     schema: >-
       schema {

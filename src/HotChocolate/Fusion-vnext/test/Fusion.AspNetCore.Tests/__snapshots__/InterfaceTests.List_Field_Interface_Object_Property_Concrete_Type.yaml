@@ -111,4 +111,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_877cb4f8_1 {\n  wrappers {\n    votable {\n      __typename\n      viewerCanVote\n      ... on Discussion {\n        title\n      }\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"wrappers":[{"votable":{"__typename":"Discussion","viewerCanVote":true,"title":"Discussion: RGlzY3Vzc2lvbjo2"}},{"votable":{"__typename":"Discussion","viewerCanVote":true,"title":"Discussion: RGlzY3Vzc2lvbjo1"}},{"votable":{"__typename":"Discussion","viewerCanVote":true,"title":"Discussion: RGlzY3Vzc2lvbjo0"}}]}}

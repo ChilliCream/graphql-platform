@@ -155,7 +155,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_7d12de3b_1 {\n  post {\n    __typename\n    ... on Photo {\n      product {\n        id\n      }\n    }\n    ... on Discussion {\n      product {\n        id\n      }\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"post":{"__typename":"Photo","product":{"id":"UHJvZHVjdDoy"}}}}
   - name: B
     schema: >-
       schema {
@@ -190,4 +190,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_7d12de3b_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":{"__fusion_2_id":"UHJvZHVjdDoy"}}
-        response: 
+        response: {"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoy"}}}

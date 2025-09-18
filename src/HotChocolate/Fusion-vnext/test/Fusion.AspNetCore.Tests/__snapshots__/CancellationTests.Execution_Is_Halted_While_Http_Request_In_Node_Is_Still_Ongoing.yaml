@@ -99,4 +99,4 @@ sourceSchemas:
       }
     interactions:
       - request: {"query":"query Op_512ba6dc_2 {\n  reviews {\n    id\n  }\n}"}
-        response: 
+        response: {"errors":[{"message":"Could not resolve reviews","locations":[{"line":2,"column":3}],"path":["reviews"]}],"data":{"reviews":null}}

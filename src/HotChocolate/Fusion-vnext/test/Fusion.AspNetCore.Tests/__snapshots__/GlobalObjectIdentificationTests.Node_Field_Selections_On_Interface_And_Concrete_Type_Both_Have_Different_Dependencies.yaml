@@ -267,7 +267,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_f7a0a31d_6(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Item1 {\n      __typename\n      id\n      products {\n        id\n      }\n    }\n  }\n}","variables":{"id":"SXRlbTE6MQ=="}}
-        response: 
+        response: {"data":{"node":{"__typename":"Item1","id":"SXRlbTE6MQ==","products":[{"id":"UHJvZHVjdDox"},{"id":"UHJvZHVjdDoy"},{"id":"UHJvZHVjdDoz"}]}}}
   - name: B
     schema: >-
       schema {
@@ -306,4 +306,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_f7a0a31d_7(\n  $__fusion_3_id: ID!\n) {\n  node(id: $__fusion_3_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":[{"__fusion_3_id":"UHJvZHVjdDox"},{"__fusion_3_id":"UHJvZHVjdDoy"},{"__fusion_3_id":"UHJvZHVjdDoz"}]}
-        response: 
+        response: {"variableIndex":0,"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDox"}}}
+{"variableIndex":1,"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDoy"}}}
+{"variableIndex":2,"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDoz"}}}
+

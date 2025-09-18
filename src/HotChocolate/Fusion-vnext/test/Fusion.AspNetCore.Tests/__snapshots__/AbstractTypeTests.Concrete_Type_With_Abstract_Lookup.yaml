@@ -148,7 +148,7 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_94874bbd_1 {\n  authorById(id: 1) {\n    name\n    id\n  }\n}"}
-        response: 
+        response: {"data":{"authorById":{"name":"Author 1","id":1}}}
   - name: B
     schema: >-
       schema {
@@ -203,4 +203,4 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_94874bbd_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: 
+        response: {"data":{"otherInterface":{"__typename":"Author","age":5}}}

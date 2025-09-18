@@ -155,4 +155,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_ef8b97ff_3(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Discussion {\n      __typename\n      viewerCanVote\n      viewerRating\n    }\n  }\n}","variables":{"id":"RGlzY3Vzc2lvbjox"}}
-        response: 
+        response: {"data":{"node":{"__typename":"Discussion","viewerCanVote":true,"viewerRating":123.456}}}

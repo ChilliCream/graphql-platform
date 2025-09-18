@@ -125,7 +125,7 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_d8c31e9a_1 {\n  interface {\n    __typename\n    ... on Review {\n      schema1\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"interface":{"__typename":"Review","schema1":"schema1"}}}
   - name: B
     schema: >-
       schema {
@@ -184,4 +184,4 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_d8c31e9a_2 {\n  interface {\n    __typename\n    ... on Review {\n      schema2\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"interface":{"__typename":"Review","schema2":"schema2"}}}

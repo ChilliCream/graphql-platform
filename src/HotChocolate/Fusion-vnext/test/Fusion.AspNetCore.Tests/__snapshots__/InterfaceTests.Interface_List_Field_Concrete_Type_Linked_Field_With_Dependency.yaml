@@ -137,7 +137,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_e3932333_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"votables":[{"__typename":"Discussion","viewerCanVote":true,"author":{"id":"QXV0aG9yOjU="}},{"__typename":"Comment","viewerCanVote":true},{"__typename":"Discussion","viewerCanVote":true,"author":{"id":"QXV0aG9yOjQ="}}]}}
   - name: B
     schema: >-
       schema {
@@ -172,4 +172,6 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_e3932333_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjU="},{"__fusion_1_id":"QXV0aG9yOjQ="}]}
-        response: 
+        response: {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjU="}}}
+{"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjQ="}}}
+

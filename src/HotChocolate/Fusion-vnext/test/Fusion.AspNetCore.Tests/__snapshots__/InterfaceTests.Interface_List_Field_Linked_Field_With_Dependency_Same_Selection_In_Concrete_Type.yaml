@@ -170,7 +170,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_61febe16_1 {\n  authorables {\n    __typename\n    author {\n      id\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"authorables":[{"__typename":"Discussion","author":{"id":"QXV0aG9yOjY="}},{"__typename":"Comment","author":{"id":"QXV0aG9yOjU="}},{"__typename":"Discussion","author":{"id":"QXV0aG9yOjQ="}}]}}
   - name: B
     schema: >-
       schema {
@@ -205,6 +205,11 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_61febe16_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjY="},{"__fusion_1_id":"QXV0aG9yOjQ="}]}
-        response: 
+        response: {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjY="}}}
+{"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjQ="}}}
+
       - request: {"query":"query testQuery_61febe16_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    displayName\n  }\n}","variables":[{"__fusion_2_id":"QXV0aG9yOjY="},{"__fusion_2_id":"QXV0aG9yOjU="},{"__fusion_2_id":"QXV0aG9yOjQ="}]}
-        response: 
+        response: {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjY="}}}
+{"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjU="}}}
+{"variableIndex":2,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjQ="}}}
+

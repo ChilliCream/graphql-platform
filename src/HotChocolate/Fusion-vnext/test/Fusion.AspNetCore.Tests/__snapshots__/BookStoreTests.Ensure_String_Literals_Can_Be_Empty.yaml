@@ -103,7 +103,7 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_db37b9bf_1 {\n  formatTitle(title: \u0022\u0022)\n}"}
-        response: 
+        response: {"data":{"formatTitle":""}}
   - name: b
     schema: >-
       schema {

@@ -123,7 +123,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_7e81ce9e_1 {\n  posts {\n    __typename\n    ... on Photo {\n      id\n    }\n    ... on Discussion {\n      subgraph1\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"posts":[{"__typename":"Photo","id":"UGhvdG86MQ=="},{"__typename":"Discussion","subgraph1":"Discussion: RGlzY3Vzc2lvbjoy"},{"__typename":"Photo","id":"UGhvdG86Mw=="}]}}
   - name: B
     schema: >-
       schema {
@@ -158,4 +158,6 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_7e81ce9e_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_1_id":"UGhvdG86MQ=="},{"__fusion_1_id":"UGhvdG86Mw=="}]}
-        response: 
+        response: {"variableIndex":0,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86MQ=="}}}
+{"variableIndex":1,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86Mw=="}}}
+

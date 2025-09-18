@@ -156,7 +156,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_e2224f1b_1 {\n  item1 {\n    product {\n      id\n    }\n  }\n  item2 {\n    product {\n      id\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"item1":{"product":{"id":"UHJvZHVjdDo0"}},"item2":{"product":{"id":"UHJvZHVjdDoz"}}}}
   - name: B
     schema: >-
       schema {
@@ -189,6 +189,6 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_e2224f1b_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":{"__fusion_1_id":"UHJvZHVjdDoz"}}
-        response: 
+        response: {"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDoz"}}}
       - request: {"query":"query Op_e2224f1b_3(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":{"__fusion_2_id":"UHJvZHVjdDo0"}}
-        response: 
+        response: {"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDo0"}}}

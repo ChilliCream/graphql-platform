@@ -112,7 +112,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_e358ecef_1 {\n  product {\n    id\n    brand {\n      id\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"product":{"id":"UHJvZHVjdDox","brand":{"id":"QnJhbmQ6Mg=="}}}}
   - name: B
     schema: >-
       schema {
@@ -142,4 +142,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_e358ecef_2(\n  $__fusion_1_id: ID!\n) {\n  brandById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":"QnJhbmQ6Mg=="}}
-        response: 
+        response: {"errors":[{"message":"Unexpected Execution Error","locations":[{"line":4,"column":3}],"path":["brandById"]}],"data":{"brandById":null}}

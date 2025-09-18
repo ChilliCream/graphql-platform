@@ -123,7 +123,7 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_c6e3b357_1 {\n  viewer {\n    schema1\n  }\n}"}
-        response: 
+        response: {"data":{"viewer":{"schema1":"schema1"}}}
   - name: B
     schema: >-
       schema {
@@ -182,4 +182,4 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_c6e3b357_2 {\n  viewer {\n    schema2\n  }\n}"}
-        response: 
+        response: {"data":{"viewer":{"schema2":"schema2"}}}

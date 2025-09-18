@@ -121,7 +121,7 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_01be2e0f_1 {\n  books {\n    nodes {\n      a: __typename\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"books":{"nodes":[{"a":"Book"},{"a":"Book"},{"a":"Book"},{"a":"Book"}]}}}
   - name: B
     schema: >-
       schema {

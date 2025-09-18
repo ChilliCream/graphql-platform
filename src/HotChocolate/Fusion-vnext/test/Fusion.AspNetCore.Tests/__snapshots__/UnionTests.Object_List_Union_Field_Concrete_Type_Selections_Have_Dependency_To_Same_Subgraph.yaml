@@ -183,7 +183,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_4ba127ab_1 {\n  postEdges {\n    node {\n      __typename\n      ... on Photo {\n        product {\n          id\n        }\n      }\n      ... on Discussion {\n        author {\n          id\n        }\n      }\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"postEdges":[{"node":{"__typename":"Photo","product":{"id":"UHJvZHVjdDo3"}}},{"node":{"__typename":"Photo","product":{"id":"UHJvZHVjdDo4"}}},{"node":{"__typename":"Photo","product":{"id":"UHJvZHVjdDo5"}}}]}}
   - name: B
     schema: >-
       schema {
@@ -224,4 +224,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_4ba127ab_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDo3"},{"__fusion_2_id":"UHJvZHVjdDo4"},{"__fusion_2_id":"UHJvZHVjdDo5"}]}
-        response: 
+        response: {"variableIndex":0,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDo3"}}}
+{"variableIndex":1,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDo4"}}}
+{"variableIndex":2,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDo5"}}}
+

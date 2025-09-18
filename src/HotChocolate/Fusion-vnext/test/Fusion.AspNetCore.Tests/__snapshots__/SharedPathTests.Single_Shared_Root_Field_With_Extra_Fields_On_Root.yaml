@@ -143,7 +143,7 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_4a75abf3_1 {\n  viewer {\n    schema1\n  }\n  schema1\n}"}
-        response: 
+        response: {"data":{"viewer":{"schema1":"schema1"},"schema1":"schema1"}}
   - name: B
     schema: >-
       schema {
@@ -202,6 +202,6 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_4a75abf3_2 {\n  schema2\n}"}
-        response: 
+        response: {"data":{"schema2":"schema2"}}
       - request: {"query":"query Op_4a75abf3_3 {\n  viewer {\n    schema2\n  }\n}"}
-        response: 
+        response: {"data":{"viewer":{"schema2":"schema2"}}}

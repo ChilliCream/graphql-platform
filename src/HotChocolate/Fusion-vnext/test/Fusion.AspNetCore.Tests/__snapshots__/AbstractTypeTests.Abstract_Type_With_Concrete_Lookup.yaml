@@ -152,7 +152,7 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_bf0deff6_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n      id\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"abstractType":{"__typename":"Discussion","id":1,"title":"Discussion 1"}}}
   - name: B
     schema: >-
       schema {
@@ -207,4 +207,4 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_bf0deff6_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    commentCount\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: 
+        response: {"data":{"discussionById":{"commentCount":3}}}

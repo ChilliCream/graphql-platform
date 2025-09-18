@@ -147,7 +147,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_7a8e1f91_1 {\n  wrappers {\n    votable {\n      __typename\n      viewerCanVote\n      ... on Discussion {\n        id\n      }\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"wrappers":[{"votable":{"__typename":"Discussion","viewerCanVote":true,"id":"RGlzY3Vzc2lvbjo2"}},{"votable":{"__typename":"Discussion","viewerCanVote":true,"id":"RGlzY3Vzc2lvbjo1"}},{"votable":{"__typename":"Discussion","viewerCanVote":true,"id":"RGlzY3Vzc2lvbjo0"}}]}}
   - name: B
     schema: >-
       schema {
@@ -182,4 +182,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_7a8e1f91_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    viewerRating\n  }\n}","variables":[{"__fusion_1_id":"RGlzY3Vzc2lvbjo2"},{"__fusion_1_id":"RGlzY3Vzc2lvbjo1"},{"__fusion_1_id":"RGlzY3Vzc2lvbjo0"}]}
-        response: 
+        response: {"variableIndex":0,"data":{"discussionById":{"viewerRating":123.456}}}
+{"variableIndex":1,"data":{"discussionById":{"viewerRating":123.456}}}
+{"variableIndex":2,"data":{"discussionById":{"viewerRating":123.456}}}
+

@@ -100,7 +100,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_539ebaa0_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}","variables":{"id":"RGlzY3Vzc2lvbjox"}}
-        response: 
+        response: {"data":{"node":{"__typename":"Discussion"}}}
   - name: B
     schema: >-
       schema {

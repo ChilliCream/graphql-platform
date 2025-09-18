@@ -143,7 +143,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_7c1d9f5d_4(\n  $__fusion_1_title: String!\n) {\n  discussionByName(title: $__fusion_1_title) {\n    commentCount\n  }\n}","variables":{"__fusion_1_title":"Discussion: RGlzY3Vzc2lvbjox"}}
-        response: 
+        response: {"data":{"discussionByName":{"commentCount":123}}}
   - name: B
     schema: >-
       schema {
@@ -182,4 +182,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_7c1d9f5d_3 {\n  node: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n    title\n  }\n}"}
-        response: 
+        response: {"data":{"node":{"__typename":"Discussion","title":"Discussion: RGlzY3Vzc2lvbjox"}}}

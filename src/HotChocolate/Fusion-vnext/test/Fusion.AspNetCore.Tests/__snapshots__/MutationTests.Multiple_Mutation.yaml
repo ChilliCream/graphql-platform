@@ -169,9 +169,9 @@ sourceSchemas:
       }
     interactions:
       - request: {"query":"mutation Op_192dc5f8_1 {\n  a: createBook(input: { title: \u0022Book1\u0022 }) {\n    book {\n      id\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"a":{"book":{"id":1}}}}
       - request: {"query":"mutation Op_192dc5f8_3 {\n  b: createBook(input: { title: \u0022Book2\u0022 }) {\n    book {\n      id\n      title\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"b":{"book":{"id":2,"title":"Book2"}}}}
   - name: B
     schema: >-
       schema {
@@ -216,6 +216,6 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_192dc5f8_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: 
+        response: {"data":{"bookById":{"author":"Abc"}}}
       - request: {"query":"query Op_192dc5f8_4(\n  $__fusion_2_id: Int!\n) {\n  bookById(id: $__fusion_2_id) {\n    author\n  }\n}","variables":{"__fusion_2_id":2}}
-        response: 
+        response: {"data":{"bookById":{"author":"Abc"}}}

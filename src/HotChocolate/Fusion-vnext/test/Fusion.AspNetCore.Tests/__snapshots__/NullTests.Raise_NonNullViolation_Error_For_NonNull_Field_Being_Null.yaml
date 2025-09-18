@@ -62,4 +62,4 @@ sourceSchemas:
       }
     interactions:
       - request: {"query":"query Op_ca4a0945_1 {\n  nonNullString\n}"}
-        response: 
+        response: {"data":{"nonNullString":null}}

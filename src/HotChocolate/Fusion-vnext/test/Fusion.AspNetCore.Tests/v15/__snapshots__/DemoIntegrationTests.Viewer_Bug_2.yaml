@@ -101,7 +101,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_f3bb7334_2 {\n  exclusiveSubgraphA {\n    __typename\n  }\n}"}
-        response: 
+        response: {"data":{"exclusiveSubgraphA":{"__typename":"ExclusiveSubgraphA"}}}
   - name: B
     schema: >-
       schema {
@@ -125,4 +125,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_f3bb7334_1 {\n  viewer {\n    subType {\n      subgraphB\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"viewer":{"subType":{"subgraphB":"SubType: U3ViVHlwZToy"}}}}

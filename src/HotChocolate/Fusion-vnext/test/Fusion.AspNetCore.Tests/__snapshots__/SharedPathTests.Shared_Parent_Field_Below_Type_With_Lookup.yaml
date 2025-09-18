@@ -141,7 +141,7 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_b5a406bd_1 {\n  productById(id: 1) {\n    shared {\n      schema1\n    }\n    id\n  }\n}"}
-        response: 
+        response: {"data":{"productById":{"shared":{"schema1":"schema1"},"id":1}}}
   - name: B
     schema: >-
       schema {
@@ -200,4 +200,4 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_b5a406bd_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    shared {\n      schema2\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: 
+        response: {"data":{"product":{"shared":{"schema2":"schema2"}}}}

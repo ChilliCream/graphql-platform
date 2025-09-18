@@ -212,7 +212,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_7a72a6b2_5(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Discussion {\n      __typename\n      product {\n        id\n      }\n    }\n  }\n}","variables":{"id":"RGlzY3Vzc2lvbjox"}}
-        response: 
+        response: {"data":{"node":{"__typename":"Discussion","product":{"id":"UHJvZHVjdDox"}}}}
   - name: B
     schema: >-
       schema {
@@ -291,4 +291,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_7a72a6b2_6(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":{"__fusion_2_id":"UHJvZHVjdDox"}}
-        response: 
+        response: {"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDox"}}}

@@ -169,7 +169,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_b7bd95cc_1(\n  $productId: ID!\n) {\n  productById(id: $productId) {\n    subgraph1Only {\n      subgraph1Only\n      sharedLinked {\n        sharedScalar\n        subgraph1Only\n      }\n      id\n    }\n  }\n}","variables":{"productId":"UHJvZHVjdAppMzg2MzE4NTk="}}
-        response: 
+        response: {"data":{"productById":{"subgraph1Only":{"subgraph1Only":true,"sharedLinked":{"sharedScalar":"ProductAvailabilityMail: UHJvZHVjdEF2YWlsYWJpbGl0eU1haWw6Mg==","subgraph1Only":"ProductAvailabilityMail: UHJvZHVjdEF2YWlsYWJpbGl0eU1haWw6Mg=="},"id":"UHJvZHVjdEF2YWlsYWJpbGl0eTox"}}}}
   - name: B
     schema: >-
       schema {
@@ -208,6 +208,6 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_b7bd95cc_2(\n  $__fusion_1_id: ID!\n) {\n  productAvailabilityById(id: $__fusion_1_id) {\n    subgraph2Only\n  }\n}","variables":{"__fusion_1_id":"UHJvZHVjdEF2YWlsYWJpbGl0eTox"}}
-        response: 
+        response: {"data":{"productAvailabilityById":{"subgraph2Only":true}}}
       - request: {"query":"query Op_b7bd95cc_3(\n  $__fusion_2_id: ID!\n) {\n  productAvailabilityById(id: $__fusion_2_id) {\n    sharedLinked {\n      subgraph2Only\n    }\n  }\n}","variables":{"__fusion_2_id":"UHJvZHVjdEF2YWlsYWJpbGl0eTox"}}
-        response: 
+        response: {"data":{"productAvailabilityById":{"sharedLinked":{"subgraph2Only":true}}}}

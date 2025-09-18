@@ -203,9 +203,9 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_a361113f_3 {\n  b: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjoy\u0022) {\n    __typename\n    title\n    id\n  }\n}"}
-        response: 
+        response: {"data":{"b":{"__typename":"Discussion","title":"Discussion: RGlzY3Vzc2lvbjoy","id":"RGlzY3Vzc2lvbjoy"}}}
       - request: {"query":"query Op_a361113f_7 {\n  a: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n    title\n  }\n}"}
-        response: 
+        response: {"data":{"a":{"__typename":"Discussion","title":"Discussion: RGlzY3Vzc2lvbjox"}}}
   - name: B
     schema: >-
       schema {
@@ -238,4 +238,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_a361113f_4(\n  $__fusion_1_id: ID!\n) {\n  discussion(id: $__fusion_1_id) {\n    commentCount\n  }\n}","variables":{"__fusion_1_id":"RGlzY3Vzc2lvbjoy"}}
-        response: 
+        response: {"data":{"discussion":{"commentCount":123}}}

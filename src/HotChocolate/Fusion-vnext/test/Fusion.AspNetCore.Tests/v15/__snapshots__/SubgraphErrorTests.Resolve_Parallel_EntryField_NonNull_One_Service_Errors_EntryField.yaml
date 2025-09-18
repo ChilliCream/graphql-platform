@@ -87,7 +87,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_6b55933b_1 {\n  viewer {\n    name\n  }\n}"}
-        response: 
+        response: {"data":{"viewer":{"name":"Viewer"}}}
   - name: B
     schema: >-
       schema {
@@ -109,4 +109,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_6b55933b_2 {\n  other {\n    userId\n  }\n}"}
-        response: 
+        response: {"errors":[{"message":"Unexpected Execution Error","locations":[{"line":2,"column":3}],"path":["other"]}],"data":null}

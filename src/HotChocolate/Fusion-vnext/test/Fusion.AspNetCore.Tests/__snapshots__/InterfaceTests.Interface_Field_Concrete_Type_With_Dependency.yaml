@@ -125,7 +125,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_4a61c641_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      id\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"votable":{"__typename":"Discussion","viewerCanVote":true,"id":"RGlzY3Vzc2lvbjox"}}}
   - name: B
     schema: >-
       schema {
@@ -160,4 +160,4 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_4a61c641_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    viewerRating\n  }\n}","variables":{"__fusion_1_id":"RGlzY3Vzc2lvbjox"}}
-        response: 
+        response: {"data":{"discussionById":{"viewerRating":123.456}}}

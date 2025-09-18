@@ -135,7 +135,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_171db7a7_1 {\n  authorables {\n    __typename\n    author {\n      id\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"authorables":[{"__typename":"Discussion","author":{"id":"QXV0aG9yOjY="}},{"__typename":"Comment","author":{"id":"QXV0aG9yOjU="}},{"__typename":"Discussion","author":{"id":"QXV0aG9yOjQ="}}]}}
   - name: B
     schema: >-
       schema {
@@ -170,4 +170,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_171db7a7_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjY="},{"__fusion_1_id":"QXV0aG9yOjU="},{"__fusion_1_id":"QXV0aG9yOjQ="}]}
-        response: 
+        response: {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjY="}}}
+{"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjU="}}}
+{"variableIndex":2,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjQ="}}}
+

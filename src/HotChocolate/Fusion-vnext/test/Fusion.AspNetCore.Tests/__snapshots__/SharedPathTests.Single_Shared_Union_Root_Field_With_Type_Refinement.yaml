@@ -125,7 +125,7 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_55b9106f_1 {\n  union {\n    __typename\n    ... on Review {\n      schema1\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"union":{"__typename":"Review","schema1":"schema1"}}}
   - name: B
     schema: >-
       schema {
@@ -184,4 +184,4 @@ sourceSchemas:
       directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_55b9106f_2 {\n  union {\n    __typename\n    ... on Review {\n      schema2\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"union":{"__typename":"Review","schema2":"schema2"}}}

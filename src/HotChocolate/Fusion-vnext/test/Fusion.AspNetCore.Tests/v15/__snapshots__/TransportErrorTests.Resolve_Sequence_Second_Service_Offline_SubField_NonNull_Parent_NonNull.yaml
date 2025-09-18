@@ -112,7 +112,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_e358ecef_1 {\n  product {\n    id\n    brand {\n      id\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"product":{"id":"UHJvZHVjdDox","brand":{"id":"QnJhbmQ6Mg=="}}}}
   - name: B
     schema: >-
       schema {

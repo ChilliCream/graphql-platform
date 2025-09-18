@@ -159,7 +159,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_e46e034a_1 {\n  users {\n    posts {\n      __typename\n      ... on Photo {\n        id\n      }\n      ... on Discussion {\n        subgraph1\n      }\n    }\n  }\n}"}
-        response: 
+        response: {"data":{"users":[{"posts":[{"__typename":"Photo","id":"UGhvdG86MTA="},{"__typename":"Discussion","subgraph1":"Discussion: RGlzY3Vzc2lvbjoxMQ=="},{"__typename":"Photo","id":"UGhvdG86MTI="}]},{"posts":[{"__typename":"Photo","id":"UGhvdG86Nw=="},{"__typename":"Discussion","subgraph1":"Discussion: RGlzY3Vzc2lvbjo4"},{"__typename":"Photo","id":"UGhvdG86OQ=="}]},{"posts":[{"__typename":"Photo","id":"UGhvdG86NA=="},{"__typename":"Discussion","subgraph1":"Discussion: RGlzY3Vzc2lvbjo1"},{"__typename":"Photo","id":"UGhvdG86Ng=="}]}]}}
   - name: B
     schema: >-
       schema {
@@ -194,4 +194,10 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_e46e034a_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_1_id":"UGhvdG86MTA="},{"__fusion_1_id":"UGhvdG86MTI="},{"__fusion_1_id":"UGhvdG86Nw=="},{"__fusion_1_id":"UGhvdG86OQ=="},{"__fusion_1_id":"UGhvdG86NA=="},{"__fusion_1_id":"UGhvdG86Ng=="}]}
-        response: 
+        response: {"variableIndex":0,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86MTA="}}}
+{"variableIndex":1,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86MTI="}}}
+{"variableIndex":2,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86Nw=="}}}
+{"variableIndex":3,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86OQ=="}}}
+{"variableIndex":4,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86NA=="}}}
+{"variableIndex":5,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86Ng=="}}}
+

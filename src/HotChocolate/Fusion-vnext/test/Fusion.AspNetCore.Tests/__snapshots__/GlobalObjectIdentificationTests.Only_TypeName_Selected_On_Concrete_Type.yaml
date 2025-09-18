@@ -118,7 +118,7 @@ sourceSchemas:
       scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_72167d7d_3 {\n  node: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n  }\n}"}
-        response: 
+        response: {"data":{"node":{"__typename":"Discussion"}}}
   - name: B
     schema: >-
       schema {
