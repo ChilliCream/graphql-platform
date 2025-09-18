@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using System.Reflection;
+using HotChocolate.Types;
 
 #nullable enable
 
@@ -6,6 +8,9 @@ namespace HotChocolate.Internal;
 
 internal sealed partial class ExtendedType : IExtendedType
 {
+    internal static ImmutableHashSet<Type> NonEssentialWrapperTypes { get; set; } =
+        [typeof(ValueTask<>), typeof(Task<>), typeof(NativeType<>), typeof(Optional<>)];
+
     private ExtendedType(
         Type type,
         ExtendedTypeKind kind,
@@ -219,5 +224,24 @@ internal sealed partial class ExtendedType : IExtendedType
         }
 
         return Members.FromMethod(method, cache);
+    }
+
+    public static void RegisterNonEssentialWrapperTypes(Type type)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        if (!type.IsGenericTypeDefinition)
+        {
+            throw new ArgumentException(
+                "The type must be a generic type definition.",
+                nameof(type));
+        }
+
+        if (NonEssentialWrapperTypes.Contains(type))
+        {
+            return;
+        }
+
+        NonEssentialWrapperTypes = NonEssentialWrapperTypes.Add(type);
     }
 }
