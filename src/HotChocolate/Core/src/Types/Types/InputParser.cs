@@ -45,7 +45,7 @@ public sealed class InputParser
             targetType = field.RuntimeType;
         }
 
-        return FormatAndConvertValue(field, runtimeValue, path, false, targetType);
+        return FormatAndConvertValue(field, runtimeValue, path, false, false, targetType);
     }
 
     public object? ParseLiteral(IValueNode value, IType type, Path? path = null)
@@ -234,7 +234,14 @@ public sealed class InputParser
                             }
                         }
 
-                        var value = ParseAndFormatAndConvertLiteral(literal, fieldPath, stack, defaults, field, field.IsOptional);
+                        var value = ParseAndFormatAndConvertLiteral(
+                            literal,
+                            fieldPath,
+                            stack,
+                            defaults,
+                            field,
+                            field.IsOptional,
+                            true);
                         fieldValues[field.Index] = value;
                         processed[field.Index] = true;
                         processedCount++;
@@ -361,7 +368,14 @@ public sealed class InputParser
                         throw NonNullInputViolation(type, fieldPath, field);
                     }
 
-                    var value = ParseAndFormatAndConvertLiteral(literal, fieldPath, stack, defaults, field, field.IsOptional);
+                    var value = ParseAndFormatAndConvertLiteral(
+                        literal,
+                        fieldPath,
+                        stack,
+                        defaults,
+                        field,
+                        field.IsOptional,
+                        true);
                     fieldValues[field.Index] = value;
                     processed[field.Index] = true;
                     processedCount++;
@@ -514,7 +528,7 @@ public sealed class InputParser
                     }
 
                     var value = Deserialize(fieldValue, field.Type, fieldPath, field);
-                    value = FormatAndConvertValue(field, value, fieldPath, field.IsOptional);
+                    value = FormatAndConvertValue(field, value, fieldPath, field.IsOptional, true);
 
                     fieldValues[i] = value;
                     consumed++;
@@ -615,7 +629,7 @@ public sealed class InputParser
                 : value;
         }
 
-        return ParseAndFormatAndConvertLiteral(field.DefaultValue, path, stack, false, field, field.IsOptional);
+        return ParseAndFormatAndConvertLiteral(field.DefaultValue, path, stack, false, field, field.IsOptional, false);
     }
 
     private object? CreateDefaultValue(DirectiveArgument field, Path path, int stack)
@@ -643,7 +657,7 @@ public sealed class InputParser
                 : value;
         }
 
-        return ParseAndFormatAndConvertLiteral(field.DefaultValue, path, stack, false, field, field.IsOptional);
+        return ParseAndFormatAndConvertLiteral(field.DefaultValue, path, stack, false, field, field.IsOptional, false);
     }
 
     private object? ParseAndFormatAndConvertLiteral(
@@ -652,7 +666,8 @@ public sealed class InputParser
         int stack,
         bool defaults,
         IInputValueInfo field,
-        bool isOptional)
+        bool isOptional,
+        bool optionalHasValue)
     {
         var value = ParseLiteralInternal(
             literal,
@@ -661,7 +676,7 @@ public sealed class InputParser
             stack,
             defaults,
             field);
-        return FormatAndConvertValue(field, value, fieldPath, isOptional);
+        return FormatAndConvertValue(field, value, fieldPath, isOptional , optionalHasValue);
     }
 
     private object? FormatAndConvertValue(
@@ -669,6 +684,7 @@ public sealed class InputParser
         object? value,
         Path path,
         bool isOptional,
+        bool optionalHasValue,
         Type? requestedType = null)
     {
         value = FormatValue(inputValueInfo, value);
@@ -680,7 +696,7 @@ public sealed class InputParser
 
         if (isOptional)
         {
-            value = new Optional(value, true);
+            value = new Optional(value, optionalHasValue);
         }
 
         return value;
