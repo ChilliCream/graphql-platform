@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Net.Http.Headers;
 using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
@@ -27,6 +28,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
     public async ValueTask<SourceSchemaClientResponse> ExecuteAsync(
         OperationPlanContext context,
+        ExecutionNode node,
         SourceSchemaClientRequest request,
         CancellationToken cancellationToken)
     {
@@ -34,18 +36,19 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         ArgumentNullException.ThrowIfNull(request);
 
         var httpRequest = CreateHttpRequest(request);
-        httpRequest.State = (context, _configuration);
+        // TODO: WE should only do this if it's necessary
+        httpRequest.State = (context, node, _configuration);
 
         httpRequest.OnMessageCreated += static (_, requestMessage, state) =>
         {
-            var (context, configuration) = ((OperationPlanContext, SourceSchemaHttpClientConfiguration))state!;
-            configuration.OnBeforeSend(context, requestMessage);
+            var (context, node, configuration) = ((OperationPlanContext, ExecutionNode, SourceSchemaHttpClientConfiguration))state!;
+            configuration.OnBeforeSend(context, node, requestMessage);
         };
 
         httpRequest.OnMessageReceived += static (_, responseMessage, state) =>
         {
-            var (context, configuration) = ((OperationPlanContext, SourceSchemaHttpClientConfiguration))state!;
-            configuration.OnAfterReceive(context, responseMessage);
+            var (context, node, configuration) = ((OperationPlanContext, ExecutionNode, SourceSchemaHttpClientConfiguration))state!;
+            configuration.OnAfterReceive(context, node, responseMessage);
         };
 
         var httpResponse = await _client.SendAsync(httpRequest, cancellationToken);

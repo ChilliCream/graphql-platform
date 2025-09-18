@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Execution.Nodes;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -35,8 +36,8 @@ public static partial class CoreFusionGatewayBuilderExtensions
         string name,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        Action<OperationPlanContext, HttpRequestMessage>? onBeforeSend = null,
-        Action<OperationPlanContext, HttpResponseMessage>? onAfterReceive = null)
+        Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
+        Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null)
         => AddHttpClientConfiguration(
             builder,
             name,
@@ -79,8 +80,8 @@ public static partial class CoreFusionGatewayBuilderExtensions
         string httpClientName,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        Action<OperationPlanContext, HttpRequestMessage>? onBeforeSend = null,
-        Action<OperationPlanContext, HttpResponseMessage>? onAfterReceive = null)
+        Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
+        Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(name);

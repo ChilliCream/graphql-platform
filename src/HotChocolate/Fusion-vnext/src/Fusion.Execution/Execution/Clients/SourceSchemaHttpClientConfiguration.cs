@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Execution.Nodes;
+
 namespace HotChocolate.Fusion.Execution.Clients;
 
 /// <summary>
@@ -6,8 +8,8 @@ namespace HotChocolate.Fusion.Execution.Clients;
 public class SourceSchemaHttpClientConfiguration
     : ISourceSchemaClientConfiguration
 {
-    private readonly Action<OperationPlanContext, HttpRequestMessage>? _onBeforeSend;
-    private readonly Action<OperationPlanContext, HttpResponseMessage>? _onAfterReceive;
+    private readonly Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? _onBeforeSend;
+    private readonly Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? _onAfterReceive;
 
     /// <summary>
     /// Initializes a new instance of <see cref="SourceSchemaHttpClientConfiguration"/>.
@@ -31,8 +33,8 @@ public class SourceSchemaHttpClientConfiguration
         string name,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        Action<OperationPlanContext, HttpRequestMessage>? onBeforeSend = null,
-        Action<OperationPlanContext, HttpResponseMessage>? onAfterReceive = null)
+        Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
+        Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null)
     {
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(baseAddress);
@@ -69,8 +71,8 @@ public class SourceSchemaHttpClientConfiguration
         string httpClientName,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        Action<OperationPlanContext, HttpRequestMessage>? onBeforeSend = null,
-        Action<OperationPlanContext, HttpResponseMessage>? onAfterReceive = null)
+        Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
+        Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null)
     {
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(httpClientName);
@@ -110,13 +112,17 @@ public class SourceSchemaHttpClientConfiguration
     /// <param name="context">
     /// The operation plan context.
     /// </param>
+    /// <param name="node">
+    /// The execution node triggering the request.
+    /// </param>
     /// <param name="requestMessage">
     /// The request message.
     /// </param>
     public virtual void OnBeforeSend(
         OperationPlanContext context,
+        ExecutionNode node,
         HttpRequestMessage requestMessage)
-        => _onBeforeSend?.Invoke(context, requestMessage);
+        => _onBeforeSend?.Invoke(context, node, requestMessage);
 
     /// <summary>
     /// Called after the response is received.
@@ -124,11 +130,15 @@ public class SourceSchemaHttpClientConfiguration
     /// <param name="context">
     /// The operation plan context.
     /// </param>
+    /// <param name="node">
+    /// The execution node triggering the request.
+    /// </param>
     /// <param name="responseMessage">
     /// The response message.
     /// </param>
     public virtual void OnAfterReceive(
         OperationPlanContext context,
+        ExecutionNode node,
         HttpResponseMessage responseMessage)
-        => _onAfterReceive?.Invoke(context, responseMessage);
+        => _onAfterReceive?.Invoke(context, node, responseMessage);
 }
