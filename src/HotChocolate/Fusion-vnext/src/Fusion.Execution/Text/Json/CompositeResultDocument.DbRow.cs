@@ -37,7 +37,6 @@ public sealed partial class CompositeResultDocument
             int numberOfRows = 0,
             ElementFlags flags = ElementFlags.None)
         {
-            Debug.Assert(tokenType is >= ElementTokenType.None and <= ElementTokenType.Reference);
             Debug.Assert((byte)tokenType < 16);
             Debug.Assert(location is >= 0 and <= 0x0FFFFFFF); // 28 bits
             Debug.Assert(sizeOrLength >= UnknownSize);
@@ -115,6 +114,6 @@ public sealed partial class CompositeResultDocument
         /// <summary>
         /// True for primitive JSON values (strings, numbers, booleans, null).
         /// </summary>
-        public bool IsSimpleValue => TokenType >= ElementTokenType.PropertyName && TokenType <= ElementTokenType.Null;
+        public bool IsSimpleValue => TokenType is >= ElementTokenType.PropertyName and <= ElementTokenType.Null;
     }
 }

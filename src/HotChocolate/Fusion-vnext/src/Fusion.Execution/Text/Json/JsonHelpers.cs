@@ -34,3 +34,12 @@ internal static class JsonHelpers
             JsonConstants.MinimumDateTimeParseLength,
             JsonConstants.MaximumDateTimeOffsetParseLength);
 }
+
+public ref struct Foo
+{
+    public readonly List<string> s = [];
+
+    public Foo()
+    {
+    }
+}

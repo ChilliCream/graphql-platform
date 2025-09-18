@@ -1,6 +1,5 @@
-using System.Text;
-using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Text;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -8,8 +7,6 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class Selection : ISelection
 {
-    private static readonly Cache<byte[]> s_cache = new(capacity: 4096);
-    private static readonly Encoding s_utf8 = Encoding.UTF8;
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
     private readonly byte[] _rawResponseName;
@@ -44,7 +41,7 @@ public sealed class Selection : ISelection
             _flags |= Flags.Leaf;
         }
 
-        _rawResponseName = s_cache.GetOrCreate(responseName, static key => s_utf8.GetBytes(key));
+        _rawResponseName = Utf8StringCache.GetUtf8String(responseName);
     }
 
     public int Id { get; }

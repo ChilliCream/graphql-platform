@@ -35,6 +35,30 @@ internal static class JsonReaderHelper
         }
     }
 
+    public static JsonValueKind ToValueKind(this JsonTokenType tokenType)
+    {
+        switch (tokenType)
+        {
+            case JsonTokenType.None:
+                return JsonValueKind.Undefined;
+            case JsonTokenType.StartArray:
+                return JsonValueKind.Array;
+            case JsonTokenType.StartObject:
+                return JsonValueKind.Object;
+            case JsonTokenType.String:
+            case JsonTokenType.Number:
+            case JsonTokenType.True:
+            case JsonTokenType.False:
+            case JsonTokenType.Null:
+                // This is the offset between the set of literals within JsonValueType and JsonTokenType
+                // Essentially: JsonTokenType.Null - JsonValueType.Null
+                return (JsonValueKind)((byte)tokenType - 4);
+            default:
+                Debug.Fail($"No mapping for token type {tokenType}");
+                return JsonValueKind.Undefined;
+        }
+    }
+
     public static bool UnescapeAndCompare(ReadOnlySpan<byte> utf8Source, ReadOnlySpan<byte> other)
     {
         Debug.Assert(utf8Source.Length >= other.Length && utf8Source.Length / JsonConstants.MaxExpansionFactorWhileEscaping <= other.Length);

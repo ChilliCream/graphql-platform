@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument
 {
-  internal struct MetaDb : IDisposable
+    internal struct MetaDb : IDisposable
     {
         const int TokenTypeOffset = 8;
 

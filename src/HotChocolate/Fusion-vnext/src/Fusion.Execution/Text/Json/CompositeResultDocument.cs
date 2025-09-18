@@ -1,26 +1,10 @@
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Text.Json.MetaDbConstants;
 
 namespace HotChocolate.Fusion.Text.Json;
-
-public class SourceResultDocument
-{
-    internal int Id;
-}
-
-public struct SourceResultElement
-{
-    internal SourceResultDocument Parent;
-    internal int Index;
-    internal int Size;
-    internal ElementTokenType TokenType;
-    internal JsonValueKind ValueKind;
-    internal bool HasComplexChildren;
-}
 
 public sealed partial class CompositeResultDocument
 {
@@ -35,7 +19,7 @@ public sealed partial class CompositeResultDocument
 
     public CompositeResultDocument(Operation operation)
     {
-        _metaDb = MetaDb.CreateForEstimatedRows(10_000);
+        _metaDb = MetaDb.CreateForEstimatedRows(RowsPerChunk * 8);
 
         // we initialize the data chunks so that we can store local data on this document.
         _dataChunks = new byte[16][];
@@ -51,6 +35,22 @@ public sealed partial class CompositeResultDocument
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ElementTokenType GetElementTokenType(int index)
         => _metaDb.GetElementTokenType(index);
+
+    internal SelectionSet? GetSelectionSet(int index)
+    {
+        var row = _metaDb.Get(index);
+        if (row.TokenType is not ElementTokenType.StartObject)
+        {
+            return null;
+        }
+
+        if ((row.Flags & ElementFlags.IsLeaf) == ElementFlags.IsLeaf)
+        {
+            return null;
+        }
+
+        return _operation.GetSelectionSetById(row.SelectionSetId);
+    }
 
     internal CompositeResultElement GetArrayIndexElement(int currentIndex, int arrayIndex)
     {
@@ -144,9 +144,9 @@ public sealed partial class CompositeResultDocument
         _metaDb.Replace(
             index: target.MetadataDbIndex,
             tokenType: source.TokenType,
-            location: source.Index,
+            location: source._index,
             sizeOrLength: source.Size,
-            sourceDocumentId: source.Parent.Id,
+            sourceDocumentId: source._parent.Id,
             parentRow: _metaDb.Get(target.MetadataDbIndex).ParentRow);
     }
 

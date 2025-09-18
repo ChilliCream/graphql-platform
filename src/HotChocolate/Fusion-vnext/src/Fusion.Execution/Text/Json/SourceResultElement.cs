@@ -1,17 +1,18 @@
 using System.Diagnostics;
 using System.Text.Json;
-using HotChocolate.Fusion.Execution.Nodes;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
-#pragma warning disable CS1574, CS1584, CS1581, CS1580
 
 namespace HotChocolate.Fusion.Text.Json;
 
-public partial struct CompositeResultElement
+internal readonly struct SourceResultElement
 {
-    private readonly CompositeResultDocument _parent;
-    private readonly int _index;
+    internal readonly SourceResultDocument _parent;
+    internal readonly int _index;
 
-    internal CompositeResultElement(CompositeResultDocument parent, int index)
+    //     internal int Size;
+    //    internal bool HasComplexChildren;
+
+    internal SourceResultElement(SourceResultDocument parent, int index)
     {
         // parent is usually not null, but the Current property
         // on the enumerators (when initialized as `default`) can
@@ -23,40 +24,30 @@ public partial struct CompositeResultElement
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private ElementTokenType TokenType => _parent?.GetElementTokenType(_index) ?? ElementTokenType.None;
+    private JsonTokenType TokenType => _parent?.GetElementTokenType(_index) ?? JsonTokenType.None;
 
     /// <summary>
-    ///   The <see cref="JsonValueKind"/> that the value is.
+    /// The <see cref="JsonValueKind"/> that the value is.
     /// </summary>
     /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
+    /// The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
     public JsonValueKind ValueKind => TokenType.ToValueKind();
 
-    public SelectionSet? SelectionSet
-    {
-        get
-        {
-            CheckValidInstance();
-
-            return _parent.GetSelectionSet(_index);
-        }
-    }
-
     /// <summary>
-    ///   Get the value at a specified index when the current value is a
-    ///   <see cref="JsonValueKind.Array"/>.
+    /// Get the value at a specified index when the current value is a
+    /// <see cref="JsonValueKind.Array"/>.
     /// </summary>
     /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>.
+    /// This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>.
     /// </exception>
     /// <exception cref="IndexOutOfRangeException">
-    ///   <paramref name="index"/> is not in the range [0, <see cref="GetArrayLength"/>()).
+    /// <paramref name="index"/> is not in the range [0, <see cref="GetArrayLength"/>()).
     /// </exception>
     /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
+    /// The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public CompositeResultElement this[int index]
+    public SourceResultElement this[int index]
     {
         get
         {
@@ -130,7 +121,7 @@ public partial struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     /// The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public CompositeResultElement GetProperty(string propertyName)
+    public SourceResultElement GetProperty(string propertyName)
     {
         ArgumentNullException.ThrowIfNull(propertyName);
 
@@ -170,7 +161,7 @@ public partial struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public CompositeResultElement GetProperty(ReadOnlySpan<char> propertyName)
+    public SourceResultElement GetProperty(ReadOnlySpan<char> propertyName)
     {
         if (TryGetProperty(propertyName, out var property))
         {
@@ -210,7 +201,7 @@ public partial struct CompositeResultElement
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
     /// <seealso cref="EnumerateObject"/>
-    public CompositeResultElement GetProperty(ReadOnlySpan<byte> utf8PropertyName)
+    public SourceResultElement GetProperty(ReadOnlySpan<byte> utf8PropertyName)
     {
         if (TryGetProperty(utf8PropertyName, out var property))
         {
@@ -250,7 +241,7 @@ public partial struct CompositeResultElement
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
     /// <seealso cref="EnumerateObject"/>
-    public bool TryGetProperty(string propertyName, out CompositeResultElement value)
+    public bool TryGetProperty(string propertyName, out SourceResultElement value)
     {
         ArgumentNullException.ThrowIfNull(propertyName);
 
@@ -284,7 +275,7 @@ public partial struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public bool TryGetProperty(ReadOnlySpan<char> propertyName, out CompositeResultElement value)
+    public bool TryGetProperty(ReadOnlySpan<char> propertyName, out SourceResultElement value)
     {
         CheckValidInstance();
 
@@ -320,7 +311,7 @@ public partial struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public bool TryGetProperty(ReadOnlySpan<byte> utf8PropertyName, out CompositeResultElement value)
+    public bool TryGetProperty(ReadOnlySpan<byte> utf8PropertyName, out SourceResultElement value)
     {
         CheckValidInstance();
 
@@ -350,15 +341,15 @@ public partial struct CompositeResultElement
 
         return type switch
         {
-            ElementTokenType.True => true,
-            ElementTokenType.False => false,
+            JsonTokenType.True => true,
+            JsonTokenType.False => false,
             _ => ThrowJsonElementWrongTypeException(type)
         };
 
-        static bool ThrowJsonElementWrongTypeException(ElementTokenType actualType)
+        static bool ThrowJsonElementWrongTypeException(JsonTokenType actualType)
         {
             throw new InvalidOperationException(string.Format(
-                CompositeResultElement_GetBoolean_JsonElementHasWrongType,
+                SourceResultElement_GetBoolean_JsonElementHasWrongType,
                 nameof(Boolean),
                 actualType.ToValueKind()))
             {

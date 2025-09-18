@@ -30,6 +30,8 @@ public class CompositeResultDocumentTests : FusionTestBase
 
         // assert
         Assert.Equal(1, compositeResult.Data.GetPropertyCount());
+        Assert.NotNull(compositeResult.Data.SelectionSet);
+
         var propertyValue = compositeResult.Data.GetProperty("productBySlug");
         Assert.Equal("productBySlug", propertyValue.GetPropertyName());
         Assert.Equal(JsonValueKind.Undefined, propertyValue.ValueKind);

@@ -17,7 +17,7 @@ internal enum ElementFlags : byte
     // 0x08 - Element has no parent (ignore ParentRow value)
     IsRoot = 8,
 
-    // 0x10 - Element is internal and mustnt be written to the output stream.
+    // 0x10 - Element is internal and mustn't be written to the output stream.
     IsInternal = 16,
 
     // 0x20 - Element is a leaf node
