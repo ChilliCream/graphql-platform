@@ -36,7 +36,7 @@ sourceSchemas:
       }
     interactions:
       - request: {"query":"query Op_6b55933b_1 {\n  viewer {\n    name\n  }\n}"}
-        response: {"data":{"viewer":{"name":"Viewer"}}}
+        response: 
   - name: B
     schema: >-
       schema {

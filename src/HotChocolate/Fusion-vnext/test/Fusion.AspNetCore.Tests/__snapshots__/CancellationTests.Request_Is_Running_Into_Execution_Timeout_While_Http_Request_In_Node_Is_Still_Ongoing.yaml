@@ -2,9 +2,9 @@ name: Request_Is_Running_Into_Execution_Timeout_While_Http_Request_In_Node_Is_St
 request:
   document: >-
     {
-        topProduct {
-            id
-        }
+      topProduct {
+        id
+      }
     }
 response: >-
   {

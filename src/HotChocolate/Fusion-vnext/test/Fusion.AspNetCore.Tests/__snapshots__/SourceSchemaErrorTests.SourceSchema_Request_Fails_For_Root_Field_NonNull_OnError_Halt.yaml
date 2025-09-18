@@ -1,0 +1,41 @@
+name: SourceSchema_Request_Fails_For_Root_Field_NonNull
+request:
+  onError: Halt
+  document: >-
+    {
+      topProduct {
+        price
+      }
+    }
+response: >-
+  {
+    "errors": [
+      {
+        "message": "Unexpected Execution Error",
+        "path": [
+          "topProduct"
+        ]
+      }
+    ]
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: Int!
+        price: Float!
+      }
+      
+      type Query {
+        topProduct: Product!
+        nullableTopProduct: Product
+        topProducts: [Product!]!
+        productById(id: Int!): Product @lookup @internal
+      }
+    interactions:
+      - request: {"query":"query Op_1c1cf024_1 {\n  topProduct {\n    price\n  }\n}"}
+        response: 

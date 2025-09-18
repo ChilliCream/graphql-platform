@@ -8,7 +8,6 @@ using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion;
 
-// TODO: Update to print request
 public class SourceSchemaErrorTests : FusionTestBase
 {
     #region Root
@@ -27,21 +26,20 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               productById(id: 1) {
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -49,7 +47,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -66,21 +64,20 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               productById(id: 1) {
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
            request,
@@ -88,7 +85,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -105,21 +102,20 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               productById(id: 1) {
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -127,7 +123,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -159,21 +155,20 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               productById(id: 1) {
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -181,7 +176,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -211,23 +206,22 @@ public class SourceSchemaErrorTests : FusionTestBase
                     key: "error"));
 
         using var gateway = await CreateCompositeSchemaAsync(
-            [
-                ("A", server1)
-            ],
-            configureGatewayBuilder: builder => builder
-                .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        [
+            ("A", server1)
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               productById(id: 1) {
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -235,7 +229,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -253,21 +247,20 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               nullableTopProduct {
                 price
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -275,7 +268,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -293,21 +286,20 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               topProduct {
                 price
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -315,7 +307,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     #endregion
@@ -341,14 +333,12 @@ public class SourceSchemaErrorTests : FusionTestBase
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -356,7 +346,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -364,7 +355,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -386,14 +377,12 @@ public class SourceSchemaErrorTests : FusionTestBase
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -401,7 +390,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -409,7 +399,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -431,14 +421,12 @@ public class SourceSchemaErrorTests : FusionTestBase
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -446,7 +434,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -454,7 +443,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -476,14 +465,12 @@ public class SourceSchemaErrorTests : FusionTestBase
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               topProducts {
@@ -491,7 +478,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -499,7 +487,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -518,17 +506,15 @@ public class SourceSchemaErrorTests : FusionTestBase
             b => b.AddQueryType<SourceSchema2.Query>());
 
         using var gateway = await CreateCompositeSchemaAsync(
-            [
-                ("A", server1),
-                ("B", server2)
-            ],
-            configureGatewayBuilder: builder => builder
-                .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               topProducts {
@@ -536,7 +522,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -544,7 +531,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -566,14 +553,12 @@ public class SourceSchemaErrorTests : FusionTestBase
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               topProducts {
@@ -581,7 +566,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -589,7 +575,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -611,14 +597,12 @@ public class SourceSchemaErrorTests : FusionTestBase
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -626,7 +610,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -634,7 +619,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -656,14 +641,12 @@ public class SourceSchemaErrorTests : FusionTestBase
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -671,7 +654,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -679,7 +663,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -716,14 +700,12 @@ public class SourceSchemaErrorTests : FusionTestBase
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -731,7 +713,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -739,7 +722,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -762,14 +745,12 @@ public class SourceSchemaErrorTests : FusionTestBase
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               nullableTopProduct {
@@ -777,7 +758,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -785,7 +767,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -808,14 +790,12 @@ public class SourceSchemaErrorTests : FusionTestBase
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -823,7 +803,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -831,7 +812,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -854,14 +835,12 @@ public class SourceSchemaErrorTests : FusionTestBase
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               topProducts {
@@ -869,7 +848,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -877,7 +857,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -900,14 +880,12 @@ public class SourceSchemaErrorTests : FusionTestBase
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new HotChocolate.Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               topProducts {
@@ -915,7 +893,8 @@ public class SourceSchemaErrorTests : FusionTestBase
                 name
               }
             }
-            """);
+            """,
+            onError: onError);
 
         using var result = await client.PostAsync(
             request,
@@ -923,7 +902,7 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     #endregion

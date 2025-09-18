@@ -1,0 +1,44 @@
+name: SourceSchema_Request_Fails_For_Root_Field
+request:
+  onError: Null
+  document: >-
+    {
+      nullableTopProduct {
+        price
+      }
+    }
+response: >-
+  {
+    "data": {
+      "nullableTopProduct": null
+    },
+    "errors": [
+      {
+        "message": "Unexpected Execution Error",
+        "path": [
+          "nullableTopProduct"
+        ]
+      }
+    ]
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: Int!
+        price: Float!
+      }
+      
+      type Query {
+        topProduct: Product!
+        nullableTopProduct: Product
+        topProducts: [Product!]!
+        productById(id: Int!): Product @lookup @internal
+      }
+    interactions:
+      - request: {"query":"query Op_14c79a43_1 {\n  nullableTopProduct {\n    price\n  }\n}"}
+        response: 

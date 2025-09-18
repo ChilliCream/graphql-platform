@@ -54,4 +54,4 @@ sourceSchemas:
       directive @error(atIndex: Int) on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_97b6c9a3_2 {\n  viewer {\n    userId\n  }\n}"}
-        response: {"errors":[{"message":"Unexpected Execution Error","locations":[{"line":2,"column":3}],"path":["viewer"]}],"data":null}
+        response: 

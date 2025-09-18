@@ -1,0 +1,43 @@
+name: Error_On_Root_Leaf
+request:
+  document: >-
+    {
+      productById(id: 1) {
+        name
+      }
+    }
+response: >-
+  {
+    "data": {
+      "productById": {
+        "name": null
+      }
+    },
+    "errors": [
+      {
+        "message": "Could not resolve Product.name",
+        "path": [
+          "productById",
+          "name"
+        ]
+      }
+    ]
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        name: String
+        id: Int!
+      }
+      
+      type Query {
+        productById(id: Int!): Product @lookup
+      }
+    interactions:
+      - request: {"query":"query Op_97fd38fc_1 {\n  productById(id: 1) {\n    name\n  }\n}"}
+        response: {"errors":[{"message":"Could not resolve Product.name","locations":[{"line":3,"column":5}],"path":["productById","name"]}],"data":{"productById":{"name":null}}}

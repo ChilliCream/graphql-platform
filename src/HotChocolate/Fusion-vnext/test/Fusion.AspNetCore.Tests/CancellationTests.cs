@@ -176,7 +176,7 @@ public class CancellationTests : FusionTestBase
     }
 
     [Fact]
-    public async Task ErrorHandlingMode_Can_Be_Overridden()
+    public async Task Default_ErrorHandlingMode_Can_Be_Changed()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -188,7 +188,7 @@ public class CancellationTests : FusionTestBase
             ("A", server1)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.AllowErrorHandlingModeOverride = true));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Halt));
 
         var request = new OperationRequest(
             """
@@ -197,8 +197,7 @@ public class CancellationTests : FusionTestBase
                     id
                 }
             }
-            """,
-            onError: ErrorHandlingMode.Halt);
+            """);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());

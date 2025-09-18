@@ -1,0 +1,44 @@
+name: No_Data_And_Error_Without_Path_For_Root_Field
+request:
+  onError: Null
+  document: >-
+    {
+      productById(id: 1) {
+        name
+      }
+    }
+response: >-
+  {
+    "data": {
+      "productById": null
+    },
+    "errors": [
+      {
+        "message": "A global error"
+      },
+      {
+        "message": "Unexpected Execution Error",
+        "path": [
+          "productById"
+        ]
+      }
+    ]
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        name: String!
+        id: Int!
+      }
+      
+      type Query {
+        productById(id: Int!): Product @lookup
+      }
+    interactions:
+      - request: {"query":"query Op_97fd38fc_1 {\n  productById(id: 1) {\n    name\n  }\n}"}
+        response: {"errors":[{"message":"A global error"}]}

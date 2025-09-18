@@ -1,0 +1,66 @@
+name: Error_On_Lookup_Leaf
+request:
+  onError: Null
+  document: >-
+    {
+      topProduct {
+        price
+        name
+      }
+    }
+response: >-
+  {
+    "data": {
+      "topProduct": {
+        "price": 13.99,
+        "name": null
+      }
+    },
+    "errors": [
+      {
+        "message": "Could not resolve Product.name",
+        "path": [
+          "topProduct",
+          "name"
+        ]
+      }
+    ]
+  }
+sourceSchemas:
+  - name: A
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: Int!
+        price: Float!
+      }
+      
+      type Query {
+        topProduct: Product!
+        nullableTopProduct: Product
+        topProducts: [Product!]!
+        productById(id: Int!): Product @lookup @internal
+      }
+    interactions:
+      - request: {"query":"query Op_e24d93b6_1 {\n  topProduct {\n    price\n    id\n  }\n}"}
+        response: {"data":{"topProduct":{"price":13.99,"id":1}}}
+  - name: B
+    schema: >-
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        name: String
+        id: Int!
+      }
+      
+      type Query {
+        productById(id: Int!): Product @lookup
+      }
+    interactions:
+      - request: {"query":"query Op_e24d93b6_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":1}}
+        response: {"errors":[{"message":"Could not resolve Product.name","locations":[{"line":5,"column":5}],"path":["productById","name"]}],"data":{"productById":{"name":null}}}

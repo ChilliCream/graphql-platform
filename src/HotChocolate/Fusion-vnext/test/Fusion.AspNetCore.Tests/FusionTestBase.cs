@@ -209,7 +209,11 @@ public abstract class FusionTestBase : IDisposable
 
         gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode(), settings);
         gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
-        gatewayBuilder.ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = false);
+        gatewayBuilder.ModifyRequestOptions(o =>
+        {
+            o.CollectOperationPlanTelemetry = false;
+            o.AllowErrorHandlingModeOverride = true;
+        });
         configureGatewayBuilder?.Invoke(gatewayBuilder);
 
         configureApplication ??=
@@ -241,9 +245,10 @@ public abstract class FusionTestBase : IDisposable
     protected void MatchSnapshot(
         Gateway gateway,
         HotChocolate.Transport.OperationRequest request,
-        HotChocolate.Transport.OperationResult response)
+        HotChocolate.Transport.OperationResult response,
+        string? postFix = null)
     {
-        var snapshot = new Snapshot(extension: ".yaml");
+        var snapshot = new Snapshot(postFix, ".yaml");
 
         var sb = new StringBuilder();
         var writer = new CodeWriter(sb);
