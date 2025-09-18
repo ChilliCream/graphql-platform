@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
@@ -9,6 +10,8 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Transport.Http;
@@ -74,8 +77,7 @@ public abstract class FusionTestBase : IDisposable
         {
             services.AddRouting();
 
-            services.AddGraphQLServer(schemaName)
-                // .AddType<IdType>()
+            services.AddGraphQLServer(schemaName, disableDefaultSecurity: true)
                 .AddType<FieldSelectionSetType>()
                 .AddType<FieldSelectionMapType>()
                 .TryAddTypeInterceptor<RegisterFusionDirectivesTypeInterceptor>()
@@ -87,7 +89,6 @@ public abstract class FusionTestBase : IDisposable
             {
                 opt.IsOffline = isOffline;
                 opt.IsTimingOut = isTimingOut;
-                // opt.ConfigureHttpClient = configureHttpClient;
             });
         },
         app =>
@@ -97,7 +98,7 @@ public abstract class FusionTestBase : IDisposable
         });
     }
 
-    public async Task<TestServer> CreateCompositeSchemaAsync(
+    public async Task<Gateway> CreateCompositeSchemaAsync(
         (string SchemaName, TestServer Server)[] sourceSchemaServers,
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
@@ -107,6 +108,7 @@ public abstract class FusionTestBase : IDisposable
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
         var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer();
+        var interactions = new ConcurrentDictionary<string, ConcurrentDictionary<int, RequestResponsePair>>();
 
         foreach (var (name, server) in sourceSchemaServers)
         {
@@ -122,7 +124,63 @@ public abstract class FusionTestBase : IDisposable
 
             if (schemaSettings is null)
             {
-                gatewayBuilder.AddHttpClientConfiguration(name, new Uri("http://localhost:5000/graphql"));
+                gatewayBuilder.AddHttpClientConfiguration(
+                    name,
+                    new Uri("http://localhost:5000/graphql"),
+                    onBeforeSend: (context, node, request) =>
+                    {
+                        if (request.Content == null)
+                        {
+                            return;
+                        }
+
+                        var originalStream = request.Content.ReadAsStream();
+
+                        using var memoryStream = new MemoryStream();
+                        originalStream.CopyTo(memoryStream);
+
+                        if (originalStream.CanSeek)
+                        {
+                            originalStream.Position = 0;
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException();
+                        }
+
+                        memoryStream.Position = 0;
+                        using var reader = new StreamReader(memoryStream, leaveOpen: true);
+                        var content = reader.ReadToEnd();
+
+                        var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
+                            ? staticSchemaName
+                            : context.GetDynamicSchemaName(node);
+
+                        var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
+                        var pair = schemaInteractions.GetOrAdd(node.Id, _ => new RequestResponsePair());
+
+                        pair.Request = content;
+                    }
+                    // onAfterReceive: (context, node, response) =>
+                    // {
+                    //     var originalStream =  response.Content.ReadAsStream();
+                    //     using var reader = new StreamReader(originalStream, leaveOpen: true);
+                    //     var content = reader.ReadToEnd();
+                    //
+                    //     // TODO: Make this properly work
+                    //
+                    //     // response.Content = new StringContent(content);
+                    //
+                    //     var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
+                    //         ? staticSchemaName
+                    //         : context.GetDynamicSchemaName(node);
+                    //
+                    //     var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
+                    //     var pair = schemaInteractions.GetOrAdd(node.Id, _ => new RequestResponsePair());
+                    //
+                    //     pair.Response = content;
+                    // }
+                    );
             }
         }
 
@@ -165,7 +223,7 @@ public abstract class FusionTestBase : IDisposable
                 app.UseEndpoints(endpoint => endpoint.MapGraphQL());
             };
 
-        return _testServerSession.CreateServer(
+        var gatewayTestServer = _testServerSession.CreateServer(
             services =>
             {
                 services.AddRouting();
@@ -178,6 +236,93 @@ public abstract class FusionTestBase : IDisposable
                 configureServices?.Invoke(services);
             },
             configureApplication);
+
+        return new Gateway(gatewayTestServer, sourceSchemas, interactions);
+    }
+
+    // TODO: We should strip fusion directive definitions from source schema text before printing
+    // TODO: Strip operation plan from response and render separately
+    protected void MatchSnapshot(
+        Gateway gateway,
+        HotChocolate.Transport.OperationRequest request,
+        HotChocolate.Transport.OperationResult response)
+    {
+        var snapshot = new Snapshot(extension: ".yaml");
+
+        var sb = new StringBuilder();
+        var writer = new CodeWriter(sb);
+
+        writer.WriteLine("name: {0}", snapshot.Title);
+        writer.WriteLine("request:");
+        writer.Indent();
+
+        writer.WriteLine("document: >-");
+        writer.Indent();
+        WriteMultilineString(writer, request.Query!);
+        writer.Unindent();
+
+        if (request.Variables is not null)
+        {
+            writer.WriteLine("variables: TODO");
+        }
+
+        writer.Unindent();
+
+        writer.WriteLine("response: ");
+        writer.Indent();
+
+        writer.Unindent();
+
+        writer.WriteLine("sourceSchemas:");
+        writer.Indent();
+
+        foreach (var sourceSchema in gateway.SourceSchemas)
+        {
+            writer.WriteLine("- name: {0}", sourceSchema.Name);
+            writer.Indent();
+            writer.WriteLine("schema: >-");
+            writer.Indent();
+            WriteMultilineString(writer, sourceSchema.SourceText);
+            writer.Unindent();
+
+            var interactions = gateway.Interactions.GetValueOrDefault(sourceSchema.Name);
+
+            if (interactions is not null)
+            {
+                writer.WriteLine("interactions:");
+                writer.Indent();
+
+                // TODO: Needs to also be able to represent transport errors or timeouts
+                foreach (var (id, requestResponse) in interactions.OrderBy(x => x.Key))
+                {
+                    writer.WriteLine("- request: {0}", requestResponse.Request!);
+                    writer.Indent();
+                    writer.WriteLine("response: {0}", requestResponse.Response!);
+                    writer.Unindent();
+                }
+
+                writer.Unindent();
+            }
+
+            writer.Unindent();
+        }
+
+        writer.Unindent();
+
+        snapshot.Add(sb.ToString());
+
+        snapshot.Match();
+    }
+
+    private static void WriteMultilineString(CodeWriter writer, string multilineString)
+    {
+        var reader = new StringReader(multilineString);
+        var line = reader.ReadLine();
+        while (line != null)
+        {
+            writer.WriteLine(line);
+            line = reader.ReadLine();
+        }
     }
 
     public void Dispose()
@@ -208,6 +353,54 @@ public abstract class FusionTestBase : IDisposable
     {
         services.TryAddSingleton<IHttpClientFactory, Factory>();
         return services.AddSingleton(new TestServerRegistration(name, server, options));
+    }
+
+    public class Gateway(
+        TestServer testServer,
+        List<SourceSchemaText> sourceSchemas,
+        ConcurrentDictionary<string, ConcurrentDictionary<int, RequestResponsePair>> interactions) : IDisposable
+    {
+        public HttpClient CreateClient() => testServer.CreateClient();
+
+        public List<SourceSchemaText> SourceSchemas => sourceSchemas;
+
+        public ConcurrentDictionary<string, ConcurrentDictionary<int, RequestResponsePair>> Interactions => interactions;
+
+        public void Dispose()
+        {
+            testServer.Dispose();
+        }
+    }
+
+    public class RequestResponsePair
+    {
+        public string? Request
+        {
+            get;
+            set
+            {
+                if (field is not null)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                field = value;
+            }
+        }
+
+        public string? Response
+        {
+            get;
+            set
+            {
+                if (field is not null)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                field = value;
+            }
+        }
     }
 
     private sealed class RegisterFusionDirectivesTypeInterceptor : TypeInterceptor
