@@ -39,7 +39,7 @@ public sealed class KeyInvalidFieldsRuleTests
 
         // assert
         Assert.True(result.IsFailure);
-        Assert.Equal(errorMessages, _log.Select(e => e.Message).ToArray());
+        Assert.Equal(errorMessages, _log.Select(e => e.Message.ReplaceLineEndings("\n")).ToArray());
         Assert.True(_log.All(e => e.Code == "KEY_INVALID_FIELDS"));
         Assert.True(_log.All(e => e.Severity == LogSeverity.Error));
     }
@@ -82,8 +82,27 @@ public sealed class KeyInvalidFieldsRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'Product' in schema 'A' specifies an invalid field "
-                    + "selection."
+                    """
+                    A @key directive on type 'Product' in schema 'A' specifies an invalid field selection.
+                    - The field 'id' does not exist on the type 'Product'.
+                    """
+                ]
+            },
+            // Two errors.
+            {
+                [
+                    """
+                    type Product @key(fields: "id name") {
+                        sku: String!
+                    }
+                    """
+                ],
+                [
+                    """
+                    A @key directive on type 'Product' in schema 'A' specifies an invalid field selection.
+                    - The field 'id' does not exist on the type 'Product'.
+                    - The field 'name' does not exist on the type 'Product'.
+                    """
                 ]
             }
         };
