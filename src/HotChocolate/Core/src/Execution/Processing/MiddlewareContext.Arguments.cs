@@ -30,7 +30,7 @@ internal partial class MiddlewareContext
             throw new SerializationException(
                 ErrorBuilder.FromError(ex.Errors[0]).AddLocation(location).Build(),
                 ex.Type,
-                ex.Errors[0].Path);
+                Path);
         }
     }
 
