@@ -12,39 +12,6 @@ response: >-
       "votable": {
         "viewerCanVote": true
       }
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "43ace4fb9a1ded41e657cec9f7f60855329dd8fc90144e787f22104d4e389665",
-          "operation": {
-            "name": "testQuery",
-            "kind": "Query",
-            "document": "query testQuery {\n  votable {\n    __typename @fusion__requirement\n    viewerCanVote\n  }\n}",
-            "id": "79461fa435df77020b17d7e3f6c6e59f",
-            "hash": "79461fa435df77020b17d7e3f6c6e59f",
-            "shortHash": "79461fa4"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "testQuery_79461fa4_1",
-                "kind": "Query",
-                "document": "query testQuery_79461fa4_1 {\n  votable {\n    __typename\n    viewerCanVote\n  }\n}",
-                "hash": "f4f4d3dde8893bc09300dcb498aba3f1cee747b0b1ea0f2ea1f2880fb660c531",
-                "shortHash": "f4f4d3dd"
-              },
-              "responseNames": [
-                "votable"
-              ]
-            }
-          ]
-        }
-      }
     }
   }
 sourceSchemas:
@@ -72,10 +39,6 @@ sourceSchemas:
       type Query {
         votable: Votable
       }
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_79461fa4_1 {\n  votable {\n    __typename\n    viewerCanVote\n  }\n}"}
         response: {"data":{"votable":{"__typename":"Discussion","viewerCanVote":true}}}

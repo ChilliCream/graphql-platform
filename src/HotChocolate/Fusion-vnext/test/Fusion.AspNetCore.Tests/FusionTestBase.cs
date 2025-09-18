@@ -164,6 +164,8 @@ public abstract class FusionTestBase : IDisposable
                     },
                     onAfterReceive: (context, node, response) =>
                     {
+                        // TODO: Is there a way without sync over async?
+                        // Also probably bad for incremental delivery / SSE
                         response.Content.LoadIntoBufferAsync().GetAwaiter().GetResult();
                         var content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
@@ -235,7 +237,6 @@ public abstract class FusionTestBase : IDisposable
         return new Gateway(gatewayTestServer, sourceSchemas, interactions);
     }
 
-    // TODO: We should strip fusion directive definitions from source schema text before printing
     // TODO: Properly print interactions and offline, etc status for source schema
     protected void MatchSnapshot(
         Gateway gateway,
@@ -256,7 +257,6 @@ public abstract class FusionTestBase : IDisposable
 
         writer.WriteLine("response: >-");
         writer.Indent();
-        // TODO: Strip operation plan from response and render separately
         WriteOperationResult(writer, response);
         writer.Unindent();
 
@@ -269,7 +269,7 @@ public abstract class FusionTestBase : IDisposable
             writer.Indent();
             writer.WriteLine("schema: >-");
             writer.Indent();
-            WriteMultilineString(writer, sourceSchema.SourceText);
+            WriteSourceSchema(writer, sourceSchema.SourceText);
             writer.Unindent();
 
             var interactions = gateway.Interactions.GetValueOrDefault(sourceSchema.Name);
@@ -300,6 +300,33 @@ public abstract class FusionTestBase : IDisposable
         snapshot.Match();
     }
 
+    private static void WriteSourceSchema(CodeWriter writer, string schemaText)
+    {
+        var document = Utf8GraphQLParser.Parse(schemaText);
+
+        document = document.WithDefinitions(
+            document.Definitions.Where(IsNotFusionDefinition).ToArray());
+
+        var cleanedSchema = document.ToString(indented: true);
+
+        WriteMultilineString(writer, cleanedSchema);
+    }
+
+    private static bool IsNotFusionDefinition(IDefinitionNode node)
+    {
+        if (node is DirectiveDefinitionNode directive)
+        {
+            return !FusionBuiltIns.SourceSchemaDirectives.ContainsKey(directive.Name.Value);
+        }
+
+        if (node is ScalarTypeDefinitionNode scalar)
+        {
+            return !FusionBuiltIns.SourceSchemaScalars.ContainsKey(scalar.Name.Value);
+        }
+
+        return true;
+    }
+
     private static void WriteOperationRequest(CodeWriter writer, HotChocolate.Transport.OperationRequest request)
     {
         if (request.OnError is not null && request.OnError != ErrorHandlingMode.Propagate)
@@ -309,7 +336,11 @@ public abstract class FusionTestBase : IDisposable
 
         writer.WriteLine("document: >-");
         writer.Indent();
-        WriteMultilineString(writer, request.Query!);
+
+        // Ensure consistent formatting
+        var document = Utf8GraphQLParser.Parse(request.Query!).ToString(indented: true);
+
+        WriteMultilineString(writer, document);
         writer.Unindent();
 
         if (request.Variables is not null)
@@ -362,11 +393,11 @@ public abstract class FusionTestBase : IDisposable
             result.Errors.WriteTo(jsonWriter);
         }
 
-        if (result.Extensions.ValueKind is JsonValueKind.Object)
-        {
-            jsonWriter.WritePropertyName("extensions");
-            result.Extensions.WriteTo(jsonWriter);
-        }
+        // if (result.Extensions.ValueKind is JsonValueKind.Object)
+        // {
+        //     jsonWriter.WritePropertyName("extensions");
+        //     result.Extensions.WriteTo(jsonWriter);
+        // }
 
         jsonWriter.WriteEndObject();
         jsonWriter.Flush();

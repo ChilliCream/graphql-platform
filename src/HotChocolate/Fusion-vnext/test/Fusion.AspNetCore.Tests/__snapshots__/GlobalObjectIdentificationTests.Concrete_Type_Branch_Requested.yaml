@@ -2,7 +2,6 @@ name: Concrete_Type_Branch_Requested
 request:
   document: >-
     {
-      # Discussion:1
       node(id: "RGlzY3Vzc2lvbjox") {
         ... on Discussion {
           title
@@ -16,97 +15,6 @@ response: >-
       "node": {
         "title": "Discussion: RGlzY3Vzc2lvbjox",
         "commentCount": 123
-      }
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "b636ef7c06b04ff45980bbf61c25bb7c4fd5b3c3d77efcdbb5de401db5582279",
-          "operation": {
-            "kind": "Query",
-            "document": "{\n  node(id: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n      commentCount\n    }\n    id @fusion__requirement\n  }\n}",
-            "id": "e567807ec1ad5128cfb566fad1645abc",
-            "hash": "e567807ec1ad5128cfb566fad1645abc",
-            "shortHash": "e567807e"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Node",
-              "idValue": "\u0022RGlzY3Vzc2lvbjox\u0022",
-              "responseName": "node",
-              "branches": {
-                "Discussion": 3
-              },
-              "fallback": 2
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "operation": {
-                "name": "Op_e567807e_2",
-                "kind": "Query",
-                "document": "query Op_e567807e_2 {\n  node(id: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n  }\n}",
-                "hash": "4a2a025bfea51266b719e0e2d21a7f7f6a811a6fe9044ffdb3ba2b0daf1074ae",
-                "shortHash": "4a2a025b"
-              },
-              "responseNames": [
-                "node"
-              ],
-              "dependencies": [
-                1
-              ]
-            },
-            {
-              "id": 3,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "Op_e567807e_3",
-                "kind": "Query",
-                "document": "query Op_e567807e_3 {\n  node: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n    title\n    id\n  }\n}",
-                "hash": "f4d65f7ce02d10c3ee98737bd4b71dfb3f94e8457ca3551d84e54e31d1ce29c1",
-                "shortHash": "f4d65f7c"
-              },
-              "responseNames": [
-                "node"
-              ],
-              "dependencies": [
-                1
-              ]
-            },
-            {
-              "id": 4,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "Op_e567807e_4",
-                "kind": "Query",
-                "document": "query Op_e567807e_4(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    commentCount\n  }\n}",
-                "hash": "81f56010513e763ae2fe61f294860509d7fe4ce8fbc2a34356f7b801a1e971c3",
-                "shortHash": "81f56010"
-              },
-              "responseNames": [
-                "commentCount"
-              ],
-              "source": "$.discussionById",
-              "target": "$.node\u003CDiscussion\u003E",
-              "requirements": [
-                {
-                  "name": "__fusion_1_id",
-                  "type": "ID!",
-                  "path": "$.node\u003CDiscussion\u003E",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                3
-              ]
-            }
-          ]
-        }
       }
     }
   }
@@ -130,23 +38,6 @@ sourceSchemas:
         node(id: ID!): Node @lookup
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
-      
-      """
-      The @is directive is utilized on lookup fields to describe how the arguments
-      can be mapped from the entity type that the lookup field resolves.
-      """
-      directive @is("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_e567807e_3 {\n  node: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n    title\n    id\n  }\n}"}
         response: {"data":{"node":{"__typename":"Discussion","title":"Discussion: RGlzY3Vzc2lvbjox","id":"RGlzY3Vzc2lvbjox"}}}
@@ -174,38 +65,6 @@ sourceSchemas:
         node(id: ID!): Node @lookup
         discussionById(id: ID!): Discussion @lookup @internal
       }
-      
-      """
-      The @internal directive is used in combination with lookup fields and allows you
-      to declare internal types and fields. Internal types and fields do not appear in
-      the final client-facing composite schema and do not participate in the standard
-      schema-merging process. This allows a source schema to define lookup fields for
-      resolving entities that should not be accessible through the client-facing
-      composite schema.
-      
-      
-      
-      
-      
-      type User @internal {
-        id: ID!
-        name: String!
-      }
-                  
-      directive @internal on OBJECT | FIELD_DEFINITION
-      """
-      directive @internal on OBJECT | FIELD_DEFINITION
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_e567807e_4(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    commentCount\n  }\n}","variables":{"__fusion_1_id":"RGlzY3Vzc2lvbjox"}}
         response: {"data":{"discussionById":{"commentCount":123}}}

@@ -1,7 +1,7 @@
 name: Resolve_Parallel_SharedEntryField_NonNull_Both_Services_Error_SharedEntryField
 request:
   document: >-
-    query {
+    {
       viewer {
         userId
         name
@@ -16,54 +16,7 @@ response: >-
           "viewer"
         ]
       }
-    ],
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "cb1c5aa3a185d1b52d45151acca836902b6ddae7fd12cda85b29e58d70001fbc",
-          "operation": {
-            "kind": "Query",
-            "document": "{\n  viewer {\n    userId\n    name\n  }\n}",
-            "id": "97b6c9a38cb9e8fe9655a064c212a3ec",
-            "hash": "97b6c9a38cb9e8fe9655a064c212a3ec",
-            "shortHash": "97b6c9a3"
-          },
-          "searchSpace": 2,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "Op_97b6c9a3_1",
-                "kind": "Query",
-                "document": "query Op_97b6c9a3_1 {\n  viewer {\n    name\n  }\n}",
-                "hash": "dc3226624889c5575377cec0e9c3b1c7a330059e24da73ba660e08d73e8631d5",
-                "shortHash": "dc322662"
-              },
-              "responseNames": [
-                "viewer"
-              ]
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "Op_97b6c9a3_2",
-                "kind": "Query",
-                "document": "query Op_97b6c9a3_2 {\n  viewer {\n    userId\n  }\n}",
-                "hash": "ad1c7fbb42f5b7bb414caf53c9b4cf2fcc1393b80bf7a98a6e3515b8f091e3d7",
-                "shortHash": "ad1c7fbb"
-              },
-              "responseNames": [
-                "viewer"
-              ]
-            }
-          ]
-        }
-      }
-    }
+    ]
   }
 sourceSchemas:
   - name: A
@@ -81,10 +34,6 @@ sourceSchemas:
       }
       
       directive @error(atIndex: Int) on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_97b6c9a3_1 {\n  viewer {\n    name\n  }\n}"}
         response: {"errors":[{"message":"Unexpected Execution Error","locations":[{"line":2,"column":3}],"path":["viewer"]}],"data":null}
@@ -103,10 +52,6 @@ sourceSchemas:
       }
       
       directive @error(atIndex: Int) on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_97b6c9a3_2 {\n  viewer {\n    userId\n  }\n}"}
         response: {"errors":[{"message":"Unexpected Execution Error","locations":[{"line":2,"column":3}],"path":["viewer"]}],"data":null}

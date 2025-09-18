@@ -2,10 +2,10 @@ name: Concrete_Type_With_Abstract_Lookup
 request:
   document: >-
     {
-        authorById(id: 1) {
-          name
-          age
-        }
+      authorById(id: 1) {
+        name
+        age
+      }
     }
 response: >-
   {
@@ -13,67 +13,6 @@ response: >-
       "authorById": {
         "name": "Author 1",
         "age": 5
-      }
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "4ce82e0e3e83ffce1dba53e51ca363c95868c819ddf044df2318f75d475d5341",
-          "operation": {
-            "kind": "Query",
-            "document": "{\n  authorById(id: 1) {\n    name\n    age\n    id @fusion__requirement\n  }\n}",
-            "id": "94874bbd5fd74fc49ba59e51c4bad3fe",
-            "hash": "94874bbd5fd74fc49ba59e51c4bad3fe",
-            "shortHash": "94874bbd"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "Op_94874bbd_1",
-                "kind": "Query",
-                "document": "query Op_94874bbd_1 {\n  authorById(id: 1) {\n    name\n    id\n  }\n}",
-                "hash": "44717c77a830d9df712a9f3e6258abd0d20dee26414085b050d2350dd119be2f",
-                "shortHash": "44717c77"
-              },
-              "responseNames": [
-                "authorById"
-              ]
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "Op_94874bbd_2",
-                "kind": "Query",
-                "document": "query Op_94874bbd_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}",
-                "hash": "e5976249e22113aad071cfd11daf2709ea3521e377e172ce3b013ffe6cd5f077",
-                "shortHash": "e5976249"
-              },
-              "responseNames": [
-                "age"
-              ],
-              "source": "$.otherInterface\u003CAuthor\u003E",
-              "target": "$.authorById",
-              "requirements": [
-                {
-                  "name": "__fusion_1_id",
-                  "type": "Int!",
-                  "path": "$.authorById",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                1
-              ]
-            }
-          ]
-        }
       }
     }
   }
@@ -139,13 +78,6 @@ sourceSchemas:
         interfaceConnection("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): InterfaceConnectionConnection
         authorById(id: Int!): Author! @lookup
       }
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_94874bbd_1 {\n  authorById(id: 1) {\n    name\n    id\n  }\n}"}
         response: {"data":{"authorById":{"name":"Author 1","id":1}}}
@@ -173,34 +105,6 @@ sourceSchemas:
         otherInterface(id: Int!): OtherInterface! @lookup
         discussionById(id: ID!): Discussion @lookup @internal
       }
-      
-      """
-      The @internal directive is used in combination with lookup fields and allows you
-      to declare internal types and fields. Internal types and fields do not appear in
-      the final client-facing composite schema and do not participate in the standard
-      schema-merging process. This allows a source schema to define lookup fields for
-      resolving entities that should not be accessible through the client-facing
-      composite schema.
-      
-      
-      
-      
-      
-      type User @internal {
-        id: ID!
-        name: String!
-      }
-                  
-      directive @internal on OBJECT | FIELD_DEFINITION
-      """
-      directive @internal on OBJECT | FIELD_DEFINITION
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_94874bbd_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
         response: {"data":{"otherInterface":{"__typename":"Author","age":5}}}

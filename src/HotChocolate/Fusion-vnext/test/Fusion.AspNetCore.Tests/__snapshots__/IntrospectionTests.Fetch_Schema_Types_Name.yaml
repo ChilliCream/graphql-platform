@@ -72,34 +72,6 @@ response: >-
           }
         ]
       }
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "15516fc0017f6db8db388a12505832d188fcc0b66fbeb98b9ff774f4f32ce535",
-          "operation": {
-            "kind": "Query",
-            "document": "{\n  __schema {\n    types {\n      name\n    }\n  }\n}",
-            "id": "e4e78f6ce44f74870f424cc260b232a6",
-            "hash": "e4e78f6ce44f74870f424cc260b232a6",
-            "shortHash": "e4e78f6c"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Introspection",
-              "selections": [
-                {
-                  "id": 1,
-                  "responseName": "__schema",
-                  "fieldName": "__schema"
-                }
-              ]
-            }
-          ]
-        }
-      }
     }
   }
 sourceSchemas:
@@ -153,13 +125,6 @@ sourceSchemas:
         bookById(id: Int!): Book! @lookup
         books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
       }
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
   - name: B
     schema: >-
       schema {
@@ -211,31 +176,3 @@ sourceSchemas:
         authorById(id: Int!): Author! @internal @lookup
         authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
       }
-      
-      """
-      The @internal directive is used in combination with lookup fields and allows you
-      to declare internal types and fields. Internal types and fields do not appear in
-      the final client-facing composite schema and do not participate in the standard
-      schema-merging process. This allows a source schema to define lookup fields for
-      resolving entities that should not be accessible through the client-facing
-      composite schema.
-      
-      
-      
-      
-      
-      type User @internal {
-        id: ID!
-        name: String!
-      }
-                  
-      directive @internal on OBJECT | FIELD_DEFINITION
-      """
-      directive @internal on OBJECT | FIELD_DEFINITION
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION

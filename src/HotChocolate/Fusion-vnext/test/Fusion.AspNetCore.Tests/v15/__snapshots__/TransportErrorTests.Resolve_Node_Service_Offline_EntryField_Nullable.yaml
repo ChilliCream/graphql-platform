@@ -1,7 +1,7 @@
 name: Resolve_Node_Service_Offline_EntryField_Nullable
 request:
   document: >-
-    query {
+    {
       node(id: "QnJhbmQ6MQ==") {
         id
         ... on Brand {
@@ -21,69 +21,7 @@ response: >-
           "node"
         ]
       }
-    ],
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "6a85bad8e684c605d3d4b86d6f1cebb458c7d7859bb5c4df80030a3e9e77fd91",
-          "operation": {
-            "kind": "Query",
-            "document": "{\n  node(id: \u0022QnJhbmQ6MQ==\u0022) {\n    __typename @fusion__requirement\n    id\n    ... on Brand {\n      name\n    }\n  }\n}",
-            "id": "82e961c424bf839d2f78d75ab651ae31",
-            "hash": "82e961c424bf839d2f78d75ab651ae31",
-            "shortHash": "82e961c4"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Node",
-              "idValue": "\u0022QnJhbmQ6MQ==\u0022",
-              "responseName": "node",
-              "branches": {
-                "Brand": 3
-              },
-              "fallback": 2
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "operation": {
-                "name": "Op_82e961c4_2",
-                "kind": "Query",
-                "document": "query Op_82e961c4_2 {\n  node(id: \u0022QnJhbmQ6MQ==\u0022) {\n    __typename\n    id\n  }\n}",
-                "hash": "8176f538c4843e7af97c50b0a4101a3aeb6a02241bab70e9ff75583a9a58363e",
-                "shortHash": "8176f538"
-              },
-              "responseNames": [
-                "node"
-              ],
-              "dependencies": [
-                1
-              ]
-            },
-            {
-              "id": 3,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "Op_82e961c4_3",
-                "kind": "Query",
-                "document": "query Op_82e961c4_3 {\n  node(id: \u0022QnJhbmQ6MQ==\u0022) {\n    __typename\n    ... on Brand {\n      __typename\n      id\n      name\n    }\n  }\n}",
-                "hash": "525975790a0b6cfde8050972e6951be51c8281095b6b7a34354514bf6ec51102",
-                "shortHash": "52597579"
-              },
-              "responseNames": [
-                "node"
-              ],
-              "dependencies": [
-                1
-              ]
-            }
-          ]
-        }
-      }
-    }
+    ]
   }
 sourceSchemas:
   - name: A
@@ -104,17 +42,6 @@ sourceSchemas:
       type Query {
         node(id: ID!): Node @lookup
       }
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_82e961c4_3 {\n  node(id: \u0022QnJhbmQ6MQ==\u0022) {\n    __typename\n    ... on Brand {\n      __typename\n      id\n      name\n    }\n  }\n}"}
         response: 

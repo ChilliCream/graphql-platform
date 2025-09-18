@@ -38,97 +38,6 @@ response: >-
           }
         }
       ]
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "59d0c0d1544628165a2ffb1a7cc45c2cdfaf4c99b2a0772ac41f6526a6ef0cf8",
-          "operation": {
-            "name": "testQuery",
-            "kind": "Query",
-            "document": "query testQuery {\n  authorables {\n    __typename @fusion__requirement\n    author {\n      id\n      id @fusion__requirement\n      displayName\n    }\n    ... on Discussion {\n      author {\n        id\n        id @fusion__requirement\n        displayName\n      }\n    }\n  }\n}",
-            "id": "61febe16f0582ccc926bb3b563c81d80",
-            "hash": "61febe16f0582ccc926bb3b563c81d80",
-            "shortHash": "61febe16"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "testQuery_61febe16_1",
-                "kind": "Query",
-                "document": "query testQuery_61febe16_1 {\n  authorables {\n    __typename\n    author {\n      id\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}",
-                "hash": "7390633a6899ec39e7a731a55a75468f7e61a40493a20f93903a0f5ff3b7eae3",
-                "shortHash": "7390633a"
-              },
-              "responseNames": [
-                "authorables"
-              ]
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "testQuery_61febe16_2",
-                "kind": "Query",
-                "document": "query testQuery_61febe16_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}",
-                "hash": "a7c6825a6cca663422165c0a1e283ce45425c43681fef8411fe205aff088c801",
-                "shortHash": "a7c6825a"
-              },
-              "responseNames": [
-                "displayName"
-              ],
-              "source": "$.authorById",
-              "target": "$.authorables\u003CDiscussion\u003E.author",
-              "requirements": [
-                {
-                  "name": "__fusion_1_id",
-                  "type": "ID!",
-                  "path": "$.authorables\u003CDiscussion\u003E.author",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                1
-              ]
-            },
-            {
-              "id": 3,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "testQuery_61febe16_3",
-                "kind": "Query",
-                "document": "query testQuery_61febe16_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    displayName\n  }\n}",
-                "hash": "e0fc07a1c594663c6fb4f24363252ea91d03b6bf787fcf754bc95227862b375d",
-                "shortHash": "e0fc07a1"
-              },
-              "responseNames": [
-                "displayName"
-              ],
-              "source": "$.authorById",
-              "target": "$.authorables.author",
-              "requirements": [
-                {
-                  "name": "__fusion_2_id",
-                  "type": "ID!",
-                  "path": "$.authorables.author",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                1
-              ]
-            }
-          ]
-        }
-      }
     }
   }
 sourceSchemas:
@@ -157,17 +66,6 @@ sourceSchemas:
       type Query {
         authorables: [Authorable]
       }
-      
-      """
-      The @key directive is used to designate an entity's unique key,
-      which identifies how to uniquely reference an instance of
-      an entity across different source schemas.
-      """
-      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_61febe16_1 {\n  authorables {\n    __typename\n    author {\n      id\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
         response: {"data":{"authorables":[{"__typename":"Discussion","author":{"id":"QXV0aG9yOjY="}},{"__typename":"Comment","author":{"id":"QXV0aG9yOjU="}},{"__typename":"Discussion","author":{"id":"QXV0aG9yOjQ="}}]}}
@@ -185,24 +83,6 @@ sourceSchemas:
       type Query {
         authorById(id: ID!): Author @lookup
       }
-      
-      """
-      The @key directive is used to designate an entity's unique key,
-      which identifies how to uniquely reference an instance of
-      an entity across different source schemas.
-      """
-      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_61febe16_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjY="},{"__fusion_1_id":"QXV0aG9yOjQ="}]}
         response: {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjY="}}}

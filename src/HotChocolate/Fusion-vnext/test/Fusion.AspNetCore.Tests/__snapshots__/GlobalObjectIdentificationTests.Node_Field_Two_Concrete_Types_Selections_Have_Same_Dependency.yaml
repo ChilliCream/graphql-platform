@@ -1,7 +1,9 @@
 name: Node_Field_Two_Concrete_Types_Selections_Have_Same_Dependency
 request:
   document: >-
-    query testQuery($id: ID!) {
+    query testQuery(
+      $id: ID!
+    ) {
       node(id: $id) {
         ... on Discussion {
           product {
@@ -25,146 +27,6 @@ response: >-
       "node": {
         "product": {
           "name": "Product: UHJvZHVjdDox"
-        }
-      }
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "47754aa603eabe98b81725e7a15b3ea12ea9120efac896a2d26d0944eb1cc4eb",
-          "operation": {
-            "name": "testQuery",
-            "kind": "Query",
-            "document": "query testQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename @fusion__requirement\n    ... on Discussion {\n      product {\n        name\n        id @fusion__requirement\n      }\n    }\n    ... on Review {\n      product {\n        name\n        id @fusion__requirement\n      }\n    }\n  }\n}",
-            "id": "7a72a6b2c73563990dd6a8e780fbbd78",
-            "hash": "7a72a6b2c73563990dd6a8e780fbbd78",
-            "shortHash": "7a72a6b2"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Node",
-              "idValue": "$id",
-              "responseName": "node",
-              "branches": {
-                "Discussion": 5,
-                "Review": 3
-              },
-              "fallback": 2
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "operation": {
-                "name": "testQuery_7a72a6b2_2",
-                "kind": "Query",
-                "document": "query testQuery_7a72a6b2_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}",
-                "hash": "79812120da42f60716d3bf20c170c53e5f96fcc6cf38c27394157e385fb0fc3a",
-                "shortHash": "79812120"
-              },
-              "responseNames": [
-                "node"
-              ],
-              "dependencies": [
-                1
-              ]
-            },
-            {
-              "id": 3,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "testQuery_7a72a6b2_3",
-                "kind": "Query",
-                "document": "query testQuery_7a72a6b2_3(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Review {\n      __typename\n      product {\n        id\n      }\n    }\n  }\n}",
-                "hash": "9f012262564a48f20b24baaa66e916e4cdb39a00143e3de61f74a76890010404",
-                "shortHash": "9f012262"
-              },
-              "responseNames": [
-                "node"
-              ],
-              "dependencies": [
-                1
-              ]
-            },
-            {
-              "id": 4,
-              "type": "Operation",
-              "schema": "C",
-              "operation": {
-                "name": "testQuery_7a72a6b2_4",
-                "kind": "Query",
-                "document": "query testQuery_7a72a6b2_4(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}",
-                "hash": "863ca596ac4f41370eb19187d28c922ea61b08e8f287fc083fe4c7c36225921c",
-                "shortHash": "863ca596"
-              },
-              "responseNames": [
-                "name"
-              ],
-              "source": "$.node\u003CProduct\u003E",
-              "target": "$.node\u003CReview\u003E.product",
-              "requirements": [
-                {
-                  "name": "__fusion_1_id",
-                  "type": "ID!",
-                  "path": "$.node\u003CReview\u003E.product",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                3
-              ]
-            },
-            {
-              "id": 5,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "testQuery_7a72a6b2_5",
-                "kind": "Query",
-                "document": "query testQuery_7a72a6b2_5(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Discussion {\n      __typename\n      product {\n        id\n      }\n    }\n  }\n}",
-                "hash": "d515613c322f0ceed67dbfedb3851b4781d7f8e13deb4cfa0a4b353a86cf53fb",
-                "shortHash": "d515613c"
-              },
-              "responseNames": [
-                "node"
-              ],
-              "dependencies": [
-                1
-              ]
-            },
-            {
-              "id": 6,
-              "type": "Operation",
-              "schema": "C",
-              "operation": {
-                "name": "testQuery_7a72a6b2_6",
-                "kind": "Query",
-                "document": "query testQuery_7a72a6b2_6(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}",
-                "hash": "f64658f92de4ca26b6f8e5097cf5340af24b02b1a7cc86d698dcf0d483a9bdd0",
-                "shortHash": "f64658f9"
-              },
-              "responseNames": [
-                "name"
-              ],
-              "source": "$.node\u003CProduct\u003E",
-              "target": "$.node\u003CDiscussion\u003E.product",
-              "requirements": [
-                {
-                  "name": "__fusion_2_id",
-                  "type": "ID!",
-                  "path": "$.node\u003CDiscussion\u003E.product",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                5
-              ]
-            }
-          ]
         }
       }
     }
@@ -192,24 +54,6 @@ sourceSchemas:
       type Query {
         node(id: ID!): Node @lookup
       }
-      
-      """
-      The @key directive is used to designate an entity's unique key,
-      which identifies how to uniquely reference an instance of
-      an entity across different source schemas.
-      """
-      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_7a72a6b2_5(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Discussion {\n      __typename\n      product {\n        id\n      }\n    }\n  }\n}","variables":{"id":"RGlzY3Vzc2lvbjox"}}
         response: {"data":{"node":{"__typename":"Discussion","product":{"id":"UHJvZHVjdDox"}}}}
@@ -235,24 +79,6 @@ sourceSchemas:
         id: ID!
         product: Product
       }
-      
-      """
-      The @key directive is used to designate an entity's unique key,
-      which identifies how to uniquely reference an instance of
-      an entity across different source schemas.
-      """
-      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
   - name: C
     schema: >-
       schema {
@@ -271,24 +97,6 @@ sourceSchemas:
       type Query {
         node(id: ID!): Node @lookup
       }
-      
-      """
-      The @key directive is used to designate an entity's unique key,
-      which identifies how to uniquely reference an instance of
-      an entity across different source schemas.
-      """
-      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_7a72a6b2_6(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":{"__fusion_2_id":"UHJvZHVjdDox"}}
         response: {"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDox"}}}

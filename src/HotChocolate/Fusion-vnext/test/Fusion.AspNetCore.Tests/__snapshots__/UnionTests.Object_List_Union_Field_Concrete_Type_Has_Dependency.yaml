@@ -33,68 +33,6 @@ response: >-
           }
         }
       ]
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "3d596198f377becf0c05b31402cf07f453e3185acb7d966bf76e214e70778ef6",
-          "operation": {
-            "name": "testQuery",
-            "kind": "Query",
-            "document": "query testQuery {\n  postEdges {\n    node {\n      __typename @fusion__requirement\n      ... on Photo {\n        subgraph2\n        id @fusion__requirement\n      }\n      ... on Discussion {\n        subgraph1\n      }\n    }\n  }\n}",
-            "id": "30e5fe2dd1fb5421622af65e08f7128d",
-            "hash": "30e5fe2dd1fb5421622af65e08f7128d",
-            "shortHash": "30e5fe2d"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "testQuery_30e5fe2d_1",
-                "kind": "Query",
-                "document": "query testQuery_30e5fe2d_1 {\n  postEdges {\n    node {\n      __typename\n      ... on Photo {\n        id\n      }\n      ... on Discussion {\n        subgraph1\n      }\n    }\n  }\n}",
-                "hash": "d65b776450be881ccd9e1f98717a1bb29e134efe55e82fe1a44dbfe029a6168b",
-                "shortHash": "d65b7764"
-              },
-              "responseNames": [
-                "postEdges"
-              ]
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "testQuery_30e5fe2d_2",
-                "kind": "Query",
-                "document": "query testQuery_30e5fe2d_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}",
-                "hash": "fd821b012b423d6774a3b62d9b1bddd03f9f003ad8b9acb17520f3dafc685113",
-                "shortHash": "fd821b01"
-              },
-              "responseNames": [
-                "subgraph2"
-              ],
-              "source": "$.photoById",
-              "target": "$.postEdges.node\u003CPhoto\u003E",
-              "requirements": [
-                {
-                  "name": "__fusion_1_id",
-                  "type": "ID!",
-                  "path": "$.postEdges.node\u003CPhoto\u003E",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                1
-              ]
-            }
-          ]
-        }
-      }
     }
   }
 sourceSchemas:
@@ -122,17 +60,6 @@ sourceSchemas:
       }
       
       union Post = Photo | Discussion
-      
-      """
-      The @key directive is used to designate an entity's unique key,
-      which identifies how to uniquely reference an instance of
-      an entity across different source schemas.
-      """
-      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_30e5fe2d_1 {\n  postEdges {\n    node {\n      __typename\n      ... on Photo {\n        id\n      }\n      ... on Discussion {\n        subgraph1\n      }\n    }\n  }\n}"}
         response: {"data":{"postEdges":[{"node":{"__typename":"Photo","id":"UGhvdG86Ng=="}},{"node":{"__typename":"Photo","id":"UGhvdG86NQ=="}},{"node":{"__typename":"Photo","id":"UGhvdG86NA=="}}]}}
@@ -150,24 +77,6 @@ sourceSchemas:
       type Query {
         photoById(id: ID!): Photo @lookup
       }
-      
-      """
-      The @key directive is used to designate an entity's unique key,
-      which identifies how to uniquely reference an instance of
-      an entity across different source schemas.
-      """
-      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_30e5fe2d_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_1_id":"UGhvdG86Ng=="},{"__fusion_1_id":"UGhvdG86NQ=="},{"__fusion_1_id":"UGhvdG86NA=="}]}
         response: {"variableIndex":0,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86Ng=="}}}

@@ -36,68 +36,6 @@ response: >-
           }
         }
       ]
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "4c6de290e76088a1f7af2806494c763081543ec7715cbd195fde20e183b01b1d",
-          "operation": {
-            "name": "testQuery",
-            "kind": "Query",
-            "document": "query testQuery {\n  wrappers {\n    authorable {\n      __typename @fusion__requirement\n      author {\n        displayName\n        id @fusion__requirement\n      }\n    }\n  }\n}",
-            "id": "bdd3c6f6841e869736d745f400aeb43a",
-            "hash": "bdd3c6f6841e869736d745f400aeb43a",
-            "shortHash": "bdd3c6f6"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "testQuery_bdd3c6f6_1",
-                "kind": "Query",
-                "document": "query testQuery_bdd3c6f6_1 {\n  wrappers {\n    authorable {\n      __typename\n      author {\n        id\n      }\n    }\n  }\n}",
-                "hash": "77a11880bd836a8d3a8884d24c77c85c11cdfa4c439f81b0c2caa8f7a0172863",
-                "shortHash": "77a11880"
-              },
-              "responseNames": [
-                "wrappers"
-              ]
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "testQuery_bdd3c6f6_2",
-                "kind": "Query",
-                "document": "query testQuery_bdd3c6f6_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}",
-                "hash": "aa326a5cf5902a00102fb4f217039b54eb74c3be8d10c044833384faf7a83c8f",
-                "shortHash": "aa326a5c"
-              },
-              "responseNames": [
-                "displayName"
-              ],
-              "source": "$.authorById",
-              "target": "$.wrappers.authorable.author",
-              "requirements": [
-                {
-                  "name": "__fusion_1_id",
-                  "type": "ID!",
-                  "path": "$.wrappers.authorable.author",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                1
-              ]
-            }
-          ]
-        }
-      }
     }
   }
 sourceSchemas:
@@ -130,17 +68,6 @@ sourceSchemas:
       type Wrapper {
         authorable: Authorable
       }
-      
-      """
-      The @key directive is used to designate an entity's unique key,
-      which identifies how to uniquely reference an instance of
-      an entity across different source schemas.
-      """
-      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_bdd3c6f6_1 {\n  wrappers {\n    authorable {\n      __typename\n      author {\n        id\n      }\n    }\n  }\n}"}
         response: {"data":{"wrappers":[{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjc="}}},{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjg="}}},{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjk="}}}]}}
@@ -158,24 +85,6 @@ sourceSchemas:
       type Query {
         authorById(id: ID!): Author @lookup
       }
-      
-      """
-      The @key directive is used to designate an entity's unique key,
-      which identifies how to uniquely reference an instance of
-      an entity across different source schemas.
-      """
-      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_bdd3c6f6_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjc="},{"__fusion_1_id":"QXV0aG9yOjg="},{"__fusion_1_id":"QXV0aG9yOjk="}]}
         response: {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjc="}}}

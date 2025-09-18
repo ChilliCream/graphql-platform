@@ -1,7 +1,7 @@
 name: Resolve_Parallel_One_Service_Offline_EntryFields_Nullable
 request:
   document: >-
-    query {
+    {
       viewer {
         name
       }
@@ -24,54 +24,7 @@ response: >-
           "viewer"
         ]
       }
-    ],
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "5cee38483c9e987f8868613b0bb3a0034d387730fa4502179df179f4797d5767",
-          "operation": {
-            "kind": "Query",
-            "document": "{\n  viewer {\n    name\n  }\n  other {\n    userId\n  }\n}",
-            "id": "6b55933be7e98bbac39be61645618631",
-            "hash": "6b55933be7e98bbac39be61645618631",
-            "shortHash": "6b55933b"
-          },
-          "searchSpace": 2,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "Op_6b55933b_1",
-                "kind": "Query",
-                "document": "query Op_6b55933b_1 {\n  viewer {\n    name\n  }\n}",
-                "hash": "2c968f2aa2525009e329c1718c46ee4d4ca6eb0488fe83a1ecda0935530cf80c",
-                "shortHash": "2c968f2a"
-              },
-              "responseNames": [
-                "viewer"
-              ]
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "Op_6b55933b_2",
-                "kind": "Query",
-                "document": "query Op_6b55933b_2 {\n  other {\n    userId\n  }\n}",
-                "hash": "fdcee7b74a5f1acd3d2a50d95a1afb387fd075bd065df9c33333766d733dce98",
-                "shortHash": "fdcee7b7"
-              },
-              "responseNames": [
-                "other"
-              ]
-            }
-          ]
-        }
-      }
-    }
+    ]
   }
 sourceSchemas:
   - name: A
@@ -87,10 +40,6 @@ sourceSchemas:
       type Viewer {
         name: String!
       }
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_6b55933b_1 {\n  viewer {\n    name\n  }\n}"}
         response: 
@@ -107,10 +56,6 @@ sourceSchemas:
       type Query {
         other: Other
       }
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_6b55933b_2 {\n  other {\n    userId\n  }\n}"}
         response: {"data":{"other":{"userId":"T3RoZXI6MQ=="}}}

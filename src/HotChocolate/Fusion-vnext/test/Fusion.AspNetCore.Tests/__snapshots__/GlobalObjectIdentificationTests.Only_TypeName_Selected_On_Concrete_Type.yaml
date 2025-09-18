@@ -2,7 +2,6 @@ name: Only_TypeName_Selected_On_Concrete_Type
 request:
   document: >-
     {
-      # Discussion:1
       node(id: "RGlzY3Vzc2lvbjox") {
         ... on Discussion {
           __typename
@@ -14,68 +13,6 @@ response: >-
     "data": {
       "node": {
         "__typename": "Discussion"
-      }
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "bcdc83b0403a3cc4a375d56494927687654063caf35a6fdfe03f6f4146b12b8a",
-          "operation": {
-            "kind": "Query",
-            "document": "{\n  node(id: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename @fusion__requirement\n    ... on Discussion {\n      __typename\n    }\n  }\n}",
-            "id": "72167d7d7ed0d1df427c3f70d87aa054",
-            "hash": "72167d7d7ed0d1df427c3f70d87aa054",
-            "shortHash": "72167d7d"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Node",
-              "idValue": "\u0022RGlzY3Vzc2lvbjox\u0022",
-              "responseName": "node",
-              "branches": {
-                "Discussion": 3
-              },
-              "fallback": 2
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "operation": {
-                "name": "Op_72167d7d_2",
-                "kind": "Query",
-                "document": "query Op_72167d7d_2 {\n  node(id: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n  }\n}",
-                "hash": "8c2df8d78bf1ef49a145eba270617e933935f53d21bc01af4085b0c0cdd00807",
-                "shortHash": "8c2df8d7"
-              },
-              "responseNames": [
-                "node"
-              ],
-              "dependencies": [
-                1
-              ]
-            },
-            {
-              "id": 3,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "Op_72167d7d_3",
-                "kind": "Query",
-                "document": "query Op_72167d7d_3 {\n  node: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n  }\n}",
-                "hash": "cf9d08901253a456552f6be60517863eba31e024544cf744d8139eb93355ac5b",
-                "shortHash": "cf9d0890"
-              },
-              "responseNames": [
-                "node"
-              ],
-              "dependencies": [
-                1
-              ]
-            }
-          ]
-        }
       }
     }
   }
@@ -99,23 +36,6 @@ sourceSchemas:
         node(id: ID!): Node @lookup
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
-      
-      """
-      The @is directive is utilized on lookup fields to describe how the arguments
-      can be mapped from the entity type that the lookup field resolves.
-      """
-      directive @is("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_72167d7d_3 {\n  node: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n  }\n}"}
         response: {"data":{"node":{"__typename":"Discussion"}}}
@@ -138,35 +58,3 @@ sourceSchemas:
         node(id: ID!): Node @lookup
         discussionById(id: ID!): Discussion @lookup @internal
       }
-      
-      """
-      The @internal directive is used in combination with lookup fields and allows you
-      to declare internal types and fields. Internal types and fields do not appear in
-      the final client-facing composite schema and do not participate in the standard
-      schema-merging process. This allows a source schema to define lookup fields for
-      resolving entities that should not be accessible through the client-facing
-      composite schema.
-      
-      
-      
-      
-      
-      type User @internal {
-        id: ID!
-        name: String!
-      }
-                  
-      directive @internal on OBJECT | FIELD_DEFINITION
-      """
-      directive @internal on OBJECT | FIELD_DEFINITION
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet

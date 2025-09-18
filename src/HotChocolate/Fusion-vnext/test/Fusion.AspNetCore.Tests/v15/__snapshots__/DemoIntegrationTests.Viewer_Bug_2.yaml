@@ -22,54 +22,6 @@ response: >-
           "subgraphB": "SubType: U3ViVHlwZToy"
         }
       }
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "cb75e25e36ee995ea175cb3645fb7444fb2e3d1eed34b098d8edcbee60c1d27c",
-          "operation": {
-            "name": "testQuery",
-            "kind": "Query",
-            "document": "query testQuery {\n  exclusiveSubgraphA {\n    __typename\n  }\n  viewer {\n    subType {\n      subgraphB\n    }\n  }\n}",
-            "id": "f3bb7334daafefafae0b10d44f0d19bc",
-            "hash": "f3bb7334daafefafae0b10d44f0d19bc",
-            "shortHash": "f3bb7334"
-          },
-          "searchSpace": 2,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "testQuery_f3bb7334_1",
-                "kind": "Query",
-                "document": "query testQuery_f3bb7334_1 {\n  viewer {\n    subType {\n      subgraphB\n    }\n  }\n}",
-                "hash": "d42487112d45de0530870c778bf0b9584af9f7f5c8e5231e47109156dcbee602",
-                "shortHash": "d4248711"
-              },
-              "responseNames": [
-                "viewer"
-              ]
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "testQuery_f3bb7334_2",
-                "kind": "Query",
-                "document": "query testQuery_f3bb7334_2 {\n  exclusiveSubgraphA {\n    __typename\n  }\n}",
-                "hash": "019e1a38e644b18e345dc3525d03a3e643f969cf030f52ed6e40b95e5071f90e",
-                "shortHash": "019e1a38"
-              },
-              "responseNames": [
-                "exclusiveSubgraphA"
-              ]
-            }
-          ]
-        }
-      }
     }
   }
 sourceSchemas:
@@ -95,10 +47,6 @@ sourceSchemas:
       type Viewer {
         subType: SubType
       }
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_f3bb7334_2 {\n  exclusiveSubgraphA {\n    __typename\n  }\n}"}
         response: {"data":{"exclusiveSubgraphA":{"__typename":"ExclusiveSubgraphA"}}}
@@ -119,10 +67,6 @@ sourceSchemas:
       type Viewer {
         subType: SubType
       }
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_f3bb7334_1 {\n  viewer {\n    subType {\n      subgraphB\n    }\n  }\n}"}
         response: {"data":{"viewer":{"subType":{"subgraphB":"SubType: U3ViVHlwZToy"}}}}

@@ -1,7 +1,10 @@
 name: BatchExecutionState_With_Multiple_Variable_Values_And_Forwarded_Variable
 request:
   document: >-
-    query($arg1: String, $arg2: String) {
+    query(
+      $arg1: String
+      $arg2: String
+    ) {
       userBySlug(slug: "me") {
         feedbacks {
           edges {
@@ -61,129 +64,6 @@ response: >-
           ]
         }
       }
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "761b1426035d7f60d29443cbe74a3412f63bd487ccd34e937713e4bedcc98c00",
-          "operation": {
-            "kind": "Query",
-            "document": "query(\n  $arg1: String\n  $arg2: String\n) {\n  userBySlug(slug: \u0022me\u0022) {\n    feedbacks {\n      edges {\n        node {\n          feedback {\n            buyer {\n              relativeUrl(arg: $arg1)\n              displayName(arg: $arg2)\n              id @fusion__requirement\n            }\n          }\n        }\n      }\n    }\n    id @fusion__requirement\n  }\n}",
-            "id": "b1ca18ebff5564cc20147d0129664e5d",
-            "hash": "b1ca18ebff5564cc20147d0129664e5d",
-            "shortHash": "b1ca18eb"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "Op_b1ca18eb_1",
-                "kind": "Query",
-                "document": "query Op_b1ca18eb_1 {\n  userBySlug(slug: \u0022me\u0022) {\n    id\n  }\n}",
-                "hash": "94fe213c3cd524764198be27392f785701f7abf88d898d94431f5a4e87fa1ec1",
-                "shortHash": "94fe213c"
-              },
-              "responseNames": [
-                "userBySlug"
-              ]
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "schema": "C",
-              "operation": {
-                "name": "Op_b1ca18eb_2",
-                "kind": "Query",
-                "document": "query Op_b1ca18eb_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on User {\n      feedbacks {\n        edges {\n          node {\n            feedback {\n              buyer {\n                id\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
-                "hash": "18a7f8eaa41f616e3963f4bf4a4bee1a97fb531d1352cbcd39af9d2097bc239d",
-                "shortHash": "18a7f8ea"
-              },
-              "responseNames": [
-                "feedbacks"
-              ],
-              "source": "$.node\u003CUser\u003E",
-              "target": "$.userBySlug",
-              "requirements": [
-                {
-                  "name": "__fusion_1_id",
-                  "type": "ID!",
-                  "path": "$.userBySlug",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                1
-              ]
-            },
-            {
-              "id": 3,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "Op_b1ca18eb_3",
-                "kind": "Query",
-                "document": "query Op_b1ca18eb_3(\n  $arg1: String\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on User {\n      relativeUrl(arg: $arg1)\n    }\n  }\n}",
-                "hash": "f4206aa5b8196b40df1c3b0b4090f5a841d1d7d1bc4655e28f9ad6c51a91f9bf",
-                "shortHash": "f4206aa5"
-              },
-              "responseNames": [
-                "relativeUrl"
-              ],
-              "source": "$.node\u003CUser\u003E",
-              "target": "$.userBySlug.feedbacks.edges.node.feedback.buyer",
-              "requirements": [
-                {
-                  "name": "__fusion_2_id",
-                  "type": "ID!",
-                  "path": "$.userBySlug.feedbacks.edges.node.feedback.buyer",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [
-                "arg1"
-              ],
-              "dependencies": [
-                2
-              ]
-            },
-            {
-              "id": 4,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "Op_b1ca18eb_4",
-                "kind": "Query",
-                "document": "query Op_b1ca18eb_4(\n  $arg2: String\n  $__fusion_3_id: ID!\n) {\n  node(id: $__fusion_3_id) {\n    __typename\n    ... on User {\n      displayName(arg: $arg2)\n    }\n  }\n}",
-                "hash": "a4a55792d2b0c54ba30d02d6ee47e13091ef9a2fa3547c58999b19180963de0a",
-                "shortHash": "a4a55792"
-              },
-              "responseNames": [
-                "displayName"
-              ],
-              "source": "$.node\u003CUser\u003E",
-              "target": "$.userBySlug.feedbacks.edges.node.feedback.buyer",
-              "requirements": [
-                {
-                  "name": "__fusion_3_id",
-                  "type": "ID!",
-                  "path": "$.userBySlug.feedbacks.edges.node.feedback.buyer",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [
-                "arg2"
-              ],
-              "dependencies": [
-                2
-              ]
-            }
-          ]
-        }
-      }
     }
   }
 sourceSchemas:
@@ -206,17 +86,6 @@ sourceSchemas:
         id: ID!
         displayName(arg: String): String!
       }
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_b1ca18eb_4(\n  $arg2: String\n  $__fusion_3_id: ID!\n) {\n  node(id: $__fusion_3_id) {\n    __typename\n    ... on User {\n      displayName(arg: $arg2)\n    }\n  }\n}","variables":[{"arg2":"def","__fusion_3_id":"VXNlcjoxMw=="},{"arg2":"def","__fusion_3_id":"VXNlcjoxMg=="},{"arg2":"def","__fusion_3_id":"VXNlcjoxMQ=="}]}
         response: {"variableIndex":0,"data":{"node":{"__typename":"User","displayName":"User: VXNlcjoxMw=="}}}
@@ -243,17 +112,6 @@ sourceSchemas:
         relativeUrl(arg: String): String!
         id: ID!
       }
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_b1ca18eb_1 {\n  userBySlug(slug: \u0022me\u0022) {\n    id\n  }\n}"}
         response: {"data":{"userBySlug":{"id":"VXNlcjox"}}}
@@ -298,17 +156,6 @@ sourceSchemas:
         id: ID!
         feedbacks: FeedbacksConnection
       }
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_b1ca18eb_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on User {\n      feedbacks {\n        edges {\n          node {\n            feedback {\n              buyer {\n                id\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}","variables":{"__fusion_1_id":"VXNlcjox"}}
         response: {"data":{"node":{"__typename":"User","feedbacks":{"edges":[{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMw=="}}}},{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMg=="}}}},{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMQ=="}}}}]}}}}

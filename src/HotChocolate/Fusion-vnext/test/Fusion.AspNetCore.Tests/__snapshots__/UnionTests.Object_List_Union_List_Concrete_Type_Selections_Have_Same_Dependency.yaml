@@ -79,97 +79,6 @@ response: >-
           ]
         }
       ]
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "3aef9a1021b6ed5fced579975619173d427345a1771aaf1029539f0d2a90743e",
-          "operation": {
-            "name": "testQuery",
-            "kind": "Query",
-            "document": "query testQuery {\n  users {\n    posts {\n      __typename @fusion__requirement\n      ... on Photo {\n        product {\n          subgraph2\n          id @fusion__requirement\n        }\n      }\n      ... on Discussion {\n        product {\n          subgraph2\n          id @fusion__requirement\n        }\n      }\n    }\n  }\n}",
-            "id": "3579b17401c33f0dcd43ce108220da63",
-            "hash": "3579b17401c33f0dcd43ce108220da63",
-            "shortHash": "3579b174"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "testQuery_3579b174_1",
-                "kind": "Query",
-                "document": "query testQuery_3579b174_1 {\n  users {\n    posts {\n      __typename\n      ... on Photo {\n        product {\n          id\n        }\n      }\n      ... on Discussion {\n        product {\n          id\n        }\n      }\n    }\n  }\n}",
-                "hash": "7e9207e4482036a3d4c6977778ac248d3048f908b5312ba06d43795df090a708",
-                "shortHash": "7e9207e4"
-              },
-              "responseNames": [
-                "users"
-              ]
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "testQuery_3579b174_2",
-                "kind": "Query",
-                "document": "query testQuery_3579b174_2(\n  $__fusion_1_id: ID!\n) {\n  productById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}",
-                "hash": "c2f95e27b7b97503e40e7f88f87d7e515c1f7e2179028f13287314417ac44102",
-                "shortHash": "c2f95e27"
-              },
-              "responseNames": [
-                "subgraph2"
-              ],
-              "source": "$.productById",
-              "target": "$.users.posts\u003CDiscussion\u003E.product",
-              "requirements": [
-                {
-                  "name": "__fusion_1_id",
-                  "type": "ID!",
-                  "path": "$.users.posts\u003CDiscussion\u003E.product",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                1
-              ]
-            },
-            {
-              "id": 3,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "testQuery_3579b174_3",
-                "kind": "Query",
-                "document": "query testQuery_3579b174_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}",
-                "hash": "fb259a03114e8e7d0fa3ce89fcefeb082054b538ab05cda1fc7331967303a798",
-                "shortHash": "fb259a03"
-              },
-              "responseNames": [
-                "subgraph2"
-              ],
-              "source": "$.productById",
-              "target": "$.users.posts\u003CPhoto\u003E.product",
-              "requirements": [
-                {
-                  "name": "__fusion_2_id",
-                  "type": "ID!",
-                  "path": "$.users.posts\u003CPhoto\u003E.product",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                1
-              ]
-            }
-          ]
-        }
-      }
     }
   }
 sourceSchemas:
@@ -202,17 +111,6 @@ sourceSchemas:
       }
       
       union Post = Photo | Discussion
-      
-      """
-      The @key directive is used to designate an entity's unique key,
-      which identifies how to uniquely reference an instance of
-      an entity across different source schemas.
-      """
-      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_3579b174_1 {\n  users {\n    posts {\n      __typename\n      ... on Photo {\n        product {\n          id\n        }\n      }\n      ... on Discussion {\n        product {\n          id\n        }\n      }\n    }\n  }\n}"}
         response: {"data":{"users":[{"posts":[{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxNQ=="}},{"__typename":"Discussion","product":{"id":"UHJvZHVjdDoxNA=="}},{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxMw=="}}]},{"posts":[{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxOA=="}},{"__typename":"Discussion","product":{"id":"UHJvZHVjdDoxNw=="}},{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxNg=="}}]},{"posts":[{"__typename":"Photo","product":{"id":"UHJvZHVjdDoyMQ=="}},{"__typename":"Discussion","product":{"id":"UHJvZHVjdDoyMA=="}},{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxOQ=="}}]}]}}
@@ -230,24 +128,6 @@ sourceSchemas:
       type Query {
         productById(id: ID!): Product @lookup
       }
-      
-      """
-      The @key directive is used to designate an entity's unique key,
-      which identifies how to uniquely reference an instance of
-      an entity across different source schemas.
-      """
-      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_3579b174_2(\n  $__fusion_1_id: ID!\n) {\n  productById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_1_id":"UHJvZHVjdDoxNA=="},{"__fusion_1_id":"UHJvZHVjdDoxNw=="},{"__fusion_1_id":"UHJvZHVjdDoyMA=="}]}
         response: {"variableIndex":0,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoxNA=="}}}

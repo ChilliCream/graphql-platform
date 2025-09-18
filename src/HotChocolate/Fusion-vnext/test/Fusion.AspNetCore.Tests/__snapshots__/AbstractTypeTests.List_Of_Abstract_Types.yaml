@@ -2,15 +2,15 @@ name: List_Of_Abstract_Types
 request:
   document: >-
     {
-        abstractTypes {
-          id
-          ... on Discussion {
-            title
-          }
-          ... on Author {
-            name
-          }
+      abstractTypes {
+        id
+        ... on Discussion {
+          title
         }
+        ... on Author {
+          name
+        }
+      }
     }
 response: >-
   {
@@ -28,38 +28,6 @@ response: >-
           "id": 3
         }
       ]
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "54be55180c67c1da4006ec71479b058d9587500b06c0b89a987d8ccd9cf97a35",
-          "operation": {
-            "kind": "Query",
-            "document": "{\n  abstractTypes {\n    __typename @fusion__requirement\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}",
-            "id": "39311c2ef84caa365dbb7528f3c0948e",
-            "hash": "39311c2ef84caa365dbb7528f3c0948e",
-            "shortHash": "39311c2e"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "Op_39311c2e_1",
-                "kind": "Query",
-                "document": "query Op_39311c2e_1 {\n  abstractTypes {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}",
-                "hash": "d890fe24da77f3bba183baf6e8e4ad8f1b590ae17708a3c54b6db2a89a781db0",
-                "shortHash": "d890fe24"
-              },
-              "responseNames": [
-                "abstractTypes"
-              ]
-            }
-          ]
-        }
-      }
     }
   }
 sourceSchemas:
@@ -124,13 +92,6 @@ sourceSchemas:
         interfaceConnection("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): InterfaceConnectionConnection
         authorById(id: Int!): Author! @lookup
       }
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query Op_39311c2e_1 {\n  abstractTypes {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}"}
         response: {"data":{"abstractTypes":[{"__typename":"Discussion","id":1,"title":"Discussion 1"},{"__typename":"Author","id":2,"name":"Author 2"},{"__typename":"Product","id":3}]}}

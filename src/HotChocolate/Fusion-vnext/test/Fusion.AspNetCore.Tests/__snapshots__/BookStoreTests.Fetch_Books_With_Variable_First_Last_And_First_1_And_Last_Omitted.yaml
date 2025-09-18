@@ -1,7 +1,10 @@
 name: Fetch_Books_With_Variable_First_Last_And_First_1_And_Last_Omitted
 request:
   document: >-
-    query GetBooks($first: Int, $last: Int) {
+    query GetBooks(
+      $first: Int
+      $last: Int
+    ) {
       books(first: $first, last: $last) {
         nodes {
           id
@@ -29,68 +32,6 @@ response: >-
             }
           }
         ]
-      }
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "e5b1a73c233934a7259e6b5732fdf69e1d757e6718b5d0fb63619fed628b0435",
-          "operation": {
-            "name": "GetBooks",
-            "kind": "Query",
-            "document": "query GetBooks(\n  $first: Int\n  $last: Int\n) {\n  books(first: $first, last: $last) {\n    nodes {\n      id\n      title\n      author {\n        name\n        id @fusion__requirement\n      }\n    }\n  }\n}",
-            "id": "938ff9c055f12c1e277010b7756339fa",
-            "hash": "938ff9c055f12c1e277010b7756339fa",
-            "shortHash": "938ff9c0"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "GetBooks_938ff9c0_1",
-                "kind": "Query",
-                "document": "query GetBooks_938ff9c0_1(\n  $first: Int\n  $last: Int\n) {\n  books(first: $first, last: $last) {\n    nodes {\n      id\n      title\n      author {\n        id\n      }\n    }\n  }\n}",
-                "hash": "f7a1e037efde48a7a307cfd09902e55a8055db3feb1a16b6056f725be4515934",
-                "shortHash": "f7a1e037"
-              },
-              "responseNames": [
-                "books"
-              ]
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "GetBooks_938ff9c0_2",
-                "kind": "Query",
-                "document": "query GetBooks_938ff9c0_2(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}",
-                "hash": "8cd0f1894efe9efd6d0fe929722c5773471ad71f0e5f137a0886e7662a56fd28",
-                "shortHash": "8cd0f189"
-              },
-              "responseNames": [
-                "name"
-              ],
-              "source": "$.authorById",
-              "target": "$.books.nodes.author",
-              "requirements": [
-                {
-                  "name": "__fusion_1_id",
-                  "type": "Int!",
-                  "path": "$.books.nodes.author",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                1
-              ]
-            }
-          ]
-        }
       }
     }
   }
@@ -146,13 +87,6 @@ sourceSchemas:
         books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
         formatTitle(title: String!): String!
       }
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
     interactions:
       - request: {"query":"query GetBooks_938ff9c0_1(\n  $first: Int\n  $last: Int\n) {\n  books(first: $first, last: $last) {\n    nodes {\n      id\n      title\n      author {\n        id\n      }\n    }\n  }\n}","variables":{"first":1}}
         response: {"data":{"books":{"nodes":[{"id":1,"title":"C# in Depth","author":{"id":1}}]}}}
@@ -209,46 +143,6 @@ sourceSchemas:
         authorById(id: Int!): Author! @internal @lookup
         authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
       }
-      
-      """
-      The @internal directive is used in combination with lookup fields and allows you
-      to declare internal types and fields. Internal types and fields do not appear in
-      the final client-facing composite schema and do not participate in the standard
-      schema-merging process. This allows a source schema to define lookup fields for
-      resolving entities that should not be accessible through the client-facing
-      composite schema.
-      
-      
-      
-      
-      
-      type User @internal {
-        id: ID!
-        name: String!
-      }
-                  
-      directive @internal on OBJECT | FIELD_DEFINITION
-      """
-      directive @internal on OBJECT | FIELD_DEFINITION
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      """
-      The @require directive is used to express data requirements with other source schemas.
-      Arguments annotated with the @require directive are removed from the composite schema
-      and the value for these will be resolved by the distributed executor.
-      
-      
-      directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
-      """
-      directive @require("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
-      
-      scalar FieldSelectionMap
     interactions:
       - request: {"query":"query GetBooks_938ff9c0_2(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":1}}
         response: {"data":{"authorById":{"name":"Jon Skeet"}}}

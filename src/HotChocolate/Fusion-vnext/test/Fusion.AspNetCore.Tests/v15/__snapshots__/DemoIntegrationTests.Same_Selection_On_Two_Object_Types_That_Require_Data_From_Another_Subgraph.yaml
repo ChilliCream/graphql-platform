@@ -1,7 +1,7 @@
 name: Same_Selection_On_Two_Object_Types_That_Require_Data_From_Another_Subgraph
 request:
   document: >-
-    query {
+    {
       item1 {
         product {
           id
@@ -28,97 +28,6 @@ response: >-
         "product": {
           "id": "UHJvZHVjdDoz",
           "name": "Product: UHJvZHVjdDoz"
-        }
-      }
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "e291618d5d444043951047bd2450635cc467c0525c26798afcee682d4f6db479",
-          "operation": {
-            "kind": "Query",
-            "document": "{\n  item1 {\n    product {\n      id\n      id @fusion__requirement\n      name\n    }\n  }\n  item2 {\n    product {\n      id\n      id @fusion__requirement\n      name\n    }\n  }\n}",
-            "id": "e2224f1b985fbda85e8bf7b9b94be074",
-            "hash": "e2224f1b985fbda85e8bf7b9b94be074",
-            "shortHash": "e2224f1b"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "Op_e2224f1b_1",
-                "kind": "Query",
-                "document": "query Op_e2224f1b_1 {\n  item1 {\n    product {\n      id\n    }\n  }\n  item2 {\n    product {\n      id\n    }\n  }\n}",
-                "hash": "71c892b81dcd61dd6e6642d4e4312fbff4e27ae374e4e99a4f9c73c988e18587",
-                "shortHash": "71c892b8"
-              },
-              "responseNames": [
-                "item2",
-                "item1"
-              ]
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "Op_e2224f1b_2",
-                "kind": "Query",
-                "document": "query Op_e2224f1b_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}",
-                "hash": "553a1b9c27bd1770b1d61bfff48a9e0745440f6fc1320af183b7f42e0aaefc6c",
-                "shortHash": "553a1b9c"
-              },
-              "responseNames": [
-                "name"
-              ],
-              "source": "$.node\u003CProduct\u003E",
-              "target": "$.item2.product",
-              "requirements": [
-                {
-                  "name": "__fusion_1_id",
-                  "type": "ID!",
-                  "path": "$.item2.product",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                1
-              ]
-            },
-            {
-              "id": 3,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "Op_e2224f1b_3",
-                "kind": "Query",
-                "document": "query Op_e2224f1b_3(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}",
-                "hash": "423a04fbb8424766f25285b3f2a6ee22d0c8761df4f104a7d9743d984aeea46c",
-                "shortHash": "423a04fb"
-              },
-              "responseNames": [
-                "name"
-              ],
-              "source": "$.node\u003CProduct\u003E",
-              "target": "$.item1.product",
-              "requirements": [
-                {
-                  "name": "__fusion_2_id",
-                  "type": "ID!",
-                  "path": "$.item1.product",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                1
-              ]
-            }
-          ]
         }
       }
     }
@@ -150,10 +59,6 @@ sourceSchemas:
         item1: Item1!
         item2: Item2!
       }
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_e2224f1b_1 {\n  item1 {\n    product {\n      id\n    }\n  }\n  item2 {\n    product {\n      id\n    }\n  }\n}"}
         response: {"data":{"item1":{"product":{"id":"UHJvZHVjdDo0"}},"item2":{"product":{"id":"UHJvZHVjdDoz"}}}}
@@ -176,17 +81,6 @@ sourceSchemas:
         node(id: ID!): Node @lookup
         nodes(ids: [ID!]!): [Node]!
       }
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_e2224f1b_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":{"__fusion_1_id":"UHJvZHVjdDoz"}}
         response: {"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDoz"}}}

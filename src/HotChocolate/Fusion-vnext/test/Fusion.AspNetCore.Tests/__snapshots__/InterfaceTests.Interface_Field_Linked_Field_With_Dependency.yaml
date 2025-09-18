@@ -18,68 +18,6 @@ response: >-
           "displayName": "Author: QXV0aG9yOjI="
         }
       }
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "f43ef080f6b1fcc70afb8a3aec826b27824e2ec07ae005bea0ab1499cf32ffe2",
-          "operation": {
-            "name": "testQuery",
-            "kind": "Query",
-            "document": "query testQuery {\n  authorable {\n    __typename @fusion__requirement\n    author {\n      id\n      id @fusion__requirement\n      displayName\n    }\n  }\n}",
-            "id": "d44063d89e51495ceca3bd5bb1cb8f89",
-            "hash": "d44063d89e51495ceca3bd5bb1cb8f89",
-            "shortHash": "d44063d8"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "testQuery_d44063d8_1",
-                "kind": "Query",
-                "document": "query testQuery_d44063d8_1 {\n  authorable {\n    __typename\n    author {\n      id\n    }\n  }\n}",
-                "hash": "5fc15a4dd7600c446f38fd251c85decf88e0d59b832dee4b1cd80bbd4aeb1d28",
-                "shortHash": "5fc15a4d"
-              },
-              "responseNames": [
-                "authorable"
-              ]
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "testQuery_d44063d8_2",
-                "kind": "Query",
-                "document": "query testQuery_d44063d8_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}",
-                "hash": "b7a25f860740adf560f03560fc1b7727356452551395b9081600f708a69ca6d8",
-                "shortHash": "b7a25f86"
-              },
-              "responseNames": [
-                "displayName"
-              ],
-              "source": "$.authorById",
-              "target": "$.authorable.author",
-              "requirements": [
-                {
-                  "name": "__fusion_1_id",
-                  "type": "ID!",
-                  "path": "$.authorable.author",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                1
-              ]
-            }
-          ]
-        }
-      }
     }
   }
 sourceSchemas:
@@ -108,17 +46,6 @@ sourceSchemas:
       type Query {
         authorable: Authorable
       }
-      
-      """
-      The @key directive is used to designate an entity's unique key,
-      which identifies how to uniquely reference an instance of
-      an entity across different source schemas.
-      """
-      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_d44063d8_1 {\n  authorable {\n    __typename\n    author {\n      id\n    }\n  }\n}"}
         response: {"data":{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjI="}}}}
@@ -136,24 +63,6 @@ sourceSchemas:
       type Query {
         authorById(id: ID!): Author @lookup
       }
-      
-      """
-      The @key directive is used to designate an entity's unique key,
-      which identifies how to uniquely reference an instance of
-      an entity across different source schemas.
-      """
-      directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query testQuery_d44063d8_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjI="}}
         response: {"data":{"authorById":{"displayName":"Author: QXV0aG9yOjI="}}}

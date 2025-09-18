@@ -23,69 +23,7 @@ response: >-
           "originalValue": "invalid"
         }
       }
-    ],
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "1509fc717bd9a5f870350343b334a21ceb14e2ad8a8ea8ead82a61cbd24c1c5b",
-          "operation": {
-            "kind": "Query",
-            "document": "{\n  node(id: \u0022invalid\u0022) {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n    }\n  }\n}",
-            "id": "3e8751806ea5a1885c3b2b109d808fbf",
-            "hash": "3e8751806ea5a1885c3b2b109d808fbf",
-            "shortHash": "3e875180"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Node",
-              "idValue": "\u0022invalid\u0022",
-              "responseName": "node",
-              "branches": {
-                "Discussion": 3
-              },
-              "fallback": 2
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "operation": {
-                "name": "Op_3e875180_2",
-                "kind": "Query",
-                "document": "query Op_3e875180_2 {\n  node(id: \u0022invalid\u0022) {\n    __typename\n  }\n}",
-                "hash": "9541936e62ad2c6ea10e5973c6d13aca7578d71d89fa99abfab25b7dae75932d",
-                "shortHash": "9541936e"
-              },
-              "responseNames": [
-                "node"
-              ],
-              "dependencies": [
-                1
-              ]
-            },
-            {
-              "id": 3,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "Op_3e875180_3",
-                "kind": "Query",
-                "document": "query Op_3e875180_3 {\n  node: discussionById(discussionId: \u0022invalid\u0022) {\n    __typename\n    title\n  }\n}",
-                "hash": "7901e85af0caef5ba5cc683cf39b180ccc658746f6939b51fb3185dd8e58d9bc",
-                "shortHash": "7901e85a"
-              },
-              "responseNames": [
-                "node"
-              ],
-              "dependencies": [
-                1
-              ]
-            }
-          ]
-        }
-      }
-    }
+    ]
   }
 sourceSchemas:
   - name: A
@@ -107,23 +45,6 @@ sourceSchemas:
         node(id: ID!): Node @lookup
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
-      
-      """
-      The @is directive is utilized on lookup fields to describe how the arguments
-      can be mapped from the entity type that the lookup field resolves.
-      """
-      directive @is("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
   - name: B
     schema: >-
       schema {
@@ -148,35 +69,3 @@ sourceSchemas:
         node(id: ID!): Node @lookup
         discussionById(id: ID!): Discussion @lookup @internal
       }
-      
-      """
-      The @internal directive is used in combination with lookup fields and allows you
-      to declare internal types and fields. Internal types and fields do not appear in
-      the final client-facing composite schema and do not participate in the standard
-      schema-merging process. This allows a source schema to define lookup fields for
-      resolving entities that should not be accessible through the client-facing
-      composite schema.
-      
-      
-      
-      
-      
-      type User @internal {
-        id: ID!
-        name: String!
-      }
-                  
-      directive @internal on OBJECT | FIELD_DEFINITION
-      """
-      directive @internal on OBJECT | FIELD_DEFINITION
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet

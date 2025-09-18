@@ -1,7 +1,7 @@
 name: Same_Selection_On_Two_List_Fields_That_Require_Data_From_Another_Subgraph
 request:
   document: >-
-    query {
+    {
       productsA {
         id
         name
@@ -58,99 +58,6 @@ response: >-
           "reviewCount": 123
         }
       ]
-    },
-    "extensions": {
-      "fusion": {
-        "operationPlan": {
-          "id": "995049981e8706e26b1057dca4fd72d989055998a9c35fe9e2da366099e59245",
-          "operation": {
-            "kind": "Query",
-            "document": "{\n  productsA {\n    id\n    id @fusion__requirement\n    name\n    price\n    reviewCount\n  }\n  productsB {\n    id\n    id @fusion__requirement\n    name\n    price\n    reviewCount\n  }\n}",
-            "id": "9ad18dbf86e6234a71614b8d68cbef03",
-            "hash": "9ad18dbf86e6234a71614b8d68cbef03",
-            "shortHash": "9ad18dbf"
-          },
-          "searchSpace": 1,
-          "nodes": [
-            {
-              "id": 1,
-              "type": "Operation",
-              "schema": "A",
-              "operation": {
-                "name": "Op_9ad18dbf_1",
-                "kind": "Query",
-                "document": "query Op_9ad18dbf_1 {\n  productsA {\n    id\n    name\n  }\n  productsB {\n    id\n    name\n  }\n}",
-                "hash": "b0fc89ea68d865ec57a2ea5a9e2d6c717e1050f62b25f55215103b6671baf976",
-                "shortHash": "b0fc89ea"
-              },
-              "responseNames": [
-                "productsB",
-                "productsA"
-              ]
-            },
-            {
-              "id": 2,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "Op_9ad18dbf_2",
-                "kind": "Query",
-                "document": "query Op_9ad18dbf_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Product {\n      price\n      reviewCount\n    }\n  }\n}",
-                "hash": "7982f1080a20615ec3525843fc958cf48f6137f0044c581715085e1ad686a601",
-                "shortHash": "7982f108"
-              },
-              "responseNames": [
-                "reviewCount",
-                "price"
-              ],
-              "source": "$.node\u003CProduct\u003E",
-              "target": "$.productsB",
-              "requirements": [
-                {
-                  "name": "__fusion_1_id",
-                  "type": "ID!",
-                  "path": "$.productsB",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                1
-              ]
-            },
-            {
-              "id": 3,
-              "type": "Operation",
-              "schema": "B",
-              "operation": {
-                "name": "Op_9ad18dbf_3",
-                "kind": "Query",
-                "document": "query Op_9ad18dbf_3(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      price\n      reviewCount\n    }\n  }\n}",
-                "hash": "05fc760d506579545aa1294f721a54d99d2a90305aa2ec155771473b6351b0b8",
-                "shortHash": "05fc760d"
-              },
-              "responseNames": [
-                "reviewCount",
-                "price"
-              ],
-              "source": "$.node\u003CProduct\u003E",
-              "target": "$.productsA",
-              "requirements": [
-                {
-                  "name": "__fusion_2_id",
-                  "type": "ID!",
-                  "path": "$.productsA",
-                  "selectionMap": "id"
-                }
-              ],
-              "forwardedVariables": [],
-              "dependencies": [
-                1
-              ]
-            }
-          ]
-        }
-      }
     }
   }
 sourceSchemas:
@@ -174,38 +81,6 @@ sourceSchemas:
         productsB: [Product]
         productById(id: ID!): Product @lookup @internal
       }
-      
-      """
-      The @internal directive is used in combination with lookup fields and allows you
-      to declare internal types and fields. Internal types and fields do not appear in
-      the final client-facing composite schema and do not participate in the standard
-      schema-merging process. This allows a source schema to define lookup fields for
-      resolving entities that should not be accessible through the client-facing
-      composite schema.
-      
-      
-      
-      
-      
-      type User @internal {
-        id: ID!
-        name: String!
-      }
-                  
-      directive @internal on OBJECT | FIELD_DEFINITION
-      """
-      directive @internal on OBJECT | FIELD_DEFINITION
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_9ad18dbf_1 {\n  productsA {\n    id\n    name\n  }\n  productsB {\n    id\n    name\n  }\n}"}
         response: {"data":{"productsA":[{"id":"UHJvZHVjdDox","name":"Product: UHJvZHVjdDox"},{"id":"UHJvZHVjdDoy","name":"Product: UHJvZHVjdDoy"},{"id":"UHJvZHVjdDoz","name":"Product: UHJvZHVjdDoz"}],"productsB":[{"id":"UHJvZHVjdDo0","name":"Product: UHJvZHVjdDo0"},{"id":"UHJvZHVjdDo1","name":"Product: UHJvZHVjdDo1"},{"id":"UHJvZHVjdDo2","name":"Product: UHJvZHVjdDo2"}]}}
@@ -229,17 +104,6 @@ sourceSchemas:
         node(id: ID!): Node @lookup
         nodes(ids: [ID!]!): [Node]!
       }
-      
-      """
-      The @lookup directive is used within a source schema to specify output fields
-      that can be used by the distributed GraphQL executor to resolve an entity by
-      a stable key.
-      """
-      directive @lookup on FIELD_DEFINITION
-      
-      scalar FieldSelectionMap
-      
-      scalar FieldSelectionSet
     interactions:
       - request: {"query":"query Op_9ad18dbf_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Product {\n      price\n      reviewCount\n    }\n  }\n}","variables":[{"__fusion_1_id":"UHJvZHVjdDo0"},{"__fusion_1_id":"UHJvZHVjdDo1"},{"__fusion_1_id":"UHJvZHVjdDo2"}]}
         response: {"variableIndex":0,"data":{"node":{"__typename":"Product","price":123.456,"reviewCount":123}}}
