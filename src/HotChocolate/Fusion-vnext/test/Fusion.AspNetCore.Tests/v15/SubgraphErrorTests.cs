@@ -1,3 +1,4 @@
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Fusion;
@@ -42,7 +43,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               viewer {
@@ -50,12 +52,15 @@ public class SubgraphErrorTests : FusionTestBase
                 name
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -94,7 +99,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               viewer {
@@ -102,12 +108,15 @@ public class SubgraphErrorTests : FusionTestBase
                 name
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Error is incorrectly placed")]
@@ -146,7 +155,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               viewer {
@@ -154,12 +164,15 @@ public class SubgraphErrorTests : FusionTestBase
                 name
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Error is not correctly shown")]
@@ -198,7 +211,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               viewer {
@@ -206,12 +220,15 @@ public class SubgraphErrorTests : FusionTestBase
                 name
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Error is not correctly shown")]
@@ -250,7 +267,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               viewer {
@@ -258,12 +276,15 @@ public class SubgraphErrorTests : FusionTestBase
                 name
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Error is not correctly shown")]
@@ -302,7 +323,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               viewer {
@@ -310,12 +332,15 @@ public class SubgraphErrorTests : FusionTestBase
                 name
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Error is not correctly shown")]
@@ -354,7 +379,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               viewer {
@@ -362,12 +388,15 @@ public class SubgraphErrorTests : FusionTestBase
                 name
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Error is not correctly shown")]
@@ -406,7 +435,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               viewer {
@@ -414,12 +444,15 @@ public class SubgraphErrorTests : FusionTestBase
                 name
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
 //     [Fact]
@@ -627,7 +660,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               viewer {
@@ -637,12 +671,15 @@ public class SubgraphErrorTests : FusionTestBase
                 userId
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -681,7 +718,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               viewer {
@@ -691,12 +729,15 @@ public class SubgraphErrorTests : FusionTestBase
                 userId
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -735,7 +776,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               viewer {
@@ -745,12 +787,15 @@ public class SubgraphErrorTests : FusionTestBase
                 userId
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -789,7 +834,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               viewer {
@@ -799,12 +845,15 @@ public class SubgraphErrorTests : FusionTestBase
                 userId
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -843,7 +892,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               viewer {
@@ -853,12 +903,15 @@ public class SubgraphErrorTests : FusionTestBase
                 userId
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
 //     [Fact]
@@ -1025,7 +1078,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               productById(id: "1") {
@@ -1035,12 +1089,15 @@ public class SubgraphErrorTests : FusionTestBase
                 score
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1091,7 +1148,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               productById(id: "1") {
@@ -1101,12 +1159,15 @@ public class SubgraphErrorTests : FusionTestBase
                 score
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1155,8 +1216,10 @@ public class SubgraphErrorTests : FusionTestBase
             ("B", subgraphB)
         ]);
 
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               productById(id: "1") {
@@ -1166,12 +1229,15 @@ public class SubgraphErrorTests : FusionTestBase
                 score
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1220,8 +1286,10 @@ public class SubgraphErrorTests : FusionTestBase
             ("B", subgraphB)
         ]);
 
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               productById(id: "1") {
@@ -1231,12 +1299,15 @@ public class SubgraphErrorTests : FusionTestBase
                 score
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1285,8 +1356,10 @@ public class SubgraphErrorTests : FusionTestBase
             ("B", subgraphB)
         ]);
 
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               productById(id: "1") {
@@ -1296,12 +1369,14 @@ public class SubgraphErrorTests : FusionTestBase
                 score
               }
             }
-            """,
+            """);
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1350,8 +1425,10 @@ public class SubgraphErrorTests : FusionTestBase
             ("B", subgraphB)
         ]);
 
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               productById(id: "1") {
@@ -1361,12 +1438,15 @@ public class SubgraphErrorTests : FusionTestBase
                 score
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1417,7 +1497,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               productById(id: "1") {
@@ -1427,12 +1508,15 @@ public class SubgraphErrorTests : FusionTestBase
                 score
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1472,8 +1556,10 @@ public class SubgraphErrorTests : FusionTestBase
             ("B", subgraphB)
         ]);
 
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               productById(id: "1") {
@@ -1483,12 +1569,15 @@ public class SubgraphErrorTests : FusionTestBase
                 score
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1530,7 +1619,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               productById(id: "1") {
@@ -1540,12 +1630,15 @@ public class SubgraphErrorTests : FusionTestBase
                 score
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1587,22 +1680,26 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
-                      query {
-                        productById(id: "1") {
-                          id
-                          name
-                          price
-                          score
-                        }
-                      }
-                      """,
+            query {
+              productById(id: "1") {
+                id
+                name
+                price
+                score
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1636,7 +1733,7 @@ public class SubgraphErrorTests : FusionTestBase
             }
             """);
 
-            using var gateway = await CreateCompositeSchemaAsync(
+        using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", subgraphA),
             ("B", subgraphB)
@@ -1644,22 +1741,26 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
-                      query {
-                        productById(id: "1") {
-                          id
-                          name
-                          price
-                          score
-                        }
-                      }
-                      """,
+            query {
+              productById(id: "1") {
+                id
+                name
+                price
+                score
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1701,22 +1802,26 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
-                      query {
-                        productById(id: "1") {
-                          id
-                          name
-                          price
-                          score
-                        }
-                      }
-                      """,
+            query {
+              productById(id: "1") {
+                id
+                name
+                price
+                score
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1755,9 +1860,11 @@ public class SubgraphErrorTests : FusionTestBase
             ("A", subgraphA),
             ("B", subgraphB)
         ]);
+
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               productById(id: "1") {
@@ -1767,12 +1874,15 @@ public class SubgraphErrorTests : FusionTestBase
                 score
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1814,7 +1924,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               productById(id: "1") {
@@ -1824,12 +1935,15 @@ public class SubgraphErrorTests : FusionTestBase
                 score
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
 //     [Fact]
@@ -2289,7 +2403,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               product {
@@ -2300,12 +2415,15 @@ public class SubgraphErrorTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -2350,7 +2468,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               product {
@@ -2361,12 +2480,15 @@ public class SubgraphErrorTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -2411,7 +2533,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               product {
@@ -2422,12 +2545,15 @@ public class SubgraphErrorTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -2472,7 +2598,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               product {
@@ -2483,12 +2610,15 @@ public class SubgraphErrorTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -2533,7 +2663,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               product {
@@ -2544,12 +2675,15 @@ public class SubgraphErrorTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -2594,7 +2728,8 @@ public class SubgraphErrorTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               product {
@@ -2603,14 +2738,17 @@ public class SubgraphErrorTests : FusionTestBase
                   id
                   name
                 }
+              }
             }
-            }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
 //     [Fact]
@@ -2861,7 +2999,7 @@ public class SubgraphErrorTests : FusionTestBase
 //
 //         // assert
 //         using var response = await result.ReadAsResultAsync();
-//         response.MatchSnapshot();
+//         MatchSnapshot(gateway, request, response);
 //     }
 //
 //     [Fact]
@@ -2916,7 +3054,7 @@ public class SubgraphErrorTests : FusionTestBase
 //
 //         // assert
 //         using var response = await result.ReadAsResultAsync();
-//         response.MatchSnapshot();
+//         MatchSnapshot(gateway, request, response);
 //     }
 //
 //     [Fact]
@@ -2971,7 +3109,7 @@ public class SubgraphErrorTests : FusionTestBase
 //
 //         // assert
 //         using var response = await result.ReadAsResultAsync();
-//         response.MatchSnapshot();
+//         MatchSnapshot(gateway, request, response);
 //     }
 //
 //     [Fact]
@@ -3026,7 +3164,7 @@ public class SubgraphErrorTests : FusionTestBase
 //
 //         // assert
 //         using var response = await result.ReadAsResultAsync();
-//         response.MatchSnapshot();
+//         MatchSnapshot(gateway, request, response);
 //     }
 //
 //     [Fact]
@@ -3081,7 +3219,7 @@ public class SubgraphErrorTests : FusionTestBase
 //
 //         // assert
 //         using var response = await result.ReadAsResultAsync();
-//         response.MatchSnapshot();
+//         MatchSnapshot(gateway, request, response);
 //     }
 //
 //     [Fact]
@@ -3136,7 +3274,7 @@ public class SubgraphErrorTests : FusionTestBase
 //
 //         // assert
 //         using var response = await result.ReadAsResultAsync();
-//         response.MatchSnapshot();
+//         MatchSnapshot(gateway, request, response);
 //     }
 
 //     [Fact]

@@ -2,7 +2,6 @@ using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Fusion;
 
-// TODO: Cycle through abstract types
 public class InterfaceTests : FusionTestBase
 {
     # region interface { ... }
@@ -42,19 +41,22 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               votable {
                 viewerCanVote
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -107,7 +109,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               authorable {
@@ -117,12 +119,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -175,7 +180,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               authorable {
@@ -191,12 +196,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -250,7 +258,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               authorable {
@@ -265,12 +273,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -308,7 +319,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               votable {
@@ -318,12 +329,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -375,7 +389,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               votable {
@@ -385,12 +399,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -446,7 +463,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               votable {
@@ -458,12 +475,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     #endregion
@@ -505,19 +525,22 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               votables {
                 viewerCanVote
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -570,7 +593,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               authorables {
@@ -580,12 +603,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -638,7 +664,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               authorables {
@@ -654,12 +680,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -713,7 +742,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               authorables {
@@ -728,12 +757,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -771,7 +803,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               votables {
@@ -781,12 +813,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -838,7 +873,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               votables {
@@ -848,12 +883,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -909,7 +947,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               votables {
@@ -921,12 +959,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     #endregion
@@ -987,7 +1028,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -998,12 +1039,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -1061,7 +1105,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1077,12 +1121,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -1141,7 +1188,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1157,12 +1204,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -1204,7 +1254,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1216,12 +1266,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -1277,7 +1330,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1289,12 +1342,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -1354,7 +1410,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1368,12 +1424,15 @@ public class InterfaceTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     #endregion

@@ -19,17 +19,16 @@ public class IntrospectionTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema2.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
               __schema {
@@ -38,12 +37,15 @@ public class IntrospectionTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -58,29 +60,31 @@ public class IntrospectionTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema2.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
               __type(name: "String") {
                 name
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -95,27 +99,29 @@ public class IntrospectionTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema2.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
               __typename
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -130,27 +136,29 @@ public class IntrospectionTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema2.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query ($s: Boolean! = true) {
               __typename @skip(if: $s)
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -165,27 +173,29 @@ public class IntrospectionTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema2.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query ($s: Boolean! = false) {
               __typename @skip(if: $s)
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -200,27 +210,29 @@ public class IntrospectionTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema2.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
               a: __typename
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -244,7 +256,7 @@ public class IntrospectionTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
               books {
@@ -253,12 +265,15 @@ public class IntrospectionTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -282,7 +297,7 @@ public class IntrospectionTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
               books {
@@ -291,12 +306,15 @@ public class IntrospectionTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]

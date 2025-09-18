@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Packaging;
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Fusion;
@@ -60,7 +61,8 @@ public class DemoIntegrationTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               item1 {
@@ -76,12 +78,15 @@ public class DemoIntegrationTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -134,7 +139,8 @@ public class DemoIntegrationTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               productsA {
@@ -150,12 +156,15 @@ public class DemoIntegrationTests : FusionTestBase
                 reviewCount
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     // [Fact]
@@ -2195,7 +2204,8 @@ public class DemoIntegrationTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               userBySlug(slug: "me") {
@@ -2213,12 +2223,15 @@ public class DemoIntegrationTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -2305,7 +2318,8 @@ public class DemoIntegrationTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query {
               userBySlug(slug: "me") {
@@ -2323,12 +2337,15 @@ public class DemoIntegrationTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -2414,7 +2431,8 @@ public class DemoIntegrationTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query($arg1: String, $arg2: String) {
               userBySlug(slug: "me") {
@@ -2433,12 +2451,15 @@ public class DemoIntegrationTests : FusionTestBase
               }
             }
             """,
-            new Dictionary<string, object?> { ["arg1"] = "abc", ["arg2"] = "def" },
+            variables: new Dictionary<string, object?> { ["arg1"] = "abc", ["arg2"] = "def" });
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -2501,8 +2522,10 @@ public class DemoIntegrationTests : FusionTestBase
             ("B", server2)
         ]);
 
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query($productId: ID!) {
               productById(id: $productId) {
@@ -2514,12 +2537,15 @@ public class DemoIntegrationTests : FusionTestBase
               }
             }
             """,
-            new Dictionary<string, object?> { ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk=" },
+            variables: new Dictionary<string, object?> { ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk=" });
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -2586,7 +2612,8 @@ public class DemoIntegrationTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query($productId: ID!) {
               productById(id: $productId) {
@@ -2600,12 +2627,15 @@ public class DemoIntegrationTests : FusionTestBase
               }
             }
             """,
-            new Dictionary<string, object?> { ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk=" },
+            variables: new Dictionary<string, object?> { ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk=" });
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -2674,7 +2704,8 @@ public class DemoIntegrationTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(
+
+        var request = new OperationRequest(
             """
             query($productId: ID!) {
               productById(id: $productId) {
@@ -2690,12 +2721,15 @@ public class DemoIntegrationTests : FusionTestBase
               }
             }
             """,
-            new Dictionary<string, object?> { ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk=" },
+            variables: new Dictionary<string, object?> { ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk=" });
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -2740,7 +2774,7 @@ public class DemoIntegrationTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             query testQuery {
               exclusiveSubgraphA {
@@ -2750,12 +2784,15 @@ public class DemoIntegrationTests : FusionTestBase
                 exclusiveSubgraphB
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -2808,7 +2845,7 @@ public class DemoIntegrationTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             query testQuery {
               exclusiveSubgraphA {
@@ -2820,12 +2857,15 @@ public class DemoIntegrationTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     [Fact]
@@ -2879,7 +2919,7 @@ public class DemoIntegrationTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             query {
               viewer {
@@ -2891,12 +2931,15 @@ public class DemoIntegrationTests : FusionTestBase
                 anotherField
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     // [Fact]

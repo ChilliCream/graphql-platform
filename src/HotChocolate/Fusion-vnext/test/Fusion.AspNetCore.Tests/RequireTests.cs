@@ -1,3 +1,4 @@
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using HotChocolate.Types.Composite;
@@ -23,7 +24,6 @@ public class RequireTests : FusionTestBase
             "c",
             b => b.AddQueryType<BookShipping.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("a", server1),
@@ -34,8 +34,7 @@ public class RequireTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        // assert
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
                 books {
@@ -45,12 +44,15 @@ public class RequireTests : FusionTestBase
                   }
                 }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     public static class BookCatalog

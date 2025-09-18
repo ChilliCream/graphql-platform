@@ -28,20 +28,22 @@ public class NullTests : FusionTestBase
             ("A", server1)
         ]);
 
-        // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 nonNullString
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        MatchSnapshot(gateway, request, response);
     }
 
     public static class SourceSchema1
