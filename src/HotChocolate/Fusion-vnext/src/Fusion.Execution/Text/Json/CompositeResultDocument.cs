@@ -152,8 +152,6 @@ public sealed partial class CompositeResultDocument
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignObjectValue(CompositeResultElement target, CompositeResultElement value)
     {
-        var test = _metaDb.Get(target.Index);
-
         _metaDb.Replace(
             index: target.Index,
             tokenType: ElementTokenType.Reference,
@@ -162,7 +160,7 @@ public sealed partial class CompositeResultDocument
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void AssignLeaveValue(CompositeResultElement target, SourceResultElement source)
+    internal void AssignLeafValue(CompositeResultElement target, SourceResultElement source)
     {
         var value = source.GetValuePointer();
 

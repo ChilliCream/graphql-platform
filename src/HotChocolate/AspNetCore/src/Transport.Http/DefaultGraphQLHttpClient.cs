@@ -8,7 +8,11 @@ using HotChocolate.Language;
 using HotChocolate.Transport.Serialization;
 using static System.Net.Http.HttpCompletionOption;
 
+#if Fusion
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
 /// <summary>
 /// A default implementation of <see cref="GraphQLHttpClient"/> that supports the GraphQL over HTTP spec draft.

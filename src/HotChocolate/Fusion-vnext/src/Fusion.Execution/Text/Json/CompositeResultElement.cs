@@ -1261,7 +1261,7 @@ public partial struct CompositeResultElement
     {
         CheckValidInstance();
 
-        _parent.AssignLeaveValue(this, source);
+        _parent.AssignLeafValue(this, source);
     }
 
     /*

@@ -69,6 +69,8 @@ public class CompositeResultDocumentTests : FusionTestBase
         Assert.Equal(JsonValueKind.Undefined, productBySlug.ValueKind);
         Assert.False(productBySlugSelection.IsLeaf);
 
+        productBySlug.TryGetByte()
+
         var selectionSet = operation.GetSelectionSet(productBySlugSelection);
         productBySlug.SetValue(selectionSet);
         Assert.Equal(JsonValueKind.Object, productBySlug.ValueKind);
