@@ -122,7 +122,6 @@ public sealed class SchemaComposer
         new KeyDirectiveInFieldsArgumentRule(),
         new KeyFieldsHasArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),
-        new KeyInvalidFieldsRule(),
         new KeyInvalidFieldsTypeRule(),
         new KeyInvalidSyntaxRule(),
         new LookupReturnsListRule(),
@@ -169,6 +168,7 @@ public sealed class SchemaComposer
         new ImplementedByInaccessibleRule(),
         new InterfaceFieldNoImplementationRule(),
         new IsInvalidFieldRule(),
+        new KeyInvalidFieldsRule(),
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),
         new RequireInvalidFieldsRule()
