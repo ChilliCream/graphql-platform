@@ -1,6 +1,6 @@
 title: Union_Field_Concrete_Type_Selections_Have_Same_Dependency
 request:
-  document: >-
+  document: |
     query testQuery {
       post {
         ... on Photo {
@@ -16,7 +16,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "post": {
@@ -28,7 +28,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -54,13 +54,23 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_7d12de3b_1 {\n  post {\n    __typename\n    ... on Photo {\n      product {\n        id\n      }\n    }\n    ... on Discussion {\n      product {\n        id\n      }\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"post":{"__typename":"Photo","product":{"id":"UHJvZHVjdDoy"}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "post": {
+                    "__typename": "Photo",
+                    "product": {
+                      "id": "UHJvZHVjdDoy"
+                    }
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -75,14 +85,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_7d12de3b_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":{"__fusion_2_id":"UHJvZHVjdDoy"}}
         response:
-          body: >-
-            {"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoy"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoy"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           post {
             __typename @fusion__requirement
@@ -107,7 +124,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_7d12de3b_1 {
           post {
             __typename
@@ -126,7 +143,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_7d12de3b_2(
           $__fusion_1_id: ID!
         ) {
@@ -145,7 +162,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_7d12de3b_3(
           $__fusion_2_id: ID!
         ) {

@@ -1,6 +1,6 @@
 title: Interface_Field_Concrete_Type_With_Dependency
 request:
-  document: >-
+  document: |
     query testQuery {
       votable {
         viewerCanVote
@@ -10,7 +10,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "votable": {
@@ -21,7 +21,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -46,13 +46,22 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_4a61c641_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      id\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"votable":{"__typename":"Discussion","viewerCanVote":true,"id":"RGlzY3Vzc2lvbjox"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "votable": {
+                    "__typename": "Discussion",
+                    "viewerCanVote": true,
+                    "id": "RGlzY3Vzc2lvbjox"
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -67,14 +76,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_4a61c641_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    viewerRating\n  }\n}","variables":{"__fusion_1_id":"RGlzY3Vzc2lvbjox"}}
         response:
-          body: >-
-            {"data":{"discussionById":{"viewerRating":123.456}}}
+          results:
+            - |
+              {
+                "data": {
+                  "discussionById": {
+                    "viewerRating": 123.456
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           votable {
             __typename @fusion__requirement
@@ -92,7 +108,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_4a61c641_1 {
           votable {
             __typename
@@ -105,7 +121,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_4a61c641_2(
           $__fusion_1_id: ID!
         ) {

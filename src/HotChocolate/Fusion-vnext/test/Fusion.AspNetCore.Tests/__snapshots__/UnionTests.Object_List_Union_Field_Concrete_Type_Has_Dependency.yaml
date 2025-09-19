@@ -1,6 +1,6 @@
 title: Object_List_Union_Field_Concrete_Type_Has_Dependency
 request:
-  document: >-
+  document: |
     query testQuery {
       postEdges {
         node {
@@ -14,7 +14,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "postEdges": [
@@ -38,7 +38,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -63,13 +63,37 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_30e5fe2d_1 {\n  postEdges {\n    node {\n      __typename\n      ... on Photo {\n        id\n      }\n      ... on Discussion {\n        subgraph1\n      }\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"postEdges":[{"node":{"__typename":"Photo","id":"UGhvdG86Ng=="}},{"node":{"__typename":"Photo","id":"UGhvdG86NQ=="}},{"node":{"__typename":"Photo","id":"UGhvdG86NA=="}}]}}
+          results:
+            - |
+              {
+                "data": {
+                  "postEdges": [
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "id": "UGhvdG86Ng=="
+                      }
+                    },
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "id": "UGhvdG86NQ=="
+                      }
+                    },
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "id": "UGhvdG86NA=="
+                      }
+                    }
+                  ]
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -84,16 +108,37 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_30e5fe2d_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_1_id":"UGhvdG86Ng=="},{"__fusion_1_id":"UGhvdG86NQ=="},{"__fusion_1_id":"UGhvdG86NA=="}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86Ng=="}}}
-            {"variableIndex":1,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86NQ=="}}}
-            {"variableIndex":2,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86NA=="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86Ng=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86NQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86NA=="
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           postEdges {
             node {
@@ -115,7 +160,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_30e5fe2d_1 {
           postEdges {
             node {
@@ -132,7 +177,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_30e5fe2d_2(
           $__fusion_1_id: ID!
         ) {

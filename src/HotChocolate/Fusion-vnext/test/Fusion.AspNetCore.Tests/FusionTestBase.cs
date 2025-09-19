@@ -8,6 +8,8 @@ using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
@@ -37,7 +39,7 @@ public abstract partial class FusionTestBase : IDisposable
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
         var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer();
-        var interactions = new ConcurrentDictionary<string, ConcurrentDictionary<int, RequestResponsePair>>();
+        var interactions = new ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>>();
 
         foreach (var (name, server) in sourceSchemaServers)
         {
@@ -53,7 +55,7 @@ public abstract partial class FusionTestBase : IDisposable
                 gatewayBuilder.AddHttpClientConfiguration(
                     name,
                     new Uri("http://localhost:5000/graphql"),
-                    // TODO: Pull this out
+                    // TODO: Do without httpclient interaction
                     onBeforeSend: (context, node, request) =>
                     {
                         if (request.Content == null)
@@ -79,32 +81,14 @@ public abstract partial class FusionTestBase : IDisposable
                         using var reader = new StreamReader(memoryStream, leaveOpen: true);
                         var content = reader.ReadToEnd();
 
-                        var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
-                            ? staticSchemaName
-                            : context.GetDynamicSchemaName(node);
-
-                        var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
-                        var pair = schemaInteractions.GetOrAdd(node.Id, _ => new RequestResponsePair());
-
-                        pair.Request = content;
+                        GetSourceSchemaInteraction(context, node).Request = content;
                     },
-                    onAfterReceive: (context, node, response) =>
-                    {
-                        // TODO: Is there a way without sync over async?
-                        // Also probably bad for incremental delivery / SSE
-                        response.Content.LoadIntoBufferAsync().GetAwaiter().GetResult();
-                        var content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-
-                        var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
-                            ? staticSchemaName
-                            : context.GetDynamicSchemaName(node);
-
-                        var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
-                        var pair = schemaInteractions.GetOrAdd(node.Id, _ => new RequestResponsePair());
-
-                        pair.Response = content;
-                        pair.StatusCode = response.StatusCode;
-                    });
+                    onAfterReceive: (context, node, response)
+                        => GetSourceSchemaInteraction(context, node).StatusCode = response.StatusCode,
+                    onSourceSchemaResult: (context, node, result)
+                        => GetSourceSchemaInteraction(context, node)
+                            // We have to do this here, otherwise the result will have already been disposed
+                            .Results.Add(SerializeSourceSchemaResult(result)));
             }
         }
 
@@ -166,6 +150,16 @@ public abstract partial class FusionTestBase : IDisposable
             configureApplication);
 
         return new Gateway(gatewayTestServer, sourceSchemas, interactions);
+
+        SourceSchemaInteraction GetSourceSchemaInteraction(OperationPlanContext context, ExecutionNode node)
+        {
+            var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
+                ? staticSchemaName
+                : context.GetDynamicSchemaName(node);
+
+            var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
+            return schemaInteractions.GetOrAdd(node.Id, _ => new SourceSchemaInteraction());
+        }
     }
 
     public void Dispose()
@@ -191,7 +185,7 @@ public abstract partial class FusionTestBase : IDisposable
     protected class Gateway(
         TestServer testServer,
         List<SourceSchemaText> sourceSchemas,
-        ConcurrentDictionary<string, ConcurrentDictionary<int, RequestResponsePair>> interactions) : IDisposable
+        ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> interactions) : IDisposable
     {
         public HttpClient CreateClient() => testServer.CreateClient();
 
@@ -199,7 +193,8 @@ public abstract partial class FusionTestBase : IDisposable
 
         public List<SourceSchemaText> SourceSchemas => sourceSchemas;
 
-        public ConcurrentDictionary<string, ConcurrentDictionary<int, RequestResponsePair>> Interactions => interactions;
+        public ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> Interactions =>
+            interactions;
 
         public void Dispose()
         {
@@ -207,11 +202,11 @@ public abstract partial class FusionTestBase : IDisposable
         }
     }
 
-    protected class RequestResponsePair
+    protected class SourceSchemaInteraction
     {
         public string? Request { get; set; }
 
-        public string? Response { get; set; }
+        public List<string> Results { get; } = [];
 
         public HttpStatusCode? StatusCode { get; set; }
     }

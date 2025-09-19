@@ -1,11 +1,11 @@
 title: Ensure_String_Literals_Can_Be_Empty
 request:
-  document: >-
+  document: |
     {
       formatTitle(title: "")
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "formatTitle": ""
@@ -13,7 +13,7 @@ response:
     }
 sourceSchemas:
   - name: a
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -65,13 +65,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_db37b9bf_1 {\n  formatTitle(title: \u0022\u0022)\n}"}
         response:
-          body: >-
-            {"data":{"formatTitle":""}}
+          results:
+            - |
+              {
+                "data": {
+                  "formatTitle": ""
+                }
+              }
   - name: b
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -125,7 +130,7 @@ sourceSchemas:
       }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           formatTitle(title: "")
         }
@@ -135,7 +140,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: a
-      operation: >-
+      operation: |
         query Op_db37b9bf_1 {
           formatTitle(title: "")
         }

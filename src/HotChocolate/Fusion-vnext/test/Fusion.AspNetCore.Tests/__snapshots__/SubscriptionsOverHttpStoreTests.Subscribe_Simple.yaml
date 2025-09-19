@@ -1,6 +1,6 @@
 title: Subscribe_Simple
 request:
-  document: >-
+  document: |
     subscription {
       onBookCreated {
         id
@@ -10,7 +10,7 @@ request:
 streamResponse: awah
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
         subscription: Subscription
@@ -29,15 +29,36 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}"}
         response:
-          body: >-
-            {"data":{"onBookCreated":{"id":1}}}
-            {"data":{"onBookCreated":{"id":2}}}
-            {"data":{"onBookCreated":{"id":3}}}
+          results:
+            - |
+              {
+                "data": {
+                  "onBookCreated": {
+                    "id": 1
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "onBookCreated": {
+                    "id": 2
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "onBookCreated": {
+                    "id": 3
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -52,14 +73,37 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_a6fc02fc_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    title\n  }\n}","variables":{"__fusion_1_id":3}}
         response:
-          body: >-
-            {"data":{"bookById":{"title":"Baz"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "title": "Foo"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "title": "Bar"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "title": "Baz"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         subscription {
           onBookCreated {
             id
@@ -73,7 +117,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         subscription Op_a6fc02fc_1 {
           onBookCreated {
             id
@@ -82,7 +126,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_a6fc02fc_2(
           $__fusion_1_id: Int!
         ) {

@@ -1,6 +1,6 @@
 title: Union_Field_Concrete_Type_Has_Dependency
 request:
-  document: >-
+  document: |
     query testQuery {
       post {
         ... on Photo {
@@ -12,7 +12,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "post": {
@@ -22,7 +22,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -43,13 +43,21 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_3d3597da_1 {\n  post {\n    __typename\n    ... on Photo {\n      id\n    }\n    ... on Discussion {\n      subgraph1\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"post":{"__typename":"Photo","id":"UGhvdG86MQ=="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "post": {
+                    "__typename": "Photo",
+                    "id": "UGhvdG86MQ=="
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -64,14 +72,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_3d3597da_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":{"__fusion_1_id":"UGhvdG86MQ=="}}
         response:
-          body: >-
-            {"data":{"photoById":{"subgraph2":"Photo: UGhvdG86MQ=="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86MQ=="
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           post {
             __typename @fusion__requirement
@@ -91,7 +106,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_3d3597da_1 {
           post {
             __typename
@@ -106,7 +121,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_3d3597da_2(
           $__fusion_1_id: ID!
         ) {

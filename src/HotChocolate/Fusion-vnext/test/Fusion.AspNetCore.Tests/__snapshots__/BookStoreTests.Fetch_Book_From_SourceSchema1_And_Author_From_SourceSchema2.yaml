@@ -1,6 +1,6 @@
 title: Fetch_Book_From_SourceSchema1_And_Author_From_SourceSchema2
 request:
-  document: >-
+  document: |
     {
       bookById(id: 1) {
         title
@@ -10,7 +10,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "bookById": {
@@ -23,7 +23,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -75,13 +75,23 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_b15d3abc_1 {\n  bookById(id: 1) {\n    title\n    author {\n      id\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"bookById":{"title":"C# in Depth","author":{"id":1}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "title": "C# in Depth",
+                    "author": {
+                      "id": 1
+                    }
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -135,14 +145,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_b15d3abc_2(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":1}}
         response:
-          body: >-
-            {"data":{"authorById":{"name":"Jon Skeet"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Jon Skeet"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           bookById(id: 1) {
             title
@@ -158,7 +175,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_b15d3abc_1 {
           bookById(id: 1) {
             title
@@ -170,7 +187,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_b15d3abc_2(
           $__fusion_1_id: Int!
         ) {

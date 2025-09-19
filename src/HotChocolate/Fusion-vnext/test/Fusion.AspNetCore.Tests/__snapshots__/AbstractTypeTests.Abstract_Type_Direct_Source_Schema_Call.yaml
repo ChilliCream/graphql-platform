@@ -1,6 +1,6 @@
 title: Abstract_Type_Direct_Source_Schema_Call
 request:
-  document: >-
+  document: |
     {
       interfaceConnection(first: 2) {
         edges {
@@ -14,7 +14,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "interfaceConnection": {
@@ -33,7 +33,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -91,14 +91,31 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_45eb4c09_1 {\n  interfaceConnection(first: 2) {\n    edges {\n      node {\n        __typename\n        id\n      }\n    }\n    pageInfo {\n      hasNextPage\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"interfaceConnection":{"edges":[{"node":{"__typename":"Discussion","id":1}}],"pageInfo":{"hasNextPage":false}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "interfaceConnection": {
+                    "edges": [
+                      {
+                        "node": {
+                          "__typename": "Discussion",
+                          "id": 1
+                        }
+                      }
+                    ],
+                    "pageInfo": {
+                      "hasNextPage": false
+                    }
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           interfaceConnection(first: 2) {
             edges {
@@ -118,7 +135,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_45eb4c09_1 {
           interfaceConnection(first: 2) {
             edges {

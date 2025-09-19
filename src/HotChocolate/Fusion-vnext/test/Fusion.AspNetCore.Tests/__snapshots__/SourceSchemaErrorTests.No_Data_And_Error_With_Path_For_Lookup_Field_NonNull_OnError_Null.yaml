@@ -1,7 +1,7 @@
 title: No_Data_And_Error_With_Path_For_Lookup_Field_NonNull
 request:
   onError: Null
-  document: >-
+  document: |
     {
       topProduct {
         price
@@ -9,7 +9,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "topProduct": {
@@ -29,7 +29,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -47,13 +47,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_e24d93b6_1 {\n  topProduct {\n    price\n    id\n  }\n}"}
         response:
-          body: >-
-            {"data":{"topProduct":{"price":13.99,"id":1}}}
+          results:
+            - |
+              {
+                "data": {
+                  "topProduct": {
+                    "price": 13.99,
+                    "id": 1
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -68,14 +76,31 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_e24d93b6_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":1}}
         response:
-          body: >-
-            {"errors":[{"message":"Could not resolve Product","locations":[{"line":4,"column":3}],"path":["productById"]}],"data":null}
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Could not resolve Product",
+                    "locations": [
+                      {
+                        "line": 4,
+                        "column": 3
+                      }
+                    ],
+                    "path": [
+                      "productById"
+                    ]
+                  }
+                ],
+                "data": null
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           topProduct {
             price
@@ -89,7 +114,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_e24d93b6_1 {
           topProduct {
             price
@@ -99,7 +124,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_e24d93b6_2(
           $__fusion_1_id: Int!
         ) {

@@ -1,6 +1,6 @@
 title: Id_Of_Type_Different_From_Concrete_Type_Selections_Requested
 request:
-  document: >-
+  document: |
     {
       node(id: "UHJvZHVjdDox") {
         id
@@ -10,7 +10,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "node": {
@@ -20,7 +20,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -39,7 +39,7 @@ sourceSchemas:
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -64,14 +64,22 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_83aee782_2 {\n  node(id: \u0022UHJvZHVjdDox\u0022) {\n    __typename\n    id\n  }\n}"}
         response:
-          body: >-
-            {"data":{"node":{"__typename":"Product","id":"UHJvZHVjdDox"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "id": "UHJvZHVjdDox"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           node(id: "UHJvZHVjdDox") {
             __typename @fusion__requirement
@@ -93,7 +101,7 @@ operationPlan:
       fallback: 2
     - id: 2
       type: Operation
-      operation: >-
+      operation: |
         query Op_83aee782_2 {
           node(id: "UHJvZHVjdDox") {
             __typename
@@ -105,7 +113,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_83aee782_3 {
           node: discussionById(discussionId: "UHJvZHVjdDox") {
             __typename

@@ -1,6 +1,6 @@
 title: No_By_Id_Lookup_On_Best_Matching_Source_Schema
 request:
-  document: >-
+  document: |
     {
       node(id: "RGlzY3Vzc2lvbjox") {
         ... on Discussion {
@@ -9,7 +9,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "node": {
@@ -19,7 +19,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -35,13 +35,20 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_7c1d9f5d_4(\n  $__fusion_1_title: String!\n) {\n  discussionByName(title: $__fusion_1_title) {\n    commentCount\n  }\n}","variables":{"__fusion_1_title":"Discussion: RGlzY3Vzc2lvbjox"}}
         response:
-          body: >-
-            {"data":{"discussionByName":{"commentCount":123}}}
+          results:
+            - |
+              {
+                "data": {
+                  "discussionByName": {
+                    "commentCount": 123
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -61,14 +68,22 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_7c1d9f5d_3 {\n  node: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n    title\n  }\n}"}
         response:
-          body: >-
-            {"data":{"node":{"__typename":"Discussion","title":"Discussion: RGlzY3Vzc2lvbjox"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Discussion",
+                    "title": "Discussion: RGlzY3Vzc2lvbjox"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
@@ -90,7 +105,7 @@ operationPlan:
       fallback: 2
     - id: 2
       type: Operation
-      operation: >-
+      operation: |
         query Op_7c1d9f5d_2 {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
@@ -101,7 +116,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_7c1d9f5d_3 {
           node: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
             __typename
@@ -113,7 +128,7 @@ operationPlan:
     - id: 4
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_7c1d9f5d_4(
           $__fusion_1_title: String!
         ) {

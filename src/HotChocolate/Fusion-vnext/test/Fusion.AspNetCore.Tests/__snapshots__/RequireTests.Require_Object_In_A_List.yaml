@@ -1,6 +1,6 @@
 title: Require_Object_In_A_List
 request:
-  document: >-
+  document: |
     {
       books {
         nodes {
@@ -10,7 +10,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "books": {
@@ -33,7 +33,7 @@ response:
     }
 sourceSchemas:
   - name: a
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -84,13 +84,33 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_1f7d6449_1 {\n  books {\n    nodes {\n      title\n      id\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"books":{"nodes":[{"title":"The Great Gatsby","id":1},{"title":"1984","id":2},{"title":"The Catcher in the Rye","id":3}]}}}
+          results:
+            - |
+              {
+                "data": {
+                  "books": {
+                    "nodes": [
+                      {
+                        "title": "The Great Gatsby",
+                        "id": 1
+                      },
+                      {
+                        "title": "1984",
+                        "id": 2
+                      },
+                      {
+                        "title": "The Catcher in the Rye",
+                        "id": 3
+                      }
+                    ]
+                  }
+                }
+              }
   - name: b
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -110,15 +130,45 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_1f7d6449_4(\n  $__fusion_4_id: Int!\n) {\n  book(id: $__fusion_4_id) {\n    dimension {\n      width\n      height\n    }\n  }\n}","variables":[{"__fusion_4_id":1},{"__fusion_4_id":2},{"__fusion_4_id":3}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"book":{"dimension":{"width":100,"height":200}}}}
-            {"variableIndex":1,"data":{"book":{"dimension":{"width":150,"height":300}}}}
-            {"variableIndex":2,"data":{"book":{"dimension":{"width":200,"height":400}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "book": {
+                    "dimension": {
+                      "width": 100,
+                      "height": 200
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "book": {
+                    "dimension": {
+                      "width": 150,
+                      "height": 300
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "book": {
+                    "dimension": {
+                      "width": 200,
+                      "height": 400
+                    }
+                  }
+                }
+              }
   - name: c
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -139,16 +189,37 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_1f7d6449_3(\n  $__fusion_2_dimension: BookDimensionInput!\n  $__fusion_3_id: Int!\n) {\n  book(id: $__fusion_3_id) {\n    estimatedDelivery(dimension: $__fusion_2_dimension)\n  }\n}","variables":[{"__fusion_2_dimension":{"title":"The Great Gatsby","width":100,"height":200},"__fusion_3_id":1},{"__fusion_2_dimension":{"title":"1984","width":150,"height":300},"__fusion_3_id":2},{"__fusion_2_dimension":{"title":"The Catcher in the Rye","width":200,"height":400},"__fusion_3_id":3}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"book":{"estimatedDelivery":300}}}
-            {"variableIndex":1,"data":{"book":{"estimatedDelivery":450}}}
-            {"variableIndex":2,"data":{"book":{"estimatedDelivery":600}}}
+          results:
+            - |
+              {
+                "data": {
+                  "book": {
+                    "estimatedDelivery": 300
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "book": {
+                    "estimatedDelivery": 450
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "book": {
+                    "estimatedDelivery": 600
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           books {
             nodes {
@@ -169,7 +240,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: a
-      operation: >-
+      operation: |
         query Op_1f7d6449_1 {
           books {
             nodes {
@@ -181,7 +252,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: c
-      operation: >-
+      operation: |
         query Op_1f7d6449_3(
           $__fusion_2_dimension: BookDimensionInput!
           $__fusion_3_id: Int!
@@ -209,7 +280,7 @@ operationPlan:
     - id: 4
       type: Operation
       schema: b
-      operation: >-
+      operation: |
         query Op_1f7d6449_4(
           $__fusion_4_id: Int!
         ) {

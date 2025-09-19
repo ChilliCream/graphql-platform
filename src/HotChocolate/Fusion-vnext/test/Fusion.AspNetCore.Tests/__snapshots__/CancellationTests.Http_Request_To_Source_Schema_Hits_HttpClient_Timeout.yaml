@@ -1,13 +1,13 @@
 title: Http_Request_To_Source_Schema_Hits_HttpClient_Timeout
 request:
-  document: >-
+  document: |
     {
       topProduct {
         id
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "topProduct": null
@@ -23,7 +23,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -38,11 +38,11 @@ sourceSchemas:
     isTimingOut: true
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_486d07e5_1 {\n  topProduct {\n    id\n  }\n}"}
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           topProduct {
             id
@@ -54,7 +54,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_486d07e5_1 {
           topProduct {
             id

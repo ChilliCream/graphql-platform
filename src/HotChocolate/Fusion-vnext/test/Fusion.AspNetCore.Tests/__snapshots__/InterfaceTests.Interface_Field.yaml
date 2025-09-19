@@ -1,13 +1,13 @@
 title: Interface_Field
 request:
-  document: >-
+  document: |
     query testQuery {
       votable {
         viewerCanVote
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "votable": {
@@ -17,7 +17,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -42,14 +42,22 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_79461fa4_1 {\n  votable {\n    __typename\n    viewerCanVote\n  }\n}"}
         response:
-          body: >-
-            {"data":{"votable":{"__typename":"Discussion","viewerCanVote":true}}}
+          results:
+            - |
+              {
+                "data": {
+                  "votable": {
+                    "__typename": "Discussion",
+                    "viewerCanVote": true
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           votable {
             __typename @fusion__requirement
@@ -63,7 +71,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_79461fa4_1 {
           votable {
             __typename

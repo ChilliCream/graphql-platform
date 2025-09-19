@@ -1,6 +1,6 @@
 title: Resolve_Sequence_SubField_NonNull_Parent_Nullable_One_Service_Errors_SubField
 request:
-  document: >-
+  document: |
     {
       product {
         id
@@ -11,7 +11,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "product": {
@@ -32,7 +32,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -51,13 +51,23 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_e358ecef_1 {\n  product {\n    id\n    brand {\n      id\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"product":{"id":"UHJvZHVjdDox","brand":{"id":"QnJhbmQ6Mg=="}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "id": "UHJvZHVjdDox",
+                    "brand": {
+                      "id": "QnJhbmQ6Mg=="
+                    }
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -74,14 +84,34 @@ sourceSchemas:
       directive @error(atIndex: Int) on FIELD_DEFINITION
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_e358ecef_2(\n  $__fusion_1_id: ID!\n) {\n  brandById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":"QnJhbmQ6Mg=="}}
         response:
-          body: >-
-            {"errors":[{"message":"Unexpected Execution Error","locations":[{"line":5,"column":5}],"path":["brandById","name"]}],"data":{"brandById":null}}
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Unexpected Execution Error",
+                    "locations": [
+                      {
+                        "line": 5,
+                        "column": 5
+                      }
+                    ],
+                    "path": [
+                      "brandById",
+                      "name"
+                    ]
+                  }
+                ],
+                "data": {
+                  "brandById": null
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           product {
             id
@@ -98,7 +128,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_e358ecef_1 {
           product {
             id
@@ -110,7 +140,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_e358ecef_2(
           $__fusion_1_id: ID!
         ) {

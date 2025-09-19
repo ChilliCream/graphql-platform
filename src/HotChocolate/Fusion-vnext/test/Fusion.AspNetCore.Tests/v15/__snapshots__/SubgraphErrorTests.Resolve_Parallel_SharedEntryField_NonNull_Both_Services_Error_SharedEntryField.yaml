@@ -1,6 +1,6 @@
 title: Resolve_Parallel_SharedEntryField_NonNull_Both_Services_Error_SharedEntryField
 request:
-  document: >-
+  document: |
     {
       viewer {
         userId
@@ -8,7 +8,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "errors": [
         {
@@ -21,7 +21,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -37,13 +37,11 @@ sourceSchemas:
       directive @error(atIndex: Int) on FIELD_DEFINITION
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_97b6c9a3_1 {\n  viewer {\n    name\n  }\n}"}
         response:
-          body: >-
-            {"errors":[{"message":"Unexpected Execution Error","locations":[{"line":2,"column":3}],"path":["viewer"]}],"data":null}
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -59,14 +57,31 @@ sourceSchemas:
       directive @error(atIndex: Int) on FIELD_DEFINITION
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_97b6c9a3_2 {\n  viewer {\n    userId\n  }\n}"}
         response:
-          body: >-
-            {"errors":[{"message":"Unexpected Execution Error","locations":[{"line":2,"column":3}],"path":["viewer"]}],"data":null}
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Unexpected Execution Error",
+                    "locations": [
+                      {
+                        "line": 2,
+                        "column": 3
+                      }
+                    ],
+                    "path": [
+                      "viewer"
+                    ]
+                  }
+                ],
+                "data": null
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           viewer {
             userId
@@ -79,7 +94,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_97b6c9a3_1 {
           viewer {
             name
@@ -88,7 +103,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_97b6c9a3_2 {
           viewer {
             userId

@@ -1,6 +1,6 @@
 title: Execution_Is_Halted_While_Http_Request_In_Node_Is_Still_Ongoing
 request:
-  document: >-
+  document: |
     {
       topProduct {
         id
@@ -10,7 +10,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "errors": [
         {
@@ -23,7 +23,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -38,10 +38,10 @@ sourceSchemas:
     isTimingOut: true
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_512ba6dc_1 {\n  topProduct {\n    id\n  }\n}"}
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -55,14 +55,33 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_512ba6dc_2 {\n  reviews {\n    id\n  }\n}"}
         response:
-          body: >-
-            {"errors":[{"message":"Could not resolve reviews","locations":[{"line":2,"column":3}],"path":["reviews"]}],"data":{"reviews":null}}
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Could not resolve reviews",
+                    "locations": [
+                      {
+                        "line": 2,
+                        "column": 3
+                      }
+                    ],
+                    "path": [
+                      "reviews"
+                    ]
+                  }
+                ],
+                "data": {
+                  "reviews": null
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           topProduct {
             id
@@ -77,7 +96,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_512ba6dc_1 {
           topProduct {
             id
@@ -86,7 +105,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_512ba6dc_2 {
           reviews {
             id

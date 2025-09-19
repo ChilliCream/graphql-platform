@@ -1,6 +1,6 @@
 title: Fetch_Book_From_SourceSchema1_Two_Requests
 request:
-  document: >-
+  document: |
     {
       bookById(id: 1) {
         id
@@ -8,7 +8,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "bookById": {
@@ -19,7 +19,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -71,13 +71,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_da31ef9b_1 {\n  bookById(id: 1) {\n    id\n    title\n  }\n}"}
         response:
-          body: >-
-            {"data":{"bookById":{"id":1,"title":"C# in Depth"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "id": 1,
+                    "title": "C# in Depth"
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -131,7 +139,7 @@ sourceSchemas:
       }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           bookById(id: 1) {
             id
@@ -144,7 +152,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_da31ef9b_1 {
           bookById(id: 1) {
             id

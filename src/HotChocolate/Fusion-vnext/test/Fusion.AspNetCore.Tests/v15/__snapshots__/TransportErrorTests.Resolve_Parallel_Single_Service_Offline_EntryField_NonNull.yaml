@@ -1,13 +1,13 @@
 title: Resolve_Parallel_Single_Service_Offline_EntryField_NonNull
 request:
-  document: >-
+  document: |
     {
       viewer {
         name
       }
     }
 response:
-  body: >-
+  body: |
     {
       "errors": [
         {
@@ -20,7 +20,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -34,13 +34,13 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_7a17934e_1 {\n  viewer {\n    name\n  }\n}"}
         response:
           statusCode: 500
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           viewer {
             name
@@ -52,7 +52,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_7a17934e_1 {
           viewer {
             name

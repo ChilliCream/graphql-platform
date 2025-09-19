@@ -1,13 +1,13 @@
 title: Request_Is_Running_Into_Execution_Timeout_While_Http_Request_In_Node_Is_Still_Ongoing
 request:
-  document: >-
+  document: |
     {
       topProduct {
         id
       }
     }
 response:
-  body: >-
+  body: |
     {
       "errors": [
         {
@@ -20,7 +20,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -32,8 +32,8 @@ sourceSchemas:
       type Query {
         topProduct: Product
       }
+    isTimingOut: true
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_486d07e5_1 {\n  topProduct {\n    id\n  }\n}"}
-        response:

@@ -1,6 +1,6 @@
 title: Node_Field_Selections_On_Interface_And_Concrete_Type
 request:
-  document: >-
+  document: |
     query testQuery(
       $id: ID!
     ) {
@@ -13,12 +13,12 @@ request:
         }
       }
     }
-  variables: >-
+  variables: |
     {
       "id": "RGlzY3Vzc2lvbjox"
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "node": {
@@ -29,7 +29,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -58,14 +58,23 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_ef8b97ff_3(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Discussion {\n      __typename\n      viewerCanVote\n      viewerRating\n    }\n  }\n}","variables":{"id":"RGlzY3Vzc2lvbjox"}}
         response:
-          body: >-
-            {"data":{"node":{"__typename":"Discussion","viewerCanVote":true,"viewerRating":123.456}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Discussion",
+                    "viewerCanVote": true,
+                    "viewerRating": 123.456
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery(
           $id: ID!
         ) {
@@ -93,7 +102,7 @@ operationPlan:
       fallback: 2
     - id: 2
       type: Operation
-      operation: >-
+      operation: |
         query testQuery_ef8b97ff_2(
           $id: ID!
         ) {
@@ -106,7 +115,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_ef8b97ff_3(
           $id: ID!
         ) {
@@ -124,7 +133,7 @@ operationPlan:
     - id: 4
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_ef8b97ff_4(
           $id: ID!
         ) {

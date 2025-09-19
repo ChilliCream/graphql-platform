@@ -1,6 +1,6 @@
 title: Interface_Field_Concrete_Type
 request:
-  document: >-
+  document: |
     query testQuery {
       votable {
         viewerCanVote
@@ -10,7 +10,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "votable": {
@@ -21,7 +21,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -46,14 +46,23 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_f4fa964e_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      title\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"votable":{"__typename":"Discussion","viewerCanVote":true,"title":"Discussion: RGlzY3Vzc2lvbjox"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "votable": {
+                    "__typename": "Discussion",
+                    "viewerCanVote": true,
+                    "title": "Discussion: RGlzY3Vzc2lvbjox"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           votable {
             __typename @fusion__requirement
@@ -70,7 +79,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_f4fa964e_1 {
           votable {
             __typename

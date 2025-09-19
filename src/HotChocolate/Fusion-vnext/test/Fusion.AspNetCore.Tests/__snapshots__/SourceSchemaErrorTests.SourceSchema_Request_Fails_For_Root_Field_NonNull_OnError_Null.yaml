@@ -1,14 +1,14 @@
 title: SourceSchema_Request_Fails_For_Root_Field_NonNull
 request:
   onError: Null
-  document: >-
+  document: |
     {
       topProduct {
         price
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "topProduct": null
@@ -24,7 +24,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -42,13 +42,13 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_1c1cf024_1 {\n  topProduct {\n    price\n  }\n}"}
         response:
           statusCode: 500
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           topProduct {
             price
@@ -60,7 +60,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_1c1cf024_1 {
           topProduct {
             price

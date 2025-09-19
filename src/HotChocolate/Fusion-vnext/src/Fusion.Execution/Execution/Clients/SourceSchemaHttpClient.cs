@@ -41,13 +41,13 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         httpRequest.OnMessageCreated += static (_, requestMessage, state) =>
         {
             var (context, node, configuration) = ((OperationPlanContext, ExecutionNode, SourceSchemaHttpClientConfiguration))state!;
-            configuration.OnBeforeSend(context, node, requestMessage);
+            configuration.OnBeforeSend?.Invoke(context, node, requestMessage);
         };
 
         httpRequest.OnMessageReceived += static (_, responseMessage, state) =>
         {
             var (context, node, configuration) = ((OperationPlanContext, ExecutionNode, SourceSchemaHttpClientConfiguration))state!;
-            configuration.OnAfterReceive(context, node, responseMessage);
+            configuration.OnAfterReceive?.Invoke(context, node, responseMessage);
         };
 
         var httpResponse = await _client.SendAsync(httpRequest, cancellationToken);
@@ -148,16 +148,23 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         public override async IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            var (context, node, configuration) =
+                ((OperationPlanContext, ExecutionNode, SourceSchemaHttpClientConfiguration))request.State!;
+
             if (operation == OperationType.Subscription)
             {
                 await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
                 {
-                    yield return new SourceSchemaResult(
+                    var sourceSchemaResult = new SourceSchemaResult(
                         Path.Root,
                         result,
                         result.Data,
                         result.Errors,
                         result.Extensions);
+
+                    configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+
+                    yield return sourceSchemaResult;
                 }
             }
             else
@@ -167,24 +174,32 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     case 0:
                     {
                         var result = await response.ReadAsResultAsync(cancellationToken);
-                        yield return new SourceSchemaResult(
+                        var sourceSchemaResult = new SourceSchemaResult(
                             Path.Root,
                             result,
                             result.Data,
                             result.Errors,
                             result.Extensions);
+
+                        configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+
+                        yield return sourceSchemaResult;
                         break;
                     }
 
                     case 1:
                     {
                         var result = await response.ReadAsResultAsync(cancellationToken);
-                        yield return new SourceSchemaResult(
+                        var sourceSchemaResult = new SourceSchemaResult(
                             variables[0].Path,
                             result,
                             result.Data,
                             result.Errors,
                             result.Extensions);
+
+                        configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+
+                        yield return sourceSchemaResult;
                         break;
                     }
 
@@ -203,17 +218,23 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                     result.Data,
                                     result.Errors,
                                     result.Extensions);
+
+                                configuration.OnSourceSchemaResult?.Invoke(context, node, errorResult);
                                 break;
                             }
 
                             var index = result.VariableIndex!.Value;
                             var (path, _) = variables[index];
-                            yield return new SourceSchemaResult(
+                            var sourceSchemaResult = new SourceSchemaResult(
                                 path,
                                 result,
                                 result.Data,
                                 result.Errors,
                                 result.Extensions);
+
+                            configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+
+                            yield return sourceSchemaResult;
                         }
 
                         if (errorResult is not null)

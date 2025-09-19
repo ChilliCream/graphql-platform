@@ -1,6 +1,6 @@
 title: Object_List_Union_List_Concrete_Type_Selections_Have_Dependency_To_Same_Subgraph
 request:
-  document: >-
+  document: |
     query testQuery {
       users {
         posts {
@@ -18,7 +18,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "users": [
@@ -84,7 +84,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -118,13 +118,85 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_42ede545_1 {\n  users {\n    posts {\n      __typename\n      ... on Photo {\n        product {\n          id\n        }\n      }\n      ... on Discussion {\n        author {\n          id\n        }\n      }\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"users":[{"posts":[{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxNQ=="}},{"__typename":"Discussion","author":{"id":"QXV0aG9yOjE0"}},{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxMw=="}}]},{"posts":[{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxOA=="}},{"__typename":"Discussion","author":{"id":"QXV0aG9yOjE3"}},{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxNg=="}}]},{"posts":[{"__typename":"Photo","product":{"id":"UHJvZHVjdDoyMQ=="}},{"__typename":"Discussion","author":{"id":"QXV0aG9yOjIw"}},{"__typename":"Photo","product":{"id":"UHJvZHVjdDoxOQ=="}}]}]}}
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "posts": [
+                        {
+                          "__typename": "Photo",
+                          "product": {
+                            "id": "UHJvZHVjdDoxNQ=="
+                          }
+                        },
+                        {
+                          "__typename": "Discussion",
+                          "author": {
+                            "id": "QXV0aG9yOjE0"
+                          }
+                        },
+                        {
+                          "__typename": "Photo",
+                          "product": {
+                            "id": "UHJvZHVjdDoxMw=="
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "posts": [
+                        {
+                          "__typename": "Photo",
+                          "product": {
+                            "id": "UHJvZHVjdDoxOA=="
+                          }
+                        },
+                        {
+                          "__typename": "Discussion",
+                          "author": {
+                            "id": "QXV0aG9yOjE3"
+                          }
+                        },
+                        {
+                          "__typename": "Photo",
+                          "product": {
+                            "id": "UHJvZHVjdDoxNg=="
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "posts": [
+                        {
+                          "__typename": "Photo",
+                          "product": {
+                            "id": "UHJvZHVjdDoyMQ=="
+                          }
+                        },
+                        {
+                          "__typename": "Discussion",
+                          "author": {
+                            "id": "QXV0aG9yOjIw"
+                          }
+                        },
+                        {
+                          "__typename": "Photo",
+                          "product": {
+                            "id": "UHJvZHVjdDoxOQ=="
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -145,27 +217,90 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_42ede545_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjE0"},{"__fusion_1_id":"QXV0aG9yOjE3"},{"__fusion_1_id":"QXV0aG9yOjIw"}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"authorById":{"subgraph2":"Author: QXV0aG9yOjE0"}}}
-            {"variableIndex":1,"data":{"authorById":{"subgraph2":"Author: QXV0aG9yOjE3"}}}
-            {"variableIndex":2,"data":{"authorById":{"subgraph2":"Author: QXV0aG9yOjIw"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjE0"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjE3"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjIw"
+                  }
+                }
+              }
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_42ede545_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDoxNQ=="},{"__fusion_2_id":"UHJvZHVjdDoxMw=="},{"__fusion_2_id":"UHJvZHVjdDoxOA=="},{"__fusion_2_id":"UHJvZHVjdDoxNg=="},{"__fusion_2_id":"UHJvZHVjdDoyMQ=="},{"__fusion_2_id":"UHJvZHVjdDoxOQ=="}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoxNQ=="}}}
-            {"variableIndex":1,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoxMw=="}}}
-            {"variableIndex":2,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoxOA=="}}}
-            {"variableIndex":3,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoxNg=="}}}
-            {"variableIndex":4,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoyMQ=="}}}
-            {"variableIndex":5,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoxOQ=="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoxNQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoxMw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoxOA=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoxNg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoxOQ=="
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           users {
             posts {
@@ -192,7 +327,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_42ede545_1 {
           users {
             posts {
@@ -213,7 +348,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_42ede545_2(
           $__fusion_1_id: ID!
         ) {
@@ -232,7 +367,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_42ede545_3(
           $__fusion_2_id: ID!
         ) {

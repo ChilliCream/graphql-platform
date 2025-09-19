@@ -1,6 +1,6 @@
 title: Abstract_Type_With_Concrete_Lookup
 request:
-  document: >-
+  document: |
     {
       abstractType {
         id
@@ -11,7 +11,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "abstractType": {
@@ -23,7 +23,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -85,13 +85,22 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_bf0deff6_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n      id\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"abstractType":{"__typename":"Discussion","id":1,"title":"Discussion 1"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "abstractType": {
+                    "__typename": "Discussion",
+                    "id": 1,
+                    "title": "Discussion 1"
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -116,14 +125,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_bf0deff6_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    commentCount\n  }\n}","variables":{"__fusion_1_id":1}}
         response:
-          body: >-
-            {"data":{"discussionById":{"commentCount":3}}}
+          results:
+            - |
+              {
+                "data": {
+                  "discussionById": {
+                    "commentCount": 3
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           abstractType {
             __typename @fusion__requirement
@@ -141,7 +157,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_bf0deff6_1 {
           abstractType {
             __typename
@@ -155,7 +171,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_bf0deff6_2(
           $__fusion_1_id: ID!
         ) {

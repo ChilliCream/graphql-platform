@@ -1,14 +1,14 @@
 title: Error_On_Root_Leaf
 request:
   onError: Halt
-  document: >-
+  document: |
     {
       productById(id: 1) {
         name
       }
     }
 response:
-  body: >-
+  body: |
     {
       "errors": [
         {
@@ -22,7 +22,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -37,14 +37,36 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_97fd38fc_1 {\n  productById(id: 1) {\n    name\n  }\n}"}
         response:
-          body: >-
-            {"errors":[{"message":"Could not resolve Product.name","locations":[{"line":3,"column":5}],"path":["productById","name"]}],"data":{"productById":{"name":null}}}
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Could not resolve Product.name",
+                    "locations": [
+                      {
+                        "line": 3,
+                        "column": 5
+                      }
+                    ],
+                    "path": [
+                      "productById",
+                      "name"
+                    ]
+                  }
+                ],
+                "data": {
+                  "productById": {
+                    "name": null
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           productById(id: 1) {
             name
@@ -56,7 +78,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_97fd38fc_1 {
           productById(id: 1) {
             name

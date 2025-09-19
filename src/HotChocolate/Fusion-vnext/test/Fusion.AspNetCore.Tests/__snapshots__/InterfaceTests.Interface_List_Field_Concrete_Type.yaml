@@ -1,6 +1,6 @@
 title: Interface_List_Field_Concrete_Type
 request:
-  document: >-
+  document: |
     query testQuery {
       votables {
         viewerCanVote
@@ -10,7 +10,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "votables": [
@@ -30,7 +30,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -55,14 +55,34 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_00fdde4e_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      title\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"votables":[{"__typename":"Discussion","viewerCanVote":true,"title":"Discussion: RGlzY3Vzc2lvbjox"},{"__typename":"Comment","viewerCanVote":true},{"__typename":"Discussion","viewerCanVote":true,"title":"Discussion: RGlzY3Vzc2lvbjoz"}]}}
+          results:
+            - |
+              {
+                "data": {
+                  "votables": [
+                    {
+                      "__typename": "Discussion",
+                      "viewerCanVote": true,
+                      "title": "Discussion: RGlzY3Vzc2lvbjox"
+                    },
+                    {
+                      "__typename": "Comment",
+                      "viewerCanVote": true
+                    },
+                    {
+                      "__typename": "Discussion",
+                      "viewerCanVote": true,
+                      "title": "Discussion: RGlzY3Vzc2lvbjoz"
+                    }
+                  ]
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           votables {
             __typename @fusion__requirement
@@ -79,7 +99,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_00fdde4e_1 {
           votables {
             __typename

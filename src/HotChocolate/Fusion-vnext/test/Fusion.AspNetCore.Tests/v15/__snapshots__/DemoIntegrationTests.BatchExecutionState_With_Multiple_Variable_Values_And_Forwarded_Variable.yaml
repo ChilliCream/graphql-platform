@@ -1,6 +1,6 @@
 title: BatchExecutionState_With_Multiple_Variable_Values_And_Forwarded_Variable
 request:
-  document: >-
+  document: |
     query(
       $arg1: String
       $arg2: String
@@ -20,13 +20,13 @@ request:
         }
       }
     }
-  variables: >-
+  variables: |
     {
       "arg1": "abc",
       "arg2": "def"
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "userBySlug": {
@@ -69,7 +69,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -89,15 +89,39 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_b1ca18eb_4(\n  $arg2: String\n  $__fusion_3_id: ID!\n) {\n  node(id: $__fusion_3_id) {\n    __typename\n    ... on User {\n      displayName(arg: $arg2)\n    }\n  }\n}","variables":[{"arg2":"def","__fusion_3_id":"VXNlcjoxMw=="},{"arg2":"def","__fusion_3_id":"VXNlcjoxMg=="},{"arg2":"def","__fusion_3_id":"VXNlcjoxMQ=="}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"node":{"__typename":"User","displayName":"User: VXNlcjoxMw=="}}}
-            {"variableIndex":1,"data":{"node":{"__typename":"User","displayName":"User: VXNlcjoxMg=="}}}
-            {"variableIndex":2,"data":{"node":{"__typename":"User","displayName":"User: VXNlcjoxMQ=="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "displayName": "User: VXNlcjoxMw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "displayName": "User: VXNlcjoxMg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "displayName": "User: VXNlcjoxMQ=="
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -118,21 +142,52 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_b1ca18eb_1 {\n  userBySlug(slug: \u0022me\u0022) {\n    id\n  }\n}"}
         response:
-          body: >-
-            {"data":{"userBySlug":{"id":"VXNlcjox"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "userBySlug": {
+                    "id": "VXNlcjox"
+                  }
+                }
+              }
       - request:
-          body: >-
+          body: |
             {"query":"query Op_b1ca18eb_3(\n  $arg1: String\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on User {\n      relativeUrl(arg: $arg1)\n    }\n  }\n}","variables":[{"arg1":"abc","__fusion_2_id":"VXNlcjoxMw=="},{"arg1":"abc","__fusion_2_id":"VXNlcjoxMg=="},{"arg1":"abc","__fusion_2_id":"VXNlcjoxMQ=="}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"node":{"__typename":"User","relativeUrl":"User: VXNlcjoxMw=="}}}
-            {"variableIndex":1,"data":{"node":{"__typename":"User","relativeUrl":"User: VXNlcjoxMg=="}}}
-            {"variableIndex":2,"data":{"node":{"__typename":"User","relativeUrl":"User: VXNlcjoxMQ=="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "relativeUrl": "User: VXNlcjoxMw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "relativeUrl": "User: VXNlcjoxMg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "relativeUrl": "User: VXNlcjoxMQ=="
+                  }
+                }
+              }
   - name: C
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -169,14 +224,52 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_b1ca18eb_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on User {\n      feedbacks {\n        edges {\n          node {\n            feedback {\n              buyer {\n                id\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}","variables":{"__fusion_1_id":"VXNlcjox"}}
         response:
-          body: >-
-            {"data":{"node":{"__typename":"User","feedbacks":{"edges":[{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMw=="}}}},{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMg=="}}}},{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMQ=="}}}}]}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "feedbacks": {
+                      "edges": [
+                        {
+                          "node": {
+                            "feedback": {
+                              "buyer": {
+                                "id": "VXNlcjoxMw=="
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "node": {
+                            "feedback": {
+                              "buyer": {
+                                "id": "VXNlcjoxMg=="
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "node": {
+                            "feedback": {
+                              "buyer": {
+                                "id": "VXNlcjoxMQ=="
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query(
           $arg1: String
           $arg2: String
@@ -204,7 +297,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_b1ca18eb_1 {
           userBySlug(slug: "me") {
             id
@@ -213,7 +306,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: C
-      operation: >-
+      operation: |
         query Op_b1ca18eb_2(
           $__fusion_1_id: ID!
         ) {
@@ -245,7 +338,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_b1ca18eb_3(
           $arg1: String
           $__fusion_2_id: ID!
@@ -268,7 +361,7 @@ operationPlan:
     - id: 4
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_b1ca18eb_4(
           $arg2: String
           $__fusion_3_id: ID!

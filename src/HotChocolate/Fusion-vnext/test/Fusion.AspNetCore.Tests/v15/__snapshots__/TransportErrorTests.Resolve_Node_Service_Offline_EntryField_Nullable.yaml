@@ -1,6 +1,6 @@
 title: Resolve_Node_Service_Offline_EntryField_Nullable
 request:
-  document: >-
+  document: |
     {
       node(id: "QnJhbmQ6MQ==") {
         id
@@ -10,7 +10,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "node": null
@@ -26,7 +26,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -45,13 +45,13 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_82e961c4_3 {\n  node(id: \u0022QnJhbmQ6MQ==\u0022) {\n    __typename\n    ... on Brand {\n      __typename\n      id\n      name\n    }\n  }\n}"}
         response:
           statusCode: 500
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           node(id: "QnJhbmQ6MQ==") {
             __typename @fusion__requirement
@@ -73,7 +73,7 @@ operationPlan:
       fallback: 2
     - id: 2
       type: Operation
-      operation: >-
+      operation: |
         query Op_82e961c4_2 {
           node(id: "QnJhbmQ6MQ==") {
             __typename
@@ -85,7 +85,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_82e961c4_3 {
           node(id: "QnJhbmQ6MQ==") {
             __typename

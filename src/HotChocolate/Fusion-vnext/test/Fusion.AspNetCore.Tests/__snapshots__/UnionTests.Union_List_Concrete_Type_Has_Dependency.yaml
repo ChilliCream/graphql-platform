@@ -1,6 +1,6 @@
 title: Union_List_Concrete_Type_Has_Dependency
 request:
-  document: >-
+  document: |
     query testQuery {
       posts {
         ... on Photo {
@@ -12,7 +12,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "posts": [
@@ -30,7 +30,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -51,13 +51,31 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_7e81ce9e_1 {\n  posts {\n    __typename\n    ... on Photo {\n      id\n    }\n    ... on Discussion {\n      subgraph1\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"posts":[{"__typename":"Photo","id":"UGhvdG86MQ=="},{"__typename":"Discussion","subgraph1":"Discussion: RGlzY3Vzc2lvbjoy"},{"__typename":"Photo","id":"UGhvdG86Mw=="}]}}
+          results:
+            - |
+              {
+                "data": {
+                  "posts": [
+                    {
+                      "__typename": "Photo",
+                      "id": "UGhvdG86MQ=="
+                    },
+                    {
+                      "__typename": "Discussion",
+                      "subgraph1": "Discussion: RGlzY3Vzc2lvbjoy"
+                    },
+                    {
+                      "__typename": "Photo",
+                      "id": "UGhvdG86Mw=="
+                    }
+                  ]
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -72,15 +90,29 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_7e81ce9e_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_1_id":"UGhvdG86MQ=="},{"__fusion_1_id":"UGhvdG86Mw=="}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86MQ=="}}}
-            {"variableIndex":1,"data":{"photoById":{"subgraph2":"Photo: UGhvdG86Mw=="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86MQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86Mw=="
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           posts {
             __typename @fusion__requirement
@@ -100,7 +132,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_7e81ce9e_1 {
           posts {
             __typename
@@ -115,7 +147,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_7e81ce9e_2(
           $__fusion_1_id: ID!
         ) {

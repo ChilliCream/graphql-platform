@@ -1,6 +1,6 @@
 title: Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node
 request:
-  document: >-
+  document: |
     query(
       $productId: ID!
     ) {
@@ -12,12 +12,12 @@ request:
         }
       }
     }
-  variables: >-
+  variables: |
     {
       "productId": "UHJvZHVjdAppMzg2MzE4NTk="
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "productById": {
@@ -31,7 +31,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -61,13 +61,25 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_8e568844_1(\n  $productId: ID!\n) {\n  productById(id: $productId) {\n    subgraph1Only {\n      sharedLinked {\n        __typename\n      }\n      id\n    }\n  }\n}","variables":{"productId":"UHJvZHVjdAppMzg2MzE4NTk="}}
         response:
-          body: >-
-            {"data":{"productById":{"subgraph1Only":{"sharedLinked":{"__typename":"ProductAvailabilityMail"},"id":"UHJvZHVjdEF2YWlsYWJpbGl0eTox"}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph1Only": {
+                      "sharedLinked": {
+                        "__typename": "ProductAvailabilityMail"
+                      },
+                      "id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
+                    }
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -91,14 +103,23 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_8e568844_2(\n  $__fusion_1_id: ID!\n) {\n  productAvailabilityById(id: $__fusion_1_id) {\n    sharedLinked {\n      subgraph2Only\n    }\n  }\n}","variables":{"__fusion_1_id":"UHJvZHVjdEF2YWlsYWJpbGl0eTox"}}
         response:
-          body: >-
-            {"data":{"productAvailabilityById":{"sharedLinked":{"subgraph2Only":true}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "productAvailabilityById": {
+                    "sharedLinked": {
+                      "subgraph2Only": true
+                    }
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query(
           $productId: ID!
         ) {
@@ -117,7 +138,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_8e568844_1(
           $productId: ID!
         ) {
@@ -133,7 +154,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_8e568844_2(
           $__fusion_1_id: ID!
         ) {

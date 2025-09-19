@@ -1,6 +1,6 @@
 title: Only_Id_And_Typename_Selected
 request:
-  document: >-
+  document: |
     {
       node(id: "RGlzY3Vzc2lvbjox") {
         id
@@ -8,7 +8,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "node": {
@@ -19,7 +19,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -38,14 +38,22 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_e41649ee_2 {\n  node(id: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    id\n    __typename\n  }\n}"}
         response:
-          body: >-
-            {"data":{"node":{"id":"RGlzY3Vzc2lvbjox","__typename":"Discussion"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "id": "RGlzY3Vzc2lvbjox",
+                    "__typename": "Discussion"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           node(id: "RGlzY3Vzc2lvbjox") {
             id
@@ -63,7 +71,7 @@ operationPlan:
       fallback: 2
     - id: 2
       type: Operation
-      operation: >-
+      operation: |
         query Op_e41649ee_2 {
           node(id: "RGlzY3Vzc2lvbjox") {
             id

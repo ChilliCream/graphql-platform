@@ -1,6 +1,6 @@
 title: Hierarchy_Of_Shared_Root_Fields_With_Extra_Fields_On_Shared_Level
 request:
-  document: >-
+  document: |
     {
       viewer {
         schema1
@@ -13,7 +13,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "viewer": {
@@ -29,7 +29,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -80,19 +80,35 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_2deb87e6_3 {\n  viewer {\n    schema1\n  }\n}"}
         response:
-          body: >-
-            {"data":{"viewer":{"schema1":"schema1"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "schema1": "schema1"
+                  }
+                }
+              }
       - request:
-          body: >-
+          body: |
             {"query":"query Op_2deb87e6_4 {\n  viewer {\n    settings {\n      schema1\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"viewer":{"settings":{"schema1":"schema1"}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "settings": {
+                      "schema1": "schema1"
+                    }
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -142,13 +158,23 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_2deb87e6_2 {\n  viewer {\n    settings {\n      schema2\n    }\n    schema2\n  }\n}"}
         response:
-          body: >-
-            {"data":{"viewer":{"settings":{"schema2":"schema2"},"schema2":"schema2"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "settings": {
+                      "schema2": "schema2"
+                    },
+                    "schema2": "schema2"
+                  }
+                }
+              }
   - name: C
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -162,14 +188,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_2deb87e6_1 {\n  viewer {\n    schema3\n  }\n}"}
         response:
-          body: >-
-            {"data":{"viewer":{"schema3":"schema3"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "schema3": "schema3"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           viewer {
             schema1
@@ -187,7 +220,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: C
-      operation: >-
+      operation: |
         query Op_2deb87e6_1 {
           viewer {
             schema3
@@ -196,7 +229,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_2deb87e6_2 {
           viewer {
             settings {
@@ -208,7 +241,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_2deb87e6_3 {
           viewer {
             schema1
@@ -217,7 +250,7 @@ operationPlan:
     - id: 4
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_2deb87e6_4 {
           viewer {
             settings {

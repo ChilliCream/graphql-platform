@@ -1,13 +1,13 @@
 title: Union_Field_Just_Typename_Selected
 request:
-  document: >-
+  document: |
     query testQuery {
       post {
         __typename
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "post": {
@@ -17,7 +17,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -39,14 +39,21 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_a239ceba_1 {\n  post {\n    __typename\n  }\n}"}
         response:
-          body: >-
-            {"data":{"post":{"__typename":"Photo"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "post": {
+                    "__typename": "Photo"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           post {
             __typename
@@ -59,7 +66,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_a239ceba_1 {
           post {
             __typename

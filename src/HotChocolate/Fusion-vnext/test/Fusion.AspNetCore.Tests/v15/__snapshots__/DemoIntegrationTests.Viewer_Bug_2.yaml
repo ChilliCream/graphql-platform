@@ -1,6 +1,6 @@
 title: Viewer_Bug_2
 request:
-  document: >-
+  document: |
     query testQuery {
       exclusiveSubgraphA {
         __typename
@@ -12,7 +12,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "exclusiveSubgraphA": {
@@ -27,7 +27,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -50,13 +50,20 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_f3bb7334_2 {\n  exclusiveSubgraphA {\n    __typename\n  }\n}"}
         response:
-          body: >-
-            {"data":{"exclusiveSubgraphA":{"__typename":"ExclusiveSubgraphA"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "exclusiveSubgraphA": {
+                    "__typename": "ExclusiveSubgraphA"
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -74,14 +81,23 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_f3bb7334_1 {\n  viewer {\n    subType {\n      subgraphB\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"viewer":{"subType":{"subgraphB":"SubType: U3ViVHlwZToy"}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "subType": {
+                      "subgraphB": "SubType: U3ViVHlwZToy"
+                    }
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           exclusiveSubgraphA {
             __typename
@@ -99,7 +115,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_f3bb7334_1 {
           viewer {
             subType {
@@ -110,7 +126,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_f3bb7334_2 {
           exclusiveSubgraphA {
             __typename

@@ -1,6 +1,6 @@
 title: Abstract_Type_With_Abstract_Lookup
 request:
-  document: >-
+  document: |
     {
       otherAbstractType {
         id
@@ -11,7 +11,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "otherAbstractType": {
@@ -23,7 +23,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -85,13 +85,22 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_ddf05407_1 {\n  otherAbstractType {\n    __typename\n    id\n    ... on Author {\n      name\n      id\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"otherAbstractType":{"__typename":"Author","id":1,"name":"Author 1"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "otherAbstractType": {
+                    "__typename": "Author",
+                    "id": 1,
+                    "name": "Author 1"
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -116,14 +125,22 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_ddf05407_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
         response:
-          body: >-
-            {"data":{"otherInterface":{"__typename":"Author","age":5}}}
+          results:
+            - |
+              {
+                "data": {
+                  "otherInterface": {
+                    "__typename": "Author",
+                    "age": 5
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           otherAbstractType {
             __typename @fusion__requirement
@@ -141,7 +158,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_ddf05407_1 {
           otherAbstractType {
             __typename
@@ -155,7 +172,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_ddf05407_2(
           $__fusion_1_id: Int!
         ) {

@@ -1,6 +1,6 @@
 title: Resolve_Parallel_One_Service_Offline_EntryFields_NonNull
 request:
-  document: >-
+  document: |
     {
       viewer {
         name
@@ -10,7 +10,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "errors": [
         {
@@ -23,7 +23,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -37,12 +37,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_6b55933b_1 {\n  viewer {\n    name\n  }\n}"}
         response:
           statusCode: 500
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -56,11 +56,11 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_6b55933b_2 {\n  other {\n    userId\n  }\n}"}
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           viewer {
             name
@@ -75,7 +75,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_6b55933b_1 {
           viewer {
             name
@@ -84,7 +84,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_6b55933b_2 {
           other {
             userId

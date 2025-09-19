@@ -1,14 +1,14 @@
 title: SourceSchema_Request_Fails_For_Root_Field
 request:
   onError: Halt
-  document: >-
+  document: |
     {
       nullableTopProduct {
         price
       }
     }
 response:
-  body: >-
+  body: |
     {
       "errors": [
         {
@@ -21,7 +21,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -39,13 +39,13 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_14c79a43_1 {\n  nullableTopProduct {\n    price\n  }\n}"}
         response:
           statusCode: 500
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           nullableTopProduct {
             price
@@ -57,7 +57,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_14c79a43_1 {
           nullableTopProduct {
             price

@@ -1,6 +1,6 @@
 title: List_Field_Interface_Object_Property_Linked_Field_With_Dependency
 request:
-  document: >-
+  document: |
     query testQuery {
       wrappers {
         authorable {
@@ -11,7 +11,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "wrappers": [
@@ -41,7 +41,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -71,13 +71,43 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_bdd3c6f6_1 {\n  wrappers {\n    authorable {\n      __typename\n      author {\n        id\n      }\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"wrappers":[{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjc="}}},{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjg="}}},{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjk="}}}]}}
+          results:
+            - |
+              {
+                "data": {
+                  "wrappers": [
+                    {
+                      "authorable": {
+                        "__typename": "Discussion",
+                        "author": {
+                          "id": "QXV0aG9yOjc="
+                        }
+                      }
+                    },
+                    {
+                      "authorable": {
+                        "__typename": "Discussion",
+                        "author": {
+                          "id": "QXV0aG9yOjg="
+                        }
+                      }
+                    },
+                    {
+                      "authorable": {
+                        "__typename": "Discussion",
+                        "author": {
+                          "id": "QXV0aG9yOjk="
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -92,16 +122,37 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_bdd3c6f6_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjc="},{"__fusion_1_id":"QXV0aG9yOjg="},{"__fusion_1_id":"QXV0aG9yOjk="}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjc="}}}
-            {"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjg="}}}
-            {"variableIndex":2,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjk="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjc="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjg="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjk="
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           wrappers {
             authorable {
@@ -120,7 +171,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_bdd3c6f6_1 {
           wrappers {
             authorable {
@@ -134,7 +185,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_bdd3c6f6_2(
           $__fusion_1_id: ID!
         ) {

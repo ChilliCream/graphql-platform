@@ -1,19 +1,19 @@
 title: Typename_On_Query_Skip_True
 request:
-  document: >-
+  document: |
     query(
       $s: Boolean! = true
     ) {
       __typename @skip(if: $s)
     }
 response:
-  body: >-
+  body: |
     {
       "data": {}
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -63,7 +63,7 @@ sourceSchemas:
         books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
       }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -115,7 +115,7 @@ sourceSchemas:
       }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query(
           $s: Boolean! = true
         ) {

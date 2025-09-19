@@ -1,6 +1,6 @@
 title: Interface_Field_Linked_Field_With_Dependency
 request:
-  document: >-
+  document: |
     query testQuery {
       authorable {
         author {
@@ -10,7 +10,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "authorable": {
@@ -23,7 +23,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -49,13 +49,23 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_d44063d8_1 {\n  authorable {\n    __typename\n    author {\n      id\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjI="}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "authorable": {
+                    "__typename": "Discussion",
+                    "author": {
+                      "id": "QXV0aG9yOjI="
+                    }
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -70,14 +80,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_d44063d8_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjI="}}
         response:
-          body: >-
-            {"data":{"authorById":{"displayName":"Author: QXV0aG9yOjI="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjI="
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           authorable {
             __typename @fusion__requirement
@@ -95,7 +112,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_d44063d8_1 {
           authorable {
             __typename
@@ -107,7 +124,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_d44063d8_2(
           $__fusion_1_id: ID!
         ) {

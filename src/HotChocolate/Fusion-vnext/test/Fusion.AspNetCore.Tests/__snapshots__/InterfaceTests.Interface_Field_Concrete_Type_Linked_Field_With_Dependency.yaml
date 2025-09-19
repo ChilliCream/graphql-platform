@@ -1,6 +1,6 @@
 title: Interface_Field_Concrete_Type_Linked_Field_With_Dependency
 request:
-  document: >-
+  document: |
     query testQuery {
       votable {
         viewerCanVote
@@ -12,7 +12,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "votable": {
@@ -25,7 +25,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -54,13 +54,24 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_b4cd91a7_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"votable":{"__typename":"Discussion","viewerCanVote":true,"author":{"id":"QXV0aG9yOjI="}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "votable": {
+                    "__typename": "Discussion",
+                    "viewerCanVote": true,
+                    "author": {
+                      "id": "QXV0aG9yOjI="
+                    }
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -75,14 +86,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_b4cd91a7_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjI="}}
         response:
-          body: >-
-            {"data":{"authorById":{"displayName":"Author: QXV0aG9yOjI="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjI="
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           votable {
             __typename @fusion__requirement
@@ -102,7 +120,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_b4cd91a7_1 {
           votable {
             __typename
@@ -117,7 +135,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_b4cd91a7_2(
           $__fusion_1_id: ID!
         ) {

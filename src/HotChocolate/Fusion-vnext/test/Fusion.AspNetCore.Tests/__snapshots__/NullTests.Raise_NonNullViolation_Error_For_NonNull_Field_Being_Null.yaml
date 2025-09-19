@@ -1,11 +1,11 @@
 title: Raise_NonNullViolation_Error_For_NonNull_Field_Being_Null
 request:
-  document: >-
+  document: |
     {
       nonNullString
     }
 response:
-  body: >-
+  body: |
     {
       "errors": [
         {
@@ -21,7 +21,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -31,14 +31,19 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_ca4a0945_1 {\n  nonNullString\n}"}
         response:
-          body: >-
-            {"data":{"nonNullString":null}}
+          results:
+            - |
+              {
+                "data": {
+                  "nonNullString": null
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           nonNullString
         }
@@ -48,7 +53,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_ca4a0945_1 {
           nonNullString
         }

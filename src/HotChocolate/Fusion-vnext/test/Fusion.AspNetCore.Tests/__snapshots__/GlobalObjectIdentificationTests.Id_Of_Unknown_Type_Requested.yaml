@@ -1,6 +1,6 @@
 title: Id_Of_Unknown_Type_Requested
 request:
-  document: >-
+  document: |
     {
       node(id: "VXNlcjox") {
         ... on Discussion {
@@ -9,7 +9,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "node": null
@@ -28,7 +28,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -47,7 +47,7 @@ sourceSchemas:
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -72,7 +72,7 @@ sourceSchemas:
       }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           node(id: "VXNlcjox") {
             __typename @fusion__requirement
@@ -93,7 +93,7 @@ operationPlan:
       fallback: 2
     - id: 2
       type: Operation
-      operation: >-
+      operation: |
         query Op_bcaa1f52_2 {
           node(id: "VXNlcjox") {
             __typename
@@ -104,7 +104,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_bcaa1f52_3 {
           node: discussionById(discussionId: "VXNlcjox") {
             __typename

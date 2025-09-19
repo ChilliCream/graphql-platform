@@ -1,6 +1,6 @@
 title: Two_Node_Fields_With_Alias
 request:
-  document: >-
+  document: |
     {
       a: node(id: "RGlzY3Vzc2lvbjox") {
         ... on Discussion {
@@ -15,7 +15,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "a": {
@@ -29,7 +29,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -49,19 +49,36 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_a361113f_3 {\n  b: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjoy\u0022) {\n    __typename\n    title\n    id\n  }\n}"}
         response:
-          body: >-
-            {"data":{"b":{"__typename":"Discussion","title":"Discussion: RGlzY3Vzc2lvbjoy","id":"RGlzY3Vzc2lvbjoy"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "b": {
+                    "__typename": "Discussion",
+                    "title": "Discussion: RGlzY3Vzc2lvbjoy",
+                    "id": "RGlzY3Vzc2lvbjoy"
+                  }
+                }
+              }
       - request:
-          body: >-
+          body: |
             {"query":"query Op_a361113f_7 {\n  a: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n    title\n  }\n}"}
         response:
-          body: >-
-            {"data":{"a":{"__typename":"Discussion","title":"Discussion: RGlzY3Vzc2lvbjox"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "a": {
+                    "__typename": "Discussion",
+                    "title": "Discussion: RGlzY3Vzc2lvbjox"
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -81,14 +98,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_a361113f_4(\n  $__fusion_1_id: ID!\n) {\n  discussion(id: $__fusion_1_id) {\n    commentCount\n  }\n}","variables":{"__fusion_1_id":"RGlzY3Vzc2lvbjoy"}}
         response:
-          body: >-
-            {"data":{"discussion":{"commentCount":123}}}
+          results:
+            - |
+              {
+                "data": {
+                  "discussion": {
+                    "commentCount": 123
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           a: node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
@@ -117,7 +141,7 @@ operationPlan:
       fallback: 2
     - id: 2
       type: Operation
-      operation: >-
+      operation: |
         query Op_a361113f_2 {
           b: node(id: "RGlzY3Vzc2lvbjoy") {
             __typename
@@ -128,7 +152,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_a361113f_3 {
           b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
             __typename
@@ -141,7 +165,7 @@ operationPlan:
     - id: 4
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_a361113f_4(
           $__fusion_1_id: ID!
         ) {
@@ -166,7 +190,7 @@ operationPlan:
       fallback: 6
     - id: 6
       type: Operation
-      operation: >-
+      operation: |
         query Op_a361113f_6 {
           a: node(id: "RGlzY3Vzc2lvbjox") {
             __typename
@@ -177,7 +201,7 @@ operationPlan:
     - id: 7
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_a361113f_7 {
           a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
             __typename

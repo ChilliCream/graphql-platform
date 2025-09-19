@@ -1,6 +1,6 @@
 title: Concrete_Type_With_Abstract_Lookup
 request:
-  document: >-
+  document: |
     {
       authorById(id: 1) {
         name
@@ -8,7 +8,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "authorById": {
@@ -19,7 +19,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -81,13 +81,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_94874bbd_1 {\n  authorById(id: 1) {\n    name\n    id\n  }\n}"}
         response:
-          body: >-
-            {"data":{"authorById":{"name":"Author 1","id":1}}}
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 1",
+                    "id": 1
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -112,14 +120,22 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_94874bbd_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
         response:
-          body: >-
-            {"data":{"otherInterface":{"__typename":"Author","age":5}}}
+          results:
+            - |
+              {
+                "data": {
+                  "otherInterface": {
+                    "__typename": "Author",
+                    "age": 5
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           authorById(id: 1) {
             name
@@ -133,7 +149,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_94874bbd_1 {
           authorById(id: 1) {
             name
@@ -143,7 +159,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_94874bbd_2(
           $__fusion_1_id: Int!
         ) {

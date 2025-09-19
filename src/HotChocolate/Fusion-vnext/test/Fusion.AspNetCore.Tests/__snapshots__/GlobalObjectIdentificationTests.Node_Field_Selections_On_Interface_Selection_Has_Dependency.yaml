@@ -1,6 +1,6 @@
 title: Node_Field_Selections_On_Interface_Selection_Has_Dependency
 request:
-  document: >-
+  document: |
     query testQuery(
       $id: ID!
     ) {
@@ -14,12 +14,12 @@ request:
         }
       }
     }
-  variables: >-
+  variables: |
     {
       "id": "SXRlbTE6MQ=="
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "node": {
@@ -41,7 +41,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -73,13 +73,32 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_70eb1308_5(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Item1 {\n      __typename\n      id\n      products {\n        id\n      }\n    }\n  }\n}","variables":{"id":"SXRlbTE6MQ=="}}
         response:
-          body: >-
-            {"data":{"node":{"__typename":"Item1","id":"SXRlbTE6MQ==","products":[{"id":"UHJvZHVjdDox"},{"id":"UHJvZHVjdDoy"},{"id":"UHJvZHVjdDoz"}]}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Item1",
+                    "id": "SXRlbTE6MQ==",
+                    "products": [
+                      {
+                        "id": "UHJvZHVjdDox"
+                      },
+                      {
+                        "id": "UHJvZHVjdDoy"
+                      },
+                      {
+                        "id": "UHJvZHVjdDoz"
+                      }
+                    ]
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -98,16 +117,40 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_70eb1308_6(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDox"},{"__fusion_2_id":"UHJvZHVjdDoy"},{"__fusion_2_id":"UHJvZHVjdDoz"}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDox"}}}
-            {"variableIndex":1,"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDoy"}}}
-            {"variableIndex":2,"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDoz"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDox"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDoy"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDoz"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery(
           $id: ID!
         ) {
@@ -136,7 +179,7 @@ operationPlan:
       fallback: 2
     - id: 2
       type: Operation
-      operation: >-
+      operation: |
         query testQuery_70eb1308_2(
           $id: ID!
         ) {
@@ -150,7 +193,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_70eb1308_3(
           $id: ID!
         ) {
@@ -170,7 +213,7 @@ operationPlan:
     - id: 4
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_70eb1308_4(
           $__fusion_1_id: ID!
         ) {
@@ -192,7 +235,7 @@ operationPlan:
     - id: 5
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_70eb1308_5(
           $id: ID!
         ) {
@@ -212,7 +255,7 @@ operationPlan:
     - id: 6
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_70eb1308_6(
           $__fusion_2_id: ID!
         ) {

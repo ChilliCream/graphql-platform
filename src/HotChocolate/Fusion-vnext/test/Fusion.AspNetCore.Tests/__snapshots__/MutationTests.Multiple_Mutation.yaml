@@ -1,6 +1,6 @@
 title: Multiple_Mutation
 request:
-  document: >-
+  document: |
     mutation {
       a: createBook(input: { title: "Book1" }) {
         book {
@@ -17,7 +17,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "a": {
@@ -37,7 +37,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
         mutation: Mutation
@@ -65,19 +65,38 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"mutation Op_192dc5f8_1 {\n  a: createBook(input: { title: \u0022Book1\u0022 }) {\n    book {\n      id\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"a":{"book":{"id":1}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "a": {
+                    "book": {
+                      "id": 1
+                    }
+                  }
+                }
+              }
       - request:
-          body: >-
+          body: |
             {"query":"mutation Op_192dc5f8_3 {\n  b: createBook(input: { title: \u0022Book2\u0022 }) {\n    book {\n      id\n      title\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"b":{"book":{"id":2,"title":"Book2"}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "b": {
+                    "book": {
+                      "id": 2,
+                      "title": "Book2"
+                    }
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -92,20 +111,34 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_192dc5f8_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}","variables":{"__fusion_1_id":1}}
         response:
-          body: >-
-            {"data":{"bookById":{"author":"Abc"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "author": "Abc"
+                  }
+                }
+              }
       - request:
-          body: >-
+          body: |
             {"query":"query Op_192dc5f8_4(\n  $__fusion_2_id: Int!\n) {\n  bookById(id: $__fusion_2_id) {\n    author\n  }\n}","variables":{"__fusion_2_id":2}}
         response:
-          body: >-
-            {"data":{"bookById":{"author":"Abc"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "author": "Abc"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         mutation {
           a: createBook(input: { title: "Book1" }) {
             book {
@@ -129,7 +162,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         mutation Op_192dc5f8_1 {
           a: createBook(input: { title: "Book1" }) {
             book {
@@ -140,7 +173,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_192dc5f8_2(
           $__fusion_1_id: Int!
         ) {
@@ -159,7 +192,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         mutation Op_192dc5f8_3 {
           b: createBook(input: { title: "Book2" }) {
             book {
@@ -171,7 +204,7 @@ operationPlan:
     - id: 4
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_192dc5f8_4(
           $__fusion_2_id: Int!
         ) {

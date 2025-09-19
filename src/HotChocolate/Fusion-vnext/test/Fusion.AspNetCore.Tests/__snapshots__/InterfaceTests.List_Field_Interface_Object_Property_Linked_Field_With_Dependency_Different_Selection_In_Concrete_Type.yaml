@@ -1,6 +1,6 @@
 title: List_Field_Interface_Object_Property_Linked_Field_With_Dependency_Different_Selection_In_Concrete_Type
 request:
-  document: >-
+  document: |
     query testQuery {
       wrappers {
         authorable {
@@ -16,7 +16,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "wrappers": [
@@ -49,7 +49,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -79,13 +79,43 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_a7ffad65_1 {\n  wrappers {\n    authorable {\n      __typename\n      author {\n        id\n      }\n      ... on Discussion {\n        author {\n          id\n        }\n      }\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"wrappers":[{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjc="}}},{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjg="}}},{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjk="}}}]}}
+          results:
+            - |
+              {
+                "data": {
+                  "wrappers": [
+                    {
+                      "authorable": {
+                        "__typename": "Discussion",
+                        "author": {
+                          "id": "QXV0aG9yOjc="
+                        }
+                      }
+                    },
+                    {
+                      "authorable": {
+                        "__typename": "Discussion",
+                        "author": {
+                          "id": "QXV0aG9yOjg="
+                        }
+                      }
+                    },
+                    {
+                      "authorable": {
+                        "__typename": "Discussion",
+                        "author": {
+                          "id": "QXV0aG9yOjk="
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -101,24 +131,66 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_a7ffad65_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    email\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjc="},{"__fusion_1_id":"QXV0aG9yOjg="},{"__fusion_1_id":"QXV0aG9yOjk="}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"authorById":{"email":"Author: QXV0aG9yOjc="}}}
-            {"variableIndex":1,"data":{"authorById":{"email":"Author: QXV0aG9yOjg="}}}
-            {"variableIndex":2,"data":{"authorById":{"email":"Author: QXV0aG9yOjk="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "email": "Author: QXV0aG9yOjc="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "email": "Author: QXV0aG9yOjg="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "email": "Author: QXV0aG9yOjk="
+                  }
+                }
+              }
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_a7ffad65_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    displayName\n  }\n}","variables":[{"__fusion_2_id":"QXV0aG9yOjc="},{"__fusion_2_id":"QXV0aG9yOjg="},{"__fusion_2_id":"QXV0aG9yOjk="}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjc="}}}
-            {"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjg="}}}
-            {"variableIndex":2,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjk="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjc="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjg="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjk="
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           wrappers {
             authorable {
@@ -143,7 +215,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_a7ffad65_1 {
           wrappers {
             authorable {
@@ -162,7 +234,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_a7ffad65_2(
           $__fusion_1_id: ID!
         ) {
@@ -181,7 +253,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_a7ffad65_3(
           $__fusion_2_id: ID!
         ) {

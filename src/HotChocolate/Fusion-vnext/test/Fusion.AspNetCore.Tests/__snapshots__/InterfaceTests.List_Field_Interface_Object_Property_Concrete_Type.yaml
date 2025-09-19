@@ -1,6 +1,6 @@
 title: List_Field_Interface_Object_Property_Concrete_Type
 request:
-  document: >-
+  document: |
     query testQuery {
       wrappers {
         votable {
@@ -12,7 +12,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "wrappers": [
@@ -39,7 +39,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -68,14 +68,41 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_877cb4f8_1 {\n  wrappers {\n    votable {\n      __typename\n      viewerCanVote\n      ... on Discussion {\n        title\n      }\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"wrappers":[{"votable":{"__typename":"Discussion","viewerCanVote":true,"title":"Discussion: RGlzY3Vzc2lvbjo2"}},{"votable":{"__typename":"Discussion","viewerCanVote":true,"title":"Discussion: RGlzY3Vzc2lvbjo1"}},{"votable":{"__typename":"Discussion","viewerCanVote":true,"title":"Discussion: RGlzY3Vzc2lvbjo0"}}]}}
+          results:
+            - |
+              {
+                "data": {
+                  "wrappers": [
+                    {
+                      "votable": {
+                        "__typename": "Discussion",
+                        "viewerCanVote": true,
+                        "title": "Discussion: RGlzY3Vzc2lvbjo2"
+                      }
+                    },
+                    {
+                      "votable": {
+                        "__typename": "Discussion",
+                        "viewerCanVote": true,
+                        "title": "Discussion: RGlzY3Vzc2lvbjo1"
+                      }
+                    },
+                    {
+                      "votable": {
+                        "__typename": "Discussion",
+                        "viewerCanVote": true,
+                        "title": "Discussion: RGlzY3Vzc2lvbjo0"
+                      }
+                    }
+                  ]
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           wrappers {
             votable {
@@ -94,7 +121,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_877cb4f8_1 {
           wrappers {
             votable {

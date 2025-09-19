@@ -1,7 +1,7 @@
 title: SourceSchema_Request_Fails_For_Lookup_On_List
 request:
   onError: Halt
-  document: >-
+  document: |
     {
       topProducts {
         price
@@ -9,7 +9,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "errors": [
         {
@@ -24,7 +24,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -42,13 +42,31 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_67b3f75a_1 {\n  topProducts {\n    price\n    id\n  }\n}"}
         response:
-          body: >-
-            {"data":{"topProducts":[{"price":13.99,"id":1},{"price":13.99,"id":2},{"price":13.99,"id":3}]}}
+          results:
+            - |
+              {
+                "data": {
+                  "topProducts": [
+                    {
+                      "price": 13.99,
+                      "id": 1
+                    },
+                    {
+                      "price": 13.99,
+                      "id": 2
+                    },
+                    {
+                      "price": 13.99,
+                      "id": 3
+                    }
+                  ]
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -63,13 +81,13 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_67b3f75a_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":[{"__fusion_1_id":1},{"__fusion_1_id":2},{"__fusion_1_id":3}]}
         response:
           statusCode: 500
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           topProducts {
             price
@@ -83,7 +101,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_67b3f75a_1 {
           topProducts {
             price
@@ -93,7 +111,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_67b3f75a_2(
           $__fusion_1_id: Int!
         ) {

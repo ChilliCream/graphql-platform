@@ -1,6 +1,6 @@
 title: Only_TypeName_Selected_On_Concrete_Type
 request:
-  document: >-
+  document: |
     {
       node(id: "RGlzY3Vzc2lvbjox") {
         ... on Discussion {
@@ -9,7 +9,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "node": {
@@ -19,7 +19,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -39,13 +39,20 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_72167d7d_3 {\n  node: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n  }\n}"}
         response:
-          body: >-
-            {"data":{"node":{"__typename":"Discussion"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Discussion"
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -65,7 +72,7 @@ sourceSchemas:
       }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
@@ -86,7 +93,7 @@ operationPlan:
       fallback: 2
     - id: 2
       type: Operation
-      operation: >-
+      operation: |
         query Op_72167d7d_2 {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
@@ -97,7 +104,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_72167d7d_3 {
           node: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
             __typename

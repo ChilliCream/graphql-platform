@@ -1,6 +1,6 @@
 title: Interface_List_Field_Concrete_Type_Linked_Field_With_Dependency
 request:
-  document: >-
+  document: |
     query testQuery {
       votables {
         viewerCanVote
@@ -12,7 +12,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "votables": [
@@ -36,7 +36,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -65,13 +65,37 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_e3932333_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"votables":[{"__typename":"Discussion","viewerCanVote":true,"author":{"id":"QXV0aG9yOjU="}},{"__typename":"Comment","viewerCanVote":true},{"__typename":"Discussion","viewerCanVote":true,"author":{"id":"QXV0aG9yOjQ="}}]}}
+          results:
+            - |
+              {
+                "data": {
+                  "votables": [
+                    {
+                      "__typename": "Discussion",
+                      "viewerCanVote": true,
+                      "author": {
+                        "id": "QXV0aG9yOjU="
+                      }
+                    },
+                    {
+                      "__typename": "Comment",
+                      "viewerCanVote": true
+                    },
+                    {
+                      "__typename": "Discussion",
+                      "viewerCanVote": true,
+                      "author": {
+                        "id": "QXV0aG9yOjQ="
+                      }
+                    }
+                  ]
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -86,15 +110,29 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_e3932333_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjU="},{"__fusion_1_id":"QXV0aG9yOjQ="}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjU="}}}
-            {"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjQ="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjU="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjQ="
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           votables {
             __typename @fusion__requirement
@@ -114,7 +152,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_e3932333_1 {
           votables {
             __typename
@@ -129,7 +167,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_e3932333_2(
           $__fusion_1_id: ID!
         ) {

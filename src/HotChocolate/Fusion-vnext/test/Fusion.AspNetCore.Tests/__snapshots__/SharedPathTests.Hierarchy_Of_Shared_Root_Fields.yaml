@@ -1,6 +1,6 @@
 title: Hierarchy_Of_Shared_Root_Fields
 request:
-  document: >-
+  document: |
     {
       viewer {
         settings {
@@ -10,7 +10,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "viewer": {
@@ -23,7 +23,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -74,13 +74,22 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_58df2c1b_1 {\n  viewer {\n    settings {\n      schema1\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"viewer":{"settings":{"schema1":"schema1"}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "settings": {
+                      "schema1": "schema1"
+                    }
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -130,14 +139,23 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_58df2c1b_2 {\n  viewer {\n    settings {\n      schema2\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"viewer":{"settings":{"schema2":"schema2"}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "settings": {
+                      "schema2": "schema2"
+                    }
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           viewer {
             settings {
@@ -152,7 +170,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_58df2c1b_1 {
           viewer {
             settings {
@@ -163,7 +181,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_58df2c1b_2 {
           viewer {
             settings {

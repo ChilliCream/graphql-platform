@@ -1,6 +1,6 @@
 title: Interface_List_Field_Concrete_Type_With_Dependency
 request:
-  document: >-
+  document: |
     query testQuery {
       votables {
         viewerCanVote
@@ -10,7 +10,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "votables": [
@@ -30,7 +30,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -55,13 +55,33 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_c8aa487a_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      id\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"votables":[{"__typename":"Discussion","viewerCanVote":true,"id":"RGlzY3Vzc2lvbjox"},{"__typename":"Comment","viewerCanVote":true},{"__typename":"Discussion","viewerCanVote":true,"id":"RGlzY3Vzc2lvbjoz"}]}}
+          results:
+            - |
+              {
+                "data": {
+                  "votables": [
+                    {
+                      "__typename": "Discussion",
+                      "viewerCanVote": true,
+                      "id": "RGlzY3Vzc2lvbjox"
+                    },
+                    {
+                      "__typename": "Comment",
+                      "viewerCanVote": true
+                    },
+                    {
+                      "__typename": "Discussion",
+                      "viewerCanVote": true,
+                      "id": "RGlzY3Vzc2lvbjoz"
+                    }
+                  ]
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -76,15 +96,29 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_c8aa487a_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    viewerRating\n  }\n}","variables":[{"__fusion_1_id":"RGlzY3Vzc2lvbjox"},{"__fusion_1_id":"RGlzY3Vzc2lvbjoz"}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"discussionById":{"viewerRating":123.456}}}
-            {"variableIndex":1,"data":{"discussionById":{"viewerRating":123.456}}}
+          results:
+            - |
+              {
+                "data": {
+                  "discussionById": {
+                    "viewerRating": 123.456
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "discussionById": {
+                    "viewerRating": 123.456
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           votables {
             __typename @fusion__requirement
@@ -102,7 +136,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_c8aa487a_1 {
           votables {
             __typename
@@ -115,7 +149,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_c8aa487a_2(
           $__fusion_1_id: ID!
         ) {

@@ -1,6 +1,6 @@
 title: Same_Selection_On_Two_List_Fields_That_Require_Data_From_Another_Subgraph
 request:
-  document: >-
+  document: |
     {
       productsA {
         id
@@ -16,7 +16,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "productsA": [
@@ -63,7 +63,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -84,13 +84,45 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_9ad18dbf_1 {\n  productsA {\n    id\n    name\n  }\n  productsB {\n    id\n    name\n  }\n}"}
         response:
-          body: >-
-            {"data":{"productsA":[{"id":"UHJvZHVjdDox","name":"Product: UHJvZHVjdDox"},{"id":"UHJvZHVjdDoy","name":"Product: UHJvZHVjdDoy"},{"id":"UHJvZHVjdDoz","name":"Product: UHJvZHVjdDoz"}],"productsB":[{"id":"UHJvZHVjdDo0","name":"Product: UHJvZHVjdDo0"},{"id":"UHJvZHVjdDo1","name":"Product: UHJvZHVjdDo1"},{"id":"UHJvZHVjdDo2","name":"Product: UHJvZHVjdDo2"}]}}
+          results:
+            - |
+              {
+                "data": {
+                  "productsA": [
+                    {
+                      "id": "UHJvZHVjdDox",
+                      "name": "Product: UHJvZHVjdDox"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoy",
+                      "name": "Product: UHJvZHVjdDoy"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoz",
+                      "name": "Product: UHJvZHVjdDoz"
+                    }
+                  ],
+                  "productsB": [
+                    {
+                      "id": "UHJvZHVjdDo0",
+                      "name": "Product: UHJvZHVjdDo0"
+                    },
+                    {
+                      "id": "UHJvZHVjdDo1",
+                      "name": "Product: UHJvZHVjdDo1"
+                    },
+                    {
+                      "id": "UHJvZHVjdDo2",
+                      "name": "Product: UHJvZHVjdDo2"
+                    }
+                  ]
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -111,24 +143,78 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_9ad18dbf_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Product {\n      price\n      reviewCount\n    }\n  }\n}","variables":[{"__fusion_1_id":"UHJvZHVjdDo0"},{"__fusion_1_id":"UHJvZHVjdDo1"},{"__fusion_1_id":"UHJvZHVjdDo2"}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"node":{"__typename":"Product","price":123.456,"reviewCount":123}}}
-            {"variableIndex":1,"data":{"node":{"__typename":"Product","price":123.456,"reviewCount":123}}}
-            {"variableIndex":2,"data":{"node":{"__typename":"Product","price":123.456,"reviewCount":123}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
       - request:
-          body: >-
+          body: |
             {"query":"query Op_9ad18dbf_3(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      price\n      reviewCount\n    }\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDox"},{"__fusion_2_id":"UHJvZHVjdDoy"},{"__fusion_2_id":"UHJvZHVjdDoz"}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"node":{"__typename":"Product","price":123.456,"reviewCount":123}}}
-            {"variableIndex":1,"data":{"node":{"__typename":"Product","price":123.456,"reviewCount":123}}}
-            {"variableIndex":2,"data":{"node":{"__typename":"Product","price":123.456,"reviewCount":123}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           productsA {
             id
@@ -151,7 +237,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_9ad18dbf_1 {
           productsA {
             id
@@ -165,7 +251,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_9ad18dbf_2(
           $__fusion_1_id: ID!
         ) {
@@ -188,7 +274,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_9ad18dbf_3(
           $__fusion_2_id: ID!
         ) {

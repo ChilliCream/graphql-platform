@@ -1,6 +1,6 @@
 title: SourceSchema_Request_Fails_For_Lookup
 request:
-  document: >-
+  document: |
     {
       nullableTopProduct {
         price
@@ -8,7 +8,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "nullableTopProduct": {
@@ -28,7 +28,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -46,13 +46,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_12015865_1 {\n  nullableTopProduct {\n    price\n    id\n  }\n}"}
         response:
-          body: >-
-            {"data":{"nullableTopProduct":{"price":13.99,"id":1}}}
+          results:
+            - |
+              {
+                "data": {
+                  "nullableTopProduct": {
+                    "price": 13.99,
+                    "id": 1
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -67,13 +75,13 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_12015865_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":1}}
         response:
           statusCode: 500
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           nullableTopProduct {
             price
@@ -87,7 +95,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_12015865_1 {
           nullableTopProduct {
             price
@@ -97,7 +105,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_12015865_2(
           $__fusion_1_id: Int!
         ) {

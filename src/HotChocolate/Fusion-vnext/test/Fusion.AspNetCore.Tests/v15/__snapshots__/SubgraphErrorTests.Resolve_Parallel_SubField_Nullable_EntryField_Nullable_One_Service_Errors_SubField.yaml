@@ -1,6 +1,6 @@
 title: Resolve_Parallel_SubField_Nullable_EntryField_Nullable_One_Service_Errors_SubField
 request:
-  document: >-
+  document: |
     {
       viewer {
         name
@@ -10,7 +10,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "viewer": {
@@ -32,7 +32,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -46,13 +46,20 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_6b55933b_1 {\n  viewer {\n    name\n  }\n}"}
         response:
-          body: >-
-            {"data":{"viewer":{"name":"Viewer"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "name": "Viewer"
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -68,14 +75,36 @@ sourceSchemas:
       directive @error(atIndex: Int) on FIELD_DEFINITION
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_6b55933b_2 {\n  other {\n    userId\n  }\n}"}
         response:
-          body: >-
-            {"errors":[{"message":"Unexpected Execution Error","locations":[{"line":3,"column":5}],"path":["other","userId"]}],"data":{"other":{"userId":null}}}
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Unexpected Execution Error",
+                    "locations": [
+                      {
+                        "line": 3,
+                        "column": 5
+                      }
+                    ],
+                    "path": [
+                      "other",
+                      "userId"
+                    ]
+                  }
+                ],
+                "data": {
+                  "other": {
+                    "userId": null
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           viewer {
             name
@@ -90,7 +119,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_6b55933b_1 {
           viewer {
             name
@@ -99,7 +128,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_6b55933b_2 {
           other {
             userId

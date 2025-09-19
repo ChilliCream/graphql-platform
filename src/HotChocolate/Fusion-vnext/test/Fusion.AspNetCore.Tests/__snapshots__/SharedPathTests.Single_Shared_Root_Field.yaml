@@ -1,6 +1,6 @@
 title: Single_Shared_Root_Field
 request:
-  document: >-
+  document: |
     {
       viewer {
         schema1
@@ -8,7 +8,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "viewer": {
@@ -19,7 +19,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -70,13 +70,20 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_c6e3b357_1 {\n  viewer {\n    schema1\n  }\n}"}
         response:
-          body: >-
-            {"data":{"viewer":{"schema1":"schema1"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "schema1": "schema1"
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -126,14 +133,21 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_c6e3b357_2 {\n  viewer {\n    schema2\n  }\n}"}
         response:
-          body: >-
-            {"data":{"viewer":{"schema2":"schema2"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "schema2": "schema2"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           viewer {
             schema1
@@ -146,7 +160,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_c6e3b357_1 {
           viewer {
             schema1
@@ -155,7 +169,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_c6e3b357_2 {
           viewer {
             schema2

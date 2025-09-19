@@ -1,6 +1,6 @@
 title: Viewer_Bug_3
 request:
-  document: >-
+  document: |
     {
       viewer {
         subgraphA
@@ -12,7 +12,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "viewer": {
@@ -27,7 +27,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -41,13 +41,20 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_dc7df637_3 {\n  viewer {\n    subgraphA\n  }\n}"}
         response:
-          body: >-
-            {"data":{"viewer":{"subgraphA":"Viewer"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "subgraphA": "Viewer"
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -61,13 +68,20 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_dc7df637_2 {\n  viewer {\n    subgraphB\n  }\n}"}
         response:
-          body: >-
-            {"data":{"viewer":{"subgraphB":"Viewer"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "subgraphB": "Viewer"
+                  }
+                }
+              }
   - name: C
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -82,14 +96,22 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_dc7df637_1 {\n  subgraphC {\n    someField\n    anotherField\n  }\n}"}
         response:
-          body: >-
-            {"data":{"subgraphC":{"someField":"SubgraphC: U3ViZ3JhcGhDOjE=","anotherField":"SubgraphC: U3ViZ3JhcGhDOjE="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "subgraphC": {
+                    "someField": "SubgraphC: U3ViZ3JhcGhDOjE=",
+                    "anotherField": "SubgraphC: U3ViZ3JhcGhDOjE="
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           viewer {
             subgraphA
@@ -106,7 +128,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: C
-      operation: >-
+      operation: |
         query Op_dc7df637_1 {
           subgraphC {
             someField
@@ -116,7 +138,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_dc7df637_2 {
           viewer {
             subgraphB
@@ -125,7 +147,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_dc7df637_3 {
           viewer {
             subgraphA

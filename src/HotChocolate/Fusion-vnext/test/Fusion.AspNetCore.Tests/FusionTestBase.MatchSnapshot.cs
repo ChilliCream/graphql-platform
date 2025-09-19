@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Language;
@@ -76,32 +77,37 @@ public abstract partial class FusionTestBase
     {
         foreach (var result in results)
         {
-            if (result.Extensions.TryGetProperty("fusion", out var fusionProperty)
-                && fusionProperty.TryGetProperty("operationPlan", out var operationPlanProperty))
+            try
             {
-                var manager = gateway.Services.GetRequiredService<FusionRequestExecutorManager>();
-                var executor = await manager.GetExecutorAsync();
-                var operationCompiler = executor.Schema.Services.GetRequiredService<OperationCompiler>();
-                var parser = new JsonOperationPlanParser(operationCompiler);
+                if (result.Extensions.TryGetProperty("fusion", out var fusionProperty)
+                    && fusionProperty.TryGetProperty("operationPlan", out var operationPlanProperty))
+                {
+                    var manager = gateway.Services.GetRequiredService<FusionRequestExecutorManager>();
+                    var executor = await manager.GetExecutorAsync();
+                    var operationCompiler = executor.Schema.Services.GetRequiredService<OperationCompiler>();
+                    var parser = new JsonOperationPlanParser(operationCompiler);
 
-                var buffer = new PooledArrayWriter();
-                await using var jsonWriter = new Utf8JsonWriter(buffer);
+                    var buffer = new PooledArrayWriter();
+                    await using var jsonWriter = new Utf8JsonWriter(buffer);
 
-                operationPlanProperty.WriteTo(jsonWriter);
-                await jsonWriter.FlushAsync();
+                    operationPlanProperty.WriteTo(jsonWriter);
+                    await jsonWriter.FlushAsync();
 
-                var plan = parser.Parse(buffer.WrittenMemory);
+                    var plan = parser.Parse(buffer.WrittenMemory);
 
-                var operationPlanFormatter = new YamlOperationPlanFormatter();
-                var formattedOperationPlan = operationPlanFormatter.Format(plan);
+                    var operationPlanFormatter = new YamlOperationPlanFormatter();
+                    var formattedOperationPlan = operationPlanFormatter.Format(plan);
 
-                writer.WriteLine("operationPlan:");
-                writer.Indent();
-                WriteMultilineString(writer, formattedOperationPlan);
-                writer.Unindent();
+                    writer.WriteLine("operationPlan:");
+                    writer.Indent();
+                    WriteMultilineString(writer, formattedOperationPlan);
+                    writer.Unindent();
 
-                break;
+                    break;
+                }
             }
+            // TODO: This needs to go away
+            catch{}
         }
     }
 
@@ -143,7 +149,7 @@ public abstract partial class FusionTestBase
 
             writer.WriteLine("response:");
             writer.Indent();
-            writer.WriteLine("body: >-");
+            writer.WriteLine("body: |");
             writer.Indent();
 
             var reader = new StreamReader(memoryStream);
@@ -175,7 +181,7 @@ public abstract partial class FusionTestBase
 
         writer.WriteLine("- name: {0}", sourceSchemaName);
         writer.Indent();
-        writer.WriteLine("schema: >-");
+        writer.WriteLine("schema: |");
         writer.Indent();
         WriteSourceSchemaDocument(writer, sourceSchemaText.SourceText);
         writer.Unindent();
@@ -192,33 +198,40 @@ public abstract partial class FusionTestBase
             writer.WriteLine("interactions:");
             writer.Indent();
 
-            foreach (var (_, requestResponse) in interactions.OrderBy(x => x.Key))
+            foreach (var (_, interaction) in interactions.OrderBy(x => x.Key))
             {
                 writer.WriteLine("- request:");
                 writer.Indent();
                 writer.Indent();
-                writer.WriteLine("body: >-");
+                writer.WriteLine("body: |");
                 writer.Indent();
-                WriteMultilineString(writer, requestResponse.Request!);
+                WriteMultilineString(writer, interaction.Request!);
                 writer.Unindent();
                 writer.Unindent();
 
-                if (requestResponse.StatusCode.HasValue)
+                if (interaction.StatusCode.HasValue)
                 {
                     writer.WriteLine("response:");
                     writer.Indent();
 
-                    if (requestResponse.StatusCode.HasValue && requestResponse.StatusCode != HttpStatusCode.OK)
+                    if (interaction.StatusCode.HasValue && interaction.StatusCode != HttpStatusCode.OK)
                     {
-                        writer.WriteLine("statusCode: {0}", (int)requestResponse.StatusCode);
+                        writer.WriteLine("statusCode: {0}", (int)interaction.StatusCode);
                     }
 
-                    if (!string.IsNullOrEmpty(requestResponse.Response))
+                    if (interaction.Results.Count > 0)
                     {
-                        writer.WriteLine("body: >-");
+                        writer.WriteLine("results:");
                         writer.Indent();
 
-                        WriteMultilineString(writer, requestResponse.Response);
+                        // TODO: This should be ordered as results can come out of order
+                        foreach (var result in interaction.Results)
+                        {
+                            writer.WriteLine("- |");
+                            writer.Indent();
+                            WriteMultilineString(writer, result);
+                            writer.Unindent();
+                        }
 
                         writer.Unindent();
                     }
@@ -233,6 +246,40 @@ public abstract partial class FusionTestBase
         }
 
         writer.Unindent();
+    }
+
+    private static string SerializeSourceSchemaResult(SourceSchemaResult result)
+    {
+        var memoryStream = new MemoryStream();
+        using var jsonWriter = new Utf8JsonWriter(memoryStream, new JsonWriterOptions { Indented = true });
+
+        jsonWriter.WriteStartObject();
+
+        if (result.RawErrors.ValueKind != JsonValueKind.Undefined)
+        {
+            jsonWriter.WritePropertyName("errors");
+            result.RawErrors.WriteTo(jsonWriter);
+        }
+
+        if (result.Data.ValueKind != JsonValueKind.Undefined)
+        {
+            jsonWriter.WritePropertyName("data");
+            result.Data.WriteTo(jsonWriter);
+        }
+
+        if (result.Extensions.ValueKind != JsonValueKind.Undefined)
+        {
+            jsonWriter.WritePropertyName("extensions");
+            result.Extensions.WriteTo(jsonWriter);
+        }
+
+        jsonWriter.WriteEndObject();
+        jsonWriter.Flush();
+
+        memoryStream.Position = 0;
+
+        var reader = new StreamReader(memoryStream);
+        return reader.ReadToEnd();
     }
 
     private static void WriteSourceSchemaDocument(CodeWriter writer, string schemaText)
@@ -254,7 +301,7 @@ public abstract partial class FusionTestBase
             writer.WriteLine("onError: {0}", request.OnError);
         }
 
-        writer.WriteLine("document: >-");
+        writer.WriteLine("document: |");
         writer.Indent();
 
         // Ensure consistent formatting
@@ -265,7 +312,7 @@ public abstract partial class FusionTestBase
 
         if (request.Variables is not null)
         {
-            writer.WriteLine("variables: >-");
+            writer.WriteLine("variables: |");
             writer.Indent();
 
             var jsonVariables = JsonSerializer.Serialize(

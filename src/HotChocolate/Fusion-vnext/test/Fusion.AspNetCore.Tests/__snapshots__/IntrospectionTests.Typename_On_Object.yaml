@@ -1,6 +1,6 @@
 title: Typename_On_Object
 request:
-  document: >-
+  document: |
     {
       books {
         nodes {
@@ -9,7 +9,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "books": {
@@ -32,7 +32,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -83,13 +83,33 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_710e4ed3_1 {\n  books {\n    nodes {\n      __typename\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"books":{"nodes":[{"__typename":"Book"},{"__typename":"Book"},{"__typename":"Book"},{"__typename":"Book"}]}}}
+          results:
+            - |
+              {
+                "data": {
+                  "books": {
+                    "nodes": [
+                      {
+                        "__typename": "Book"
+                      },
+                      {
+                        "__typename": "Book"
+                      },
+                      {
+                        "__typename": "Book"
+                      },
+                      {
+                        "__typename": "Book"
+                      }
+                    ]
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -141,7 +161,7 @@ sourceSchemas:
       }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           books {
             nodes {
@@ -155,7 +175,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_710e4ed3_1 {
           books {
             nodes {

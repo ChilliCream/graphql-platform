@@ -1,6 +1,6 @@
 title: Abstract_Type
 request:
-  document: >-
+  document: |
     {
       abstractType {
         id
@@ -13,7 +13,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "abstractType": {
@@ -24,7 +24,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -86,14 +86,23 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_05500418_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"abstractType":{"__typename":"Discussion","id":1,"title":"Discussion 1"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "abstractType": {
+                    "__typename": "Discussion",
+                    "id": 1,
+                    "title": "Discussion 1"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           abstractType {
             __typename @fusion__requirement
@@ -112,7 +121,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_05500418_1 {
           abstractType {
             __typename

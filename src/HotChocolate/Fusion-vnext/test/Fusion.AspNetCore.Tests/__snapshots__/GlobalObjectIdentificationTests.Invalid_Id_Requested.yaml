@@ -1,6 +1,6 @@
 title: Invalid_Id_Requested
 request:
-  document: >-
+  document: |
     {
       node(id: "invalid") {
         ... on Discussion {
@@ -9,7 +9,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "node": null
@@ -28,7 +28,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -47,7 +47,7 @@ sourceSchemas:
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -72,7 +72,7 @@ sourceSchemas:
       }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           node(id: "invalid") {
             __typename @fusion__requirement
@@ -93,7 +93,7 @@ operationPlan:
       fallback: 2
     - id: 2
       type: Operation
-      operation: >-
+      operation: |
         query Op_3e875180_2 {
           node(id: "invalid") {
             __typename
@@ -104,7 +104,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_3e875180_3 {
           node: discussionById(discussionId: "invalid") {
             __typename

@@ -1,6 +1,6 @@
 title: Shared_Parent_Field_Below_Type_With_Lookup_With_Extra_Fields_On_Shared_Level
 request:
-  document: >-
+  document: |
     {
       productById(id: 1) {
         schema1
@@ -12,7 +12,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "productById": {
@@ -27,7 +27,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -78,13 +78,24 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_49906eea_1 {\n  productById(id: 1) {\n    schema1\n    shared {\n      schema1\n    }\n    id\n  }\n}"}
         response:
-          body: >-
-            {"data":{"productById":{"schema1":"schema1","shared":{"schema1":"schema1"},"id":1}}}
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "schema1": "schema1",
+                    "shared": {
+                      "schema1": "schema1"
+                    },
+                    "id": 1
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -134,20 +145,36 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_49906eea_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    schema2\n  }\n}","variables":{"__fusion_1_id":1}}
         response:
-          body: >-
-            {"data":{"product":{"schema2":"schema2"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "schema2": "schema2"
+                  }
+                }
+              }
       - request:
-          body: >-
+          body: |
             {"query":"query Op_49906eea_3(\n  $__fusion_2_id: Int!\n) {\n  product(id: $__fusion_2_id) {\n    shared {\n      schema2\n    }\n  }\n}","variables":{"__fusion_2_id":1}}
         response:
-          body: >-
-            {"data":{"product":{"shared":{"schema2":"schema2"}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "shared": {
+                      "schema2": "schema2"
+                    }
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           productById(id: 1) {
             schema1
@@ -165,7 +192,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_49906eea_1 {
           productById(id: 1) {
             schema1
@@ -178,7 +205,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_49906eea_2(
           $__fusion_1_id: Int!
         ) {
@@ -197,7 +224,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_49906eea_3(
           $__fusion_2_id: Int!
         ) {

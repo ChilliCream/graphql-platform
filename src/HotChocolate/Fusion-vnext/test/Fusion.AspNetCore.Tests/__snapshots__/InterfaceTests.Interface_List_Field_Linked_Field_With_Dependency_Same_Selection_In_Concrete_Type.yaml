@@ -1,6 +1,6 @@
 title: Interface_List_Field_Linked_Field_With_Dependency_Same_Selection_In_Concrete_Type
 request:
-  document: >-
+  document: |
     query testQuery {
       authorables {
         author {
@@ -16,7 +16,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "authorables": [
@@ -43,7 +43,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -69,13 +69,37 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_61febe16_1 {\n  authorables {\n    __typename\n    author {\n      id\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"authorables":[{"__typename":"Discussion","author":{"id":"QXV0aG9yOjY="}},{"__typename":"Comment","author":{"id":"QXV0aG9yOjU="}},{"__typename":"Discussion","author":{"id":"QXV0aG9yOjQ="}}]}}
+          results:
+            - |
+              {
+                "data": {
+                  "authorables": [
+                    {
+                      "__typename": "Discussion",
+                      "author": {
+                        "id": "QXV0aG9yOjY="
+                      }
+                    },
+                    {
+                      "__typename": "Comment",
+                      "author": {
+                        "id": "QXV0aG9yOjU="
+                      }
+                    },
+                    {
+                      "__typename": "Discussion",
+                      "author": {
+                        "id": "QXV0aG9yOjQ="
+                      }
+                    }
+                  ]
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -90,23 +114,58 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_61febe16_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjY="},{"__fusion_1_id":"QXV0aG9yOjQ="}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjY="}}}
-            {"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjQ="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjY="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjQ="
+                  }
+                }
+              }
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_61febe16_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    displayName\n  }\n}","variables":[{"__fusion_2_id":"QXV0aG9yOjY="},{"__fusion_2_id":"QXV0aG9yOjU="},{"__fusion_2_id":"QXV0aG9yOjQ="}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjY="}}}
-            {"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjU="}}}
-            {"variableIndex":2,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjQ="}}}
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjY="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjU="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjQ="
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           authorables {
             __typename @fusion__requirement
@@ -131,7 +190,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_61febe16_1 {
           authorables {
             __typename
@@ -148,7 +207,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_61febe16_2(
           $__fusion_1_id: ID!
         ) {
@@ -167,7 +226,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_61febe16_3(
           $__fusion_2_id: ID!
         ) {

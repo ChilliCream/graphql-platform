@@ -1,6 +1,6 @@
 title: Only_Typename_Selected
 request:
-  document: >-
+  document: |
     query testQuery(
       $id: ID!
     ) {
@@ -8,12 +8,12 @@ request:
         __typename
       }
     }
-  variables: >-
+  variables: |
     {
       "id": "RGlzY3Vzc2lvbjox"
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "node": {
@@ -23,7 +23,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -42,13 +42,20 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_539ebaa0_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}","variables":{"id":"RGlzY3Vzc2lvbjox"}}
         response:
-          body: >-
-            {"data":{"node":{"__typename":"Discussion"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Discussion"
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -68,7 +75,7 @@ sourceSchemas:
       }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery(
           $id: ID!
         ) {
@@ -88,7 +95,7 @@ operationPlan:
       fallback: 2
     - id: 2
       type: Operation
-      operation: >-
+      operation: |
         query testQuery_539ebaa0_2(
           $id: ID!
         ) {

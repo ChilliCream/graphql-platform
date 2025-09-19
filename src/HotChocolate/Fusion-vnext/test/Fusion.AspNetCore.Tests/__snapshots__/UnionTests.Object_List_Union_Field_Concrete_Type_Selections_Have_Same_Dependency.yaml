@@ -1,6 +1,6 @@
 title: Object_List_Union_Field_Concrete_Type_Selections_Have_Same_Dependency
 request:
-  document: >-
+  document: |
     query testQuery {
       postEdges {
         node {
@@ -18,7 +18,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "postEdges": [
@@ -48,7 +48,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -78,13 +78,43 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_ec963286_1 {\n  postEdges {\n    node {\n      __typename\n      ... on Photo {\n        product {\n          id\n        }\n      }\n      ... on Discussion {\n        product {\n          id\n        }\n      }\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"postEdges":[{"node":{"__typename":"Photo","product":{"id":"UHJvZHVjdDo3"}}},{"node":{"__typename":"Photo","product":{"id":"UHJvZHVjdDo4"}}},{"node":{"__typename":"Photo","product":{"id":"UHJvZHVjdDo5"}}}]}}
+          results:
+            - |
+              {
+                "data": {
+                  "postEdges": [
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "product": {
+                          "id": "UHJvZHVjdDo3"
+                        }
+                      }
+                    },
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "product": {
+                          "id": "UHJvZHVjdDo4"
+                        }
+                      }
+                    },
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "product": {
+                          "id": "UHJvZHVjdDo5"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -99,16 +129,37 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_ec963286_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDo3"},{"__fusion_2_id":"UHJvZHVjdDo4"},{"__fusion_2_id":"UHJvZHVjdDo5"}]}
         response:
-          body: >-
-            {"variableIndex":0,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDo3"}}}
-            {"variableIndex":1,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDo4"}}}
-            {"variableIndex":2,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDo5"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDo3"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDo4"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDo5"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery {
           postEdges {
             node {
@@ -135,7 +186,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_ec963286_1 {
           postEdges {
             node {
@@ -156,7 +207,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_ec963286_2(
           $__fusion_1_id: ID!
         ) {
@@ -175,7 +226,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_ec963286_3(
           $__fusion_2_id: ID!
         ) {

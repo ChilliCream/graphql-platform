@@ -1,6 +1,6 @@
 title: Single_Shared_Union_Root_Field_With_Type_Refinement
 request:
-  document: >-
+  document: |
     {
       union {
         ... on Review {
@@ -10,7 +10,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "union": {
@@ -21,7 +21,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -72,13 +72,21 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_55b9106f_1 {\n  union {\n    __typename\n    ... on Review {\n      schema1\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"union":{"__typename":"Review","schema1":"schema1"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "union": {
+                    "__typename": "Review",
+                    "schema1": "schema1"
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -128,14 +136,22 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_55b9106f_2 {\n  union {\n    __typename\n    ... on Review {\n      schema2\n    }\n  }\n}"}
         response:
-          body: >-
-            {"data":{"union":{"__typename":"Review","schema2":"schema2"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "union": {
+                    "__typename": "Review",
+                    "schema2": "schema2"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           union {
             __typename @fusion__requirement
@@ -151,7 +167,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_55b9106f_1 {
           union {
             __typename
@@ -163,7 +179,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_55b9106f_2 {
           union {
             __typename

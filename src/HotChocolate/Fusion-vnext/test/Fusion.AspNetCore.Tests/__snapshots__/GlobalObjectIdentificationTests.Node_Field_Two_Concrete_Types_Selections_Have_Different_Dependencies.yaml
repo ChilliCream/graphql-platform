@@ -1,6 +1,6 @@
 title: Node_Field_Two_Concrete_Types_Selections_Have_Different_Dependencies
 request:
-  document: >-
+  document: |
     query testQuery(
       $id: ID!
     ) {
@@ -18,12 +18,12 @@ request:
         }
       }
     }
-  variables: >-
+  variables: |
     {
       "id": "RGlzY3Vzc2lvbjox"
     }
 response:
-  body: >-
+  body: |
     {
       "data": {
         "node": {
@@ -36,7 +36,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -59,13 +59,23 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_c0cdf5d7_5(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Discussion {\n      __typename\n      product {\n        id\n      }\n    }\n  }\n}","variables":{"id":"RGlzY3Vzc2lvbjox"}}
         response:
-          body: >-
-            {"data":{"node":{"__typename":"Discussion","product":{"id":"UHJvZHVjdDox"}}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Discussion",
+                    "product": {
+                      "id": "UHJvZHVjdDox"
+                    }
+                  }
+                }
+              }
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -87,7 +97,7 @@ sourceSchemas:
         product: Product
       }
   - name: C
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -106,14 +116,22 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query testQuery_c0cdf5d7_6(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":{"__fusion_2_id":"UHJvZHVjdDox"}}
         response:
-          body: >-
-            {"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDox"}}}
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDox"
+                  }
+                }
+              }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         query testQuery(
           $id: ID!
         ) {
@@ -148,7 +166,7 @@ operationPlan:
       fallback: 2
     - id: 2
       type: Operation
-      operation: >-
+      operation: |
         query testQuery_c0cdf5d7_2(
           $id: ID!
         ) {
@@ -161,7 +179,7 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query testQuery_c0cdf5d7_3(
           $id: ID!
         ) {
@@ -180,7 +198,7 @@ operationPlan:
     - id: 4
       type: Operation
       schema: C
-      operation: >-
+      operation: |
         query testQuery_c0cdf5d7_4(
           $__fusion_1_id: ID!
         ) {
@@ -202,7 +220,7 @@ operationPlan:
     - id: 5
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query testQuery_c0cdf5d7_5(
           $id: ID!
         ) {
@@ -221,7 +239,7 @@ operationPlan:
     - id: 6
       type: Operation
       schema: C
-      operation: >-
+      operation: |
         query testQuery_c0cdf5d7_6(
           $__fusion_2_id: ID!
         ) {

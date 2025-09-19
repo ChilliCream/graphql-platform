@@ -1,6 +1,6 @@
 title: Resolve_Sequence_First_Service_Offline_EntryField_NonNull
 request:
-  document: >-
+  document: |
     {
       product {
         id
@@ -11,7 +11,7 @@ request:
       }
     }
 response:
-  body: >-
+  body: |
     {
       "errors": [
         {
@@ -24,7 +24,7 @@ response:
     }
 sourceSchemas:
   - name: A
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -43,12 +43,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: >-
+          body: |
             {"query":"query Op_e358ecef_1 {\n  product {\n    id\n    brand {\n      id\n    }\n  }\n}"}
         response:
           statusCode: 500
   - name: B
-    schema: >-
+    schema: |
       schema {
         query: Query
       }
@@ -63,7 +63,7 @@ sourceSchemas:
       }
 operationPlan:
   operation:
-    - document: >-
+    - document: |
         {
           product {
             id
@@ -80,7 +80,7 @@ operationPlan:
     - id: 1
       type: Operation
       schema: A
-      operation: >-
+      operation: |
         query Op_e358ecef_1 {
           product {
             id
@@ -92,7 +92,7 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: >-
+      operation: |
         query Op_e358ecef_2(
           $__fusion_1_id: ID!
         ) {
