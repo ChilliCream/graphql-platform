@@ -1,8 +1,9 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using static HotChocolate.Fusion.CompositionTestHelper;
 
-namespace HotChocolate.Fusion.SourceSchemaValidationRules;
+namespace HotChocolate.Fusion.PostMergeValidationRules;
 
 public sealed class KeyInvalidFieldsRuleTests
 {
@@ -16,7 +17,11 @@ public sealed class KeyInvalidFieldsRuleTests
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var validator = new SourceSchemaValidator(schemas, s_rules, _log);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
+        var mergeResult = merger.Merge();
+        var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
         // act
         var result = validator.Validate();
@@ -32,7 +37,11 @@ public sealed class KeyInvalidFieldsRuleTests
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var validator = new SourceSchemaValidator(schemas, s_rules, _log);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
+        var mergeResult = merger.Merge();
+        var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
         // act
         var result = validator.Validate();
@@ -63,6 +72,30 @@ public sealed class KeyInvalidFieldsRuleTests
                     }
                     """
                 ]
+            },
+            // In this example, the "fields" argument references a field from another source schema.
+            {
+                [
+                    """
+                    type Product @key(fields: "sku featuredItem { id }") {
+                        id: ID!
+                        sku: String!
+                    }
+                    """,
+                    """
+                    type Query {
+                        node(id: ID!): Node
+                    }
+
+                    type Product {
+                        featuredItem: Node!
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+                    """
+                ]
             }
         };
     }
@@ -76,6 +109,11 @@ public sealed class KeyInvalidFieldsRuleTests
             {
                 [
                     """
+                    #tmp
+                    type Query {
+                        productById(id: ID!): Product @lookup
+                    }
+
                     type Product @key(fields: "id") {
                         sku: String!
                     }
@@ -83,7 +121,7 @@ public sealed class KeyInvalidFieldsRuleTests
                 ],
                 [
                     """
-                    A @key directive on type 'Product' in schema 'A' specifies an invalid field selection.
+                    A @key directive on type 'Product' in schema 'A' specifies an invalid field selection against the composed schema.
                     - The field 'id' does not exist on the type 'Product'.
                     """
                 ]
@@ -99,7 +137,7 @@ public sealed class KeyInvalidFieldsRuleTests
                 ],
                 [
                     """
-                    A @key directive on type 'Product' in schema 'A' specifies an invalid field selection.
+                    A @key directive on type 'Product' in schema 'A' specifies an invalid field selection against the composed schema.
                     - The field 'id' does not exist on the type 'Product'.
                     - The field 'name' does not exist on the type 'Product'.
                     """
