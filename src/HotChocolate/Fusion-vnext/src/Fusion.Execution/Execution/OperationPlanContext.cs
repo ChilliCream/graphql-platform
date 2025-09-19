@@ -126,7 +126,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             schemaName);
     }
 
-    internal string GetDynamicSchemaName(ExecutionNode node)
+    public string GetDynamicSchemaName(ExecutionNode node)
     {
         if (_nodeContexts.TryGetValue(node.Id, out var context)
             && !string.IsNullOrEmpty(context.SchemaName))

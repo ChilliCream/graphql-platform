@@ -1,5 +1,5 @@
 operation:
-  - document: >-
+  - document: |
       {
         users {
           nodes {
@@ -27,7 +27,7 @@ nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: >-
+    operation: |
       query Op_123456789101112_1 {
         users {
           nodes {
@@ -38,7 +38,7 @@ nodes:
   - id: 2
     type: Operation
     schema: f
-    operation: >-
+    operation: |
       query Op_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
@@ -63,7 +63,7 @@ nodes:
   - id: 4
     type: Operation
     schema: g
-    operation: >-
+    operation: |
       query Op_123456789101112_4(
         $__fusion_3_dimension: ProductDimensionInput!
         $__fusion_4_id: ID!
@@ -92,7 +92,7 @@ nodes:
   - id: 5
     type: Operation
     schema: e
-    operation: >-
+    operation: |
       query Op_123456789101112_5(
         $__fusion_5_id: ID!
       ) {

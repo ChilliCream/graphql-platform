@@ -46,7 +46,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.WriteLine("operation:");
         writer.Indent();
 
-        writer.WriteLine("- document: >-");
+        writer.WriteLine("- document: |");
         writer.Indent();
         writer.Indent();
         var reader = new StringReader(plan.Operation.Definition.ToString(indented: true));
@@ -102,7 +102,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("schema: {0}", node.SchemaName);
         }
 
-        writer.WriteLine("operation: >-");
+        writer.WriteLine("operation: |");
         writer.Indent();
         var reader = new StringReader(node.Operation.SourceText);
         var line = reader.ReadLine();

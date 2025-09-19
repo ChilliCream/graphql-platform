@@ -1,0 +1,363 @@
+title: Require_Object_In_A_List
+request:
+  document: |
+    {
+      books {
+        nodes {
+          title
+          estimatedDelivery
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "books": {
+          "nodes": [
+            {
+              "title": "The Great Gatsby",
+              "estimatedDelivery": 300
+            },
+            {
+              "title": "1984",
+              "estimatedDelivery": 450
+            },
+            {
+              "title": "The Catcher in the Rye",
+              "estimatedDelivery": 600
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        id: Int!
+      }
+      
+      type Book {
+        id: Int!
+        title: String!
+        author: Author!
+      }
+      
+      "A connection to a list of items."
+      type BooksConnection {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [BooksEdge!]
+        "A flattened list of the nodes."
+        nodes: [Book!]
+      }
+      
+      "An edge in a connection."
+      type BooksEdge {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: Book!
+      }
+      
+      "Information about pagination in a connection."
+      type PageInfo {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+      
+      type Query {
+        books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
+        book(id: Int!): Book @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_1f7d6449_1 {
+              books {
+                nodes {
+                  title
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "books": {
+                    "nodes": [
+                      {
+                        "title": "The Great Gatsby",
+                        "id": 1
+                      },
+                      {
+                        "title": "1984",
+                        "id": 2
+                      },
+                      {
+                        "title": "The Catcher in the Rye",
+                        "id": 3
+                      }
+                    ]
+                  }
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Book {
+        id: Int!
+        dimension: BookDimension!
+      }
+      
+      type BookDimension {
+        width: Int!
+        height: Int!
+      }
+      
+      type Query {
+        book(id: Int!): Book @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_1f7d6449_4(
+              $__fusion_4_id: Int!
+            ) {
+              book(id: $__fusion_4_id) {
+                dimension {
+                  width
+                  height
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_4_id": 1
+              },
+              {
+                "__fusion_4_id": 2
+              },
+              {
+                "__fusion_4_id": 3
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "book": {
+                    "dimension": {
+                      "width": 100,
+                      "height": 200
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "book": {
+                    "dimension": {
+                      "width": 150,
+                      "height": 300
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "book": {
+                    "dimension": {
+                      "width": 200,
+                      "height": 400
+                    }
+                  }
+                }
+              }
+  - name: c
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Book {
+        estimatedDelivery(dimension: BookDimensionInput! @require(field: "{\n  title\n  width: dimension.width\n  height: dimension.height\n}")): Int!
+        id: Int!
+      }
+      
+      type Query {
+        book(id: Int!): Book @lookup
+      }
+      
+      input BookDimensionInput {
+        title: String!
+        width: Int!
+        height: Int!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_1f7d6449_3(
+              $__fusion_2_dimension: BookDimensionInput!
+              $__fusion_3_id: Int!
+            ) {
+              book(id: $__fusion_3_id) {
+                estimatedDelivery(dimension: $__fusion_2_dimension)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_dimension": {
+                  "title": "The Great Gatsby",
+                  "width": 100,
+                  "height": 200
+                },
+                "__fusion_3_id": 1
+              },
+              {
+                "__fusion_2_dimension": {
+                  "title": "1984",
+                  "width": 150,
+                  "height": 300
+                },
+                "__fusion_3_id": 2
+              },
+              {
+                "__fusion_2_dimension": {
+                  "title": "The Catcher in the Rye",
+                  "width": 200,
+                  "height": 400
+                },
+                "__fusion_3_id": 3
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "book": {
+                    "estimatedDelivery": 300
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "book": {
+                    "estimatedDelivery": 450
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "book": {
+                    "estimatedDelivery": 600
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          books {
+            nodes {
+              title
+              title @fusion__requirement
+              estimatedDelivery
+              id @fusion__requirement
+              dimension @fusion__requirement {
+                width
+                height
+              }
+            }
+          }
+        }
+      hash: 1f7d64490a0ae4c811ddec3de271b2bd
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_1f7d6449_1 {
+          books {
+            nodes {
+              title
+              id
+            }
+          }
+        }
+    - id: 3
+      type: Operation
+      schema: c
+      operation: |
+        query Op_1f7d6449_3(
+          $__fusion_2_dimension: BookDimensionInput!
+          $__fusion_3_id: Int!
+        ) {
+          book(id: $__fusion_3_id) {
+            estimatedDelivery(dimension: $__fusion_2_dimension)
+          }
+        }
+      source: $.book
+      target: $.books.nodes
+      requirements:
+        - name: __fusion_2_dimension
+          selectionMap: >-
+            {
+              title
+              width: dimension.width
+              height: dimension.height
+            }
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+        - id: 4
+    - id: 4
+      type: Operation
+      schema: b
+      operation: |
+        query Op_1f7d6449_4(
+          $__fusion_4_id: Int!
+        ) {
+          book(id: $__fusion_4_id) {
+            dimension {
+              width
+              height
+            }
+          }
+        }
+      source: $.book
+      target: $.books.nodes
+      requirements:
+        - name: __fusion_4_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -1,0 +1,349 @@
+title: Same_Selection_On_Two_List_Fields_That_Require_Data_From_Another_Subgraph
+request:
+  document: |
+    {
+      productsA {
+        id
+        name
+        price
+        reviewCount
+      }
+      productsB {
+        id
+        name
+        price
+        reviewCount
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productsA": [
+          {
+            "id": "UHJvZHVjdDox",
+            "name": "Product: UHJvZHVjdDox",
+            "price": 123.456,
+            "reviewCount": 123
+          },
+          {
+            "id": "UHJvZHVjdDoy",
+            "name": "Product: UHJvZHVjdDoy",
+            "price": 123.456,
+            "reviewCount": 123
+          },
+          {
+            "id": "UHJvZHVjdDoz",
+            "name": "Product: UHJvZHVjdDoz",
+            "price": 123.456,
+            "reviewCount": 123
+          }
+        ],
+        "productsB": [
+          {
+            "id": "UHJvZHVjdDo0",
+            "name": "Product: UHJvZHVjdDo0",
+            "price": 123.456,
+            "reviewCount": 123
+          },
+          {
+            "id": "UHJvZHVjdDo1",
+            "name": "Product: UHJvZHVjdDo1",
+            "price": 123.456,
+            "reviewCount": 123
+          },
+          {
+            "id": "UHJvZHVjdDo2",
+            "name": "Product: UHJvZHVjdDo2",
+            "price": 123.456,
+            "reviewCount": 123
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Product implements Node {
+        id: ID!
+        name: String!
+      }
+      
+      type Query {
+        productsA: [Product]
+        productsB: [Product]
+        productById(id: ID!): Product @lookup @internal
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_9ad18dbf_1 {
+              productsA {
+                id
+                name
+              }
+              productsB {
+                id
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productsA": [
+                    {
+                      "id": "UHJvZHVjdDox",
+                      "name": "Product: UHJvZHVjdDox"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoy",
+                      "name": "Product: UHJvZHVjdDoy"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoz",
+                      "name": "Product: UHJvZHVjdDoz"
+                    }
+                  ],
+                  "productsB": [
+                    {
+                      "id": "UHJvZHVjdDo0",
+                      "name": "Product: UHJvZHVjdDo0"
+                    },
+                    {
+                      "id": "UHJvZHVjdDo1",
+                      "name": "Product: UHJvZHVjdDo1"
+                    },
+                    {
+                      "id": "UHJvZHVjdDo2",
+                      "name": "Product: UHJvZHVjdDo2"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Product implements Node {
+        id: ID!
+        price: Float!
+        reviewCount: Int!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+        nodes(ids: [ID!]!): [Node]!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_9ad18dbf_2(
+              $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on Product {
+                  price
+                  reviewCount
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDo0"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo1"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo2"
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+      - request:
+          document: |
+            query Op_9ad18dbf_3(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  price
+                  reviewCount
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoz"
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          productsA {
+            id
+            id @fusion__requirement
+            name
+            price
+            reviewCount
+          }
+          productsB {
+            id
+            id @fusion__requirement
+            name
+            price
+            reviewCount
+          }
+        }
+      hash: 9ad18dbf86e6234a71614b8d68cbef03
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_9ad18dbf_1 {
+          productsA {
+            id
+            name
+          }
+          productsB {
+            id
+            name
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_9ad18dbf_2(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on Product {
+              price
+              reviewCount
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.productsB
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_9ad18dbf_3(
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on Product {
+              price
+              reviewCount
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.productsA
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

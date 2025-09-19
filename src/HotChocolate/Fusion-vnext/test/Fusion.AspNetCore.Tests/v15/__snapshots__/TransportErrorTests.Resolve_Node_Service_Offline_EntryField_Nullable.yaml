@@ -1,0 +1,109 @@
+title: Resolve_Node_Service_Offline_EntryField_Nullable
+request:
+  document: |
+    {
+      node(id: "QnJhbmQ6MQ==") {
+        id
+        ... on Brand {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": null
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "node"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Brand implements Node {
+        id: ID!
+        name: String
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_82e961c4_3 {
+              node(id: "QnJhbmQ6MQ==") {
+                __typename
+                ... on Brand {
+                  __typename
+                  id
+                  name
+                }
+              }
+            }
+        response:
+          statusCode: 500
+operationPlan:
+  operation:
+    - document: |
+        {
+          node(id: "QnJhbmQ6MQ==") {
+            __typename @fusion__requirement
+            id
+            ... on Brand {
+              name
+            }
+          }
+        }
+      hash: 82e961c424bf839d2f78d75ab651ae31
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "QnJhbmQ6MQ=="
+      responseName: node
+      branches:
+        - Brand: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query Op_82e961c4_2 {
+          node(id: "QnJhbmQ6MQ==") {
+            __typename
+            id
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query Op_82e961c4_3 {
+          node(id: "QnJhbmQ6MQ==") {
+            __typename
+            ... on Brand {
+              __typename
+              id
+              name
+            }
+          }
+        }
+      dependencies:
+        - id: 1

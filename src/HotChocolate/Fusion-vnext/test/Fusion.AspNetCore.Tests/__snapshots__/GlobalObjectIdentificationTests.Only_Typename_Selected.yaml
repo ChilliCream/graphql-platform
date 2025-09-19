@@ -1,0 +1,117 @@
+title: Only_Typename_Selected
+request:
+  document: |
+    query testQuery(
+      $id: ID!
+    ) {
+      node(id: $id) {
+        __typename
+      }
+    }
+  variables: |
+    {
+      "id": "RGlzY3Vzc2lvbjox"
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "__typename": "Discussion"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Discussion implements Node @key(fields: "id") {
+        id: ID!
+        title: String!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_539ebaa0_2(
+              $id: ID!
+            ) {
+              node(id: $id) {
+                __typename
+              }
+            }
+          variables: |
+            {
+              "id": "RGlzY3Vzc2lvbjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Discussion"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Author implements Node @key(fields: "id") {
+        id: ID!
+        username: String!
+      }
+      
+      type Query {
+        authorById(id: ID!): Author @lookup
+        node(id: ID!): Node @lookup
+      }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+          }
+        }
+      name: testQuery
+      hash: 539ebaa030bba518e0df8205ab40b139
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: $id
+      responseName: node
+      branches:
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query testQuery_539ebaa0_2(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1

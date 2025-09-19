@@ -117,7 +117,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         try
         {
             // we execute the GraphQL request against a source schema
-            var response = await client.ExecuteAsync(context, request, cancellationToken);
+            var response = await client.ExecuteAsync(context, this, request, cancellationToken);
             context.TrackSourceSchemaClientResponse(this, response);
 
             // we read the responses from the response stream.
@@ -217,7 +217,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         try
         {
-            var response = await client.ExecuteAsync(context, request, cancellationToken);
+            var response = await client.ExecuteAsync(context, this, request, cancellationToken);
 
             var stream = new SubscriptionEnumerable(
                 context,

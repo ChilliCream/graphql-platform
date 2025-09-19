@@ -1,0 +1,250 @@
+title: Same_Selection_On_Two_Object_Types_That_Require_Data_From_Another_Subgraph
+request:
+  document: |
+    {
+      item1 {
+        product {
+          id
+          name
+        }
+      }
+      item2 {
+        product {
+          id
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item1": {
+          "product": {
+            "id": "UHJvZHVjdDo0",
+            "name": "Product: UHJvZHVjdDo0"
+          }
+        },
+        "item2": {
+          "product": {
+            "id": "UHJvZHVjdDoz",
+            "name": "Product: UHJvZHVjdDoz"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Item1 {
+        product: Product!
+      }
+      
+      type Item2 {
+        product: Product!
+      }
+      
+      type Product implements Node {
+        id: ID!
+      }
+      
+      type Query {
+        item1: Item1!
+        item2: Item2!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_e2224f1b_1 {
+              item1 {
+                product {
+                  id
+                }
+              }
+              item2 {
+                product {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "item1": {
+                    "product": {
+                      "id": "UHJvZHVjdDo0"
+                    }
+                  },
+                  "item2": {
+                    "product": {
+                      "id": "UHJvZHVjdDoz"
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Product implements Node {
+        id: ID!
+        name: String!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+        nodes(ids: [ID!]!): [Node]!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_e2224f1b_2(
+              $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "UHJvZHVjdDoz"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDoz"
+                  }
+                }
+              }
+      - request:
+          document: |
+            query Op_e2224f1b_3(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "UHJvZHVjdDo0"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDo0"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          item1 {
+            product {
+              id
+              id @fusion__requirement
+              name
+            }
+          }
+          item2 {
+            product {
+              id
+              id @fusion__requirement
+              name
+            }
+          }
+        }
+      hash: e2224f1b985fbda85e8bf7b9b94be074
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_e2224f1b_1 {
+          item1 {
+            product {
+              id
+            }
+          }
+          item2 {
+            product {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_e2224f1b_2(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.item2.product
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_e2224f1b_3(
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.item1.product
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

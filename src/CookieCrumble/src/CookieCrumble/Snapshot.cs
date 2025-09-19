@@ -48,6 +48,8 @@ public class Snapshot
         _extension = extension ?? ".snap";
     }
 
+    public string Title => _title;
+
     public static Snapshot Create(string? postFix = null, string? extension = null)
         => new(postFix, extension);
 

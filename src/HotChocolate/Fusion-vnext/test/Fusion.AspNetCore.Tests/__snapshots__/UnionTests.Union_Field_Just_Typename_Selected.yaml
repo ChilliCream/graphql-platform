@@ -1,0 +1,78 @@
+title: Union_Field_Just_Typename_Selected
+request:
+  document: |
+    query testQuery {
+      post {
+        __typename
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "post": {
+          "__typename": "Photo"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Discussion {
+        id: ID!
+        title: String
+      }
+      
+      type Photo {
+        id: ID!
+        imageUrl: String!
+      }
+      
+      type Query {
+        post: Post
+      }
+      
+      union Post = Photo | Discussion
+    interactions:
+      - request:
+          document: |
+            query testQuery_a239ceba_1 {
+              post {
+                __typename
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "post": {
+                    "__typename": "Photo"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          post {
+            __typename
+          }
+        }
+      name: testQuery
+      hash: a239ceba1052d3ed2dc1551c0438c0c4
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_a239ceba_1 {
+          post {
+            __typename
+          }
+        }

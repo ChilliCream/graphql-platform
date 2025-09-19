@@ -1,0 +1,211 @@
+title: Error_On_Lookup_Leaf_In_List_NonNull
+request:
+  document: |
+    {
+      topProducts {
+        price
+        name
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Could not resolve Product",
+          "path": [
+            "topProducts",
+            0,
+            "name"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: Int!
+        price: Float!
+      }
+      
+      type Query {
+        topProduct: Product!
+        nullableTopProduct: Product
+        topProducts: [Product!]!
+        productById(id: Int!): Product @lookup @internal
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_67b3f75a_1 {
+              topProducts {
+                price
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "topProducts": [
+                    {
+                      "price": 13.99,
+                      "id": 1
+                    },
+                    {
+                      "price": 13.99,
+                      "id": 2
+                    },
+                    {
+                      "price": 13.99,
+                      "id": 3
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        name: String!
+        id: Int!
+      }
+      
+      type Query {
+        productById(id: Int!): Product @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_67b3f75a_2(
+              $__fusion_1_id: Int!
+            ) {
+              productById(id: $__fusion_1_id) {
+                name
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": 1
+              },
+              {
+                "__fusion_1_id": 2
+              },
+              {
+                "__fusion_1_id": 3
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Could not resolve Product",
+                    "locations": [
+                      {
+                        "line": 4,
+                        "column": 3
+                      }
+                    ],
+                    "path": [
+                      "productById"
+                    ]
+                  }
+                ],
+                "data": {
+                  "productById": null
+                }
+              }
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Could not resolve Product",
+                    "locations": [
+                      {
+                        "line": 4,
+                        "column": 3
+                      }
+                    ],
+                    "path": [
+                      "productById"
+                    ]
+                  }
+                ],
+                "data": {
+                  "productById": null
+                }
+              }
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Could not resolve Product",
+                    "locations": [
+                      {
+                        "line": 4,
+                        "column": 3
+                      }
+                    ],
+                    "path": [
+                      "productById"
+                    ]
+                  }
+                ],
+                "data": {
+                  "productById": null
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          topProducts {
+            price
+            name
+            id @fusion__requirement
+          }
+        }
+      hash: 67b3f75afa8d6eb979605a59d5462c1d
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_67b3f75a_1 {
+          topProducts {
+            price
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_67b3f75a_2(
+          $__fusion_1_id: Int!
+        ) {
+          productById(id: $__fusion_1_id) {
+            name
+          }
+        }
+      source: $.productById
+      target: $.topProducts
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

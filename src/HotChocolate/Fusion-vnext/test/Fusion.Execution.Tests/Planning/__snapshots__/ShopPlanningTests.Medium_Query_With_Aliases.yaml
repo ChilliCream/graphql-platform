@@ -1,5 +1,5 @@
 operation:
-  - document: >-
+  - document: |
       {
         products {
           nodes {
@@ -118,7 +118,7 @@ nodes:
   - id: 1
     type: Operation
     schema: e
-    operation: >-
+    operation: |
       query Op_123456789101112_1 {
         products {
           nodes {
@@ -130,7 +130,7 @@ nodes:
   - id: 2
     type: Operation
     schema: f
-    operation: >-
+    operation: |
       query Op_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
@@ -176,7 +176,7 @@ nodes:
   - id: 3
     type: Operation
     schema: e
-    operation: >-
+    operation: |
       query Op_123456789101112_3(
         $__fusion_2_id: ID!
       ) {
@@ -202,7 +202,7 @@ nodes:
   - id: 4
     type: Operation
     schema: b
-    operation: >-
+    operation: |
       query Op_123456789101112_4(
         $__fusion_3_id: ID!
       ) {
@@ -226,7 +226,7 @@ nodes:
   - id: 5
     type: Operation
     schema: g
-    operation: >-
+    operation: |
       query Op_123456789101112_5(
         $__fusion_4_id: ID!
         $__fusion_5_dimension: ProductDimensionInput!
@@ -255,7 +255,7 @@ nodes:
   - id: 6
     type: Operation
     schema: f
-    operation: >-
+    operation: |
       query Op_123456789101112_6(
         $__fusion_6_id: ID!
       ) {
@@ -282,7 +282,7 @@ nodes:
   - id: 7
     type: Operation
     schema: e
-    operation: >-
+    operation: |
       query Op_123456789101112_7(
         $__fusion_7_id: ID!
       ) {
@@ -307,7 +307,7 @@ nodes:
   - id: 8
     type: Operation
     schema: g
-    operation: >-
+    operation: |
       query Op_123456789101112_8(
         $__fusion_8_id: ID!
         $__fusion_9_dimension: ProductDimensionInput!
@@ -336,7 +336,7 @@ nodes:
   - id: 9
     type: Operation
     schema: a
-    operation: >-
+    operation: |
       query Op_123456789101112_9(
         $__fusion_10_id: ID!
       ) {
@@ -355,7 +355,7 @@ nodes:
   - id: 10
     type: Operation
     schema: e
-    operation: >-
+    operation: |
       query Op_123456789101112_10(
         $__fusion_11_id: ID!
       ) {
@@ -374,7 +374,7 @@ nodes:
   - id: 11
     type: Operation
     schema: a
-    operation: >-
+    operation: |
       query Op_123456789101112_11(
         $__fusion_12_id: ID!
       ) {
@@ -394,7 +394,7 @@ nodes:
   - id: 12
     type: Operation
     schema: b
-    operation: >-
+    operation: |
       query Op_123456789101112_12(
         $__fusion_13_id: ID!
       ) {
@@ -418,7 +418,7 @@ nodes:
   - id: 13
     type: Operation
     schema: e
-    operation: >-
+    operation: |
       query Op_123456789101112_13(
         $__fusion_14_id: ID!
       ) {
@@ -444,7 +444,7 @@ nodes:
   - id: 14
     type: Operation
     schema: g
-    operation: >-
+    operation: |
       query Op_123456789101112_14(
         $__fusion_15_id: ID!
         $__fusion_16_dimension: ProductDimensionInput!
@@ -473,7 +473,7 @@ nodes:
   - id: 15
     type: Operation
     schema: e
-    operation: >-
+    operation: |
       query Op_123456789101112_15(
         $__fusion_17_id: ID!
       ) {
@@ -498,7 +498,7 @@ nodes:
   - id: 16
     type: Operation
     schema: g
-    operation: >-
+    operation: |
       query Op_123456789101112_16(
         $__fusion_18_id: ID!
         $__fusion_19_dimension: ProductDimensionInput!
@@ -527,7 +527,7 @@ nodes:
   - id: 17
     type: Operation
     schema: f
-    operation: >-
+    operation: |
       query Op_123456789101112_17(
         $__fusion_20_id: ID!
       ) {
@@ -554,7 +554,7 @@ nodes:
   - id: 18
     type: Operation
     schema: a
-    operation: >-
+    operation: |
       query Op_123456789101112_18(
         $__fusion_21_id: ID!
       ) {
@@ -573,7 +573,7 @@ nodes:
   - id: 19
     type: Operation
     schema: e
-    operation: >-
+    operation: |
       query Op_123456789101112_19(
         $__fusion_22_id: ID!
       ) {
@@ -592,7 +592,7 @@ nodes:
   - id: 20
     type: Operation
     schema: a
-    operation: >-
+    operation: |
       query Op_123456789101112_20(
         $__fusion_23_id: ID!
       ) {
