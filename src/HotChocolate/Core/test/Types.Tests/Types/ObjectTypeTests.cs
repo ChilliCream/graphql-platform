@@ -2320,7 +2320,7 @@ public class ObjectTypeTests : TypeTestBase
             string b = "abc") => null;
 
         public string? Field2(
-            [DefaultValue(null)] string a,
+            [DefaultValue(null)] string? a,
             [DefaultValue("abc")] string b) => null;
     }
 
