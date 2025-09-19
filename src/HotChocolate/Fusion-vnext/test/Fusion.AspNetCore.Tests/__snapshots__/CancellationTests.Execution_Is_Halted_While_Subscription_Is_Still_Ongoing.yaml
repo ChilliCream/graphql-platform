@@ -6,7 +6,26 @@ request:
         id
       }
     }
-streamResponse: awah
+responseStream:
+  - body: |
+      {
+        "data": {
+          "onReviewCreated": {
+            "id": 1
+          }
+        }
+      }
+  - body: |
+      {
+        "errors": [
+          {
+            "message": "Could not produce review",
+            "path": [
+              "onReviewCreated"
+            ]
+          }
+        ]
+      }
 sourceSchemas:
   - name: A
     schema: |

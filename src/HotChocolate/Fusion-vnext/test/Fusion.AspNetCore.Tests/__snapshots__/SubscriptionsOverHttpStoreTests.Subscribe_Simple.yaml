@@ -7,7 +7,34 @@ request:
         title
       }
     }
-streamResponse: awah
+responseStream:
+  - body: |
+      {
+        "data": {
+          "onBookCreated": {
+            "id": 1,
+            "title": "Foo"
+          }
+        }
+      }
+  - body: |
+      {
+        "data": {
+          "onBookCreated": {
+            "id": 2,
+            "title": "Bar"
+          }
+        }
+      }
+  - body: |
+      {
+        "data": {
+          "onBookCreated": {
+            "id": 3,
+            "title": "Baz"
+          }
+        }
+      }
 sourceSchemas:
   - name: A
     schema: |

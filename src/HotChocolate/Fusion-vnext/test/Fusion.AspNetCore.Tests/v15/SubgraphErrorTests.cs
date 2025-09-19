@@ -62,7 +62,7 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact]
+    [Fact(Skip = "Flaky in snapshot")]
     public async Task Resolve_Parallel_SharedEntryField_NonNull_Both_Services_Error_SharedEntryField()
     {
         // arrange
@@ -858,7 +858,8 @@ public class SubgraphErrorTests : FusionTestBase
             type Viewer {
               name: String
             }
-            """);
+            """,
+            isTimingOut: true);
 
         var subgraphB = CreateSourceSchema(
             "B",

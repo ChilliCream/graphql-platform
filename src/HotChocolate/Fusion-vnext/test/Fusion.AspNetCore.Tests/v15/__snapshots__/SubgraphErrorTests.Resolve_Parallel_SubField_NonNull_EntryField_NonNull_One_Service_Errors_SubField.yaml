@@ -62,8 +62,6 @@ sourceSchemas:
       type Query {
         other: Other!
       }
-      
-      directive @error(atIndex: Int) on FIELD_DEFINITION
     interactions:
       - request:
           body: |

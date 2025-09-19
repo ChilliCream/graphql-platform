@@ -80,8 +80,6 @@ sourceSchemas:
       type Query {
         brandById(id: ID!): Brand @lookup @error
       }
-      
-      directive @error(atIndex: Int) on FIELD_DEFINITION
     interactions:
       - request:
           body: |

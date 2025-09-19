@@ -132,8 +132,6 @@ sourceSchemas:
         relativeUrl: String!
         id: ID!
       }
-      
-      directive @null(atIndex: Int) on FIELD_DEFINITION
     interactions:
       - request:
           body: |

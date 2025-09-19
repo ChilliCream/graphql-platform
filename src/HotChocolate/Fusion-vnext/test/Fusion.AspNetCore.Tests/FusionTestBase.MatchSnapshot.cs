@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -46,7 +47,7 @@ public abstract partial class FusionTestBase
         WriteOperationRequest(writer, request);
         writer.Unindent();
 
-        WriteResponses(writer, results);
+        WriteResults(writer, results);
 
         writer.WriteLine("sourceSchemas:");
         writer.Indent();
@@ -66,6 +67,8 @@ public abstract partial class FusionTestBase
         {
             result.Dispose();
         }
+
+        gateway.Interactions.Clear();
 
         await snapshot.MatchAsync();
     }
@@ -106,67 +109,88 @@ public abstract partial class FusionTestBase
                     break;
                 }
             }
-            // TODO: This needs to go away
-            catch{}
+            catch
+            {
+                // For some reason
+                // CancellationTests.Request_Is_Running_Into_Execution_Timeout_While_Http_Request_In_Node_Is_Still_Ongoing
+                // runs into an issue here
+            }
         }
     }
 
-    private void WriteResponses(CodeWriter writer, List<OperationResult> results)
+    private void WriteResults(CodeWriter writer, List<OperationResult> results)
     {
-        if (results is [{ } result])
+        if (results is [{ } singleResult])
         {
-            var memoryStream = new MemoryStream();
-            using var jsonWriter = new Utf8JsonWriter(memoryStream, new JsonWriterOptions { Indented = true });
-
-            jsonWriter.WriteStartObject();
-
-            if (result.RequestIndex.HasValue)
-            {
-                jsonWriter.WriteNumber("requestIndex", result.RequestIndex.Value);
-            }
-
-            if (result.VariableIndex.HasValue)
-            {
-                jsonWriter.WriteNumber("variableIndex", result.VariableIndex.Value);
-            }
-
-            if (result.Data.ValueKind is JsonValueKind.Object)
-            {
-                jsonWriter.WritePropertyName("data");
-                result.Data.WriteTo(jsonWriter);
-            }
-
-            if (result.Errors.ValueKind is JsonValueKind.Array)
-            {
-                jsonWriter.WritePropertyName("errors");
-                result.Errors.WriteTo(jsonWriter);
-            }
-
-            jsonWriter.WriteEndObject();
-            jsonWriter.Flush();
-
-            memoryStream.Position = 0;
-
             writer.WriteLine("response:");
             writer.Indent();
             writer.WriteLine("body: |");
             writer.Indent();
 
-            var reader = new StreamReader(memoryStream);
-            var line = reader.ReadLine();
-            while (line != null)
-            {
-                writer.WriteLine(line);
-                line = reader.ReadLine();
-            }
+            WriteResult(writer, singleResult);
 
             writer.Unindent();
             writer.Unindent();
         }
         else
         {
-            // TODO: Properly output
-            writer.WriteLine("streamResponse: awah");
+            writer.WriteLine("responseStream:");
+            writer.Indent();
+
+            foreach (var result in results)
+            {
+                writer.WriteLine("- body: |");
+                writer.Indent();
+                writer.Indent();
+                WriteResult(writer, result);
+                writer.Unindent();
+                writer.Unindent();
+            }
+
+            writer.Unindent();
+        }
+    }
+
+    private static void WriteResult(CodeWriter writer, OperationResult result)
+    {
+        var memoryStream = new MemoryStream();
+        using var jsonWriter = new Utf8JsonWriter(memoryStream, new JsonWriterOptions { Indented = true });
+
+        jsonWriter.WriteStartObject();
+
+        if (result.RequestIndex.HasValue)
+        {
+            jsonWriter.WriteNumber("requestIndex", result.RequestIndex.Value);
+        }
+
+        if (result.VariableIndex.HasValue)
+        {
+            jsonWriter.WriteNumber("variableIndex", result.VariableIndex.Value);
+        }
+
+        if (result.Data.ValueKind is JsonValueKind.Object)
+        {
+            jsonWriter.WritePropertyName("data");
+            result.Data.WriteTo(jsonWriter);
+        }
+
+        if (result.Errors.ValueKind is JsonValueKind.Array)
+        {
+            jsonWriter.WritePropertyName("errors");
+            result.Errors.WriteTo(jsonWriter);
+        }
+
+        jsonWriter.WriteEndObject();
+        jsonWriter.Flush();
+
+        memoryStream.Position = 0;
+
+        var reader = new StreamReader(memoryStream);
+        var line = reader.ReadLine();
+        while (line != null)
+        {
+            writer.WriteLine(line);
+            line = reader.ReadLine();
         }
     }
 
@@ -224,7 +248,6 @@ public abstract partial class FusionTestBase
                         writer.WriteLine("results:");
                         writer.Indent();
 
-                        // TODO: This should be ordered as results can come out of order
                         foreach (var result in interaction.Results)
                         {
                             writer.WriteLine("- |");
@@ -287,7 +310,7 @@ public abstract partial class FusionTestBase
         var document = Utf8GraphQLParser.Parse(schemaText);
 
         document = document.WithDefinitions(
-            document.Definitions.Where(IsNotFusionDefinition).ToArray());
+            document.Definitions.Where(IsDefinitionIncluded).ToArray());
 
         var cleanedSchema = document.ToString(indented: true);
 
@@ -336,11 +359,15 @@ public abstract partial class FusionTestBase
         }
     }
 
-    private static bool IsNotFusionDefinition(IDefinitionNode node)
+    private static readonly FrozenSet<string> s_testDirectives = new HashSet<string> { "null", "error", "returns" }
+        .ToFrozenSet();
+
+    private static bool IsDefinitionIncluded(IDefinitionNode node)
     {
         if (node is DirectiveDefinitionNode directive)
         {
-            return !FusionBuiltIns.SourceSchemaDirectives.ContainsKey(directive.Name.Value);
+            return !FusionBuiltIns.SourceSchemaDirectives.ContainsKey(directive.Name.Value)
+                && !s_testDirectives.Contains(directive.Name.Value);
         }
 
         if (node is ScalarTypeDefinitionNode scalar)

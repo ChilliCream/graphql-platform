@@ -35,20 +35,11 @@ sourceSchemas:
       type Viewer {
         name: String
       }
+    isTimingOut: true
     interactions:
       - request:
           body: |
             {"query":"query Op_6b55933b_1 {\n  viewer {\n    name\n  }\n}"}
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "viewer": {
-                    "name": "Viewer"
-                  }
-                }
-              }
   - name: B
     schema: |
       schema {
@@ -62,8 +53,6 @@ sourceSchemas:
       type Query {
         other: Other! @error
       }
-      
-      directive @error(atIndex: Int) on FIELD_DEFINITION
     interactions:
       - request:
           body: |
