@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Xunit;
 using static HotChocolate.Utilities.Introspection.IntrospectionClient;
 
 namespace HotChocolate.Utilities.Introspection;

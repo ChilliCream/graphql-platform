@@ -59,7 +59,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 
         builder
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
@@ -77,8 +77,8 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 
         return await services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
     }
 
     private void ApplyConfigurationToField<TEntity, TType>(

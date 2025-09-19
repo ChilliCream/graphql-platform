@@ -159,7 +159,7 @@ namespace HotChocolate.Validation.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified directive is not valid the current location..
+        ///   Looks up a localized string similar to The specified directive is not valid in the current location..
         /// </summary>
         internal static string ErrorHelper_DirectiveNotValidInLocation {
             get {
@@ -330,7 +330,7 @@ namespace HotChocolate.Validation.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Operation `{0}` has a empty selection set. Root types without subfields are disallowed..
+        ///   Looks up a localized string similar to Operation `{0}` has an empty selection set. Root types without subfields are disallowed..
         /// </summary>
         internal static string ErrorHelper_NoSelectionOnRootType {
             get {
@@ -339,7 +339,7 @@ namespace HotChocolate.Validation.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Oneof Input Object `{0}` requires that exactly one field must be supplied and that field must not be `null`..
+        ///   Looks up a localized string similar to The OneOf Input Object `{0}` requires that exactly one field must be supplied and that field must not be `null`..
         /// </summary>
         internal static string ErrorHelper_OneOfMustHaveExactlyOneField {
             get {
@@ -348,7 +348,16 @@ namespace HotChocolate.Validation.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The variable `${0}` assigned to the field `{1}` of the Oneof Input Object `{2}` must be non-null..
+        ///   Looks up a localized string similar to The variable `{0}` is not compatible with the type of the current one-of location..
+        /// </summary>
+        internal static string ErrorHelper_OneOfVariableIsNotCompatible {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OneOfVariableIsNotCompatible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The variable `${0}` assigned to the field `{1}` of the OneOf Input Object `{2}` must be non-null..
         /// </summary>
         internal static string ErrorHelper_OneOfVariablesMustBeNonNull {
             get {
@@ -371,6 +380,24 @@ namespace HotChocolate.Validation.Properties {
         internal static string ErrorHelper_OperationNameNotUnique {
             get {
                 return ResourceManager.GetString("ErrorHelper_OperationNameNotUnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This GraphQL schema does not support `{0}` operations..
+        /// </summary>
+        internal static string ErrorHelper_OperationNotSupported {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OperationNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The skip and include directives are not allowed to be used on root fields of the subscription type..
+        /// </summary>
+        internal static string ErrorHelper_SkipAndIncludeNotAllowedOnSubscriptionRootField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_SkipAndIncludeNotAllowedOnSubscriptionRootField", resourceCulture);
             }
         }
         

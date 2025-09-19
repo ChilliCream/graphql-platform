@@ -91,7 +91,7 @@ public class QueryableSortVisitorAscObjectTests
     public void Sort_NullableDateTimeAsc(params string?[] dataObject)
     {
         Test_Asc(
-            dataObject.Select(x => x is null ? default : (DateTime?)DateTime.Parse(x))
+            dataObject.Select(x => x is null ? null : (DateTime?)DateTime.Parse(x))
                 .ToArray());
     }
 
@@ -112,7 +112,7 @@ public class QueryableSortVisitorAscObjectTests
         // assert
         var inputs =
             data.Select(
-                    x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x, }, })
+                    x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x } })
                 .ToArray();
         var sorted = func(inputs);
 
@@ -140,8 +140,8 @@ public class QueryableSortVisitorAscObjectTests
         var inputs =
             data
                 .Select(
-                    x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x, }, })
-                .Prepend(new FooNullable<string> { Bar = null, })
+                    x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x } })
+                .Prepend(new FooNullable<string> { Bar = null })
                 .ToArray();
         var sorted = func(inputs);
 
@@ -166,7 +166,7 @@ public class QueryableSortVisitorAscObjectTests
 
         // assert
         var inputs = dataObject
-            .Select(x => new BarInterface { Test = new InterfaceImpl1 { Prop = x, }, })
+            .Select(x => new BarInterface { Test = new InterfaceImpl1 { Prop = x } })
             .ToArray();
         var sorted = func(inputs);
 
@@ -188,7 +188,7 @@ public class QueryableSortVisitorAscObjectTests
         var func = tester.Build<Foo<T>>(value);
 
         // assert
-        var inputs = data.Select(x => new Foo<T> { Bar = new Bar<T> { Baz = x, }, }).ToArray();
+        var inputs = data.Select(x => new Foo<T> { Bar = new Bar<T> { Baz = x } }).ToArray();
         var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)
@@ -219,7 +219,7 @@ public class QueryableSortVisitorAscObjectTests
 
     public class Foo<T>
     {
-        public Bar<T> Bar { get; set; } = default!;
+        public Bar<T> Bar { get; set; } = null!;
     }
 
     public class FooNullable<T>
@@ -235,20 +235,16 @@ public class QueryableSortVisitorAscObjectTests
     }
 
     public class FooSortType<T>
-        : SortInputType<Foo<T>>
-    {
-    }
+        : SortInputType<Foo<T>>;
 
     public enum TestEnum
     {
         Foo = 0,
         Bar = 1,
-        Baz = 2,
+        Baz = 2
     }
 
     public class FooNullableSortType<T>
         : SortInputType<FooNullable<T>>
-        where T : class
-    {
-    }
+        where T : class;
 }

@@ -5,11 +5,11 @@ namespace HotChocolate.Data;
 
 public class TestQueryInterceptor : PagingQueryInterceptor
 {
-    public List<string> Queries { get; } = new();
+    public List<string> Queries { get; } = [];
 
     public override void OnBeforeExecute<T>(IQueryable<T> query)
     {
-        lock(Queries)
+        lock (Queries)
         {
             Queries.Add(query.ToQueryString());
         }

@@ -1,5 +1,5 @@
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Info;
 
-internal record EnumTypeInfo(EnumTypeDefinition Type, SchemaDefinition Schema);
+internal record EnumTypeInfo(MutableEnumTypeDefinition Type, MutableSchemaDefinition Schema);

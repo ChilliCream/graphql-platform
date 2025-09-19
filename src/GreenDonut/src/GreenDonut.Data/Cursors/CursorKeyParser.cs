@@ -8,7 +8,7 @@ namespace GreenDonut.Data.Cursors;
 /// </summary>
 public sealed class CursorKeyParser : ExpressionVisitor
 {
-    private readonly List<CursorKey> _keys = new();
+    private readonly List<CursorKey> _keys = [];
 
     public IReadOnlyList<CursorKey> Keys => _keys;
 

@@ -1,0 +1,69 @@
+testatestAndtestb Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+testatestAndtestb SQL:
+---------------
+.param set @p1 'testatest'
+.param set @p2 'testbtest'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" NOT IN (@p1, @p2) OR "d"."Bar" IS NULL
+---------------
+
+testbtestAndNull Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+testbtestAndNull SQL:
+---------------
+.param set @p1 'testbtest'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" IS NOT NULL AND "d"."Bar" <> @p1
+---------------
+
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+testatest SQL:
+---------------
+.param set @p1 'testatest'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" <> @p1 OR "d"."Bar" IS NULL
+---------------

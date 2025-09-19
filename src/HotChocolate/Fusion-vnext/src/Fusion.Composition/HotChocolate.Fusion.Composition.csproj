@@ -7,10 +7,13 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Utilities.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore.Tests" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Skimmed\src\Skimmed\Skimmed.csproj" />
+    <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
     <ProjectReference Include="..\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
   </ItemGroup>
 

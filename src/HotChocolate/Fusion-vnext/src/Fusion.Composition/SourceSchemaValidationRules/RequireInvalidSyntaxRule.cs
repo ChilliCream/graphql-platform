@@ -5,7 +5,7 @@ using static HotChocolate.Fusion.Logging.LogEntryHelper;
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
 /// <summary>
-/// The <c>@require</c> directive’s <c>fields</c> argument must be syntactically valid GraphQL. If
+/// The <c>@require</c> directive’s <c>field</c> argument must be syntactically valid GraphQL. If
 /// the selection map string is malformed (e.g., missing closing braces, unbalanced quotes, invalid
 /// tokens), then the schema cannot be composed correctly. In such cases, the error
 /// <c>REQUIRE_INVALID_SYNTAX</c> is raised.
@@ -13,9 +13,9 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Require-Invalid-Syntax">
 /// Specification
 /// </seealso>
-internal sealed class RequireInvalidSyntaxRule : IEventHandler<RequireFieldsInvalidSyntaxEvent>
+internal sealed class RequireInvalidSyntaxRule : IEventHandler<RequireFieldInvalidSyntaxEvent>
 {
-    public void Handle(RequireFieldsInvalidSyntaxEvent @event, CompositionContext context)
+    public void Handle(RequireFieldInvalidSyntaxEvent @event, CompositionContext context)
     {
         var (requireDirective, argument, field, type, schema) = @event;
 

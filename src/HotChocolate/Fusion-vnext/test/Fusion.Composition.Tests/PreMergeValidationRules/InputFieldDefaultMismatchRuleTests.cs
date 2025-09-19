@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidationRules;
 
-public sealed class InputFieldDefaultMismatchRuleTests : CompositionTestBase
+public sealed class InputFieldDefaultMismatchRuleTests
 {
     private static readonly object s_rule = new InputFieldDefaultMismatchRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -157,8 +158,8 @@ public sealed class InputFieldDefaultMismatchRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The default value '10' of input field 'BookFilter.minPageCount' in schema " +
-                    "'A' differs from the default value of '20' in schema 'B'."
+                    "The default value '10' of input field 'BookFilter.minPageCount' in schema "
+                    + "'A' differs from the default value of '20' in schema 'B'."
                 ]
             },
             // Two different default values, and one without a default value.
@@ -184,8 +185,8 @@ public sealed class InputFieldDefaultMismatchRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The default value '10' of input field 'BookFilter.minPageCount' in schema " +
-                    "'A' differs from the default value of '20' in schema 'C'."
+                    "The default value '10' of input field 'BookFilter.minPageCount' in schema "
+                    + "'A' differs from the default value of '20' in schema 'C'."
                 ]
             },
             // Three different default values.
@@ -211,11 +212,11 @@ public sealed class InputFieldDefaultMismatchRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The default value '10' of input field 'BookFilter.minPageCount' in schema " +
-                    "'A' differs from the default value of '20' in schema 'B'.",
+                    "The default value '10' of input field 'BookFilter.minPageCount' in schema "
+                    + "'A' differs from the default value of '20' in schema 'B'.",
 
-                    "The default value '20' of input field 'BookFilter.minPageCount' in schema " +
-                    "'B' differs from the default value of '30' in schema 'C'."
+                    "The default value '20' of input field 'BookFilter.minPageCount' in schema "
+                    + "'B' differs from the default value of '30' in schema 'C'."
                 ]
             }
         };

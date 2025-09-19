@@ -11,10 +11,10 @@ namespace GreenDonut.Data.Expressions;
 /// </summary>
 internal static class ExpressionHelpers
 {
-    private static readonly MethodInfo _createAndConvert = typeof(ExpressionHelpers)
+    private static readonly MethodInfo s_createAndConvert = typeof(ExpressionHelpers)
         .GetMethod(nameof(CreateAndConvertParameter), BindingFlags.NonPublic | BindingFlags.Static)!;
 
-    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedConverters = new();
+    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> s_cachedConverters = new();
 
     /// <summary>
     /// Builds a where expression that can be used to slice a dataset.
@@ -40,9 +40,9 @@ internal static class ExpressionHelpers
     /// <exception cref="ArgumentException">
     /// If the number of keys does not match the number of values.
     /// </exception>
-    public static Expression<Func<T, bool>> BuildWhereExpression<T>(
+    public static (Expression<Func<T, bool>> WhereExpression, int Offset) BuildWhereExpression<T>(
         ReadOnlySpan<CursorKey> keys,
-        ReadOnlySpan<object?> cursor,
+        Cursor cursor,
         bool forward)
     {
         if (keys.Length == 0)
@@ -50,15 +50,15 @@ internal static class ExpressionHelpers
             throw new ArgumentException("At least one key must be specified.", nameof(keys));
         }
 
-        if (keys.Length != cursor.Length)
+        if (keys.Length != cursor.Values.Length)
         {
-            throw new ArgumentException("The number of keys must match the number of values.", nameof(cursor));
+            throw new ArgumentException("The number of keys must match the number of values.", nameof(cursor.Values));
         }
 
-        var cursorExpr = new Expression[cursor.Length];
-        for (var i = 0; i < cursor.Length; i++)
+        var cursorExpr = new Expression[cursor.Values.Length];
+        for (var i = 0; i < cursor.Values.Length; i++)
         {
-            cursorExpr[i] = CreateParameter(cursor[i], keys[i].Expression.ReturnType);
+            cursorExpr[i] = CreateParameter(cursor.Values[i], keys[i].Expression.ReturnType);
         }
 
         var handled = new List<CursorKey>();
@@ -77,48 +77,31 @@ internal static class ExpressionHelpers
             {
                 var handledKey = handled[j];
 
-                keyExpr =
-                    Expression.Equal(
-                        Expression.Call(
-                            ReplaceParameter(handledKey.Expression, parameter),
-                            handledKey.CompareMethod,
-                            cursorExpr[j]),
-                        zero);
+                keyExpr = Expression.Equal(
+                    Expression.Call(ReplaceParameter(handledKey.Expression, parameter), handledKey.CompareMethod,
+                        cursorExpr[j]), zero);
 
-                current = current is null
-                    ? keyExpr
-                    : Expression.AndAlso(current, keyExpr);
+                current = current is null ? keyExpr : Expression.AndAlso(current, keyExpr);
             }
 
             var greaterThan = forward
-                ? key.Direction is CursorKeyDirection.Ascending
-                : key.Direction is CursorKeyDirection.Descending;
+                ? key.Direction == CursorKeyDirection.Ascending
+                : key.Direction == CursorKeyDirection.Descending;
 
-            keyExpr =
-                greaterThan
-                    ? Expression.GreaterThan(
-                        Expression.Call(
-                            ReplaceParameter(key.Expression, parameter),
-                            key.CompareMethod,
-                            cursorExpr[i]),
-                        zero)
-                    : Expression.LessThan(
-                        Expression.Call(
-                            ReplaceParameter(key.Expression, parameter),
-                            key.CompareMethod,
-                            cursorExpr[i]),
-                        zero);
+            keyExpr = greaterThan
+                ? Expression.GreaterThan(
+                    Expression.Call(ReplaceParameter(key.Expression, parameter), key.CompareMethod, cursorExpr[i]),
+                    zero)
+                : Expression.LessThan(
+                    Expression.Call(ReplaceParameter(key.Expression, parameter), key.CompareMethod, cursorExpr[i]),
+                    zero);
 
-            current = current is null
-                ? keyExpr
-                : Expression.AndAlso(current, keyExpr);
-            expression = expression is null
-                ? current
-                : Expression.OrElse(expression, current);
+            current = current is null ? keyExpr : Expression.AndAlso(current, keyExpr);
+            expression = expression is null ? current : Expression.OrElse(expression, current);
             handled.Add(key);
         }
 
-        return Expression.Lambda<Func<T, bool>>(expression!, parameter);
+        return (Expression.Lambda<Func<T, bool>>(expression!, parameter), cursor.Offset ?? 0);
     }
 
     /// <summary>
@@ -148,12 +131,11 @@ internal static class ExpressionHelpers
     /// <typeparam name="TV">
     /// The value type.
     /// </typeparam>
-    /// <returns></returns>
     /// <exception cref="ArgumentException">
     /// If the number of keys is less than one or
     /// the number of order expressions does not match the number of order methods.
     /// </exception>
-    public static Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> BuildBatchSelectExpression<TK, TV>(
+    public static BatchExpression<TK, TV> BuildBatchExpression<TK, TV>(
         PagingArguments arguments,
         ReadOnlySpan<CursorKey> keys,
         ReadOnlySpan<LambdaExpression> orderExpressions,
@@ -181,16 +163,11 @@ internal static class ExpressionHelpers
 
         for (var i = 0; i < orderExpressions.Length; i++)
         {
-            var methodName = orderMethods[i];
+            var methodName = forward ? orderMethods[i] : ReverseOrder(orderMethods[i]);
             var orderExpression = orderExpressions[i];
-
-            if (!forward)
-            {
-                methodName = ReverseOrder(methodName);
-            }
-
             var delegateType = typeof(Func<,>).MakeGenericType(typeof(TV), orderExpression.Body.Type);
-            var typedOrderExpression = Expression.Lambda(delegateType, orderExpression.Body, orderExpression.Parameters);
+            var typedOrderExpression =
+                Expression.Lambda(delegateType, orderExpression.Body, orderExpression.Parameters);
 
             var method = GetEnumerableMethod(methodName, typeof(TV), typedOrderExpression);
 
@@ -200,16 +177,68 @@ internal static class ExpressionHelpers
                 typedOrderExpression);
         }
 
+        var offset = 0;
+        var usesRelativeCursors = false;
+        Cursor? cursor = null;
+
         if (arguments.After is not null)
         {
-            var cursor = CursorParser.Parse(arguments.After, keys);
-            source = BuildBatchWhereExpression<TV>(source, keys, cursor, forward);
+            cursor = CursorParser.Parse(arguments.After, keys);
+            var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(keys, cursor, forward: true);
+            source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
+            offset = cursorOffset;
+
+            if (cursor.IsRelative)
+            {
+                usesRelativeCursors = true;
+            }
         }
 
         if (arguments.Before is not null)
         {
-            var cursor = CursorParser.Parse(arguments.Before, keys);
-            source = BuildBatchWhereExpression<TV>(source, keys, cursor, forward);
+            if (usesRelativeCursors)
+            {
+                throw new ArgumentException(
+                    "You cannot use `before` and `after` with relative cursors at the same time.",
+                    nameof(arguments));
+            }
+
+            cursor = CursorParser.Parse(arguments.Before, keys);
+            var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(keys, cursor, forward: false);
+            source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
+            offset = cursorOffset;
+        }
+
+        if (arguments.First is not null)
+        {
+            requestedCount = arguments.First.Value;
+        }
+
+        if (arguments.Last is not null)
+        {
+            requestedCount = arguments.Last.Value;
+        }
+
+        if (cursor?.IsRelative == true)
+        {
+            if ((arguments.Last is not null && cursor.Offset > 0) || (arguments.First is not null && cursor.Offset < 0))
+            {
+                throw new ArgumentException(
+                    "Positive offsets are not allowed with `last`, and negative offsets are not allowed with `first`.",
+                    nameof(arguments));
+            }
+        }
+
+        offset = Math.Abs(offset);
+
+        if (offset > 0)
+        {
+            source = Expression.Call(
+                typeof(Enumerable),
+                "Skip",
+                [typeof(TV)],
+                source,
+                Expression.Constant(offset * requestedCount));
         }
 
         if (arguments.First is not null)
@@ -220,7 +249,6 @@ internal static class ExpressionHelpers
                 [typeof(TV)],
                 source,
                 Expression.Constant(arguments.First.Value + 1));
-            requestedCount = arguments.First.Value;
         }
 
         if (arguments.Last is not null)
@@ -231,7 +259,6 @@ internal static class ExpressionHelpers
                 [typeof(TV)],
                 source,
                 Expression.Constant(arguments.Last.Value + 1));
-            requestedCount = arguments.Last.Value;
         }
 
         source = Expression.Call(
@@ -248,7 +275,10 @@ internal static class ExpressionHelpers
         };
 
         var createGroup = Expression.MemberInit(Expression.New(groupType), bindings);
-        return Expression.Lambda<Func<IGrouping<TK, TV>, Group<TK, TV>>>(createGroup, group);
+        return new BatchExpression<TK, TV>(
+            Expression.Lambda<Func<IGrouping<TK, TV>, Group<TK, TV>>>(createGroup, group),
+            arguments.Last is not null,
+            cursor);
 
         static string ReverseOrder(string method)
             => method switch
@@ -261,90 +291,10 @@ internal static class ExpressionHelpers
             };
 
         static MethodInfo GetEnumerableMethod(string methodName, Type elementType, LambdaExpression keySelector)
-        {
-            return typeof(Enumerable)
+            => typeof(Enumerable)
                 .GetMethods(BindingFlags.Static | BindingFlags.Public)
                 .First(m => m.Name == methodName && m.GetParameters().Length == 2)
                 .MakeGenericMethod(elementType, keySelector.Body.Type);
-        }
-    }
-
-    private static MethodCallExpression BuildBatchWhereExpression<T>(
-        Expression enumerable,
-        ReadOnlySpan<CursorKey> keys,
-        object?[] cursor,
-        bool forward)
-    {
-        var cursorExpr = new Expression[cursor.Length];
-
-        for (var i = 0; i < cursor.Length; i++)
-        {
-            cursorExpr[i] = CreateParameter(cursor[i], keys[i].Expression.ReturnType);
-        }
-
-        var handled = new List<CursorKey>();
-        Expression? expression = null;
-
-        var parameter = Expression.Parameter(typeof(T), "t");
-        var zero = Expression.Constant(0);
-
-        for (var i = 0; i < keys.Length; i++)
-        {
-            var key = keys[i];
-            Expression? current = null;
-            Expression keyExpr;
-
-            for (var j = 0; j < handled.Count; j++)
-            {
-                var handledKey = handled[j];
-
-                keyExpr =
-                    Expression.Equal(
-                        Expression.Call(
-                            ReplaceParameter(handledKey.Expression, parameter),
-                            handledKey.CompareMethod,
-                            cursorExpr[j]),
-                        zero);
-
-                current = current is null
-                    ? keyExpr
-                    : Expression.AndAlso(current, keyExpr);
-            }
-
-            var greaterThan = forward
-                ? key.Direction is CursorKeyDirection.Ascending
-                : key.Direction is CursorKeyDirection.Descending;
-
-            keyExpr =
-                greaterThan
-                    ? Expression.GreaterThan(
-                        Expression.Call(
-                            ReplaceParameter(key.Expression, parameter),
-                            key.CompareMethod,
-                            cursorExpr[i]),
-                        zero)
-                    : Expression.LessThan(
-                        Expression.Call(
-                            ReplaceParameter(key.Expression, parameter),
-                            key.CompareMethod,
-                            cursorExpr[i]),
-                        zero);
-
-            current = current is null
-                ? keyExpr
-                : Expression.AndAlso(current, keyExpr);
-            expression = expression is null
-                ? current
-                : Expression.OrElse(expression, current);
-            handled.Add(key);
-        }
-
-        return Expression.Call(
-            typeof(Enumerable),
-            "Where",
-            [typeof(T)],
-            enumerable,
-            Expression.Lambda<Func<T, bool>>(expression!, parameter));
     }
 
     /// <summary>
@@ -355,10 +305,7 @@ internal static class ExpressionHelpers
     /// <exception cref="ArgumentNullException"></exception>
     public static OrderRewriterResult ExtractAndRemoveOrder(Expression expression)
     {
-        if(expression is null)
-        {
-            throw new ArgumentNullException(nameof(expression));
-        }
+        ArgumentNullException.ThrowIfNull(expression);
 
         var rewriter = new OrderByRemovalRewriter();
         var (result, orderExpressions, orderMethods) = rewriter.Rewrite(expression);
@@ -367,11 +314,11 @@ internal static class ExpressionHelpers
 
     private static Expression CreateParameter(object? value, Type type)
     {
-        var converter = _cachedConverters.GetOrAdd(
+        var converter = s_cachedConverters.GetOrAdd(
             type,
             t =>
             {
-                var method = _createAndConvert.MakeGenericMethod(t);
+                var method = s_createAndConvert.MakeGenericMethod(t);
                 return v => (Expression)method.Invoke(null, [v])!;
             });
 
@@ -405,7 +352,7 @@ internal static class ExpressionHelpers
     {
         public TKey Key { get; set; } = default!;
 
-        public List<TValue> Items { get; set; } = default!;
+        public List<TValue> Items { get; set; } = null!;
     }
 
     public readonly struct OrderRewriterResult(
@@ -422,8 +369,8 @@ internal static class ExpressionHelpers
 
     private sealed class OrderByRemovalRewriter : ExpressionVisitor
     {
-        private readonly List<LambdaExpression> _orderExpressions = new();
-        private readonly List<string> _orderMethods = new();
+        private readonly List<LambdaExpression> _orderExpressions = [];
+        private readonly List<string> _orderMethods = [];
         private bool _insideSelectProjection;
 
         public (Expression, List<LambdaExpression>, List<string>) Rewrite(Expression expression)
@@ -480,5 +427,15 @@ internal static class ExpressionHelpers
 
             return e;
         }
+    }
+
+    internal readonly struct BatchExpression<TK, TV>(
+        Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> selectExpression,
+        bool isBackward,
+        Cursor? cursor)
+    {
+        public Expression<Func<IGrouping<TK, TV>, Group<TK, TV>>> SelectExpression { get; } = selectExpression;
+        public bool IsBackward { get; } = isBackward;
+        public Cursor? Cursor { get; } = cursor;
     }
 }

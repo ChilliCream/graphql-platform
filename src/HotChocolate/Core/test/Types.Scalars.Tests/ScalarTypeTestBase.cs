@@ -6,7 +6,7 @@ namespace HotChocolate.Types;
 
 public class ScalarTypeTestBase
 {
-    protected ISchema BuildSchema<TType>()
+    protected Schema BuildSchema<TType>()
         where TType : ScalarType
     {
         return SchemaBuilder
@@ -18,8 +18,8 @@ public class ScalarTypeTestBase
     protected ScalarType CreateType<TType>()
         where TType : ScalarType
     {
-        return BuildSchema<TType>().GetType<ObjectType>("Query").Fields["scalar"].Type as
-            ScalarType ?? throw new InvalidOperationException();
+        return BuildSchema<TType>().Types.GetType<ObjectType>("Query").Fields["scalar"].Type
+            as ScalarType ?? throw new InvalidOperationException();
     }
 
     protected IValueNode CreateValueNode(Type type, object? value)
@@ -237,11 +237,11 @@ public class ScalarTypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     public enum TestEnum
     {
-        Foo,
+        Foo
     }
 }

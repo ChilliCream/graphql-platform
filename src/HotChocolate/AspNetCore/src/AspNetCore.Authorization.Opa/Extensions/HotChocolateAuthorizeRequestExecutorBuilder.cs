@@ -1,8 +1,8 @@
 using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.Execution.Configuration;
-using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -42,7 +42,7 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
             var jsonOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
             jsonOptions.Converters.Add(
                 new JsonStringEnumConverter(
@@ -55,6 +55,15 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         return builder;
     }
 
+    /// <summary>
+    /// Adds result handler to the OPA options.
+    /// </summary>
+    /// <param name="builder">Instance of <see cref="IRequestExecutorBuilder"/>.</param>
+    /// <param name="policyPath">The path to the policy.</param>
+    /// <param name="parseResult">The PDP decision result.</param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> for chaining in more configurations.
+    /// </returns>
     public static IRequestExecutorBuilder AddOpaResultHandler(
         this IRequestExecutorBuilder builder,
         string policyPath,
@@ -64,6 +73,28 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
             .AddOptions<OpaOptions>()
             .Configure<IServiceProvider>(
                 (o, _) => o.PolicyResultHandlers.Add(policyPath, parseResult));
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds OPA query request extensions handler to the OPA options.
+    /// </summary>
+    /// <param name="builder">Instance of <see cref="IRequestExecutorBuilder"/>.</param>
+    /// <param name="policyPath">The path to the policy.</param>
+    /// <param name="opaQueryRequestExtensionsHandler">The handler for the extensions associated with the Policy.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> for chaining in more configurations.
+    /// </returns>
+    public static IRequestExecutorBuilder AddOpaQueryRequestExtensionsHandler(
+        this IRequestExecutorBuilder builder,
+        string policyPath,
+        OpaQueryRequestExtensionsHandler opaQueryRequestExtensionsHandler)
+    {
+        builder.Services
+            .AddOptions<OpaOptions>()
+            .Configure<IServiceProvider>(
+                (o, _) => o.OpaQueryRequestExtensionsHandlers.Add(policyPath, opaQueryRequestExtensionsHandler));
         return builder;
     }
 }

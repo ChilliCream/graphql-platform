@@ -224,6 +224,14 @@ public sealed class TypeInfos
             new RuntimeTypeInfo(TypeNames.DateTime, true)
         },
         {
+            TypeNames.DateOnly,
+            new RuntimeTypeInfo(TypeNames.DateOnly, true)
+        },
+        {
+            TypeNames.TimeOnly,
+            new RuntimeTypeInfo(TypeNames.TimeOnly, true)
+        },
+        {
             TypeNames.TimeSpan,
             new RuntimeTypeInfo(TypeNames.TimeSpan, true)
         },
@@ -376,13 +384,25 @@ public sealed class TypeInfos
             new RuntimeTypeInfo(TypeNames.DateSerializer)
         },
         {
+            TypeNames.LocalDateSerializer,
+            new RuntimeTypeInfo(TypeNames.LocalDateSerializer)
+        },
+        {
+            TypeNames.LocalDateTimeSerializer,
+            new RuntimeTypeInfo(TypeNames.LocalDateTimeSerializer)
+        },
+        {
+            TypeNames.LocalTimeSerializer,
+            new RuntimeTypeInfo(TypeNames.LocalTimeSerializer)
+        },
+        {
             TypeNames.ByteArraySerializer,
             new RuntimeTypeInfo(TypeNames.ByteArraySerializer)
         },
         {
             TypeNames.TimeSpanSerializer,
             new RuntimeTypeInfo(TypeNames.TimeSpanSerializer)
-        },
+        }
     };
 
     public RuntimeTypeInfo GetOrAdd(string fullTypeName, bool valueType = false) =>

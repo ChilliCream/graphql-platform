@@ -56,7 +56,7 @@ public class CustomScalarTests
                 """)
             .AddType(new StringType())
             .AddType(new StringType("Custom"))
-            .UseField(_ => _)
+            .UseField(x => x)
             .BuildSchemaAsync();
 
         // assert

@@ -1,0 +1,35 @@
+mutation CreateEnvironmentCommandMutation($workspaceId: ID!, $name: String!) {
+  pushWorkspaceChanges(
+    input: {
+      changes: [
+        {
+          environment: {
+            create: {
+              name: $name
+              referenceId: "env"
+              workspaceId: $workspaceId
+            }
+          }
+        }
+      ]
+    }
+  ) {
+    changes {
+      referenceId
+      error {
+        ...Error
+      }
+      result {
+        ...CreateEnvironmentCommandMutation_Environment
+      }
+    }
+    errors {
+      ...Error
+    }
+  }
+}
+
+fragment CreateEnvironmentCommandMutation_Environment on Environment {
+  name
+  ...EnvironmentDetailPrompt_Environment
+}

@@ -24,6 +24,6 @@ internal sealed class MutationErrorTypeInterceptor<T>(T errorRegistrar)
 
     public override void OnBeforeCompleteMutationField(
         ITypeCompletionContext completionContext,
-        ObjectFieldDefinition mutationField)
+        ObjectFieldConfiguration mutationField)
         => errorRegistrar.OnConfigure(completionContext.DescriptorContext, mutationField);
 }

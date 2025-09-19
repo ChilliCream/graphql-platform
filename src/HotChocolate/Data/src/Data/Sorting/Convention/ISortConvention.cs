@@ -3,7 +3,7 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -127,14 +127,14 @@ public interface ISortConvention : IConvention
 
     bool TryGetFieldHandler(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition,
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration,
         [NotNullWhen(true)] out ISortFieldHandler? handler);
 
     bool TryGetOperationHandler(
         ITypeCompletionContext context,
-        EnumTypeDefinition typeDefinition,
-        SortEnumValueDefinition fieldDefinition,
+        EnumTypeConfiguration typeDefinition,
+        SortEnumValueConfiguration fieldConfiguration,
         [NotNullWhen(true)] out ISortOperationHandler? handler);
 
     /// <summary>
@@ -160,10 +160,10 @@ public interface ISortConvention : IConvention
     void ConfigureField(IObjectFieldDescriptor fieldDescriptor);
 
     /// <summary>
-    /// Creates metadata for a field that the provider can pick up an use for the translation
+    /// Creates metadata for a field that the provider can pick up and use for the translation
     /// </summary>
     ISortMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition);
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration);
 }

@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using StrawberryShake.Tools.Configuration.Properties;
 
 namespace StrawberryShake.Tools.Configuration;
 
@@ -24,27 +24,20 @@ public class GraphQLConfig
                 new StrawberryShakeSettingsTransportProfile
                 {
                     Default = TransportType.Http,
-                    Subscription = TransportType.WebSocket,
+                    Subscription = TransportType.WebSocket
                 });
         }
 
         return JsonConvert.SerializeObject(this, CreateJsonSettings());
     }
 
-    public static GraphQLConfig FromJson(string json)
+    public static GraphQLConfig FromJson([StringSyntax(StringSyntaxAttribute.Json)] string json)
     {
-        if (string.IsNullOrEmpty(json))
-        {
-            throw new ArgumentException(
-                string.Format(
-                    ToolsConfigResources.GraphQLConfig_FromJson_JsonCannotBeNull,
-                    nameof(json)),
-                nameof(json));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(json);
 
         var config = JsonConvert.DeserializeObject<GraphQLConfig>(json, CreateJsonSettings());
 
-        if(config is null)
+        if (config is null)
         {
             throw new InvalidOperationException("The Strawberry Shake configuration is null.");
         }
@@ -55,7 +48,7 @@ public class GraphQLConfig
                 new StrawberryShakeSettingsTransportProfile
                 {
                     Default = TransportType.Http,
-                    Subscription = TransportType.WebSocket,
+                    Subscription = TransportType.WebSocket
                 });
         }
 
@@ -68,7 +61,7 @@ public class GraphQLConfig
         {
             Formatting = Formatting.Indented,
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            NullValueHandling = NullValueHandling.Ignore,
+            NullValueHandling = NullValueHandling.Ignore
         };
 
         jsonSettings.Converters.Add(new StringEnumConverter());

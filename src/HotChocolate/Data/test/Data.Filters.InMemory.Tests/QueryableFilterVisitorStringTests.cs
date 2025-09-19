@@ -4,17 +4,17 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = "testatest", },
-        new() { Bar = "testbtest", },
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = "testatest", },
-        new() { Bar = "testbtest", },
-        new() { Bar = null, },
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" },
+        new() { Bar = null }
     ];
 
     private readonly SchemaCache _cache;
@@ -28,7 +28,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_StringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -59,7 +59,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_StringNotEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -90,7 +90,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_StringIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -121,7 +121,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_StringNotIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -152,7 +152,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_StringContains_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -183,7 +183,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_StringNoContains_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -214,7 +214,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_StringStartsWith_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         // assert
@@ -246,7 +246,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_StringNotStartsWith_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -277,7 +277,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_StringEndsWith_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -308,7 +308,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_StringNotEndsWith_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -339,7 +339,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_NullableStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -371,7 +371,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -402,7 +402,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_NullableStringIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -433,7 +433,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_NullableStringNotIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -464,7 +464,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_NullableStringContains_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -495,7 +495,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_NullableStringNoContains_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -526,7 +526,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_NullableStringStartsWith_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -557,7 +557,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_NullableStringNotStartsWith_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -589,7 +589,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -621,7 +621,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

@@ -5,6 +5,4 @@ namespace HotChocolate.Types;
 /// in the GraphQL specification.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-internal sealed class SpecScalarAttribute : Attribute
-{
-}
+internal sealed class SpecScalarAttribute : Attribute;

@@ -19,7 +19,7 @@ public class DefaultSocketClientFactory : ISocketClientFactory
     {
         _optionsMonitor = optionsMonitor ??
             throw new ArgumentNullException(nameof(optionsMonitor));
-        _protocolFactories = protocolFactories?.ToArray() ??
+        _protocolFactories = protocolFactories.ToArray() ??
             throw new ArgumentNullException(nameof(protocolFactories));
     }
 

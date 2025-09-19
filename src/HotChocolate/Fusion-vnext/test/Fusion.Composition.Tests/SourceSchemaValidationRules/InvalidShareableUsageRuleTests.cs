@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class InvalidShareableUsageRuleTests : CompositionTestBase
+public sealed class InvalidShareableUsageRuleTests
 {
     private static readonly object s_rule = new InvalidShareableUsageRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -81,8 +82,8 @@ public sealed class InvalidShareableUsageRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The interface field 'InventoryItem.sku' in schema 'A' must not be marked as " +
-                    "shareable."
+                    "The interface field 'InventoryItem.sku' in schema 'A' must not be marked as "
+                    + "shareable."
                 ]
             }
         };

@@ -1,9 +1,10 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SourceSchemaMergerScalarTests : CompositionTestBase
+public sealed class SourceSchemaMergerScalarTests
 {
     [Theory]
     [MemberData(nameof(ExamplesData))]
@@ -12,7 +13,11 @@ public sealed class SourceSchemaMergerScalarTests : CompositionTestBase
         // arrange
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(sdl),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+            new SourceSchemaMergerOptions
+            {
+                RemoveUnreferencedTypes = false,
+                AddFusionDefinitions = false
+            });
 
         // act
         var result = merger.Merge();
@@ -62,9 +67,9 @@ public sealed class SourceSchemaMergerScalarTests : CompositionTestBase
                 ],
                 """
                 scalar Date
-                    @inaccessible
                     @fusion__type(schema: A)
                     @fusion__type(schema: B)
+                    @fusion__inaccessible
                 """
             },
             // The final description is determined by the first non-null description found in the
@@ -106,6 +111,17 @@ public sealed class SourceSchemaMergerScalarTests : CompositionTestBase
                     @fusion__type(schema: A)
                     @fusion__type(schema: B)
                 """
+            },
+            // Built-in Fusion scalar types should not be merged (FieldSelectionSet/Map).
+            {
+                [
+                    """
+                    # Schema A
+                    directive @provides(fields: FieldSelectionSet!) on FIELD_DEFINITION
+                    directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+                    """
+                ],
+                ""
             }
         };
     }

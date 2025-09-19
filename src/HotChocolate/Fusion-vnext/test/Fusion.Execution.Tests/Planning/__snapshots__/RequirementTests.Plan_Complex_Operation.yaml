@@ -1,0 +1,169 @@
+operation:
+  - document: >-
+      query getReviews(
+        $userId: ID!
+      ) {
+        userById(id: $userId) {
+          name
+        }
+        users {
+          nodes {
+            id
+            id @fusion__requirement
+            reviews {
+              nodes {
+                product {
+                  deliveryEstimate(zip: "123")
+                  id @fusion__requirement
+                  weight @fusion__requirement
+                  dimension @fusion__requirement {
+                    length
+                    width
+                    height
+                  }
+                }
+              }
+            }
+          }
+        }
+        node(id: $userId) {
+          __typename @fusion__requirement
+          id
+          ... on User {
+            name
+          }
+        }
+      }
+    name: getReviews
+    hash: 123456789101112
+    searchSpace: 1
+nodes:
+  - id: 1
+    type: Node
+    idValue: $userId
+    responseName: node
+    branches:
+      - User: 3
+    fallback: 2
+  - id: 2
+    type: Operation
+    operation: >-
+      query getReviews_123456789101112_2(
+        $userId: ID!
+      ) {
+        node(id: $userId) {
+          __typename
+          id
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: a
+    operation: >-
+      query getReviews_123456789101112_3(
+        $userId: ID!
+      ) {
+        node: userById(id: $userId) {
+          __typename
+          id
+          name
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Operation
+    schema: a
+    operation: >-
+      query getReviews_123456789101112_4(
+        $userId: ID!
+      ) {
+        userById(id: $userId) {
+          name
+        }
+        users {
+          nodes {
+            id
+          }
+        }
+      }
+  - id: 5
+    type: Operation
+    schema: f
+    operation: >-
+      query getReviews_123456789101112_5(
+        $__fusion_1_id: ID!
+      ) {
+        userById(id: $__fusion_1_id) {
+          reviews {
+            nodes {
+              product {
+                id
+              }
+            }
+          }
+        }
+      }
+    source: $.userById
+    target: $.users.nodes
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 4
+  - id: 7
+    type: Operation
+    schema: g
+    operation: >-
+      query getReviews_123456789101112_7(
+        $__fusion_3_dimension: ProductDimensionInput!
+        $__fusion_4_id: ID!
+      ) {
+        productById(id: $__fusion_4_id) {
+          deliveryEstimate(zip: "123", dimension: $__fusion_3_dimension)
+        }
+      }
+    source: $.productById
+    target: $.users.nodes.reviews.nodes.product
+    requirements:
+      - name: __fusion_3_dimension
+        selectionMap: >-
+          {
+            weight
+            length: dimension.length
+            width: dimension.width
+            height: dimension.height
+          }
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 5
+      - id: 8
+  - id: 8
+    type: Operation
+    schema: e
+    operation: >-
+      query getReviews_123456789101112_8(
+        $__fusion_5_id: ID!
+      ) {
+        productById(id: $__fusion_5_id) {
+          weight
+          dimension {
+            length
+            width
+            height
+          }
+        }
+      }
+    source: $.productById
+    target: $.users.nodes.reviews.nodes.product
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 5

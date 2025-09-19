@@ -7,7 +7,7 @@ namespace HotChocolate.Transport;
 /// <summary>
 /// Represents a GraphQL operation request that can be sent over a WebSocket or HTTP connection.
 /// </summary>
-public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperationRequest
+public sealed class OperationRequest : IEquatable<OperationRequest>, IOperationRequest
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="OperationRequest"/> struct.
@@ -21,6 +21,9 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// <param name="operationName">
     /// The name of the operation to execute.
     /// </param>
+    /// <param name="onError">
+    /// The requested error handling mode.
+    /// </param>
     /// <param name="variables">
     /// A dictionary containing the variable values to use when executing the operation.
     /// </param>
@@ -28,18 +31,20 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// A dictionary containing extension values to include with the operation.
     /// </param>
     /// <exception cref="ArgumentException">
-    /// Thrown if the query, ID, and extensions parameters are all null.
+    /// Thrown if the `query`, `id`, and `extensions` parameters are all null.
     /// </exception>
     public OperationRequest(
         string? query,
         string? id,
         string? operationName,
+        ErrorHandlingMode? onError,
         ObjectValueNode? variables,
         ObjectValueNode? extensions)
     {
         Query = query;
         Id = id;
         OperationName = operationName;
+        OnError = onError;
         VariablesNode = variables;
         ExtensionsNode = extensions;
     }
@@ -56,6 +61,9 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// <param name="operationName">
     /// The name of the operation to execute.
     /// </param>
+    /// <param name="onError">
+    /// The requested error handling mode.
+    /// </param>
     /// <param name="variables">
     /// A dictionary containing the variable values to use when executing the operation.
     /// </param>
@@ -63,18 +71,20 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// A dictionary containing extension values to include with the operation.
     /// </param>
     /// <exception cref="ArgumentException">
-    /// Thrown if the query, ID, and extensions parameters are all null.
+    /// Thrown if the `query`, `id`, and `extensions` parameters are all null.
     /// </exception>
     public OperationRequest(
         string? query = null,
         string? id = null,
         string? operationName = null,
+        ErrorHandlingMode? onError = null,
         IReadOnlyDictionary<string, object?>? variables = null,
         IReadOnlyDictionary<string, object?>? extensions = null)
     {
         Query = query;
         Id = id;
         OperationName = operationName;
+        OnError = onError;
         Variables = variables;
         Extensions = extensions;
     }
@@ -98,6 +108,11 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// Gets the name of the operation to execute.
     /// </summary>
     public string? OperationName { get; }
+
+    /// <summary>
+    /// Gets the requested error handling mode.
+    /// </summary>
+    public ErrorHandlingMode? OnError { get; }
 
     /// <summary>
     /// Gets a dictionary containing the variable values to use when executing the operation.
@@ -129,10 +144,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// </param>
     public void WriteTo(Utf8JsonWriter writer)
     {
-        if (writer == null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         Utf8JsonWriterHelper.WriteOperationRequest(writer, this);
     }
@@ -146,13 +158,20 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// <returns>
     /// <see langword="true"/> if the two objects are equal; otherwise, <see langword="false"/>.
     /// </returns>
-    public bool Equals(OperationRequest other)
-        => Id == other.Id &&
-            Query == other.Query &&
-            Equals(Variables, other.Variables) &&
-            Equals(Extensions, other.Extensions) &&
-            Equals(VariablesNode, other.VariablesNode) &&
-            Equals(ExtensionsNode, other.ExtensionsNode);
+    public bool Equals(OperationRequest? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return Id == other.Id
+            && Query == other.Query
+            && Equals(Variables, other.Variables)
+            && Equals(Extensions, other.Extensions)
+            && Equals(VariablesNode, other.VariablesNode)
+            && Equals(ExtensionsNode, other.ExtensionsNode);
+    }
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)

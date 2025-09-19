@@ -1,10 +1,10 @@
-﻿schema {
+schema {
   query: Query
   subscription: Foo
 }
 
 type Bar {
-  baz: String
+  baz: String!
 }
 
 type Foo {

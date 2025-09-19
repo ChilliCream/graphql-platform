@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language.Utilities;
 
 internal sealed class FieldSelectionMapSyntaxTokenInfo(
     FieldSelectionMapTokenKind kind,

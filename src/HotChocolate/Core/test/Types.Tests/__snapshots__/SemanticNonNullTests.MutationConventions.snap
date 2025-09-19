@@ -13,6 +13,7 @@ type DoSomethingPayload {
 
 type Mutation {
   doSomething: DoSomethingPayload!
+  doSomethingElse: Boolean!
 }
 
 type MyError implements Error {

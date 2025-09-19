@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace HotChocolate.Fusion.Properties {
+namespace HotChocolate.Fusion.Language.Properties {
     using System;
     
     
@@ -38,7 +38,7 @@ namespace HotChocolate.Fusion.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("HotChocolate.Fusion.Properties.FusionLanguageResources", typeof(FusionLanguageResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("HotChocolate.Fusion.Language.Properties.FusionLanguageResources", typeof(FusionLanguageResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -92,15 +92,6 @@ namespace HotChocolate.Fusion.Properties {
         internal static string MaxAllowedTokensExceeded {
             get {
                 return ResourceManager.GetString("MaxAllowedTokensExceeded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Must be greater than or equal to 1..
-        /// </summary>
-        internal static string NewLineMustBeGreaterThanOrEqualToOne {
-            get {
-                return ResourceManager.GetString("NewLineMustBeGreaterThanOrEqualToOne", resourceCulture);
             }
         }
         

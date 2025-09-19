@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Reflection;
@@ -17,10 +19,7 @@ internal class ObjectToDictionaryConverter
 
     public object Convert(object obj)
     {
-        if(obj is null)
-        {
-            throw new ArgumentNullException(nameof(obj));
-        }
+        ArgumentNullException.ThrowIfNull(obj);
 
         object value = null;
         void SetValue(object v) => value = v;
@@ -59,14 +58,14 @@ internal class ObjectToDictionaryConverter
 
         var type = obj.GetType();
 
-        if (type.IsValueType &&
-            _converter.TryConvert(type, typeof(string), obj, out var converted) &&
-            converted is string s)
+        if (type.IsValueType
+            && _converter.TryConvert(type, typeof(string), obj, out var converted)
+            && converted is string s)
         {
             setValue(s);
         }
-        else if (!typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type) &&
-            obj is ICollection list)
+        else if (!typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type)
+            && obj is ICollection list)
         {
             VisitList(list, setValue, processed);
         }

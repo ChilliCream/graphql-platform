@@ -12,7 +12,7 @@ internal sealed class FieldSetTypeLegacySupportAttribute : ScalarTypeDescriptorA
         // federation v1 uses a different name for the scalar.
         if (descriptor.GetFederationVersion() == FederationVersion.Federation10)
         {
-            descriptor.Extend().Definition.Name = FederationTypeNames.LegacyFieldSetType_Name;
+            descriptor.Extend().Configuration.Name = FederationTypeNames.LegacyFieldSetType_Name;
         }
     }
 }

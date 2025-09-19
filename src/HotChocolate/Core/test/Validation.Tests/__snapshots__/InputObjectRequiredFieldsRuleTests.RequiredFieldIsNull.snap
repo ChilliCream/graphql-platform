@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "`name` is a required field and cannot be null.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 41
+        "Line": 2,
+        "Column": 23
       }
     ],
     "Extensions": {

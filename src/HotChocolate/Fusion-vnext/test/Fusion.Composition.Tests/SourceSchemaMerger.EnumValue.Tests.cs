@@ -1,9 +1,10 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SourceSchemaMergerEnumValueTests : CompositionTestBase
+public sealed class SourceSchemaMergerEnumValueTests
 {
     [Theory]
     [MemberData(nameof(ExamplesData))]
@@ -12,7 +13,11 @@ public sealed class SourceSchemaMergerEnumValueTests : CompositionTestBase
         // arrange
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(sdl),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+            new SourceSchemaMergerOptions
+            {
+                RemoveUnreferencedTypes = false,
+                AddFusionDefinitions = false
+            });
 
         // act
         var result = merger.Merge();
@@ -50,8 +55,8 @@ public sealed class SourceSchemaMergerEnumValueTests : CompositionTestBase
                     ACTIVE
                         @fusion__enumValue(schema: A)
                     INACTIVE
-                        @inaccessible
                         @fusion__enumValue(schema: B)
+                        @fusion__inaccessible
                 }
                 """
             },

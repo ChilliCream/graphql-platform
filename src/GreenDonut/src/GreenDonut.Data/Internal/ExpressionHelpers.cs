@@ -64,7 +64,6 @@ internal static class ExpressionHelpers
         return second;
     }
 
-
     private static Expression CombineWithConvertExpression(UnaryExpression first, Expression second)
     {
         if (second is MemberInitExpression otherMemberInit)

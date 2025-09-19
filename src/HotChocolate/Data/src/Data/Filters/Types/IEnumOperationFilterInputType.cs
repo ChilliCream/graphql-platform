@@ -8,6 +8,4 @@ namespace HotChocolate.Data.Filters;
 /// <see cref="FilterOperationHandler{TContext,T}"/> easier.
 /// <example><see cref="QueryableEnumEqualsHandler"/></example>
 /// </summary>
-public interface IEnumOperationFilterInputType
-{
-}
+public interface IEnumOperationFilterInputType;

@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // MultiProfileClient
 
@@ -73,6 +74,9 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
@@ -140,6 +144,9 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
@@ -1213,199 +1220,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         public static GetHeroQueryDocument Instance { get; } = new GetHeroQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x71,
-            0x75,
-            0x65,
-            0x72,
-            0x79,
-            0x20,
-            0x47,
-            0x65,
-            0x74,
-            0x48,
-            0x65,
-            0x72,
-            0x6f,
-            0x20,
-            0x7b,
-            0x20,
-            0x68,
-            0x65,
-            0x72,
-            0x6f,
-            0x28,
-            0x65,
-            0x70,
-            0x69,
-            0x73,
-            0x6f,
-            0x64,
-            0x65,
-            0x3a,
-            0x20,
-            0x4e,
-            0x45,
-            0x57,
-            0x5f,
-            0x48,
-            0x4f,
-            0x50,
-            0x45,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x66,
-            0x72,
-            0x69,
-            0x65,
-            0x6e,
-            0x64,
-            0x73,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x6e,
-            0x6f,
-            0x64,
-            0x65,
-            0x73,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x44,
-            0x72,
-            0x6f,
-            0x69,
-            0x64,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x48,
-            0x75,
-            0x6d,
-            0x61,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x44,
-            0x72,
-            0x6f,
-            0x69,
-            0x64,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x48,
-            0x75,
-            0x6d,
-            0x61,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetHero { hero(episode: NEW_HOPE) { __typename name friends { __typename nodes { __typename name ... on Droid { id } ... on Human { id } } } ... on Droid { id } ... on Human { id } } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "9f9a72871b1548dfdb9e75702e81c5c5945ff0c3");
 
         public override global::System.String ToString()
@@ -1453,16 +1268,43 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     public partial class GetHeroQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
+        private GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetHeroResult);
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroQuery(_operationExecutor, _configure.Add(configure));
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -1522,6 +1364,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHeroQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery WithRequestUri(global::System.Uri requestUri);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -1548,97 +1393,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         public static OnReviewSubSubscriptionDocument Instance { get; } = new OnReviewSubSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x73,
-            0x75,
-            0x62,
-            0x73,
-            0x63,
-            0x72,
-            0x69,
-            0x70,
-            0x74,
-            0x69,
-            0x6f,
-            0x6e,
-            0x20,
-            0x4f,
-            0x6e,
-            0x52,
-            0x65,
-            0x76,
-            0x69,
-            0x65,
-            0x77,
-            0x53,
-            0x75,
-            0x62,
-            0x20,
-            0x7b,
-            0x20,
-            0x6f,
-            0x6e,
-            0x52,
-            0x65,
-            0x76,
-            0x69,
-            0x65,
-            0x77,
-            0x28,
-            0x65,
-            0x70,
-            0x69,
-            0x73,
-            0x6f,
-            0x64,
-            0x65,
-            0x3a,
-            0x20,
-            0x4e,
-            0x45,
-            0x57,
-            0x5f,
-            0x48,
-            0x4f,
-            0x50,
-            0x45,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x73,
-            0x74,
-            0x61,
-            0x72,
-            0x73,
-            0x20,
-            0x63,
-            0x6f,
-            0x6d,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x61,
-            0x72,
-            0x79,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "subscription OnReviewSub { onReview(episode: NEW_HOPE) { __typename stars commentary } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "92220fce37342d7ade3d63a2a81342eb1fb14bac");
 
         public override global::System.String ToString()
@@ -1720,7 +1475,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
-    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
+    /// mutation CreateReviewMut(
+    ///   $episode: Episode!
+    ///   $review: ReviewInput!
+    /// ) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename
     ///     stars
@@ -1738,161 +1496,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         public static CreateReviewMutMutationDocument Instance { get; } = new CreateReviewMutMutationDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x6d,
-            0x75,
-            0x74,
-            0x61,
-            0x74,
-            0x69,
-            0x6f,
-            0x6e,
-            0x20,
-            0x43,
-            0x72,
-            0x65,
-            0x61,
-            0x74,
-            0x65,
-            0x52,
-            0x65,
-            0x76,
-            0x69,
-            0x65,
-            0x77,
-            0x4d,
-            0x75,
-            0x74,
-            0x28,
-            0x24,
-            0x65,
-            0x70,
-            0x69,
-            0x73,
-            0x6f,
-            0x64,
-            0x65,
-            0x3a,
-            0x20,
-            0x45,
-            0x70,
-            0x69,
-            0x73,
-            0x6f,
-            0x64,
-            0x65,
-            0x21,
-            0x2c,
-            0x20,
-            0x24,
-            0x72,
-            0x65,
-            0x76,
-            0x69,
-            0x65,
-            0x77,
-            0x3a,
-            0x20,
-            0x52,
-            0x65,
-            0x76,
-            0x69,
-            0x65,
-            0x77,
-            0x49,
-            0x6e,
-            0x70,
-            0x75,
-            0x74,
-            0x21,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x63,
-            0x72,
-            0x65,
-            0x61,
-            0x74,
-            0x65,
-            0x52,
-            0x65,
-            0x76,
-            0x69,
-            0x65,
-            0x77,
-            0x28,
-            0x65,
-            0x70,
-            0x69,
-            0x73,
-            0x6f,
-            0x64,
-            0x65,
-            0x3a,
-            0x20,
-            0x24,
-            0x65,
-            0x70,
-            0x69,
-            0x73,
-            0x6f,
-            0x64,
-            0x65,
-            0x2c,
-            0x20,
-            0x72,
-            0x65,
-            0x76,
-            0x69,
-            0x65,
-            0x77,
-            0x3a,
-            0x20,
-            0x24,
-            0x72,
-            0x65,
-            0x76,
-            0x69,
-            0x65,
-            0x77,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x73,
-            0x74,
-            0x61,
-            0x72,
-            0x73,
-            0x20,
-            0x63,
-            0x6f,
-            0x6d,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x61,
-            0x72,
-            0x79,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) { createReview(episode: $episode, review: $review) { __typename stars commentary } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "7b7488dce3bce5700fe4fab0d349728a5121c153");
 
         public override global::System.String ToString()
@@ -1909,7 +1513,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
-    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
+    /// mutation CreateReviewMut(
+    ///   $episode: Episode!
+    ///   $review: ReviewInput!
+    /// ) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename
     ///     stars
@@ -1924,6 +1531,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         private readonly global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _episodeFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _reviewInputFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public CreateReviewMutMutation(global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -1931,11 +1539,39 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             _reviewInputFormatter = serializerResolver.GetInputValueFormatter("ReviewInput");
         }
 
+        private CreateReviewMutMutation(global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter episodeFormatter, global::StrawberryShake.Serialization.IInputValueFormatter reviewInputFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _episodeFormatter = episodeFormatter;
+            _reviewInputFormatter = reviewInputFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ICreateReviewMutResult);
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.CreateReviewMutMutation(_operationExecutor, _configure.Add(configure), _episodeFormatter, _reviewInputFormatter);
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> ExecuteAsync(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.Episode episode, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ReviewInput review, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(episode, review);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -1983,7 +1619,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
-    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
+    /// mutation CreateReviewMut(
+    ///   $episode: Episode!
+    ///   $review: ReviewInput!
+    /// ) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename
     ///     stars
@@ -1995,6 +1634,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ICreateReviewMutMutation : global::StrawberryShake.IOperationRequestFactory
     {
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation WithRequestUri(global::System.Uri requestUri);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> ExecuteAsync(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.Episode episode, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ReviewInput review, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> Watch(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.Episode episode, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ReviewInput review, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -2729,7 +2371,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             }
 
             IGetHero_Hero_Friends returnValue = default !;
-            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHero_Hero_Friends_FriendsConnection(MapIGetHero_Hero_Friends_NodesArray(data.Nodes, snapshot));
             }
@@ -2810,7 +2452,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             }
 
             IGetHero_Hero_Friends returnValue = default !;
-            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHero_Hero_Friends_FriendsConnection(MapIGetHero_Hero_Friends_NodesArray(data.Nodes, snapshot));
             }

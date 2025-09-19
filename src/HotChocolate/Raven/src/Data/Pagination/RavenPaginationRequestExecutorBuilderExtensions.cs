@@ -29,10 +29,7 @@ public static class RavenPaginationRequestExecutorBuilderExtensions
         string providerName = RavenPagination.ProviderName,
         bool defaultProvider = false)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.RegisterDocumentStore();
         builder.AddCursorPagingProvider<RavenCursorPagingProvider>(providerName, defaultProvider);

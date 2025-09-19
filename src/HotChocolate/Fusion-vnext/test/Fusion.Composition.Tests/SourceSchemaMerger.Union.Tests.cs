@@ -1,9 +1,10 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
+public sealed class SourceSchemaMergerUnionTests
 {
     [Theory]
     [MemberData(nameof(ExamplesData))]
@@ -12,7 +13,11 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
         // arrange
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(sdl),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+            new SourceSchemaMergerOptions
+            {
+                RemoveUnreferencedTypes = false,
+                AddFusionDefinitions = false
+            });
 
         // act
         var result = merger.Merge();
@@ -69,8 +74,10 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                 union SearchResult
                     @fusion__type(schema: A)
                     @fusion__type(schema: B)
+                    @fusion__unionMember(schema: A, member: "Product")
                     @fusion__unionMember(schema: A, member: "Order")
-                    @fusion__unionMember(schema: B, member: "Order") = Order
+                    @fusion__unionMember(schema: B, member: "Order")
+                    @fusion__unionMember(schema: B, member: "User") = Product | Order | User
                 """
             },
             // If any of the unions is marked as @inaccessible, then the merged union is also marked
@@ -100,11 +107,11 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                 }
 
                 union SearchResult
-                    @inaccessible
                     @fusion__type(schema: A)
                     @fusion__type(schema: B)
                     @fusion__unionMember(schema: A, member: "User")
-                    @fusion__unionMember(schema: B, member: "User") = User
+                    @fusion__unionMember(schema: B, member: "User")
+                    @fusion__inaccessible = User
                 """
             },
             // The first non-empty description that is found is used as the description for the
@@ -167,7 +174,7 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                     @fusion__type(schema: B) =
                 """
             },
-            // Union member type "User" internal in one of two schemas. No remaining member types.
+            // Union member type "User" internal in one of two schemas.
             {
                 [
                     """
@@ -192,7 +199,8 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
 
                 union SearchResult
                     @fusion__type(schema: A)
-                    @fusion__type(schema: B) =
+                    @fusion__type(schema: B)
+                    @fusion__unionMember(schema: A, member: "User") = User
                 """
             },
             // Union member type "Order" internal in one of two schemas, "Product" visible in both.
@@ -232,7 +240,8 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                     @fusion__type(schema: A)
                     @fusion__type(schema: B)
                     @fusion__unionMember(schema: A, member: "Product")
-                    @fusion__unionMember(schema: B, member: "Product") = Product
+                    @fusion__unionMember(schema: B, member: "Product")
+                    @fusion__unionMember(schema: A, member: "Order") = Product | Order
                 """
             },
             // @lookup
@@ -278,7 +287,7 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                     @fusion__type(schema: A)
                     @fusion__unionMember(schema: A, member: "Dog")
                     @fusion__unionMember(schema: A, member: "Cat")
-                    @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: [ "id" ], path: null) = Dog | Cat
+                    @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: [ "id" ], path: null, internal: false) = Dog | Cat
                 """
             },
             // @lookup on union member type fields.
@@ -315,7 +324,7 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
 
                 type Cat
                     @fusion__type(schema: A)
-                    @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: [ "id" ], path: "animalById") {
+                    @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: [ "id" ], path: "animalById", internal: false) {
                     catById(id: ID!
                         @fusion__inputField(schema: A)): Cat
                         @fusion__field(schema: A)
@@ -323,7 +332,7 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
 
                 type Dog
                     @fusion__type(schema: A)
-                    @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: [ "id" ], path: "animalById") {
+                    @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: [ "id" ], path: "animalById", internal: false) {
                     dogById(id: ID!
                         @fusion__inputField(schema: A)): Dog
                         @fusion__field(schema: A)
@@ -333,7 +342,7 @@ public sealed class SourceSchemaMergerUnionTests : CompositionTestBase
                     @fusion__type(schema: A)
                     @fusion__unionMember(schema: A, member: "Dog")
                     @fusion__unionMember(schema: A, member: "Cat")
-                    @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: [ "id" ], path: null) = Dog | Cat
+                    @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: [ "id" ], path: null, internal: false) = Dog | Cat
                 """
             }
         };

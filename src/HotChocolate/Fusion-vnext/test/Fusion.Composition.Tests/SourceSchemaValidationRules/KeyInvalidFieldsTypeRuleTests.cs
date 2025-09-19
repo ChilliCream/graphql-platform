@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class KeyInvalidFieldsTypeRuleTests : CompositionTestBase
+public sealed class KeyInvalidFieldsTypeRuleTests
 {
     private static readonly object s_rule = new KeyInvalidFieldsTypeRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -82,8 +83,8 @@ public sealed class KeyInvalidFieldsTypeRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "A @key directive on type 'User' in schema 'A' must specify a string value " +
-                    "for the 'fields' argument."
+                    "A @key directive on type 'User' in schema 'A' must specify a string value "
+                    + "for the 'fields' argument."
                 ]
             },
             // Multiple keys.
@@ -96,11 +97,11 @@ public sealed class KeyInvalidFieldsTypeRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "A @key directive on type 'User' in schema 'A' must specify a string value " +
-                    "for the 'fields' argument.",
+                    "A @key directive on type 'User' in schema 'A' must specify a string value "
+                    + "for the 'fields' argument.",
 
-                    "A @key directive on type 'User' in schema 'A' must specify a string value " +
-                    "for the 'fields' argument."
+                    "A @key directive on type 'User' in schema 'A' must specify a string value "
+                    + "for the 'fields' argument."
                 ]
             }
         };

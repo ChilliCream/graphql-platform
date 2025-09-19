@@ -31,15 +31,8 @@ public static class HotChocolateDataQueryableExtensions
     /// </exception>
     public static IQueryable<T> Select<T>(this IQueryable<T> queryable, ISelection selection)
     {
-        if (queryable is null)
-        {
-            throw new ArgumentNullException(nameof(queryable));
-        }
-
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
+        ArgumentNullException.ThrowIfNull(queryable);
+        ArgumentNullException.ThrowIfNull(selection);
 
         return queryable.Select(selection.AsSelector<T>());
     }
@@ -64,15 +57,8 @@ public static class HotChocolateDataQueryableExtensions
     /// </exception>
     public static IQueryable<T> Where<T>(this IQueryable<T> queryable, IFilterContext filter)
     {
-        if (queryable is null)
-        {
-            throw new ArgumentNullException(nameof(queryable));
-        }
-
-        if (filter is null)
-        {
-            throw new ArgumentNullException(nameof(filter));
-        }
+        ArgumentNullException.ThrowIfNull(queryable);
+        ArgumentNullException.ThrowIfNull(filter);
 
         var predicate = filter.AsPredicate<T>();
         return predicate is null ? queryable : queryable.Where(predicate);
@@ -98,15 +84,8 @@ public static class HotChocolateDataQueryableExtensions
     /// </exception>
     public static IQueryable<T> Order<T>(this IQueryable<T> queryable, ISortingContext sorting)
     {
-        if (queryable is null)
-        {
-            throw new ArgumentNullException(nameof(queryable));
-        }
-
-        if (sorting is null)
-        {
-            throw new ArgumentNullException(nameof(sorting));
-        }
+        ArgumentNullException.ThrowIfNull(queryable);
+        ArgumentNullException.ThrowIfNull(sorting);
 
         var sortDefinition = sorting.AsSortDefinition<T>();
 

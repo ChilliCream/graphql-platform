@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
+public sealed class KeyDirectiveInFieldsArgumentRuleTests
 {
     private static readonly object s_rule = new KeyDirectiveInFieldsArgumentRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -80,8 +81,8 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "A @key directive on type 'User' in schema 'A' references field 'name', " +
-                    "which must not include directive applications."
+                    "A @key directive on type 'User' in schema 'A' references field 'name', "
+                    + "which must not include directive applications."
                 ]
             },
             // In this example, the "fields" argument includes a directive application @lowercase
@@ -103,8 +104,8 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "A @key directive on type 'User' in schema 'A' references field " +
-                    "'name.firstName', which must not include directive applications."
+                    "A @key directive on type 'User' in schema 'A' references field "
+                    + "'name.firstName', which must not include directive applications."
                 ]
             },
             // Multiple keys.
@@ -120,11 +121,11 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "A @key directive on type 'User' in schema 'A' references field 'id', " +
-                    "which must not include directive applications.",
+                    "A @key directive on type 'User' in schema 'A' references field 'id', "
+                    + "which must not include directive applications.",
 
-                    "A @key directive on type 'User' in schema 'A' references field 'name', " +
-                    "which must not include directive applications."
+                    "A @key directive on type 'User' in schema 'A' references field 'name', "
+                    + "which must not include directive applications."
                 ]
             }
         };

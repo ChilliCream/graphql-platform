@@ -1,6 +1,6 @@
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-public sealed class ListTypeDescriptor: ITypeDescriptor
+public sealed class ListTypeDescriptor : ITypeDescriptor
 {
     public ListTypeDescriptor(ITypeDescriptor innerType)
     {

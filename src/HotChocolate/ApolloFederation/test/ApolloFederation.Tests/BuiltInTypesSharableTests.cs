@@ -36,7 +36,6 @@ public class BuiltInTypesSharableTests
         schema.MatchSnapshot();
     }
 
-
     public class Query
     {
         [UsePaging]

@@ -1,9 +1,10 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SourceSchemaMergerArgumentTests : CompositionTestBase
+public sealed class SourceSchemaMergerArgumentTests
 {
     [Theory]
     [MemberData(nameof(ExamplesData))]
@@ -12,7 +13,11 @@ public sealed class SourceSchemaMergerArgumentTests : CompositionTestBase
         // arrange
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(sdl),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+            new SourceSchemaMergerOptions
+            {
+                RemoveUnreferencedTypes = false,
+                AddFusionDefinitions = false
+            });
 
         // act
         var result = merger.Merge();
@@ -105,9 +110,9 @@ public sealed class SourceSchemaMergerArgumentTests : CompositionTestBase
                     @fusion__type(schema: A)
                     @fusion__type(schema: B) {
                     field(limit: Int
-                        @inaccessible
                         @fusion__inputField(schema: A)
-                        @fusion__inputField(schema: B)): Int
+                        @fusion__inputField(schema: B)
+                        @fusion__inaccessible): Int
                         @fusion__field(schema: A)
                         @fusion__field(schema: B)
                 }
@@ -156,11 +161,17 @@ public sealed class SourceSchemaMergerArgumentTests : CompositionTestBase
                     """
                     type Product {
                         id: ID!
+                        dimension: ProductDimension!
                         delivery(
                             zip: String!
                             size: Int! @require(field: "dimension.size")
                             weight: Int! @require(field: "dimension.weight")
                         ): DeliveryEstimates
+                    }
+
+                    type ProductDimension {
+                        size: Int!
+                        weight: Int!
                     }
                     """
                 ],
@@ -170,8 +181,18 @@ public sealed class SourceSchemaMergerArgumentTests : CompositionTestBase
                     delivery(zip: String!
                         @fusion__inputField(schema: A)): DeliveryEstimates
                         @fusion__field(schema: A)
-                        @fusion__requires(schema: A, field: "delivery(zip: String! size: Int! weight: Int!): DeliveryEstimates", map: [ null, "dimension.size", "dimension.weight" ])
+                        @fusion__requires(schema: A, requirements: "dimension { size weight }", field: "delivery(zip: String! size: Int! weight: Int!): DeliveryEstimates", map: [ null, "dimension.size", "dimension.weight" ])
+                    dimension: ProductDimension!
+                        @fusion__field(schema: A)
                     id: ID!
+                        @fusion__field(schema: A)
+                }
+
+                type ProductDimension
+                    @fusion__type(schema: A) {
+                    size: Int!
+                        @fusion__field(schema: A)
+                    weight: Int!
                         @fusion__field(schema: A)
                 }
 

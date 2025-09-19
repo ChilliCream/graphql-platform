@@ -17,10 +17,7 @@ public sealed class GraphQLDeprecatedAttribute : Attribute
     /// <param name="deprecationReason">The deprecation reason.</param>
     public GraphQLDeprecatedAttribute(string deprecationReason)
     {
-        if (string.IsNullOrEmpty(deprecationReason))
-        {
-            throw new ArgumentNullException(nameof(deprecationReason));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(deprecationReason);
 
         DeprecationReason = deprecationReason;
     }

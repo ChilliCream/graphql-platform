@@ -18,8 +18,8 @@ internal sealed class KeyInvalidFieldsTypeRule : IEventHandler<KeyFieldsInvalidT
 {
     public void Handle(KeyFieldsInvalidTypeEvent @event, CompositionContext context)
     {
-        var (keyDirective, entityType, schema) = @event;
+        var (keyDirective, type, schema) = @event;
 
-        context.Log.Write(KeyInvalidFieldsType(keyDirective, entityType.Name, schema));
+        context.Log.Write(KeyInvalidFieldsType(keyDirective, type.Name, schema));
     }
 }

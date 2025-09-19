@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class RequireInvalidSyntaxRuleTests : CompositionTestBase
+public sealed class RequireInvalidSyntaxRuleTests
 {
     private static readonly object s_rule = new RequireInvalidSyntaxRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -47,14 +48,14 @@ public sealed class RequireInvalidSyntaxRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // In the following example, the @require directive’s "fields" argument is a valid
+            // In the following example, the @require directive’s "field" argument is a valid
             // selection map and satisfies the rule.
             {
                 [
                     """
                     type User @key(fields: "id") {
                         id: ID!
-                        profile(name: String! @require(fields: "name")): Profile
+                        profile(name: String @require(field: "name")): Profile
                     }
 
                     type Profile {
@@ -71,24 +72,25 @@ public sealed class RequireInvalidSyntaxRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In the following example, the @require directive’s "fields" argument has invalid
+            // In the following example, the @require directive’s "field" argument has invalid
             // syntax because it is missing a closing brace.
             {
                 [
                     """
-                    type Book {
+                    type User @key(fields: "id") {
                         id: ID!
-                        title(lang: String! @require(fields: "author { name ")): String
+                        profile(name: String! @require(field: "{ name ")): Profile
                     }
 
-                    type Author {
+                    type Profile {
+                        id: ID!
                         name: String
                     }
                     """
                 ],
                 [
-                    "The @require directive on argument 'Book.title(lang:)' in schema 'A' " +
-                    "contains invalid syntax in the 'fields' argument."
+                    "The @require directive on argument 'User.profile(name:)' in schema 'A' "
+                    + "contains invalid syntax in the 'field' argument."
                 ]
             }
         };

@@ -18,7 +18,6 @@ public static class ScalarNames
     public const string DateTime = nameof(DateTime);
     public const string Date = nameof(Date);
     public const string TimeSpan = nameof(TimeSpan);
-    public const string Name = nameof(Name);
     public const string JSON = nameof(JSON);
     public const string LocalDate = nameof(LocalDate);
     public const string LocalDateTime = nameof(LocalDateTime);

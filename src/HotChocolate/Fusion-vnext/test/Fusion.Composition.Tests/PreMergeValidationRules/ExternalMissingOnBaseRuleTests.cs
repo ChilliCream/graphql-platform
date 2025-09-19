@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidationRules;
 
-public sealed class ExternalMissingOnBaseRuleTests : CompositionTestBase
+public sealed class ExternalMissingOnBaseRuleTests
 {
     private static readonly object s_rule = new ExternalMissingOnBaseRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -95,8 +96,8 @@ public sealed class ExternalMissingOnBaseRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The external field 'Product.name' in schema 'B' is not defined " +
-                    "(non-external) in any other schema."
+                    "The external field 'Product.name' in schema 'B' is not defined "
+                    + "(non-external) in any other schema."
                 ]
             },
             // The "name" field is marked as @external in both source schemas.
@@ -118,11 +119,11 @@ public sealed class ExternalMissingOnBaseRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The external field 'Product.name' in schema 'A' is not defined " +
-                    "(non-external) in any other schema.",
+                    "The external field 'Product.name' in schema 'A' is not defined "
+                    + "(non-external) in any other schema.",
 
-                    "The external field 'Product.name' in schema 'B' is not defined " +
-                    "(non-external) in any other schema."
+                    "The external field 'Product.name' in schema 'B' is not defined "
+                    + "(non-external) in any other schema."
                 ]
             }
         };

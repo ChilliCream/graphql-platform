@@ -17,10 +17,7 @@ public static class HotChocolateInMemoryPersistedOperationsRequestExecutorBuilde
     public static IRequestExecutorBuilder AddInMemoryOperationDocumentStorage(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchemaServices(
             s => s.AddInMemoryOperationDocumentStorage());

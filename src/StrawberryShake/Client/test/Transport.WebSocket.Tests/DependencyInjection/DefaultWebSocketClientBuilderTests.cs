@@ -9,7 +9,7 @@ public class DefaultWebSocketClientBuilderTests
     {
         // arrange
         var services = new ServiceCollection();
-        var name = "Foo";
+        const string name = "Foo";
 
         // act
         var builder = new DefaultWebSocketClientBuilder(services, name);
@@ -22,7 +22,7 @@ public class DefaultWebSocketClientBuilderTests
     public void Constructor_ServicesNull_ThrowError()
     {
         // arrange
-        var name = "Foo";
+        const string name = "Foo";
 
         // act
         var ex = Record.Exception(() => new DefaultWebSocketClientBuilder(null!, name));

@@ -1,0 +1,12 @@
+query listStagesQuery($apiId: ID!) {
+  node(id: $apiId) {
+    ... on Api {
+      stages {
+        id
+        name
+        displayName
+        ...StageDetailPrompt_Stage
+      }
+    }
+  }
+}

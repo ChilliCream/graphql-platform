@@ -16,11 +16,11 @@ public class QueryableEnumInHandler
 
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
     {
-        return context.Type is IEnumOperationFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition operationField &&
-            operationField.Id == Operation;
+        return context.Type is IEnumOperationFilterInputType
+            && fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id == Operation;
     }
 }

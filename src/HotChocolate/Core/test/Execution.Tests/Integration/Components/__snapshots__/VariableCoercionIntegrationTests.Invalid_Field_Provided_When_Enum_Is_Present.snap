@@ -1,0 +1,13 @@
+{
+  "errors": [
+    {
+      "message": "The field `foo` does not exist on the type `UserInput`.",
+      "path": [
+        "user"
+      ],
+      "extensions": {
+        "type": "UserInput"
+      }
+    }
+  ]
+}

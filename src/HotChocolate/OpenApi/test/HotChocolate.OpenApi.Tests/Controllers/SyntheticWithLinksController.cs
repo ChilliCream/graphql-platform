@@ -13,7 +13,7 @@ public sealed class SyntheticWithLinksController : ControllerBase
         return new JsonResult(new List<Article>
         {
             new(1, "title", AuthorUserId: 1),
-            new(2, "title", AuthorUserId: 1),
+            new(2, "title", AuthorUserId: 1)
         });
     }
 

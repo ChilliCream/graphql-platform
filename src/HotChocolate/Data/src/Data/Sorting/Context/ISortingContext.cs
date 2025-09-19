@@ -3,7 +3,7 @@ using GreenDonut.Data;
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>
-/// Encapsulates all sorting specific information
+/// Encapsulates all sorting-specific information
 /// </summary>
 public interface ISortingContext
 {
@@ -52,5 +52,3 @@ public interface ISortingContext
     /// </returns>
     SortDefinition<T>? AsSortDefinition<T>();
 }
-
-public delegate TQuery PostSortingAction<TQuery>(bool userDefinedSorting, TQuery query);

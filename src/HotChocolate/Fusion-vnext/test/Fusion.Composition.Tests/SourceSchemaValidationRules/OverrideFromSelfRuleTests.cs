@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class OverrideFromSelfRuleTests : CompositionTestBase
+public sealed class OverrideFromSelfRuleTests
 {
     private static readonly object s_rule = new OverrideFromSelfRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -88,8 +89,8 @@ public sealed class OverrideFromSelfRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The @override directive on field 'Bill.amount' in schema 'A' must not " +
-                    "reference the same schema."
+                    "The @override directive on field 'Bill.amount' in schema 'A' must not "
+                    + "reference the same schema."
                 ]
             }
         };

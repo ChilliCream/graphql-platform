@@ -1,7 +1,7 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -26,7 +26,7 @@ internal sealed class DisallowedInaccessibleElementsRule
         var (type, schema) = @event;
 
         // Built-in scalar types must be accessible.
-        if (type is ScalarTypeDefinition { IsSpecScalar: true } scalar
+        if (type is MutableScalarTypeDefinition { IsSpecScalar: true } scalar
             && scalar.HasInaccessibleDirective())
         {
             context.Log.Write(DisallowedInaccessibleBuiltInScalar(scalar, schema));

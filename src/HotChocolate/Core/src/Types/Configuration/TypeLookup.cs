@@ -3,13 +3,11 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
-#nullable  enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class TypeLookup
 {
-    private readonly Dictionary<TypeReference, TypeReference> _refs = new();
+    private readonly Dictionary<TypeReference, TypeReference> _refs = [];
     private readonly ITypeInspector _typeInspector;
     private readonly TypeRegistry _typeRegistry;
 
@@ -27,10 +25,7 @@ internal sealed class TypeLookup
         TypeReference typeRef,
         [NotNullWhen(true)] out TypeReference? namedTypeRef)
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         // if we already created a lookup for this type reference we can just return the
         // the type reference to the named type.
@@ -93,15 +88,12 @@ internal sealed class TypeLookup
         ExtendedTypeReference typeRef,
         [NotNullWhen(true)] out TypeReference? namedTypeRef)
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         // if the typeRef refers to a schema type base class we skip since such a type is not
         // resolvable.
-        if (typeRef.Type.Type.IsNonGenericSchemaType() ||
-            !_typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo))
+        if (typeRef.Type.Type.IsNonGenericSchemaType()
+            || !_typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo))
         {
             namedTypeRef = null;
             return false;
@@ -121,8 +113,8 @@ internal sealed class TypeLookup
         {
             var componentType = typeInfo.Components[i].Type;
             var componentRef = typeRef.WithType(componentType);
-            if (_typeRegistry.TryGetTypeRef(componentRef, out namedTypeRef) ||
-                _typeRegistry.TryGetTypeRef(componentRef.WithContext(), out namedTypeRef))
+            if (_typeRegistry.TryGetTypeRef(componentRef, out namedTypeRef)
+                || _typeRegistry.TryGetTypeRef(componentRef.WithContext(), out namedTypeRef))
             {
                 return true;
             }

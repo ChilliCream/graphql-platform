@@ -6,12 +6,10 @@ namespace HotChocolate.Data.MongoDb;
 
 public static class SortDefinitionExtensions
 {
-    public static MongoDbSortDefinition Wrap<T>(
-        this MongoDB.Driver.SortDefinition<T> sortDefinition)
+    public static MongoDbSortDefinition Wrap<T>(this SortDefinition<T> sortDefinition)
         => new SortDefinitionWrapper<T>(sortDefinition);
 
-    private sealed class SortDefinitionWrapper<TDocument>(
-        MongoDB.Driver.SortDefinition<TDocument> sort)
+    private sealed class SortDefinitionWrapper<TDocument>(SortDefinition<TDocument> sort)
         : MongoDbSortDefinition
     {
         public override BsonDocument Render(

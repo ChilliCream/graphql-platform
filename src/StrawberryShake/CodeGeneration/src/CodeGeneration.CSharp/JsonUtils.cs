@@ -23,10 +23,12 @@ public static class JsonUtils
             TypeNames.Decimal => nameof(JsonElement.GetDecimal),
             TypeNames.DateTimeOffset => nameof(JsonElement.GetString),
             TypeNames.DateTime => nameof(JsonElement.GetString),
+            TypeNames.DateOnly => nameof(JsonElement.GetString),
+            TypeNames.TimeOnly => nameof(JsonElement.GetString),
             TypeNames.TimeSpan => nameof(JsonElement.GetString),
             TypeNames.Boolean => nameof(JsonElement.GetBoolean),
             TypeNames.Guid => nameof(JsonElement.GetGuid),
-            _ => throw new NotSupportedException("Serialization format not supported."),
+            _ => throw new NotSupportedException("Serialization format not supported.")
         };
     }
 
@@ -49,10 +51,12 @@ public static class JsonUtils
             TypeNames.Decimal => nameof(Utf8JsonWriter.WriteNumber),
             TypeNames.DateTimeOffset => nameof(Utf8JsonWriter.WriteString),
             TypeNames.DateTime => nameof(Utf8JsonWriter.WriteString),
+            TypeNames.DateOnly => nameof(Utf8JsonWriter.WriteString),
+            TypeNames.TimeOnly => nameof(Utf8JsonWriter.WriteString),
             TypeNames.TimeSpan => nameof(Utf8JsonWriter.WriteString),
             TypeNames.Boolean => nameof(Utf8JsonWriter.WriteBoolean),
             TypeNames.Guid => nameof(Utf8JsonWriter.WriteString),
-            _ => throw new NotSupportedException("Serialization format not supported."),
+            _ => throw new NotSupportedException("Serialization format not supported.")
         };
     }
 }

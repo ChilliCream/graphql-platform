@@ -1,0 +1,35 @@
+{
+  "errors": [
+    {
+      "message": "Error 1",
+      "locations": [
+        {
+          "line": 1,
+          "column": 23
+        }
+      ],
+      "path": [
+        "withErrors"
+      ],
+      "extensions": {
+        "code": "Code 1"
+      }
+    },
+    {
+      "message": "Error 2",
+      "locations": [
+        {
+          "line": 1,
+          "column": 23
+        }
+      ],
+      "path": [
+        "withErrors"
+      ],
+      "extensions": {
+        "code": "Code 2"
+      }
+    }
+  ],
+  "data": null
+}

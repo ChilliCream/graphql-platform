@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Data/HotChocolate.Data.csproj" />
+    <Project Path="src/EntityFramework/HotChocolate.Data.EntityFramework.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Data.EntityFramework.Pagination.Tests/HotChocolate.Data.EntityFramework.Pagination.Tests.csproj" />
+    <Project Path="test/Data.EntityFramework.Tests/HotChocolate.Data.EntityFramework.Tests.csproj" />
+    <Project Path="test/Data.Filters.InMemory.Tests/HotChocolate.Data.Filters.InMemory.Tests.csproj" />
+    <Project Path="test/Data.Filters.SqlServer.Tests/HotChocolate.Data.Filters.SqlServer.Tests.csproj" />
+    <Project Path="test/Data.Filters.Tests/HotChocolate.Data.Filters.Tests.csproj" />
+    <Project Path="test/Data.PostgreSQL.Tests/HotChocolate.Data.PostgreSQL.Tests.csproj" />
+    <Project Path="test/Data.Projections.SqlServer.Tests/HotChocolate.Data.Projections.SqlServer.Tests.csproj" />
+    <Project Path="test/Data.Projections.Tests/HotChocolate.Data.Projections.Tests.csproj" />
+    <Project Path="test/Data.Sorting.InMemory.Tests/HotChocolate.Data.Sorting.InMemory.Tests.csproj" />
+    <Project Path="test/Data.Sorting.SqlLite.Tests/HotChocolate.Data.Sorting.SqlLite.Tests.csproj" />
+    <Project Path="test/Data.Sorting.Tests/HotChocolate.Data.Sorting.Tests.csproj" />
+    <Project Path="test/Data.Tests/HotChocolate.Data.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -3,32 +3,34 @@ using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
 public sealed class MiddlewareGenerator : ISyntaxGenerator
 {
-    private const string _namespace = "HotChocolate.Execution.Generated";
+    private const string Namespace = "HotChocolate.Execution.Generated";
 
     public void Generate(
         SourceProductionContext context,
-        Compilation compilation,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
+        string assemblyName,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        Action<string, SourceText> addSource)
     {
         if (syntaxInfos.IsEmpty)
         {
             return;
         }
 
-        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out _);
+        var module = syntaxInfos.GetModuleInfo(assemblyName, out _);
 
         // the generator is disabled.
-        if(module.Options == ModuleOptions.Disabled)
+        if (module.Options == ModuleOptions.Disabled)
         {
             return;
         }
 
-        if((module.Options & ModuleOptions.RegisterTypes) != ModuleOptions.RegisterTypes)
+        if ((module.Options & ModuleOptions.RegisterTypes) != ModuleOptions.RegisterTypes)
         {
             return;
         }
@@ -39,7 +41,7 @@ public sealed class MiddlewareGenerator : ISyntaxGenerator
             return;
         }
 
-        using var generator = new RequestMiddlewareFileBuilder(module.ModuleName, _namespace);
+        using var generator = new RequestMiddlewareFileBuilder(module.ModuleName, Namespace);
 
         generator.WriteHeader();
         generator.WriteBeginNamespace();
@@ -63,6 +65,6 @@ public sealed class MiddlewareGenerator : ISyntaxGenerator
 
         generator.WriteEndNamespace();
 
-        context.AddSource(WellKnownFileNames.MiddlewareFile, generator.ToSourceText());
+        addSource(WellKnownFileNames.MiddlewareFile, generator.ToSourceText());
     }
 }

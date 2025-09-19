@@ -19,10 +19,7 @@ public class EntityStoreTests
         });
 
         // act
-        entityStore.Update(session =>
-        {
-            session.SetEntity(entityId, new MockEntity("abc", 1));
-        });
+        entityStore.Update(session => session.SetEntity(entityId, new MockEntity("abc", 1)));
 
         await Task.Delay(250);
 
@@ -45,19 +42,13 @@ public class EntityStoreTests
         var entityStore = new EntityStore();
         var entityId = new EntityId(nameof(MockEntity), 1);
 
-        entityStore.Update(session =>
-        {
-            session.SetEntity(entityId, new MockEntity("abc", 1));
-        });
+        entityStore.Update(session => session.SetEntity(entityId, new MockEntity("abc", 1)));
 
         // act
-        entityStore.Update(session =>
-        {
-            session.RemoveEntity(entityId);
-        });
+        entityStore.Update(session => session.RemoveEntity(entityId));
 
-        while (entityStore.CurrentSnapshot.GetEntityIds().Count > 0 &&
-            !cts.IsCancellationRequested)
+        while (entityStore.CurrentSnapshot.GetEntityIds().Count > 0
+            && !cts.IsCancellationRequested)
         {
             await Task.Delay(50, cts.Token);
         }

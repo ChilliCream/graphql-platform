@@ -1,4 +1,6 @@
+#if NET8_0_OR_GREATER
 using System.Runtime.CompilerServices;
+#endif
 using System.Security.Cryptography;
 
 namespace HotChocolate.Language;
@@ -31,7 +33,7 @@ public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
 
         if (written < 16)
         {
-            hashSpan = hashSpan.Slice(0, written);
+            hashSpan = hashSpan[..written];
         }
 
         return FormatHash(hashSpan, format);

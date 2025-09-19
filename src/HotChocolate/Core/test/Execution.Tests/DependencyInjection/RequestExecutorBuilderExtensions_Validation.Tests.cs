@@ -69,13 +69,12 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
-    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed()
     {
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AddIntrospectionAllowedRule()
+            .DisableIntrospection()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
                     .New()
@@ -85,13 +84,12 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
-    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_NotAllowed()
     {
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AllowIntrospection(false)
+            .DisableIntrospection(disable: true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder
                     .New()
@@ -101,13 +99,12 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
-    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_Allowed()
     {
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AllowIntrospection(true)
+            .DisableIntrospection(disable: false)
             .ExecuteRequestAsync(
                 OperationRequestBuilder
                     .New()
@@ -117,13 +114,12 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
-    [Obsolete]
     public async Task AllowIntrospection_IntegrationTest_NotAllowed_CustomMessage()
     {
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AllowIntrospection(false)
+            .DisableIntrospection()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
                     .New()
@@ -134,30 +130,12 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
-    [Obsolete]
-    public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed_CustomMessageFact()
-    {
-        await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AddIntrospectionAllowedRule()
-            .ExecuteRequestAsync(
-                OperationRequestBuilder
-                    .New()
-                    .SetDocument("{ __schema { description } }")
-                    .SetIntrospectionNotAllowedMessage(() => "Bar")
-                    .Build())
-            .MatchSnapshotAsync();
-    }
-
-    [Fact]
-    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed_CustomMessage()
     {
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AddIntrospectionAllowedRule()
+            .DisableIntrospection()
             .ExecuteRequestAsync(
                 OperationRequestBuilder
                     .New()
@@ -168,14 +146,13 @@ public class RequestExecutorBuilderExtensionsValidationTests
     }
 
     [Fact]
-    [Obsolete]
     public async Task AddIntrospectionAllowedRule_IntegrationTest_Allowed()
     {
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-                .AddIntrospectionAllowedRule()
+                .DisableIntrospection()
                 .BuildRequestExecutorAsync();
 
         var results = new List<string>();
@@ -216,7 +193,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
         public ushort Priority => ushort.MaxValue;
         public bool IsCacheable => true;
 
-        public void Validate(IDocumentValidatorContext context, DocumentNode document)
+        public void Validate(DocumentValidatorContext context, DocumentNode document)
         {
             throw new NotImplementedException();
         }

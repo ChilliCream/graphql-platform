@@ -3,17 +3,17 @@ using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Validation;
 
-public class DocumentValidatorVisitor : SyntaxWalker<IDocumentValidatorContext>
+public class DocumentValidatorVisitor : SyntaxWalker<DocumentValidatorContext>
 {
     protected DocumentValidatorVisitor(SyntaxVisitorOptions options = default)
         : base(Continue, options)
     {
     }
 
-    protected override IDocumentValidatorContext OnAfterEnter(
+    protected override DocumentValidatorContext OnAfterEnter(
         ISyntaxNode node,
         ISyntaxNode? parent,
-        IDocumentValidatorContext context,
+        DocumentValidatorContext context,
         ISyntaxVisitorAction action)
     {
         if (action.IsContinue())
@@ -23,14 +23,14 @@ public class DocumentValidatorVisitor : SyntaxWalker<IDocumentValidatorContext>
         return context;
     }
 
-    protected override IDocumentValidatorContext OnBeforeLeave(
+    protected override DocumentValidatorContext OnBeforeLeave(
         ISyntaxNode node,
         ISyntaxNode? parent,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (node.Kind == SyntaxKind.OperationDefinition)
         {
-            context.VisitedFragments.Clear();
+            context.Fragments.Reset();
         }
         context.Path.Pop();
         return context;
@@ -38,12 +38,12 @@ public class DocumentValidatorVisitor : SyntaxWalker<IDocumentValidatorContext>
 
     protected override ISyntaxVisitorAction VisitChildren(
         DocumentNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         for (var i = 0; i < node.Definitions.Count; i++)
         {
-            if (node.Definitions[i].Kind != SyntaxKind.FragmentDefinition &&
-                Visit(node.Definitions[i], node, context).IsBreak())
+            if (node.Definitions[i].Kind != SyntaxKind.FragmentDefinition
+                && Visit(node.Definitions[i], node, context).IsBreak())
             {
                 return Break;
             }
@@ -54,19 +54,19 @@ public class DocumentValidatorVisitor : SyntaxWalker<IDocumentValidatorContext>
 
     protected override ISyntaxVisitorAction VisitChildren(
         FragmentSpreadNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (base.VisitChildren(node, context).IsBreak())
         {
             return Break;
         }
 
-        if (context.Fragments.TryGetValue(
-            node.Name.Value,
-            out var fragment) &&
-            context.VisitedFragments.Add(fragment.Name.Value))
+        if (context.Fragments.TryEnter(node, out var fragment))
         {
-            if (Visit(fragment, node, context).IsBreak())
+            var result = Visit(fragment, node, context);
+            context.Fragments.Leave(fragment);
+
+            if (result.IsBreak())
             {
                 return Break;
             }

@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class KeyInvalidSyntaxRuleTests : CompositionTestBase
+public sealed class KeyInvalidSyntaxRuleTests
 {
     private static readonly object s_rule = new KeyInvalidSyntaxRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -86,8 +87,8 @@ public sealed class KeyInvalidSyntaxRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "A @key directive on type 'Product' in schema 'A' contains invalid syntax in " +
-                    "the 'fields' argument."
+                    "A @key directive on type 'Product' in schema 'A' contains invalid syntax in "
+                    + "the 'fields' argument."
                 ]
             }
         };

@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class ProvidesInvalidSyntaxRuleTests : CompositionTestBase
+public sealed class ProvidesInvalidSyntaxRuleTests
 {
     private static readonly object s_rule = new ProvidesInvalidSyntaxRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -82,8 +83,8 @@ public sealed class ProvidesInvalidSyntaxRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The @provides directive on field 'User.address' in schema 'A' contains " +
-                    "invalid syntax in the 'fields' argument."
+                    "The @provides directive on field 'User.address' in schema 'A' contains "
+                    + "invalid syntax in the 'fields' argument."
                 ]
             }
         };

@@ -252,6 +252,16 @@ ModifyRequestOptions(o => o.OnlyAllowPersistedOperations = true);
 ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true);
 ```
 
+# Other changes
+
+## Change to `SingleOrDefaultMiddleware`
+
+As a side-effect of fixing [a bug](https://github.com/ChilliCream/graphql-platform/issues/5566) in the `SingleOrDefaultMiddleware`, usage of this middleware along with EF Core may result in a warning being logged, as follows:
+
+> The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+
+We are looking at fixing this in a different way in the future (see [#8070](https://github.com/ChilliCream/graphql-platform/issues/8070)), but for now you can work around this by returning an `IExecutable` from your resolver by calling `AsDbContextExecutable()` on your `IQueryable` or `DbSet`, or by using `Executable.From(...)`.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

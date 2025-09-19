@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidationRules;
 
-public sealed class InputWithMissingRequiredFieldsRuleTests : CompositionTestBase
+public sealed class InputWithMissingRequiredFieldsRuleTests
 {
     private static readonly object s_rule = new InputWithMissingRequiredFieldsRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -115,8 +116,8 @@ public sealed class InputWithMissingRequiredFieldsRuleTests : CompositionTestBas
                     """
                 ],
                 [
-                    "The input type 'BookFilter' in schema 'B' must define the required field " +
-                    "'title'."
+                    "The input type 'BookFilter' in schema 'B' must define the required field "
+                    + "'title'."
                 ]
             },
             // Multiple required input fields.
@@ -138,11 +139,11 @@ public sealed class InputWithMissingRequiredFieldsRuleTests : CompositionTestBas
                     """
                 ],
                 [
-                    "The input type 'BookFilter' in schema 'A' must define the required field " +
-                    "'author'.",
+                    "The input type 'BookFilter' in schema 'A' must define the required field "
+                    + "'author'.",
 
-                    "The input type 'BookFilter' in schema 'B' must define the required field " +
-                    "'title'."
+                    "The input type 'BookFilter' in schema 'B' must define the required field "
+                    + "'title'."
                 ]
             }
         };

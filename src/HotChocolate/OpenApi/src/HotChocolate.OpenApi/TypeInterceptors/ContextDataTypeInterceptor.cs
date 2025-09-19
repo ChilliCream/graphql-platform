@@ -1,14 +1,18 @@
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Mutable;
+using EnumTypeDefinition = HotChocolate.Types.Descriptors.Configurations.EnumTypeDefinition;
+using InterfaceTypeDefinition = HotChocolate.Types.Descriptors.Configurations.InterfaceTypeDefinition;
+using ObjectTypeDefinition = HotChocolate.Types.Descriptors.Configurations.ObjectTypeDefinition;
+using UnionTypeDefinition = HotChocolate.Types.Descriptors.Configurations.UnionTypeDefinition;
 
 namespace HotChocolate.OpenApi.TypeInterceptors;
 
 /// <summary>
-/// Copies OpenAPI-related context data from the skimmed schema to the type definitions.
+/// Copies OpenAPI-related context data from the Mutable schema to the type definitions.
 /// </summary>
-public sealed class ContextDataTypeInterceptor(Skimmed.SchemaDefinition schema) : TypeInterceptor
+public sealed class ContextDataTypeInterceptor(MutableSchemaDefinition schema) : TypeInterceptor
 {
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
@@ -36,7 +40,7 @@ public sealed class ContextDataTypeInterceptor(Skimmed.SchemaDefinition schema) 
 
     private void CopyContextData(SchemaCoordinate coordinate, IDefinition memberDef)
     {
-        Skimmed.ITypeSystemMemberDefinition? member = null;
+        ITypeSystemMember? member = null;
 
         switch (coordinate.Name)
         {

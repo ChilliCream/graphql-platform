@@ -1,4 +1,6 @@
-﻿query($if: Boolean!) {
+query(
+  $if: Boolean!
+) {
   human(id: "1000") {
     ... Human1 @include(if: $if)
     ... Human2 @skip(if: $if)
@@ -46,7 +48,9 @@ fragment Human3 on Human {
 
 ---------------------------------------------------------
 
-query($if: Boolean!) @includeCondition(flag: 2) @includeCondition(flag: 3) {
+query(
+  $if: Boolean!
+) @includeCondition(flag: 2) @includeCondition(flag: 3) {
   ... on Query {
     human(id: "1000") @__execute(id: 0, kind: PURE, type: COMPOSITE) {
       ... on Human {

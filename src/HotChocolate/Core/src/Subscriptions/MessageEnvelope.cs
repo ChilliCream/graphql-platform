@@ -27,7 +27,7 @@ public readonly struct MessageEnvelope<TBody>
                 nameof(body));
         }
 
-        if(kind is MessageKind.Completed)
+        if (kind is MessageKind.Completed)
         {
             Body = default;
         }

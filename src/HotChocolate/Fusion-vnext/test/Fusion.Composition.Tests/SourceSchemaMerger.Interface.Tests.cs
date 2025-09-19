@@ -1,9 +1,10 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
+public sealed class SourceSchemaMergerInterfaceTests
 {
     [Theory]
     [MemberData(nameof(ExamplesData))]
@@ -12,7 +13,11 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
         // arrange
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(sdl),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+            new SourceSchemaMergerOptions
+            {
+                RemoveUnreferencedTypes = false,
+                AddFusionDefinitions = false
+            });
 
         // act
         var result = merger.Merge();
@@ -114,9 +119,9 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
                 ],
                 """
                 interface Product
-                    @inaccessible
                     @fusion__type(schema: A)
-                    @fusion__type(schema: B) {
+                    @fusion__type(schema: B)
+                    @fusion__inaccessible {
                     id: ID!
                         @fusion__field(schema: A)
                         @fusion__field(schema: B)
@@ -168,9 +173,9 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
                 }
 
                 interface I2
-                    @inaccessible
                     @fusion__type(schema: A)
-                    @fusion__type(schema: B) {
+                    @fusion__type(schema: B)
+                    @fusion__inaccessible {
                     id: ID!
                         @fusion__field(schema: A)
                         @fusion__field(schema: B)
@@ -227,8 +232,8 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
 
                 interface Product
                     @fusion__type(schema: A)
-                    @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: [ "id" ], path: null)
-                    @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: [ "name" ], path: null) {
+                    @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: [ "id" ], path: null, internal: false)
+                    @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: [ "name" ], path: null, internal: false) {
                     id: ID!
                         @fusion__field(schema: A)
                     name: String!
@@ -275,7 +280,7 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
                 type Cat implements Animal
                     @fusion__type(schema: A)
                     @fusion__implements(schema: A, interface: "Animal")
-                    @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: [ "id" ], path: "animalById") {
+                    @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: [ "id" ], path: "animalById", internal: false) {
                     catById(id: ID!
                         @fusion__inputField(schema: A)): Cat
                         @fusion__field(schema: A)
@@ -286,7 +291,7 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
                 type Dog implements Animal
                     @fusion__type(schema: A)
                     @fusion__implements(schema: A, interface: "Animal")
-                    @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: [ "id" ], path: "animalById") {
+                    @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: [ "id" ], path: "animalById", internal: false) {
                     dogById(id: ID!
                         @fusion__inputField(schema: A)): Dog
                         @fusion__field(schema: A)
@@ -296,7 +301,7 @@ public sealed class SourceSchemaMergerInterfaceTests : CompositionTestBase
 
                 interface Animal
                     @fusion__type(schema: A)
-                    @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: [ "id" ], path: null) {
+                    @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: [ "id" ], path: null, internal: false) {
                     id: ID!
                         @fusion__field(schema: A)
                 }

@@ -13,5 +13,5 @@ public enum EnumWithDocEnum
     /// <summary>
     /// Value2 Documentation
     /// </summary>
-    Value2,
+    Value2
 }

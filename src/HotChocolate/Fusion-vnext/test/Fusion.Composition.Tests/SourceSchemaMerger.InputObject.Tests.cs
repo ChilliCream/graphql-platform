@@ -1,9 +1,10 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SourceSchemaMergerInputObjectTests : CompositionTestBase
+public sealed class SourceSchemaMergerInputObjectTests
 {
     [Theory]
     [MemberData(nameof(ExamplesData))]
@@ -12,7 +13,11 @@ public sealed class SourceSchemaMergerInputObjectTests : CompositionTestBase
         // arrange
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(sdl),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+            new SourceSchemaMergerOptions
+            {
+                RemoveUnreferencedTypes = false,
+                AddFusionDefinitions = false
+            });
 
         // act
         var result = merger.Merge();
@@ -111,9 +116,9 @@ public sealed class SourceSchemaMergerInputObjectTests : CompositionTestBase
                 ],
                 """
                 input OrderInput
-                    @inaccessible
                     @fusion__type(schema: A)
-                    @fusion__type(schema: B) {
+                    @fusion__type(schema: B)
+                    @fusion__inaccessible {
                     id: ID!
                         @fusion__inputField(schema: A)
                         @fusion__inputField(schema: B)

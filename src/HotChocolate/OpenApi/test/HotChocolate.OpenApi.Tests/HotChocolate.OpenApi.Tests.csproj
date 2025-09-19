@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\HotChocolate.OpenApi\HotChocolate.OpenApi.csproj" />
-    <ProjectReference Include="..\..\..\Skimmed\src\Skimmed\Skimmed.csproj" />
+    <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
   </ItemGroup>
 

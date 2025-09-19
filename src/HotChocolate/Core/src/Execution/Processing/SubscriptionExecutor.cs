@@ -8,34 +8,34 @@ internal sealed partial class SubscriptionExecutor
 {
     private readonly ObjectPool<OperationContext> _operationContextPool;
     private readonly QueryExecutor _queryExecutor;
+    private readonly IErrorHandler _errorHandler;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
     public SubscriptionExecutor(
         ObjectPool<OperationContext> operationContextPool,
         QueryExecutor queryExecutor,
+        IErrorHandler errorHandler,
         IExecutionDiagnosticEvents diagnosticEvents)
     {
         _operationContextPool = operationContextPool;
         _queryExecutor = queryExecutor;
+        _errorHandler = errorHandler;
         _diagnosticEvents = diagnosticEvents;
     }
 
     public async Task<IExecutionResult> ExecuteAsync(
-        IRequestContext requestContext,
+        RequestContext requestContext,
         Func<object?> resolveQueryValue)
     {
-        if (requestContext is null)
-        {
-            throw new ArgumentNullException(nameof(requestContext));
-        }
+        ArgumentNullException.ThrowIfNull(requestContext);
 
-        if (requestContext.Operation is null || requestContext.Variables is null)
+        if (requestContext.VariableValues.Length == 0)
         {
             throw SubscriptionExecutor_ContextInvalidState();
         }
 
-        var selectionSet = requestContext.Operation.RootSelectionSet;
-
+        var operation = requestContext.GetOperation();
+        var selectionSet = operation.RootSelectionSet;
         if (selectionSet.Selections.Count != 1)
         {
             throw SubscriptionExecutor_SubscriptionsMustHaveOneField();
@@ -54,7 +54,7 @@ internal sealed partial class SubscriptionExecutor
                 _operationContextPool,
                 _queryExecutor,
                 requestContext,
-                requestContext.Operation.RootType,
+                operation.RootType,
                 selectionSet,
                 resolveQueryValue,
                 _diagnosticEvents)
@@ -79,9 +79,7 @@ internal sealed partial class SubscriptionExecutor
         }
         catch (Exception ex)
         {
-            requestContext.Exception = ex;
-            var errorBuilder = requestContext.ErrorHandler.CreateUnexpectedError(ex);
-            var error = requestContext.ErrorHandler.Handle(errorBuilder.Build());
+            var error = _errorHandler.Handle(ErrorBuilder.FromException(ex).Build());
 
             if (subscription is not null)
             {
@@ -91,14 +89,14 @@ internal sealed partial class SubscriptionExecutor
             return new OperationResult(null, Unwrap(error));
         }
 
-        IReadOnlyList<IError> Unwrap(IError error)
+        static IReadOnlyList<IError> Unwrap(IError error)
         {
             if (error is AggregateError aggregateError)
             {
                 return aggregateError.Errors;
             }
 
-            return new[] { error, };
+            return [error];
         }
     }
 }

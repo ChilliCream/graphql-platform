@@ -7,15 +7,15 @@ namespace HotChocolate.Types;
 /// </summary>
 public static class Directives
 {
-    private static readonly HashSet<string> _directiveNames =
+    private static readonly HashSet<string> s_directiveNames =
     [
-        WellKnownDirectives.Skip,
-        WellKnownDirectives.Include,
-        WellKnownDirectives.Deprecated,
-        WellKnownDirectives.Stream,
-        WellKnownDirectives.Defer,
-        WellKnownDirectives.OneOf,
-        WellKnownDirectives.SemanticNonNull
+        DirectiveNames.Skip.Name,
+        DirectiveNames.Include.Name,
+        DirectiveNames.Deprecated.Name,
+        DirectiveNames.Stream.Name,
+        DirectiveNames.Defer.Name,
+        DirectiveNames.OneOf.Name,
+        DirectiveNames.SemanticNonNull.Name
     ];
 
     internal static IReadOnlyList<TypeReference> CreateReferences(
@@ -61,11 +61,8 @@ public static class Directives
     /// </summary>
     public static bool IsBuiltIn(string typeName)
     {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
 
-        return _directiveNames.Contains(typeName);
+        return s_directiveNames.Contains(typeName);
     }
 }

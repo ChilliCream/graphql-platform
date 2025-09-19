@@ -1,5 +1,5 @@
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Filters;
 
@@ -24,14 +24,14 @@ file static class Extensions
 {
     public static IFilterOperationFieldDescriptor Expensive(this IFilterOperationFieldDescriptor descriptor)
     {
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
 
-        if ((definition.Flags & FieldFlags.FilterOperationField) == FieldFlags.FilterOperationField)
+        if ((definition.Flags & CoreFieldFlags.FilterOperationField) == CoreFieldFlags.FilterOperationField)
         {
-            definition.Flags &= ~FieldFlags.FilterOperationField;
+            definition.Flags &= ~CoreFieldFlags.FilterOperationField;
         }
 
-        definition.Flags |= FieldFlags.FilterExpensiveOperationField;
+        definition.Flags |= CoreFieldFlags.FilterExpensiveOperationField;
 
         return descriptor;
     }

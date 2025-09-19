@@ -3,8 +3,6 @@ using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class ObjectTypeAttributeTests
@@ -33,9 +31,7 @@ public class ObjectTypeAttributeTests
             .Create();
 
         // assert
-        Assert.Equal(
-            "def",
-            schema.QueryType.Fields["field"].ContextData["abc"]);
+        Assert.NotNull(schema.QueryType.Fields["field"].Features.Get<CustomFeature>());
     }
 
     [Fact]
@@ -43,14 +39,11 @@ public class ObjectTypeAttributeTests
     {
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType<Object2>(d =>
-                d.Field<string>(t => t.GetField()).Name("foo"))
+            .AddQueryType<Object2>(d => d.Field(t => t.GetField()).Name("foo"))
             .Create();
 
         // assert
-        Assert.Equal(
-            "def",
-            schema.QueryType.Fields["foo"].ContextData["abc"]);
+        Assert.NotNull(schema.QueryType.Fields["foo"].Features.Get<CustomFeature>());
     }
 
     [Fact]
@@ -75,7 +68,7 @@ public class ObjectTypeAttributeTests
             .Create();
 
         // assert
-        Assert.True(schema.GetType<ObjectType>("Object3").Fields.ContainsField("abc"));
+        Assert.True(schema.Types.GetType<ObjectType>("Object3").Fields.ContainsField("abc"));
     }
 
     [Fact]
@@ -150,14 +143,14 @@ public class ObjectTypeAttributeTests
 
     public class Object2
     {
-        [PropertyAddContextData]
+        [PropertyAddFeature]
         public string GetField()
         {
             throw new NotImplementedException();
         }
     }
 
-    public class PropertyAddContextDataAttribute
+    public class PropertyAddFeatureAttribute
         : ObjectFieldDescriptorAttribute
     {
         protected override void OnConfigure(
@@ -166,7 +159,7 @@ public class ObjectTypeAttributeTests
             MemberInfo member)
         {
             descriptor.Extend().OnBeforeCompletion(
-                (c, d) => d.ContextData.Add("abc", "def"));
+                (c, d) => d.Features.Set(new CustomFeature()));
         }
     }
 
@@ -187,12 +180,12 @@ public class ObjectTypeAttributeTests
             IObjectTypeDescriptor descriptor,
             Type type)
         {
-            descriptor.Field("abc").Resolve<string>("def");
+            descriptor.Field("abc").Resolve("def");
         }
     }
 
     [ObjectType("Query")]
-    public struct StructQuery
+    public readonly struct StructQuery
     {
         public string? Foo { get; }
     }
@@ -202,4 +195,6 @@ public class ObjectTypeAttributeTests
     {
         public string? Bar { get; }
     }
+
+    public class CustomFeature;
 }

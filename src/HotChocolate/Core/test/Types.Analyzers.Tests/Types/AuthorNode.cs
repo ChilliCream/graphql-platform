@@ -43,4 +43,3 @@ public static partial class AuthorNode
     [Query]
     public static string QueryFieldCollocatedWithAuthor() => "hello";
 }
-

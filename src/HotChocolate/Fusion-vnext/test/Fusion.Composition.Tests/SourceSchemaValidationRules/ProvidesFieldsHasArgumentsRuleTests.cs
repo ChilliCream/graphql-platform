@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class ProvidesFieldsHasArgumentsRuleTests : CompositionTestBase
+public sealed class ProvidesFieldsHasArgumentsRuleTests
 {
     private static readonly object s_rule = new ProvidesFieldsHasArgumentsRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -91,8 +92,8 @@ public sealed class ProvidesFieldsHasArgumentsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The @provides directive on field 'Article.author' in schema 'A' references " +
-                    "field 'User.tags', which must not have arguments."
+                    "The @provides directive on field 'Article.author' in schema 'A' references "
+                    + "field 'User.tags', which must not have arguments."
                 ]
             },
             // Nested field.
@@ -120,8 +121,8 @@ public sealed class ProvidesFieldsHasArgumentsRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The @provides directive on field 'Article.author' in schema 'A' references " +
-                    "field 'UserInfo.tags', which must not have arguments."
+                    "The @provides directive on field 'Article.author' in schema 'A' references "
+                    + "field 'UserInfo.tags', which must not have arguments."
                 ]
             }
         };

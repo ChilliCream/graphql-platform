@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
-using HotChocolate.Skimmed;
+using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -19,17 +20,17 @@ internal sealed class KeyFieldsSelectInvalidTypeRule : IEventHandler<KeyFieldEve
 {
     public void Handle(KeyFieldEvent @event, CompositionContext context)
     {
-        var (keyDirective, entityType, field, type, schema) = @event;
+        var (keyField, keyFieldDeclaringType, keyDirective, type, schema) = @event;
 
-        var fieldType = field.Type.NullableType();
+        var fieldType = keyField.Type.NullableType();
 
-        if (fieldType is InterfaceTypeDefinition or ListTypeDefinition or UnionTypeDefinition)
+        if (fieldType is MutableInterfaceTypeDefinition or ListType or MutableUnionTypeDefinition)
         {
             context.Log.Write(
                 KeyFieldsSelectInvalidType(
-                    entityType.Name,
+                    keyField.Name,
+                    keyFieldDeclaringType.Name,
                     keyDirective,
-                    field.Name,
                     type.Name,
                     schema));
         }

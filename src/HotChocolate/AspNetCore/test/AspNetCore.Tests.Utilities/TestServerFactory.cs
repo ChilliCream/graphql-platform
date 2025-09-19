@@ -18,7 +18,7 @@ public class TestServerFactory : IDisposable
             .ConfigureServices(services =>
             {
                 services.AddHttpContextAccessor();
-                configureServices?.Invoke(services);
+                configureServices(services);
             });
 
         var server = new TestServer(builder);

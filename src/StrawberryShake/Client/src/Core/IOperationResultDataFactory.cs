@@ -1,7 +1,7 @@
 namespace StrawberryShake;
 
 /// <summary>
-/// This factory Creates the data object of a operation
+/// This factory Creates the data object of an operation
 /// result by using the data info which provides
 /// all the entity ids used by the result.
 /// </summary>
@@ -13,7 +13,7 @@ public interface IOperationResultDataFactory<out TResultData>
     where TResultData : class
 {
     /// <summary>
-    /// Creates the data object of a operation result by using the data info which provides
+    /// Creates the data object of an operation result by using the data info which provides
     /// all the entity ids used by the result.
     /// </summary>
     /// <param name="dataInfo">
@@ -31,7 +31,7 @@ public interface IOperationResultDataFactory<out TResultData>
 }
 
 /// <summary>
-/// This factory Creates the data object of a operation
+/// This factory Creates the data object of an operation
 /// result by using the data info which provides
 /// all the entity ids used by the result.
 /// </summary>
@@ -43,7 +43,7 @@ public interface IOperationResultDataFactory
     Type ResultType { get; }
 
     /// <summary>
-    /// Creates the data object of a operation result by using the data info which provides
+    /// Creates the data object of an operation result by using the data info which provides
     /// all the entity ids used by the result.
     /// </summary>
     /// <param name="dataInfo">

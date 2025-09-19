@@ -6,10 +6,7 @@ public static class LiteralExtensions
 {
     public static bool TryGetValueKind(this IValueNode literal, out ValueKind kind)
     {
-        if (literal is null)
-        {
-            throw new ArgumentNullException(nameof(literal));
-        }
+        ArgumentNullException.ThrowIfNull(literal);
 
         switch (literal)
         {

@@ -22,10 +22,7 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
     public static IRequestExecutorBuilder AddAuthorization(
         this IRequestExecutorBuilder builder)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.AddAuthorization();
         builder.AddAuthorizationServices();
@@ -41,7 +38,7 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
     /// </param>
     /// <param name="configure">
     /// An action delegate to configure the provided
-    /// <see cref="Microsoft.AspNetCore.Authorization.AuthorizationOptions"/>.
+    /// <see cref="AspNetCore.Authorization.AuthorizationOptions"/>.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> for chaining in more configurations.
@@ -50,15 +47,8 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         this IRequestExecutorBuilder builder,
         Action<AspNetCore.Authorization.AuthorizationOptions> configure)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure == null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         builder.Services.AddAuthorization(configure);
         builder.AddAuthorizationServices();

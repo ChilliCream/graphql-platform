@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
-    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
 </Project>

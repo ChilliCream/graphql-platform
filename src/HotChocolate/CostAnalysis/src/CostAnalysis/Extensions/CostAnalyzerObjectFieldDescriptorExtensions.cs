@@ -30,10 +30,7 @@ public static class CostAnalyzerObjectFieldDescriptorExtensions
     /// </exception>
     public static IObjectFieldDescriptor Cost(this IObjectFieldDescriptor descriptor, double weight)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(new CostDirective(weight));
     }
@@ -77,10 +74,7 @@ public static class CostAnalyzerObjectFieldDescriptorExtensions
         bool requireOneSlicingArgument = true,
         int? slicingArgumentDefaultValue = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(
             new ListSizeDirective(

@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class ProvidesDirectiveInFieldsArgumentRuleTests : CompositionTestBase
+public sealed class ProvidesDirectiveInFieldsArgumentRuleTests
 {
     private static readonly object s_rule = new ProvidesDirectiveInFieldsArgumentRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -92,8 +93,8 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests : CompositionTest
                     """
                 ],
                 [
-                    "The @provides directive on field 'User.profile' in schema 'A' references " +
-                    "field 'name', which must not include directive applications."
+                    "The @provides directive on field 'User.profile' in schema 'A' references "
+                    + "field 'name', which must not include directive applications."
                 ]
             },
             // Nested field.
@@ -119,8 +120,8 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests : CompositionTest
                     """
                 ],
                 [
-                    "The @provides directive on field 'User.profile' in schema 'A' references " +
-                    "field 'info.name', which must not include directive applications."
+                    "The @provides directive on field 'User.profile' in schema 'A' references "
+                    + "field 'info.name', which must not include directive applications."
                 ]
             },
             // Multiple fields.
@@ -134,14 +135,19 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests : CompositionTest
                         name: String
                         profile: Profile @provides(fields: "id @example name @example")
                     }
+
+                    type Profile {
+                        id: ID!
+                        name: String
+                    }
                     """
                 ],
                 [
-                    "The @provides directive on field 'User.profile' in schema 'A' references " +
-                    "field 'id', which must not include directive applications.",
+                    "The @provides directive on field 'User.profile' in schema 'A' references "
+                    + "field 'id', which must not include directive applications.",
 
-                    "The @provides directive on field 'User.profile' in schema 'A' references " +
-                    "field 'name', which must not include directive applications."
+                    "The @provides directive on field 'User.profile' in schema 'A' references "
+                    + "field 'name', which must not include directive applications."
                 ]
             }
         };

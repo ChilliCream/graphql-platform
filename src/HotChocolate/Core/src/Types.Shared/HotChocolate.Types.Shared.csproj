@@ -7,7 +7,7 @@
   <Description>Contains shared helper methods.</Description>
 </PropertyGroup>
 
-<PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
+<PropertyGroup>
   <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
   <IsTrimmable>true</IsTrimmable>
 </PropertyGroup>

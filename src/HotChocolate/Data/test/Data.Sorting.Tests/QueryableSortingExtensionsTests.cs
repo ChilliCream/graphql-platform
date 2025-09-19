@@ -10,10 +10,10 @@ namespace HotChocolate.Data.Sorting;
 
 public class QueryableSortingExtensionsTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, Baz = "a", },
-        new() { Bar = false, Baz = "b", },
+        new() { Bar = true, Baz = "a" },
+        new() { Bar = false, Baz = "b" }
     ];
 
     [Fact]
@@ -90,7 +90,7 @@ public class QueryableSortingExtensionsTests
         [UseSorting]
         public IEnumerable<Foo> ShouldWork(IResolverContext context)
         {
-            return _fooEntities.Sort(context);
+            return s_fooEntities.Sort(context);
         }
 
         [CatchErrorMiddleware]
@@ -98,13 +98,13 @@ public class QueryableSortingExtensionsTests
         [AddTypeMismatchMiddleware]
         public IEnumerable<Foo> TypeMismatch(IResolverContext context)
         {
-            return _fooEntities.Sort(context);
+            return s_fooEntities.Sort(context);
         }
 
         [CatchErrorMiddleware]
         public IEnumerable<Foo> MissingMiddleware(IResolverContext context)
         {
-            return _fooEntities.Sort(context);
+            return s_fooEntities.Sort(context);
         }
     }
 

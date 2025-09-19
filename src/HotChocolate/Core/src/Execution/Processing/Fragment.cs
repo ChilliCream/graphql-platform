@@ -10,7 +10,7 @@ internal sealed class Fragment : IFragment
 
     public Fragment(
         int id,
-        IObjectType typeCondition,
+        IObjectTypeDefinition typeCondition,
         ISyntaxNode syntaxNode,
         IReadOnlyList<DirectiveNode> directives,
         ISelectionSet selectionSet,
@@ -30,7 +30,7 @@ internal sealed class Fragment : IFragment
 
     public int Id { get; }
 
-    public IObjectType TypeCondition { get; }
+    public IObjectTypeDefinition TypeCondition { get; }
 
     public ISyntaxNode SyntaxNode { get; }
 
@@ -46,7 +46,7 @@ internal sealed class Fragment : IFragment
         => Directives.GetDeferDirective(variables)?.Label;
 
     public bool IsIncluded(long includeFlags, bool allowInternals = false)
-        => (includeFlags & _includeCondition) == _includeCondition &&
-            (_deferIfCondition is 0 || (includeFlags & _deferIfCondition) != _deferIfCondition) &&
-            (!IsInternal || allowInternals);
+        => (includeFlags & _includeCondition) == _includeCondition
+            && (_deferIfCondition is 0 || (includeFlags & _deferIfCondition) != _deferIfCondition)
+            && (!IsInternal || allowInternals);
 }

@@ -1,10 +1,10 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
 public interface IUnionTypeDescriptor
-    : IDescriptor<UnionTypeDefinition>
+    : IDescriptor<UnionTypeConfiguration>
     , IFluent
 {
     IUnionTypeDescriptor Name(string value);

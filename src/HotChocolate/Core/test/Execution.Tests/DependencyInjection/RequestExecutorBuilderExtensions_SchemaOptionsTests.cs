@@ -23,7 +23,7 @@ public class RequestExecutorBuilderExtensionsSchemaOptionsTests
 
     private sealed class OptionsInterceptor : TypeInterceptor
     {
-        public IReadOnlySchemaOptions Options { get; private set; } = default!;
+        public IReadOnlySchemaOptions Options { get; private set; } = null!;
 
         internal override void OnBeforeCreateSchemaInternal(
             IDescriptorContext context,

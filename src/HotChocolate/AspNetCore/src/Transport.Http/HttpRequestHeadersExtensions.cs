@@ -21,10 +21,7 @@ public static class HttpRequestHeadersExtensions
     /// </exception>
     public static HttpRequestHeaders AddGraphQLPreflight(this HttpRequestHeaders headers)
     {
-        if (headers == null)
-        {
-            throw new ArgumentNullException(nameof(headers));
-        }
+        ArgumentNullException.ThrowIfNull(headers);
 
         headers.Add("GraphQL-Preflight", "1");
         return headers;

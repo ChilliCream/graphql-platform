@@ -108,7 +108,7 @@ public class UsePagingAttributeTests
             new
             {
                 ex.Errors[0].Message,
-                ex.Errors[0].Code,
+                ex.Errors[0].Code
             }.MatchSnapshot();
         }
     }
@@ -134,24 +134,24 @@ public class UsePagingAttributeTests
     public class Query
     {
         [UsePaging]
-        public IQueryable<Foo> Foos ()
+        public IQueryable<Foo> Foos()
         {
             return new List<Foo>
             {
                 new(bar: "first"),
-                new(bar: "second"),
+                new(bar: "second")
             }.AsQueryable();
         }
     }
 
     public class Query1
     {
-        public IQueryable<Foo> Foos ()
+        public IQueryable<Foo> Foos()
         {
             return new List<Foo>
             {
                 new(bar: "first"),
-                new(bar: "second"),
+                new(bar: "second")
             }.AsQueryable();
         }
     }
@@ -162,12 +162,12 @@ public class UsePagingAttributeTests
     {
         [UsePaging]
         [BindMember(nameof(Query1.Foos))]
-        public IQueryable<Foo> Foos ()
+        public IQueryable<Foo> Foos()
         {
             return new List<Foo>
             {
                 new(bar: "first"),
-                new(bar: "second"),
+                new(bar: "second")
             }.AsQueryable();
         }
 
@@ -177,9 +177,7 @@ public class UsePagingAttributeTests
     }
 
     [ExtendObjectType("Query")]
-    public class QueryExtension : Query
-    {
-    }
+    public class QueryExtension : Query;
 
     public class Foo(string bar)
     {

@@ -127,21 +127,21 @@ public class OperationResultExtensionTests
 
         public ResultMock(IClientError error)
         {
-            Errors = new[] { error, };
+            Errors = new[] { error };
         }
 
-        public object? Data => default!;
+        public object? Data => null!;
 
-        public Type DataType => default!;
+        public Type DataType => null!;
 
-        public IOperationResultDataInfo? DataInfo => default!;
+        public IOperationResultDataInfo? DataInfo => null!;
 
-        public object DataFactory => default!;
+        public object DataFactory => null!;
 
         public IReadOnlyList<IClientError> Errors { get; }
 
-        public IReadOnlyDictionary<string, object?> Extensions => default!;
+        public IReadOnlyDictionary<string, object?> Extensions => null!;
 
-        public IReadOnlyDictionary<string, object?> ContextData => default!;
+        public IReadOnlyDictionary<string, object?> ContextData => null!;
     }
 }

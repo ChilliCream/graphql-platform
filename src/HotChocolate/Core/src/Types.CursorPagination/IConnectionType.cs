@@ -3,7 +3,7 @@ namespace HotChocolate.Types.Pagination;
 /// <summary>
 /// The connection type.
 /// </summary>
-public interface IConnectionType : IObjectType
+public interface IConnectionType : IObjectTypeDefinition
 {
     /// <summary>
     /// Gets the connection name of this connection type.

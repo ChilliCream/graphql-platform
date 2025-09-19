@@ -11,7 +11,9 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public class InterfaceTypeInfoInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [TypeWithAttribute.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [TypeWithAttribute.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.ClassDeclaration];
 
     public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
@@ -45,7 +47,10 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
 
         foreach (var member in members)
         {
-            if (member.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal)
+            if (member.DeclaredAccessibility is
+                Accessibility.Public or
+                Accessibility.Internal or
+                Accessibility.ProtectedAndInternal)
             {
                 if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
                 {
@@ -59,8 +64,8 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
                         classSymbol.Name,
                         member,
                         ResolverResultKind.Pure,
-                        ImmutableArray<ResolverParameter>.Empty,
-                        ImmutableArray<MemberBinding>.Empty);
+                        [],
+                        []);
                 }
             }
         }
@@ -70,13 +75,13 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             Array.Resize(ref resolvers, i);
         }
 
-        syntaxInfo = new InterfaceTypeExtensionInfo(
+        syntaxInfo = new InterfaceTypeInfo(
             classSymbol,
             runtimeType,
             possibleType,
             i == 0
-                ? ImmutableArray<Resolver>.Empty
-                : resolvers.ToImmutableArray());
+                ? []
+                : [.. resolvers]);
 
         if (diagnostics.Length > 0)
         {
@@ -92,7 +97,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
         [NotNullWhen(true)] out INamedTypeSymbol? resolverTypeSymbol,
         [NotNullWhen(true)] out INamedTypeSymbol? runtimeType)
     {
-        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
+        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
         {
             foreach (var attributeListSyntax in possibleType.AttributeLists)
             {
@@ -148,7 +153,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             resolverType.Name,
             resolverMethod,
             resolverMethod.GetResultKind(),
-            resolverParameters.ToImmutableArray(),
-            ImmutableArray<MemberBinding>.Empty);
+            [.. resolverParameters],
+            []);
     }
 }

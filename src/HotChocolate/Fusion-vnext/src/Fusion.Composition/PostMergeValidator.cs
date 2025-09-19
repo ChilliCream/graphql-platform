@@ -4,14 +4,14 @@ using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
 internal sealed class PostMergeValidator(
-    SchemaDefinition mergedSchema,
+    MutableSchemaDefinition mergedSchema,
     ImmutableArray<object> rules,
-    ImmutableSortedSet<SchemaDefinition> sourceSchemas,
+    ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas,
     ICompositionLog log)
 {
     public CompositionResult Validate()
@@ -33,11 +33,11 @@ internal sealed class PostMergeValidator(
         {
             switch (type)
             {
-                case EnumTypeDefinition enumType:
+                case MutableEnumTypeDefinition enumType:
                     PublishEvent(new EnumTypeEvent(enumType, mergedSchema), context);
                     break;
 
-                case InputObjectTypeDefinition inputType:
+                case MutableInputObjectTypeDefinition inputType:
                     PublishEvent(new InputTypeEvent(inputType, mergedSchema), context);
 
                     foreach (var field in inputType.Fields)
@@ -47,20 +47,20 @@ internal sealed class PostMergeValidator(
 
                     break;
 
-                case InterfaceTypeDefinition interfaceType:
+                case MutableInterfaceTypeDefinition interfaceType:
                     PublishEvent(new InterfaceTypeEvent(interfaceType, mergedSchema), context);
                     break;
 
-                case ObjectTypeDefinition objectType:
+                case MutableObjectTypeDefinition objectType:
                     PublishEvent(new ObjectTypeEvent(objectType, mergedSchema), context);
                     break;
 
-                case UnionTypeDefinition unionType:
+                case MutableUnionTypeDefinition unionType:
                     PublishEvent(new UnionTypeEvent(unionType, mergedSchema), context);
                     break;
             }
 
-            if (type is ComplexTypeDefinition complexType)
+            if (type is MutableComplexTypeDefinition complexType)
             {
                 foreach (var field in complexType.Fields)
                 {

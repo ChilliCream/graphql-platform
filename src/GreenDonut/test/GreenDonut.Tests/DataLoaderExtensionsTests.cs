@@ -8,8 +8,8 @@ public class DataLoaderExtensionsTests
     public void SetCacheEntryDataLoaderNull()
     {
         // arrange
-        var key = "Foo";
-        var value = "Bar";
+        const string key = "Foo";
+        const string value = "Bar";
 
         // act
         void Verify() => default(IDataLoader<string, string>)!.SetCacheEntry(key, value);
@@ -24,8 +24,8 @@ public class DataLoaderExtensionsTests
         // arrange
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
-        var value = "Bar";
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
+        const string value = "Bar";
 
         // act
         void Verify() => loader.SetCacheEntry(null!, value);
@@ -40,8 +40,8 @@ public class DataLoaderExtensionsTests
         // arrange
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
-        var key = "Foo";
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
+        const string key = "Foo";
 
         // act
         void Verify() => loader.SetCacheEntry(key, null!);
@@ -66,7 +66,7 @@ public class DataLoaderExtensionsTests
             });
 
         const string key = "Foo";
-        const string  value = "Bar";
+        const string value = "Bar";
 
         // act
         loader.SetCacheEntry(key, value);
@@ -149,7 +149,7 @@ public class DataLoaderExtensionsTests
         // arrange
         var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
-        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         object key = "Foo";
 
         // act

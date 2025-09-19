@@ -10,7 +10,7 @@ public static class CommonTestExtensions
         this IRequestExecutorBuilder builder)
     {
         return builder.UseRequest(
-            next => async context =>
+            (_, next) => async context =>
             {
                 await next(context);
                 if (context.ContextData.TryGetValue("ex", out var queryString))
@@ -25,7 +25,7 @@ public static class CommonTestExtensions
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
     }
 }

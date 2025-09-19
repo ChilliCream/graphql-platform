@@ -1,4 +1,5 @@
 using HotChocolate.StarWars;
+using HotChocolate.Transport.Formatters;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -22,10 +23,11 @@ public class MultiPartResponseStreamSerializerTests
                         o.EnableStream = true;
                     })
                 .ExecuteRequestAsync(
-                    @"{
+                    """
+                    {
                         hero(episode: NEW_HOPE) {
                             id
-                            ... @defer(label: ""friends"") {
+                            ... @defer(label: "friends") {
                                 friends {
                                     nodes {
                                         id
@@ -34,7 +36,8 @@ public class MultiPartResponseStreamSerializerTests
                                 }
                             }
                         }
-                    }");
+                    }
+                    """);
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 

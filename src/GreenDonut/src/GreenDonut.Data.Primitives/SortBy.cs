@@ -35,7 +35,7 @@ public sealed class SortBy<TEntity, TValue> : ISortBy<TEntity>
     /// <summary>
     /// Gets the sort direction.
     /// </summary>
-    public bool Ascending { get => field; init; }
+    public bool Ascending { get; init; }
 
     /// <summary>
     /// Applies the sort operation to the queryable.
@@ -48,10 +48,7 @@ public sealed class SortBy<TEntity, TValue> : ISortBy<TEntity>
     /// </returns>
     public IOrderedQueryable<TEntity> ApplyOrderBy(IQueryable<TEntity> queryable)
     {
-        if (queryable is null)
-        {
-            throw new ArgumentNullException(nameof(queryable));
-        }
+        ArgumentNullException.ThrowIfNull(queryable);
 
         if (Ascending)
         {
@@ -107,10 +104,7 @@ public static class SortBy<TEntity>
     public static SortBy<TEntity, TValue> Ascending<TValue>(
         Expression<Func<TEntity, TValue>> keySelector)
     {
-        if (keySelector is null)
-        {
-            throw new ArgumentNullException(nameof(keySelector));
-        }
+        ArgumentNullException.ThrowIfNull(keySelector);
 
         return new SortBy<TEntity, TValue>(keySelector, true);
     }
@@ -133,10 +127,7 @@ public static class SortBy<TEntity>
     public static SortBy<TEntity, TValue> Descending<TValue>(
         Expression<Func<TEntity, TValue>> keySelector)
     {
-        if (keySelector is null)
-        {
-            throw new ArgumentNullException(nameof(keySelector));
-        }
+        ArgumentNullException.ThrowIfNull(keySelector);
 
         return new SortBy<TEntity, TValue>(keySelector, false);
     }

@@ -58,7 +58,7 @@ public class FieldCollectorTests
                 .AddStarWars()
                 .BuildSchemaAsync();
 
-        var character = schema.GetType<InterfaceType>("Character");
+        var character = schema.Types.GetType<InterfaceType>("Character");
 
         var document =
             Utf8GraphQLParser.Parse(@"

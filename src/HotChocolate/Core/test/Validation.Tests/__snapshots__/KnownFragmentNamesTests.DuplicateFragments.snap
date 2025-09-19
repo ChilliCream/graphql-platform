@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The specified fragment `UnknownFragment1` does not exist.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 4,
-        "Column": 25
+        "Line": 3,
+        "Column": 5
       }
     ],
     "Extensions": {
@@ -39,8 +39,8 @@
     },
     "Locations": [
       {
-        "Line": 6,
-        "Column": 29
+        "Line": 5,
+        "Column": 7
       }
     ],
     "Extensions": {
@@ -55,8 +55,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 10,
-        "Column": 17
+        "Line": 9,
+        "Column": 1
       }
     ],
     "Extensions": {

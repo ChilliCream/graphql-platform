@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class OverrideOnInterfaceRuleTests : CompositionTestBase
+public sealed class OverrideOnInterfaceRuleTests
 {
     private static readonly object s_rule = new OverrideOnInterfaceRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -89,8 +90,8 @@ public sealed class OverrideOnInterfaceRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The interface field 'Bill.amount' in schema 'A' must not be annotated with " +
-                    "the @override directive."
+                    "The interface field 'Bill.amount' in schema 'A' must not be annotated with "
+                    + "the @override directive."
                 ]
             }
         };

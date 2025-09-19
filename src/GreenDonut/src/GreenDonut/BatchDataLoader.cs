@@ -28,10 +28,6 @@ public abstract class BatchDataLoader<TKey, TValue>
         DataLoaderOptions options)
         : base(batchScheduler, options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
     }
 
     /// <inheritdoc />
@@ -57,7 +53,7 @@ public abstract class BatchDataLoader<TKey, TValue>
         {
             if (resultMap.TryGetValue(keys[i], out var value))
             {
-                results[i] = value;
+                results[i] = value!;
             }
             else
             {
@@ -107,10 +103,7 @@ public abstract class StatefulBatchDataLoader<TKey, TValue>
         DataLoaderOptions options)
         : base(batchScheduler, options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
     }
 
     /// <inheritdoc />

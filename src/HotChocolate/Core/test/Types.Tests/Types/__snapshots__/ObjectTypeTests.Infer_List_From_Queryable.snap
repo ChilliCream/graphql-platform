@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: MyListQuery
 }
 
@@ -7,5 +7,5 @@ type Bar {
 }
 
 type MyListQuery {
-  list: [Bar]
+  list: [Bar]!
 }

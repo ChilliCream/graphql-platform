@@ -1,9 +1,8 @@
 using System.Collections.Immutable;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -23,23 +22,23 @@ internal sealed class MaxAllowedFieldCycleDepthVisitor(
 {
     protected override ISyntaxVisitorAction Enter(
         DocumentNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        context.FieldDepth.Initialize(coordinateCycleLimits, defaultCycleLimit);
+        context.InitializeFieldDepth(coordinateCycleLimits, defaultCycleLimit);
         return base.Enter(node, context);
     }
 
     protected override ISyntaxVisitorAction Enter(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
+        if (IntrospectionFieldNames.TypeName.Equals(node.Name.Value, StringComparison.Ordinal))
         {
             return Skip;
         }
 
         if (context.Types.TryPeek(out var type)
-            && type.NamedType() is IComplexOutputType ot
+            && type.NamedType() is IComplexTypeDefinition ot
             && ot.Fields.TryGetField(node.Name.Value, out var of))
         {
             // we are ignoring introspection fields in this visitor.
@@ -48,7 +47,7 @@ internal sealed class MaxAllowedFieldCycleDepthVisitor(
                 return Skip;
             }
 
-            if (!context.FieldDepth.Add(of.Coordinate))
+            if (!context.FieldDepth().Add(of.Coordinate))
             {
                 context.ReportMaxCoordinateCycleDepthOverflow(node);
                 return Break;
@@ -65,11 +64,28 @@ internal sealed class MaxAllowedFieldCycleDepthVisitor(
 
     protected override ISyntaxVisitorAction Leave(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        context.FieldDepth.Remove(context.OutputFields.Peek().Coordinate);
+        context.FieldDepth().Remove(context.OutputFields.Peek().Coordinate);
         context.Types.Pop();
         context.OutputFields.Pop();
         return Continue;
+    }
+}
+
+file static class ContextExtensions
+{
+    public static void InitializeFieldDepth(
+        this DocumentValidatorContext context,
+        IEnumerable<(SchemaCoordinate Coordinate, ushort MaxAllowed)> limits,
+        ushort? defaultLimit)
+    {
+        var feature = context.Features.GetOrSet<FieldDepthCycleTracker>();
+        feature.Initialize(limits, defaultLimit);
+    }
+
+    public static FieldDepthCycleTracker FieldDepth(this DocumentValidatorContext context)
+    {
+        return context.Features.GetRequired<FieldDepthCycleTracker>();
     }
 }

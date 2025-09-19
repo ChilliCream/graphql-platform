@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidationRules;
 
-public sealed class InputFieldTypesMergeableRuleTests : CompositionTestBase
+public sealed class InputFieldTypesMergeableRuleTests
 {
     private static readonly object s_rule = new InputFieldTypesMergeableRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -126,8 +127,8 @@ public sealed class InputFieldTypesMergeableRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The input field 'AuthorInput.birthdate' has a different type shape in " +
-                    "schema 'A' than it does in schema 'B'."
+                    "The input field 'AuthorInput.birthdate' has a different type shape in "
+                    + "schema 'A' than it does in schema 'B'."
                 ]
             },
             // List versus non-list.
@@ -145,8 +146,8 @@ public sealed class InputFieldTypesMergeableRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The input field 'AuthorInput.birthdate' has a different type shape in " +
-                    "schema 'A' than it does in schema 'B'."
+                    "The input field 'AuthorInput.birthdate' has a different type shape in "
+                    + "schema 'A' than it does in schema 'B'."
                 ]
             }
         };

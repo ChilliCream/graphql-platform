@@ -1,4 +1,3 @@
-#pragma warning disable CA1812
 #nullable disable
 
 namespace HotChocolate.Utilities.Introspection;
@@ -14,5 +13,3 @@ internal class Directive
     public bool OnFragment { get; set; }
     public bool OnField { get; set; }
 }
-
-#pragma warning restore CA1812

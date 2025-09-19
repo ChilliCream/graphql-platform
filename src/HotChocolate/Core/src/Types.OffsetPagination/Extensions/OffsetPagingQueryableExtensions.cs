@@ -103,15 +103,8 @@ public static class OffsetPagingQueryableExtensions
         bool requireTotalCount = false,
         CancellationToken cancellationToken = default)
     {
-        if (query is null)
-        {
-            throw new ArgumentNullException(nameof(query));
-        }
-
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(query);
+        ArgumentNullException.ThrowIfNull(context);
 
         var skip = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Skip);
         var take = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Take) ?? defaultPageSize;

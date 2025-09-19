@@ -78,8 +78,8 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
             exclusive: true,
             autoDelete: false);
         channel.QueueBind(
-            exchange: Name,
             queue: queueName,
+            exchange: Name,
             routingKey: string.Empty);
 
         return new AsyncEventingBasicConsumer(channel);

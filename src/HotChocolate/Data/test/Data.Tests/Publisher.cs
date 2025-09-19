@@ -4,13 +4,13 @@ public class Publisher
 {
     public int Id { get; set; }
 
-    public string Name { get; set; } = default!;
+    public string Name { get; set; } = null!;
 
-    public string Address { get; set; } = default!;
+    public string Address { get; set; } = null!;
 
-    public string Zipcode { get; set; } = default!;
+    public string Zipcode { get; set; } = null!;
 
-    public virtual ICollection<Book> Books { get; set; } = default!;
+    public virtual ICollection<Book> Books { get; set; } = null!;
 
-    public virtual ICollection<Author> Authors { get; set; } = default!;
+    public virtual ICollection<Author> Authors { get; set; } = null!;
 }

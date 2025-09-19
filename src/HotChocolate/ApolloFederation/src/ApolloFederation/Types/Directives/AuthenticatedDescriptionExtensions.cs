@@ -29,28 +29,28 @@ public static class AuthenticatedDescriptionExtensions
         return descriptor.Directive(AuthenticatedDirective.Default);
     }
 
-    /// <inheritdoc cref="Authenticated(HotChocolate.Types.IEnumTypeDescriptor)"/>
+    /// <inheritdoc cref="Authenticated(IEnumTypeDescriptor)"/>
     public static IInterfaceFieldDescriptor Authenticated(this IInterfaceFieldDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(AuthenticatedDirective.Default);
     }
 
-    /// <inheritdoc cref="Authenticated(HotChocolate.Types.IEnumTypeDescriptor)"/>
+    /// <inheritdoc cref="Authenticated(IEnumTypeDescriptor)"/>
     public static IInterfaceTypeDescriptor Authenticated(this IInterfaceTypeDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(AuthenticatedDirective.Default);
     }
 
-    /// <inheritdoc cref="Authenticated(HotChocolate.Types.IEnumTypeDescriptor)"/>
+    /// <inheritdoc cref="Authenticated(IEnumTypeDescriptor)"/>
     public static IObjectFieldDescriptor Authenticated(this IObjectFieldDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(AuthenticatedDirective.Default);
     }
 
-    /// <inheritdoc cref="Authenticated(HotChocolate.Types.IEnumTypeDescriptor)"/>
+    /// <inheritdoc cref="Authenticated(IEnumTypeDescriptor)"/>
     public static IObjectTypeDescriptor Authenticated(this IObjectTypeDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);

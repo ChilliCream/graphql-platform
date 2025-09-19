@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -647,7 +648,12 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    /// query PeopleSearch(
+    ///   $term: String!
+    ///   $skip: Int
+    ///   $take: Int
+    ///   $inactive: Boolean
+    /// ) {
     ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
     ///     __typename
     ///     totalCount
@@ -702,526 +708,7 @@ namespace Foo.Bar
 
         public static PeopleSearchQueryDocument Instance { get; } = new PeopleSearchQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x71,
-            0x75,
-            0x65,
-            0x72,
-            0x79,
-            0x20,
-            0x50,
-            0x65,
-            0x6f,
-            0x70,
-            0x6c,
-            0x65,
-            0x53,
-            0x65,
-            0x61,
-            0x72,
-            0x63,
-            0x68,
-            0x28,
-            0x24,
-            0x74,
-            0x65,
-            0x72,
-            0x6d,
-            0x3a,
-            0x20,
-            0x53,
-            0x74,
-            0x72,
-            0x69,
-            0x6e,
-            0x67,
-            0x21,
-            0x2c,
-            0x20,
-            0x24,
-            0x73,
-            0x6b,
-            0x69,
-            0x70,
-            0x3a,
-            0x20,
-            0x49,
-            0x6e,
-            0x74,
-            0x2c,
-            0x20,
-            0x24,
-            0x74,
-            0x61,
-            0x6b,
-            0x65,
-            0x3a,
-            0x20,
-            0x49,
-            0x6e,
-            0x74,
-            0x2c,
-            0x20,
-            0x24,
-            0x69,
-            0x6e,
-            0x61,
-            0x63,
-            0x74,
-            0x69,
-            0x76,
-            0x65,
-            0x3a,
-            0x20,
-            0x42,
-            0x6f,
-            0x6f,
-            0x6c,
-            0x65,
-            0x61,
-            0x6e,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x70,
-            0x65,
-            0x6f,
-            0x70,
-            0x6c,
-            0x65,
-            0x3a,
-            0x20,
-            0x70,
-            0x65,
-            0x6f,
-            0x70,
-            0x6c,
-            0x65,
-            0x53,
-            0x65,
-            0x61,
-            0x72,
-            0x63,
-            0x68,
-            0x28,
-            0x74,
-            0x65,
-            0x72,
-            0x6d,
-            0x3a,
-            0x20,
-            0x24,
-            0x74,
-            0x65,
-            0x72,
-            0x6d,
-            0x2c,
-            0x20,
-            0x69,
-            0x6e,
-            0x63,
-            0x6c,
-            0x75,
-            0x64,
-            0x65,
-            0x49,
-            0x6e,
-            0x61,
-            0x63,
-            0x74,
-            0x69,
-            0x76,
-            0x65,
-            0x3a,
-            0x20,
-            0x24,
-            0x69,
-            0x6e,
-            0x61,
-            0x63,
-            0x74,
-            0x69,
-            0x76,
-            0x65,
-            0x2c,
-            0x20,
-            0x73,
-            0x6b,
-            0x69,
-            0x70,
-            0x3a,
-            0x20,
-            0x24,
-            0x73,
-            0x6b,
-            0x69,
-            0x70,
-            0x2c,
-            0x20,
-            0x74,
-            0x61,
-            0x6b,
-            0x65,
-            0x3a,
-            0x20,
-            0x24,
-            0x74,
-            0x61,
-            0x6b,
-            0x65,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x74,
-            0x6f,
-            0x74,
-            0x61,
-            0x6c,
-            0x43,
-            0x6f,
-            0x75,
-            0x6e,
-            0x74,
-            0x20,
-            0x70,
-            0x61,
-            0x67,
-            0x65,
-            0x49,
-            0x6e,
-            0x66,
-            0x6f,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x68,
-            0x61,
-            0x73,
-            0x4e,
-            0x65,
-            0x78,
-            0x74,
-            0x50,
-            0x61,
-            0x67,
-            0x65,
-            0x20,
-            0x68,
-            0x61,
-            0x73,
-            0x50,
-            0x72,
-            0x65,
-            0x76,
-            0x69,
-            0x6f,
-            0x75,
-            0x73,
-            0x50,
-            0x61,
-            0x67,
-            0x65,
-            0x20,
-            0x7d,
-            0x20,
-            0x69,
-            0x74,
-            0x65,
-            0x6d,
-            0x73,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x50,
-            0x65,
-            0x6f,
-            0x70,
-            0x6c,
-            0x65,
-            0x53,
-            0x65,
-            0x61,
-            0x72,
-            0x63,
-            0x68,
-            0x52,
-            0x65,
-            0x73,
-            0x75,
-            0x6c,
-            0x74,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x66,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x50,
-            0x65,
-            0x6f,
-            0x70,
-            0x6c,
-            0x65,
-            0x53,
-            0x65,
-            0x61,
-            0x72,
-            0x63,
-            0x68,
-            0x52,
-            0x65,
-            0x73,
-            0x75,
-            0x6c,
-            0x74,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x6b,
-            0x65,
-            0x79,
-            0x20,
-            0x64,
-            0x69,
-            0x73,
-            0x70,
-            0x6c,
-            0x61,
-            0x79,
-            0x4e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x69,
-            0x73,
-            0x41,
-            0x63,
-            0x74,
-            0x69,
-            0x76,
-            0x65,
-            0x20,
-            0x64,
-            0x65,
-            0x70,
-            0x61,
-            0x72,
-            0x74,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x44,
-            0x65,
-            0x70,
-            0x61,
-            0x72,
-            0x74,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x69,
-            0x6d,
-            0x61,
-            0x67,
-            0x65,
-            0x20,
-            0x74,
-            0x69,
-            0x74,
-            0x6c,
-            0x65,
-            0x20,
-            0x6d,
-            0x61,
-            0x6e,
-            0x61,
-            0x67,
-            0x65,
-            0x72,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x6b,
-            0x65,
-            0x79,
-            0x20,
-            0x64,
-            0x69,
-            0x73,
-            0x70,
-            0x6c,
-            0x61,
-            0x79,
-            0x4e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) { people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) { __typename totalCount pageInfo { __typename hasNextPage hasPreviousPage } items { __typename ... PeopleSearchResult ... on Person { id } } } } fragment PeopleSearchResult on Person { id key displayName isActive department { __typename id name ... on Department { id } } image title manager { __typename id key displayName ... on Person { id } } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "0aa0e07a3648d30f705916cfe5d398a1c5c4beac");
 
         public override global::System.String ToString()
@@ -1238,7 +725,12 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    /// query PeopleSearch(
+    ///   $term: String!
+    ///   $skip: Int
+    ///   $take: Int
+    ///   $inactive: Boolean
+    /// ) {
     ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
     ///     __typename
     ///     totalCount
@@ -1291,6 +783,7 @@ namespace Foo.Bar
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _booleanFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public PeopleSearchQuery(global::StrawberryShake.IOperationExecutor<IPeopleSearchQueryResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -1299,11 +792,40 @@ namespace Foo.Bar
             _booleanFormatter = serializerResolver.GetInputValueFormatter("Boolean");
         }
 
+        private PeopleSearchQuery(global::StrawberryShake.IOperationExecutor<IPeopleSearchQueryResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter booleanFormatter, global::StrawberryShake.Serialization.IInputValueFormatter @intFormatter, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _booleanFormatter = booleanFormatter;
+            _intFormatter = @intFormatter;
+            _stringFormatter = @stringFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IPeopleSearchQueryResult);
+
+        public global::Foo.Bar.IPeopleSearchQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.PeopleSearchQuery(_operationExecutor, _configure.Add(configure), _booleanFormatter, _intFormatter, _stringFormatter);
+        }
+
+        public global::Foo.Bar.IPeopleSearchQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IPeopleSearchQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult>> ExecuteAsync(global::System.String term, global::System.Int32? skip, global::System.Int32? take, global::System.Boolean? inactive, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(term, skip, take, inactive);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -1384,7 +906,12 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    /// query PeopleSearch(
+    ///   $term: String!
+    ///   $skip: Int
+    ///   $take: Int
+    ///   $inactive: Boolean
+    /// ) {
     ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
     ///     __typename
     ///     totalCount
@@ -1433,6 +960,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IPeopleSearchQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IPeopleSearchQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IPeopleSearchQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IPeopleSearchQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult>> ExecuteAsync(global::System.String term, global::System.Int32? skip, global::System.Int32? take, global::System.Boolean? inactive, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult>> Watch(global::System.String term, global::System.Int32? skip, global::System.Int32? take, global::System.Boolean? inactive, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -1556,7 +1086,7 @@ namespace Foo.Bar.State
             }
 
             IPeopleSearch_People returnValue = default !;
-            if (data?.__typename.Equals("PersonCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PersonCollectionSegment", global::System.StringComparison.Ordinal))
             {
                 returnValue = new PeopleSearch_People_PersonCollectionSegment(data.TotalCount ?? throw new global::System.ArgumentNullException(), MapNonNullableIPeopleSearch_People_PageInfo(data.PageInfo ?? throw new global::System.ArgumentNullException(), snapshot), MapIPeopleSearch_People_ItemsNonNullableArray(data.Items, snapshot));
             }
@@ -2211,6 +1741,9 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);

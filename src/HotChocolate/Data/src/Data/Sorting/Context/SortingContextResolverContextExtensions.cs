@@ -1,7 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -15,9 +14,10 @@ public static class SortingContextResolverContextExtensions
     /// </summary>
     public static ISortingContext? GetSortingContext(this IResolverContext context)
     {
-        var field = context.Selection.Field;
-        if (!field.ContextData.TryGetValue(ContextArgumentNameKey, out var argumentNameObj) ||
-            argumentNameObj is not string argumentName)
+        ArgumentNullException.ThrowIfNull(context);
+
+        var argumentName = context.Selection.GetSortingArgumentName();
+        if (string.IsNullOrEmpty(argumentName))
         {
             return null;
         }
@@ -25,8 +25,8 @@ public static class SortingContextResolverContextExtensions
         var argument = context.Selection.Field.Arguments[argumentName];
         var sorting = context.ArgumentLiteral<IValueNode>(argumentName);
 
-        if (argument.Type is not ListType listType ||
-            listType.ElementType().NamedType() is not ISortInputType sortingInput)
+        if (argument.Type is not ListType listType
+            || listType.ElementType().NamedType() is not ISortInputType sortingInput)
         {
             return null;
         }

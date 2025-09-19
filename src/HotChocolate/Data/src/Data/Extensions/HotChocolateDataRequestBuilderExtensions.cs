@@ -1,12 +1,9 @@
-using System.Linq.Expressions;
-using GreenDonut.Data;
 using HotChocolate;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Resolvers;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

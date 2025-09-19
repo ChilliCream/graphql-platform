@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class ProvidesFieldsMissingExternalRuleTests : CompositionTestBase
+public sealed class ProvidesFieldsMissingExternalRuleTests
 {
     private static readonly object s_rule = new ProvidesFieldsMissingExternalRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -91,8 +92,8 @@ public sealed class ProvidesFieldsMissingExternalRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The @provides directive on field 'Order.buyer' in schema 'A' references " +
-                    "field 'User.address', which must be marked as external."
+                    "The @provides directive on field 'Order.buyer' in schema 'A' references "
+                    + "field 'User.address', which must be marked as external."
                 ]
             },
             // Nested field.
@@ -115,11 +116,11 @@ public sealed class ProvidesFieldsMissingExternalRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The @provides directive on field 'Order.buyer' in schema 'A' references " +
-                    "field 'User.info', which must be marked as external.",
+                    "The @provides directive on field 'Order.buyer' in schema 'A' references "
+                    + "field 'User.info', which must be marked as external.",
 
-                    "The @provides directive on field 'Order.buyer' in schema 'A' references " +
-                    "field 'UserInfo.address', which must be marked as external."
+                    "The @provides directive on field 'Order.buyer' in schema 'A' references "
+                    + "field 'UserInfo.address', which must be marked as external."
                 ]
             }
         };

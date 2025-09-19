@@ -2,8 +2,6 @@ using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Types.FieldBindingFlags;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -11,9 +9,9 @@ namespace HotChocolate.Types;
 /// interpreted as a GraphQL object type.
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Struct |
-    AttributeTargets.Interface)]
+    AttributeTargets.Class
+    | AttributeTargets.Struct
+    | AttributeTargets.Interface)]
 public sealed class ObjectTypeAttribute
     : ObjectTypeDescriptorAttribute
     , ITypeAttribute
@@ -52,7 +50,7 @@ public sealed class ObjectTypeAttribute
             descriptor.Name(Name);
         }
 
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
         definition.Fields.BindingBehavior = BindingBehavior.Implicit;
 
         if (IncludeStaticMembers)

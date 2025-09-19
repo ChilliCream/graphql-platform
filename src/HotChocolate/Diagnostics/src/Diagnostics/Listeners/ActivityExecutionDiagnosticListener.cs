@@ -1,10 +1,10 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Http;
 using HotChocolate.Diagnostics.Scopes;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
+using Microsoft.AspNetCore.Http;
 using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.ContextKeys;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
@@ -20,23 +20,26 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         ActivityEnricher enricher,
         InstrumentationOptions options)
     {
-        _enricher = enricher ?? throw new ArgumentNullException(nameof(enricher));
-        _options = options ?? throw new ArgumentNullException(nameof(options));
+        ArgumentNullException.ThrowIfNull(enricher);
+        ArgumentNullException.ThrowIfNull(options);
+
+        _enricher = enricher;
+        _options = options;
     }
 
     public override bool EnableResolveFieldValue => true;
 
-    public override IDisposable ExecuteRequest(IRequestContext context)
+    public override IDisposable ExecuteRequest(RequestContext context)
     {
         Activity? activity = null;
 
         if (_options.SkipExecuteRequest)
         {
-            if (!_options.SkipExecuteHttpRequest &&
-                context.ContextData.TryGetValue(nameof(HttpContext), out var value) &&
-                value is HttpContext httpContext &&
-                httpContext.Items.TryGetValue(HttpRequestActivity, out value) &&
-                value is not null)
+            if (!_options.SkipExecuteHttpRequest
+                && context.ContextData.TryGetValue(nameof(HttpContext), out var value)
+                && value is HttpContext httpContext
+                && httpContext.Items.TryGetValue(HttpRequestActivity, out value)
+                && value is not null)
             {
                 activity = (Activity)value;
             }
@@ -58,7 +61,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return new ExecuteRequestScope(_enricher, context, activity);
     }
 
-    public override void RetrievedDocumentFromCache(IRequestContext context)
+    public override void RetrievedDocumentFromCache(RequestContext context)
     {
         if (context.ContextData.TryGetValue(RequestActivity, out var activity))
         {
@@ -67,7 +70,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         }
     }
 
-    public override void RetrievedDocumentFromStorage(IRequestContext context)
+    public override void RetrievedDocumentFromStorage(RequestContext context)
     {
         if (context.ContextData.TryGetValue(RequestActivity, out var activity))
         {
@@ -76,7 +79,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         }
     }
 
-    public override void AddedDocumentToCache(IRequestContext context)
+    public override void AddedDocumentToCache(RequestContext context)
     {
         if (context.ContextData.TryGetValue(RequestActivity, out var activity))
         {
@@ -85,7 +88,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         }
     }
 
-    public override void AddedOperationToCache(IRequestContext context)
+    public override void AddedOperationToCache(RequestContext context)
     {
         if (context.ContextData.TryGetValue(RequestActivity, out var activity))
         {
@@ -94,7 +97,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         }
     }
 
-    public override IDisposable ParseDocument(IRequestContext context)
+    public override IDisposable ParseDocument(RequestContext context)
     {
         if (_options.SkipParseDocument)
         {
@@ -108,25 +111,82 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             return EmptyScope;
         }
 
-        context.ContextData[ParserActivity] = activity;
+        context.ContextData[RequestActivity] = activity;
 
         return new ParseDocumentScope(_enricher, context, activity);
     }
 
-    public override void SyntaxError(IRequestContext context, IError error)
+    public override void RequestError(RequestContext context, Exception error)
     {
-        if (context.ContextData.TryGetValue(ParserActivity, out var value))
+        if (context.ContextData.TryGetValue(RequestActivity, out var value))
         {
             Debug.Assert(value is not null, "The activity mustn't be null!");
 
             var activity = (Activity)value;
-            _enricher.EnrichSyntaxError(context, activity, error);
+            _enricher.EnrichRequestError(context, activity, error);
             activity.SetStatus(Status.Error);
             activity.SetStatus(ActivityStatusCode.Error);
         }
     }
 
-    public override IDisposable ValidateDocument(IRequestContext context)
+    public override void RequestError(RequestContext context, IError error)
+    {
+        if (context.ContextData.TryGetValue(RequestActivity, out var value))
+        {
+            Debug.Assert(value is not null, "The activity mustn't be null!");
+
+            var activity = (Activity)value;
+            _enricher.EnrichRequestError(context, activity, error);
+            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
+        }
+    }
+
+    public override void ValidationErrors(RequestContext context, IReadOnlyList<IError> errors)
+    {
+        if (context.ContextData.TryGetValue(ValidateActivity, out var value))
+        {
+            Debug.Assert(value is not null, "The activity mustn't be null!");
+
+            var activity = (Activity)value;
+
+            foreach (var error in errors)
+            {
+                _enricher.EnrichValidationError(context, activity, error);
+            }
+
+            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
+        }
+    }
+
+    public override void ResolverError(IMiddlewareContext context, IError error)
+    {
+        if (context.LocalContextData.TryGetValue(ResolverActivity, out var localValue)
+            && localValue is Activity activity)
+        {
+            _enricher.EnrichResolverError(context, error, activity);
+            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
+        }
+    }
+
+    public override void ResolverError(RequestContext context, ISelection selection, IError error)
+    {
+        if (context.ContextData.TryGetValue(RequestActivity, out var value))
+        {
+            Debug.Assert(value is not null, "The activity mustn't be null!");
+
+            var activity = (Activity)value;
+
+            _enricher.EnrichResolverError(context, error, activity);
+
+            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
+        }
+    }
+
+    public override IDisposable ValidateDocument(RequestContext context)
     {
         if (_options.SkipValidateDocument)
         {
@@ -145,25 +205,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return new ValidateDocumentScope(_enricher, context, activity);
     }
 
-    public override void ValidationErrors(IRequestContext context, IReadOnlyList<IError> errors)
-    {
-        if (context.ContextData.TryGetValue(ValidateActivity, out var value))
-        {
-            Debug.Assert(value is not null, "The activity mustn't be null!");
-
-            var activity = (Activity)value;
-
-            foreach (var error in errors)
-            {
-                _enricher.EnrichValidationError(context, activity, error);
-            }
-
-            activity.SetStatus(Status.Error);
-            activity.SetStatus(ActivityStatusCode.Error);
-        }
-    }
-
-    public override IDisposable AnalyzeOperationCost(IRequestContext context)
+    public override IDisposable AnalyzeOperationCost(RequestContext context)
     {
         if (_options.SkipAnalyzeComplexity)
         {
@@ -182,7 +224,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return new AnalyzeOperationComplexityScope(_enricher, context, activity);
     }
 
-    public override void OperationCost(IRequestContext context, double fieldCost, double typeCost)
+    public override void OperationCost(RequestContext context, double fieldCost, double typeCost)
     {
         if (context.ContextData.TryGetValue(ComplexityActivity, out var value))
         {
@@ -190,13 +232,14 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
             var activity = (Activity)value;
 
-            activity.SetTag("graphql.operation.id", context.DocumentId?.Value);
+            var documentInfo = context.OperationDocumentInfo;
+            activity.SetTag("graphql.operation.id", documentInfo.Id.Value);
             activity.SetTag("graphql.operation.fieldCost", fieldCost);
             activity.SetTag("graphql.operation.typeCost", typeCost);
         }
     }
 
-    public override IDisposable CoerceVariables(IRequestContext context)
+    public override IDisposable CoerceVariables(RequestContext context)
     {
         if (_options.SkipCoerceVariables)
         {
@@ -213,7 +256,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return new CoerceVariablesScope(_enricher, context, activity);
     }
 
-    public override IDisposable CompileOperation(IRequestContext context)
+    public override IDisposable CompileOperation(RequestContext context)
     {
         if (_options.SkipCompileOperation)
         {
@@ -230,7 +273,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return new CompileOperationScope(_enricher, context, activity);
     }
 
-    public override IDisposable ExecuteOperation(IRequestContext context)
+    public override IDisposable ExecuteOperation(RequestContext context)
     {
         if (_options.SkipExecuteOperation)
         {
@@ -259,10 +302,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return activity;
     }
 
-    // Note: we removed public override IDisposable ExecuteSubscription(ISubscription subscription)
-    // for now.
-
-    public override IDisposable OnSubscriptionEvent(SubscriptionEventContext subscription)
+    public override IDisposable OnSubscriptionEvent(RequestContext context, ulong subscriptionId)
     {
         var activity = Source.StartActivity();
 
@@ -295,33 +335,5 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         context.SetLocalState(ResolverActivity, activity);
 
         return activity;
-    }
-
-    public override void ResolverError(IMiddlewareContext context, IError error)
-    {
-        if (!_options.SkipResolveFieldValue &&
-            context.LocalContextData.TryGetValue(ResolverActivity, out var value))
-        {
-            Debug.Assert(value is not null, "The activity mustn't be null!");
-
-            var activity = (Activity)value;
-            _enricher.EnrichResolverError(context, error, activity);
-            activity.SetStatus(Status.Error);
-            activity.SetStatus(ActivityStatusCode.Error);
-        }
-    }
-
-    public override void ResolverError(IRequestContext context, ISelection selection, IError error)
-    {
-        if (!_options.SkipResolveFieldValue &&
-            context.ContextData.TryGetValue(RequestActivity, out var value))
-        {
-            Debug.Assert(value is not null, "The activity mustn't be null!");
-
-            var activity = (Activity)value;
-            _enricher.EnrichResolverError(context, selection, error, activity);
-            activity.SetStatus(Status.Error);
-            activity.SetStatus(ActivityStatusCode.Error);
-        }
     }
 }

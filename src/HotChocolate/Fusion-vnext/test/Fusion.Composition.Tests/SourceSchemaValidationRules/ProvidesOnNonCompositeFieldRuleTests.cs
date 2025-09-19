@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class ProvidesOnNonCompositeFieldRuleTests : CompositionTestBase
+public sealed class ProvidesOnNonCompositeFieldRuleTests
 {
     private static readonly object s_rule = new ProvidesOnNonCompositeFieldRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -89,8 +90,8 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The field 'User.email' in schema 'A' includes a @provides directive, but " +
-                    "does not return a composite type."
+                    "The field 'User.email' in schema 'A' includes a @provides directive, but "
+                    + "does not return a composite type."
                 ]
             },
             // Here, the schema is defined with "email" being a non-null string.
@@ -104,8 +105,8 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The field 'User.email' in schema 'A' includes a @provides directive, but " +
-                    "does not return a composite type."
+                    "The field 'User.email' in schema 'A' includes a @provides directive, but "
+                    + "does not return a composite type."
                 ]
             },
             // Here, the schema is defined with "emails" being a non-null list of non-null strings.
@@ -119,8 +120,8 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The field 'User.emails' in schema 'A' includes a @provides directive, but " +
-                    "does not return a composite type."
+                    "The field 'User.emails' in schema 'A' includes a @provides directive, but "
+                    + "does not return a composite type."
                 ]
             }
         };

@@ -35,7 +35,7 @@ internal sealed class EnumValuesMismatchRule : IEventHandler<EnumTypeGroupEvent>
         }
 
         var enumValues = enumGroup
-            .SelectMany(e => e.Type.Values)
+            .SelectMany(e => e.Type.Values.AsEnumerable())
             .Where(v => !v.HasInaccessibleDirective())
             .Select(v => v.Name)
             .ToImmutableHashSet();

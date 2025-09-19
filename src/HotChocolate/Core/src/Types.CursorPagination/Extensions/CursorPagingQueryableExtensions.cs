@@ -57,15 +57,8 @@ public static class CursorPagingQueryableExtensions
         IResolverContext context,
         int? defaultPageSize = null)
     {
-        if (query is null)
-        {
-            throw new ArgumentNullException(nameof(query));
-        }
-
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(query);
+        ArgumentNullException.ThrowIfNull(context);
 
         var first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
         var last = context.ArgumentValue<int?>(CursorPagingArgumentNames.Last);

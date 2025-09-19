@@ -4,6 +4,7 @@ using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
@@ -11,17 +12,18 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 {
     public void Generate(
         SourceProductionContext context,
-        Compilation compilation,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
+        string assemblyName,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        Action<string, SourceText> addSource)
     {
         var dataLoaderDefaults = syntaxInfos.GetDataLoaderDefaults();
-        WriteDataLoader(context, syntaxInfos, dataLoaderDefaults);
+        WriteDataLoader(syntaxInfos, dataLoaderDefaults, addSource);
     }
 
     private static void WriteDataLoader(
-        SourceProductionContext context,
         ImmutableArray<SyntaxInfo> syntaxInfos,
-        DataLoaderDefaultsInfo defaults)
+        DataLoaderDefaultsInfo defaults,
+        Action<string, SourceText> addSource)
     {
         var dataLoaders = new List<DataLoaderInfo>();
 
@@ -106,10 +108,15 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
                         t.InterfaceName,
                         t.IsInterfacePublic ?? isPublic));
 
-                buffer ??= new();
+                buffer ??= [];
                 buffer.Clear();
                 buffer.AddRange(dataLoaderGroups);
-                generator.WriteDataLoaderGroupClass(dataLoaderGroup.Key, buffer, defaults.GenerateInterfaces);
+                generator.WriteDataLoaderGroupClass(
+                    dataLoaderGroup.Key,
+                    buffer,
+                    defaults.GenerateInterfaces,
+                    defaults.IsInterfacePublic ?? true,
+                    defaults.IsPublic ?? true);
             }
 
             generator.WriteEndNamespace();
@@ -117,7 +124,7 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
         if (hasDataLoaders)
         {
-            context.AddSource(WellKnownFileNames.DataLoaderFile, generator.ToSourceText());
+            addSource(WellKnownFileNames.DataLoaderFile, generator.ToSourceText());
         }
     }
 
@@ -165,12 +172,12 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
     }
 
     private static bool IsKeysArgument(ITypeSymbol type)
-        => type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1, } nt
+        => type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1 } nt
             && WellKnownTypes.ReadOnlyList.Equals(ToTypeNameNoGenerics(nt), StringComparison.Ordinal);
 
     private static ITypeSymbol ExtractKeyType(ITypeSymbol type)
     {
-        if (type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1, } namedType
+        if (type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1 } namedType
             && WellKnownTypes.ReadOnlyList.Equals(ToTypeNameNoGenerics(namedType), StringComparison.Ordinal))
         {
             return namedType.TypeArguments[0];
@@ -181,19 +188,19 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
     private static bool IsReturnTypeDictionary(ITypeSymbol returnType, ITypeSymbol keyType)
     {
-        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1, } namedType)
+        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1 } namedType)
         {
             var resultType = namedType.TypeArguments[0];
 
             if (IsReadOnlyDictionaryInterface(resultType)
-                && resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType1
+                && resultType is INamedTypeSymbol { TypeArguments.Length: 2 } dictionaryType1
                 && dictionaryType1.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
             {
                 return true;
             }
 
             if (IsDictionaryInterface(resultType)
-                && resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType2
+                && resultType is INamedTypeSymbol { TypeArguments.Length: 2 } dictionaryType2
                 && dictionaryType2.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
             {
                 return true;
@@ -205,12 +212,12 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
     private static bool IsReturnTypeLookup(ITypeSymbol returnType, ITypeSymbol keyType)
     {
-        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1, } namedType)
+        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1 } namedType)
         {
             var resultType = namedType.TypeArguments[0];
 
             if (ToTypeNameNoGenerics(resultType).Equals(WellKnownTypes.Lookup, StringComparison.Ordinal)
-                && resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType
+                && resultType is INamedTypeSymbol { TypeArguments.Length: 2 } dictionaryType
                 && dictionaryType.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
             {
                 return true;
@@ -260,10 +267,10 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
 
     private static ITypeSymbol ExtractValueType(ITypeSymbol returnType, DataLoaderKind kind)
     {
-        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1, } namedType)
+        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1 } namedType)
         {
             if (kind is DataLoaderKind.Batch or DataLoaderKind.Group
-                && namedType.TypeArguments[0] is INamedTypeSymbol { TypeArguments.Length: 2, } dict)
+                && namedType.TypeArguments[0] is INamedTypeSymbol { TypeArguments.Length: 2 } dict)
             {
                 return dict.TypeArguments[1];
             }

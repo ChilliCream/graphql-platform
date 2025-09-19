@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Models;
@@ -12,13 +13,21 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class TypeAttributeInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [TypeWithAttribute.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [TypeWithAttribute.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } =
+    [
+        SyntaxKind.ClassDeclaration,
+        SyntaxKind.RecordDeclaration,
+        SyntaxKind.InterfaceDeclaration,
+        SyntaxKind.EnumDeclaration
+    ];
 
     public bool TryHandle(
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
-        if (context.Node is BaseTypeDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
+        if (context.Node is BaseTypeDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
         {
             foreach (var attributeListSyntax in possibleType.AttributeLists)
             {
@@ -36,8 +45,8 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
 
                     // We do a startWith to capture the generic and non-generic variants of
                     // the object type extension attribute.
-                    if (fullName.StartsWith(ExtendObjectTypeAttribute, Ordinal) &&
-                        context.SemanticModel.GetDeclaredSymbol(possibleType) is { } typeExt)
+                    if (fullName.StartsWith(ExtendObjectTypeAttribute, Ordinal)
+                        && context.SemanticModel.GetDeclaredSymbol(possibleType) is { } typeExt)
                     {
                         syntaxInfo = new TypeExtensionInfo(
                             typeExt.ToDisplayString(),
@@ -45,9 +54,9 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
                         return true;
                     }
 
-                    if (attributeContainingTypeSymbol.TypeArguments.Length == 0 &&
-                        TypeAttributes.Contains(fullName) &&
-                        context.SemanticModel.GetDeclaredSymbol(possibleType) is { } type)
+                    if (attributeContainingTypeSymbol.TypeArguments.Length == 0
+                        && TypeAttributes.Contains(fullName)
+                        && context.SemanticModel.GetDeclaredSymbol(possibleType) is { } type)
                     {
                         if (fullName.Equals(QueryTypeAttribute))
                         {

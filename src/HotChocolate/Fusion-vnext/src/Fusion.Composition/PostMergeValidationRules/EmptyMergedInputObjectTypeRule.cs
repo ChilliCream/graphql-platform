@@ -21,12 +21,13 @@ internal sealed class EmptyMergedInputObjectTypeRule : IEventHandler<InputTypeEv
     {
         var (inputType, schema) = @event;
 
-        if (inputType.HasInaccessibleDirective())
+        if (inputType.HasFusionInaccessibleDirective())
         {
             return;
         }
 
-        var accessibleFields = inputType.Fields.Where(f => !f.HasInaccessibleDirective());
+        var accessibleFields =
+            inputType.Fields.AsEnumerable().Where(f => !f.HasFusionInaccessibleDirective());
 
         if (!accessibleFields.Any())
         {

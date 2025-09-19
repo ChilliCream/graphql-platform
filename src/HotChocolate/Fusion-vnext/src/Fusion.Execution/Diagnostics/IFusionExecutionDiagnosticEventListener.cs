@@ -1,0 +1,3 @@
+namespace HotChocolate.Fusion.Diagnostics;
+
+public interface IFusionExecutionDiagnosticEventListener : IFusionExecutionDiagnosticEvents;

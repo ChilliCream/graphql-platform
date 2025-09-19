@@ -37,7 +37,7 @@
         }
       ],
       "pageInfo": {
-        "endCursor": "MTA="
+        "endCursor": "e30xMA=="
       }
     }
   },

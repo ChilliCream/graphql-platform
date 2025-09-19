@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Language;
 
 public sealed class FieldSelectionMapParserTests
 {
@@ -120,9 +120,9 @@ public sealed class FieldSelectionMapParserTests
     [Theory]
     // https://graphql.github.io/composite-schemas-spec/draft/#sec-SelectedListValue
     [InlineData("parts[id]")]
-    [InlineData("parts[{ id name }]")]
-    [InlineData("parts[[{ id name }]]")]
-    [InlineData("{ coordinates: coordinates[{ lat: x lon: y }] }")]
+    [InlineData("parts[{ id, name }]")]
+    [InlineData("parts[[{ id, name }]]")]
+    [InlineData("{ coordinates: coordinates[{ lat: x, lon: y }] }")]
     public void ParseAndPrint_SelectedListValueValidExamples_Matches(string sourceText)
     {
         // arrange & act
@@ -134,7 +134,7 @@ public sealed class FieldSelectionMapParserTests
 
     [Theory]
     // https://graphql.github.io/composite-schemas-spec/draft/#sec-SelectedListValue
-    [InlineData("parts[id name]")]
+    [InlineData("parts[id, name]")]
     public void Parse_SelectedListValueInvalidExamples_ThrowsSyntaxException(string sourceText)
     {
         // arrange & act
@@ -176,7 +176,7 @@ public sealed class FieldSelectionMapParserTests
     public void Parse_SelectedObjectValueMultipleFieldsNoSelectedValue_MatchesSnapshot()
     {
         // arrange
-        var parser = new FieldSelectionMapParser("{ field1 field2 }");
+        var parser = new FieldSelectionMapParser("{ field1, field2 }");
 
         // act
         var selectedValueNode = parser.Parse();
@@ -187,8 +187,8 @@ public sealed class FieldSelectionMapParserTests
 
     [Theory]
     // https://graphql.github.io/composite-schemas-spec/draft/#sec-SelectedObjectValue
-    [InlineData("dimension.{ size weight }")]
-    [InlineData("{ size: dimensions.size weight: dimensions.weight }")]
+    [InlineData("dimension.{ size, weight }")]
+    [InlineData("{ size: dimensions.size, weight: dimensions.weight }")]
     public void ParseAndPrint_SelectedObjectValueValidExamples_Matches(string sourceText)
     {
         // arrange & act

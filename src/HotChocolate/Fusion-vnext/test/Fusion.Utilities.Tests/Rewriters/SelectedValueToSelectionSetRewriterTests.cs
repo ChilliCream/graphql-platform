@@ -1,4 +1,6 @@
+using HotChocolate.Fusion.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion.Rewriters;
 
@@ -6,24 +8,27 @@ public sealed class SelectedValueToSelectionSetRewriterTests
 {
     [Theory]
     [MemberData(nameof(ExamplesData))]
-    public void Examples(string selectedValue, string selectionSet)
+    public void Examples(string typeName, string selectedValue, string selectionSet)
     {
         // arrange
         var selectedValueNode = new FieldSelectionMapParser(selectedValue).Parse();
 
         // act
         var selectionSetNode =
-            SelectedValueToSelectionSetRewriter.SelectedValueToSelectionSet(selectedValueNode);
+            s_selectedValueToSelectionSetRewriter.Rewrite(
+                selectedValueNode,
+                s_schema.Types[typeName]);
 
         // assert
         selectionSetNode.Print().MatchInlineSnapshot(selectionSet);
     }
 
-    public static TheoryData<string, string> ExamplesData()
+    public static TheoryData<string, string, string> ExamplesData()
     {
-        return new TheoryData<string, string>
+        return new TheoryData<string, string, string>
         {
             {
+                "Book",
                 "id",
                 """
                 {
@@ -32,16 +37,18 @@ public sealed class SelectedValueToSelectionSetRewriterTests
                 """
             },
             {
-                "book.title",
+                "Book",
+                "author.id",
                 """
                 {
-                    book {
-                        title
+                    author {
+                        id
                     }
                 }
                 """
             },
             {
+                "Query",
                 "mediaById<Book>.isbn",
                 """
                 {
@@ -53,10 +60,9 @@ public sealed class SelectedValueToSelectionSetRewriterTests
                 }
                 """
             },
-            // TODO: Test "dimension.{ size weight }" (not yet supported by parser).
-            // FIXME: Waiting for selection set merge utility.
             {
-                "{ size: dimensions.size weight: dimensions.weight }",
+                "Product",
+                "dimensions.{ size, weight }",
                 """
                 {
                     dimensions {
@@ -67,6 +73,19 @@ public sealed class SelectedValueToSelectionSetRewriterTests
                 """
             },
             {
+                "Product",
+                "{ size: dimensions.size, weight: dimensions.weight }",
+                """
+                {
+                    dimensions {
+                        size
+                        weight
+                    }
+                }
+                """
+            },
+            {
+                "Product",
                 "parts[id]",
                 """
                 {
@@ -77,7 +96,8 @@ public sealed class SelectedValueToSelectionSetRewriterTests
                 """
             },
             {
-                "parts[{ id name }]",
+                "Product",
+                "parts[{ id, name }]",
                 """
                 {
                     parts {
@@ -88,7 +108,8 @@ public sealed class SelectedValueToSelectionSetRewriterTests
                 """
             },
             {
-                "parts[[{ id name }]]",
+                "Product",
+                "parts[[{ id, name }]]",
                 """
                 {
                     parts {
@@ -99,7 +120,8 @@ public sealed class SelectedValueToSelectionSetRewriterTests
                 """
             },
             {
-                "{ coordinates: coordinates[{ lat: x lon: y }] }",
+                "Location",
+                "{ coordinates: coordinates[{ lat: x, lon: y }] }",
                 """
                 {
                     coordinates {
@@ -109,8 +131,8 @@ public sealed class SelectedValueToSelectionSetRewriterTests
                 }
                 """
             },
-            // FIXME: Waiting for selection set merge utility.
             {
+                "Query",
                 "mediaById<Book>.title | mediaById<Movie>.movieTitle",
                 """
                 {
@@ -119,39 +141,42 @@ public sealed class SelectedValueToSelectionSetRewriterTests
                             title
                         }
                         ... on Movie {
-                            title
+                            movieTitle
                         }
                     }
                 }
                 """
             },
             {
-                "{ movieId: <Movie>.id } | { productId: <Product>.id }",
+                "Media",
+                "{ bookId: <Book>.id } | { movieId: <Movie>.id }",
                 """
                 {
-                    ... on Movie {
+                    ... on Book {
                         id
                     }
-                    ... on Product {
+                    ... on Movie {
                         id
                     }
                 }
                 """
             },
             {
-                "{ nested: { movieId: <Movie>.id } | { productId: <Product>.id } }",
+                "Media",
+                "{ nested: { bookId: <Book>.id } | { movieId: <Movie>.id } }",
                 """
                 {
-                    ... on Movie {
+                    ... on Book {
                         id
                     }
-                    ... on Product {
+                    ... on Movie {
                         id
                     }
                 }
                 """
             },
             {
+                "Example",
                 "a | b | c",
                 """
                 {
@@ -163,4 +188,66 @@ public sealed class SelectedValueToSelectionSetRewriterTests
             }
         };
     }
+
+    private static readonly ISchemaDefinition s_schema = SchemaParser.Parse(
+        """
+        type Query {
+            mediaById(mediaId: ID!): Media
+        }
+
+        interface Media {
+            id: ID!
+        }
+
+        type Book implements Media {
+            id: ID!
+            title: String!
+            isbn: String!
+            author: Author!
+        }
+
+        type Movie implements Media {
+            id: ID!
+            movieTitle: String!
+            releaseDate: String!
+        }
+
+        type Author {
+            id: ID!
+            books: [Book!]!
+        }
+
+        type Product {
+            dimensions: Dimensions!
+            parts: [Part!]!
+        }
+
+        type Dimensions {
+            size: Int!
+            weight: Float!
+        }
+
+        type Part {
+            id: ID!
+            name: String!
+        }
+
+        type Location {
+            coordinates: [Coordinate!]!
+        }
+
+        type Coordinate {
+            x: Int!
+            y: Int!
+        }
+
+        type Example {
+            a: Int!
+            b: Int!
+            c: Int!
+        }
+        """);
+
+    private static readonly ValueSelectionToSelectionSetRewriter
+        s_selectedValueToSelectionSetRewriter = new(s_schema);
 }

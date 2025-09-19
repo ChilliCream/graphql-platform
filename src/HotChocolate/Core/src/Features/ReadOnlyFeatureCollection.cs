@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Features;
 
@@ -9,7 +10,7 @@ namespace HotChocolate.Features;
 public sealed class ReadOnlyFeatureCollection : IFeatureCollection
 {
     private readonly FrozenDictionary<Type, object> _features;
-    private volatile int _containerRevision;
+    private readonly int _containerRevision;
 
     /// <summary>
     /// Initializes a new instance of <see cref="ReadOnlyFeatureCollection"/>.
@@ -21,9 +22,10 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     {
         _features = features.ToFrozenDictionary();
 
+        // todo: this has an issues as it will also seal the defaults.
         foreach (var feature in _features.Values)
         {
-            if (feature is ISealable sealable)
+            if (feature is ISealable { IsReadOnly: false } sealable)
             {
                 sealable.Seal();
             }
@@ -35,6 +37,8 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     /// <inheritdoc />
     public bool IsReadOnly => true;
 
+    /// <inheritdoc />
+    public bool IsEmpty => _features.Count > 0;
     /// <inheritdoc />
     public int Revision => _containerRevision;
 
@@ -54,14 +58,33 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
             if (feature is null && Nullable.GetUnderlyingType(typeof(TFeature)) is null)
             {
                 throw new InvalidOperationException(
-                    $"{typeof(TFeature).FullName} does not exist in the feature collection " +
-                    $"and because it is a struct the method can't return null. " +
-                    $"Use 'featureCollection[typeof({typeof(TFeature).FullName})] is not null' " +
-                    $"to check if the feature exists.");
+                    $"{typeof(TFeature).FullName} does not exist in the feature collection "
+                    + $"and because it is a struct the method can't return null. "
+                    + $"Use 'featureCollection[typeof({typeof(TFeature).FullName})] is not null' "
+                    + $"to check if the feature exists.");
             }
             return (TFeature?)feature;
         }
         return (TFeature?)this[typeof(TFeature)];
+    }
+
+    /// <inheritdoc />
+    public bool TryGet<TFeature>([NotNullWhen(true)] out TFeature? feature)
+    {
+        if (_features.TryGetValue(typeof(TFeature), out var result))
+        {
+            if (result is TFeature f)
+            {
+                feature = f;
+                return true;
+            }
+
+            feature = default;
+            return false;
+        }
+
+        feature = default;
+        return false;
     }
 
     /// <inheritdoc />

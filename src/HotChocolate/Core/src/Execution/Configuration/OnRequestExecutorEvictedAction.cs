@@ -5,12 +5,12 @@ public readonly struct OnRequestExecutorEvictedAction
     public OnRequestExecutorEvictedAction(OnRequestExecutorEvicted evicted)
     {
         Evicted = evicted ?? throw new ArgumentNullException(nameof(evicted));
-        EvictedAsync = default;
+        EvictedAsync = null;
     }
 
     public OnRequestExecutorEvictedAction(OnRequestExecutorEvictedAsync evictedAsync)
     {
-        Evicted = default;
+        Evicted = null;
         EvictedAsync = evictedAsync ?? throw new ArgumentNullException(nameof(evictedAsync));
     }
 

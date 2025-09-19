@@ -1,11 +1,14 @@
+using System.Collections.Immutable;
 using System.Reflection;
-
-#nullable enable
+using HotChocolate.Types;
 
 namespace HotChocolate.Internal;
 
 internal sealed partial class ExtendedType : IExtendedType
 {
+    internal static ImmutableHashSet<Type> NonEssentialWrapperTypes { get; set; } =
+        [typeof(ValueTask<>), typeof(Task<>), typeof(NativeType<>), typeof(Optional<>)];
+
     private ExtendedType(
         Type type,
         ExtendedTypeKind kind,
@@ -149,7 +152,7 @@ internal sealed partial class ExtendedType : IExtendedType
         {
             if (Definition is not null)
             {
-                typeName = Definition.Name.Substring(0, Definition.Name.Length - 2);
+                typeName = Definition.Name[..^2];
                 typeName = $"{typeName}<{string.Join(", ", TypeArguments)}>";
             }
             else
@@ -163,15 +166,8 @@ internal sealed partial class ExtendedType : IExtendedType
 
     public static ExtendedType FromType(Type type, TypeCache cache)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (cache is null)
-        {
-            throw new ArgumentNullException(nameof(cache));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(cache);
 
         if (cache.TryGetType(type, out var extendedType))
         {
@@ -188,15 +184,8 @@ internal sealed partial class ExtendedType : IExtendedType
 
     public static ExtendedType FromMember(MemberInfo member, TypeCache cache)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
-
-        if (cache is null)
-        {
-            throw new ArgumentNullException(nameof(cache));
-        }
+        ArgumentNullException.ThrowIfNull(member);
+        ArgumentNullException.ThrowIfNull(cache);
 
         if (member is Type type)
         {
@@ -208,16 +197,28 @@ internal sealed partial class ExtendedType : IExtendedType
 
     public static ExtendedMethodInfo FromMethod(MethodInfo method, TypeCache cache)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
-
-        if (cache is null)
-        {
-            throw new ArgumentNullException(nameof(cache));
-        }
+        ArgumentNullException.ThrowIfNull(method);
+        ArgumentNullException.ThrowIfNull(cache);
 
         return Members.FromMethod(method, cache);
+    }
+
+    public static void RegisterNonEssentialWrapperTypes(Type type)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        if (!type.IsGenericTypeDefinition)
+        {
+            throw new ArgumentException(
+                "The type must be a generic type definition.",
+                nameof(type));
+        }
+
+        if (NonEssentialWrapperTypes.Contains(type))
+        {
+            return;
+        }
+
+        NonEssentialWrapperTypes = NonEssentialWrapperTypes.Add(type);
     }
 }

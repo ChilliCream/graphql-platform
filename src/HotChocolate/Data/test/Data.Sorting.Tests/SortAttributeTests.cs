@@ -81,13 +81,13 @@ public class SortAttributeTests
         [UseSorting<FooSortType>]
         public IEnumerable<Foo> Foos { get; } = new[]
         {
-            new Foo { Bar = "aa", Baz = 1, Qux = 1, },
-            new Foo { Bar = "ba", Baz = 1, },
-            new Foo { Bar = "ca", Baz = 2, },
-            new Foo { Bar = "ab", Baz = 2, },
-            new Foo { Bar = "ac", Baz = 2, },
-            new Foo { Bar = "ad", Baz = 2, },
-            new Foo { Bar = null!, Baz = 0, },
+            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+            new Foo { Bar = "ba", Baz = 1 },
+            new Foo { Bar = "ca", Baz = 2 },
+            new Foo { Bar = "ab", Baz = 2 },
+            new Foo { Bar = "ac", Baz = 2 },
+            new Foo { Bar = "ad", Baz = 2 },
+            new Foo { Bar = null!, Baz = 0 }
         };
     }
 
@@ -96,13 +96,13 @@ public class SortAttributeTests
         [UseSorting]
         public IEnumerable<Foo> Foos { get; } = new[]
         {
-            new Foo { Bar = "aa", Baz = 1, Qux = 1, },
-            new Foo { Bar = "ba", Baz = 1, },
-            new Foo { Bar = "ca", Baz = 2, },
-            new Foo { Bar = "ab", Baz = 2, },
-            new Foo { Bar = "ac", Baz = 2, },
-            new Foo { Bar = "ad", Baz = 2, },
-            new Foo { Bar = null!, Baz = 0, },
+            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+            new Foo { Bar = "ba", Baz = 1 },
+            new Foo { Bar = "ca", Baz = 2 },
+            new Foo { Bar = "ab", Baz = 2 },
+            new Foo { Bar = "ac", Baz = 2 },
+            new Foo { Bar = "ad", Baz = 2 },
+            new Foo { Bar = null!, Baz = 0 }
         };
     }
 
@@ -111,13 +111,13 @@ public class SortAttributeTests
         [UseSorting(Type = typeof(FooSortType))]
         public IEnumerable<Foo> Foos { get; } = new[]
         {
-            new Foo { Bar = "aa", Baz = 1, Qux = 1, },
-            new Foo { Bar = "ba", Baz = 1, },
-            new Foo { Bar = "ca", Baz = 2, },
-            new Foo { Bar = "ab", Baz = 2, },
-            new Foo { Bar = "ac", Baz = 2, },
-            new Foo { Bar = "ad", Baz = 2, },
-            new Foo { Bar = null!, Baz = 0, },
+            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+            new Foo { Bar = "ba", Baz = 1 },
+            new Foo { Bar = "ca", Baz = 2 },
+            new Foo { Bar = "ab", Baz = 2 },
+            new Foo { Bar = "ac", Baz = 2 },
+            new Foo { Bar = "ad", Baz = 2 },
+            new Foo { Bar = null!, Baz = 0 }
         };
     }
 
@@ -126,13 +126,13 @@ public class SortAttributeTests
         [UseSorting(typeof(FooSortType))]
         public IEnumerable<Foo> Foos { get; } = new[]
         {
-            new Foo { Bar = "aa", Baz = 1, Qux = 1, },
-            new Foo { Bar = "ba", Baz = 1, },
-            new Foo { Bar = "ca", Baz = 2, },
-            new Foo { Bar = "ab", Baz = 2, },
-            new Foo { Bar = "ac", Baz = 2, },
-            new Foo { Bar = "ad", Baz = 2, },
-            new Foo { Bar = null!, Baz = 0, },
+            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+            new Foo { Bar = "ba", Baz = 1 },
+            new Foo { Bar = "ca", Baz = 2 },
+            new Foo { Bar = "ab", Baz = 2 },
+            new Foo { Bar = "ac", Baz = 2 },
+            new Foo { Bar = "ad", Baz = 2 },
+            new Foo { Bar = null!, Baz = 0 }
         };
     }
 
@@ -141,11 +141,11 @@ public class SortAttributeTests
         [UseSorting]
         public IEnumerable<Bar> Bars { get; } = new[]
         {
-            new Bar { Baz = 1, },
-            new Bar { Baz = 2, },
-            new Bar { Baz = 2, },
-            new Bar { Baz = 2, },
-            new Bar { Baz = 2, },
+            new Bar { Baz = 1 },
+            new Bar { Baz = 2 },
+            new Bar { Baz = 2 },
+            new Bar { Baz = 2 },
+            new Bar { Baz = 2 }
         };
     }
 
@@ -159,7 +159,7 @@ public class SortAttributeTests
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
 
         [GraphQLType(typeof(NonNullType<IntType>))]
         public long Baz { get; set; }

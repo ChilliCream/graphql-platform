@@ -73,7 +73,7 @@ public static class PostgresSubscriptionTransportExtensions
         });
 
         services.AddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
-        services.AddSingleton<PostgresChannel>(sp =>
+        services.AddSingleton(sp =>
         {
             var options = sp.GetRequiredService<PostgresSubscriptionOptions>();
             var events = sp.GetRequiredService<ISubscriptionDiagnosticEvents>();

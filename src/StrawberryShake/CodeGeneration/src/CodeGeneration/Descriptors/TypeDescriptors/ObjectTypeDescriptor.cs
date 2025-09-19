@@ -26,7 +26,7 @@ public sealed class ObjectTypeDescriptor : ComplexTypeDescriptor
         }
     }
 
-    public EntityTypeDescriptor EntityTypeDescriptor { get; private set; } = default!;
+    public EntityTypeDescriptor EntityTypeDescriptor { get; private set; } = null!;
 
     public void CompleteEntityType(EntityTypeDescriptor descriptor)
     {

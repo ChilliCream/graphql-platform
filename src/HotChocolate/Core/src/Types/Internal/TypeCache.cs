@@ -1,15 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 internal sealed class TypeCache
 {
     private readonly object _sync = new();
-    private readonly Dictionary<ExtendedTypeId, ExtendedType> _types = new();
-    private readonly Dictionary<object, ExtendedType> _typeMemberLookup = new();
-    private readonly Dictionary<ExtendedTypeId, TypeInfo> _typeInfos = new();
+    private readonly Dictionary<ExtendedTypeId, ExtendedType> _types = [];
+    private readonly Dictionary<object, ExtendedType> _typeMemberLookup = [];
+    private readonly Dictionary<ExtendedTypeId, TypeInfo> _typeInfos = [];
 
     public ExtendedType GetType(ExtendedTypeId id)
     {

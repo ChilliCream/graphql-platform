@@ -7,11 +7,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class ResultDataFactoryGenerator : TypeMapperGenerator
 {
-    private const string entityStore = "entityStore";
-    private const string _entityStore = "_entityStore";
-    private const string _dataInfo = "dataInfo";
-    private const string _snapshot = "snapshot";
-    private const string _info = "info";
+    private const string EntityStore = "entityStore";
+    private const string UnderscoreEntityStore = "_entityStore";
+    private const string DataInfo = "dataInfo";
+    private const string Snapshot = "snapshot";
+    private const string Info = "info";
 
     protected override bool CanHandle(ITypeDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings)
@@ -51,8 +51,8 @@ public class ResultDataFactoryGenerator : TypeMapperGenerator
         {
             AddConstructorAssignedField(
                 TypeNames.IEntityStore,
-                _entityStore,
-                entityStore,
+                UnderscoreEntityStore,
+                EntityStore,
                 classBuilder,
                 constructorBuilder);
         }
@@ -66,22 +66,22 @@ public class ResultDataFactoryGenerator : TypeMapperGenerator
         foreach (var property in descriptor.Properties)
         {
             returnStatement
-                .AddArgument(BuildMapMethodCall(settings, _info, property));
+                .AddArgument(BuildMapMethodCall(settings, Info, property));
         }
 
         var ifHasCorrectType = IfBuilder
             .New()
             .SetCondition(
-                $"{_dataInfo} is {CreateResultInfoName(descriptor.RuntimeType.Name)} {_info}")
+                $"{DataInfo} is {CreateResultInfoName(descriptor.RuntimeType.Name)} {Info}")
             .AddCode(returnStatement);
 
         var createMethod = classBuilder
             .AddMethod("Create")
             .SetAccessModifier(AccessModifier.Public)
             .SetReturnType(descriptor.RuntimeType.Name)
-            .AddParameter(_dataInfo, b => b.SetType(TypeNames.IOperationResultDataInfo))
+            .AddParameter(DataInfo, b => b.SetType(TypeNames.IOperationResultDataInfo))
             .AddParameter(
-                _snapshot,
+                Snapshot,
                 b => b.SetDefault("null")
                     .SetType(TypeNames.IEntityStoreSnapshot.MakeNullable()));
 
@@ -90,12 +90,12 @@ public class ResultDataFactoryGenerator : TypeMapperGenerator
             createMethod
                 .AddCode(
                     IfBuilder.New()
-                        .SetCondition($"{_snapshot} is null")
+                        .SetCondition($"{Snapshot} is null")
                         .AddCode(
                             AssignmentBuilder
                                 .New()
-                                .SetLeftHandSide(_snapshot)
-                                .SetRightHandSide($"{_entityStore}.CurrentSnapshot")))
+                                .SetLeftHandSide(Snapshot)
+                                .SetRightHandSide($"{UnderscoreEntityStore}.CurrentSnapshot")))
                 .AddEmptyLine();
         }
 
@@ -127,17 +127,17 @@ public class ResultDataFactoryGenerator : TypeMapperGenerator
             .AddMethod("Create")
             .SetInterface(TypeNames.IOperationResultDataFactory)
             .SetReturnType(TypeNames.Object)
-            .AddParameter(_dataInfo, b => b.SetType(TypeNames.IOperationResultDataInfo))
+            .AddParameter(DataInfo, b => b.SetType(TypeNames.IOperationResultDataInfo))
             .AddParameter(
-                _snapshot,
+                Snapshot,
                 b => b.SetType(TypeNames.IEntityStoreSnapshot.MakeNullable()))
             .AddCode(
                 MethodCallBuilder
                     .New()
                     .SetReturn()
                     .SetMethodName("Create")
-                    .AddArgument(_dataInfo)
-                    .AddArgument(_snapshot));
+                    .AddArgument(DataInfo)
+                    .AddArgument(Snapshot));
 
         classBuilder.Build(writer);
     }

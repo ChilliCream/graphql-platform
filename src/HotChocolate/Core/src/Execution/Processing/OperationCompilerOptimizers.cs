@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -16,7 +15,7 @@ internal sealed class OperationCompilerOptimizers
         get => _operationOptimizers;
         set
         {
-            if((_initFlags & PropertyInitFlags.OperationOptimizers) == PropertyInitFlags.OperationOptimizers)
+            if ((_initFlags & PropertyInitFlags.OperationOptimizers) == PropertyInitFlags.OperationOptimizers)
             {
                 throw new InvalidOperationException(
                     "OperationOptimizers can only be set once.");
@@ -32,7 +31,7 @@ internal sealed class OperationCompilerOptimizers
         get => _selectionSetOptimizers;
         set
         {
-            if((_initFlags & PropertyInitFlags.SelectionSetOptimizers) == PropertyInitFlags.SelectionSetOptimizers)
+            if ((_initFlags & PropertyInitFlags.SelectionSetOptimizers) == PropertyInitFlags.SelectionSetOptimizers)
             {
                 throw new InvalidOperationException(
                     "OperationOptimizers can only be set once.");
@@ -58,24 +57,19 @@ public readonly struct OperationCompilerRequest
         DocumentNode document,
         OperationDefinitionNode definition,
         ObjectType rootType,
-        ISchema schema,
+        ISchemaDefinition schema,
         ImmutableArray<IOperationOptimizer>? operationOptimizers = null,
         ImmutableArray<ISelectionSetOptimizer>? selectionSetOptimizers = null)
     {
-        if (string.IsNullOrEmpty(id))
-        {
-            throw new ArgumentException(
-                Resources.OperationCompiler_OperationIdNullOrEmpty,
-                nameof(id));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(id);
 
         Id = id;
         Document = document ?? throw new ArgumentNullException(nameof(document));
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         RootType = rootType ?? throw new ArgumentNullException(nameof(rootType));
         Schema = schema ?? throw new ArgumentNullException(nameof(schema));
-        OperationOptimizers = operationOptimizers ?? ImmutableArray<IOperationOptimizer>.Empty;
-        SelectionSetOptimizers = selectionSetOptimizers ?? ImmutableArray<ISelectionSetOptimizer>.Empty;
+        OperationOptimizers = operationOptimizers ?? [];
+        SelectionSetOptimizers = selectionSetOptimizers ?? [];
     }
 
     /// <summary>
@@ -102,7 +96,7 @@ public readonly struct OperationCompilerRequest
     /// <summary>
     /// Gets the schema against which the operation shall be executed.
     /// </summary>
-    public ISchema Schema { get; }
+    public ISchemaDefinition Schema { get; }
 
     public ImmutableArray<IOperationOptimizer> OperationOptimizers { get; }
 

@@ -1,7 +1,7 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
-using HotChocolate.Skimmed;
+using HotChocolate.Types;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -22,7 +22,7 @@ internal sealed class LookupReturnsNonNullableTypeRule : IEventHandler<OutputFie
     {
         var (field, type, schema) = @event;
 
-        if (field.HasLookupDirective() && field.Type is NonNullTypeDefinition)
+        if (field.HasLookupDirective() && field.Type is NonNullType)
         {
             context.Log.Write(LookupReturnsNonNullableType(field, type, schema));
         }

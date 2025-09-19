@@ -15,19 +15,21 @@ public sealed class PromiseCacheOwner : IDisposable
     /// <summary>
     /// Rents a new cache from <see cref="PromiseCachePool.Shared"/>.
     /// </summary>
-    public PromiseCacheOwner()
+    public PromiseCacheOwner(IPromiseCacheInterceptor? interceptor = null)
     {
         _pool = PromiseCachePool.Shared;
         _cache = PromiseCachePool.Shared.Get();
+        _cache.Interceptor = interceptor;
     }
 
     /// <summary>
     /// Rents a new cache from the given <paramref name="pool"/>.
     /// </summary>
-    public PromiseCacheOwner(ObjectPool<PromiseCache> pool)
+    public PromiseCacheOwner(ObjectPool<PromiseCache> pool, IPromiseCacheInterceptor? interceptor = null)
     {
         _pool = pool ?? throw new ArgumentNullException(nameof(pool));
         _cache = pool.Get();
+        _cache.Interceptor = interceptor;
     }
 
     /// <summary>

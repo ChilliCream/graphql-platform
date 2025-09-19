@@ -13,13 +13,13 @@ internal sealed class SortingContextParameterExpressionBuilder
     , IParameterBindingFactory
     , IParameterBinding
 {
-    private const string _getSortingContext =
+    private const string GetSortingContext =
         nameof(SortingContextResolverContextExtensions.GetSortingContext);
 
-    private static readonly MethodInfo _getSortingContextMethod =
+    private static readonly MethodInfo s_getSortingContextMethod =
         typeof(SortingContextResolverContextExtensions)
             .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .First(method => method.Name.Equals(_getSortingContext, StringComparison.Ordinal));
+            .First(method => method.Name.Equals(GetSortingContext, StringComparison.Ordinal));
 
     /// <inheritdoc cref="IParameterExpressionBuilder.Kind" />
     public ArgumentKind Kind => ArgumentKind.Service;
@@ -36,7 +36,7 @@ internal sealed class SortingContextParameterExpressionBuilder
 
     /// <inheritdoc />
     public Expression Build(ParameterExpressionBuilderContext context)
-        => Expression.Call(_getSortingContextMethod, context.ResolverContext);
+        => Expression.Call(s_getSortingContextMethod, context.ResolverContext);
 
     public IParameterBinding Create(ParameterBindingContext context)
         => this;

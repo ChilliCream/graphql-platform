@@ -1,12 +1,12 @@
-﻿[
+[
   {
-    "Message": "The specified directive is not valid the current location.",
+    "Message": "The specified directive is not valid in the current location.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 3,
-        "Column": 29
+        "Line": 2,
+        "Column": 11
       }
     ],
     "Extensions": {

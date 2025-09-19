@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Data.Primitives\GreenDonut.Abstractions.csproj" />
     <ProjectReference Include="..\GreenDonut.Abstractions\GreenDonut.Abstractions.csproj" />
   </ItemGroup>
 

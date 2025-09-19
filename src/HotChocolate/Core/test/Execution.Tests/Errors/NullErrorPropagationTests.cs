@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
 
-public class NullErrorPropagation
+public class NullErrorPropagationTests
 {
     [Fact]
     public async Task Lists_NullableElementIsNull()

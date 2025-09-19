@@ -1,5 +1,4 @@
 using Microsoft.Extensions.ObjectPool;
-using static HotChocolate.Execution.Processing.ResultPoolDefaults;
 
 namespace HotChocolate.Execution.Processing;
 

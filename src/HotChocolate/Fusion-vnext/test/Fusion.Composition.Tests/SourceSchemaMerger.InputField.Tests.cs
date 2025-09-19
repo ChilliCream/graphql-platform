@@ -1,9 +1,10 @@
 using HotChocolate.Fusion.Options;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SourceSchemaMergerInputFieldTests : CompositionTestBase
+public sealed class SourceSchemaMergerInputFieldTests
 {
     [Theory]
     [MemberData(nameof(ExamplesData))]
@@ -12,7 +13,11 @@ public sealed class SourceSchemaMergerInputFieldTests : CompositionTestBase
         // arrange
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(sdl),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+            new SourceSchemaMergerOptions
+            {
+                RemoveUnreferencedTypes = false,
+                AddFusionDefinitions = false
+            });
 
         // act
         var result = merger.Merge();
@@ -81,9 +86,9 @@ public sealed class SourceSchemaMergerInputFieldTests : CompositionTestBase
                     @fusion__type(schema: A)
                     @fusion__type(schema: B) {
                     minTotal: Int
-                        @inaccessible
                         @fusion__inputField(schema: A)
                         @fusion__inputField(schema: B)
+                        @fusion__inaccessible
                 }
                 """
             },

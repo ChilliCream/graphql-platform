@@ -78,9 +78,7 @@ internal sealed class PostgresChannel : IAsyncDisposable
         _subscription = new ChannelSubscription(_channelName, connection, OnNotification);
         await _subscription.ConnectAsync(cancellationToken);
 
-        _waitOnNotificationTask = new ContinuousTask(
-            ct => connection.WaitAsync(ct),
-            TimeProvider.System);
+        _waitOnNotificationTask = new ContinuousTask(connection.WaitAsync, TimeProvider.System);
 
         _diagnosticEvents.ProviderInfo(PostgresChannel_ConnectionEstablished);
     }

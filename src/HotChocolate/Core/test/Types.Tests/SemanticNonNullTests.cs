@@ -1,8 +1,7 @@
-#nullable enable
-
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,17 +10,26 @@ namespace HotChocolate;
 public class SemanticNonNullTests
 {
     [Fact]
-    public async Task Object_Implementing_Node()
+    public async Task Object_With_Id_Field()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-                o.EnsureAllNodesCanBeResolved = false;
-            })
-            .AddQueryType<QueryWithNode>()
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
+            .AddQueryType<QueryWithTypeWithId>()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Interface_With_Id_Field()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
             .AddGlobalObjectIdentification()
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
+            .AddQueryType<QueryWithInteface>()
+            .AddType<InterfaceImplementingNode>()
+            .UseField(_ => _ => default)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -36,8 +44,9 @@ public class SemanticNonNullTests
                 o.StrictValidation = false;
                 o.EnableSemanticNonNull = true;
             })
-            .AddMutationConventions()
+            .AddMutationConventions(applyToAllMutations: false)
             .AddMutationType<Mutation>()
+            .AddTypeExtension<MutationExtensions>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -47,10 +56,7 @@ public class SemanticNonNullTests
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<QueryWithPagination>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -135,6 +141,43 @@ public class SemanticNonNullTests
             .UseField(_ => _ => default)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
+    }
+
+    public class QueryWithInteface
+    {
+        public SomeObject GetSomeObject() => new();
+    }
+
+    [Node]
+    [ImplementsInterface<InterfaceImplementingNode>]
+    public record SomeObject
+    {
+        public int Id { get; set; }
+
+        public string Field { get; set; } = null!;
+
+        public static SomeObject? Get(int id) => new();
+    }
+
+    public class InterfaceImplementingNode : InterfaceType
+    {
+        protected override void Configure(IInterfaceTypeDescriptor descriptor)
+        {
+            descriptor.Implements<NodeType>();
+            descriptor
+                .Field("field")
+                .Type("String!");
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class ImplementsInterfaceAttribute<T> : ObjectTypeDescriptorAttribute
+        where T : InterfaceType
+    {
+        protected override void OnConfigure(
+            IDescriptorContext context,
+            IObjectTypeDescriptor descriptor,
+            Type type) => descriptor.Implements<T>();
     }
 
     public class QueryType : ObjectType
@@ -302,23 +345,28 @@ public class SemanticNonNullTests
 
     public class Foo
     {
-        public string Bar { get; } = default!;
+        public string Bar { get; } = null!;
     }
 
     [ObjectType("Query")]
-    public class QueryWithNode
+    public class QueryWithTypeWithId
     {
-        public MyNode GetMyNode() => new(1);
+        public MyType GetMyNode() => new(1);
     }
 
-    [Node]
-    public record MyNode([property: ID] int Id);
+    public record MyType([property: ID] int Id);
 
     public class Mutation
     {
         [UseMutationConvention]
         [Error<MyException>]
         public bool DoSomething() => true;
+    }
+
+    [ExtendObjectType<Mutation>]
+    public class MutationExtensions
+    {
+        public bool DoSomethingElse() => true;
     }
 
     public class MyException : Exception;

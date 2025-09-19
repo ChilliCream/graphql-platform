@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Caching/HotChocolate.Caching.csproj" />
+  </Folder>
+  <Folder Name="/src/Caching.Memory/">
+    <Project Path="src/Caching.Memory/HotChocolate.Caching.Memory.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Caching.Tests/HotChocolate.Caching.Tests.csproj" />
+  </Folder>
+  <Folder Name="/test/Caching.Memory.Tests/">
+    <Project Path="test/Caching.Memory.Tests/HotChocolate.Caching.Memory.Tests.csproj" />
+  </Folder>
+</Solution>

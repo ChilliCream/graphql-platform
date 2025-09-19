@@ -1,5 +1,5 @@
 Description:
-  Export the graphql schema. If no output (--output) is specified the schema will be printed to the console.
+  Export the graphql schema to a schema file
 
 Usage:
   graphql schema export [options]

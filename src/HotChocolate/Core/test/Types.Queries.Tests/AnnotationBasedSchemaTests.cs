@@ -394,6 +394,26 @@ public class AnnotationBasedSchemaTests
         exception.Errors[0].Message.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task QueryWithError_QueryConventionsNotEnabled_ThrowsSchemaException()
+    {
+        // arrange
+        async Task Act() =>
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithFieldResultAndException>()
+                .BuildSchemaAsync();
+
+        // act & assert
+        var exception =
+            (SchemaException?)(await Assert.ThrowsAsync<SchemaException>(Act)).Errors[0].Exception;
+
+        Assert.Equal(
+            "Adding an error type `InvalidUserIdException` to field `userById` failed as query or "
+            + "mutation conventions were not enabled.",
+            exception?.Errors[0].Message);
+    }
+
     public class QueryWithException
     {
         [Error<UserNotFoundException>]
@@ -469,7 +489,7 @@ public class AnnotationBasedSchemaTests
             return new FieldResult<IQueryable<User>, UserNotFound>(
                 new[]
                 {
-                    new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed")),
+                    new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"))
                 }.AsQueryable());
         }
 
@@ -486,7 +506,7 @@ public class AnnotationBasedSchemaTests
             return new FieldResult<IQueryable<User>, UserNotFound>(
                 new[]
                 {
-                    new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed")),
+                    new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"))
                 }.AsQueryable());
         }
     }

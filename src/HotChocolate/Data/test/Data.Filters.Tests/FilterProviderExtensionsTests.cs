@@ -54,7 +54,7 @@ public class FilterProviderExtensionsTests
         Action<IFilterProviderDescriptor<QueryableFilterContext>> configure)
         : FilterProvider<QueryableFilterContext>(configure)
     {
-        public FilterProviderDefinition? DefinitionAccessor => Definition;
+        public FilterProviderConfiguration? DefinitionAccessor => Configuration;
 
         public override IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
             => throw new NotImplementedException();

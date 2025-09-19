@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using Xunit;
 
 namespace GreenDonut.Data.Internal;
 
@@ -73,7 +72,7 @@ public static class ExpressionHasherTests
                 Entities = new List<IEntity>(
                     x.Entities
                         .OfType<Entity2>()
-                        .Select(t => new Entity2 { Name = t.Name } ))
+                        .Select(t => new Entity2 { Name = t.Name }))
             };
 
         // act
@@ -99,24 +98,24 @@ public static class ExpressionHasherTests
 
     public class Entity1
     {
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
 
         public string? Description { get; set; }
 
-        public IEntity Entity { get; set; } = default!;
+        public IEntity Entity { get; set; } = null!;
 
-        public List<IEntity> Entities { get; set; } = default!;
+        public List<IEntity> Entities { get; set; } = null!;
     }
 
     public interface IEntity;
 
     public class Entity2 : IEntity
     {
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 
     public class Entity3 : IEntity
     {
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 }

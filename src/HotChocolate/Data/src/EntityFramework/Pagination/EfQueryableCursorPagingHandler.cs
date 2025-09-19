@@ -46,13 +46,15 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
         if (arguments.After is not null)
         {
             var cursor = CursorParser.Parse(arguments.After, keys);
-            query = query.Where(ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, true));
+            var (whereExpr, _) = ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, true);
+            query = query.Where(whereExpr);
         }
 
         if (arguments.Before is not null)
         {
             var cursor = CursorParser.Parse(arguments.Before, keys);
-            query = query.Where(ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, false));
+            var (whereExpr, _) = ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, false);
+            query = query.Where(whereExpr);
         }
 
         if (arguments.First is not null)
@@ -77,7 +79,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
 
         if (!edgesRequired)
         {
-            if(countRequired)
+            if (countRequired)
             {
                 totalCount ??= await executable.CountAsync(context.RequestAborted);
             }
@@ -205,7 +207,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
             IQueryable<TEntity> q => q.AsDbContextExecutable(),
             IEnumerable<TEntity> e => e.AsQueryable().AsDbContextExecutable(),
             IQueryableExecutable<TEntity> e => e,
-            _ => throw new InvalidOperationException(EfQueryableCursorPagingHandler_SourceNotSupported),
+            _ => throw new InvalidOperationException(EfQueryableCursorPagingHandler_SourceNotSupported)
         };
 
     private static CursorKey[] ParseDataSetKeys<T>(IQueryable<T> source)

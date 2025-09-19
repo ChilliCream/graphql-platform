@@ -1,5 +1,5 @@
 ---
-title: ".Net  Middleware"
+title: ".Net Middleware"
 ---
 
 By default, when you map your GraphQL endpoints using `MapGraphQL()`, Nitro is automatically served at the `/graphql` endpoint.

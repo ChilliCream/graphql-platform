@@ -15,10 +15,10 @@ internal sealed class QueryContextParameterExpressionBuilder()
     , IParameterBindingFactory
     , IParameterBinding
 {
-    private static readonly MethodInfo _createQueryContext =
+    private static readonly MethodInfo s_createQueryContext =
         typeof(QueryContextParameterExpressionBuilder)
             .GetMethod(nameof(CreateQueryContext), BindingFlags.Static | BindingFlags.NonPublic)!;
-    private static readonly ConcurrentDictionary<Type, FactoryCacheEntry> _expressionCache = new();
+    private static readonly ConcurrentDictionary<Type, FactoryCacheEntry> s_expressionCache = new();
 
     public ArgumentKind Kind => ArgumentKind.Custom;
 
@@ -27,8 +27,8 @@ internal sealed class QueryContextParameterExpressionBuilder()
     public bool IsDefaultHandler => false;
 
     public bool CanHandle(ParameterInfo parameter)
-        => parameter.ParameterType.IsGenericType &&
-           parameter.ParameterType.GetGenericTypeDefinition() == typeof(QueryContext<>);
+        => parameter.ParameterType.IsGenericType
+            && parameter.ParameterType.GetGenericTypeDefinition() == typeof(QueryContext<>);
 
     public Expression Build(ParameterExpressionBuilderContext context)
     {
@@ -36,23 +36,23 @@ internal sealed class QueryContextParameterExpressionBuilder()
         var parameterType = context.Parameter.ParameterType;
 
         var factoryCacheEntry =
-            _expressionCache.GetOrAdd(
+            s_expressionCache.GetOrAdd(
                 parameterType,
                 type =>
                 {
                     var entityType = type.GetGenericArguments()[0];
-                    var factoryMethod = _createQueryContext.MakeGenericMethod(entityType);
+                    var factoryMethod = s_createQueryContext.MakeGenericMethod(entityType);
                     var factory = Expression.Call(factoryMethod, resolverContext);
                     return new FactoryCacheEntry(factoryMethod, factory);
                 });
 
-        if(factoryCacheEntry.Factory is not null)
+        if (factoryCacheEntry.Factory is not null)
         {
             return factoryCacheEntry.Factory;
         }
 
         var factory = Expression.Call(factoryCacheEntry.FactoryMethod, resolverContext);
-        _expressionCache.TryUpdate(parameterType, factoryCacheEntry with { Factory = factory }, factoryCacheEntry);
+        s_expressionCache.TryUpdate(parameterType, factoryCacheEntry with { Factory = factory }, factoryCacheEntry);
         return factory;
     }
 
@@ -62,12 +62,12 @@ internal sealed class QueryContextParameterExpressionBuilder()
     public T Execute<T>(IResolverContext context)
     {
         var factoryCacheEntry =
-            _expressionCache.GetOrAdd(
+            s_expressionCache.GetOrAdd(
                 typeof(T),
                 type =>
                 {
                     var entityType = type.GetGenericArguments()[0];
-                    var factoryMethod = _createQueryContext.MakeGenericMethod(entityType);
+                    var factoryMethod = s_createQueryContext.MakeGenericMethod(entityType);
                     return new FactoryCacheEntry(factoryMethod);
                 });
         return (T)factoryCacheEntry.FactoryMethod.Invoke(null, [context])!;

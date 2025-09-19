@@ -1,17 +1,15 @@
 using HotChocolate.Types;
 using static HotChocolate.Utilities.ThrowHelper;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed partial class TypeRegistrar
 {
-    public TypeSystemObjectBase CreateInstance(Type namedSchemaType)
+    public TypeSystemObject CreateInstance(Type namedSchemaType)
     {
         try
         {
-            return (TypeSystemObjectBase)ActivatorUtilities.CreateInstance(_combinedServices, namedSchemaType);
+            return (TypeSystemObject)ActivatorUtilities.CreateInstance(_combinedServices, namedSchemaType);
         }
         catch (Exception ex)
         {

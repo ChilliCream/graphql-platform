@@ -1,7 +1,7 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
-using HotChocolate.Skimmed;
+using HotChocolate.Types;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -21,7 +21,7 @@ internal sealed class LookupReturnsListRule : IEventHandler<OutputFieldEvent>
     {
         var (field, type, schema) = @event;
 
-        if (field.HasLookupDirective() && field.Type.NullableType() is ListTypeDefinition)
+        if (field.HasLookupDirective() && field.Type.NullableType() is ListType)
         {
             context.Log.Write(LookupReturnsList(field, type, schema));
         }

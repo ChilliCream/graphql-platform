@@ -47,6 +47,7 @@ directive @intConstraint(
   max: Int
   oneOf: [Int!] @listConstraint(minItems: 1)
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+directive @listConstraint(minItems: Int!) on ARGUMENT_DEFINITION
 directive @possibleTypes(
   abstractType: String
   concreteTypes: [String!]!

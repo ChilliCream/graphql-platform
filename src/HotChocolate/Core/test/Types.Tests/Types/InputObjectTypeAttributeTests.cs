@@ -18,7 +18,7 @@ public class InputObjectTypeAttributeTests
 
         // assert
         Assert.True(
-            schema.GetType<InputObjectType>("Object1Input")
+            schema.Types.GetType<InputObjectType>("Object1Input")
                 .Fields
                 .ContainsField("bar"));
     }
@@ -34,7 +34,7 @@ public class InputObjectTypeAttributeTests
 
         // assert
         Assert.True(
-            schema.GetType<InputObjectType>("Bar")
+            schema.Types.GetType<InputObjectType>("Bar")
                 .Fields
                 .ContainsField("foo"));
     }
@@ -50,7 +50,7 @@ public class InputObjectTypeAttributeTests
 
         // assert
         Assert.True(
-            schema.GetType<InputObjectType>("Foo")
+            schema.Types.GetType<InputObjectType>("Foo")
                 .Fields
                 .ContainsField("foo"));
     }
@@ -62,7 +62,7 @@ public class InputObjectTypeAttributeTests
             .AddInputObjectType<InputWithDefaults>()
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -113,7 +113,7 @@ public class InputObjectTypeAttributeTests
                                     foo bar baz qux quux
                                 }
                             }")
-                    .SetVariableValues(new Dictionary<string, object> { {"q", new Dictionary<string, object>() }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "q", new Dictionary<string, object>() } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -121,7 +121,7 @@ public class InputObjectTypeAttributeTests
     public class Object1
     {
         [RenameField]
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
     }
 
     public class RenameFieldAttribute
@@ -139,7 +139,7 @@ public class InputObjectTypeAttributeTests
     [RenameType]
     public class Object2
     {
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
     }
 
     [InputObjectType(Name = "Foo")]
@@ -163,7 +163,7 @@ public class InputObjectTypeAttributeTests
     public class InputWithDefaults
     {
         [DefaultValue("DefaultValue123")]
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
 
         [DefaultValue(2)]
         public int Bar { get; set; }
@@ -181,6 +181,6 @@ public class InputObjectTypeAttributeTests
     public enum Quux
     {
         Corge,
-        Grault,
+        Grault
     }
 }

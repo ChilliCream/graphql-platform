@@ -19,42 +19,35 @@ internal sealed class OpaAuthorizationHandler : IAuthorizationHandler
         IOpaQueryRequestFactory requestFactory,
         IOptions<OpaOptions> options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         _opaService = opaService ?? throw new ArgumentNullException(nameof(opaService));
         _requestFactory = requestFactory ?? throw new ArgumentNullException(nameof(requestFactory));
         _options = options.Value;
     }
 
-    /// <summary>
-    /// Authorize current directive using OPA (Open Policy Agent).
-    /// </summary>
-    /// <param name="context">The current middleware context.</param>
-    /// <param name="directive">The authorization directive.</param>
-    /// <param name="ct">The cancellation token.</param>
-    /// <returns>
-    /// Returns a value indicating if the current session is authorized to
-    /// access the resolver data.
-    /// </returns>
+    /// <inheritdoc/>
     public async ValueTask<AuthorizeResult> AuthorizeAsync(
         IMiddlewareContext context,
         AuthorizeDirective directive,
-        CancellationToken ct)
+        CancellationToken cancellationToken = default)
     {
-        var authorizationContext = new AuthorizationContext(
-            context.Schema,
-            context.Services,
-            context.ContextData,
-            context.Operation.Document,
-            context.Operation.Id);
-        return await AuthorizeAsync(authorizationContext, directive, ct).ConfigureAwait(false);
+        return await AuthorizeAsync(
+            new OpaAuthorizationHandlerContext(context), [directive], cancellationToken).ConfigureAwait(false);
     }
 
+    /// <inheritdoc/>
     public async ValueTask<AuthorizeResult> AuthorizeAsync(
         AuthorizationContext context,
+        IReadOnlyList<AuthorizeDirective> directives,
+        CancellationToken cancellationToken = default)
+    {
+        return await AuthorizeAsync(
+            new OpaAuthorizationHandlerContext(context), directives, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async ValueTask<AuthorizeResult> AuthorizeAsync(
+        OpaAuthorizationHandlerContext context,
         IReadOnlyList<AuthorizeDirective> directives,
         CancellationToken ct)
     {
@@ -89,12 +82,12 @@ internal sealed class OpaAuthorizationHandler : IAuthorizationHandler
         return AuthorizeResult.Allowed;
 
         static async Task<AuthorizeResult> ExecuteAsync(
-            AuthorizationContext context,
+            OpaAuthorizationHandlerContext context,
             IEnumerator<AuthorizeDirective> partition,
             Authorize authorize,
             CancellationToken ct)
         {
-            while (partition.MoveNext() && partition.Current is not null)
+            while (partition.MoveNext())
             {
                 var directive = partition.Current;
                 var result = await authorize(context, directive, ct).ConfigureAwait(false);
@@ -110,7 +103,7 @@ internal sealed class OpaAuthorizationHandler : IAuthorizationHandler
     }
 
     private async ValueTask<AuthorizeResult> AuthorizeAsync(
-        AuthorizationContext context,
+        OpaAuthorizationHandlerContext context,
         AuthorizeDirective directive,
         CancellationToken ct)
     {
@@ -122,7 +115,7 @@ internal sealed class OpaAuthorizationHandler : IAuthorizationHandler
     }
 
     private delegate ValueTask<AuthorizeResult> Authorize(
-        AuthorizationContext context,
+        OpaAuthorizationHandlerContext context,
         AuthorizeDirective directive,
         CancellationToken ct);
 }

@@ -2,22 +2,20 @@ using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Utilities.ErrorHelper;
 
-#nullable enable
-
 namespace HotChocolate.Types.Helpers;
 
 internal static class CompleteInterfacesHelper
 {
-    public static InterfaceType[] CompleteInterfaces<TInterfaceOrObject>(
+    public static InterfaceTypeCollection CompleteInterfaces<TInterfaceOrObject>(
         ITypeCompletionContext context,
         IReadOnlyList<TypeReference> interfaceReferences,
         TInterfaceOrObject interfaceOrObject)
-        where TInterfaceOrObject : ITypeSystemObject
+        where TInterfaceOrObject : TypeSystemObject
 
     {
         if (interfaceReferences.Count == 0)
         {
-            return [];
+            return InterfaceTypeCollection.Empty;
         }
 
         var implements = new InterfaceType[interfaceReferences.Count];
@@ -43,6 +41,6 @@ internal static class CompleteInterfacesHelper
             Array.Resize(ref implements, index);
         }
 
-        return implements;
+        return new InterfaceTypeCollection(implements);
     }
 }

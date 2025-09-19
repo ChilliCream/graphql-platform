@@ -7,7 +7,7 @@ type Foo {
 }
 
 type QueryDate1 {
-  foo: Foo
+  foo: Foo!
 }
 
 "The `Date` scalar represents an ISO-8601 compliant date type."

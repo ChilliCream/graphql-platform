@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
-using HotChocolate.Skimmed;
+using HotChocolate.Types;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidationRules;
@@ -24,8 +24,8 @@ internal sealed class InputWithMissingRequiredFieldsRule : IEventHandler<InputTy
         var requiredFieldNames =
             inputTypeGroup
                 .Where(i => !i.InputType.HasInaccessibleDirective())
-                .SelectMany(i => i.InputType.Fields)
-                .Where(f => !f.HasInaccessibleDirective() && f.Type is NonNullTypeDefinition)
+                .SelectMany(i => i.InputType.Fields.AsEnumerable())
+                .Where(f => !f.HasInaccessibleDirective() && f.Type is NonNullType)
                 .Select(f => f.Name)
                 .ToImmutableHashSet();
 

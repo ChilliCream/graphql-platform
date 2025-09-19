@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidationRules;
 
-public sealed class FieldArgumentTypesMergeableRuleTests : CompositionTestBase
+public sealed class FieldArgumentTypesMergeableRuleTests
 {
     private static readonly object s_rule = new FieldArgumentTypesMergeableRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -178,8 +179,8 @@ public sealed class FieldArgumentTypesMergeableRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The argument 'User.field(argument:)' has a different type shape in schema " +
-                    "'A' than it does in schema 'B'."
+                    "The argument 'User.field(argument:)' has a different type shape in schema "
+                    + "'A' than it does in schema 'B'."
                 ]
             },
             {
@@ -196,8 +197,8 @@ public sealed class FieldArgumentTypesMergeableRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The argument 'User.field(argument:)' has a different type shape in schema " +
-                    "'A' than it does in schema 'B'."
+                    "The argument 'User.field(argument:)' has a different type shape in schema "
+                    + "'A' than it does in schema 'B'."
                 ]
             },
             // More than two schemas.
@@ -220,11 +221,11 @@ public sealed class FieldArgumentTypesMergeableRuleTests : CompositionTestBase
                     """
                 ],
                 [
-                    "The argument 'User.field(argument:)' has a different type shape in schema " +
-                    "'A' than it does in schema 'B'.",
+                    "The argument 'User.field(argument:)' has a different type shape in schema "
+                    + "'A' than it does in schema 'B'.",
 
-                    "The argument 'User.field(argument:)' has a different type shape in schema " +
-                    "'B' than it does in schema 'C'."
+                    "The argument 'User.field(argument:)' has a different type shape in schema "
+                    + "'B' than it does in schema 'C'."
                 ]
             }
         };

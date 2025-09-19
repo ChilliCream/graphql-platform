@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class EnumValueNodeTests
@@ -9,19 +7,19 @@ public class EnumValueNodeTests
     {
         var a = new EnumValueNode(
             TestLocations.Location1,
-            new("AA"));
+            "AA");
         var b = new EnumValueNode(
             TestLocations.Location1,
-            new("AA"));
+            "AA");
         var c = new EnumValueNode(
             TestLocations.Location1,
-            new("AB"));
+            "AB");
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -36,19 +34,19 @@ public class EnumValueNodeTests
         // arrange
         var a = new EnumValueNode(
             TestLocations.Location1,
-            new("AA"));
+            "AA");
         var b = new EnumValueNode(
             TestLocations.Location2,
-            new("AA"));
+            "AA");
         var c = new EnumValueNode(
             TestLocations.Location1,
-            new("AB"));
+            "AB");
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -63,16 +61,16 @@ public class EnumValueNodeTests
         // arrange
         var a = new EnumValueNode(
             TestLocations.Location1,
-            new("AA"));
+            "AA");
         var b = new EnumValueNode(
             TestLocations.Location2,
-            new("AA"));
+            "AA");
         var c = new EnumValueNode(
             TestLocations.Location1,
-            new("AB"));
+            "AB");
         var d = new EnumValueNode(
             TestLocations.Location2,
-            new("AB"));
+            "AB");
 
         // act
         var aHash = SyntaxComparer.BySyntax.GetHashCode(a);

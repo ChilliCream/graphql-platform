@@ -8,7 +8,7 @@ internal static class ThrowHelper
 {
     public static GraphQLException PagingHandler_MinPageSize(
         int requestedItems,
-        IObjectField field,
+        IOutputFieldDefinition field,
         Path path)
         => new GraphQLException(
             ErrorBuilder.New()
@@ -22,7 +22,7 @@ internal static class ThrowHelper
     public static GraphQLException PagingHandler_MaxPageSize(
         int requestedItems,
         int maxAllowedItems,
-        IObjectField field,
+        IOutputFieldDefinition field,
         Path path)
         => new GraphQLException(
             ErrorBuilder.New()
@@ -35,7 +35,7 @@ internal static class ThrowHelper
                 .Build());
 
     public static GraphQLException PagingHandler_NoBoundariesSet(
-        IObjectField field,
+        IOutputFieldDefinition field,
         Path path)
         => new GraphQLException(
             ErrorBuilder.New()
@@ -43,6 +43,19 @@ internal static class ThrowHelper
                     ThrowHelper_PagingHandler_NoBoundariesSet,
                     field.Type.TypeName())
                 .SetCode(ErrorCodes.Paging.NoPagingBoundaries)
+                .SetPath(path)
+                .SetFieldCoordinate(field.Coordinate)
+                .Build());
+
+    public static GraphQLException PagingHandler_FirstValueNotSet(
+        IOutputFieldDefinition field,
+        Path path)
+        => new GraphQLException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_PagingHandler_FirstValueNotSet,
+                    field.Type.TypeName())
+                .SetCode(ErrorCodes.Paging.FirstValueNotSet)
                 .SetPath(path)
                 .SetFieldCoordinate(field.Coordinate)
                 .Build());

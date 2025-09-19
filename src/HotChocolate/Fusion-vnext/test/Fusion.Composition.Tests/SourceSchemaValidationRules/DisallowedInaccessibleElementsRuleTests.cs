@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class DisallowedInaccessibleElementsRuleTests : CompositionTestBase
+public sealed class DisallowedInaccessibleElementsRuleTests
 {
     private static readonly object s_rule = new DisallowedInaccessibleElementsRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -126,8 +127,8 @@ public sealed class DisallowedInaccessibleElementsRuleTests : CompositionTestBas
                     """
                 ],
                 [
-                    "The introspection argument '__Type.fields(includeDeprecated:)' in schema " +
-                    "'A' is not accessible."
+                    "The introspection argument '__Type.fields(includeDeprecated:)' in schema "
+                    + "'A' is not accessible."
                 ]
             },
             // Inaccessible built-in directive argument.

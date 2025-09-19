@@ -1,6 +1,4 @@
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Configuration;
 
@@ -12,4 +10,4 @@ public delegate void OnCompleteType<T>(
     ITypeCompletionContext context,
     T? definition,
     IDictionary<string, object?> contextData)
-    where T : DefinitionBase;
+    where T : TypeSystemConfiguration;
