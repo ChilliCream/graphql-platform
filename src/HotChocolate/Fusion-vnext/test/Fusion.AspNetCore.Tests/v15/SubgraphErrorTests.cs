@@ -744,7 +744,8 @@ public class SubgraphErrorTests : FusionTestBase
             type Viewer {
               name: String!
             }
-            """);
+            """,
+            isTimingOut: true);
 
         var subgraphB = CreateSourceSchema(
             "B",

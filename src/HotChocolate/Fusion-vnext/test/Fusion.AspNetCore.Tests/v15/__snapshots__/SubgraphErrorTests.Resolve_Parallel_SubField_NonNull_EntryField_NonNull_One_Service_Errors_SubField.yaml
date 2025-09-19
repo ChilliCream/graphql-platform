@@ -35,6 +35,7 @@ sourceSchemas:
       type Viewer {
         name: String!
       }
+    isTimingOut: true
     interactions:
       - request:
           document: |
@@ -43,16 +44,6 @@ sourceSchemas:
                 name
               }
             }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "viewer": {
-                    "name": "Viewer"
-                  }
-                }
-              }
   - name: B
     schema: |
       schema {
