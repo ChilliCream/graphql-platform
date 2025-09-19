@@ -4,9 +4,17 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
 
+#if Fusion
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
+#if Fusion
+internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<SourceSchemaDocument>
+#else
 internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<OperationResult>
+#endif
 {
     private static readonly StreamPipeReaderOptions s_options = new(
         pool: MemoryPool<byte>.Shared,
