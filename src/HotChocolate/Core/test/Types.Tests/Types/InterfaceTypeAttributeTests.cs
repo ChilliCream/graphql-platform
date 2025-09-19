@@ -1,8 +1,5 @@
-using System;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -21,7 +18,7 @@ public class InterfaceTypeAttributeTests
         // assert
         Assert.Equal(
             "abc",
-            schema.GetType<InterfaceType>("Interface1")
+            schema.Types.GetType<InterfaceType>("Interface1")
                 .Fields["field"]
                 .Arguments["argument"]
                 .DefaultValue!
@@ -38,11 +35,10 @@ public class InterfaceTypeAttributeTests
             .Create();
 
         // assert
-        Assert.Equal(
-            "def",
-            schema.GetType<InterfaceType>("Interface2")
+        Assert.NotNull(
+            schema.Types.GetType<InterfaceType>("Interface2")
                 .Fields["field"]
-                .ContextData["abc"]);
+                .Features.Get<CustomFeature>());
     }
 
     [Fact]
@@ -56,11 +52,10 @@ public class InterfaceTypeAttributeTests
             .Create();
 
         // assert
-        Assert.Equal(
-            "def",
-            schema.GetType<InterfaceType>("Interface2")
+        Assert.NotNull(
+            schema.Types.GetType<InterfaceType>("Interface2")
                 .Fields["foo"]
-                .ContextData["abc"]);
+                .Features.Get<CustomFeature>());
     }
 
     [Fact]
@@ -74,7 +69,7 @@ public class InterfaceTypeAttributeTests
 
         // assert
         Assert.True(
-            schema.GetType<InterfaceType>("Interface3")
+            schema.Types.GetType<InterfaceType>("Interface3")
                 .Fields.ContainsField("abc"));
     }
 
@@ -89,13 +84,13 @@ public class InterfaceTypeAttributeTests
 
         // assert
         Assert.True(
-            schema.GetType<InterfaceType>("Foo")
+            schema.Types.GetType<InterfaceType>("Foo")
                 .Fields.ContainsField("bar"));
     }
 
     public interface Interface1
     {
-        string GetField([ArgumentDefaultValue("abc")]string argument);
+        string GetField([ArgumentDefaultValue("abc")] string argument);
     }
 
     public class ArgumentDefaultValueAttribute
@@ -119,11 +114,11 @@ public class InterfaceTypeAttributeTests
 
     public interface Interface2
     {
-        [PropertyAddContextData]
+        [PropertyAddFeature]
         string GetField();
     }
 
-    public class PropertyAddContextDataAttribute
+    public class PropertyAddFeatureAttribute
         : InterfaceFieldDescriptorAttribute
     {
         protected override void OnConfigure(
@@ -132,7 +127,7 @@ public class InterfaceTypeAttributeTests
             MemberInfo member)
         {
             descriptor.Extend().OnBeforeCompletion(
-                (c, d) => d.ContextData.Add("abc", "def"));
+                (c, d) => d.Features.Set(new CustomFeature()));
         }
     }
 
@@ -159,4 +154,6 @@ public class InterfaceTypeAttributeTests
     {
         public string? Bar { get; set; }
     }
+
+    public sealed class CustomFeature;
 }

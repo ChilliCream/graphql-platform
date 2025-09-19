@@ -17,7 +17,7 @@ public class NegativeFloatType : FloatType
         : base(name, description, double.MinValue, 0, bind)
     {
     }
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="NegativeFloatType"/>
     /// </summary>

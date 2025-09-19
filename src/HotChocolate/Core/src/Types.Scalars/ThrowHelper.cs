@@ -178,28 +178,6 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException LocalDateType_ParseValue_IsInvalid(IType type)
-    {
-        return new SerializationException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.LocalDateType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.LocalDate)
-                .Build(),
-            type);
-    }
-
-    public static SerializationException LocalDateType_ParseLiteral_IsInvalid(IType type)
-    {
-        return new SerializationException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.LocalDateType_IsInvalid_ParseLiteral)
-                .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                .SetExtension("actualType", WellKnownScalarTypes.LocalDate)
-                .Build(),
-            type);
-    }
-
     public static SerializationException LocalCurrencyType_ParseValue_IsInvalid(IType type)
     {
         return new SerializationException(
@@ -215,31 +193,9 @@ internal static class ThrowHelper
     {
         return new SerializationException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.LocalDateType_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.LocalCurrencyType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.LocalCurrency)
-                .Build(),
-            type);
-    }
-
-    public static SerializationException LocalTimeType_ParseValue_IsInvalid(IType type)
-    {
-        return new SerializationException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.LocalTimeType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.LocalTime)
-                .Build(),
-            type);
-    }
-
-    public static SerializationException LocalTimeType_ParseLiteral_IsInvalid(IType type)
-    {
-        return new SerializationException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.LocalTimeType_IsInvalid_ParseLiteral)
-                .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                .SetExtension("actualType", WellKnownScalarTypes.LocalTime)
                 .Build(),
             type);
     }

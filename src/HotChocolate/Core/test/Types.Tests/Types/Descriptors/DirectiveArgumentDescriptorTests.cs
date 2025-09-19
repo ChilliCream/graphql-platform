@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
@@ -9,14 +8,14 @@ public class DirectiveArgumentDescriptorTests : DescriptorTestBase
     [Fact]
     public void Type_Syntax_Type_Null()
     {
-        void Error() => DirectiveArgumentDescriptor.New(Context, "foo").Type((string)null);
+        void Error() => DirectiveArgumentDescriptor.New(Context, "foo").Type((string)null!);
         Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]
     public void Type_Syntax_Descriptor_Null()
     {
-        void Error() => default(DirectiveArgumentDescriptor).Type("foo");
+        void Error() => default(DirectiveArgumentDescriptor)!.Type("foo");
         Assert.Throws<ArgumentNullException>(Error);
     }
 
@@ -26,13 +25,13 @@ public class DirectiveArgumentDescriptorTests : DescriptorTestBase
         // arrange
         var descriptor = DirectiveArgumentDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // act
         descriptor.DefaultValueSyntax("[]");
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.IsType<ListValueNode>(description.DefaultValue);
     }
 }

@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Tasks;
 using static HotChocolate.WellKnownContextData;
 
@@ -96,7 +92,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
             var result = operationContext
                 .SetLabel(Label)
                 .SetPath(Path.Append(Index))
-                .SetItems(new[] { item, })
+                .SetItems([item])
                 .SetPatchId(patchId)
                 .BuildResult();
 
@@ -108,8 +104,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
         }
         catch (Exception ex)
         {
-            var builder = operationContext.ErrorHandler.CreateUnexpectedError(ex);
-            var result = QueryResultBuilder.CreateError(builder.Build());
+            var result = OperationResultBuilder.CreateError(ErrorBuilder.FromException(ex).Build());
             operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
         }
         finally
@@ -121,7 +116,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
     private sealed class StreamExecutionTask : ExecutionTask
     {
         private readonly DeferredStream _deferredStream;
-        private OperationContext _operationContext = default!;
+        private OperationContext _operationContext = null!;
         private IImmutableDictionary<string, object?> _scopedContextData;
 
         public StreamExecutionTask(DeferredStream deferredStream)
@@ -157,7 +152,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
         {
             _operationContext = operationContext;
             _scopedContextData = _scopedContextData.SetItem(DeferredResultId, taskId);
-            base.Reset();
+            Reset();
         }
     }
 }

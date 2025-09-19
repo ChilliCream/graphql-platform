@@ -1,17 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ErrorHelper;
-using static HotChocolate.WellKnownDirectives;
-using static HotChocolate.Execution.Pipeline.PipelineTools;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -19,41 +13,41 @@ internal sealed class OperationResolverMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ObjectPool<OperationCompiler> _operationCompilerPool;
-    private readonly VariableCoercionHelper _coercionHelper;
-    private readonly IReadOnlyList<IOperationCompilerOptimizer>? _optimizers;
+    private readonly OperationCompilerOptimizers _operationCompilerOptimizers;
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
     private OperationResolverMiddleware(
         RequestDelegate next,
         ObjectPool<OperationCompiler> operationCompilerPool,
-        IEnumerable<IOperationCompilerOptimizer> optimizers,
-        VariableCoercionHelper coercionHelper)
+        OperationCompilerOptimizers operationCompilerOptimizer,
+        IExecutionDiagnosticEvents diagnosticEvents)
     {
-        if (optimizers is null)
-        {
-            throw new ArgumentNullException(nameof(optimizers));
-        }
+        ArgumentNullException.ThrowIfNull(next);
+        ArgumentNullException.ThrowIfNull(operationCompilerPool);
+        ArgumentNullException.ThrowIfNull(operationCompilerOptimizer);
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
 
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _operationCompilerPool = operationCompilerPool ??
-            throw new ArgumentNullException(nameof(operationCompilerPool));
-        _coercionHelper = coercionHelper ??
-            throw new ArgumentNullException(nameof(coercionHelper));
-        _optimizers = optimizers.ToArray();
+        _next = next;
+        _operationCompilerPool = operationCompilerPool;
+        _operationCompilerOptimizers = operationCompilerOptimizer;
+        _diagnosticEvents = diagnosticEvents;
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (context.Operation is not null)
+        if (context.TryGetOperation(out var operation, out var operationId))
         {
             await _next(context).ConfigureAwait(false);
+            return;
         }
-        else if (context.Document is not null && context.IsValidDocument)
+
+        var documentInfo = context.OperationDocumentInfo;
+        if (documentInfo.Document is not null && documentInfo.IsValidated)
         {
-            using (context.DiagnosticEvents.CompileOperation(context))
+            using (_diagnosticEvents.CompileOperation(context))
             {
-                var operationDef = context.Document.GetOperation(context.Request.OperationName);
-                var operationType = ResolveOperationType(operationDef.Operation, context.Schema);
+                var operationDef = documentInfo.Document.GetOperation(context.Request.OperationName);
+                var operationType = ResolveOperationType(operationDef.Operation, Unsafe.As<Schema>(context.Schema));
 
                 if (operationType is null)
                 {
@@ -61,120 +55,70 @@ internal sealed class OperationResolverMiddleware
                     return;
                 }
 
-                context.Operation = CompileOperation(
-                    context,
-                    context.OperationId ?? Guid.NewGuid().ToString("N"),
+                operation = CompileOperation(
+                    documentInfo.Document,
                     operationDef,
-                    operationType);
-                context.OperationId = context.Operation.Id;
+                    operationType,
+                    operationId ?? Guid.NewGuid().ToString("N"),
+                    context.Schema);
+
+                context.SetOperation(operation);
             }
 
             await _next(context).ConfigureAwait(false);
+            return;
         }
-        else
-        {
-            context.Result = StateInvalidForOperationResolver();
-        }
+
+        context.Result = StateInvalidForOperationResolver();
     }
 
     private IOperation CompileOperation(
-        IRequestContext context,
-        string operationId,
+        DocumentNode document,
         OperationDefinitionNode operationDefinition,
-        ObjectType operationType)
+        ObjectType operationType,
+        string operationId,
+        ISchemaDefinition schema)
     {
-        var compiler = _operationCompilerPool.Get();
-        var operation = compiler.Compile(
+        var request = new OperationCompilerRequest(
             operationId,
+            document,
             operationDefinition,
             operationType,
-            context.Document!,
-            context.Schema,
-            _optimizers,
-            IsNullBubblingEnabled(context, operationDefinition));
+            schema,
+            _operationCompilerOptimizers.OperationOptimizers,
+            _operationCompilerOptimizers.SelectionSetOptimizers);
+
+        var compiler = _operationCompilerPool.Get();
+        var operation = compiler.Compile(request);
         _operationCompilerPool.Return(compiler);
+
         return operation;
     }
 
     private static ObjectType? ResolveOperationType(
         OperationType operationType,
-        ISchema schema)
+        Schema schema)
         => operationType switch
         {
             OperationType.Query => schema.QueryType,
             OperationType.Mutation => schema.MutationType,
             OperationType.Subscription => schema.SubscriptionType,
-            _ => throw ThrowHelper.RootTypeNotSupported(operationType),
+            _ => throw ThrowHelper.RootTypeNotSupported(operationType)
         };
 
-    private bool IsNullBubblingEnabled(IRequestContext context, OperationDefinitionNode operationDefinition)
-    {
-        if (!context.Schema.ContextData.ContainsKey(EnableTrueNullability) ||
-            operationDefinition.Directives.Count == 0)
-        {
-            return true;
-        }
-
-        var enabled = true;
-
-        for (var i = 0; i < operationDefinition.Directives.Count; i++)
-        {
-            var directive = operationDefinition.Directives[i];
-
-            if (!directive.Name.Value.EqualsOrdinal(NullBubbling))
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
+            (core, next) =>
             {
-                continue;
-            }
-
-            for (var j = 0; j < directive.Arguments.Count; j++)
-            {
-                var argument = directive.Arguments[j];
-
-                if (argument.Name.Value.EqualsOrdinal(Enable))
-                {
-                    if (argument.Value is BooleanValueNode b)
-                    {
-                        enabled = b.Value;
-                        break;
-                    }
-
-                    if (argument.Value is VariableNode v)
-                    {
-                        enabled = CoerceVariable(context, operationDefinition, v);
-                        break;
-                    }
-
-                    throw new GraphQLException(NoNullBubbling_ArgumentValue_NotAllowed(argument));
-                }
-            }
-
-            break;
-        }
-
-        return enabled;
-    }
-
-    private bool CoerceVariable(
-        IRequestContext context,
-        OperationDefinitionNode operationDefinition,
-        VariableNode variable)
-    {
-        var variables = CoerceVariables(context, _coercionHelper, operationDefinition.VariableDefinitions);
-        return variables.GetVariable<bool>(variable.Name.Value);
-    }
-
-    public static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var operationCompilerPool = core.Services.GetRequiredService<ObjectPool<OperationCompiler>>();
-            var optimizers1 = core.Services.GetRequiredService<IEnumerable<IOperationCompilerOptimizer>>();
-            var optimizers2 = core.SchemaServices.GetRequiredService<IEnumerable<IOperationCompilerOptimizer>>();
-            var coercionHelper = core.Services.GetRequiredService<VariableCoercionHelper>();
-            var middleware = new OperationResolverMiddleware(
-                next,
-                operationCompilerPool,
-                optimizers1.Concat(optimizers2),
-                coercionHelper);
-            return context => middleware.InvokeAsync(context);
-        };
+                var operationCompilerPool = core.Services.GetRequiredService<ObjectPool<OperationCompiler>>();
+                var optimizers = core.SchemaServices.GetRequiredService<OperationCompilerOptimizers>();
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var middleware = new OperationResolverMiddleware(
+                    next,
+                    operationCompilerPool,
+                    optimizers,
+                    diagnosticEvents);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(OperationResolverMiddleware));
 }

@@ -5,7 +5,6 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
-
 public class QueryableComparableNotLowerThanHandler : QueryableComparableOperationHandler
 {
     public QueryableComparableNotLowerThanHandler(

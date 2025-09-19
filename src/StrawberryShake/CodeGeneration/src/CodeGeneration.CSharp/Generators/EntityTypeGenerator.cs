@@ -1,4 +1,3 @@
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using StrawberryShake.CodeGeneration.Descriptors;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;

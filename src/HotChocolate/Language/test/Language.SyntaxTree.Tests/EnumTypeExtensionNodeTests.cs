@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class EnumTypeExtensionNodeTests
@@ -77,7 +73,6 @@ public class EnumTypeExtensionNodeTests
         var name = new NameNode("foo");
         var values = new List<EnumValueDefinitionNode>();
 
-
         // act
         EnumTypeExtensionNode Action()
             => new(location, name, null!, values);
@@ -123,7 +118,6 @@ public class EnumTypeExtensionNodeTests
         // act
         type = type.WithName(new NameNode("baz"));
 
-
         // assert
         Assert.Equal("baz", type.Name.Value);
     }
@@ -145,7 +139,6 @@ public class EnumTypeExtensionNodeTests
 
         // act
         type = type.WithDirectives(directives);
-
 
         // assert
         Assert.Equal(directives, type.Directives);
@@ -169,7 +162,6 @@ public class EnumTypeExtensionNodeTests
         // act
         type = type.WithValues(values);
 
-
         // assert
         Assert.Equal(values, type.Values);
     }
@@ -192,7 +184,6 @@ public class EnumTypeExtensionNodeTests
         // act
         type = type.WithLocation(location);
 
-
         // assert
         Assert.Equal(location, type.Location);
     }
@@ -203,7 +194,7 @@ public class EnumTypeExtensionNodeTests
         // arrange
         var values = new List<EnumValueDefinitionNode>
         {
-            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>()),
+            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>())
         };
 
         var a = new EnumTypeExtensionNode(
@@ -226,7 +217,7 @@ public class EnumTypeExtensionNodeTests
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -241,7 +232,7 @@ public class EnumTypeExtensionNodeTests
         // arrange
         var values = new List<EnumValueDefinitionNode>
         {
-            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>()),
+            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>())
         };
 
         var a = new EnumTypeExtensionNode(
@@ -264,7 +255,7 @@ public class EnumTypeExtensionNodeTests
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -279,7 +270,7 @@ public class EnumTypeExtensionNodeTests
         // arrange
         var values = new List<EnumValueDefinitionNode>
         {
-            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>()),
+            new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>())
         };
 
         var a = new EnumTypeExtensionNode(

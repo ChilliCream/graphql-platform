@@ -1,10 +1,7 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -46,7 +43,7 @@ public class IgnoreTests
 
     public class Bar
     {
-        public string Baz { get; set; } = default!;
+        public string Baz { get; set; } = null!;
 
         [GraphQLIgnore]
         public (string X, string? Y) IgnoreThis() => default;

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text.Json;
 using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
@@ -10,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public partial class JsonResultBuilderGenerator
 {
-    private const string _typename = "typename";
+    private const string Typename = "typename";
 
     private void AddDataTypeDeserializerMethod(
         ClassBuilder classBuilder,
@@ -48,11 +47,11 @@ public partial class JsonResultBuilderGenerator
         methodBuilder.AddCode(
             AssignmentBuilder
                 .New()
-                .SetLefthandSide($"var {_typename}")
-                .SetRighthandSide(MethodCallBuilder
+                .SetLeftHandSide($"var {Typename}")
+                .SetRightHandSide(MethodCallBuilder
                     .Inline()
                     .SetMethodName(
-                        _obj,
+                        Obj,
                         "Value",
                         nameof(JsonElement.GetProperty))
                     .AddArgument(WellKnownNames.TypeName.AsStringToken())
@@ -67,8 +66,8 @@ public partial class JsonResultBuilderGenerator
             var ifStatement = IfBuilder
                 .New()
                 .SetCondition(
-                    $"typename?.Equals(\"{concreteType.Name}\", " +
-                    $"{TypeNames.OrdinalStringComparison}) ?? false")
+                    $"typename?.Equals(\"{concreteType.Name}\", "
+                    + $"{TypeNames.OrdinalStringComparison}) ?? false")
                 .AddCode(returnStatement);
 
             methodBuilder
@@ -87,8 +86,8 @@ public partial class JsonResultBuilderGenerator
             .New()
             .SetNew()
             .SetMethodName(
-                $"{concreteType.RuntimeType.Namespace}.State." +
-                CreateDataTypeName(concreteType.Name))
+                $"{concreteType.RuntimeType.Namespace}.State."
+                + CreateDataTypeName(concreteType.Name))
             .AddArgument("typename");
 
         foreach (var property in concreteType.Properties)

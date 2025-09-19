@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -14,17 +12,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDescriptor>
 {
-    private const string _sessionPool = "sessionPool";
-    private const string _services = "services";
-    private const string _strategy = "strategy";
-    private const string _parentServices = "parentServices";
-    private const string _profile = "profile";
-    private const string _clientFactory = "clientFactory";
-    private const string _serviceCollection = "serviceCollection";
-    private const string _sp = "sp";
-    private const string _ct = "ct";
+    private const string SessionPool = "sessionPool";
+    private const string Services = "services";
+    private const string Strategy = "strategy";
+    private const string ParentServices = "parentServices";
+    private const string Profile = "profile";
+    private const string ClientFactory = "clientFactory";
+    private const string ServiceCollection = "serviceCollection";
+    private const string Sp = "sp";
+    private const string Ct = "ct";
 
-    private static readonly string[] _builtInSerializers =
+    private static readonly string[] s_builtInSerializers =
     [
         StringSerializer,
         BooleanSerializer,
@@ -39,12 +37,15 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         IdSerializer,
         DateTimeSerializer,
         DateSerializer,
+        LocalDateSerializer,
+        LocalDateTimeSerializer,
+        LocalTimeSerializer,
         ByteArraySerializer,
         TimeSpanSerializer,
-        JsonSerializer,
+        JsonSerializer
     ];
 
-    private static readonly Dictionary<string, string> _alternativeTypeNames = new()
+    private static readonly Dictionary<string, string> s_alternativeTypeNames = new()
     {
         ["Uuid"] = UUIDSerializer,
         ["Guid"] = UUIDSerializer,
@@ -52,7 +53,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         ["Uri"] = UrlSerializer,
         ["URI"] = UrlSerializer,
         ["JSON"] = JsonSerializer,
-        ["Json"] = JsonSerializer,
+        ["Json"] = JsonSerializer
     };
 
     protected override void Generate(
@@ -77,9 +78,9 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             .SetPublic()
             .SetStatic()
             .SetReturnType(IClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType))
-            .AddParameter(_services, x => x.SetThis().SetType(IServiceCollection))
+            .AddParameter(Services, x => x.SetThis().SetType(IServiceCollection))
             .AddParameter(
-                _strategy,
+                Strategy,
                 x => x.SetType(ExecutionStrategy)
                     .SetDefault(ExecutionStrategy + "." + "NetworkOnly"))
             .AddCode(GenerateMethodBody(settings, descriptor));
@@ -87,10 +88,10 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         if (descriptor.TransportProfiles.Count > 1)
         {
             addClientMethod
-                .AddParameter(_profile)
+                .AddParameter(Profile)
                 .SetType(CreateProfileEnumReference(descriptor))
-                .SetDefault(CreateProfileEnumReference(descriptor) + "." +
-                            descriptor.TransportProfiles[0].Name);
+                .SetDefault(CreateProfileEnumReference(descriptor) + "."
+                    + descriptor.TransportProfiles[0].Name);
         }
 
         foreach (var profile in descriptor.TransportProfiles)
@@ -98,7 +99,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             GenerateClientForProfile(settings, factory, descriptor, profile);
         }
 
-        factory.AddClass(_clientServiceProvider);
+        factory.AddClass(ClientServiceProvider);
 
         factory.Build(writer);
     }
@@ -114,10 +115,10 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             .SetPrivate()
             .SetStatic()
             .SetReturnType(IServiceCollection)
-            .AddParameter(_parentServices, x => x.SetType(IServiceProvider))
-            .AddParameter(_services, x => x.SetType(ServiceCollection))
+            .AddParameter(ParentServices, x => x.SetType(TypeNames.IServiceProvider))
+            .AddParameter(Services, x => x.SetType(TypeNames.ServiceCollection))
             .AddParameter(
-                _strategy,
+                Strategy,
                 x => x.SetType(ExecutionStrategy)
                     .SetDefault(ExecutionStrategy + "." + "NetworkOnly"))
             .AddCode(GenerateInternalMethodBody(settings, descriptor, profile));
@@ -135,9 +136,9 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                     MethodCallBuilder
                         .New()
                         .SetMethodName("ConfigureClient" + descriptor.TransportProfiles[0].Name)
-                        .AddArgument(_sp)
-                        .AddArgument(_serviceCollection)
-                        .AddArgument(_strategy))
+                        .AddArgument(Sp)
+                        .AddArgument(ServiceCollection)
+                        .AddArgument(Strategy))
                 .AddEmptyLine()
                 .AddCode(MethodCallBuilder
                     .New()
@@ -148,7 +149,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                     .AddArgument(MethodCallBuilder
                         .Inline()
                         .SetMethodName(BuildServiceProvider)
-                        .AddArgument(_serviceCollection)));
+                        .AddArgument(ServiceCollection)));
         }
 
         var ifProfile = IfBuilder.New();
@@ -164,14 +165,14 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             }
 
             currentIf
-                .SetCondition($"{_profile} == {enumName}.{profile.Name}")
+                .SetCondition($"{Profile} == {enumName}.{profile.Name}")
                 .AddCode(
                     MethodCallBuilder
                         .New()
                         .SetMethodName("ConfigureClient" + profile.Name)
-                        .AddArgument(_sp)
-                        .AddArgument(_serviceCollection)
-                        .AddArgument(_strategy));
+                        .AddArgument(Sp)
+                        .AddArgument(ServiceCollection)
+                        .AddArgument(Strategy));
         }
 
         return codeBuilder
@@ -186,7 +187,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 .AddArgument(MethodCallBuilder
                     .Inline()
                     .SetMethodName(BuildServiceProvider)
-                    .AddArgument(_serviceCollection)));
+                    .AddArgument(ServiceCollection)));
     }
 
     private static string CreateProfileEnumReference(DependencyInjectionDescriptor descriptor)
@@ -203,18 +204,18 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             .AddCode(
                 AssignmentBuilder
                     .New()
-                    .SetLefthandSide($"var {_serviceCollection}")
-                    .SetRighthandSide(MethodCallBuilder
+                    .SetLeftHandSide($"var {ServiceCollection}")
+                    .SetRightHandSide(MethodCallBuilder
                         .Inline()
                         .SetNew()
-                        .SetMethodName(ServiceCollection)))
+                        .SetMethodName(TypeNames.ServiceCollection)))
             .AddMethodCall(x => x
                 .SetMethodName(AddSingleton)
-                .AddArgument(_services)
+                .AddArgument(Services)
                 .AddArgument(LambdaBuilder
                     .New()
                     .SetBlock(true)
-                    .AddArgument(_sp)
+                    .AddArgument(Sp)
                     .SetCode(GenerateClientServiceProviderFactory(descriptor))))
             .AddEmptyLine()
             .AddCode(RegisterStoreAccessor(settings, descriptor.StoreAccessor))
@@ -241,18 +242,18 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 .SetMethodName(
                     ClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType))
                 .AddArgument(descriptor.Name.AsStringToken())
-                .AddArgument(_services)
-                .AddArgument(_serviceCollection));
+                .AddArgument(Services)
+                .AddArgument(ServiceCollection));
 
     private static ICode RegisterSerializerResolver() =>
         MethodCallBuilder
             .New()
             .SetMethodName(AddSingleton)
             .AddGeneric(ISerializerResolver)
-            .AddArgument(_services)
+            .AddArgument(Services)
             .AddArgument(LambdaBuilder
                 .New()
-                .AddArgument(_sp)
+                .AddArgument(Sp)
                 .SetCode(
                     MethodCallBuilder
                         .Inline()
@@ -270,14 +271,14 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                                     .AddGeneric(
                                         IEnumerable.WithGeneric(
                                             ISerializer))
-                                    .AddArgument(_parentServices))
+                                    .AddArgument(ParentServices))
                             .AddArgument(MethodCallBuilder
                                 .Inline()
                                 .SetMethodName(GetRequiredService)
                                 .SetWrapArguments()
                                 .AddGeneric(
                                     IEnumerable.WithGeneric(ISerializer))
-                                .AddArgument(_sp)))));
+                                .AddArgument(Sp)))));
 
     private static ICode RegisterStoreAccessor(
         CSharpSyntaxGeneratorSettings settings,
@@ -288,10 +289,10 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             return MethodCallBuilder
                 .New()
                 .SetMethodName(AddSingleton)
-                .AddArgument(_services)
+                .AddArgument(Services)
                 .AddArgument(LambdaBuilder
                     .New()
-                    .AddArgument(_sp)
+                    .AddArgument(Sp)
                     .SetCode(MethodCallBuilder
                         .Inline()
                         .SetNew()
@@ -301,10 +302,10 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         return MethodCallBuilder
             .New()
             .SetMethodName(AddSingleton)
-            .AddArgument(_services)
+            .AddArgument(Services)
             .AddArgument(LambdaBuilder
                 .New()
-                .AddArgument(_sp)
+                .AddArgument(Sp)
                 .SetCode(MethodCallBuilder
                     .Inline()
                     .SetNew()
@@ -317,7 +318,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric("ClientServiceProvider")
-                            .AddArgument(_sp))
+                            .AddArgument(Sp))
                         .AddGeneric(IOperationStore))
                     .AddArgument(MethodCallBuilder
                         .Inline()
@@ -327,7 +328,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric("ClientServiceProvider")
-                            .AddArgument(_sp))
+                            .AddArgument(Sp))
                         .AddGeneric(IEntityStore))
                     .AddArgument(MethodCallBuilder
                         .Inline()
@@ -337,7 +338,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric("ClientServiceProvider")
-                            .AddArgument(_sp))
+                            .AddArgument(Sp))
                         .AddGeneric(IEntityIdSerializer))
                     .AddArgument(MethodCallBuilder
                         .Inline()
@@ -347,7 +348,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric("ClientServiceProvider")
-                            .AddArgument(_sp))
+                            .AddArgument(Sp))
                         .AddGeneric(
                             IEnumerable.WithGeneric(
                                 IOperationRequestFactory)))
@@ -359,7 +360,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric("ClientServiceProvider")
-                            .AddArgument(_sp))
+                            .AddArgument(Sp))
                         .AddGeneric(
                             IEnumerable.WithGeneric(
                                 IOperationResultDataFactory)))));
@@ -369,10 +370,10 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         MethodCallBuilder
             .New()
             .SetMethodName(AddSingleton)
-            .AddArgument(_services)
+            .AddArgument(Services)
             .AddArgument(LambdaBuilder
                 .New()
-                .AddArgument(_sp)
+                .AddArgument(Sp)
                 .SetCode(MethodCallBuilder
                     .Inline()
                     .SetMethodName(GetRequiredService)
@@ -381,7 +382,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                         .Inline()
                         .SetMethodName(GetRequiredService)
                         .AddGeneric("ClientServiceProvider")
-                        .AddArgument(_sp))
+                        .AddArgument(Sp))
                     .AddGeneric(generic)));
 
     private static ICode GenerateInternalMethodBody(
@@ -439,7 +440,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 .SetMethodName(AddSingleton)
                 .AddGeneric(interfaceName)
                 .AddGeneric($"{CreateStateNamespace(rootNamespace)}.{className}")
-                .AddArgument(_services);
+                .AddArgument(Services);
         }
 
         body.AddEmptyLine();
@@ -450,7 +451,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 .SetMethodName(AddSingleton)
                 .AddGeneric(ISerializer)
                 .AddGeneric(UploadSerializer)
-                .AddArgument(_services);
+                .AddArgument(Services);
         }
 
         foreach (var enumType in descriptor.EnumTypeDescriptor)
@@ -459,27 +460,27 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 .SetMethodName(AddSingleton)
                 .AddGeneric(ISerializer)
                 .AddGeneric(CreateEnumParserName($"{rootNamespace}.{enumType.Name}"))
-                .AddArgument(_services);
+                .AddArgument(Services);
         }
 
-        foreach (var serializer in _builtInSerializers)
+        foreach (var serializer in s_builtInSerializers)
         {
             body.AddMethodCall()
                 .SetMethodName(AddSingleton)
                 .AddGeneric(ISerializer)
                 .AddGeneric(serializer)
-                .AddArgument(_services);
+                .AddArgument(Services);
         }
 
         foreach (var scalarTypes in
                  descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
-            if (_alternativeTypeNames.TryGetValue(scalarTypes.Name, out var serializer))
+            if (s_alternativeTypeNames.TryGetValue(scalarTypes.Name, out var serializer))
             {
                 body.AddMethodCall()
                     .SetMethodName(AddSingleton)
                     .AddGeneric(ISerializer)
-                    .AddArgument(_services)
+                    .AddArgument(Services)
                     .AddArgument(MethodCallBuilder
                         .Inline()
                         .SetNew()
@@ -488,18 +489,18 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             }
         }
 
-        var stringTypeInfo = new RuntimeTypeInfo(String);
+        var stringTypeInfo = new RuntimeTypeInfo(TypeNames.String);
         foreach (var scalar in
                  descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
-            if (scalar.RuntimeType.Equals(stringTypeInfo) &&
-                scalar.SerializationType.Equals(stringTypeInfo) &&
-                !BuiltInScalarNames.IsBuiltInScalar(scalar.Name))
+            if (scalar.RuntimeType.Equals(stringTypeInfo)
+                && scalar.SerializationType.Equals(stringTypeInfo)
+                && !BuiltInScalarNames.IsBuiltInScalar(scalar.Name))
             {
                 body.AddMethodCall()
                     .SetMethodName(AddSingleton)
                     .AddGeneric(ISerializer)
-                    .AddArgument(_services)
+                    .AddArgument(Services)
                     .AddArgument(MethodCallBuilder
                         .Inline()
                         .SetNew()
@@ -519,7 +520,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 .SetMethodName(AddSingleton)
                 .AddGeneric(ISerializer)
                 .AddGeneric($"{rootNamespace}.{formatter}")
-                .AddArgument(_services);
+                .AddArgument(Services);
         }
 
         body.AddCode(RegisterSerializerResolver());
@@ -528,7 +529,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
         foreach (var operation in descriptor.Operations)
         {
-            if (!(operation.ResultTypeReference is InterfaceTypeDescriptor typeDescriptor))
+            if (operation.ResultTypeReference is not InterfaceTypeDescriptor typeDescriptor)
             {
                 continue;
             }
@@ -538,7 +539,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 SubscriptionOperationDescriptor => profile.Subscription,
                 QueryOperationDescriptor => profile.Query,
                 MutationOperationDescriptor => profile.Mutation,
-                _ => throw ThrowHelper.DependencyInjection_InvalidOperationKind(operation),
+                _ => throw ThrowHelper.DependencyInjection_InvalidOperationKind(operation)
             };
 
             var connectionKind = operationKind switch
@@ -546,7 +547,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 TransportType.Http => IHttpConnection,
                 TransportType.WebSocket => IWebSocketConnection,
                 TransportType.InMemory => IInMemoryConnection,
-                var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v),
+                var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
             };
 
             var operationName = operation.Name;
@@ -581,7 +582,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                     .SetMethodName(AddSingleton)
                     .AddGeneric(IEntityIdSerializer)
                     .AddGeneric(descriptor.EntityIdFactoryDescriptor.Type.ToString())
-                    .AddArgument(_services));
+                    .AddArgument(Services));
         }
 
         body.AddCode(
@@ -589,24 +590,24 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 .New()
                 .SetMethodName(AddSingleton)
                 .AddGeneric(descriptor.ClientDescriptor.RuntimeType.ToString())
-                .AddArgument(_services));
+                .AddArgument(Services));
 
         body.AddCode(
             MethodCallBuilder
                 .New()
                 .SetMethodName(AddSingleton)
                 .AddGeneric(descriptor.ClientDescriptor.InterfaceType.ToString())
-                .AddArgument(_services)
+                .AddArgument(Services)
                 .AddArgument(LambdaBuilder
                     .New()
-                    .AddArgument(_sp)
+                    .AddArgument(Sp)
                     .SetCode(MethodCallBuilder
                         .Inline()
                         .SetMethodName(GetRequiredService)
                         .AddGeneric(descriptor.ClientDescriptor.RuntimeType.ToString())
-                        .AddArgument(_sp))));
+                        .AddArgument(Sp))));
 
-        body.AddLine($"return {_services};");
+        body.AddLine($"return {Services};");
 
         return body;
     }
@@ -629,37 +630,37 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                     .AddGeneric(
                         IOperationResultDataFactory.WithGeneric(resultInterface))
                     .AddGeneric(factory)
-                    .AddArgument(_services))
+                    .AddArgument(Services))
             .AddCode(
                 MethodCallBuilder
                     .New()
                     .SetMethodName(AddSingleton)
                     .AddGeneric(IOperationResultDataFactory)
-                    .AddArgument(_services)
+                    .AddArgument(Services)
                     .AddArgument(LambdaBuilder
                         .New()
-                        .AddArgument(_sp)
+                        .AddArgument(Sp)
                         .SetCode(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(
                                 IOperationResultDataFactory
                                     .WithGeneric(resultInterface))
-                            .AddArgument(_sp))))
+                            .AddArgument(Sp))))
             .AddCode(
                 MethodCallBuilder
                     .New()
                     .SetMethodName(AddSingleton)
                     .AddGeneric(IOperationRequestFactory)
-                    .AddArgument(_services)
+                    .AddArgument(Services)
                     .AddArgument(LambdaBuilder
                         .New()
-                        .AddArgument(_sp)
+                        .AddArgument(Sp)
                         .SetCode(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(operationInterfaceName)
-                            .AddArgument(_sp))))
+                            .AddArgument(Sp))))
             .AddCode(MethodCallBuilder
                 .New()
                 .SetMethodName(AddSingleton)
@@ -667,16 +668,16 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                     IOperationResultBuilder
                         .WithGeneric(JsonDocument, resultInterface))
                 .AddGeneric(resultBuilder)
-                .AddArgument(_services))
+                .AddArgument(Services))
             .AddCode(
                 MethodCallBuilder
                     .New()
                     .SetMethodName(AddSingleton)
                     .AddGeneric(IOperationExecutor.WithGeneric(resultInterface))
-                    .AddArgument(_services)
+                    .AddArgument(Services)
                     .AddArgument(LambdaBuilder
                         .New()
-                        .AddArgument(_sp)
+                        .AddArgument(Sp)
                         .SetCode(MethodCallBuilder
                             .Inline()
                             .SetNew()
@@ -690,7 +691,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                                     .Inline()
                                     .SetMethodName(GetRequiredService)
                                     .AddGeneric(connectionKind)
-                                    .AddArgument(_sp))
+                                    .AddArgument(Sp))
                             .AddArgument(
                                 LambdaBuilder
                                     .New()
@@ -703,7 +704,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                                                 IOperationResultBuilder.WithGeneric(
                                                     JsonDocument,
                                                     resultInterface))
-                                            .AddArgument(_sp)))
+                                            .AddArgument(Sp)))
                             .AddArgument(
                                 LambdaBuilder
                                     .New()
@@ -715,7 +716,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                                             .AddGeneric(
                                                 IResultPatcher.WithGeneric(
                                                     JsonDocument))
-                                            .AddArgument(_sp)))
+                                            .AddArgument(Sp)))
                             .If(settings.IsStoreEnabled(),
                                 x => x
                                     .AddArgument(
@@ -723,54 +724,54 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                                             .Inline()
                                             .SetMethodName(GetRequiredService)
                                             .AddGeneric(IOperationStore)
-                                            .AddArgument(_sp))
-                                    .AddArgument(_strategy)))))
+                                            .AddArgument(Sp))
+                                    .AddArgument(Strategy)))))
             .AddCode(MethodCallBuilder
                 .New()
                 .SetMethodName(AddSingleton)
                 .AddGeneric(IResultPatcher.WithGeneric(JsonDocument))
                 .AddGeneric(JsonResultPatcher)
-                .AddArgument(_services))
+                .AddArgument(Services))
             .AddCode(MethodCallBuilder
                 .New()
                 .SetMethodName(AddSingleton)
                 .AddGeneric(operationFullName)
-                .AddArgument(_services))
+                .AddArgument(Services))
             .AddCode(MethodCallBuilder
                 .New()
                 .SetMethodName(AddSingleton)
                 .AddGeneric(operationInterfaceName)
-                .AddArgument(_services)
+                .AddArgument(Services)
                 .AddArgument(LambdaBuilder
                     .New()
-                    .AddArgument(_sp)
+                    .AddArgument(Sp)
                     .SetCode(MethodCallBuilder
                         .Inline()
                         .SetMethodName(GetRequiredService)
                         .AddGeneric(operationFullName)
-                        .AddArgument(_sp))));
+                        .AddArgument(Sp))));
     }
 
     private static ICode RegisterHttpConnection(string clientName) =>
         MethodCallBuilder
             .New()
             .SetMethodName(AddSingleton)
-            .AddArgument(_services)
+            .AddArgument(Services)
             .AddGeneric(IHttpConnection)
             .AddArgument(LambdaBuilder
                 .New()
-                .AddArgument(_sp)
+                .AddArgument(Sp)
                 .SetBlock(true)
                 .SetCode(CodeBlockBuilder
                     .New()
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {_clientFactory}")
-                        .SetRighthandSide(MethodCallBuilder
+                        .SetLeftHandSide($"var {ClientFactory}")
+                        .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(IHttpClientFactory)
-                            .AddArgument(_parentServices)))
+                            .AddArgument(ParentServices)))
                     .AddCode(MethodCallBuilder
                         .New()
                         .SetReturn()
@@ -781,7 +782,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                             .SetCode(MethodCallBuilder
                                 .Inline()
                                 .SetMethodName(
-                                    _clientFactory,
+                                    ClientFactory,
                                     "CreateClient")
                                 .AddArgument(clientName.AsStringToken()))))));
 
@@ -792,7 +793,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             TransportType.WebSocket => RegisterWebSocketConnection(clientName),
             TransportType.Http => RegisterHttpConnection(clientName),
             TransportType.InMemory => RegisterInMemoryConnection(clientName),
-            var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v),
+            var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
         };
     }
 
@@ -802,21 +803,21 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             .New()
             .SetMethodName(AddSingleton)
             .AddGeneric(IInMemoryConnection)
-            .AddArgument(_services)
+            .AddArgument(Services)
             .AddArgument(LambdaBuilder
                 .New()
-                .AddArgument(_sp)
+                .AddArgument(Sp)
                 .SetBlock(true)
                 .SetCode(CodeBlockBuilder
                     .New()
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {_clientFactory}")
-                        .SetRighthandSide(MethodCallBuilder
+                        .SetLeftHandSide($"var {ClientFactory}")
+                        .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(IInMemoryClientFactory)
-                            .AddArgument(_parentServices)))
+                            .AddArgument(ParentServices)))
                     .AddCode(MethodCallBuilder
                         .New()
                         .SetReturn()
@@ -825,13 +826,13 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                         .AddArgument(LambdaBuilder
                             .New()
                             .SetAsync()
-                            .AddArgument(_ct)
+                            .AddArgument(Ct)
                             .SetCode(MethodCallBuilder
                                 .Inline()
                                 .SetAwait()
-                                .SetMethodName(_clientFactory, "CreateAsync")
+                                .SetMethodName(ClientFactory, "CreateAsync")
                                 .AddArgument(clientName.AsStringToken())
-                                .AddArgument(_ct))))));
+                                .AddArgument(Ct))))));
     }
 
     private static ICode RegisterWebSocketConnection(string clientName) =>
@@ -839,21 +840,21 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             .New()
             .SetMethodName(AddSingleton)
             .AddGeneric(IWebSocketConnection)
-            .AddArgument(_services)
+            .AddArgument(Services)
             .AddArgument(LambdaBuilder
                 .New()
-                .AddArgument(_sp)
+                .AddArgument(Sp)
                 .SetBlock(true)
                 .SetCode(CodeBlockBuilder
                     .New()
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {_sessionPool}")
-                        .SetRighthandSide(MethodCallBuilder
+                        .SetLeftHandSide($"var {SessionPool}")
+                        .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(ISessionPool)
-                            .AddArgument(_parentServices)))
+                            .AddArgument(ParentServices)))
                     .AddCode(MethodCallBuilder
                         .New()
                         .SetReturn()
@@ -862,13 +863,13 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                         .AddArgument(LambdaBuilder
                             .New()
                             .SetAsync()
-                            .AddArgument(_ct)
+                            .AddArgument(Ct)
                             .SetCode(MethodCallBuilder
                                 .Inline()
                                 .SetAwait()
-                                .SetMethodName(_sessionPool, "CreateAsync")
+                                .SetMethodName(SessionPool, "CreateAsync")
                                 .AddArgument(clientName.AsStringToken())
-                                .AddArgument(_ct))))));
+                                .AddArgument(Ct))))));
 
     private static ICode CreateBaseCode(CSharpSyntaxGeneratorSettings settings)
     {
@@ -884,15 +885,15 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 .SetMethodName(TryAddSingleton)
                 .AddGeneric(IEntityStore)
                 .AddGeneric(EntityStore)
-                .AddArgument(_services))
+                .AddArgument(Services))
             .AddCode(MethodCallBuilder
                 .New()
                 .SetMethodName(TryAddSingleton)
                 .AddGeneric(IOperationStore)
-                .AddArgument(_services)
+                .AddArgument(Services)
                 .AddArgument(LambdaBuilder
                     .New()
-                    .AddArgument(_sp)
+                    .AddArgument(Sp)
                     .SetCode(MethodCallBuilder
                         .Inline()
                         .SetNew()
@@ -901,10 +902,10 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(IEntityStore)
-                            .AddArgument(_sp)))));
+                            .AddArgument(Sp)))));
     }
 
-    private static string _clientServiceProvider =
+    private const string ClientServiceProvider =
         @"private sealed class ClientServiceProvider
                 : System.IServiceProvider
                 , System.IDisposable

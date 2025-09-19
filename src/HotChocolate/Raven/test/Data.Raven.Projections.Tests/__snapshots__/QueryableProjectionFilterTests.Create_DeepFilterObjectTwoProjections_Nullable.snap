@@ -1,0 +1,34 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "objectArray": []
+        }
+      },
+      {
+        "foo": {
+          "objectArray": []
+        }
+      },
+      {
+        "foo": {
+          "objectArray": []
+        }
+      },
+      {
+        "foo": {
+          "objectArray": null
+        }
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+from 'BarNullables' as _s1 select { Foo : { ObjectArray : _s1.Foo.ObjectArray.filter(_s0=>_s0.Foo.BarString===$p0).map(p2=>({Foo:{BarString:p2.Foo.BarString,BarShort:p2.Foo.BarShort}})) } }
+---------------

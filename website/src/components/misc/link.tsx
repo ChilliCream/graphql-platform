@@ -1,8 +1,11 @@
-import { GatsbyLinkProps, Link as GatsbyLink } from "gatsby";
+import { Link as GatsbyLink, GatsbyLinkProps } from "gatsby";
 import React, { FC } from "react";
 
 export const Link: FC<
-  Pick<GatsbyLinkProps<unknown>, "download" | "to" | "onClick"> & {
+  Pick<
+    GatsbyLinkProps<unknown>,
+    "className" | "download" | "to" | "onClick"
+  > & {
     prefetch?: false;
   }
 > = ({ to, prefetch = true, ...rest }) => {

@@ -12,7 +12,7 @@ The package `HotChocolate.Data.EntityFramework` helps you to manage the `DBConte
 
 # MongoDB
 
-With the package `HotChocoalte.Data.MongoDb` you can integrate your MongoDB with ease.
+With the package `HotChocolate.Data.MongoDb` you can integrate your MongoDB with ease.
 This package adds support for filtering, sorting, projection and pagination with native MongoDB queries.
 
 [Learn more about our MongoDB integration](/docs/hotchocolate/v11/integrations/mongodb)

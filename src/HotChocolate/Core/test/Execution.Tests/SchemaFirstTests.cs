@@ -1,6 +1,3 @@
-#nullable enable
-using CookieCrumble;
-using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
@@ -26,7 +23,7 @@ public class SchemaFirstTests
                 "{ test testProp }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -58,7 +55,7 @@ public class SchemaFirstTests
                 "{ foo(bar: { baz: \"hello\"}) }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -85,7 +82,7 @@ public class SchemaFirstTests
                 "{ enumValue }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -112,7 +109,7 @@ public class SchemaFirstTests
                 "{ setEnumValue(value:BAZ_BAR) }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -146,7 +143,7 @@ public class SchemaFirstTests
                 "{ enumInInputObject(payload: { value:BAZ } ) }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -235,7 +232,7 @@ public class SchemaFirstTests
 
     public class Bar
     {
-        public string Baz { get; set; } = default!;
+        public string Baz { get; set; } = null!;
     }
 
     public class EnumQuery
@@ -265,7 +262,7 @@ public class SchemaFirstTests
     {
         Bar,
         Baz,
-        BazBar,
+        BazBar
     }
 
     public class Query5730
@@ -283,14 +280,13 @@ public class SchemaFirstTests
                 Assert.IsType<Dictionary<string, object>>(
                     input.ParameterChangeInfo[0].Value)["a"]);
 
-            return Task.FromResult(new ChangeChannelParameterPayload { Message = message, });
+            return Task.FromResult(new ChangeChannelParameterPayload { Message = message });
         }
     }
 
     public record ChangeChannelParameterInput
     {
-        public ParameterValuePair[] ParameterChangeInfo { get; set; } =
-            Array.Empty<ParameterValuePair>();
+        public ParameterValuePair[] ParameterChangeInfo { get; set; } = [];
     }
 
     public record ParameterValuePair

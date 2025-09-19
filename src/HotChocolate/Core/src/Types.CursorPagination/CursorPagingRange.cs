@@ -1,16 +1,10 @@
 namespace HotChocolate.Types.Pagination;
 
-internal sealed class CursorPagingRange
+internal sealed class CursorPagingRange(int start, int end)
 {
-    public CursorPagingRange(int start, int end)
-    {
-        Start = start;
-        End = end;
-    }
+    public int Start { get; private set; } = start;
 
-    public int Start { get; private set; }
-
-    public int End { get; private set; }
+    public int End { get; private set; } = end;
 
     public int Count()
     {
@@ -24,7 +18,7 @@ internal sealed class CursorPagingRange
 
     public void Take(int? first)
     {
-        if (first is { })
+        if (first is not null)
         {
             var end = Start + first.Value;
             if (End > end)
@@ -36,7 +30,7 @@ internal sealed class CursorPagingRange
 
     public void TakeLast(int? last)
     {
-        if (last is { })
+        if (last is not null)
         {
             var start = End - last.Value;
             if (Start < start)

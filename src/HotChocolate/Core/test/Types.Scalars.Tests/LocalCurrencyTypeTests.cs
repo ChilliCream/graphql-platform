@@ -1,8 +1,6 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -24,7 +22,7 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
     public void LocalCurrency_EnsureLocalCurrencyTypeKindIsCorrect()
     {
         // arrange
-        var type = new LocalCurrencyType("Germany","de-DE");
+        var type = new LocalCurrencyType("Germany", "de-DE");
 
         // act
         var kind = type.Kind;
@@ -257,7 +255,6 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         var scalar = CreateType<LocalCurrencyType>();
         object resultValue = 0.99m;
 
-
         // act
         var result = scalar.Deserialize(resultValue);
 
@@ -378,7 +375,7 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
 
     public class DefaultLocalCurrency
     {
-        public decimal Test => new();
+        public decimal Test => 0;
     }
 
     public class DefaultLocalCurrencyType : ObjectType<DefaultLocalCurrency>

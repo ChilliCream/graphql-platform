@@ -70,7 +70,7 @@ public static class ShareableDescriptorExtensions
 
         return descriptor.Directive(ShareableDirective.Default);
     }
-    
+
     /// <summary>
     /// Applies @shareable directive which indicates that given object and/or field can be resolved by multiple subgraphs.
     /// If an object is marked as @shareable then all its fields are automatically shareable without the need

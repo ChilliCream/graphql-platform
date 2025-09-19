@@ -1,4 +1,3 @@
-using System;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data.Sorting;
@@ -6,7 +5,7 @@ namespace HotChocolate.Data.Sorting;
 public class DatabaseContext<T> : DbContext
     where T : class
 {
-    public DbSet<T> Data { get; set; } = default!;
+    public DbSet<T> Data { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

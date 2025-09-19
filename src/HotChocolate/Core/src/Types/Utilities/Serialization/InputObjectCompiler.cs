@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -7,16 +5,14 @@ using HotChocolate.Types;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Utilities.Serialization.InputObjectConstructorResolver;
 
-#nullable enable
-
 namespace HotChocolate.Utilities.Serialization;
 
 internal static class InputObjectCompiler
 {
-    private static readonly ParameterExpression _obj =
+    private static readonly ParameterExpression s_obj =
         Expression.Parameter(typeof(object), "obj");
 
-    private static readonly ParameterExpression _fieldValues =
+    private static readonly ParameterExpression s_fieldValues =
         Expression.Parameter(typeof(object?[]), "fieldValues");
 
     public static Func<object?[], object> CompileFactory(
@@ -45,23 +41,26 @@ internal static class InputObjectCompiler
 
         var instance = constructor is null
             ? Expression.New(inputType.RuntimeType)
-            : CreateInstance(fields, constructor, _fieldValues);
+            : CreateInstance(fields, constructor, s_fieldValues);
 
         if (fields.Count == 0)
         {
             Expression casted = Expression.Convert(instance, typeof(object));
-            return Expression.Lambda<Func<object?[], object>>(casted, _fieldValues).Compile();
+            return Expression.Lambda<Func<object?[], object>>(casted, s_fieldValues).Compile();
         }
 
         var variable = Expression.Variable(inputType.RuntimeType, "obj");
 
-        var expressions = new List<Expression>();
-        expressions.Add(Expression.Assign(variable, instance));
-        CompileSetProperties(variable, fields.Values, _fieldValues, expressions);
-        expressions.Add(Expression.Convert(variable, typeof(object)));
-        Expression body = Expression.Block(new[] { variable, }, expressions);
+        var expressions = new List<Expression>
+        {
+            Expression.Assign(variable, instance)
+        };
 
-        var func = Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
+        CompileSetProperties(variable, fields.Values, s_fieldValues, expressions);
+        expressions.Add(Expression.Convert(variable, typeof(object)));
+        Expression body = Expression.Block(new[] { variable }, expressions);
+
+        var func = Expression.Lambda<Func<object?[], object>>(body, s_fieldValues).Compile();
 
         TypeMemHelper.Return(fields);
         TypeMemHelper.Return(nameSet);
@@ -95,23 +94,26 @@ internal static class InputObjectCompiler
 
         var instance = constructor is null
             ? Expression.New(directiveType.RuntimeType)
-            : CreateInstance(arguments, constructor, _fieldValues);
+            : CreateInstance(arguments, constructor, s_fieldValues);
 
         if (arguments.Count == 0)
         {
             Expression casted = Expression.Convert(instance, typeof(object));
-            return Expression.Lambda<Func<object?[], object>>(casted, _fieldValues).Compile();
+            return Expression.Lambda<Func<object?[], object>>(casted, s_fieldValues).Compile();
         }
 
         var variable = Expression.Variable(directiveType.RuntimeType, "obj");
 
-        var expressions = new List<Expression>();
-        expressions.Add(Expression.Assign(variable, instance));
-        CompileSetProperties(variable, arguments.Values, _fieldValues, expressions);
-        expressions.Add(Expression.Convert(variable, typeof(object)));
-        Expression body = Expression.Block(new[] { variable, }, expressions);
+        var expressions = new List<Expression>
+        {
+            Expression.Assign(variable, instance)
+        };
 
-        var func = Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
+        CompileSetProperties(variable, arguments.Values, s_fieldValues, expressions);
+        expressions.Add(Expression.Convert(variable, typeof(object)));
+        Expression body = Expression.Block([variable], expressions);
+
+        var func = Expression.Lambda<Func<object?[], object>>(body, s_fieldValues).Compile();
 
         TypeMemHelper.Return(arguments);
         TypeMemHelper.Return(nameSet);
@@ -121,7 +123,7 @@ internal static class InputObjectCompiler
 
     public static Action<object, object?[]> CompileGetFieldValues(InputObjectType inputType)
     {
-        Expression instance = _obj;
+        Expression instance = s_obj;
 
         if (inputType.RuntimeType != typeof(object))
         {
@@ -134,17 +136,17 @@ internal static class InputObjectCompiler
         {
             var getter = field.Property!.GetGetMethod(true)!;
             Expression fieldValue = Expression.Call(instance, getter);
-            expressions.Add(SetFieldValue(field, _fieldValues, fieldValue));
+            expressions.Add(SetFieldValue(field, s_fieldValues, fieldValue));
         }
 
         Expression body = Expression.Block(expressions);
 
-        return Expression.Lambda<Action<object, object?[]>>(body, _obj, _fieldValues).Compile();
+        return Expression.Lambda<Action<object, object?[]>>(body, s_obj, s_fieldValues).Compile();
     }
 
     public static Action<object, object?[]> CompileGetFieldValues(DirectiveType inputType)
     {
-        Expression instance = _obj;
+        Expression instance = s_obj;
 
         if (inputType.RuntimeType != typeof(object))
         {
@@ -157,36 +159,34 @@ internal static class InputObjectCompiler
         {
             var getter = field.Property!.GetGetMethod(true)!;
             Expression fieldValue = Expression.Call(instance, getter);
-            expressions.Add(SetFieldValue(field, _fieldValues, fieldValue));
+            expressions.Add(SetFieldValue(field, s_fieldValues, fieldValue));
         }
 
         Expression body = Expression.Block(expressions);
 
-        return Expression.Lambda<Action<object, object?[]>>(body, _obj, _fieldValues).Compile();
+        return Expression.Lambda<Action<object, object?[]>>(body, s_obj, s_fieldValues).Compile();
     }
 
     private static Expression CreateInstance<T>(
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : class, IInputField, IHasProperty
-    {
-        return Expression.New(
+        where T : class, IInputValueDefinition, IPropertyProvider, IHasRuntimeType, IFieldIndexProvider
+        => Expression.New(
             constructor,
             CompileAssignParameters(fields, constructor, fieldValues));
-    }
 
     private static Expression[] CompileAssignParameters<T>(
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider, IHasRuntimeType, IFieldIndexProvider
     {
         var parameters = constructor.GetParameters();
 
         if (parameters.Length == 0)
         {
-            return Array.Empty<Expression>();
+            return [];
         }
 
         var expressions = new Expression[parameters.Length];
@@ -200,12 +200,23 @@ internal static class InputObjectCompiler
                 fields.Remove(field.Property!.Name);
                 var value = GetFieldValue(field, fieldValues);
 
-                if (field is InputField { IsOptional: true, })
+                if (field is InputField { IsOptional: true })
                 {
                     value = CreateOptional(value, field.RuntimeType);
                 }
 
                 expressions[i] = Expression.Convert(value, parameter.ParameterType);
+            }
+            else if (parameter.HasDefaultValue)
+            {
+                if (parameter.DefaultValue is { } || !parameter.ParameterType.IsValueType)
+                {
+                    expressions[i] = Expression.Constant(parameter.DefaultValue, parameter.ParameterType);
+                }
+                else
+                {
+                    expressions[i] = Expression.Default(parameter.ParameterType);
+                }
             }
             else
             {
@@ -221,14 +232,14 @@ internal static class InputObjectCompiler
         IEnumerable<T> fields,
         Expression fieldValues,
         List<Expression> currentBlock)
-        where T : class, IInputField, IHasProperty
+        where T : IInputValueDefinition, IPropertyProvider, IFieldIndexProvider, IHasRuntimeType
     {
         foreach (var field in fields)
         {
             var setter = field.Property!.GetSetMethod(true)!;
             var value = GetFieldValue(field, fieldValues);
 
-            if (field is InputField { IsOptional: true, })
+            if (field is InputField { IsOptional: true })
             {
                 value = CreateOptional(value, field.RuntimeType);
             }
@@ -240,13 +251,14 @@ internal static class InputObjectCompiler
     }
 
     private static Expression GetFieldValue<T>(T field, Expression fieldValues)
-        where T : class, IInputField, IHasProperty
+        where T : IInputValueDefinition, IPropertyProvider, IFieldIndexProvider
         => Expression.ArrayIndex(fieldValues, Expression.Constant(field.Index));
 
-    private static Expression SetFieldValue(
-        IInputField field,
+    private static Expression SetFieldValue<T>(
+        T field,
         Expression fieldValues,
         Expression fieldValue)
+        where T : IInputValueDefinition, IFieldIndexProvider
     {
         Expression index = Expression.Constant(field.Index);
         Expression element = Expression.ArrayAccess(fieldValues, index);

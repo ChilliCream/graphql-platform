@@ -1,10 +1,7 @@
-using System;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Types.Descriptors.SchemaTypeReference;
-
-#nullable enable
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -95,7 +92,7 @@ public abstract class TypeReference : IEquatable<TypeReference>
     public static DependantFactoryTypeReference Create(
         string name,
         TypeReference dependency,
-        Func<IDescriptorContext, TypeSystemObjectBase> factory,
+        Func<IDescriptorContext, TypeSystemObject> factory,
         TypeContext context = TypeContext.None,
         string? scope = null)
         => new(name, dependency, factory, context, scope);
@@ -104,7 +101,7 @@ public abstract class TypeReference : IEquatable<TypeReference>
         ITypeSystemMember type,
         string? scope = null)
     {
-        if (scope is null && type is IHasScope { Scope: not null, } withScope)
+        if (scope is null && type is IHasScope { Scope: not null } withScope)
         {
             scope = withScope.Scope;
         }
@@ -123,21 +120,21 @@ public abstract class TypeReference : IEquatable<TypeReference>
         ITypeNode type,
         TypeContext context = TypeContext.None,
         string? scope = null,
-        Func<IDescriptorContext, TypeSystemObjectBase>? factory = null) =>
+        Func<IDescriptorContext, TypeSystemObject>? factory = null) =>
         new(type, context, scope, factory);
 
     public static SyntaxTypeReference Create(
         string typeName,
         TypeContext context = TypeContext.None,
         string? scope = null,
-        Func<IDescriptorContext, TypeSystemObjectBase>? factory = null) =>
+        Func<IDescriptorContext, TypeSystemObject>? factory = null) =>
         new(new NamedTypeNode(typeName.EnsureGraphQLName()), context, scope, factory);
 
     public static SyntaxTypeReference Parse(
         string sourceText,
         TypeContext context = TypeContext.None,
         string? scope = null,
-        Func<IDescriptorContext, TypeSystemObjectBase>? factory = null) =>
+        Func<IDescriptorContext, TypeSystemObject>? factory = null) =>
         new(Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText), context, scope, factory);
 
     public static ExtendedTypeReference Create(

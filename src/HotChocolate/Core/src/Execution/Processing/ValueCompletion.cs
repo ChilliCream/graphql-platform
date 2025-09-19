@@ -12,8 +12,8 @@ internal static partial class ValueCompletion
         ResultData parent,
         int index,
         object? result)
-        => Complete( context, selection, selection.Type, parent, index, result);
-    
+        => Complete(context, selection, selection.Type, parent, index, result);
+
     public static object? Complete(
         ValueCompletionContext context,
         ISelection selection,

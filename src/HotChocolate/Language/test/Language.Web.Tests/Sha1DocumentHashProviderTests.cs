@@ -1,6 +1,3 @@
-using System.Text;
-using CookieCrumble;
-
 namespace HotChocolate.Language;
 
 public class Sha1DocumentHashProviderTests
@@ -15,7 +12,7 @@ public class Sha1DocumentHashProviderTests
 
         Snapshot
             .Create()
-            .Add(hash)
+            .Add(hash.Value)
             .MatchInline("qZk-NkcGgWq6PiVxeFDCbJzQ2J0");
     }
 
@@ -29,7 +26,7 @@ public class Sha1DocumentHashProviderTests
 
         Snapshot
             .Create()
-            .Add(hash)
+            .Add(hash.Value)
             .MatchInline("a9993e364706816aba3e25717850c26c9cd0d89d");
     }
 }

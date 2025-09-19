@@ -1,5 +1,3 @@
-using System;
-using System.Threading;
 using System.Threading.Channels;
 
 namespace StrawberryShake;

@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -28,8 +27,7 @@ public abstract class FilterVisitorBase<TContext>
     {
         if (context.Types.Peek().NamedType() is InputObjectType inputType)
         {
-            if (inputType.Fields.TryGetField(node.Name.Value,
-                out IInputField? field))
+            if (inputType.Fields.TryGetField(node.Name.Value, out var field))
             {
                 context.Operations.Push(field);
                 context.Types.Push(field.Type);

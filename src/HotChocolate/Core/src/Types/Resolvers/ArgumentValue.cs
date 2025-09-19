@@ -1,17 +1,14 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
-
-#nullable enable
 
 namespace HotChocolate.Resolvers;
 
 /// <summary>
 /// Represents an argument value withing the field execution pipeline.
 /// </summary>
-public sealed class ArgumentValue : IInputFieldInfo
+public sealed class ArgumentValue : IInputValueInfo
 {
-    private readonly IInputFieldInfo _argument;
+    private readonly IInputValueInfo _argument;
 
     /// <summary>
     /// Initializes a new instance of <see cref="ArgumentValue"/>.
@@ -38,7 +35,7 @@ public sealed class ArgumentValue : IInputFieldInfo
     /// <paramref name="argument"/> or <paramref name="valueLiteral" /> is <c>null</c>.
     /// </exception>
     public ArgumentValue(
-        IInputFieldInfo argument,
+        IInputValueInfo argument,
         ValueKind kind,
         bool isFullyCoerced,
         bool isDefaultValue,
@@ -63,7 +60,7 @@ public sealed class ArgumentValue : IInputFieldInfo
     /// <exception cref="ArgumentNullException">
     /// <paramref name="argument"/> or <paramref name="error" /> is <c>null</c>.
     /// </exception>
-    public ArgumentValue(IInputFieldInfo argument, IError error)
+    public ArgumentValue(IInputValueInfo argument, IError error)
     {
         _argument = argument ?? throw new ArgumentNullException(nameof(argument));
         Error = error ?? throw new ArgumentNullException(nameof(error));
@@ -80,9 +77,9 @@ public sealed class ArgumentValue : IInputFieldInfo
     public string Name => _argument.Name;
 
     /// <summary>
-    /// Gets the argument field coordinate.
+    /// Gets the argument schema coordinate.
     /// </summary>
-    public FieldCoordinate Coordinate => _argument.Coordinate;
+    public SchemaCoordinate Coordinate => _argument.Coordinate;
 
     /// <summary>
     /// Gets the argument type.

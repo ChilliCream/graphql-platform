@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors;

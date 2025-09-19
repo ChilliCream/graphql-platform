@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Types.Pagination.Utilities;
 
 internal static class EmptyConnectionHolder

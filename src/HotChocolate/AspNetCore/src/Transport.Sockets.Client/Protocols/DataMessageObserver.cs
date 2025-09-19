@@ -1,30 +1,18 @@
-using System;
 using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
 
-internal sealed class DataMessageObserver : IObserver<IOperationMessage>, IDisposable
+internal sealed class DataMessageObserver(string id) : IObserver<IOperationMessage>, IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(0);
     private readonly ConcurrentQueue<IDataMessage> _messages = new();
-    private readonly string _id;
     private Exception? _error;
     private bool _disposed;
 
-    public DataMessageObserver(string id)
-    {
-        _id = id;
-    }
-
     public async ValueTask<IDataMessage?> TryReadNextAsync(CancellationToken ct)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException($"{nameof(DataMessageObserver)} is disposed.");
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         await _semaphore.WaitAsync(ct);
 
@@ -39,7 +27,7 @@ internal sealed class DataMessageObserver : IObserver<IOperationMessage>, IDispo
 
     public void OnNext(IOperationMessage value)
     {
-        if (value is IDataMessage message && message.Id.EqualsOrdinal(_id))
+        if (value is IDataMessage message && message.Id.EqualsOrdinal(id))
         {
             _messages.Enqueue(message);
             _semaphore.Release();

@@ -1,5 +1,5 @@
 ﻿{
-  "message": "Required argument Query.foo(bar) cannot be deprecated.",
+  "message": "Required argument Query.foo(bar:) cannot be deprecated.",
   "type": "Query",
   "extensions": {
     "argument": "bar",

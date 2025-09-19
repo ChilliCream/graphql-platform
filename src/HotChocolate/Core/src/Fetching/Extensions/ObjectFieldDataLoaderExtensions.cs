@@ -1,16 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Fetching.Utilities.ThrowHelper;
 using static HotChocolate.WellKnownMiddleware;
-
-#nullable enable
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
@@ -26,14 +21,14 @@ public static class DataLoaderObjectFieldExtensions
         this IObjectFieldDescriptor descriptor,
         Type dataLoaderType)
     {
-        FieldMiddlewareDefinition placeholder = new(_ => _ => default, key: DataLoader);
+        FieldMiddlewareConfiguration placeholder = new(_ => _ => default, key: DataLoader);
 
         if (!TryGetDataLoaderTypes(dataLoaderType, out var keyType, out var valueType))
         {
             throw DataLoader_InvalidType(dataLoaderType);
         }
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        descriptor.Extend().Configuration.MiddlewareConfigurations.Add(placeholder);
 
         descriptor
             .Extend()
@@ -56,8 +51,8 @@ public static class DataLoaderObjectFieldExtensions
                     }
 
                     definition.Type = TypeReference.Create(schemaType, TypeContext.Output);
-                    definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldDefinition>(
+                    definition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (_, def) =>
                             {
                                 CompileMiddleware(
@@ -75,8 +70,8 @@ public static class DataLoaderObjectFieldExtensions
     }
 
     private static void CompileMiddleware(
-        ObjectFieldDefinition definition,
-        FieldMiddlewareDefinition placeholder,
+        ObjectFieldConfiguration definition,
+        FieldMiddlewareConfiguration placeholder,
         Type keyType,
         Type valueType,
         Type dataLoaderType)
@@ -96,8 +91,8 @@ public static class DataLoaderObjectFieldExtensions
         }
 
         var middleware = FieldClassMiddlewareFactory.Create(middlewareType);
-        var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] = new(middleware, key: DataLoader);
+        var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
+        definition.MiddlewareConfigurations[index] = new(middleware, key: DataLoader);
     }
 
     private static bool TryGetDataLoaderTypes(
@@ -140,12 +135,16 @@ public static class DataLoaderObjectFieldExtensions
                     .LoadAsync(values, context.RequestAborted)
                     .ConfigureAwait(false);
 
-                var result = new HashSet<object>();
+                var result = new HashSet<object?>();
                 for (var m = 0; m < data.Count; m++)
                 {
-                    for (var n = 0; n < data[m].Length; n++)
+                    var group = data[m];
+                    if (group is not null)
                     {
-                        result.Add(data[m][n]!);
+                        for (var n = 0; n < group.Length; n++)
+                        {
+                            result.Add(group[n]);
+                        }
                     }
                 }
 

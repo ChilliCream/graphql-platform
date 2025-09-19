@@ -1,10 +1,6 @@
-#nullable enable
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
 using static HotChocolate.Utilities.ErrorHelper;
 
@@ -13,11 +9,11 @@ namespace HotChocolate.Configuration.Validation;
 internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
 {
     public void Validate(
-        ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
-        IReadOnlySchemaOptions options,
+        IDescriptorContext context,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
-        if (!options.StrictValidation)
+        if (!context.Options.StrictValidation)
         {
             return;
         }
@@ -26,12 +22,12 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         CycleValidationContext cycleValidationContext = new()
         {
             Visited = [],
-            CycleStartIndex = new(),
+            CycleStartIndex = [],
             Errors = errors,
-            FieldPath = [],
+            FieldPath = []
         };
-        
-        foreach (var type in typeSystemObjects)
+
+        foreach (var type in schema.Types)
         {
             if (type is not InputObjectType inputType)
             {
@@ -42,13 +38,13 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             EnsureFieldNamesAreValid(inputType, errors);
             EnsureOneOfFieldsAreValid(inputType, errors, ref names);
             EnsureFieldDeprecationIsValid(inputType, errors);
-            TryReachCycleRecursively(cycleValidationContext, inputType);
+            TryReachCycleRecursively(ref cycleValidationContext, inputType);
 
             cycleValidationContext.CycleStartIndex.Clear();
         }
     }
 
-    private struct CycleValidationContext
+    private ref struct CycleValidationContext
     {
         public HashSet<InputObjectType> Visited { get; set; }
         public Dictionary<InputObjectType, int> CycleStartIndex { get; set; }
@@ -58,7 +54,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
 
     // https://github.com/IvanGoncharov/graphql-js/blob/408bcda9c88df85e039f5d072011b1cb465fe830/src/type/validate.js#L535
     private static void TryReachCycleRecursively(
-        in CycleValidationContext context,
+        ref CycleValidationContext context,
         InputObjectType type)
     {
         if (!context.Visited.Add(type))
@@ -85,7 +81,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             }
             else
             {
-                TryReachCycleRecursively(context, inputObjectType);
+                TryReachCycleRecursively(ref context, inputObjectType);
             }
             context.FieldPath.Pop();
         }
@@ -99,7 +95,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         {
             if (type.Kind == TypeKind.NonNull)
             {
-                type = ((NonNullType)type).Type;
+                type = ((NonNullType)type).NullableType;
             }
             else
             {
@@ -109,13 +105,10 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             switch (type.Kind)
             {
                 case TypeKind.List:
-                {
                     return null;
-                }
+
                 default:
-                {
                     return type;
-                }
             }
         }
     }
@@ -125,7 +118,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         ICollection<ISchemaError> errors,
         ref List<string>? temp)
     {
-        if (!type.Directives.ContainsDirective(WellKnownDirectives.OneOf))
+        if (!type.Directives.ContainsDirective(DirectiveNames.OneOf.Name))
         {
             return;
         }

@@ -1,11 +1,9 @@
-#nullable enable
-
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>
 /// The paging result type.
 /// </summary>
-public interface IPageType : IObjectType
+public interface IPageType : IObjectTypeDefinition
 {
     /// <summary>
     /// Gets the item type of the page.

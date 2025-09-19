@@ -1,5 +1,6 @@
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 
@@ -7,54 +8,91 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal static class PipelineTools
 {
-    private static readonly Dictionary<string, object?> _empty = new();
-    private static readonly VariableValueCollection _noVariables = VariableValueCollection.Empty;
+    private static readonly Dictionary<string, object?> s_empty = [];
+    private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string CreateOperationId(string documentId, string? operationName)
-        => operationName is null ? documentId : $"{documentId}+{operationName}";
+        => operationName is null
+            ? documentId
+            : $"{documentId}+{operationName}";
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string CreateCacheId(this IRequestContext context, string operationId)
-        => $"{context.Schema.Name}-{context.ExecutorVersion}-{operationId}";
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string CreateCacheId(
-        this IRequestContext context,
-        string documentId,
-        string? operationName)
-        => CreateCacheId(context, CreateOperationId(documentId, operationName));
-
-    public static IVariableValueCollection CoerceVariables(
-        IRequestContext context,
-        VariableCoercionHelper coercionHelper,
-        IReadOnlyList<VariableDefinitionNode> variableDefinitions)
+    public static string CreateCacheId(this RequestContext context)
     {
-        if (context.Variables is not null)
+        var documentId = context.GetOperationDocumentId();
+        var operationName = context.Request.OperationName;
+
+        if (documentId.IsEmpty)
         {
-            return context.Variables;
+            throw new ArgumentException(
+                "The request context must have a valid document ID "
+                + "in order to create a cache ID.");
+        }
+
+        var operationId = CreateOperationId(documentId.Value, operationName);
+
+        return $"{context.Schema.Name}-{context.ExecutorVersion}-{operationId}";
+    }
+
+    public static void CoerceVariables(RequestContext context,
+        VariableCoercionHelper coercionHelper,
+        IReadOnlyList<VariableDefinitionNode> variableDefinitions,
+        IExecutionDiagnosticEvents diagnosticEvents)
+    {
+        if (context.VariableValues.Length > 0)
+        {
+            return;
         }
 
         if (variableDefinitions.Count == 0)
         {
-            context.Variables = _noVariables;
-            return _noVariables;
+            context.VariableValues = s_noVariables;
+            return;
         }
-        else
+
+        if (context.Request is OperationRequest operationRequest)
         {
-            using (context.DiagnosticEvents.CoerceVariables(context))
+            using (diagnosticEvents.CoerceVariables(context))
             {
                 var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
                 coercionHelper.CoerceVariableValues(
                     context.Schema,
                     variableDefinitions,
-                    context.Request.VariableValues ?? _empty,
+                    operationRequest.VariableValues ?? s_empty,
                     coercedValues);
 
-                context.Variables = new VariableValueCollection(coercedValues);
-                return context.Variables;
+                context.VariableValues = [new VariableValueCollection(coercedValues)];
+                return;
             }
         }
+
+        if (context.Request is VariableBatchRequest variableBatchRequest)
+        {
+            using (diagnosticEvents.CoerceVariables(context))
+            {
+                var schema = context.Schema;
+                var variableSetCount = variableBatchRequest.VariableValues?.Count ?? 0;
+                var variableSetInput = variableBatchRequest.VariableValues!;
+                var variableSet = new IVariableValueCollection[variableSetCount];
+
+                for (var i = 0; i < variableSetCount; i++)
+                {
+                    var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+
+                    coercionHelper.CoerceVariableValues(
+                        schema,
+                        variableDefinitions,
+                        variableSetInput[i],
+                        coercedValues);
+
+                    variableSet[i] = new VariableValueCollection(coercedValues);
+                }
+
+                context.VariableValues = ImmutableCollectionsMarshal.AsImmutableArray(variableSet);
+                return;
+            }
+        }
+
+        throw new NotSupportedException("Request type not supported.");
     }
 }

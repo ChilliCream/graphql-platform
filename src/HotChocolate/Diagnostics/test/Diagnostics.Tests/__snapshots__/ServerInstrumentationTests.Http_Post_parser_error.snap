@@ -24,13 +24,25 @@
           ],
           "event": [
             {
-              "Name": "Error",
-              "Tags": {
-                "graphql.error.message": "Found a NameStart character `n` (110) following a number, which is disallowed.",
-                "graphql.error.code": "HC0011",
-                "graphql.error.location.column": 37,
-                "graphql.error.location.line": 10
-              }
+              "Name": "exception",
+              "Tags": [
+                {
+                  "Key": "exception.message",
+                  "Value": "Found a NameStart character `n` (110) following a number, which is disallowed."
+                },
+                {
+                  "Key": "exception.type",
+                  "Value": "HC0011"
+                },
+                {
+                  "Key": "graphql.error.location.column",
+                  "Value": 37
+                },
+                {
+                  "Key": "graphql.error.location.line",
+                  "Value": 10
+                }
+              ]
             }
           ]
         },

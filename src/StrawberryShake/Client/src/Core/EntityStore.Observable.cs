@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Immutable;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace StrawberryShake;
 
@@ -21,8 +19,8 @@ public partial class EntityStore
     {
         try
         {
-            while (!_cts.Token.IsCancellationRequested ||
-                !_updates.Reader.Completion.IsCompleted)
+            while (!_cts.Token.IsCancellationRequested
+                || !_updates.Reader.Completion.IsCompleted)
             {
                 var update = await _updates.Reader.ReadAsync(_cts.Token);
                 _entityUpdateObservable.OnUpdated(update);
@@ -51,8 +49,7 @@ public partial class EntityStore
     private sealed class EntityUpdateObservable : IObservable<EntityUpdate>
     {
         private readonly object _sync = new();
-        private ImmutableList<IObserver<EntityUpdate>> _observers =
-            ImmutableList<IObserver<EntityUpdate>>.Empty;
+        private ImmutableList<IObserver<EntityUpdate>> _observers = [];
 
         public IDisposable Subscribe(IObserver<EntityUpdate> observer)
         {

@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 
 namespace HotChocolate.Resolvers;
@@ -10,10 +9,7 @@ internal sealed class DirectiveMethodMiddleware : IDirectiveMiddleware
         Type type,
         MethodInfo method)
     {
-        if (string.IsNullOrEmpty(directiveName))
-        {
-            throw new ArgumentNullException(nameof(directiveName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(directiveName);
 
         DirectiveName = directiveName;
         Type = type ?? throw new ArgumentNullException(nameof(type));

@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using StrawberryShake.Json;
 using static StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketMessageTypeSpans;
@@ -22,15 +21,8 @@ internal static class GraphQLWebSocketWriterExtension
         string operationId,
         OperationRequest request)
     {
-        if (operationId == null)
-        {
-            throw new ArgumentNullException(nameof(operationId));
-        }
-
-        if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(operationId);
+        ArgumentNullException.ThrowIfNull(request);
 
         writer.WriteStartObject();
         writer.WriteType(GraphQLWebSocketMessageType.Start);
@@ -49,10 +41,7 @@ internal static class GraphQLWebSocketWriterExtension
         this SocketMessageWriter writer,
         string operationId)
     {
-        if (operationId == null)
-        {
-            throw new ArgumentNullException(nameof(operationId));
-        }
+        ArgumentNullException.ThrowIfNull(operationId);
 
         writer.WriteStartObject();
         writer.WriteType(GraphQLWebSocketMessageType.Stop);
@@ -106,7 +95,7 @@ internal static class GraphQLWebSocketWriterExtension
         GraphQLWebSocketMessageType type)
     {
         writer.Writer.WritePropertyName("type");
-        ReadOnlySpan<byte> typeToWriter = type switch
+        var typeToWriter = type switch
         {
             GraphQLWebSocketMessageType.ConnectionInit => ConnectionInitialize,
             GraphQLWebSocketMessageType.ConnectionAccept => ConnectionAccept,
@@ -118,7 +107,7 @@ internal static class GraphQLWebSocketWriterExtension
             GraphQLWebSocketMessageType.Error => Error,
             GraphQLWebSocketMessageType.Complete => Complete,
             GraphQLWebSocketMessageType.Stop => Stop,
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null),
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
 
         writer.Writer.WriteStringValue(typeToWriter);

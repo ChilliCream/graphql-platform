@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace StrawberryShake;
@@ -68,5 +67,4 @@ public interface IEntityStoreSnapshot
     /// Gets all the entity ids that are currently managed by the store.
     /// </summary>
     IReadOnlyCollection<EntityId> GetEntityIds();
-
 }

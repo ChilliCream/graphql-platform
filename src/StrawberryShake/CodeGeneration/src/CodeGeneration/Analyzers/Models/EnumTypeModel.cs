@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -30,7 +28,7 @@ public sealed class EnumTypeModel : LeafTypeModel
     public EnumTypeModel(
         string name,
         string? description,
-        IEnumType type,
+        IEnumTypeDefinition type,
         string? underlyingType,
         IReadOnlyList<EnumValueModel> values)
         : base(name, description, type, TypeNames.String, name)
@@ -43,7 +41,7 @@ public sealed class EnumTypeModel : LeafTypeModel
     /// <summary>
     /// Gets the enum type.
     /// </summary>
-    public new IEnumType Type { get; }
+    public new IEnumTypeDefinition Type { get; }
 
     /// <summary>
     /// Gets the underlying type name.

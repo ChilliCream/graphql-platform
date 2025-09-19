@@ -1,11 +1,8 @@
-using System;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate.Types.Relay;
 

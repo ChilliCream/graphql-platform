@@ -8,7 +8,7 @@ internal static class ErrorCodes
     public const string InvalidRuntimeType = "SS0007";
 
     /// <summary>
-    /// Error while building the result. 
+    /// Error while building the result.
     /// </summary>
     public const string InvalidResultDataStructure = "SS1000";
 }

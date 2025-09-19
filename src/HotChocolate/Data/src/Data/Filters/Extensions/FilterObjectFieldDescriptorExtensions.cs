@@ -1,11 +1,10 @@
-using System;
 using System.Globalization;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Types.UnwrapFieldMiddlewareHelper;
 
@@ -13,7 +12,7 @@ namespace HotChocolate.Types;
 
 public static class FilterObjectFieldDescriptorExtensions
 {
-    private static readonly MethodInfo _factoryTemplate =
+    private static readonly MethodInfo s_factoryTemplate =
         typeof(FilterObjectFieldDescriptorExtensions)
             .GetMethod(nameof(CreateMiddleware), BindingFlags.Static | BindingFlags.NonPublic)!;
 
@@ -28,10 +27,7 @@ public static class FilterObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return UseFiltering(descriptor, null, null, scope);
     }
@@ -48,10 +44,7 @@ public static class FilterObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         var filterType =
             typeof(IFilterInputType).IsAssignableFrom(typeof(T))
@@ -75,15 +68,8 @@ public static class FilterObjectFieldDescriptorExtensions
         Action<IFilterInputTypeDescriptor<T>> configure,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(configure);
 
         var filterType = new FilterInputType<T>(configure);
         return UseFiltering(descriptor, filterType.GetType(), filterType, scope);
@@ -102,15 +88,8 @@ public static class FilterObjectFieldDescriptorExtensions
         Type type,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(type);
 
         var filterType =
             typeof(IFilterInputType).IsAssignableFrom(type)
@@ -126,19 +105,18 @@ public static class FilterObjectFieldDescriptorExtensions
         ITypeSystemMember? filterTypeInstance,
         string? scope)
     {
-        FieldMiddlewareDefinition placeholder = new(_ => _ => default);
+        FieldMiddlewareConfiguration placeholder = new(_ => _ => default);
 
         var argumentPlaceholder =
             "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
-        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        descriptor.Extend().Configuration.MiddlewareConfigurations.Add(placeholder);
 
         descriptor
             .Extend()
             .OnBeforeCreate(
                 (c, definition) =>
                 {
-                    var convention = c.GetFilterConvention(scope);
                     TypeReference argumentTypeReference;
 
                     if (filterTypeInstance is not null)
@@ -147,9 +125,11 @@ public static class FilterObjectFieldDescriptorExtensions
                     }
                     else if (filterType is null)
                     {
-                        if (definition.ResultType is null ||
-                            definition.ResultType == typeof(object) ||
-                            !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
+                        var convention = c.GetFilterConvention(scope);
+
+                        if (definition.ResultType is null
+                            || definition.ResultType == typeof(object)
+                            || !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 FilterObjectFieldDescriptorExtensions_UseFiltering_CannotHandleType,
@@ -166,16 +146,17 @@ public static class FilterObjectFieldDescriptorExtensions
                             scope);
                     }
 
-                    var argumentDefinition = new ArgumentDefinition
+                    var argumentDefinition = new ArgumentConfiguration
                     {
                         Name = argumentPlaceholder,
                         Type = argumentTypeReference,
+                        Flags = CoreFieldFlags.FilterArgument
                     };
 
                     definition.Arguments.Add(argumentDefinition);
 
-                    definition.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldDefinition>(
+                    definition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (ctx, d) =>
                                 CompileMiddleware(
                                     ctx,
@@ -188,8 +169,8 @@ public static class FilterObjectFieldDescriptorExtensions
                             argumentTypeReference,
                             TypeDependencyFulfilled.Completed));
 
-                    argumentDefinition.Configurations.Add(
-                        new CompleteConfiguration<ArgumentDefinition>(
+                    argumentDefinition.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ArgumentConfiguration>(
                             (context, argDef) =>
                                 argDef.Name =
                                     context.GetFilterConvention(scope).GetArgumentName(),
@@ -202,9 +183,9 @@ public static class FilterObjectFieldDescriptorExtensions
 
     private static void CompileMiddleware(
         ITypeCompletionContext context,
-        ObjectFieldDefinition definition,
+        ObjectFieldConfiguration definition,
         TypeReference argumentTypeReference,
-        FieldMiddlewareDefinition placeholder,
+        FieldMiddlewareConfiguration placeholder,
         string? scope)
     {
         var type = context.GetType<IFilterInputType>(argumentTypeReference);
@@ -213,13 +194,13 @@ public static class FilterObjectFieldDescriptorExtensions
         var fieldDescriptor = ObjectFieldDescriptor.From(context.DescriptorContext, definition);
         convention.ConfigureField(fieldDescriptor);
 
-        var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
-        
-        var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Filtering);
+        var factory = s_factoryTemplate.MakeGenericMethod(type.EntityType.Source);
+        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention])!);
+
+        var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
+        definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Filtering);
     }
-    
+
     private static IQueryBuilder CreateMiddleware<TEntity>(IFilterConvention convention) =>
         convention.CreateBuilder<TEntity>();
 }

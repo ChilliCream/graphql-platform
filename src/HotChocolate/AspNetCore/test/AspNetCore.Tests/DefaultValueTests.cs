@@ -2,7 +2,6 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
-using Xunit;
 
 namespace HotChocolate.AspNetCore;
 
@@ -17,7 +16,6 @@ public class DefaultValueTests
     {
         [DefaultValue(500)]
         public Optional<int> ValuesToRetrieveInBatch { get; set; }
-
     }
 
     public class Queries
@@ -31,9 +29,8 @@ public class DefaultValueTests
             new MyInputObjectOut() { Result = input.ValuesToRetrieveInBatch.Value };
     }
 
-
     [Fact]
-    public void DefaultValueTests_Simple()
+    public async Task DefaultValueTests_Simple()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -42,12 +39,12 @@ public class DefaultValueTests
             .AddQueryType<Queries>()
             .AddMutationType<Mutations>();
 
-        ServiceProvider serviceProvider = services.BuildServiceProvider();
-        IRequestExecutorResolver executorResolver = serviceProvider.GetRequiredService<IRequestExecutorResolver>();
-        IRequestExecutor executor = executorResolver.GetRequestExecutorAsync().Result;
+        var serviceProvider = services.BuildServiceProvider();
+        var executorProvider = serviceProvider.GetRequiredService<IRequestExecutorProvider>();
+        var executor = await executorProvider.GetExecutorAsync();
 
         // Act
-        IExecutionResult result = executor.ExecuteAsync("mutation{ doSomething(input: { }) { result } }").Result;
+        var result = await executor.ExecuteAsync("mutation{ doSomething(input: { }) { result } }");
 
         // Extract the data from the result
         var jsonResult = result.ToJson();

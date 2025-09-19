@@ -1,6 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Utilities;
@@ -11,26 +8,16 @@ public sealed class DictionaryServiceProvider : IServiceProvider, IServiceProvid
 
     public DictionaryServiceProvider(Type service, object instance)
     {
-        if (service == null)
-        {
-            throw new ArgumentNullException(nameof(service));
-        }
+        ArgumentNullException.ThrowIfNull(service);
+        ArgumentNullException.ThrowIfNull(instance);
 
-        if (instance == null)
-        {
-            throw new ArgumentNullException(nameof(instance));
-        }
-
-        _services = new Dictionary<Type, object> { { service, instance }, };
+        _services = new Dictionary<Type, object> { { service, instance } };
         _services[typeof(IServiceProviderIsService)] = this;
     }
 
     public DictionaryServiceProvider(params KeyValuePair<Type, object>[] services)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         _services = services.ToDictionary(t => t.Key, t => t.Value);
         _services[typeof(IServiceProviderIsService)] = this;
@@ -38,10 +25,7 @@ public sealed class DictionaryServiceProvider : IServiceProvider, IServiceProvid
 
     public DictionaryServiceProvider(params (Type, object)[] services)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         _services = services.ToDictionary(t => t.Item1, t => t.Item2);
         _services[typeof(IServiceProviderIsService)] = this;
@@ -49,13 +33,10 @@ public sealed class DictionaryServiceProvider : IServiceProvider, IServiceProvid
 
     public DictionaryServiceProvider(IEnumerable<KeyValuePair<Type, object>> services)
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         _services = services.ToDictionary(t => t.Key, t => t.Value);
-        _services[typeof(IServiceProviderIsService)] = this; 
+        _services[typeof(IServiceProviderIsService)] = this;
     }
 
     public object? GetService(Type serviceType)

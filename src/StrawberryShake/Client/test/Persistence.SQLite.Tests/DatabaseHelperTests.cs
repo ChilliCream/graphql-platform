@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 
 namespace StrawberryShake.Persistence.SQLite;
@@ -25,7 +23,7 @@ public class DatabaseHelperTests
             {
                 Id = "abc",
                 Type = "def",
-                Value = "ghi",
+                Value = "ghi"
             }));
 
         Assert.True(await helper.SaveOperationAsync(
@@ -35,7 +33,7 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Variables = "def",
                 ResultType = "ghi",
-                DataInfo = "jkl",
+                DataInfo = "jkl"
             }));
     }
 
@@ -57,13 +55,12 @@ public class DatabaseHelperTests
             {
                 Id = "abc",
                 Type = "def",
-                Value = "ghi",
+                Value = "ghi"
             }));
-
 
         // assert
         var entities = new List<EntityDto>();
-        await foreach (EntityDto entityDto in helper.GetAllEntitiesAsync(connection))
+        await foreach (var entityDto in helper.GetAllEntitiesAsync(connection))
         {
             entities.Add(entityDto);
         }
@@ -95,7 +92,7 @@ public class DatabaseHelperTests
             {
                 Id = "abc",
                 Type = "def",
-                Value = "ghi",
+                Value = "ghi"
             }));
 
         // act
@@ -105,12 +102,12 @@ public class DatabaseHelperTests
             {
                 Id = "abc",
                 Type = "def1",
-                Value = "ghi1",
+                Value = "ghi1"
             }));
 
         // assert
         var entities = new List<EntityDto>();
-        await foreach (EntityDto entityDto in helper.GetAllEntitiesAsync(connection))
+        await foreach (var entityDto in helper.GetAllEntitiesAsync(connection))
         {
             entities.Add(entityDto);
         }
@@ -142,7 +139,7 @@ public class DatabaseHelperTests
             {
                 Id = "abc",
                 Type = "def",
-                Value = "ghi",
+                Value = "ghi"
             }));
 
         // act
@@ -150,7 +147,7 @@ public class DatabaseHelperTests
 
         // assert
         var entities = new List<EntityDto>();
-        await foreach (EntityDto entityDto in helper.GetAllEntitiesAsync(connection))
+        await foreach (var entityDto in helper.GetAllEntitiesAsync(connection))
         {
             entities.Add(entityDto);
         }
@@ -177,13 +174,12 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Variables = "def",
                 ResultType = "ghi",
-                DataInfo = "jkl",
+                DataInfo = "jkl"
             }));
-
 
         // assert
         var collections = new List<OperationDto>();
-        await foreach (OperationDto operationDto in helper.GetAllOperationsAsync(connection))
+        await foreach (var operationDto in helper.GetAllOperationsAsync(connection))
         {
             collections.Add(operationDto);
         }
@@ -217,7 +213,7 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Variables = "def",
                 ResultType = "ghi",
-                DataInfo = "jkl",
+                DataInfo = "jkl"
             }));
 
         // act
@@ -228,12 +224,12 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Variables = "def1",
                 ResultType = "ghi1",
-                DataInfo = "jkl1",
+                DataInfo = "jkl1"
             }));
 
         // assert
         var collections = new List<OperationDto>();
-        await foreach (OperationDto operationDto in helper.GetAllOperationsAsync(connection))
+        await foreach (var operationDto in helper.GetAllOperationsAsync(connection))
         {
             collections.Add(operationDto);
         }
@@ -267,7 +263,7 @@ public class DatabaseHelperTests
                 Id = "abc",
                 Variables = "def",
                 ResultType = "ghi",
-                DataInfo = "jkl",
+                DataInfo = "jkl"
             }));
 
         // act
@@ -275,7 +271,7 @@ public class DatabaseHelperTests
 
         // assert
         var collections = new List<OperationDto>();
-        await foreach (OperationDto operationDto in helper.GetAllOperationsAsync(connection))
+        await foreach (var operationDto in helper.GetAllOperationsAsync(connection))
         {
             collections.Add(operationDto);
         }

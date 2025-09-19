@@ -1,28 +1,23 @@
-using System.Threading.Tasks;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.ApolloFederation;
 
 public class EntityTypeTests
 {
     [Fact]
-    public async Task TestEntityTypeCodeFirstNoEntities_ShouldThrow()
+    public async Task TestEntityTypeCodeFirstNoEntities_ShouldOmitEntityField()
     {
-        async Task CreateSchema()
-        {
-            // arrange
-            await new ServiceCollection()
+        // arrange
+        var schema = await new ServiceCollection()
                 .AddGraphQL()
                 .AddApolloFederation()
                 .AddQueryType<Query<Address>>()
                 .BuildSchemaAsync();
-        }
 
-        var exception = await Assert.ThrowsAsync<SchemaException>(CreateSchema);
-        Assert.Contains(ThrowHelper_EntityType_NoEntities, exception.Message);
+        // act/assert
+        Assert.False(schema.Types.TryGetType<_EntityType>("_Entity", out _));
     }
 
     [Fact]
@@ -36,10 +31,10 @@ public class EntityTypeTests
             .BuildSchemaAsync();
 
         // act
-        var entityType = schema.GetType<_EntityType>("_Entity");
+        var entityType = schema.Types.GetType<_EntityType>("_Entity");
 
         // assert
-        Assert.Collection(entityType.Types.Values, t => Assert.Equal("Review", t.Name));
+        Assert.Collection(entityType.Types, t => Assert.Equal("Review", t.Name));
     }
 
     [Fact]
@@ -53,11 +48,11 @@ public class EntityTypeTests
             .BuildSchemaAsync();
 
         // act
-        var entityType = schema.GetType<_EntityType>("_Entity");
+        var entityType = schema.Types.GetType<_EntityType>("_Entity");
 
         // assert
         Assert.Collection(
-            entityType.Types.Values,
+            entityType.Types,
             t => Assert.Equal("UserWithClassAttribute", t.Name),
             t => Assert.Equal("Review", t.Name));
     }
@@ -73,11 +68,11 @@ public class EntityTypeTests
             .BuildSchemaAsync();
 
         // act
-        var entityType = schema.GetType<_EntityType>("_Entity");
+        var entityType = schema.Types.GetType<_EntityType>("_Entity");
 
         // assert
         Assert.Collection(
-            entityType.Types.Values,
+            entityType.Types,
             t => Assert.Equal("UserWithPropertyAttributes", t.Name));
     }
 
@@ -92,13 +87,13 @@ public class EntityTypeTests
             .BuildSchemaAsync();
 
         // act
-        var entityType = schema.GetType<_EntityType>("_Entity");
+        var entityType = schema.Types.GetType<_EntityType>("_Entity");
 
         // assert
-        Assert.Collection(entityType.Types.Values,
+        Assert.Collection(entityType.Types,
             t => Assert.Equal("UserWithNestedKeyClassAttribute", t.Name));
     }
-    
+
     public sealed class Query<T>
     {
         public T GetEntity(int id) => default!;
@@ -108,8 +103,8 @@ public class EntityTypeTests
     public sealed class UserWithClassAttribute
     {
         public int Id { get; set; }
-        public string IdCode { get; set; } = default!;
-        public Review[] Reviews { get; set; } = default!;
+        public string IdCode { get; set; } = null!;
+        public Review[] Reviews { get; set; } = null!;
     }
 
     public sealed class UserWithPropertyAttributes
@@ -117,19 +112,19 @@ public class EntityTypeTests
         [Key]
         public int Id { get; set; }
         [Key]
-        public string IdCode { get; set; } = default!;
+        public string IdCode { get; set; } = null!;
     }
 
     [Key("id address { matchCode }")]
     public sealed class UserWithNestedKeyClassAttribute
     {
         public int Id { get; set; }
-        public Address Address { get; set; } = default!;
+        public Address Address { get; set; } = null!;
     }
 
     public sealed class Address
     {
-        public string MatchCode { get; set; } = default!;
+        public string MatchCode { get; set; } = null!;
     }
 
     [Key("id")]

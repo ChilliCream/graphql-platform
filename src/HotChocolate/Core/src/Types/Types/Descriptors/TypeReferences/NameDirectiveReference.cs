@@ -1,5 +1,3 @@
-#nullable enable
-using System;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors;

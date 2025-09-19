@@ -1,10 +1,7 @@
-using System;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -55,7 +52,7 @@ public interface IReadOnlySchemaOptions
     /// unreachable from the root types.
     /// </summary>
     bool RemoveUnreachableTypes { get; }
-    
+
     /// <summary>
     /// Defines if unused type system directives shall
     /// be removed from the schema.
@@ -97,7 +94,7 @@ public interface IReadOnlySchemaOptions
     /// Defines if the order of important middleware components shall be validated.
     /// </summary>
     bool ValidatePipelineOrder { get; }
-    
+
     /// <summary>
     /// Defines if the runtime types of types shall be validated.
     /// </summary>
@@ -113,11 +110,6 @@ public interface IReadOnlySchemaOptions
     /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
     /// </summary>
     bool EnableOneOf { get; }
-
-    /// <summary>
-    /// Defines if the schema building process shall validate that all nodes are resolvable through `node`.
-    /// </summary>
-    bool EnsureAllNodesCanBeResolved { get; }
 
     /// <summary>
     /// Defines if flag enums should be inferred as object value nodes
@@ -167,9 +159,11 @@ public interface IReadOnlySchemaOptions
     bool EnableStream { get; }
 
     /// <summary>
-    /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
+    /// Enables the @semanticNonNull directive and rewrites Non-Null types to nullable types
+    /// with this directive attached to indicate semantic non-nullability.
+    /// This feature is experimental and might be changed or removed in the future.
     /// </summary>
-    int MaxAllowedNodeBatchSize { get; }
+    bool EnableSemanticNonNull { get; }
 
     /// <summary>
     /// Specified if the leading I shall be stripped from the interface name.
@@ -177,22 +171,23 @@ public interface IReadOnlySchemaOptions
     bool StripLeadingIFromInterface { get; }
 
     /// <summary>
-    /// Specifies that the true nullability proto type shall be enabled.
-    /// </summary>
-    bool EnableTrueNullability { get; }
-
-    /// <summary>
     /// Specifies that the @tag directive shall be registered with the type system.
     /// </summary>
     bool EnableTag { get; }
-    
+
     /// <summary>
     /// Specifies the default dependency injection scope for query fields.
     /// </summary>
     public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; }
-    
+
     /// <summary>
     /// Specifies the default dependency injection scope for mutation fields.
     /// </summary>
     public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; }
+
+    /// <summary>
+    /// Specifies if the elements of paginated root fields should be published
+    /// to the DataLoader promise cache.
+    /// </summary>
+    bool PublishRootFieldPagesToPromiseCache { get; }
 }

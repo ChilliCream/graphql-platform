@@ -1,15 +1,9 @@
-using System;
-#if NET8_0_OR_GREATER
-using System.Collections.Frozen;
-#endif
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
-using HotChocolate.Properties;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate;
 
@@ -19,125 +13,138 @@ namespace HotChocolate;
 /// the entry points for query, mutation, and subscription operations.
 /// </summary>
 public partial class Schema
-    : TypeSystemObjectBase<SchemaTypeDefinition>
-    , ISchema
+    : TypeSystemObject<SchemaTypeConfiguration>
+    , ISchemaDefinition
+    , INodeIdRuntimeTypeLookup
 {
-    private readonly DateTimeOffset _createdAt = DateTimeOffset.UtcNow;
-    private SchemaTypes _types = default!;
-#if NET8_0_OR_GREATER
-    private FrozenDictionary<string, DirectiveType> _directiveTypes = default!;
-#else
-    private Dictionary<string, DirectiveType> _directiveTypes = default!;
-#endif
+    /// <summary>
+    /// Gets the GraphQL object type that represents the query root.
+    /// </summary>
+    public ObjectType QueryType { get; private set; } = null!;
+
+    IObjectTypeDefinition ISchemaDefinition.QueryType => QueryType;
+
+    /// <summary>
+    /// Gets the GraphQL object type that represents the mutation root.
+    /// </summary>
+    public ObjectType? MutationType { get; private set; }
+
+    IObjectTypeDefinition? ISchemaDefinition.MutationType => MutationType;
+
+    /// <summary>
+    /// Gets the GraphQL object type that represents the subscription root.
+    /// </summary>
+    public ObjectType? SubscriptionType { get; private set; }
+
+    IObjectTypeDefinition? ISchemaDefinition.SubscriptionType => SubscriptionType;
+
+    /// <summary>
+    /// Gets all the schema types.
+    /// </summary>
+    public TypeDefinitionCollection Types { get; private set; } = null!;
+
+    IReadOnlyTypeDefinitionCollection ISchemaDefinition.Types => Types;
+
+    /// <summary>
+    /// Gets all the directives that are supported by this schema.
+    /// </summary>
+    public DirectiveTypeCollection DirectiveTypes { get; private set; } = null!;
+
+    IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
+        => DirectiveTypes.AsReadOnlyDirectiveCollection();
 
     /// <summary>
     /// Gets the schema directives.
     /// </summary>
     /// <value></value>
-    public IDirectiveCollection Directives { get; private set; } = default!;
+    public DirectiveCollection Directives { get; private set; } = null!;
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => Directives.AsReadOnlyDirectiveCollection();
 
     /// <summary>
     /// Gets the global schema services.
     /// </summary>
-    public IServiceProvider Services { get; private set; } = default!;
-
-    /// <summary>
-    /// The type that query operations will be rooted at.
-    /// </summary>
-    public ObjectType QueryType => _types.QueryType;
-
-    /// <summary>
-    /// If this server supports mutation, the type that
-    /// mutation operations will be rooted at.
-    /// </summary>
-    public ObjectType? MutationType => _types.MutationType;
-
-    /// <summary>
-    /// If this server support subscription, the type that
-    /// subscription operations will be rooted at.
-    /// </summary>
-    public ObjectType? SubscriptionType => _types.SubscriptionType;
-
-    /// <summary>
-    /// Gets all the schema types.
-    /// </summary>
-    public IReadOnlyCollection<INamedType> Types => _types.GetTypes();
-
-    /// <summary>
-    /// Gets all the directives that are supported by this schema.
-    /// </summary>
-    public IReadOnlyCollection<DirectiveType> DirectiveTypes { get; private set; } = default!;
+    public IServiceProvider Services { get; internal set; } = null!;
 
     /// <summary>
     /// Specifies the time the schema was created.
     /// </summary>
-    public DateTimeOffset CreatedAt => _createdAt;
+    public DateTimeOffset CreatedAt { get; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// Gets the default schema name.
+    /// Returns the GraphQL object type for the given <paramref name="operation"/>.
     /// </summary>
-    public static string DefaultName => "_Default";
+    /// <param name="operation">
+    /// The operation type.
+    /// </param>
+    /// <returns>
+    /// Returns the GraphQL object type for the given <paramref name="operation"/>
+    /// </returns>
+    public ObjectType GetOperationType(OperationType operation)
+    {
+        var type = operation switch
+        {
+            OperationType.Query => QueryType,
+            OperationType.Mutation => MutationType,
+            OperationType.Subscription => SubscriptionType,
+            _ => throw new ArgumentException(nameof(operation))
+        };
+
+        if (type is null)
+        {
+            throw new InvalidOperationException(
+                $"The specified operation type `{operation}` is not supported.");
+        }
+
+        return type;
+    }
+
+    IObjectTypeDefinition ISchemaDefinition.GetOperationType(OperationType operation)
+        => GetOperationType(operation);
 
     /// <summary>
-    /// Gets a type by its name and kind.
+    /// Tries to get the GraphQL object type for the given <paramref name="operation"/>.
     /// </summary>
-    /// <typeparam name="T">The expected type kind.</typeparam>
-    /// <param name="typeName">The name of the type.</param>
-    /// <returns>The type.</returns>
-    /// <exception cref="ArgumentException">
-    /// The specified type does not exist or
-    /// is not of the specified type kind.
+    /// <param name="operation">
+    /// The operation type.
+    /// </param>
+    /// <param name="type">
+    /// The GraphQL object type for the given <paramref name="operation"/>.
+    /// </param>
+    /// <returns>
+    /// Returns <c>true</c>, if the GraphQL object type for the given
+    /// <paramref name="operation"/> was found, <c>false</c> otherwise.
+    /// </returns>
+    /// <exception cref="NotSupportedException">
+    /// The specified operation type is not supported.
     /// </exception>
-    [return: NotNull]
-    public T GetType<T>(string typeName)
-        where T : INamedType
+    public bool TryGetOperationType(
+        OperationType operation,
+        [NotNullWhen(true)] out ObjectType? type)
     {
-        if (string.IsNullOrEmpty(typeName))
+        type = operation switch
         {
-            throw new ArgumentNullException(nameof(typeName));
-        }
-
-        return _types.GetType<T>(typeName);
+            OperationType.Query => QueryType,
+            OperationType.Mutation => MutationType,
+            OperationType.Subscription => SubscriptionType,
+            _ => throw new NotSupportedException()
+        };
+        return type is not null;
     }
 
-    /// <summary>
-    /// Tries to get a type by its name and kind.
-    /// </summary>
-    /// <typeparam name="T">The expected type kind.</typeparam>
-    /// <param name="typeName">The name of the type.</param>
-    /// <param name="type">The resolved type.</param>
-    /// <returns>
-    /// <c>true</c>, if a type with the name exists and is of the specified
-    /// kind, <c>false</c> otherwise.
-    /// </returns>
-    public bool TryGetType<T>(string typeName, [MaybeNullWhen(false)] out T type)
-        where T : INamedType
+    bool ISchemaDefinition.TryGetOperationType(
+        OperationType operation,
+        [NotNullWhen(true)] out IObjectTypeDefinition? type)
     {
-        if (string.IsNullOrEmpty(typeName))
+        type = operation switch
         {
-            throw new ArgumentNullException(nameof(typeName));
-        }
-
-        return _types.TryGetType(typeName, out type);
-    }
-
-    /// <summary>
-    /// Tries to get the .net type representation of a schema.
-    /// </summary>
-    /// <param name="typeName">The name of the type.</param>
-    /// <param name="runtimeType">The resolved .net type.</param>
-    /// <returns>
-    /// <c>true</c>, if a .net type was found that was bound
-    /// the the specified schema type, <c>false</c> otherwise.
-    /// </returns>
-    public bool TryGetRuntimeType(string typeName, [NotNullWhen(true)] out Type? runtimeType)
-    {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
-
-        return _types.TryGetClrType(typeName, out runtimeType);
+            OperationType.Query => QueryType,
+            OperationType.Mutation => MutationType,
+            OperationType.Subscription => SubscriptionType,
+            _ => throw new NotSupportedException()
+        };
+        return type is not null;
     }
 
     /// <summary>
@@ -149,90 +156,85 @@ public partial class Schema
     /// Returns a collection with all possible object types
     /// for the given abstract type.
     /// </returns>
-    public IReadOnlyList<ObjectType> GetPossibleTypes(INamedType abstractType)
+    public IReadOnlyList<ObjectType> GetPossibleTypes(ITypeDefinition abstractType)
     {
-        if (abstractType is null)
+        ArgumentNullException.ThrowIfNull(abstractType);
+        return _possibleTypes.TryGetValue(abstractType.Name, out var types) ? types : [];
+    }
+
+    IEnumerable<IObjectTypeDefinition> ISchemaDefinition.GetPossibleTypes(ITypeDefinition abstractType)
+        => GetPossibleTypes(abstractType);
+
+    /// <inheritdoc />
+    public IEnumerable<INameProvider> GetAllDefinitions()
+    {
+        foreach (var type in Types)
         {
-            throw new ArgumentNullException(nameof(abstractType));
+            yield return type;
         }
 
-        if (_types.TryGetPossibleTypes(abstractType.Name, out var types))
+        foreach (var directive in DirectiveTypes)
         {
-            return types;
+            yield return directive;
         }
-
-        return Array.Empty<ObjectType>();
     }
 
     /// <summary>
-    /// Gets a directive type by its name.
+    /// Tries to get the .net type representation of a schema.
     /// </summary>
-    /// <param name="directiveName">
-    /// The directive name.
-    /// </param>
+    /// <param name="typeName">The name of the type.</param>
+    /// <param name="runtimeType">The resolved .net type.</param>
     /// <returns>
-    /// Returns directive type that was resolved by the given name
-    /// or <c>null</c> if there is no directive with the specified name.
+    /// <c>true</c>, if a .net type was found that was bound
+    /// the specified schema type, <c>false</c> otherwise.
     /// </returns>
-    /// <exception cref="ArgumentException">
-    /// The specified directive type does not exist.
-    /// </exception>
-    public DirectiveType GetDirectiveType(string directiveName)
+    public bool TryGetRuntimeType(string typeName, [NotNullWhen(true)] out Type? runtimeType)
     {
-        if (string.IsNullOrEmpty(directiveName))
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
+
+        if (Types.TryGetType(typeName, out var type)
+            && type is IHasRuntimeType ct
+            && ct.RuntimeType != typeof(object))
         {
-            throw new ArgumentNullException(nameof(directiveName));
+            runtimeType = ct.RuntimeType;
+            return true;
         }
 
-        if (_directiveTypes.TryGetValue(directiveName, out var type))
-        {
-            return type;
-        }
-
-        throw new ArgumentException(
-            string.Format(TypeResources.Schema_GetDirectiveType_DoesNotExist, directiveName),
-            nameof(directiveName));
+        runtimeType = null;
+        return false;
     }
 
     /// <summary>
-    /// Tries to get a directive type by its name.
+    /// Attempts to retrieve the .NET type of the id field from an object type that implements the Node interface.
     /// </summary>
-    /// <param name="directiveName">
-    /// The directive name.
-    /// </param>
-    /// <param name="directiveType">
-    /// The directive type that was resolved by the given name
-    /// or <c>null</c> if there is no directive with the specified name.
-    /// </param>
-    /// <returns>
-    /// <c>true</c>, if a directive type with the specified
-    /// name exists; otherwise, <c>false</c>.
-    /// </returns>
-    public bool TryGetDirectiveType(
-        string directiveName,
-        [NotNullWhen(true)] out DirectiveType? directiveType)
+    public Type? GetNodeIdRuntimeType(string typeName)
     {
-        if (string.IsNullOrEmpty(directiveName))
+        if (Types.TryGetType<ObjectType>(typeName, out var type)
+            && type.IsImplementing("Node")
+            && type.Fields.TryGetField("id", out var field))
         {
-            throw new ArgumentNullException(nameof(directiveName));
+            return field.RuntimeType;
         }
 
-        return _directiveTypes.TryGetValue(directiveName, out directiveType);
+        return null;
     }
 
     /// <summary>
-    /// Generates a schema document.
+    /// Creates a schema document from the current schema.
     /// </summary>
-    public DocumentNode ToDocument(bool includeSpecScalars = false)
-        => SchemaPrinter.PrintSchema(this, includeSpecScalars);
+    public DocumentNode ToSyntaxNode(bool includeSpecScalars = false)
+    {
+        _formatter ??= new AggregateSchemaDocumentFormatter(
+            Services.GetService<IEnumerable<ISchemaDocumentFormatter>>());
+        var document = SchemaPrinter.PrintSchema(this, includeSpecScalars);
+        return _formatter.Format(document);
+    }
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
+        => ToSyntaxNode();
 
     /// <summary>
     /// Returns the schema SDL representation.
     /// </summary>
-    public string Print() => SchemaPrinter.Print(this);
-
-    /// <summary>
-    /// Returns the schema SDL representation.
-    /// </summary>
-    public override string ToString() => Print();
+    public override string ToString() => ToSyntaxNode().Print();
 }

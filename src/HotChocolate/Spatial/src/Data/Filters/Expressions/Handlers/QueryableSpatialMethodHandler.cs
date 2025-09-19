@@ -38,10 +38,10 @@ public abstract class QueryableSpatialMethodHandler
 
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition) =>
-        fieldDefinition is FilterOperationFieldDefinition op &&
-        op.Id == Operation;
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration) =>
+        fieldConfiguration is FilterOperationFieldConfiguration op
+        && op.Id == Operation;
 
     public override bool TryHandleEnter(
         QueryableFilterContext context,
@@ -63,7 +63,7 @@ public abstract class QueryableSpatialMethodHandler
                 context,
                 filterOperationField,
                 node,
-                out Expression? nestedProperty))
+                out var nestedProperty))
             {
                 context.ReportError(
                     ErrorHelper.CouldNotCreateFilterForOperation(field, node.Value, context));
@@ -96,7 +96,7 @@ public abstract class QueryableSpatialMethodHandler
         [NotNullWhen(true)] out ISyntaxVisitorAction? action)
     {
         // Dequeue last
-        Expression condition = context.GetLevel().Dequeue();
+        var condition = context.GetLevel().Dequeue();
 
         context.PopInstance();
         context.RuntimeTypes.Pop();

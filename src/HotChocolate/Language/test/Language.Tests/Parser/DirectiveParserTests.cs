@@ -1,7 +1,4 @@
-using System.Linq;
 using System.Text;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Language;
 
@@ -11,8 +8,8 @@ public class DirectiveParserTests
     public void ParseUniqueDirective()
     {
         // arrange
-        var text = "directive @skip(if: Boolean!) " +
-            "on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT";
+        const string text = "directive @skip(if: Boolean!) "
+            + "on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT";
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
         // assert
@@ -29,8 +26,8 @@ public class DirectiveParserTests
     public void ParseRepeatableDirective()
     {
         // arrange
-        var text = "directive @skip(if: Boolean!) repeatable " +
-            "on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT";
+        const string text = "directive @skip(if: Boolean!) repeatable "
+            + "on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT";
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
         // assert
@@ -47,12 +44,14 @@ public class DirectiveParserTests
     public void ParseDescription()
     {
         // arrange
-        var text = @"
-            """"""
+        const string text =
+            // lang=graphql
+            """"
+            """
             Description
-            """"""
-            directive @foo(bar:String!) on FIELD_DEFINITION
-            ";
+            """
+            directive @foo(bar: String!) on FIELD_DEFINITION
+            """";
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
         // assert
@@ -69,7 +68,7 @@ public class DirectiveParserTests
     public void DirectiveOrderIsSignificant()
     {
         // arrange
-        var text = "type Query { field: String @a @b @c }";
+        const string text = "type Query { field: String @a @b @c }";
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
         // assert
@@ -78,6 +77,7 @@ public class DirectiveParserTests
         // assert
         var type = document.Definitions
             .OfType<ObjectTypeDefinitionNode>().FirstOrDefault();
+        Assert.NotNull(type?.Fields.Single().Directives);
         Assert.Collection(type.Fields.Single().Directives,
             t => Assert.Equal("a", t.Name.Value),
             t => Assert.Equal("b", t.Name.Value),
@@ -88,7 +88,7 @@ public class DirectiveParserTests
     public void ParseQueryDirective()
     {
         // arrange
-        var text = @"
+        const string text = @"
                 query ($var: Boolean) @onQuery {
                     field
                 }

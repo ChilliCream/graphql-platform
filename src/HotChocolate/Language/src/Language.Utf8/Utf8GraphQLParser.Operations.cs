@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
@@ -8,13 +6,13 @@ namespace HotChocolate.Language;
 // Implements the parsing rules in the Operations section.
 public ref partial struct Utf8GraphQLParser
 {
-    private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions = [];
-    private static readonly List<ArgumentNode> _emptyArguments = [];
+    private static readonly List<VariableDefinitionNode> s_emptyVariableDefinitions = [];
+    private static readonly List<ArgumentNode> s_emptyArguments = [];
 
     /// <summary>
     /// Parses an operation definition.
     /// <see cref="OperationDefinitionNode" />:
-    /// OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
+    /// Description? OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
     /// </summary>
     private OperationDefinitionNode ParseOperationDefinition()
     {
@@ -30,6 +28,7 @@ public ref partial struct Utf8GraphQLParser
         return new OperationDefinitionNode(
             location,
             name,
+            TakeDescription(),
             operation,
             variableDefinitions,
             directives,
@@ -37,7 +36,7 @@ public ref partial struct Utf8GraphQLParser
     }
 
     /// <summary>
-    /// Parses a short-hand form operation definition.
+    /// Parses a shorthand form operation definition.
     /// <see cref="OperationDefinitionNode" />:
     /// SelectionSet
     /// </summary>
@@ -50,9 +49,10 @@ public ref partial struct Utf8GraphQLParser
         return new OperationDefinitionNode(
             location,
             name: null,
+            description: null,
             OperationType.Query,
-            Array.Empty<VariableDefinitionNode>(),
-            Array.Empty<DirectiveNode>(),
+            [],
+            [],
             selectionSet);
     }
 
@@ -110,18 +110,19 @@ public ref partial struct Utf8GraphQLParser
             return list;
         }
 
-        return _emptyVariableDefinitions;
+        return s_emptyVariableDefinitions;
     }
 
     /// <summary>
     /// Parses a variable definition.
     /// <see cref="VariableDefinitionNode" />:
-    /// $variable : Type = DefaultValue?
+    /// Description? $variable : Type = DefaultValue?
     /// </summary>
     private VariableDefinitionNode ParseVariableDefinition()
     {
         var start = Start();
 
+        var description = ParseDescription();
         var variable = ParseVariable();
         ExpectColon();
         var type = ParseTypeReference();
@@ -136,6 +137,7 @@ public ref partial struct Utf8GraphQLParser
         return new VariableDefinitionNode(
             location,
             variable,
+            description,
             type,
             defaultValue,
             directives);
@@ -174,7 +176,7 @@ public ref partial struct Utf8GraphQLParser
                     CultureInfo.InvariantCulture,
                     ParseMany_InvalidOpenToken,
                     TokenKind.LeftBrace,
-                    TokenPrinter.Print(in _reader)));
+                    TokenPrinter.Print(ref _reader)));
         }
 
         var selections = new List<ISelectionNode>();
@@ -182,7 +184,8 @@ public ref partial struct Utf8GraphQLParser
         // skip opening token
         MoveNext();
 
-        while (_reader.Kind != TokenKind.RightBrace)
+        while (_reader.Kind != TokenKind.RightBrace
+            && _reader.Kind != TokenKind.EndOfFile)
         {
             selections.Add(ParseSelection());
         }
@@ -241,7 +244,6 @@ public ref partial struct Utf8GraphQLParser
         }
 
         var arguments = ParseArguments(false);
-        var required = ParseRequiredStatus();
         var directives = ParseDirectives(false);
         var selectionSet = _reader.Kind == TokenKind.LeftBrace
             ? ParseSelectionSet()
@@ -253,53 +255,9 @@ public ref partial struct Utf8GraphQLParser
             location,
             name,
             alias,
-            required,
             directives,
             arguments,
             selectionSet);
-    }
-
-    private INullabilityNode? ParseRequiredStatus()
-    {
-        var list = ParseListNullability();
-        var modifier = ParseModifier(list);
-        return modifier ?? list;
-    }
-
-    private ListNullabilityNode? ParseListNullability()
-    {
-        if (_reader.Kind == TokenKind.LeftBracket)
-        {
-            var start = Start();
-            _reader.Skip(TokenKind.LeftBracket);
-            var element = ParseRequiredStatus();
-            _reader.Expect(TokenKind.RightBracket);
-            var location = CreateLocation(in start);
-            return new ListNullabilityNode(location, element);
-        }
-
-        return null;
-    }
-
-    private INullabilityNode? ParseModifier(ListNullabilityNode? listNullabilityNode)
-    {
-        if (_reader.Kind == TokenKind.QuestionMark)
-        {
-            var start = Start();
-            _reader.Skip(TokenKind.QuestionMark);
-            var location = CreateLocation(in start);
-            return new OptionalModifierNode(location, listNullabilityNode);
-        }
-
-        if (_reader.Kind == TokenKind.Bang)
-        {
-            var start = Start();
-            _reader.Skip(TokenKind.Bang);
-            var location = CreateLocation(in start);
-            return new RequiredModifierNode(location, listNullabilityNode);
-        }
-
-        return listNullabilityNode;
     }
 
     /// <summary>
@@ -326,9 +284,8 @@ public ref partial struct Utf8GraphQLParser
 
             return list;
         }
-        return _emptyArguments;
+        return s_emptyArguments;
     }
-
 
     /// <summary>
     /// Parses an argument.

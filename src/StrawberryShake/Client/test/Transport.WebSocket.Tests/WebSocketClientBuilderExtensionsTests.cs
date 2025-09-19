@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -11,7 +9,7 @@ public class WebSocketClientBuilderExtensionsTests
     public void ConfigureWebSocketClient_NonNullArgs_ConfigureClient()
     {
         // arrange
-        var name = "Foo";
+        const string name = "Foo";
         Action<ISocketClient> configure = x => throw new InvalidOperationException();
         var services = new ServiceCollection();
         var builder = new DefaultWebSocketClientBuilder(services, "Foo");

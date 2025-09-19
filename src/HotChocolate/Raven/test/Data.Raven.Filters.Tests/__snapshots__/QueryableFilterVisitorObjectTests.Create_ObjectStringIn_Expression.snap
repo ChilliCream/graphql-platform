@@ -1,28 +1,26 @@
-testatestAndtestb
+testatestAndtestb Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "message": "Could not understand how to translate \u0027value(System.String[])\u0027 to a RavenDB query.\nAre you trying to do computation during the query?\nRavenDB doesn\u0027t allow computation during the query, computation is only allowed during index. Consider moving the operation to an index.",
-        "stackTrace": "   at Raven.Client.Documents.Linq.LinqPathProvider.GetMemberExpression(Expression expression) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\LinqPathProvider.cs:line 362\n   at Raven.Client.Documents.Linq.LinqPathProvider.GetPath(Expression expression, Boolean isFilterActive) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\LinqPathProvider.cs:line 49\n   at Raven.Client.Documents.Linq.RavenQueryProviderProcessor\u00601.GetMemberDirect(Expression expression) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryProviderProcessor.cs:line 691\n   at Raven.Client.Documents.Linq.RavenQueryProviderProcessor\u00601.VisitContains(MethodCallExpression expression) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryProviderProcessor.cs:line 1227\n   at Raven.Client.Documents.Linq.RavenQueryProviderProcessor\u00601.VisitEnumerableMethodCall(MethodCallExpression expression) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryProviderProcessor.cs:line 1794\n   at Raven.Client.Documents.Linq.RavenQueryProviderProcessor\u00601.VisitMethodCall(MethodCallExpression expression) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryProviderProcessor.cs:line 1375\n   at Raven.Client.Documents.Linq.RavenQueryProviderProcessor\u00601.VisitQueryableMethodCall(MethodCallExpression expression) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryProviderProcessor.cs:line 2110\n   at Raven.Client.Documents.Linq.RavenQueryProviderProcessor\u00601.VisitMethodCall(MethodCallExpression expression) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryProviderProcessor.cs:line 1375\n   at Raven.Client.Documents.Linq.RavenQueryProviderProcessor\u00601.GetAsyncDocumentQueryFor(Expression expression, Action\u00601 customization) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryProviderProcessor.cs:line 3839\n   at Raven.Client.Documents.Linq.RavenQueryInspector\u00601.ToString() in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryInspector.cs:line 152\n   at HotChocolate.Data.Filters.FilterVisitorTestBase.\u003C\u003Ec__DisplayClass7_2\u00602.\u003C\u003CApplyConfigurationToField\u003Eb__3\u003Ed.MoveNext() in /Users/michael/local/hc-4/src/HotChocolate/Raven/test/Data.Raven.Filters.Tests/FilterVisitorTestBase.cs:line 108\n--- End of stack trace from previous location ---\n   at HotChocolate.Data.Filters.FilterVisitorTestBase.\u003C\u003Ec__DisplayClass7_1\u00602.\u003C\u003CApplyConfigurationToField\u003Eb__2\u003Ed.MoveNext() in /Users/michael/local/hc-4/src/HotChocolate/Raven/test/Data.Raven.Filters.Tests/FilterVisitorTestBase.cs:line 98\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/michael/local/hc-4/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 134\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/michael/local/hc-4/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 113"
-      }
-    }
-  ],
   "data": {
-    "root": null
+    "root": [
+      {
+        "foo": {
+          "barString": "testatest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testbtest"
+        }
+      }
+    ]
   }
 }
+---------------
+
+testatestAndtestb SQL:
+---------------
+from 'Bars' where Foo.BarString in ($p0)
 ---------------
 
 testbtestAndNull
@@ -30,7 +28,7 @@ testbtestAndNull
 {
   "errors": [
     {
-      "message": "The provided value for filter \u0060in\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter `in` of type StringOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,
@@ -48,34 +46,27 @@ testbtestAndNull
     }
   ],
   "data": {
-    "root": []
+    "root": null
   }
 }
 ---------------
 
-testatest
+testatest Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "message": "Could not understand how to translate \u0027value(System.String[])\u0027 to a RavenDB query.\nAre you trying to do computation during the query?\nRavenDB doesn\u0027t allow computation during the query, computation is only allowed during index. Consider moving the operation to an index.",
-        "stackTrace": "   at Raven.Client.Documents.Linq.LinqPathProvider.GetMemberExpression(Expression expression) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\LinqPathProvider.cs:line 362\n   at Raven.Client.Documents.Linq.LinqPathProvider.GetPath(Expression expression, Boolean isFilterActive) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\LinqPathProvider.cs:line 49\n   at Raven.Client.Documents.Linq.RavenQueryProviderProcessor\u00601.GetMemberDirect(Expression expression) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryProviderProcessor.cs:line 691\n   at Raven.Client.Documents.Linq.RavenQueryProviderProcessor\u00601.VisitContains(MethodCallExpression expression) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryProviderProcessor.cs:line 1227\n   at Raven.Client.Documents.Linq.RavenQueryProviderProcessor\u00601.VisitEnumerableMethodCall(MethodCallExpression expression) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryProviderProcessor.cs:line 1794\n   at Raven.Client.Documents.Linq.RavenQueryProviderProcessor\u00601.VisitMethodCall(MethodCallExpression expression) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryProviderProcessor.cs:line 1375\n   at Raven.Client.Documents.Linq.RavenQueryProviderProcessor\u00601.VisitQueryableMethodCall(MethodCallExpression expression) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryProviderProcessor.cs:line 2110\n   at Raven.Client.Documents.Linq.RavenQueryProviderProcessor\u00601.VisitMethodCall(MethodCallExpression expression) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryProviderProcessor.cs:line 1375\n   at Raven.Client.Documents.Linq.RavenQueryProviderProcessor\u00601.GetAsyncDocumentQueryFor(Expression expression, Action\u00601 customization) in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryProviderProcessor.cs:line 3839\n   at Raven.Client.Documents.Linq.RavenQueryInspector\u00601.ToString() in C:\\Builds\\RavenDB-Stable-5.4\\54012\\src\\Raven.Client\\Documents\\Linq\\RavenQueryInspector.cs:line 152\n   at HotChocolate.Data.Filters.FilterVisitorTestBase.\u003C\u003Ec__DisplayClass7_2\u00602.\u003C\u003CApplyConfigurationToField\u003Eb__3\u003Ed.MoveNext() in /Users/michael/local/hc-4/src/HotChocolate/Raven/test/Data.Raven.Filters.Tests/FilterVisitorTestBase.cs:line 108\n--- End of stack trace from previous location ---\n   at HotChocolate.Data.Filters.FilterVisitorTestBase.\u003C\u003Ec__DisplayClass7_1\u00602.\u003C\u003CApplyConfigurationToField\u003Eb__2\u003Ed.MoveNext() in /Users/michael/local/hc-4/src/HotChocolate/Raven/test/Data.Raven.Filters.Tests/FilterVisitorTestBase.cs:line 98\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/michael/local/hc-4/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 134\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/michael/local/hc-4/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 113"
-      }
-    }
-  ],
   "data": {
-    "root": null
+    "root": [
+      {
+        "foo": {
+          "barString": "testatest"
+        }
+      }
+    ]
   }
 }
+---------------
+
+testatest SQL:
+---------------
+from 'Bars' where Foo.BarString in ($p0)
 ---------------

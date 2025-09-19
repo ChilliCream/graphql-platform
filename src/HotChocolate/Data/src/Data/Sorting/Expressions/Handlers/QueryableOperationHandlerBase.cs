@@ -1,9 +1,8 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Sorting.Expressions;
 
@@ -19,16 +18,16 @@ public abstract class QueryableOperationHandlerBase
 
     public override bool CanHandle(
         ITypeCompletionContext context,
-        EnumTypeDefinition typeDefinition,
-        SortEnumValueDefinition valueDefinition)
+        EnumTypeConfiguration typeDefinition,
+        SortEnumValueConfiguration valueConfiguration)
     {
-        return valueDefinition.Operation == _operation;
+        return valueConfiguration.Operation == _operation;
     }
 
     public override bool TryHandleEnter(
         QueryableSortContext context,
         ISortField field,
-        ISortEnumValue? sortEnumValue,
+        SortEnumValue? sortEnumValue,
         EnumValueNode valueNode,
         [NotNullWhen(true)] out ISyntaxVisitorAction? action)
     {
@@ -62,5 +61,5 @@ public abstract class QueryableOperationHandlerBase
         QueryableSortContext context,
         QueryableFieldSelector fieldSelector,
         ISortField field,
-        ISortEnumValue? sortEnumValue);
+        SortEnumValue? sortEnumValue);
 }

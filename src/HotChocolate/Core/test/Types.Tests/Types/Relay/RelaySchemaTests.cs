@@ -1,9 +1,7 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types.Relay;
 
@@ -12,8 +10,6 @@ public class RelaySchemaTests
     [Fact]
     public async Task AddGlobalObjectIdentification_Node_Field_On_Query_Exists()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
@@ -23,10 +19,41 @@ public class RelaySchemaTests
     }
 
     [Fact]
+    public async Task AddGlobalObjectIdentification_Without_Nodes_Field()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddGlobalObjectIdentification(o => o.AddNodesField = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task AddGlobalObjectIdentification_Mark_Node_Field_As_Lookup()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task AddGlobalObjectIdentification_Do_Not_Mark_Node_Field_As_Lookup()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task AddQueryFieldToMutationPayloads_QueryField_On_MutationPayload_Exists()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
@@ -39,8 +66,6 @@ public class RelaySchemaTests
     [Fact]
     public async Task AddQueryFieldToMutationPayloads_With_Extensions()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
@@ -54,8 +79,6 @@ public class RelaySchemaTests
     [Fact]
     public async Task AddQueryFieldToMutationPayloads_With_Different_FieldName()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
@@ -68,16 +91,12 @@ public class RelaySchemaTests
     [Fact]
     public async Task AddQueryFieldToMutationPayloads_With_Different_PayloadPredicate()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation2>()
-            .AddQueryFieldToMutationPayloads(o =>
-            {
-                o.MutationPayloadPredicate = type => type.Name.EndsWith("Result");
-            })
+            .AddQueryFieldToMutationPayloads(
+                o => o.MutationPayloadPredicate = type => type.Name.EndsWith("Result"))
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -85,13 +104,12 @@ public class RelaySchemaTests
     [Fact]
     public async Task AddQueryFieldToMutationPayloads_Refetch_SomeId()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
+            .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
             .MatchSnapshotAsync();
     }
@@ -99,13 +117,12 @@ public class RelaySchemaTests
     [Fact]
     public async Task AddQueryFieldToMutationPayloads_Refetch_SomeId_With_Query_Inst()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
+            .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
             .MatchSnapshotAsync();
     }
@@ -113,14 +130,12 @@ public class RelaySchemaTests
     [Fact]
     public async Task Relay_ShouldReturnNonNullError_When_IdIsNull()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(d => d
                 .Field("user")
                 .Type<UserType>()
-                .Resolve(_ => new User { Name = "TEST", }))
+                .Resolve(_ => new User { Name = "TEST" }))
             .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("query { user { id name } } ")
             .MatchSnapshotAsync();
@@ -128,9 +143,9 @@ public class RelaySchemaTests
 
     public class User
     {
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
-        public string Name { get; set; }
+        public required string Name { get; set; }
     }
 
     public class UserType : ObjectType<User>
@@ -143,9 +158,9 @@ public class RelaySchemaTests
                 .ResolveNode(ResolveNode);
         }
 
-        private Task<User> ResolveNode(IResolverContext context, string id)
+        private Task<User?> ResolveNode(IResolverContext context, string? id)
         {
-            return Task.FromResult(new User { Name = "TEST", });
+            return Task.FromResult<User?>(new User { Name = "TEST" });
         }
     }
 
@@ -167,7 +182,7 @@ public class RelaySchemaTests
             descriptor
                 .Name("Some")
                 .ImplementsNode()
-                .ResolveNode<object>((_, _) => Task.FromResult(new object()));
+                .ResolveNode<object?>((_, _) => Task.FromResult<object?>(new object()));
 
             descriptor
                 .Field("id")
@@ -207,16 +222,12 @@ public class RelaySchemaTests
         public FooPayload Foo() => new();
     }
 
-    public class FooPayload
-    {
-    }
+    public class FooPayload;
 
     public class BazPayload
     {
-        public string Some { get; set; }
+        public string? Some { get; set; }
     }
 
-    public class BarResult
-    {
-    }
+    public class BarResult;
 }

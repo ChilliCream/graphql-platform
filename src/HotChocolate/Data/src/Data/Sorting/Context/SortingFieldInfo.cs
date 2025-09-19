@@ -1,7 +1,7 @@
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>
-/// Represents the value of a field in sortinging
+/// Represents the value of a field in sorting
 /// </summary>
 public class SortingFieldInfo : ISortingFieldInfo
 {

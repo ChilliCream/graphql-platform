@@ -1,7 +1,4 @@
 using HotChocolate.Language;
-using Snapshooter.Xunit;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -35,12 +32,12 @@ public class ScalarBindingTests
 
     public class QueryA
     {
-        public Bar? Bar([GraphQLType(typeof(ExplicitBindingScalar))]int id) => new Bar();
+        public Bar? Bar([GraphQLType(typeof(ExplicitBindingScalar))] int id) => new Bar();
     }
 
     public class QueryB
     {
-        public Bar? Bar([GraphQLType(typeof(ImplicitBindingScalar))]int id) => new Bar();
+        public Bar? Bar([GraphQLType(typeof(ImplicitBindingScalar))] int id) => new Bar();
     }
 
     public class Bar
@@ -62,22 +59,22 @@ public class ScalarBindingTests
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override object? ParseLiteral(IValueNode valueSyntax)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override IValueNode ParseValue(object? value)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override IValueNode ParseResult(object? resultValue)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 
@@ -90,22 +87,22 @@ public class ScalarBindingTests
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override object? ParseLiteral(IValueNode valueSyntax)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override IValueNode ParseValue(object? value)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public override IValueNode ParseResult(object? resultValue)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }

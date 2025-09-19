@@ -1,5 +1,6 @@
 using HotChocolate.Data.MongoDb;
 using HotChocolate.Data.MongoDb.Paging;
+using HotChocolate.Data.MongoDb.Relay;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using MongoDB.Bson;
@@ -18,15 +19,15 @@ public static class MongoDbDataRequestBuilderExtensions
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="name"></param>
-    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
+    /// <param name="compatibilityMode">Uses the old behavior of naming the filters</param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
     /// </returns>
     public static IRequestExecutorBuilder AddMongoDbFiltering(
         this IRequestExecutorBuilder builder,
         string? name = null,
-        bool compatabilityMode = false) =>
-        builder.ConfigureSchema(s => s.AddMongoDbFiltering(name, compatabilityMode));
+        bool compatibilityMode = false) =>
+        builder.ConfigureSchema(s => s.AddMongoDbFiltering(name, compatibilityMode));
 
     /// <summary>
     /// Adds sorting support.
@@ -64,17 +65,24 @@ public static class MongoDbDataRequestBuilderExtensions
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
+    /// <param name="compressGlobalIds">
+    /// Compresses the global ids.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
     /// </returns>
     public static IRequestExecutorBuilder AddObjectIdConverters(
-        this IRequestExecutorBuilder builder) =>
-        builder
+        this IRequestExecutorBuilder builder,
+        bool compressGlobalIds = true)
+    {
+        builder.AddNodeIdValueSerializer(
+            new ObjectIdNodeIdValueSerializer(compressGlobalIds));
+
+        return builder
             .BindRuntimeType<ObjectId, StringType>()
-#pragma warning disable CS8622
             .AddTypeConverter<ObjectId, string>(x => x.ToString())
             .AddTypeConverter<string, ObjectId>(x => new ObjectId(x));
-#pragma warning restore CS8622
+    }
 
     /// <summary>
     /// Adds the MongoDB cursor and offset paging providers.
@@ -96,10 +104,7 @@ public static class MongoDbDataRequestBuilderExtensions
         string? providerName = null,
         bool defaultProvider = false)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.AddCursorPagingProvider<MongoDbCursorPagingProvider>(
             providerName,

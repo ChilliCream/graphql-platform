@@ -1,7 +1,3 @@
-using System;
-
-#nullable enable
-
 namespace HotChocolate;
 
 [AttributeUsage(
@@ -12,12 +8,12 @@ public sealed class GraphQLNonNullTypeAttribute : Attribute
 {
     public GraphQLNonNullTypeAttribute()
     {
-        Nullable = [false,];
+        Nullable = [false];
     }
 
     public GraphQLNonNullTypeAttribute(params bool[] nullable)
     {
-        Nullable = nullable.Length == 0 ? [false,] : nullable;
+        Nullable = nullable.Length == 0 ? [false] : nullable;
     }
 
     internal bool[] Nullable { get; }

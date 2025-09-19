@@ -5,10 +5,10 @@ using NetTopologySuite;
 namespace HotChocolate.Types.Spatial.Configuration;
 
 /// <summary>
-/// The convention of the
+/// A convention that configures the behavior of spatial types
 /// </summary>
 public class SpatialConvention
-    : Convention<SpatialConventionDefinition>
+    : Convention<SpatialConventionConfiguration>
     , ISpatialConvention
 {
     private Action<ISpatialConventionDescriptor>? _configure;
@@ -23,7 +23,7 @@ public class SpatialConvention
     public int DefaultSrid { get; private set; } = NtsGeometryServices.Instance.DefaultSRID;
 
     /// <inheritdoc />
-    public IGeometryTransformerFactory TransformerFactory { get; private set; } = default!;
+    public IGeometryTransformerFactory TransformerFactory { get; private set; } = null!;
 
     /// <inheritdoc />
     public SpatialConvention(Action<ISpatialConventionDescriptor> configure)
@@ -33,7 +33,7 @@ public class SpatialConvention
     }
 
     /// <inheritdoc />
-    protected override SpatialConventionDefinition CreateDefinition(IConventionContext context)
+    protected override SpatialConventionConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -45,12 +45,12 @@ public class SpatialConvention
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     /// <summary>
     /// This method is called on initialization of the convention but before the convention is
-    /// completed. The default implementation of this method does nothing. It can be overriden
+    /// completed. The default implementation of this method does nothing. It can be overridden
     /// by a derived class such that the convention can be further configured before it is
     /// completed
     /// </summary>
@@ -64,12 +64,12 @@ public class SpatialConvention
     /// <inheritdoc />
     protected override void Complete(IConventionContext context)
     {
-        if (Definition is null)
+        if (Configuration is null)
         {
             throw new InvalidOperationException();
         }
 
-        DefaultSrid = Definition.DefaultSrid;
-        TransformerFactory = new GeometryTransformerFactory(Definition.CoordinateSystems);
+        DefaultSrid = Configuration.DefaultSrid;
+        TransformerFactory = new GeometryTransformerFactory(Configuration.CoordinateSystems);
     }
 }

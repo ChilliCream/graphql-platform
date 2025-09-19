@@ -3,13 +3,10 @@ using Microsoft.Extensions.Options;
 namespace HotChocolate.Caching;
 
 /// <inheritdoc/>
-internal sealed class CacheControlOptionsAccessor : ICacheControlOptionsAccessor
+internal sealed class CacheControlOptionsAccessor(
+    IOptions<CacheControlOptions> options)
+    : ICacheControlOptionsAccessor
 {
-    public CacheControlOptionsAccessor(IOptions<CacheControlOptions> options)
-    {
-        CacheControl = options.Value;
-    }
-
     /// <inheritdoc/>
-    public ICacheControlOptions CacheControl { get; }
+    public ICacheControlOptions CacheControl { get; } = options.Value;
 }

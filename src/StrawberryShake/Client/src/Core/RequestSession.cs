@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-
 namespace StrawberryShake;
 
 internal class RequestSession : IDisposable

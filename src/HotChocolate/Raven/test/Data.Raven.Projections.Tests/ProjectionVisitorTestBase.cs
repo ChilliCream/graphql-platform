@@ -44,7 +44,7 @@ public class ProjectionVisitorTestBase : IAsyncLifetime
         ProjectionProvider? provider = null,
         bool usePaging = false,
         bool useOffsetPaging = false,
-        INamedType? objectType = null,
+        ITypeDefinition? objectType = null,
         Action<IRequestExecutorBuilder>? configure = null,
         Type? schemaType = null)
         where TEntity : class
@@ -104,10 +104,10 @@ public class ProjectionVisitorTestBase : IAsyncLifetime
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                            OperationResultBuilder
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("sql", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .UseDefaultPipeline();

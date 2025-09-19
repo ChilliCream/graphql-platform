@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Linq;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
 
@@ -9,44 +8,48 @@ public partial class OperationCompiler
 {
     private void OptimizeSelectionSet(CompilerContext context)
     {
-        if (context.Optimizers.Count == 0)
+        if (context.Optimizers.Length == 0)
         {
             return;
         }
 
-        var optimizerContext = new SelectionSetOptimizerContext(
-            this,
-            context,
-            _selectionLookup,
-            _contextData,
-            _createFieldPipeline,
-            context.Path);
+        var optimizerContext =
+            new SelectionSetOptimizerContext(
+                this,
+                context,
+                _selectionLookup,
+                _contextData,
+                _createFieldPipeline,
+                context.Path);
 
-        if (context.Optimizers.Count == 1)
+        if (context.Optimizers.Length == 1)
         {
             context.Optimizers[0].OptimizeSelectionSet(optimizerContext);
         }
         else
         {
-            for (var i = 0; i < context.Optimizers.Count; i++)
+            for (var i = 0; i < context.Optimizers.Length; i++)
             {
                 context.Optimizers[i].OptimizeSelectionSet(optimizerContext);
             }
         }
     }
 
-    private IImmutableList<ISelectionSetOptimizer> ResolveOptimizers(
-        IImmutableList<ISelectionSetOptimizer> optimizers,
-        IObjectField field)
+    private static ImmutableArray<ISelectionSetOptimizer> ResolveOptimizers(
+        ImmutableArray<ISelectionSetOptimizer> optimizers,
+        ObjectField field)
     {
-        if (!TryGetOptimizers(field.ContextData, out var fieldOptimizers))
+        if (!TryGetOptimizers(field, out var fieldOptimizers))
         {
             return optimizers;
         }
 
-        PrepareOptimizers(fieldOptimizers);
+        if (optimizers.IsEmpty)
+        {
+            return fieldOptimizers;
+        }
 
-        foreach (var optimizer in _selectionSetOptimizers)
+        foreach (var optimizer in fieldOptimizers)
         {
             if (!optimizers.Contains(optimizer))
             {

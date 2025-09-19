@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class ConstructorBuilder : ICodeBuilder
@@ -63,10 +59,7 @@ public class ConstructorBuilder : ICodeBuilder
 
     public void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         var modifier = _accessModifier.ToString().ToLowerInvariant();
 

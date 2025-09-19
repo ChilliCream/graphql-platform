@@ -1,6 +1,3 @@
-using System;
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class NonNullTypeNodeTests

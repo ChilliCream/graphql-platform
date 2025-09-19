@@ -1,0 +1,57 @@
+{
+  "data": {
+    "wrappers": [
+      {
+        "votable": {
+          "viewerCanVote": true,
+          "title": "Discussion: RGlzY3Vzc2lvbjo2"
+        }
+      },
+      {
+        "votable": {
+          "viewerCanVote": true,
+          "title": "Discussion: RGlzY3Vzc2lvbjo1"
+        }
+      },
+      {
+        "votable": {
+          "viewerCanVote": true,
+          "title": "Discussion: RGlzY3Vzc2lvbjo0"
+        }
+      }
+    ]
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "f326bf5c1d262a177b5c45f3bc5fddfcc973e236cee5ad3123f0d4c9c27ff4c0",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  wrappers {\n    votable {\n      __typename @fusion__requirement\n      viewerCanVote\n      ... on Discussion {\n        title\n      }\n    }\n  }\n}",
+          "id": "877cb4f8633906ccccbeccaa1d5ee865",
+          "hash": "877cb4f8633906ccccbeccaa1d5ee865",
+          "shortHash": "877cb4f8"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_877cb4f8_1",
+              "kind": "Query",
+              "document": "query testQuery_877cb4f8_1 {\n  wrappers {\n    votable {\n      __typename\n      viewerCanVote\n      ... on Discussion {\n        title\n      }\n    }\n  }\n}",
+              "hash": "4db8ec4da8b908d593fbd3dcec2ede9f8f27ac08d045a17488263221b6c0ebb6",
+              "shortHash": "4db8ec4d"
+            },
+            "responseNames": [
+              "wrappers"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

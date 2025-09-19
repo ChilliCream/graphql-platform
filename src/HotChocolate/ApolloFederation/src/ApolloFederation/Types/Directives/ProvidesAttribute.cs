@@ -40,7 +40,6 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </param>
 public sealed class ProvidesAttribute(string fieldSet) : ObjectFieldDescriptorAttribute
 {
-
     /// <summary>
     /// Gets the fields that are guaranteed to be selectable by the gateway.
     /// Grammatically, a field set is a selection set minus the braces.

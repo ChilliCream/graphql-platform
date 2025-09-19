@@ -1,6 +1,4 @@
-#nullable enable
 using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
@@ -110,7 +108,7 @@ public class GraphQLNonNullTypeTests
         [GraphQLNonNullType(false, false)]
         public string?[]? ScalarArray { get; }
 
-        [GraphQLNonNullType(false, false,false)]
+        [GraphQLNonNullType(false, false, false)]
         public string?[]?[]? ScalarNestedArray { get; }
 
         [GraphQLNonNullType]
@@ -119,7 +117,7 @@ public class GraphQLNonNullTypeTests
         [GraphQLNonNullType(false, false)]
         public Foo?[]? ObjectArray { get; }
 
-        [GraphQLNonNullType(false, false,false)]
+        [GraphQLNonNullType(false, false, false)]
         public Foo?[]?[]? ObjectNestedArray { get; }
     }
 
@@ -127,27 +125,27 @@ public class GraphQLNonNullTypeTests
     {
         [Required]
         [GraphQLType(typeof(IdType))]
-        public string Scalar { get; } = default!;
+        public string Scalar { get; } = null!;
 
         [Required]
         [GraphQLType(typeof(ListType<IdType>))]
-        public string[] ScalarArray { get; } = default!;
+        public string[] ScalarArray { get; } = null!;
 
         [Required]
         [GraphQLType(typeof(ListType<ListType<IdType>>))]
-        public string[][] ScalarNestedArray { get; } = default!;
+        public string[][] ScalarNestedArray { get; } = null!;
 
         [Required]
         [GraphQLType(typeof(FooType))]
-        public Foo Object { get; } = default!;
+        public Foo Object { get; } = null!;
 
         [Required]
         [GraphQLType(typeof(ListType<FooType>))]
-        public Foo[] ObjectArray { get; } = default!;
+        public Foo[] ObjectArray { get; } = null!;
 
         [Required]
         [GraphQLType(typeof(ListType<ListType<FooType>>))]
-        public Foo[][] ObjectNestedArray { get; } = default!;
+        public Foo[][] ObjectNestedArray { get; } = null!;
     }
 
     public class QueryDeepWithType
@@ -160,7 +158,7 @@ public class GraphQLNonNullTypeTests
         [GraphQLType(typeof(ListType<IdType>))]
         public string?[]? ScalarArray { get; }
 
-        [GraphQLNonNullType(false, false,false)]
+        [GraphQLNonNullType(false, false, false)]
         [GraphQLType(typeof(ListType<ListType<IdType>>))]
         public string?[]?[]? ScalarNestedArray { get; }
 
@@ -172,14 +170,14 @@ public class GraphQLNonNullTypeTests
         [GraphQLType(typeof(ListType<FooType>))]
         public Foo?[]? ObjectArray { get; }
 
-        [GraphQLNonNullType(false, false,false)]
+        [GraphQLNonNullType(false, false, false)]
         [GraphQLType(typeof(ListType<ListType<FooType>>))]
         public Foo?[]?[]? ObjectNestedArray { get; }
     }
 
     public class Foo
     {
-        public string Bar { get; } = default!;
+        public string Bar { get; } = null!;
     }
 
     public class FooType : ObjectType

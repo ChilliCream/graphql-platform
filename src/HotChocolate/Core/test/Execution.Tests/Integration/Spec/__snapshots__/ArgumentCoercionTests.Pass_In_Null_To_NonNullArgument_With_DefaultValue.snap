@@ -8,6 +8,9 @@
           "column": 12
         }
       ],
+      "path": [
+        "sayHello"
+      ],
       "extensions": {
         "responseName": "sayHello",
         "errorPath": [

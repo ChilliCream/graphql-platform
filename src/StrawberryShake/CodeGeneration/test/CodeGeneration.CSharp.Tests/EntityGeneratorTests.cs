@@ -18,7 +18,7 @@ public class EntityGeneratorTests
     public void Generate_ChatClient_ConnectionNotAnEntity_With_Records()
     {
         AssertResult(
-            settings: new AssertSettings { EntityRecords = true, },
+            settings: new AssertSettings { EntityRecords = true },
             FileResource.Open("ChatPeopleNodes.graphql"),
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("ChatSchema.graphql"));
@@ -32,12 +32,12 @@ public class EntityGeneratorTests
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("ChatSchema.graphql"));
     }
-    
+
     [Fact]
     public void Generate_ChatClient_MapperMapsEntityOnRootCorrectly_With_Records()
     {
         AssertResult(
-            settings: new AssertSettings { EntityRecords = true, },
+            settings: new AssertSettings { EntityRecords = true },
             FileResource.Open("ChatSendMessage.graphql"),
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("ChatSchema.graphql"));
@@ -51,12 +51,12 @@ public class EntityGeneratorTests
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("BookSchema.graphql"));
     }
-    
+
     [Fact]
     public void Generate_BookClient_DataOnly_UnionDataTypes_With_Records()
     {
         AssertResult(
-            settings: new AssertSettings { EntityRecords = true, },
+            settings: new AssertSettings { EntityRecords = true },
             FileResource.Open("BookUnionQuery.graphql"),
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("BookSchema.graphql"));
@@ -75,7 +75,7 @@ public class EntityGeneratorTests
     public void Generate_BookClient_DataOnly_InterfaceDataTypes_With_Records()
     {
         AssertResult(
-            settings: new AssertSettings { EntityRecords = true, },
+            settings: new AssertSettings { EntityRecords = true },
             FileResource.Open("BookInterfaceQuery.graphql"),
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("BookSchema.graphql"));
@@ -94,7 +94,7 @@ public class EntityGeneratorTests
     public void Generate_BookClient_DataInEntity_UnionDataTypes_With_Records()
     {
         AssertResult(
-            settings: new AssertSettings { EntityRecords = true, },
+            settings: new AssertSettings { EntityRecords = true },
             FileResource.Open("BookUnionQueryWithEntity.graphql"),
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("BookSchema.graphql"));
@@ -104,10 +104,11 @@ public class EntityGeneratorTests
     public void Generate_StarWars_Client_With_Defer()
     {
         AssertStarWarsResult(
-            @"query GetHero {
+            """
+            query GetHero {
                 hero(episode: NEW_HOPE) {
                     ... HeroName
-                    ... HeroAppearsIn @defer(label: ""HeroAppearsInAbc"")
+                    ... HeroAppearsIn @defer(label: "HeroAppearsInAbc")
                 }
             }
 
@@ -116,7 +117,7 @@ public class EntityGeneratorTests
                 friends {
                     nodes {
                         name
-                        ... HeroAppearsIn2 @defer(label: ""HeroAppearsIn2"")
+                        ... HeroAppearsIn2 @defer(label: "HeroAppearsIn2")
                     }
                 }
             }
@@ -127,6 +128,7 @@ public class EntityGeneratorTests
 
             fragment HeroAppearsIn2 on Character {
                 appearsIn
-            }");
+            }
+            """);
     }
 }

@@ -1,12 +1,12 @@
-﻿[
+[
   {
-    "Message": "Operation `Unnamed` has a empty selection set. Root types without subfields are disallowed.",
+    "Message": "Operation `Unnamed` has an empty selection set. Root types without subfields are disallowed.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 2,
-        "Column": 17
+        "Line": 1,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -14,29 +14,6 @@
       "type": "Subscription",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "OperationDefinition",
-      "Location": {
-        "Start": 17,
-        "End": 46,
-        "Line": 2,
-        "Column": 17
-      },
-      "Name": null,
-      "Operation": "Subscription",
-      "VariableDefinitions": [],
-      "Directives": [],
-      "SelectionSet": {
-        "Kind": "SelectionSet",
-        "Location": {
-          "Start": 30,
-          "End": 46,
-          "Line": 2,
-          "Column": 30
-        },
-        "Selections": []
-      }
-    }
+    "Exception": null
   }
 ]

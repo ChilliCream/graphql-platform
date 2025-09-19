@@ -1,4 +1,5 @@
-using System;
+#nullable disable
+
 using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Utilities;

@@ -1,104 +1,106 @@
 Variables:
 ---------------
-{
-  "a": {
-    "Kind": "StringValue",
-    "Location": null,
-    "Value": "b",
-    "Block": false
-  },
-  "b": {
-    "Kind": "ObjectValue",
-    "Location": null,
-    "Fields": [
-      {
-        "Kind": "ObjectField",
-        "Location": null,
-        "Name": {
-          "Kind": "Name",
+[
+  {
+    "a": {
+      "Kind": "StringValue",
+      "Location": null,
+      "Value": "b",
+      "Block": false
+    },
+    "b": {
+      "Kind": "ObjectValue",
+      "Location": null,
+      "Fields": [
+        {
+          "Kind": "ObjectField",
           "Location": null,
-          "Value": "a"
-        },
-        "Value": {
-          "Kind": "StringValue",
-          "Location": null,
-          "Value": "b",
-          "Block": false
-        }
-      },
-      {
-        "Kind": "ObjectField",
-        "Location": null,
-        "Name": {
-          "Kind": "Name",
-          "Location": null,
-          "Value": "b"
-        },
-        "Value": {
-          "Kind": "BooleanValue",
-          "Location": null,
-          "Value": true
-        }
-      },
-      {
-        "Kind": "ObjectField",
-        "Location": null,
-        "Name": {
-          "Kind": "Name",
-          "Location": null,
-          "Value": "c"
-        },
-        "Value": {
-          "Kind": "IntValue",
-          "Location": null,
-          "Value": "1"
-        }
-      },
-      {
-        "Kind": "ObjectField",
-        "Location": null,
-        "Name": {
-          "Kind": "Name",
-          "Location": null,
-          "Value": "d"
-        },
-        "Value": {
-          "Kind": "FloatValue",
-          "Location": null,
-          "Format": "FixedPoint",
-          "Value": "1.1"
-        }
-      }
-    ]
-  },
-  "c": {
-    "Kind": "ListValue",
-    "Location": null,
-    "Items": [
-      {
-        "Kind": "ObjectValue",
-        "Location": null,
-        "Fields": [
-          {
-            "Kind": "ObjectField",
+          "Name": {
+            "Kind": "Name",
             "Location": null,
-            "Name": {
-              "Kind": "Name",
-              "Location": null,
-              "Value": "a"
-            },
-            "Value": {
-              "Kind": "StringValue",
-              "Location": null,
-              "Value": "b",
-              "Block": false
-            }
+            "Value": "a"
+          },
+          "Value": {
+            "Kind": "StringValue",
+            "Location": null,
+            "Value": "b",
+            "Block": false
           }
-        ]
-      }
-    ]
+        },
+        {
+          "Kind": "ObjectField",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "b"
+          },
+          "Value": {
+            "Kind": "BooleanValue",
+            "Location": null,
+            "Value": true
+          }
+        },
+        {
+          "Kind": "ObjectField",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "c"
+          },
+          "Value": {
+            "Kind": "IntValue",
+            "Location": null,
+            "Value": "1"
+          }
+        },
+        {
+          "Kind": "ObjectField",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "d"
+          },
+          "Value": {
+            "Kind": "FloatValue",
+            "Location": null,
+            "Format": "FixedPoint",
+            "Value": "1.1"
+          }
+        }
+      ]
+    },
+    "c": {
+      "Kind": "ListValue",
+      "Location": null,
+      "Items": [
+        {
+          "Kind": "ObjectValue",
+          "Location": null,
+          "Fields": [
+            {
+              "Kind": "ObjectField",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "a"
+              },
+              "Value": {
+                "Kind": "StringValue",
+                "Location": null,
+                "Value": "b",
+                "Block": false
+              }
+            }
+          ]
+        }
+      ]
+    }
   }
-}
+]
 ---------------
 
 Extensions:
@@ -123,7 +125,13 @@ Extensions:
 
 Query:
 ---------------
-query queryName($foo: ComplexType, $site: Site = MOBILE) {
+"Query description"
+query queryName(
+  "$foo description"
+  $foo: ComplexType
+  "$site description"
+  $site: Site = MOBILE
+) {
   whoever123is: node(id: [ 123, 456 ]) {
     id
     ... on User @defer {
@@ -144,6 +152,7 @@ query queryName($foo: ComplexType, $site: Site = MOBILE) {
   }
 }
 
+"Mutation description"
 mutation likeStory {
   like(story: 123) @defer {
     story {
@@ -152,7 +161,11 @@ mutation likeStory {
   }
 }
 
-subscription StoryLikeSubscription($input: StoryLikeSubscribeInput) {
+"Subscription description"
+subscription StoryLikeSubscription(
+  "$input description"
+  $input: StoryLikeSubscribeInput
+) {
   storyLikeSubscribe(input: $input) {
     story {
       likers {
@@ -165,6 +178,7 @@ subscription StoryLikeSubscription($input: StoryLikeSubscribeInput) {
   }
 }
 
+"Fragment description"
 fragment frag on Friend {
   foo(size: $size, bar: $b, obj: { key: "value", block: """
       block string uses \"""

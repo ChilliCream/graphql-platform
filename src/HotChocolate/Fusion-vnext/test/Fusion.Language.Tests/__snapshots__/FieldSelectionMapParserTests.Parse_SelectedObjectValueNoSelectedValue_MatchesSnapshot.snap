@@ -1,0 +1,31 @@
+{
+  "Fields": [
+    {
+      "Kind": "ObjectFieldSelection",
+      "Location": {
+        "Start": 2,
+        "End": 10,
+        "Line": 1,
+        "Column": 3
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 2,
+          "End": 10,
+          "Line": 1,
+          "Column": 3
+        },
+        "Value": "field1"
+      },
+      "ValueSelection": null
+    }
+  ],
+  "Kind": "ObjectValueSelection",
+  "Location": {
+    "Start": 0,
+    "End": 10,
+    "Line": 1,
+    "Column": 1
+  }
+}

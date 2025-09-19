@@ -1,0 +1,11 @@
+{
+  "data": {
+    "__typename": "Query"
+  },
+  "extensions": {
+    "persistedQuery": {
+      "md5Hash": "hash",
+      "persisted": true
+    }
+  }
+}

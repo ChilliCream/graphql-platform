@@ -1,10 +1,8 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
-
-#nullable enable
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types;
 
@@ -14,9 +12,10 @@ namespace HotChocolate.Types;
 /// the leaves on these trees are GraphQL scalars.
 /// </summary>
 public abstract partial class ScalarType
-    : TypeSystemObjectBase<ScalarTypeDefinition>
+    : TypeSystemObject<ScalarTypeConfiguration>
+    , IScalarTypeDefinition
     , ILeafType
-    , IHasDirectives
+    , IHasRuntimeType
 {
     private Uri? _specifiedBy;
 
@@ -32,9 +31,14 @@ public abstract partial class ScalarType
     public BindingBehavior Bind { get; }
 
     /// <summary>
-    /// The .net type representation of this scalar.
+    /// The .NET type representation of this scalar.
     /// </summary>
     public abstract Type RuntimeType { get; }
+
+    /// <summary>
+    /// Gets the schema coordinate of this scalar type.
+    /// </summary>
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
     /// <summary>
     /// Gets the optional description of this scalar type.
@@ -53,11 +57,33 @@ public abstract partial class ScalarType
         }
     }
 
-    public IDirectiveCollection Directives { get; private set; }
+    /// <summary>
+    /// Gets the directives of this scalar type.
+    /// </summary>
+    public DirectiveCollection Directives { get; private set; }
 
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => Directives.AsReadOnlyDirectiveCollection();
+
+    /// <summary>
+    /// Provides access to the schema type converter.
+    /// </summary>
     protected ITypeConverter Converter => _converter;
 
-    public bool IsAssignableFrom(INamedType type) => ReferenceEquals(type, this);
+    /// <summary>
+    /// Defines if the specified <paramref name="type"/> is assignable from the current <see cref="ScalarType"/>.
+    /// </summary>
+    /// <param name="type">
+    /// The type that shall be checked.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <paramref name="type"/> is assignable from the current <see cref="ScalarType"/>;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    public bool IsAssignableFrom(ITypeDefinition type)
+        => ReferenceEquals(type, this);
+
+    public bool Equals(IType? other) => ReferenceEquals(other, this);
 
     /// <summary>
     /// Defines if the specified <paramref name="valueSyntax" />
@@ -77,7 +103,7 @@ public abstract partial class ScalarType
 
     /// <summary>
     /// Defines if the specified <paramref name="runtimeValue" />
-    /// is a instance of this type.
+    /// is an instance of this type.
     /// </summary>
     /// <param name="runtimeValue">
     /// A value representation of this type.
@@ -92,12 +118,13 @@ public abstract partial class ScalarType
         {
             return true;
         }
+
         return RuntimeType.IsInstanceOfType(runtimeValue);
     }
 
     /// <summary>
     /// Parses the specified <paramref name="valueSyntax" />
-    /// to the .net representation of this type.
+    /// to the .NET representation of this type.
     /// </summary>
     /// <param name="valueSyntax">
     ///     The literal that shall be parsed.
@@ -113,13 +140,13 @@ public abstract partial class ScalarType
     public abstract object? ParseLiteral(IValueNode valueSyntax);
 
     /// <summary>
-    /// Parses the .net value representation to a value literal.
+    /// Parses the .NET value representation to a value literal.
     /// </summary>
     /// <param name="runtimeValue">
-    /// The .net value representation.
+    /// The .NET value representation.
     /// </param>
     /// <returns>
-    /// Returns a GraphQL literal representing the .net value.
+    /// Returns a GraphQL literal representing the .NET value.
     /// </returns>
     /// <exception cref="SerializationException">
     /// The specified <paramref name="runtimeValue" /> cannot be parsed
@@ -128,7 +155,7 @@ public abstract partial class ScalarType
     public abstract IValueNode ParseValue(object? runtimeValue);
 
     /// <summary>
-    /// Parses a result value of this into a GraphQL value syntax representation.
+    /// Parses a result value of this scalar into a GraphQL value syntax representation.
     /// </summary>
     /// <param name="resultValue">
     /// A result value representation of this type.
@@ -143,10 +170,10 @@ public abstract partial class ScalarType
     public abstract IValueNode ParseResult(object? resultValue);
 
     /// <summary>
-    /// Serializes the .net value representation.
+    /// Serializes the .NET value representation.
     /// </summary>
     /// <param name="runtimeValue">
-    /// The .net value representation.
+    /// The .NET value representation.
     /// </param>
     /// <returns>
     /// Returns the serialized value.
@@ -172,10 +199,10 @@ public abstract partial class ScalarType
     }
 
     /// <summary>
-    /// Tries to serializes the .net value representation to the output format.
+    /// Tries to serializes the .NET value representation to the output format.
     /// </summary>
     /// <param name="runtimeValue">
-    /// The .net value representation.
+    /// The .NET value representation.
     /// </param>
     /// <param name="resultValue">
     /// The serialized value.
@@ -186,13 +213,13 @@ public abstract partial class ScalarType
     public abstract bool TrySerialize(object? runtimeValue, out object? resultValue);
 
     /// <summary>
-    /// Deserializes the serialized value to it`s .net value representation.
+    /// Deserializes the serialized value to it`s .NET value representation.
     /// </summary>
     /// <param name="resultValue">
     /// The serialized value representation.
     /// </param>
     /// <returns>
-    /// Returns the .net value representation.
+    /// Returns the .NET value representation.
     /// </returns>
     /// <exception cref="SerializationException">
     /// The specified <paramref name="resultValue" /> cannot be deserialized
@@ -211,13 +238,13 @@ public abstract partial class ScalarType
     }
 
     /// <summary>
-    /// Tries to deserializes the value from the output format to the .net value representation.
+    /// Tries to deserializes the value from the output format to the .NET value representation.
     /// </summary>
     /// <param name="resultValue">
     /// The serialized value.
     /// </param>
     /// <param name="runtimeValue">
-    /// The .net value representation.
+    /// The .NET value representation.
     /// </param>
     /// <returns>
     /// <c>true</c> if the serialized value was correctly deserialized; otherwise, <c>false</c>.
@@ -240,4 +267,22 @@ public abstract partial class ScalarType
         value = default!;
         return false;
     }
+
+    /// <summary>
+    /// Returns a string that represents the current <see cref="ScalarType"/>.
+    /// </summary>
+    /// <returns>
+    /// A string that represents the current <see cref="ScalarType"/>.
+    /// </returns>
+    public override string ToString() => Format(this).ToString();
+
+    /// <summary>
+    /// Creates a <see cref="ScalarTypeDefinitionNode"/> from the current <see cref="ScalarType"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns a <see cref="ScalarTypeDefinitionNode"/>.
+    /// </returns>
+    public ScalarTypeDefinitionNode ToSyntaxNode() => Format(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => ToSyntaxNode();
 }

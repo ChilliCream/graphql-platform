@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets.Protocols;
 
@@ -29,8 +27,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         ServiceCollection services = null!;
 
         // act
-        var ex =
-            Record.Exception(() => services.AddProtocol<GraphQLWebSocketProtocolFactory>());
+        var ex = Record.Exception(services.AddProtocol<GraphQLWebSocketProtocolFactory>);
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);

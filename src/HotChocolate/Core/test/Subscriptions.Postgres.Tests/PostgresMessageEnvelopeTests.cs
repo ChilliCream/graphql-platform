@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace HotChocolate.Subscriptions.Postgres;
@@ -87,7 +85,7 @@ public class PostgresMessageEnvelopeTests
     public void Format_ShouldThrow_WithBigPayload()
     {
         // arrange
-        var topic = "test";
+        const string topic = "test";
         var payload = new string('a', 100_000);
 
         // act, assert
@@ -100,7 +98,7 @@ public class PostgresMessageEnvelopeTests
     {
         // arrange
         var topic = new string('a', 100_000);
-        var payload = "test";
+        const string payload = "test";
 
         // act, assert
         Assert.Throws<ArgumentException>(() =>

@@ -1,6 +1,4 @@
-using System;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -23,6 +21,7 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData(typeof(IntValueNode), 1, false)]
     [InlineData(typeof(BooleanValueNode), true, false)]
     [InlineData(typeof(StringValueNode), "", false)]
+    [InlineData(typeof(StringValueNode), "hsla(٢٤٠, ١٠٠%, ٥٠%, .٠٥)", false)]
     [InlineData(typeof(StringValueNode), "hsla(240, 100%, 50%, .05)", true)]
     [InlineData(typeof(StringValueNode), "hsla(240, 100%, 50%, .4)", true)]
     [InlineData(typeof(StringValueNode), "hsla(240, 100%, 50%, .7)", true)]
@@ -32,7 +31,7 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, true)]
     public void IsInstanceOfType_GivenValueNode_MatchExpected(
         Type type,
-        object value,
+        object? value,
         bool expected)
     {
         // arrange
@@ -50,13 +49,14 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData(true, false)]
     [InlineData("", false)]
     [InlineData(null, true)]
+    [InlineData("hsla(٢٤٠, ١٠٠%, ٥٠%, .٠٥)", false)]
     [InlineData("hsla(240, 100%, 50%, .05)", true)]
     [InlineData("hsla(240, 100%, 50%, .4)", true)]
     [InlineData("hsla(240, 100%, 50%, .7)", true)]
     [InlineData("hsla(240, 100%, 50%, 1)", true)]
     [InlineData("hsla(240 100% 50% / .05)", true)]
     [InlineData("hsla(240 100% 50% / 5%)", true)]
-    public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
+    public void IsInstanceOfType_GivenObject_MatchExpected(object? value, bool expected)
     {
         // arrange
         // act
@@ -82,8 +82,8 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, null)]
     public void ParseLiteral_GivenValueNode_MatchExpected(
         Type type,
-        object value,
-        object expected)
+        object? value,
+        object? expected)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
@@ -105,6 +105,7 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "hsla(240, FF, 50, 0.2)")]
     [InlineData(typeof(StringValueNode), "hsla(270%, A0, 5F, 1.0)")]
     [InlineData(typeof(StringValueNode), "hsla(240, 75, .3, 25%)")]
+    [InlineData(typeof(StringValueNode), "hsla(٢٤٠, ١٠٠%, ٥٠%, .٠٥)")]
     public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
     {
         // arrange
@@ -124,8 +125,8 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData("hsla(240 100% 50% / 5%)", "hsla(240 100% 50% / 5%)")]
     [InlineData(null, null)]
     public void Deserialize_GivenValue_MatchExpected(
-        object resultValue,
-        object runtimeValue)
+        object? resultValue,
+        object? runtimeValue)
     {
         // arrange
         // act
@@ -144,6 +145,7 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData("hsla(240, FF, 50, 0.2)")]
     [InlineData("hsla(270%, A0, 5F, 1.0)")]
     [InlineData("hsla(240, 75, .3, 25%)")]
+    [InlineData("hsla(٢٤٠, ١٠٠%, ٥٠%, .٠٥)")]
     public void Deserialize_GivenValue_ThrowSerializationException(object value)
     {
         // arrange
@@ -161,8 +163,8 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData("hsla(240 100% 50% / 5%)", "hsla(240 100% 50% / 5%)")]
     [InlineData(null, null)]
     public void Serialize_GivenObject_MatchExpectedType(
-        object runtimeValue,
-        object resultValue)
+        object? runtimeValue,
+        object? resultValue)
     {
         // arrange
         // act
@@ -181,6 +183,7 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData("hsla(240, FF, 50, 0.2)")]
     [InlineData("hsla(270%, A0, 5F, 1.0)")]
     [InlineData("hsla(240, 75, .3, 25%)")]
+    [InlineData("hsla(٢٤٠, ١٠٠%, ٥٠%, .٠٥)")]
     public void Serialize_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
@@ -197,7 +200,7 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "hsla(240 100% 50% / .05)")]
     [InlineData(typeof(StringValueNode), "hsla(240 100% 50% / 5%)")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseValue_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -216,6 +219,7 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData("hsla(240, FF, 50, 0.2)")]
     [InlineData("hsla(270%, A0, 5F, 1.0)")]
     [InlineData("hsla(240, 75, .3, 25%)")]
+    [InlineData("hsla(٢٤٠, ١٠٠%, ٥٠%, .٠٥)")]
     public void ParseValue_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
@@ -232,7 +236,7 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "hsla(240 100% 50% / .05)")]
     [InlineData(typeof(StringValueNode), "hsla(240 100% 50% / 5%)")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseResult_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -251,6 +255,7 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData("hsla(240, FF, 50, 0.2)")]
     [InlineData("hsla(270%, A0, 5F, 1.0)")]
     [InlineData("hsla(240, 75, .3, 25%)")]
+    [InlineData("hsla(٢٤٠, ١٠٠%, ٥٠%, .٠٥)")]
     public void ParseResult_GivenObject_ThrowSerializationException(object value)
     {
         // arrange

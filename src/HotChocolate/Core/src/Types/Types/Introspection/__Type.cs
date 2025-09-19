@@ -1,13 +1,11 @@
 #pragma warning disable IDE1006 // Naming Styles
-using System.Linq;
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Descriptors.TypeReference;
-
-#nullable enable
 
 namespace HotChocolate.Types.Introspection;
 
@@ -15,10 +13,11 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Type : ObjectType
 {
-    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var stringType = Create(ScalarNames.String);
         var booleanType = Create(ScalarNames.Boolean);
+        var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
         var kindType = Parse($"{nameof(__TypeKind)}!");
         var typeType = Create(nameof(__Type));
         var fieldListType = Parse($"[{nameof(__Field)}!]");
@@ -27,7 +26,7 @@ internal sealed class __Type : ObjectType
         var inputValueListType = Parse($"[{nameof(__InputValue)}!]");
         var directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
-        var def = new ObjectTypeDefinition(
+        var def = new ObjectTypeConfiguration(
             Names.__Type,
             TypeResources.Type_Description,
             typeof(IType))
@@ -41,12 +40,12 @@ internal sealed class __Type : ObjectType
                 {
                     Arguments =
                     {
-                        new(Names.IncludeDeprecated, type: booleanType)
+                        new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
                 new(Names.Interfaces, type: typeListType, pureResolver: Resolvers.Interfaces),
                 new(Names.PossibleTypes, type: typeListType, pureResolver: Resolvers.PossibleTypes),
@@ -54,14 +53,12 @@ internal sealed class __Type : ObjectType
                 {
                     Arguments =
                     {
-                        new()
+                        new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
-                            Name = Names.IncludeDeprecated,
-                            Type = booleanType,
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
                 new(Names.InputFields,
                     type: inputValueListType,
@@ -69,28 +66,26 @@ internal sealed class __Type : ObjectType
                 {
                     Arguments =
                     {
-                        new()
+                        new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
-                            Name = Names.IncludeDeprecated,
-                            Type = booleanType,
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
                 new(Names.OfType, type: typeType, pureResolver: Resolvers.OfType),
                 new(Names.SpecifiedByUrl,
                     TypeResources.Type_SpecifiedByUrl_Description,
                     stringType,
-                    pureResolver: Resolvers.SpecifiedBy),
-            },
+                    pureResolver: Resolvers.SpecifiedBy)
+            }
         };
 
         if (context.DescriptorContext.Options.EnableOneOf)
         {
-            def.Fields.Add(new(Names.OneOf,
+            def.Fields.Add(new(Names.IsOneOf,
                 type: booleanType,
-                pureResolver: Resolvers.OneOf));
+                pureResolver: Resolvers.IsOneOf));
         }
 
         if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
@@ -105,78 +100,80 @@ internal sealed class __Type : ObjectType
 
     private static class Resolvers
     {
-        public static object Kind(IPureResolverContext context)
+        public static object Kind(IResolverContext context)
             => context.Parent<IType>().Kind;
 
-        public static object? Name(IPureResolverContext context)
-            => context.Parent<IType>() is INamedType n ? n.Name : null;
+        public static object? Name(IResolverContext context)
+            => context.Parent<IType>() is ITypeDefinition n ? n.Name : null;
 
-        public static object? Description(IPureResolverContext context)
-            => context.Parent<IType>() is INamedType n ? n.Description : null;
+        public static object? Description(IResolverContext context)
+            => context.Parent<IType>() is ITypeDefinition n ? n.Description : null;
 
-        public static object? Fields(IPureResolverContext context)
+        public static object? Fields(IResolverContext context)
         {
             var type = context.Parent<IType>();
             var includeDeprecated = context.ArgumentValue<bool>(Names.IncludeDeprecated);
 
-            if (type is IComplexOutputType ct)
+            if (type is IComplexTypeDefinition ct)
             {
                 return !includeDeprecated
                     ? ct.Fields.Where(t => !t.IsIntrospectionField && !t.IsDeprecated)
                     : ct.Fields.Where(t => !t.IsIntrospectionField);
             }
 
-            return default;
+            return null;
         }
 
-        public static object? Interfaces(IPureResolverContext context)
-            => context.Parent<IType>() is IComplexOutputType complexType
+        public static object? Interfaces(IResolverContext context)
+            => context.Parent<IType>() is IComplexTypeDefinition complexType
                 ? complexType.Implements
                 : null;
 
-        public static object? PossibleTypes(IPureResolverContext context)
-            => context.Parent<IType>() is INamedType nt
+        public static object? PossibleTypes(IResolverContext context)
+            => context.Parent<IType>() is ITypeDefinition nt
                 ? nt.IsAbstractType()
                     ? context.Schema.GetPossibleTypes(nt)
                     : null
                 : null;
 
-        public static object? EnumValues(IPureResolverContext context)
+        public static object? EnumValues(IResolverContext context)
             => context.Parent<IType>() is EnumType et
                 ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
                     ? et.Values
                     : et.Values.Where(t => !t.IsDeprecated)
                 : null;
 
-        public static object? InputFields(IPureResolverContext context)
-            => context.Parent<IType>() is IInputObjectType iot
+        public static object? InputFields(IResolverContext context)
+            => context.Parent<IType>() is IInputObjectTypeDefinition iot
                 ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
                     ? iot.Fields
                     : iot.Fields.Where(t => !t.IsDeprecated)
                 : null;
 
-        public static object? OfType(IPureResolverContext context)
+        public static object? OfType(IResolverContext context)
             => context.Parent<IType>() switch
             {
                 ListType lt => lt.ElementType,
-                NonNullType nnt => nnt.Type,
-                _ => null,
+                NonNullType nnt => nnt.NullableType,
+                _ => null
             };
 
-        public static object? OneOf(IPureResolverContext context)
-            => context.Parent<IType>() is IInputObjectType iot
-                ? iot.Directives.ContainsDirective(WellKnownDirectives.OneOf)
+        public static object? IsOneOf(IResolverContext context)
+            => context.Parent<IType>() is IInputObjectTypeDefinition iot
+                ? iot.Directives.ContainsName(DirectiveNames.OneOf.Name)
                 : null;
 
-        public static object? SpecifiedBy(IPureResolverContext context)
+        public static object? SpecifiedBy(IResolverContext context)
             => context.Parent<IType>() is ScalarType scalar
                 ? scalar.SpecifiedBy?.ToString()
                 : null;
 
-        public static object AppliedDirectives(IPureResolverContext context) =>
-            context.Parent<IType>() is IHasDirectives hasDirectives
-                ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.AsSyntaxNode())
-                : Enumerable.Empty<DirectiveNode>();
+        public static object AppliedDirectives(IResolverContext context) =>
+            context.Parent<IType>() is IDirectivesProvider hasDirectives
+                ? hasDirectives.Directives
+                    .Where(t => Unsafe.As<DirectiveType>(t.Definition).IsPublic)
+                    .Select(d => d.ToSyntaxNode())
+                : [];
     }
 
     public static class Names
@@ -192,7 +189,7 @@ internal sealed class __Type : ObjectType
         public const string EnumValues = "enumValues";
         public const string InputFields = "inputFields";
         public const string OfType = "ofType";
-        public const string OneOf = "oneOf";
+        public const string IsOneOf = "isOneOf";
         public const string SpecifiedByUrl = "specifiedByURL";
         public const string IncludeDeprecated = "includeDeprecated";
         public const string AppliedDirectives = "appliedDirectives";

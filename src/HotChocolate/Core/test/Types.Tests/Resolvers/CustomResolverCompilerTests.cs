@@ -1,13 +1,8 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Tests;
-using Snapshooter.Xunit;
-
-#nullable enable
 
 namespace HotChocolate.Resolvers;
 
@@ -16,17 +11,15 @@ public class CustomResolverCompilerTests
     [Fact]
     public async Task AddWellKnownState_New()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryWellKnownState>()
             .AddParameterExpressionBuilder(ctx => (SayHelloState)ctx.ContextData["someState"]!)
             .ExecuteRequestAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ sayHello }")
+                OperationRequestBuilder.New()
+                    .SetDocument("{ sayHello }")
                     .AddGlobalState("someState", new SayHelloState("Hello"))
-                    .Create())
+                    .Build())
             .MatchSnapshotAsync();
     }
 

@@ -1,12 +1,11 @@
-using System.Collections.Generic;
-using System.Threading;
+using HotChocolate.Features;
 
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
 /// The internal context of the execution engine.
 /// </summary>
-internal sealed partial class OperationContext
+internal sealed partial class OperationContext : IFeatureProvider
 {
     public IDictionary<string, object?> ContextData
     {
@@ -27,6 +26,16 @@ internal sealed partial class OperationContext
         {
             AssertInitialized();
             return _requestAborted;
+        }
+    }
+
+    /// <inheritdoc />
+    public IFeatureCollection Features
+    {
+        get
+        {
+            AssertInitialized();
+            return _requestContext.Features;
         }
     }
 }

@@ -39,7 +39,7 @@ Learn more about interfaces [here](https://graphql.org/learn/schema/#interfaces)
 Interfaces can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [InterfaceType("Message")]
@@ -107,7 +107,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -260,7 +260,7 @@ type TextMessage implements DatedMessage & Message {
 We can implement this like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [InterfaceType("Message")]
@@ -305,7 +305,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -462,7 +462,7 @@ public class Startup
 We can also declare additional dynamic fields (resolvers) on our interfaces.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 [InterfaceType("Message")]
@@ -484,7 +484,7 @@ public class TextMessage : IMessage
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

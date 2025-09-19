@@ -49,7 +49,7 @@ _This is of course an oversimplification that differs from the actual implementa
 
 # Defining a Resolver
 
-Resolvers can be defined in a way that should feel very familiar to C# developers, especially in the Annotation-based approach.
+Resolvers can be defined in a way that should feel very familiar to C# developers, especially in the implementation-first approach.
 
 ## Properties
 
@@ -62,7 +62,7 @@ Properties are also covered in detail by the [object type documentation](/docs/h
 A regular resolver is just a simple method, which returns a value.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -81,7 +81,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -207,7 +207,7 @@ descriptor
 
 ## ResolveWith
 
-Thus far we have looked at two ways to specify resolvers in Code-first:
+Thus far we have looked at two ways to specify resolvers in code-first:
 
 - Add new methods to the CLR type, e.g. the `T` type of `ObjectType<T>`
 - Add new fields to the schema type in the form of delegates
@@ -335,9 +335,9 @@ From the point of view of this `friends` resolver, the `User` CLR type is its _p
 We can access this so called _parent_ value like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
-In the Annotation-based approach we can just access the properties using the `this` keyword.
+In the implementation-first approach we can just access the properties using the `this` keyword.
 
 ```csharp
 public class User
@@ -369,7 +369,7 @@ public class User
 
 This is especially useful when using [type extensions](/docs/hotchocolate/v13/defining-a-schema/extending-types).
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

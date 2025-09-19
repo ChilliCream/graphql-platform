@@ -1,7 +1,7 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -11,47 +11,47 @@ public class MongoDbFilterVisitorComparableTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new Foo
         {
             BarShort = 12,
-            BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+            BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc)
         },
         new Foo
         {
             BarShort = 14,
-            BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc),
+            BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc)
         },
         new Foo
         {
             BarShort = 13,
-            BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc),
-        },
+            BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc)
+        }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
         new FooNullable
         {
             BarShort = 12,
-            BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+            BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc)
         },
         new FooNullable
         {
-            BarShort = null, 
-            BarDateTime = null,
+            BarShort = null,
+            BarDateTime = null
         },
         new FooNullable
         {
             BarShort = 14,
-            BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc),
+            BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc)
         },
         new FooNullable
         {
             BarShort = 13,
-            BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc),
-        },
+            BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc)
+        }
     ];
 
     public MongoDbFilterVisitorComparableTests(MongoResource resource)
@@ -63,25 +63,25 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortEqual_Expression_DateTime()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00Z\"}})" +
-                    "{ barDateTime}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})"
+                    + "{ barDateTime}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00Z\"}})" +
-                    "{ barDateTime}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})"
+                    + "{ barDateTime}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barDateTime: { eq: null}}){ barDateTime}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barDateTime: { eq: null}}){ barDateTime}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -97,25 +97,25 @@ public class MongoDbFilterVisitorComparableTests
     {
         // arrange
         var tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+            CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
-                    "{ barDateTime}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})"
+                    + "{ barDateTime}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
-                    "{ barDateTime}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})"
+                    + "{ barDateTime}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barDateTime: { eq: null}}){ barDateTime}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barDateTime: { eq: null}}){ barDateTime}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -130,7 +130,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -144,7 +144,7 @@ public class MongoDbFilterVisitorComparableTests
 
         var res2 = await tester.ExecuteAsync(
             """
-            { 
+            {
               root(where: { barShort: { eq: 13 } }) {
                 barShort
               }
@@ -153,8 +153,8 @@ public class MongoDbFilterVisitorComparableTests
 
         var res3 = await tester.ExecuteAsync(
             """
-            { 
-              root(where: { barShort: { eq: null } }) { 
+            {
+              root(where: { barShort: { eq: null } }) {
                 barShort
               }
             }
@@ -173,23 +173,23 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNotEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { neq: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { neq: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { neq: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { neq: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { neq: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { neq: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -198,35 +198,34 @@ public class MongoDbFilterVisitorComparableTests
             .AddResult(res2, "13")
             .AddResult(res3, "null")
             .MatchAsync();
-
     }
 
     [Fact]
     public async Task Create_ShortGreaterThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gt: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gt: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gt: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gt: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gt: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gt: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gt: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gt: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -242,28 +241,28 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNotGreaterThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngt: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngt: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngt: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngt: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngt: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngt: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngt: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngt: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -275,33 +274,32 @@ public class MongoDbFilterVisitorComparableTests
             .MatchAsync();
     }
 
-
     [Fact]
     public async Task Create_ShortGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gte: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gte: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gte: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gte: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gte: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gte: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gte: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gte: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -317,28 +315,28 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNotGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngte: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngte: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngte: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngte: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngte: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngte: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngte: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngte: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -354,28 +352,28 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortLowerThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lt: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lt: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lt: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lt: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lt: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lt: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lt: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lt: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -391,28 +389,28 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNotLowerThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlt: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlt: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlt: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlt: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlt: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlt: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlt: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlt: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -420,33 +418,32 @@ public class MongoDbFilterVisitorComparableTests
             .MatchAsync();
     }
 
-
     [Fact]
     public async Task Create_ShortLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lte: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lte: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lte: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lte: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -462,28 +459,28 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNotLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlte: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlte: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlte: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlte: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlte: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlte: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlte: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlte: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -499,23 +496,23 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { in: [ 12, 13 ]}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { in: [ 12, 13 ]}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { in: [ 13, 14 ]}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { in: [ 13, 14 ]}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { in: [ null, 14 ]}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { in: [ null, 14 ]}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -527,23 +524,23 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNotIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nin: [ 12, 13 ]}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nin: [ 12, 13 ]}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nin: [ 13, 14 ]}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nin: [ 13, 14 ]}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nin: [ null, 14 ]}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nin: [ null, 14 ]}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -559,23 +556,23 @@ public class MongoDbFilterVisitorComparableTests
     {
         // arrange
         var tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+            CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { eq: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { eq: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { eq: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { eq: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { eq: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { eq: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -590,23 +587,23 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableNotEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { neq: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { neq: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { neq: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { neq: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { neq: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { neq: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -616,33 +613,33 @@ public class MongoDbFilterVisitorComparableTests
             .AddResult(res3, "null")
             .MatchAsync();
     }
-    
+
     [Fact]
     public async Task Create_ShortNullableGreaterThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gt: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gt: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gt: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gt: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gt: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gt: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gt: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gt: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -657,28 +654,28 @@ public class MongoDbFilterVisitorComparableTests
     [Fact]
     public async Task Create_ShortNullableNotGreaterThan_Expression()
     {
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngt: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngt: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngt: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngt: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngt: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngt: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngt: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngt: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -694,28 +691,28 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gte: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gte: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gte: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gte: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gte: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gte: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { gte: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { gte: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -730,29 +727,29 @@ public class MongoDbFilterVisitorComparableTests
     [Fact]
     public async Task Create_ShortNullableNotGreaterThanOrEquals_Expression()
     {
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngte: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngte: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngte: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngte: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngte: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngte: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { ngte: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { ngte: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -768,28 +765,28 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableLowerThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lt: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lt: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lt: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lt: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lt: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lt: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lt: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lt: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -805,28 +802,28 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableNotLowerThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlt: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlt: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlt: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlt: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlt: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlt: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlt: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlt: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -838,33 +835,32 @@ public class MongoDbFilterVisitorComparableTests
             .MatchAsync();
     }
 
-
     [Fact]
     public async Task Create_ShortNullableLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lte: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lte: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lte: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { lte: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -880,28 +876,28 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableNotLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlte: 12}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlte: 12}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlte: 13}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlte: 13}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlte: 14}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlte: 14}}){ barShort}}")
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nlte: null}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nlte: null}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -917,23 +913,23 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { in: [ 12, 13 ]}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { in: [ 12, 13 ]}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { in: [ 13, 14 ]}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { in: [ 13, 14 ]}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { in: [ 13, null ]}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { in: [ 13, null ]}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -948,23 +944,23 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableNotIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nin: [ 12, 13 ]}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nin: [ 12, 13 ]}}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nin: [ 13, 14 ]}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nin: [ 13, 14 ]}}){ barShort}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nin: [ 13, null ]}}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { barShort: { nin: [ 13, null ]}}){ barShort}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -985,7 +981,7 @@ public class MongoDbFilterVisitorComparableTests
                     .Type<StringType>()
                     .Resolve("foo")
                     .Argument("test", a => a.Type<FilterInputType<Foo>>()))
-            .AddMongoDbFiltering(compatabilityMode: true)
+            .AddMongoDbFiltering(compatibilityMode: true)
             .Create();
 
         // assert
@@ -1015,6 +1011,7 @@ public class MongoDbFilterVisitorComparableTests
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public short BarShort { get; set; }
@@ -1035,6 +1032,7 @@ public class MongoDbFilterVisitorComparableTests
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public short? BarShort { get; set; }

@@ -2,16 +2,16 @@ namespace HotChocolate.Types;
 
 internal sealed class ResolverArgument(
     string name,
-    FieldCoordinate coordinate,
+    SchemaCoordinate coordinate,
     IInputType type,
     Type runtimeType,
     IValueNode? defaultValue,
     IInputValueFormatter? formatter)
-    : IInputFieldInfo
+    : IInputValueInfo
 {
     public string Name { get; } = name;
 
-    public FieldCoordinate Coordinate { get; } = coordinate;
+    public SchemaCoordinate Coordinate { get; } = coordinate;
 
     public IInputType Type { get; } = type;
 
@@ -21,4 +21,3 @@ internal sealed class ResolverArgument(
 
     public IInputValueFormatter? Formatter { get; } = formatter;
 }
-

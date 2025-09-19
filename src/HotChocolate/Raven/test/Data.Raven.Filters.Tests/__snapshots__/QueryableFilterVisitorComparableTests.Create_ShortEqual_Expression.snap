@@ -1,0 +1,63 @@
+12 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": 12
+      }
+    ]
+  }
+}
+---------------
+
+12 SQL:
+---------------
+from 'Foos' where BarShort = $p0
+---------------
+
+13 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": 13
+      }
+    ]
+  }
+}
+---------------
+
+13 SQL:
+---------------
+from 'Foos' where BarShort = $p0
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `eq` of type ShortOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 33
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "Short!",
+        "filterType": "ShortOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -15,7 +13,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         Context context)
     {
         context.Nodes.Push(node);
-        context.Types.Push(context.Schema.GetOperationType(node.Operation)!);
+        context.Types.Push(context.Schema.GetOperationType(node.Operation));
         node = base.RewriteOperationDefinition(node, context)!;
         context.Types.Pop();
         context.Nodes.Pop();
@@ -26,14 +24,14 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         FieldNode node,
         Context context)
     {
-        if(node.Name.Value.Equals(WellKnownNames.TypeName))
+        if (node.Name.Value.Equals(WellKnownNames.TypeName))
         {
             return node;
         }
 
-        var field = ((IComplexOutputType)context.Types.Peek()).Fields[node.Name.Value];
+        var field = ((IComplexTypeDefinition)context.Types.Peek()).Fields[node.Name.Value];
 
-        if(field.Type.NamedType().IsLeafType())
+        if (field.Type.NamedType().IsLeafType())
         {
             return node;
         }
@@ -53,7 +51,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         context.Nodes.Push(node);
         context.Types.Push(node.TypeCondition is null
             ? context.Types.Peek()
-            : context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value));
+            : context.Schema.Types.GetType<ITypeDefinition>(node.TypeCondition.Name.Value));
         node = base.RewriteInlineFragment(node, context)!;
         context.Types.Pop();
         context.Nodes.Pop();
@@ -65,7 +63,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         Context context)
     {
         context.Nodes.Push(node);
-        context.Types.Push(context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value));
+        context.Types.Push(context.Schema.Types.GetType<ITypeDefinition>(node.TypeCondition.Name.Value));
         node = base.RewriteFragmentDefinition(node, context)!;
         context.Types.Pop();
         context.Nodes.Pop();
@@ -109,17 +107,17 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         return current;
     }
 
-    public static DocumentNode Rewrite(DocumentNode document, ISchema schema)
+    public static DocumentNode Rewrite(DocumentNode document, ISchemaDefinition schema)
     {
         var rewriter = new EntityIdRewriter();
         return rewriter.RewriteDocument(document, new Context(schema))!;
     }
 
-    public class Context(ISchema schema)
+    public class Context(ISchemaDefinition schema)
     {
-        public ISchema Schema { get; } = schema;
+        public ISchemaDefinition Schema { get; } = schema;
 
-        public Stack<INamedType> Types { get; } = new();
+        public Stack<ITypeDefinition> Types { get; } = new();
 
         public Stack<ISyntaxNode> Nodes { get; } = new();
     }

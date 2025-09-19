@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 
@@ -56,7 +52,7 @@ public sealed class FileReferenceNode
     public SyntaxKind Kind => SyntaxKind.StringValue;
 
     /// <summary>
-    /// Gets a <see cref="Location"/> of this node in the parsed source text 
+    /// Gets a <see cref="Location"/> of this node in the parsed source text
     /// if available the parser provided this information.
     /// </summary>
     public Location? Location => null;
@@ -76,8 +72,7 @@ public sealed class FileReferenceNode
     /// <returns>
     /// Returns the children of this node..
     /// </returns>
-    public IEnumerable<ISyntaxNode> GetNodes()
-        => Enumerable.Empty<ISyntaxNode>();
+    public IEnumerable<ISyntaxNode> GetNodes() => [];
 
     /// <summary>
     /// Determines whether the specified <see cref="IValueNode"/> is equal
@@ -99,8 +94,8 @@ public sealed class FileReferenceNode
             return false;
         }
 
-        if (ReferenceEquals(this, other) ||
-            ReferenceEquals(Value, other.Value))
+        if (ReferenceEquals(this, other)
+            || ReferenceEquals(Value, other.Value))
         {
             return true;
         }

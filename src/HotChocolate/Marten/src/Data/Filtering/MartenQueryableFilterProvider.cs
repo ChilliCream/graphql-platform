@@ -43,6 +43,6 @@ public class MartenQueryableFilterProvider : QueryableFilterProvider
     }
 
     protected override bool IsInMemoryQuery<TEntityType>(object? input)
-        => base.IsInMemoryQuery<TEntityType>(input) &&
-            input is not IMartenQueryable<TEntityType> and not IMartenQueryable;
+        => base.IsInMemoryQuery<TEntityType>(input)
+            && input is not IMartenQueryable<TEntityType>;
 }

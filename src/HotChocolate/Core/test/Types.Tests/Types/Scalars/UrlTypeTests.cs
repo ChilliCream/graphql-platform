@@ -1,4 +1,3 @@
-﻿using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -25,7 +24,7 @@ public class UrlTypeTests
         var literal = new StringValueNode(expected.AbsoluteUri);
 
         // act
-        var actual = (Uri)urlType.ParseLiteral(literal);
+        var actual = (Uri?)urlType.ParseLiteral(literal);
 
         // assert
         Assert.Equal(expected, actual);
@@ -54,7 +53,7 @@ public class UrlTypeTests
         var literal = new StringValueNode($"{expected}");
 
         // act
-        var actual = (Uri)urlType.ParseLiteral(literal);
+        var actual = (Uri?)urlType.ParseLiteral(literal);
 
         // Assert
         Assert.Equal(expected, actual);
@@ -194,7 +193,7 @@ public class UrlTypeTests
         var urlType = new UrlType();
 
         // act
-        Action action = () => urlType.IsInstanceOfType(null);
+        Action action = () => urlType.IsInstanceOfType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -213,5 +212,4 @@ public class UrlTypeTests
         // assert
         Assert.False(isUrlType);
     }
-
 }

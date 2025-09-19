@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -35,6 +34,6 @@ public interface ISchemaDirective
     void ApplyConfiguration(
         IDescriptorContext context,
         DirectiveNode directiveNode,
-        IDefinition definition,
-        Stack<IDefinition> path);
+        ITypeSystemConfiguration definition,
+        Stack<ITypeSystemConfiguration> path);
 }

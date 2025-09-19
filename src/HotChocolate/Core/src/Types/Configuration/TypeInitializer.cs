@@ -1,19 +1,16 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Linq;
-using HotChocolate.Configuration.Validation;
+using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
-using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
-
-#nullable enable
+using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
 namespace HotChocolate.Configuration;
 
@@ -24,8 +21,7 @@ internal sealed class TypeInitializer
     private readonly IDescriptorContext _context;
     private readonly TypeInterceptor _interceptor;
     private readonly IsOfTypeFallback? _isOfType;
-    private readonly Func<TypeSystemObjectBase, RootTypeKind> _getTypeKind;
-    private readonly IReadOnlySchemaOptions _options;
+    private readonly Func<TypeSystemObject, RootTypeKind> _getTypeKind;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
     private readonly TypeReferenceResolver _typeReferenceResolver;
@@ -41,19 +37,15 @@ internal sealed class TypeInitializer
         TypeRegistry typeRegistry,
         IReadOnlyList<TypeReference> initialTypes,
         IsOfTypeFallback? isOfType,
-        Func<TypeSystemObjectBase, RootTypeKind> getTypeKind,
+        Func<TypeSystemObject, RootTypeKind> getTypeKind,
         IReadOnlySchemaOptions options)
     {
-        _context = descriptorContext ??
-            throw new ArgumentNullException(nameof(descriptorContext));
-        _typeRegistry = typeRegistry ??
-            throw new ArgumentNullException(nameof(typeRegistry));
-        var initialTypes1 = initialTypes ??
-            throw new ArgumentNullException(nameof(initialTypes));
-        _getTypeKind = getTypeKind ??
-            throw new ArgumentNullException(nameof(getTypeKind));
-        _options = options ??
-            throw new ArgumentNullException(nameof(options));
+        ArgumentNullException.ThrowIfNull(options);
+
+        _context = descriptorContext ?? throw new ArgumentNullException(nameof(descriptorContext));
+        _typeRegistry = typeRegistry ?? throw new ArgumentNullException(nameof(typeRegistry));
+        var initialTypes1 = initialTypes ?? throw new ArgumentNullException(nameof(initialTypes));
+        _getTypeKind = getTypeKind ?? throw new ArgumentNullException(nameof(getTypeKind));
 
         _isOfType = isOfType ?? options.DefaultIsOfTypeCheck;
 
@@ -101,23 +93,27 @@ internal sealed class TypeInitializer
         // we can now build pairs to bring together types and their type extensions.
         MergeTypeExtensions();
 
-        // last we complete the types. Completing types means that we will assign all
-        // the fields resolving all missing parts and then making the types immutable.
+        // before we start completing types we will compile the resolvers.
+        CompileResolvers();
+
+        // now we complete the types. This means at this point we are completing
+        // the type structure. Fields and arguments will be accessible after
+        // types are completed.
         CompleteTypes();
 
-        // at this point everything is completely initialized and we just trigger a type
-        // finalize to allow the type to cleanup any initialization data structures.
+        // next we are completing type system directives and feature metadata.
+        CompleteMetadata();
+
+        // before we can finalize the types and make the immutable we are going to make the
+        // types executable. This means that at this point we are taking the compiled resolvers
+        // and are compiling from them field middleware that are assigned to the output fields.
+        MakeExecutable();
+
+        // at this point everything is completely initialized, and we just trigger a type
+        // finalize to allow the type to clean up any initialization data structures.
         FinalizeTypes();
 
         // if we do not have any errors we will validate the types for spec violations.
-        if (_errors.Count == 0)
-        {
-            _errors.AddRange(
-                SchemaValidator.Validate(
-                    _typeRegistry.Types.Select(t => t.Type),
-                    _options));
-        }
-
         if (_errors.Count > 0)
         {
             throw new SchemaException(_errors);
@@ -128,12 +124,12 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeDiscoverTypes();
 
-        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0, } errors)
+        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0 } errors)
         {
             throw new SchemaException(errors);
         }
 
-        // lets tell the type interceptors what types we have initialized.
+        // let's tell the type interceptors what types we have initialized.
         _interceptor.OnTypesInitialized();
         _interceptor.OnAfterDiscoverTypes();
     }
@@ -156,8 +152,8 @@ internal sealed class TypeInitializer
                     if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         var typeRef = interfaceType.TypeReference;
-                        ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeRef);
-                        objectType.Dependencies.Add(new(typeRef, Completed));
+                        ((ObjectType)objectType.Type).Configuration!.Interfaces.Add(typeRef);
+                        objectType.Dependencies.Add(new TypeDependency(typeRef, Completed));
                     }
                 }
             }
@@ -166,12 +162,12 @@ internal sealed class TypeInitializer
             {
                 foreach (var interfaceType in interfaceTypes)
                 {
-                    if (!ReferenceEquals(implementing, interfaceType) &&
-                        interfaceType.RuntimeType.IsAssignableFrom(implementing.RuntimeType))
+                    if (!ReferenceEquals(implementing, interfaceType)
+                        && interfaceType.RuntimeType.IsAssignableFrom(implementing.RuntimeType))
                     {
                         var typeRef = interfaceType.TypeReference;
-                        ((InterfaceType)implementing.Type).Definition!.Interfaces.Add(typeRef);
-                        implementing.Dependencies.Add(new(typeRef, Completed));
+                        ((InterfaceType)implementing.Type).Configuration!.Interfaces.Add(typeRef);
+                        implementing.Dependencies.Add(new TypeDependency(typeRef, Completed));
                     }
                 }
             }
@@ -188,7 +184,7 @@ internal sealed class TypeInitializer
                     if (unionType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         var typeRef = objectType.TypeReference;
-                        ((UnionType)unionType.Type).Definition!.Types.Add(typeRef);
+                        ((UnionType)unionType.Type).Configuration!.Types.Add(typeRef);
                     }
                 }
             }
@@ -205,10 +201,10 @@ internal sealed class TypeInitializer
         {
             var type = _typeRegistry.Types[i];
 
-            if (type.Kind == kind &&
-                processed.Add(type) &&
-                !type.IsIntrospectionType &&
-                type.RuntimeType != typeof(object))
+            if (type.Kind == kind
+                && processed.Add(type)
+                && !type.IsIntrospectionType
+                && type.RuntimeType != typeof(object))
             {
                 interfaces.Add(type);
             }
@@ -221,7 +217,7 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeCompleteTypeNames();
 
-        if (ProcessTypes(Named, type => CompleteTypeName(type)))
+        if (ProcessTypes(Named, CompleteTypeName))
         {
             _interceptor.OnTypesCompletedName();
         }
@@ -238,7 +234,7 @@ internal sealed class TypeInitializer
     }
 
     internal RegisteredType InitializeType(
-        TypeSystemObjectBase type)
+        TypeSystemObject type)
     {
         var typeReg = new RegisteredType(
             type,
@@ -295,7 +291,7 @@ internal sealed class TypeInitializer
         {
             _interceptor.OnAfterResolveRootType(
                 type.Context,
-                ((ObjectType)type.Type.Type).Definition!,
+                ((ObjectType)type.Type.Type).Configuration!,
                 type.Kind);
         }
     }
@@ -318,14 +314,14 @@ internal sealed class TypeInitializer
 
             foreach (var typeName in extensions
                 .Select(t => t.Type)
-                .OfType<INamedTypeExtension>()
+                .OfType<ITypeDefinitionExtensionMerger>()
                 .Where(t => t.ExtendsType is null)
                 .Select(t => t.Name)
                 .Distinct())
             {
-                var type = types.Find(t => t.Type.Name.EqualsOrdinal(typeName));
+                var type = types.Find(t => t.Type.Name.EqualsOrdinal(typeName) && !t.IsExtension);
 
-                if (type?.Type is INamedType namedType)
+                if (type?.Type is ITypeDefinition namedType)
                 {
                     MergeTypeExtension(
                         extensions.Where(t => t.Type.Name.EqualsOrdinal(typeName)),
@@ -339,38 +335,31 @@ internal sealed class TypeInitializer
 
             foreach (var extension in extensions.Except(processed))
             {
-                if (extension.Type is INamedTypeExtension
-                    {
-                        ExtendsType: { } extendsType,
-                    } namedTypeExtension)
+                if (extension.Type is ITypeDefinitionExtensionMerger { ExtendsType: { } extendsType } namedTypeExtension)
                 {
-                    var isSchemaType = typeof(INamedType).IsAssignableFrom(extendsType);
+                    var isSchemaType = typeof(ITypeDefinition).IsAssignableFrom(extendsType);
                     extensionArray[0] = extension;
 
-                    foreach (var possibleMatchingType in types
-                        .Where(
-                            t =>
-                                t.Type is INamedType n &&
-                                n.Kind == namedTypeExtension.Kind))
+                    foreach (var possibleMatchingType in types.Where(
+                        t => t.Type is ITypeDefinition n && n.Kind == namedTypeExtension.Kind && !t.IsExtension))
 
                     {
-                        if (isSchemaType &&
-                            extendsType.IsInstanceOfType(possibleMatchingType.Type))
+                        if (isSchemaType && extendsType.IsInstanceOfType(possibleMatchingType.Type))
                         {
                             MergeTypeExtension(
                                 extensionArray,
                                 possibleMatchingType,
-                                (INamedType)possibleMatchingType.Type,
+                                (ITypeDefinition)possibleMatchingType.Type,
                                 processed);
                         }
-                        else if (!isSchemaType &&
-                            possibleMatchingType.RuntimeType != typeof(object) &&
-                            extendsType.IsAssignableFrom(possibleMatchingType.RuntimeType))
+                        else if (!isSchemaType
+                            && possibleMatchingType.RuntimeType != typeof(object)
+                            && extendsType.IsAssignableFrom(possibleMatchingType.RuntimeType))
                         {
                             MergeTypeExtension(
                                 extensionArray,
                                 possibleMatchingType,
-                                (INamedType)possibleMatchingType.Type,
+                                (ITypeDefinition)possibleMatchingType.Type,
                                 processed);
                         }
                     }
@@ -380,27 +369,27 @@ internal sealed class TypeInitializer
 
         _interceptor.OnAfterMergeTypeExtensions();
 
-        var mutationType = _rootTypes.FirstOrDefault(t => t.Kind == OperationType.Mutation);
+        var mutationType = _rootTypes.Find(t => t.Kind == OperationType.Mutation);
 
         if (mutationType.IsInitialized)
         {
             _interceptor.OnBeforeCompleteMutation(
                 mutationType.Type,
-                ((ObjectType)mutationType.Type.Type).Definition!);
+                ((ObjectType)mutationType.Type.Type).Configuration!);
         }
     }
 
     private void MergeTypeExtension(
         IEnumerable<RegisteredType> extensions,
         RegisteredType registeredType,
-        INamedType namedType,
+        ITypeDefinition namedType,
         HashSet<RegisteredType> processed)
     {
         foreach (var extension in extensions)
         {
             processed.Add(extension);
 
-            if (extension.Type is INamedTypeExtensionMerger m)
+            if (extension.Type is ITypeDefinitionExtensionMerger m)
             {
                 if (m.Kind != namedType.Kind)
                 {
@@ -411,7 +400,7 @@ internal sealed class TypeInitializer
                                     CultureInfo.InvariantCulture,
                                     TypeInitializer_Merge_KindDoesNotMatch,
                                     namedType.Name))
-                            .SetTypeSystemObject((ITypeSystemObject)namedType)
+                            .SetTypeSystemObject((TypeSystemObject)namedType)
                             .Build());
                 }
 
@@ -426,20 +415,177 @@ internal sealed class TypeInitializer
         }
     }
 
+    private void CompileResolvers()
+    {
+        foreach (var registeredType in _typeRegistry.Types)
+        {
+            CompileResolvers(registeredType);
+        }
+    }
+
+    internal void CompileResolvers(RegisteredType registeredType)
+    {
+        if (registeredType.Type is ObjectType objectType)
+        {
+            foreach (var field in objectType.Configuration!.Fields)
+            {
+                if (!field.Resolvers.HasResolvers)
+                {
+                    field.Resolvers = CompileResolver(field, _context.ResolverCompiler);
+                }
+            }
+        }
+        else if (registeredType.Type is InterfaceType interfaceType)
+        {
+            foreach (var field in interfaceType.Configuration!.Fields)
+            {
+                if (!field.Resolvers.HasResolvers)
+                {
+                    field.Resolvers = CompileResolver(field, _context.ResolverCompiler);
+                }
+            }
+        }
+    }
+
+    private static FieldResolverDelegates CompileResolver(
+        ObjectFieldConfiguration definition,
+        IResolverCompiler resolverCompiler)
+    {
+        var resolvers = definition.Resolvers;
+
+        if (resolvers.HasResolvers)
+        {
+            return resolvers;
+        }
+
+        if (definition.Expression is LambdaExpression lambdaExpression)
+        {
+            resolvers = resolverCompiler.CompileResolve(
+                lambdaExpression,
+                definition.SourceType
+                ?? definition.Member?.ReflectedType ?? definition.Member?.DeclaringType ?? typeof(object),
+                definition.ResolverType);
+        }
+        else if (definition.ResolverMember is not null)
+        {
+            var map = TypeMemHelper.RentArgumentNameMap();
+            BuildArgumentLookup(definition, map);
+
+            resolvers = resolverCompiler.CompileResolve(
+                definition.ResolverMember,
+                definition.SourceType
+                ?? definition.Member?.ReflectedType ?? definition.Member?.DeclaringType ?? typeof(object),
+                definition.ResolverType,
+                map,
+                definition.GetParameterExpressionBuilders());
+
+            TypeMemHelper.Return(map);
+        }
+        else if (definition.Member is not null)
+        {
+            var map = TypeMemHelper.RentArgumentNameMap();
+            BuildArgumentLookup(definition, map);
+
+            resolvers = resolverCompiler.CompileResolve(
+                definition.Member,
+                definition.SourceType ?? definition.Member.ReflectedType ?? definition.Member.DeclaringType,
+                definition.ResolverType,
+                map,
+                definition.GetParameterExpressionBuilders());
+
+            TypeMemHelper.Return(map);
+        }
+
+        return resolvers;
+
+        static void BuildArgumentLookup(
+            ObjectFieldConfiguration definition,
+            Dictionary<ParameterInfo, string> argumentNames)
+        {
+            foreach (var argument in definition.Arguments)
+            {
+                if (argument.Parameter is not null)
+                {
+                    argumentNames[argument.Parameter] = argument.Name;
+                }
+            }
+        }
+    }
+
+    private static FieldResolverDelegates CompileResolver(
+        InterfaceFieldConfiguration definition,
+        IResolverCompiler resolverCompiler)
+    {
+        var resolvers = definition.Resolvers;
+
+        if (resolvers.HasResolvers)
+        {
+            return resolvers;
+        }
+
+        if (definition.ResolverMember is not null)
+        {
+            var map = TypeMemHelper.RentArgumentNameMap();
+            BuildArgumentLookup(definition, map);
+
+            resolvers = resolverCompiler.CompileResolve(
+                definition.ResolverMember,
+                definition.SourceType
+                ?? definition.Member?.ReflectedType ?? definition.Member?.DeclaringType ?? typeof(object),
+                definition.ResolverType,
+                map,
+                definition.GetParameterExpressionBuilders());
+
+            TypeMemHelper.Return(map);
+        }
+        else if (definition.Member is not null)
+        {
+            var map = TypeMemHelper.RentArgumentNameMap();
+            BuildArgumentLookup(definition, map);
+
+            resolvers = resolverCompiler.CompileResolve(
+                definition.Member,
+                definition.SourceType ?? definition.Member.ReflectedType ?? definition.Member.DeclaringType,
+                definition.ResolverType,
+                map,
+                definition.GetParameterExpressionBuilders());
+
+            TypeMemHelper.Return(map);
+        }
+
+        return resolvers;
+
+        static void BuildArgumentLookup(
+            InterfaceFieldConfiguration definition,
+            Dictionary<ParameterInfo, string> argumentNames)
+        {
+            foreach (var argument in definition.Arguments)
+            {
+                if (argument.Parameter is not null)
+                {
+                    argumentNames[argument.Parameter] = argument.Name;
+                }
+            }
+        }
+    }
+
     private void CompleteTypes()
     {
         _interceptor.OnBeforeCompleteTypes();
 
-        ProcessTypes(Completed, type => CompleteType(type));
+        if (ProcessTypes(Completed, CompleteType))
+        {
+            _interceptor.OnTypesCompleted();
+        }
+
         EnsureNoErrors();
 
-        _interceptor.OnTypesCompleted();
         _interceptor.OnAfterCompleteTypes();
     }
 
     internal bool CompleteType(RegisteredType registeredType)
     {
-        if (registeredType.Status is TypeStatus.Completed)
+        if (registeredType.Type.IsCompleted)
         {
             return true;
         }
@@ -453,6 +599,42 @@ internal sealed class TypeInitializer
         return true;
     }
 
+    private void CompleteMetadata()
+    {
+        _interceptor.OnBeforeCompleteMetadata();
+
+        foreach (var registeredType in _typeRegistry.Types)
+        {
+            if (registeredType is { IsExtension: false, Status: TypeStatus.Completed })
+            {
+                registeredType.Type.CompleteMetadata(registeredType);
+                registeredType.Status = TypeStatus.MetadataCompleted;
+            }
+        }
+
+        EnsureNoErrors();
+
+        _interceptor.OnAfterCompleteMetadata();
+    }
+
+    private void MakeExecutable()
+    {
+        _interceptor.OnBeforeMakeExecutable();
+
+        foreach (var registeredType in _typeRegistry.Types)
+        {
+            if (!registeredType.IsExtension)
+            {
+                registeredType.Type.MakeExecutable(registeredType);
+                registeredType.Status = TypeStatus.Executable;
+            }
+        }
+
+        EnsureNoErrors();
+
+        _interceptor.OnAfterMakeExecutable();
+    }
+
     private void FinalizeTypes()
     {
         foreach (var registeredType in _typeRegistry.Types)
@@ -460,8 +642,11 @@ internal sealed class TypeInitializer
             if (!registeredType.IsExtension)
             {
                 registeredType.Type.FinalizeType(registeredType);
+                registeredType.Status = TypeStatus.Finalized;
             }
         }
+
+        EnsureNoErrors();
     }
 
     private bool ProcessTypes(
@@ -471,6 +656,7 @@ internal sealed class TypeInitializer
         var processed = new HashSet<TypeReference>();
         var batch = new List<RegisteredType>(GetInitialBatch(fulfilled));
         var failed = false;
+        batch.Sort(DirectivesFirst.Instance);
 
         while (!failed && processed.Count < _typeRegistry.Count && batch.Count > 0)
         {
@@ -492,6 +678,7 @@ internal sealed class TypeInitializer
             {
                 batch.Clear();
                 batch.AddRange(GetNextBatch(processed));
+                batch.Sort(DirectivesFirst.Instance);
             }
         }
 
@@ -575,11 +762,8 @@ internal sealed class TypeInitializer
     {
         foreach (var type in _next)
         {
-            if (TryNormalizeDependencies(
-                    type.Conditionals,
-                    out var normalized,
-                    out var _) &&
-                processed.IsSupersetOf(GetTypeRefsExceptSelfRefs(type, normalized)))
+            if (TryNormalizeDependencies(type.Conditionals, out var normalized, out var _)
+                && processed.IsSupersetOf(GetTypeRefsExceptSelfRefs(type, normalized)))
             {
                 yield return type;
             }
@@ -663,25 +847,57 @@ internal sealed class TypeInitializer
         }
     }
 
-    private readonly struct RegisteredRootType
+    private readonly struct RegisteredRootType(
+        ITypeCompletionContext context,
+        RegisteredType type,
+        OperationType kind)
     {
-        public RegisteredRootType(
-            ITypeCompletionContext context,
-            RegisteredType type,
-            OperationType kind)
+        public ITypeCompletionContext Context { get; } = context;
+
+        public RegisteredType Type { get; } = type;
+
+        public OperationType Kind { get; } = kind;
+
+        public bool IsInitialized { get; } = true;
+    }
+
+    private sealed class DirectivesFirst : IComparer<RegisteredType>
+    {
+        public static DirectivesFirst Instance { get; } = new();
+
+        public int Compare(RegisteredType? x, RegisteredType? y)
         {
-            Context = context;
-            Type = type;
-            Kind = kind;
-            IsInitialized = true;
+            if (x is null)
+            {
+                if (y is null)
+                {
+                    return 0;
+                }
+
+                return -1;
+            }
+
+            if (y is null)
+            {
+                return 1;
+            }
+
+            if (x.Kind == TypeKind.Directive)
+            {
+                if (y.Kind == TypeKind.Directive)
+                {
+                    return 0;
+                }
+
+                return -1;
+            }
+
+            if (y.Kind == TypeKind.Directive)
+            {
+                return 1;
+            }
+
+            return 0;
         }
-
-        public ITypeCompletionContext Context { get; }
-
-        public RegisteredType Type { get; }
-
-        public OperationType Kind { get; }
-
-        public bool IsInitialized { get; }
     }
 }

@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using CookieCrumble;
 using HotChocolate.Authorization;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -20,11 +19,11 @@ public class AuthorizeSchemaTests
             .AddTypeExtension<QueryExtensions>()
             .AddAuthorization()
             .ExecuteRequestAsync(
-                QueryRequestBuilder
+                OperationRequestBuilder
                     .New()
-                    .SetQuery("{ bar }")
+                    .SetDocument("{ bar }")
                     .SetUser(new ClaimsPrincipal())
-                    .Create());
+                    .Build());
 
         result.MatchSnapshot();
     }

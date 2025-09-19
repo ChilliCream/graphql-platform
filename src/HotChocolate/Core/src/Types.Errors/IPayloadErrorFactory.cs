@@ -1,7 +1,7 @@
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Defines a error factory that translates exceptions into GraphQL errors.
+/// Defines an error factory that translates exceptions into GraphQL errors.
 /// This has to be used together with <see cref="ErrorAttribute"/>  or
 /// <see cref="ErrorObjectFieldDescriptorExtensions.Error"/>
 /// </summary>
@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 public interface IPayloadErrorFactory<in TException, out TError> where TException : Exception
 {
     /// <summary>
-    /// Translates a exception of type <typeparamref name="TException"/> to a GraphQL error of
+    /// Translates an exception of type <typeparamref name="TException"/> to a GraphQL error of
     /// type <typeparamref name="TError"/>
     /// </summary>
     /// <param name="exception">

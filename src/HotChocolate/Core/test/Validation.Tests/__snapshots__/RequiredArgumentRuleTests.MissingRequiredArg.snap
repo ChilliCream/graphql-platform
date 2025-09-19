@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The argument `nonNullBooleanArg` is required.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 9,
-        "Column": 21
+        "Line": 8,
+        "Column": 3
       }
     ],
     "Extensions": {
@@ -24,30 +24,6 @@
       "argument": "nonNullBooleanArg",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 224,
-        "End": 264,
-        "Line": 9,
-        "Column": 21
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 224,
-          "End": 264,
-          "Line": 9,
-          "Column": 21
-        },
-        "Value": "nonNullBooleanArgField"
-      },
-      "Directives": []
-    }
+    "Exception": null
   }
 ]

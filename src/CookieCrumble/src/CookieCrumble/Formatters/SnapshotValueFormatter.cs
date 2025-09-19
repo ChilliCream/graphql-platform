@@ -5,7 +5,8 @@ namespace CookieCrumble.Formatters;
 /// <summary>
 /// Formats a snapshot segment value for the snapshot file.
 /// </summary>
-public abstract class SnapshotValueFormatter<TValue>(string markdownKind = "text") : ISnapshotValueFormatter
+public abstract class SnapshotValueFormatter<TValue>(string markdownKind = "text")
+    : ISnapshotValueFormatter
     , IMarkdownSnapshotValueFormatter
 {
     public bool CanHandle(object? value)

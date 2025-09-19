@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class CatchBlockBuilder : ICode
@@ -18,11 +16,7 @@ public class CatchBlockBuilder : ICode
 
     public CatchBlockBuilder SetExceptionVariable(string name)
     {
-        if (_exception is null)
-        {
-            _exception = TypeNames.Exception;
-        }
-
+        _exception ??= TypeNames.Exception;
         _exceptionVariable = name;
         return this;
     }

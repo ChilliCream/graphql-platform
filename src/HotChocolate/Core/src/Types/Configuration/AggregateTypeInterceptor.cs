@@ -1,21 +1,16 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Configuration;
 
 internal sealed class AggregateTypeInterceptor : TypeInterceptor
 {
     private readonly List<TypeReference> _typeReferences = [];
-    private TypeInterceptor[] _typeInterceptors = Array.Empty<TypeInterceptor>();
+    private TypeInterceptor[] _typeInterceptors = [];
     private TypeInterceptor? _mutationAggregator;
 
     public void SetInterceptors(IReadOnlyCollection<TypeInterceptor> typeInterceptors)
@@ -48,23 +43,23 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
             current.OnBeforeCreateSchemaInternal(context, schemaBuilder);
             current = ref Unsafe.Add(ref current, 1)!;
         }
-        
+
         current = ref Unsafe.Add(ref start, 0)!;
         var i = 0;
-        TypeInterceptor[]? temp = null; 
-        
+        TypeInterceptor[]? temp = null;
+
         // next we determine the type interceptors that are enabled ...
         while (Unsafe.IsAddressLessThan(ref current, ref end))
         {
             var enabled = current.IsEnabled(context);
-            
+
             if (temp is null && !enabled)
             {
                 temp ??= new TypeInterceptor[_typeInterceptors.Length];
                 ref var next = ref Unsafe.Add(ref start, 0);
                 while (Unsafe.IsAddressLessThan(ref next, ref current))
                 {
-                    temp[i++] = next;   
+                    temp[i++] = next;
                     next = ref Unsafe.Add(ref next, 1)!;
                 }
             }
@@ -113,6 +108,22 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         }
     }
 
+    internal override bool SkipDirectiveDefinition(DirectiveDefinitionNode node)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            if (Unsafe.Add(ref first, i).SkipDirectiveDefinition(node))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public override void OnBeforeDiscoverTypes()
     {
         ref var first = ref GetReference();
@@ -149,14 +160,14 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, i).OnAfterInitialize(discoveryContext, definition);
+            Unsafe.Add(ref first, i).OnAfterInitialize(discoveryContext, configuration);
         }
     }
 
@@ -201,27 +212,27 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnAfterRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, i).OnAfterRegisterDependencies(discoveryContext, definition);
+            Unsafe.Add(ref first, i).OnAfterRegisterDependencies(discoveryContext, configuration);
         }
     }
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, i).OnBeforeRegisterDependencies(discoveryContext, definition);
+            Unsafe.Add(ref first, i).OnBeforeRegisterDependencies(discoveryContext, configuration);
         }
     }
 
@@ -249,33 +260,33 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, i).OnBeforeCompleteName(completionContext, definition);
+            Unsafe.Add(ref first, i).OnBeforeCompleteName(completionContext, configuration);
         }
     }
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, i).OnAfterCompleteName(completionContext, definition);
+            Unsafe.Add(ref first, i).OnAfterCompleteName(completionContext, configuration);
         }
     }
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         ref var first = ref GetReference();
@@ -285,7 +296,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         {
             Unsafe.Add(ref first, i).OnAfterResolveRootType(
                 completionContext,
-                definition,
+                configuration,
                 operationType);
         }
     }
@@ -325,20 +336,20 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     internal override void OnBeforeCompleteMutation(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration configuration)
     {
         if (_mutationAggregator is not null)
         {
-            _mutationAggregator.OnBeforeCompleteMutation(completionContext, definition);
+            _mutationAggregator.OnBeforeCompleteMutation(completionContext, configuration);
             return;
         }
-        
+
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, i).OnBeforeCompleteMutation(completionContext, definition);
+            Unsafe.Add(ref first, i).OnBeforeCompleteMutation(completionContext, configuration);
         }
     }
 
@@ -366,59 +377,155 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, i).OnBeforeCompleteType(completionContext, definition);
+            Unsafe.Add(ref first, i).OnBeforeCompleteType(completionContext, configuration);
         }
     }
 
     public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, i).OnAfterCompleteType(completionContext, definition);
+            Unsafe.Add(ref first, i).OnAfterCompleteType(completionContext, configuration);
+        }
+    }
+
+    public override void OnBeforeCompleteMetadata()
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnBeforeCompleteMetadata();
+        }
+    }
+
+    public override void OnAfterCompleteMetadata()
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnAfterCompleteMetadata();
+        }
+    }
+
+    public override void OnBeforeCompleteMetadata(
+        ITypeCompletionContext context,
+        TypeSystemConfiguration configuration)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnBeforeCompleteMetadata(context, configuration);
+        }
+    }
+
+    public override void OnAfterCompleteMetadata(
+        ITypeCompletionContext context,
+        TypeSystemConfiguration configuration)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnAfterCompleteMetadata(context, configuration);
+        }
+    }
+
+    public override void OnBeforeMakeExecutable()
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnBeforeMakeExecutable();
+        }
+    }
+
+    public override void OnAfterMakeExecutable()
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnAfterMakeExecutable();
+        }
+    }
+
+    public override void OnBeforeMakeExecutable(
+        ITypeCompletionContext context,
+        TypeSystemConfiguration configuration)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnBeforeMakeExecutable(context, configuration);
+        }
+    }
+
+    public override void OnAfterMakeExecutable(
+        ITypeCompletionContext context,
+        TypeSystemConfiguration configuration)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnAfterMakeExecutable(context, configuration);
         }
     }
 
     public override void OnValidateType(
-        ITypeSystemObjectContext validationContext,
-        DefinitionBase definition)
+        ITypeSystemObjectContext context,
+        TypeSystemConfiguration configuration)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, i).OnValidateType(validationContext, definition);
+            Unsafe.Add(ref first, i).OnValidateType(context, configuration);
         }
     }
 
     public override bool TryCreateScope(
-        ITypeDiscoveryContext discoveryContext,
-        [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? typeDeps)
+        ITypeDiscoveryContext context,
+        [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? dependencies)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
 
         for (var i = 0; i < length; i++)
         {
-            if (Unsafe.Add(ref first, i).TryCreateScope(discoveryContext, out typeDeps))
+            if (Unsafe.Add(ref first, i).TryCreateScope(context, out dependencies))
             {
                 return true;
             }
         }
 
-        typeDeps = null;
+        dependencies = null;
         return false;
     }
 
@@ -434,19 +541,19 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
     }
 
     internal override void OnBeforeRegisterSchemaTypes(
-        IDescriptorContext context, 
-        SchemaTypesDefinition schemaTypesDefinition)
+        IDescriptorContext context,
+        SchemaTypesConfiguration configuration)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, i).OnBeforeRegisterSchemaTypes(context, schemaTypesDefinition);
+            Unsafe.Add(ref first, i).OnBeforeRegisterSchemaTypes(context, configuration);
         }
     }
 
-    internal override void OnAfterCreateSchemaInternal(IDescriptorContext context, ISchema schema)
+    internal override void OnAfterCreateSchemaInternal(IDescriptorContext context, Schema schema)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
@@ -470,11 +577,6 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     private ref TypeInterceptor GetReference()
     {
-#if NET6_0_OR_GREATER
         return ref MemoryMarshal.GetArrayDataReference(_typeInterceptors);
-#else
-        return ref MemoryMarshal.GetReference(_typeInterceptors.AsSpan());
-#endif
     }
 }
-

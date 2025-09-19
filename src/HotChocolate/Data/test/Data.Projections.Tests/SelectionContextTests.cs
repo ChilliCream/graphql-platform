@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Data.Projections.Context;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -70,7 +65,7 @@ public class SelectionContextTests
             }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         string.Join("\n", list).MatchSnapshot();
     }
 
@@ -134,7 +129,7 @@ public class SelectionContextTests
             }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         string.Join("\n", list).MatchSnapshot();
     }
 
@@ -220,7 +215,7 @@ public class SelectionContextTests
 
         // assert
 
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         string.Join("\n", list).MatchSnapshot();
     }
 
@@ -291,7 +286,7 @@ public class SelectionContextTests
             }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         Assert.IsType<InvalidOperationException>(ex).Message.MatchSnapshot();
     }
 
@@ -335,8 +330,8 @@ public class SelectionContextTests
                     visitedFields.Push(field.Field.Name);
 
                     list.Add(
-                        $"{string.Join(".", visitedFields.Reverse())}" +
-                        $":{field.IsSelected(selectedField)}");
+                        $"{string.Join(".", visitedFields.Reverse())}"
+                        + $":{field.IsSelected(selectedField)}");
 
                     foreach (var subField in field.GetFields())
                     {
@@ -361,7 +356,7 @@ public class SelectionContextTests
             }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         string.Join("\n", list).MatchSnapshot(selectedField);
     }
 }

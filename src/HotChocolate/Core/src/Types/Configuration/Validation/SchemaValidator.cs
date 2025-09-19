@@ -1,41 +1,32 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration.Validation;
 
 internal static class SchemaValidator
 {
-    private static readonly ISchemaValidationRule[] _rules =
+    private static readonly ISchemaValidationRule[] s_rules =
     [
         new ObjectTypeValidationRule(),
         new InterfaceTypeValidationRule(),
         new InputObjectTypeValidationRule(),
         new DirectiveValidationRule(),
         new InterfaceHasAtLeastOneImplementationRule(),
+        new IsSelectedPatternValidation(),
+        new EnsureFieldResultsDeclareErrorsRule()
     ];
 
-    public static IReadOnlyCollection<ISchemaError> Validate(
-        IEnumerable<ITypeSystemObject> typeSystemObjects,
-        IReadOnlySchemaOptions options)
+    public static IReadOnlyList<ISchemaError> Validate(
+        IDescriptorContext context,
+        ISchemaDefinition schema)
     {
-        if (typeSystemObjects is null)
-        {
-            throw new ArgumentNullException(nameof(typeSystemObjects));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(schema);
 
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
-        var types = typeSystemObjects.ToArray();
         var errors = new List<ISchemaError>();
 
-        foreach (var rule in _rules)
+        foreach (var rule in s_rules)
         {
-            rule.Validate(types, options, errors);
+            rule.Validate(context, schema, errors);
         }
 
         return errors;

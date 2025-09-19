@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace HotChocolate.Utilities;
 
@@ -20,7 +16,7 @@ public class MiddlewareCompilerTests
                         new List<IParameterHandler>
                         {
                             new TypeParameterHandler(typeof(string), Expression.Constant("abc")),
-                            new ServiceParameterHandler(services),
+                            new ServiceParameterHandler(services)
                         });
 
         // assert
@@ -39,7 +35,7 @@ public class MiddlewareCompilerTests
                         new List<IParameterHandler>
                         {
                             new TypeParameterHandler(typeof(string), Expression.Constant("abc")),
-                            new ServiceParameterHandler(services),
+                            new ServiceParameterHandler(services)
                         });
 
         var middleware = factory.Invoke(EmptyServiceProvider.Instance, _ => default);
@@ -50,7 +46,7 @@ public class MiddlewareCompilerTests
                 (_, _) =>
                     new List<IParameterHandler>
                     {
-                        new TypeParameterHandler(typeof(string), Expression.Constant("def")),
+                        new TypeParameterHandler(typeof(string), Expression.Constant("def"))
                     });
 
         // assert
@@ -74,7 +70,7 @@ public class MiddlewareCompilerTests
     {
         public IServiceProvider Services { get; } = services;
 
-        public string Result { get; set; }
+        public string? Result { get; set; }
     }
 
     public delegate ValueTask CustomDelegate(CustomContext context);

@@ -5,18 +5,10 @@ using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Projections;
 
-public class SchemaCache
-    : ProjectionVisitorTestBase
+public class SchemaCache(MongoResource resource) : ProjectionVisitorTestBase
     , IDisposable
 {
     private readonly ConcurrentDictionary<(Type, object), IRequestExecutor> _cache = new();
-
-    private readonly MongoResource _resource;
-
-    public SchemaCache(MongoResource resource)
-    {
-        _resource = resource;
-    }
 
     public IRequestExecutor CreateSchema<T>(
         T[] entities,
@@ -28,11 +20,11 @@ public class SchemaCache
         (Type, T[] entites) key = (typeof(T), entities);
         return _cache.GetOrAdd(
             key,
-            _ => base.CreateSchema(
+            _ => CreateSchema(
                 entities,
+                mongoResource: resource,
                 usePaging: usePaging,
                 useOffsetPaging: useOffsetPaging,
-                mongoResource: _resource,
                 objectType: objectType));
     }
 

@@ -1,5 +1,3 @@
-using System;
-
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types.Descriptors;
 
@@ -14,11 +12,10 @@ public class DefaultNamingConventionsTests
     [InlineData("FOo", "fOo")]
     [InlineData("FOOBarBaz", "fooBarBaz")]
     [InlineData("FoO", "foO")]
-    [InlineData("F","f")]
+    [InlineData("F", "f")]
     [Theory]
-    public void GetFormattedFieldName_ReturnsFormattedFieldName(
-            string fieldName,
-            string expected) {
+    public void GetFormattedFieldName_ReturnsFormattedFieldName(string fieldName, string expected)
+    {
         // arrange
         var namingConventions = new DefaultNamingConventions(
             new XmlDocumentationProvider(
@@ -26,7 +23,7 @@ public class DefaultNamingConventionsTests
                 new NoOpStringBuilderPool()));
 
         // act
-        string formattedFieldName = namingConventions.FormatFieldName(fieldName);
+        var formattedFieldName = namingConventions.FormatFieldName(fieldName);
 
         // assert
         Assert.Equal(expected, formattedFieldName);
@@ -134,30 +131,18 @@ public class DefaultNamingConventionsTests
     {
         Bar,
 
-        [GraphQLDescription("Baz Desc")] Baz,
+        [GraphQLDescription("Baz Desc")] Baz
     }
 
-    private sealed class MyInputType : InputObjectType
-    {
-    }
+    private sealed class MyInputType : InputObjectType;
 
-    private sealed class MyType : InputObjectType
-    {
-    }
+    private sealed class MyType : InputObjectType;
 
-    private sealed class MyInput : InputObjectType
-    {
-    }
+    private sealed class MyInput : InputObjectType;
 
-    public class YourInputType
-    {
-    }
+    public class YourInputType;
 
-    public class YourInput
-    {
-    }
+    public class YourInput;
 
-    public class Your
-    {
-    }
+    public class Your;
 }

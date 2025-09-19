@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using StrawberryShake.Properties;
 
 namespace StrawberryShake;
@@ -37,15 +34,23 @@ public partial class StorelessOperationExecutor<TData, TResult>
             throw new ArgumentNullException(nameof(resultPatcher));
     }
 
-    /// <inheritdocs />
+    /// <summary>
+    /// Executes the result and returns the result.
+    /// </summary>
+    /// <param name="request">
+    /// The operation request.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// Returns the operation result.
+    /// </returns>
     public async Task<IOperationResult<TResult>> ExecuteAsync(
         OperationRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         IOperationResult<TResult>? result = null;
         var resultBuilder = _resultBuilder();
@@ -76,15 +81,23 @@ public partial class StorelessOperationExecutor<TData, TResult>
         return result;
     }
 
-    /// <inheritdocs />
+    /// <summary>
+    /// Registers a requests and subscribes to updates on the request results.
+    /// </summary>
+    /// <param name="request">
+    /// The operation request.
+    /// </param>
+    /// <param name="strategy">
+    /// The request execution strategy.
+    /// </param>
+    /// <returns>
+    /// The observable that can be used to subscribe to results.
+    /// </returns>
     public IObservable<IOperationResult<TResult>> Watch(
         OperationRequest request,
         ExecutionStrategy? strategy = null)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         return new StorelessOperationExecutorObservable(_connection, _resultBuilder, request);
     }

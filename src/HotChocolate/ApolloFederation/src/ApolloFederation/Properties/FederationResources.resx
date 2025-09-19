@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Microsoft ResX Schema
@@ -170,9 +170,6 @@
   </data>
   <data name="FieldDescriptorExtensions_Override_From_CannotBeNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
-  </data>
-  <data name="ThrowHelper_EntityType_NoEntities" xml:space="preserve">
-    <value>The schema has no types with a KeyDirective and therefore no entities. Apollo federation requires at least one entity.</value>
   </data>
   <data name="ThrowHelper_EntityResolver_NoEntityResolverFound" xml:space="preserve">
     <value>The apollo gateway tries to resolve an entity for which no EntityResolver method was found.</value>

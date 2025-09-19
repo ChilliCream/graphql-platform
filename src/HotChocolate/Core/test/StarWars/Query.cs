@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using HotChocolate.Resolvers;
 using HotChocolate.StarWars.Data;
@@ -31,7 +29,7 @@ public class Query
     /// </summary>
     /// <param name="traits">The traits to look up by.</param>
     /// <returns>The character.</returns>
-    public ICharacter GetHeroByTraits(JsonElement traits)
+    public ICharacter? GetHeroByTraits(JsonElement traits)
     {
         return _repository.GetHeroByTraits(traits);
     }
@@ -39,13 +37,13 @@ public class Query
     /// <summary>
     /// Retrieve a heros by a particular Star Wars episodes.
     /// </summary>
-    /// <param name="episode">The episode to look up by.</param>
+    /// <param name="episodes">The episode to look up by.</param>
     /// <returns>The character.</returns>
     public IReadOnlyList<ICharacter> GetHeroes(IReadOnlyList<Episode> episodes)
     {
         var list = new List<ICharacter>();
 
-        foreach (Episode episode in episodes)
+        foreach (var episode in episodes)
         {
             list.Add(_repository.GetHero(episode));
         }
@@ -58,7 +56,7 @@ public class Query
     /// </summary>
     /// <param name="id">The Id of the human to retrieve.</param>
     /// <returns>The human.</returns>
-    public Human GetHuman(string id)
+    public Human? GetHuman(string id)
     {
         return _repository.GetHuman(id);
     }
@@ -68,7 +66,7 @@ public class Query
     /// </summary>
     /// <param name="id">The Id of the droid.</param>
     /// <returns>The droid.</returns>
-    public Droid GetDroid(string id)
+    public Droid? GetDroid(string id)
     {
         return _repository.GetDroid(id);
     }
@@ -77,13 +75,13 @@ public class Query
     {
         foreach (var characterId in characterIds)
         {
-            ICharacter character = _repository.GetCharacter(characterId);
+            var character = _repository.GetCharacter(characterId);
 
             if (character is null)
             {
                 context.ReportError(
-                    "Could not resolve a character for the " +
-                    $"character-id {characterId}.");
+                    "Could not resolve a character for the "
+                    + $"character-id {characterId}.");
             }
             else
             {

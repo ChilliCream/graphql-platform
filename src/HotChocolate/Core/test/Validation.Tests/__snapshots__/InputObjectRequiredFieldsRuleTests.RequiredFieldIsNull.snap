@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "`name` is a required field and cannot be null.",
     "Code": null,
@@ -14,43 +14,14 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 41
+        "Line": 2,
+        "Column": 23
       }
     ],
     "Extensions": {
       "field": "name",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Required-Fields"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "ObjectField",
-      "Location": {
-        "Start": 59,
-        "End": 71,
-        "Line": 3,
-        "Column": 41
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 59,
-          "End": 64,
-          "Line": 3,
-          "Column": 41
-        },
-        "Value": "name"
-      },
-      "Value": {
-        "Kind": "NullValue",
-        "Location": {
-          "Start": 65,
-          "End": 71,
-          "Line": 3,
-          "Column": 47
-        },
-        "Value": null
-      }
-    }
+    "Exception": null
   }
 ]

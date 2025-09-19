@@ -20,10 +20,10 @@ internal class GeometryTransformerInputFormatter : IInputValueFormatter
     }
 
     /// <inheritdoc />
-    public object? Format(object? runtimeValue)
+    public object? Format(object? originalValue)
     {
-        TransformInPlace(runtimeValue, _targetCrs);
-        return runtimeValue;
+        TransformInPlace(originalValue, _targetCrs);
+        return originalValue;
     }
 
     private void TransformInPlace(

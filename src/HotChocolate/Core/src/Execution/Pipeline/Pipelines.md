@@ -27,7 +27,7 @@ sequenceDiagram
     Exceptions Handing-->>Diagnostics: IExecutionResult
 ```
 
-## Persisted Query Pipeline
+## Persisted Operation Pipeline
 
 ```mermaid
 sequenceDiagram

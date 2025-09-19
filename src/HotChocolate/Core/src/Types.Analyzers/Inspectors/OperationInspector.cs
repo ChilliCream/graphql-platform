@@ -1,4 +1,7 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types.Analyzers.Filters;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,11 +10,15 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class OperationInspector : ISyntaxInspector
 {
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [MethodWithAttribute.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.MethodDeclaration];
+
     public bool TryHandle(
         GeneratorSyntaxContext context,
-        [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
+        [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
-        if (context.Node is MethodDeclarationSyntax { AttributeLists.Count: > 0, } methodSyntax)
+        if (context.Node is MethodDeclarationSyntax { AttributeLists.Count: > 0 } methodSyntax)
         {
             foreach (var attributeListSyntax in methodSyntax.AttributeLists)
             {
@@ -27,8 +34,8 @@ public sealed class OperationInspector : ISyntaxInspector
                     var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                     var fullName = attributeContainingTypeSymbol.ToDisplayString();
                     var operationType = ParseOperationType(fullName);
-                    
-                    if(operationType == OperationType.No)
+
+                    if (operationType == OperationType.No)
                     {
                         continue;
                     }
@@ -42,7 +49,7 @@ public sealed class OperationInspector : ISyntaxInspector
                     {
                         continue;
                     }
-                    
+
                     syntaxInfo = new OperationInfo(
                         operationType,
                         methodSymbol.ContainingType.ToDisplayString(),
@@ -62,15 +69,15 @@ public sealed class OperationInspector : ISyntaxInspector
         {
             return OperationType.Query;
         }
-        
+
         if (attributeName.Equals(WellKnownAttributes.MutationAttribute, StringComparison.Ordinal))
         {
             return OperationType.Mutation;
         }
-        
+
         if (attributeName.Equals(WellKnownAttributes.SubscriptionAttribute, StringComparison.Ordinal))
         {
-            return OperationType.Subscription;    
+            return OperationType.Subscription;
         }
 
         return OperationType.No;

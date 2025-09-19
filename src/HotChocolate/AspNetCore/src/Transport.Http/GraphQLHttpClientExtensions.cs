@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Transport.Http;
 
 /// <summary>
@@ -86,8 +81,8 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> GetAsync(
         this GraphQLHttpClient client,
         string query,
-        IReadOnlyDictionary<string, object?>? variables = default,
-        Uri? uri = default,
+        IReadOnlyDictionary<string, object?>? variables = null,
+        Uri? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query, variables: variables);
@@ -95,7 +90,7 @@ public static class GraphQLHttpClientExtensions
             ? GetAsync(client, operation, cancellationToken)
             : GetAsync(client, operation, uri, cancellationToken);
     }
-    
+
     /// <summary>
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
     /// </summary>
@@ -120,8 +115,8 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> GetAsync(
         this GraphQLHttpClient client,
         string query,
-        IReadOnlyDictionary<string, object?>? variables = default,
-        string? uri = default,
+        IReadOnlyDictionary<string, object?>? variables = null,
+        string? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query, variables: variables);
@@ -129,7 +124,7 @@ public static class GraphQLHttpClientExtensions
             ? GetAsync(client, operation, cancellationToken)
             : GetAsync(client, operation, uri, cancellationToken);
     }
-    
+
     /// <summary>
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
     /// </summary>
@@ -151,7 +146,7 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> GetAsync(
         this GraphQLHttpClient client,
         string query,
-        Uri? uri = default,
+        Uri? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query);
@@ -159,7 +154,7 @@ public static class GraphQLHttpClientExtensions
             ? GetAsync(client, operation, cancellationToken)
             : GetAsync(client, operation, uri, cancellationToken);
     }
-    
+
     /// <summary>
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
     /// </summary>
@@ -181,7 +176,7 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> GetAsync(
         this GraphQLHttpClient client,
         string query,
-        string? uri = default,
+        string? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query);
@@ -210,16 +205,13 @@ public static class GraphQLHttpClientExtensions
         OperationRequest operation,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
-        
+        ArgumentNullException.ThrowIfNull(client);
+
         var request = new GraphQLHttpRequest(operation)
         {
-            Method = GraphQLHttpMethod.Get,
+            Method = GraphQLHttpMethod.Get
         };
-        
+
         return client.SendAsync(request, cancellationToken);
     }
 
@@ -247,21 +239,14 @@ public static class GraphQLHttpClientExtensions
         string uri,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
 
-        if (uri == null)
-        {
-            throw new ArgumentNullException(nameof(uri));
-        }
-        
         var request = new GraphQLHttpRequest(operation, new Uri(uri))
         {
-            Method = GraphQLHttpMethod.Get,
+            Method = GraphQLHttpMethod.Get
         };
-        
+
         return client.SendAsync(request, cancellationToken);
     }
 
@@ -289,21 +274,14 @@ public static class GraphQLHttpClientExtensions
         Uri uri,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
 
-        if (uri == null)
-        {
-            throw new ArgumentNullException(nameof(uri));
-        }
-        
         var request = new GraphQLHttpRequest(operation, uri)
         {
-            Method = GraphQLHttpMethod.Get,
+            Method = GraphQLHttpMethod.Get
         };
-        
+
         return client.SendAsync(request, cancellationToken);
     }
 
@@ -380,7 +358,7 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> PostAsync(
         this GraphQLHttpClient client,
         string query,
-        Uri? uri = default,
+        Uri? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query);
@@ -410,7 +388,7 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> PostAsync(
         this GraphQLHttpClient client,
         string query,
-        string? uri = default,
+        string? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query);
@@ -418,7 +396,7 @@ public static class GraphQLHttpClientExtensions
             ? PostAsync(client, operation, cancellationToken)
             : PostAsync(client, operation, uri, cancellationToken);
     }
-    
+
     /// <summary>
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
@@ -443,8 +421,8 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> PostAsync(
         this GraphQLHttpClient client,
         string query,
-        IReadOnlyDictionary<string, object?>? variables = default,
-        Uri? uri = default,
+        IReadOnlyDictionary<string, object?>? variables = null,
+        Uri? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query, variables: variables);
@@ -452,7 +430,7 @@ public static class GraphQLHttpClientExtensions
             ? PostAsync(client, operation, cancellationToken)
             : PostAsync(client, operation, uri, cancellationToken);
     }
-    
+
     /// <summary>
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
@@ -477,8 +455,8 @@ public static class GraphQLHttpClientExtensions
     public static Task<GraphQLHttpResponse> PostAsync(
         this GraphQLHttpClient client,
         string query,
-        IReadOnlyDictionary<string, object?>? variables = default,
-        string? uri = default,
+        IReadOnlyDictionary<string, object?>? variables = null,
+        string? uri = null,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query, variables: variables);
@@ -507,12 +485,61 @@ public static class GraphQLHttpClientExtensions
         OperationRequest operation,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
-        
-        var request = new GraphQLHttpRequest(operation) { Method = GraphQLHttpMethod.Post, };
+        ArgumentNullException.ThrowIfNull(client);
+
+        var request = new GraphQLHttpRequest(operation) { Method = GraphQLHttpMethod.Post };
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL POST request to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="batch">
+    /// The GraphQL variable batch request.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> PostAsync(
+        this GraphQLHttpClient client,
+        VariableBatchRequest batch,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+
+        var request = new GraphQLHttpRequest(batch) { Method = GraphQLHttpMethod.Post };
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL POST request to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="batch">
+    /// The GraphQL operation batch request.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> PostAsync(
+        this GraphQLHttpClient client,
+        OperationBatchRequest batch,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+
+        var request = new GraphQLHttpRequest(batch) { Method = GraphQLHttpMethod.Post };
         return client.SendAsync(request, cancellationToken);
     }
 
@@ -540,21 +567,84 @@ public static class GraphQLHttpClientExtensions
         string uri,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
 
-        if (uri == null)
-        {
-            throw new ArgumentNullException(nameof(uri));
-        }
-        
         var request = new GraphQLHttpRequest(operation, new Uri(uri))
         {
-            Method = GraphQLHttpMethod.Post,
+            Method = GraphQLHttpMethod.Post
         };
-        
+
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL POST request to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="batch">
+    /// The GraphQL variable batch request.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> PostAsync(
+        this GraphQLHttpClient client,
+        VariableBatchRequest batch,
+        string uri,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
+
+        var request = new GraphQLHttpRequest(batch, new Uri(uri))
+        {
+            Method = GraphQLHttpMethod.Post
+        };
+
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL POST request to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="batch">
+    /// The GraphQL operation batch request.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> PostAsync(
+        this GraphQLHttpClient client,
+        OperationBatchRequest batch,
+        string uri,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
+
+        var request = new GraphQLHttpRequest(batch, new Uri(uri))
+        {
+            Method = GraphQLHttpMethod.Post
+        };
+
         return client.SendAsync(request, cancellationToken);
     }
 
@@ -582,21 +672,84 @@ public static class GraphQLHttpClientExtensions
         Uri uri,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
 
-        if (uri == null)
-        {
-            throw new ArgumentNullException(nameof(uri));
-        }
-        
         var request = new GraphQLHttpRequest(operation, uri)
         {
-            Method = GraphQLHttpMethod.Post,
+            Method = GraphQLHttpMethod.Post
         };
-        
+
         return client.SendAsync(request, cancellationToken);
-    } 
+    }
+
+    /// <summary>
+    /// Sends a GraphQL POST request to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="batch">
+    /// The GraphQL variable batch request.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> PostAsync(
+        this GraphQLHttpClient client,
+        VariableBatchRequest batch,
+        Uri uri,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
+
+        var request = new GraphQLHttpRequest(batch, uri)
+        {
+            Method = GraphQLHttpMethod.Post
+        };
+
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL POST request to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="batch">
+    /// The GraphQL operation batch request.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> PostAsync(
+        this GraphQLHttpClient client,
+        OperationBatchRequest batch,
+        Uri uri,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
+
+        var request = new GraphQLHttpRequest(batch, uri)
+        {
+            Method = GraphQLHttpMethod.Post
+        };
+
+        return client.SendAsync(request, cancellationToken);
+    }
 }

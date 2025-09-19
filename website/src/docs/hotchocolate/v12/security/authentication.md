@@ -92,7 +92,7 @@ All of this does not yet lock out unauthenticated users. It only exposes the ide
 The [ClaimsPrincipal](https://docs.microsoft.com/dotnet/api/system.security.claims.claimsprincipal) of an authenticated user can be accessed in our resolvers like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -104,7 +104,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

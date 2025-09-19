@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using StrawberryShake.Properties;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
@@ -14,12 +12,7 @@ public class CodeFileBuilder : ICodeBuilder
 
     public CodeFileBuilder AddUsing(string value)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            throw new ArgumentException(
-                Resources.CodeFileBuilder_NamespaceCannotBeNull,
-                nameof(value));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(value);
 
         _usings.Add(value);
         return this;
@@ -27,12 +20,7 @@ public class CodeFileBuilder : ICodeBuilder
 
     public CodeFileBuilder SetNamespace(string value)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            throw new ArgumentException(
-                Resources.CodeFileBuilder_NamespaceCannotBeNull,
-                nameof(value));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(value);
 
         _namespace = value;
         return this;
@@ -40,10 +28,7 @@ public class CodeFileBuilder : ICodeBuilder
 
     public CodeFileBuilder AddType(ITypeBuilder value)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         _types.Add(value);
         return this;
@@ -51,10 +36,7 @@ public class CodeFileBuilder : ICodeBuilder
 
     public void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         if (_types.Count == 0 && _usings.Count == 0)
         {
@@ -72,10 +54,7 @@ public class CodeFileBuilder : ICodeBuilder
 
     private void BuildInternal(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         if (_types.Count == 0 && _usings.Count == 0)
         {

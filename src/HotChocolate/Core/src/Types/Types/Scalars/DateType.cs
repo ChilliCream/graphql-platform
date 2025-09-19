@@ -1,38 +1,50 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
-public class DateType : ScalarType<DateTime, StringValueNode>
+public class DateType : ScalarType<DateOnly, StringValueNode>
 {
-    private const string _dateFormat = "yyyy-MM-dd";
+    private const string DateFormat = "yyyy-MM-dd";
+    private readonly bool _enforceSpecFormat;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+    /// Initializes a new instance of the <see cref="DateType"/> class.
     /// </summary>
     public DateType(
         string name,
         string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
+        BindingBehavior bind = BindingBehavior.Explicit,
+        bool disableFormatCheck = false)
         : base(name, bind)
     {
         Description = description;
+        _enforceSpecFormat = !disableFormatCheck;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+    /// Initializes a new instance of the <see cref="DateType"/> class.
+    /// </summary>
+    public DateType(bool disableFormatCheck)
+        : this(
+            ScalarNames.Date,
+            TypeResources.DateType_Description,
+            BindingBehavior.Implicit,
+            disableFormatCheck: disableFormatCheck)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DateType"/> class.
     /// </summary>
     [ActivatorUtilitiesConstructor]
     public DateType() : this(ScalarNames.Date, TypeResources.DateType_Description)
     {
     }
 
-    protected override DateTime ParseLiteral(StringValueNode valueSyntax)
+    protected override DateOnly ParseLiteral(StringValueNode valueSyntax)
     {
         if (TryDeserializeFromString(valueSyntax.Value, out var value))
         {
@@ -44,98 +56,96 @@ public class DateType : ScalarType<DateTime, StringValueNode>
             this);
     }
 
-    protected override StringValueNode ParseValue(DateTime runtimeValue) =>
+    protected override StringValueNode ParseValue(DateOnly runtimeValue) =>
         new(Serialize(runtimeValue));
 
     public override IValueNode ParseResult(object? resultValue)
     {
-        if (resultValue is null)
+        return resultValue switch
         {
-            return NullValueNode.Default;
-        }
-
-        if (resultValue is string s)
-        {
-            return new StringValueNode(s);
-        }
-
-        if (resultValue is DateTimeOffset o)
-        {
-            return ParseValue(o.DateTime);
-        }
-
-        if (resultValue is DateTime dt)
-        {
-            return ParseValue(dt);
-        }
-
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
-            this);
+            null => NullValueNode.Default,
+            string s => new StringValueNode(s),
+            DateOnly d => ParseValue(d),
+            DateTimeOffset o => ParseValue(DateOnly.FromDateTime(o.UtcDateTime)),
+            DateTime dt => ParseValue(DateOnly.FromDateTime(dt.ToUniversalTime())),
+            _ => throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()), this)
+        };
     }
 
     public override bool TrySerialize(object? runtimeValue, out object? resultValue)
     {
-        if (runtimeValue is null)
+        switch (runtimeValue)
         {
-            resultValue = null;
-            return true;
+            case null:
+                resultValue = null;
+                return true;
+            case DateOnly d:
+                resultValue = Serialize(d);
+                return true;
+            case DateTimeOffset o:
+                resultValue = Serialize(o.UtcDateTime);
+                return true;
+            case DateTime dt:
+                resultValue = Serialize(dt.ToUniversalTime());
+                return true;
+            default:
+                resultValue = null;
+                return false;
         }
-
-        if (runtimeValue is DateTime dt)
-        {
-            resultValue = Serialize(dt);
-            return true;
-        }
-
-        resultValue = null;
-        return false;
     }
 
     public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
     {
-        if (resultValue is null)
+        switch (resultValue)
         {
-            runtimeValue = null;
-            return true;
+            case null:
+                runtimeValue = null;
+                return true;
+            case string s when TryDeserializeFromString(s, out var d):
+                runtimeValue = d;
+                return true;
+            case DateOnly d:
+                runtimeValue = d;
+                return true;
+            case DateTimeOffset o:
+                runtimeValue = DateOnly.FromDateTime(o.UtcDateTime);
+                return true;
+            case DateTime dt:
+                runtimeValue = DateOnly.FromDateTime(dt.ToUniversalTime());
+                return true;
+            default:
+                runtimeValue = null;
+                return false;
         }
-
-        if (resultValue is string s && TryDeserializeFromString(s, out var d))
-        {
-            runtimeValue = d;
-            return true;
-        }
-
-        if (resultValue is DateTimeOffset dt)
-        {
-            runtimeValue = dt.UtcDateTime;
-            return true;
-        }
-
-        if (resultValue is DateTime)
-        {
-            runtimeValue = resultValue;
-            return true;
-        }
-
-        runtimeValue = null;
-        return false;
     }
 
-    private static string Serialize(DateTime value) =>
-        value.Date.ToString(_dateFormat, CultureInfo.InvariantCulture);
+    private static string Serialize(IFormattable value) =>
+        value.ToString(DateFormat, CultureInfo.InvariantCulture);
 
-    private static bool TryDeserializeFromString(
+    private bool TryDeserializeFromString(
         string? serialized,
-        [NotNullWhen(true)] out DateTime? value)
+        [NotNullWhen(true)] out DateOnly? value)
     {
-        if (DateTime.TryParse(
-           serialized,
-           CultureInfo.InvariantCulture,
-           DateTimeStyles.AssumeLocal,
-           out var dateTime))
+        if (_enforceSpecFormat)
         {
-            value = dateTime.Date;
+            if (DateOnly.TryParseExact(
+                serialized,
+                DateFormat,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var date))
+            {
+                value = date;
+                return true;
+            }
+        }
+        else if (DateOnly.TryParse(
+            serialized,
+            CultureInfo.InvariantCulture,
+            out var date))
+        {
+            value = date;
             return true;
         }
 

@@ -1,8 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using CookieCrumble;
-
 namespace HotChocolate.Tests;
 
 public sealed class SnapshotTest
@@ -11,10 +6,10 @@ public sealed class SnapshotTest
     private readonly Func<Snapshot, CancellationToken, Task> _action;
     private int _allowedRetries = 3;
     private int _timeout = 30_000;
-    
+
     private SnapshotTest(
         Func<Snapshot, CancellationToken, Task> action,
-        string? postFix = null, 
+        string? postFix = null,
         string? extension = null)
     {
         _snapshot = new Snapshot(postFix, extension);
@@ -22,8 +17,8 @@ public sealed class SnapshotTest
     }
 
     public static SnapshotTest Create(
-        Func<Snapshot, CancellationToken, Task> action, 
-        string? postFix = null, 
+        Func<Snapshot, CancellationToken, Task> action,
+        string? postFix = null,
         string? extension = null)
         => new(action, postFix: postFix, extension: extension);
 
@@ -38,13 +33,13 @@ public sealed class SnapshotTest
         _timeout = milliseconds;
         return this;
     }
-    
+
     public async Task RunAsync()
         => await TryRunAsync(_snapshot, _action, _allowedRetries, _timeout, match: false).ConfigureAwait(false);
-    
+
     public async Task MatchAsync()
         => await TryRunAsync(_snapshot, _action, _allowedRetries, _timeout).ConfigureAwait(false);
-    
+
     private static async Task TryRunAsync(
         Snapshot snapshot,
         Func<Snapshot, CancellationToken, Task> action,
@@ -89,7 +84,7 @@ public sealed class SnapshotTest
                     {
                         snapshot.MatchMarkdown();
                     }
-                    
+
                     return true;
                 }
                 catch
@@ -100,12 +95,12 @@ public sealed class SnapshotTest
 
             snapshot.Clear();
             await action(snapshot, ct).ConfigureAwait(false);
-            
+
             if (match)
             {
                 snapshot.MatchMarkdown();
             }
-            
+
             return true;
         }
     }

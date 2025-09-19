@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
@@ -38,7 +36,7 @@ public class SortConventionExtensionsTests
         // arrange
         var convention = new MockSortConvention(x => x.ArgumentName("Foo"));
         var extension = new SortConventionExtension(
-            x => x.ArgumentName(SortConventionDefinition.DefaultArgumentName));
+            x => x.ArgumentName(SortConventionConfiguration.DefaultArgumentName));
         var context = new ConventionContext(
             "Scope",
             new ServiceCollection().BuildServiceProvider(),
@@ -196,7 +194,7 @@ public class SortConventionExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         var configuration =
-            Assert.Single(convention.DefinitionAccessor!.Configurations.Values)!;
+            Assert.Single(convention.DefinitionAccessor!.Configurations.Values);
         Assert.Equal(2, configuration.Count);
     }
 
@@ -246,7 +244,7 @@ public class SortConventionExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         var configuration =
-            Assert.Single(convention.DefinitionAccessor!.EnumConfigurations.Values)!;
+            Assert.Single(convention.DefinitionAccessor!.EnumConfigurations.Values);
         Assert.Equal(2, configuration.Count);
     }
 
@@ -336,13 +334,9 @@ public class SortConventionExtensionsTests
         public string? Foo { get; }
     }
 
-    private sealed class MockSortEnumType : DefaultSortEnumType
-    {
-    }
+    private sealed class MockSortEnumType : DefaultSortEnumType;
 
-    private sealed class MockProviderExtensions : SortProviderExtensions<QueryableSortContext>
-    {
-    }
+    private sealed class MockProviderExtensions : SortProviderExtensions<QueryableSortContext>;
 
     private sealed class MockProvider : ISortProvider
     {
@@ -356,7 +350,7 @@ public class SortConventionExtensionsTests
         public void ConfigureField(string argumentName, IObjectFieldDescriptor descriptor)
             => throw new NotImplementedException();
 
-        public ISortMetadata? CreateMetaData(ITypeCompletionContext context, ISortInputTypeDefinition typeDefinition, ISortFieldDefinition fieldDefinition)
+        public ISortMetadata? CreateMetaData(ITypeCompletionContext context, ISortInputTypeConfiguration typeConfiguration, ISortFieldConfiguration fieldConfiguration)
             => null;
     }
 
@@ -367,6 +361,6 @@ public class SortConventionExtensionsTests
         {
         }
 
-        public SortConventionDefinition? DefinitionAccessor => base.Definition;
+        public SortConventionConfiguration? DefinitionAccessor => Configuration;
     }
 }

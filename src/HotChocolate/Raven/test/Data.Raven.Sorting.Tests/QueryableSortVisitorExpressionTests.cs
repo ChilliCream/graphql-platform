@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,15 +7,15 @@ namespace HotChocolate.Data.Sorting;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableSortVisitorExpressionTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new Foo { Name = "Sam", LastName = "Sampleman", Bars = new List<Bar>(), },
+        new Foo { Name = "Sam", LastName = "Sampleman", Bars = [] },
         new Foo
         {
             Name = "Foo",
             LastName = "Galoo",
-            Bars = new List<Bar>() { new() { Value = "A", }, },
-        },
+            Bars = [new() { Value = "A" }]
+        }
     ];
 
     private readonly SchemaCache _cache;
@@ -55,18 +54,18 @@ public class QueryableSortVisitorExpressionTests
     public async Task Create_CollectionLengthExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortInputType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barLength: ASC}){ name lastName}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { barLength: ASC}){ name lastName}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barLength: DESC}){ name lastName}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { barLength: DESC}){ name lastName}}")
+                .Build());
 
         // assert
         await Snapshot

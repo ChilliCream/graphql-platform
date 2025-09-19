@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -15,10 +14,7 @@ public static class ObjectFieldDescriptorExtensions
     /// </summary>
     public static IObjectFieldDescriptor Serial(this IObjectFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(c => c.IsParallelExecutable = false);
         return descriptor;
@@ -30,10 +26,7 @@ public static class ObjectFieldDescriptorExtensions
     /// </summary>
     public static IObjectFieldDescriptor Parallel(this IObjectFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(c => c.IsParallelExecutable = true);
         return descriptor;
@@ -62,15 +55,8 @@ public static class ObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string typeSyntax)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (typeSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(typeSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(typeSyntax);
 
         return descriptor.Type(Utf8GraphQLParser.Syntax.ParseTypeReference(typeSyntax));
     }
@@ -98,21 +84,14 @@ public static class ObjectFieldDescriptorExtensions
         this IArgumentDescriptor descriptor,
         string typeSyntax)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (typeSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(typeSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(typeSyntax);
 
         return descriptor.Type(Utf8GraphQLParser.Syntax.ParseTypeReference(typeSyntax));
     }
-    
+
     /// <summary>
-    /// Specifies that the resolver of this field shall use services from the request service scope. 
+    /// Specifies that the resolver of this field shall use services from the request service scope.
     /// </summary>
     /// <param name="descriptor">
     /// The object field descriptor.
@@ -126,15 +105,12 @@ public static class ObjectFieldDescriptorExtensions
     public static IObjectFieldDescriptor UseRequestScope(
         this IObjectFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
-        descriptor.Extend().Definition.DependencyInjectionScope = DependencyInjectionScope.Request;
+        descriptor.Extend().Configuration.DependencyInjectionScope = DependencyInjectionScope.Request;
         return descriptor;
     }
-    
+
     /// <summary>
     /// Specifies that the resolver of this field shall use services from the resolver service scope.
     /// </summary>
@@ -150,12 +126,9 @@ public static class ObjectFieldDescriptorExtensions
     public static IObjectFieldDescriptor UseResolverScope(
         this IObjectFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
-        descriptor.Extend().Definition.DependencyInjectionScope = DependencyInjectionScope.Resolver;
+        descriptor.Extend().Configuration.DependencyInjectionScope = DependencyInjectionScope.Resolver;
         return descriptor;
     }
 }

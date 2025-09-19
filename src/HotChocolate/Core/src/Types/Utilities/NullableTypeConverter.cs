@@ -1,8 +1,5 @@
-using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-
-#nullable enable
 
 namespace HotChocolate.Utilities;
 

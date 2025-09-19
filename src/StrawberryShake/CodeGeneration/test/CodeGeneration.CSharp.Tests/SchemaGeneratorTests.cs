@@ -69,46 +69,48 @@ public class SchemaGeneratorTests
                         }
                     }
                 }",
-            @"schema {
-                    query: Query
-                }
+            """
+            schema {
+                query: Query
+            }
 
-                type Query {
-                    newsItems(skip: Int take: Int query: String!): NewsItemCollectionSegment
-                }
+            type Query {
+                newsItems(skip: Int, take: Int, query: String!): NewsItemCollectionSegment
+            }
 
-                interface Node {
-                    id: ID!
-                }
+            interface Node {
+                id: ID!
+            }
 
-                type NewsItem implements Node {
-                    id: ID!
-                    feedId: UUID!
-                    feedUrl: String!
-                    html: String!
-                    image: String!
-                    keywords: [String!]!
-                    language: String!
-                    summary: String!
-                    text: String!
-                    title: String!
-                    updated: DateTime
-                    url: String!
-                }
+            type NewsItem implements Node {
+                id: ID!
+                feedId: UUID!
+                feedUrl: String!
+                html: String!
+                image: String!
+                keywords: [String!]!
+                language: String!
+                summary: String!
+                text: String!
+                title: String!
+                updated: DateTime
+                url: String!
+            }
 
-                type NewsItemCollectionSegment {
-                    items: [NewsItem]
-                    ""Information to aid in pagination.""
-                    pageInfo: CollectionSegmentInfo!
-                }
+            type NewsItemCollectionSegment {
+                items: [NewsItem]
+                "Information to aid in pagination."
+                pageInfo: CollectionSegmentInfo!
+            }
 
-                ""Information about the offset pagination.""
-                type CollectionSegmentInfo {
-                    ""Indicates whether more items exist following the set defined by the clients arguments.""
-                    hasNextPage: Boolean!
-                    ""Indicates whether more items exist prior the set defined by the clients arguments.""
-                    hasPreviousPage: Boolean!
-                }",
+            "Information about the offset pagination."
+            type CollectionSegmentInfo {
+                "Indicates whether more items exist following the set defined by the clients arguments."
+                hasNextPage: Boolean!
+                "Indicates whether more items exist prior the set defined by the clients arguments."
+                hasPreviousPage: Boolean!
+            }
+            """,
             "extend schema @key(fields: \"id\")");
     }
 
@@ -245,39 +247,41 @@ public class SchemaGeneratorTests
     public void QueryInterference()
     {
         AssertResult(
-            @"query GetFeatsPage(
-                  $skip: Int!
-                  $take: Int!
-                  $searchTerm: String! = """"
-                  $order: [FeatSortInput!] = [{ name: ASC }]
-                ) {
-                  feats(
-                    skip: $skip
-                    take: $take
-                    order: $order
-                    where: {
-                      or: [
-                        { name: { contains: $searchTerm } }
-                        { traits: { some: { name: { contains: $searchTerm } } } }
-                      ]
-                    }
-                  ) {
-                    totalCount
-                    items {
-                      ...FeatsPage
-                    }
-                  }
+            """
+            query GetFeatsPage(
+              $skip: Int!
+              $take: Int!
+              $searchTerm: String! = ""
+              $order: [FeatSortInput!] = [{ name: ASC }]
+            ) {
+              feats(
+                skip: $skip
+                take: $take
+                order: $order
+                where: {
+                  or: [
+                    { name: { contains: $searchTerm } }
+                    { traits: { some: { name: { contains: $searchTerm } } } }
+                  ]
                 }
+              ) {
+                totalCount
+                items {
+                  ...FeatsPage
+                }
+              }
+            }
 
-                fragment FeatsPage on Feat {
-                  id
-                  name
-                  level
-                  canBeLearnedMoreThanOnce
-                  details {
-                    text
-                  }
-                }",
+            fragment FeatsPage on Feat {
+              id
+              name
+              level
+              canBeLearnedMoreThanOnce
+              details {
+                text
+              }
+            }
+            """,
             @"query GetFeatById($id: UUID!) {
                   feats(where: { id: { eq: $id } }) {
                     items {
@@ -351,19 +355,21 @@ public class SchemaGeneratorTests
                     }
                 ",
             FileResource.Open("BridgeClientDemo.graphql"),
-            @"scalar _KeyFieldSet
+            """
+            scalar _KeyFieldSet
 
-                directive @key(fields: _KeyFieldSet!) on SCHEMA | OBJECT
+            directive @key(fields: _KeyFieldSet!) on SCHEMA | OBJECT
 
-                directive @serializationType(name: String!) on SCALAR
+            directive @serializationType(name: String!) on SCALAR
 
-                directive @runtimeType(name: String!) on SCALAR
+            directive @runtimeType(name: String!) on SCALAR
 
-                directive @enumValue(value: String!) on ENUM_VALUE
+            directive @enumValue(value: String!) on ENUM_VALUE
 
-                directive @rename(name: String!) on INPUT_FIELD_DEFINITION | INPUT_OBJECT | ENUM | ENUM_VALUE
+            directive @rename(name: String!) on INPUT_FIELD_DEFINITION | INPUT_OBJECT | ENUM | ENUM_VALUE
 
-                extend schema @key(fields: ""id"")");
+            extend schema @key(fields: "id")
+            """);
     }
 
     [Fact]
@@ -422,13 +428,15 @@ public class SchemaGeneratorTests
             @"query Foo {
                     abc
                 }",
-            @"type Query {
-                    """"""
-                    ABC
-                    DEF
-                    """"""
-                    abc: String
-                }");
+            """"
+            type Query {
+                """
+                ABC
+                DEF
+                """
+                abc: String
+            }
+            """");
     }
 
     [Fact]
@@ -528,5 +536,33 @@ public class SchemaGeneratorTests
                 ",
             "extend schema @key(fields: \"id\")",
             FileResource.Open("HasuraSchema.graphql"));
+    }
+
+    [Fact]
+    public void EnumWithUnderscorePrefixedValues()
+    {
+        AssertResult(
+            """
+            schema {
+                query: Query
+            }
+
+            type Query {
+                field1: Enum1
+            }
+
+            enum Enum1 {
+                _a   # -> "_A"
+                _a_b # -> "_AB"
+                _1   # -> "_1"
+                _1_2 # -> "_12"
+                __2  # -> "_2"
+            }
+            """,
+            """
+            query GetField1 {
+                field1
+            }
+            """);
     }
 }

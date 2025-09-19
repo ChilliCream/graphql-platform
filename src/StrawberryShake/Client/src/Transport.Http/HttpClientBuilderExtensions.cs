@@ -1,5 +1,3 @@
-using System;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using StrawberryShake;
 using StrawberryShake.Transport.Http;
@@ -11,8 +9,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static class HttpClientBuilderExtensions
 {
-    private const string _userAgentName = "StrawberryShake";
-    private static readonly string _userAgentVersion =
+    private const string UserAgentName = "StrawberryShake";
+    private static readonly string s_userAgentVersion =
         typeof(HttpClientBuilderExtensions).Assembly.GetName().Version!.ToString();
 
     /// <summary>
@@ -36,15 +34,8 @@ public static class HttpClientBuilderExtensions
         Action<IHttpClientBuilder>? configureClientBuilder = null)
         where T : IStoreAccessor
     {
-        if (clientBuilder == null)
-        {
-            throw new ArgumentNullException(nameof(clientBuilder));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(clientBuilder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         var builder = clientBuilder.Services
             .AddHttpClient(
@@ -54,8 +45,8 @@ public static class HttpClientBuilderExtensions
                     client.DefaultRequestHeaders.UserAgent.Add(
                         new ProductInfoHeaderValue(
                             new ProductHeaderValue(
-                                _userAgentName,
-                                _userAgentVersion)));
+                                UserAgentName,
+                                s_userAgentVersion)));
                     configureClient(client);
                 });
 
@@ -85,15 +76,8 @@ public static class HttpClientBuilderExtensions
         Action<IHttpClientBuilder>? configureClientBuilder = null)
         where T : IStoreAccessor
     {
-        if (clientBuilder == null)
-        {
-            throw new ArgumentNullException(nameof(clientBuilder));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(clientBuilder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         var builder = clientBuilder.Services
             .AddHttpClient(clientBuilder.ClientName, (sp, client) =>
@@ -101,8 +85,8 @@ public static class HttpClientBuilderExtensions
                 client.DefaultRequestHeaders.UserAgent.Add(
                     new ProductInfoHeaderValue(
                         new ProductHeaderValue(
-                            _userAgentName,
-                            _userAgentVersion)));
+                            UserAgentName,
+                            s_userAgentVersion)));
                 configureClient(sp, client);
             });
 

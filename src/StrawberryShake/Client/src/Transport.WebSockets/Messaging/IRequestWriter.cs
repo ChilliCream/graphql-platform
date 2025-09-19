@@ -1,10 +1,9 @@
-using System;
 using System.Buffers;
 
 namespace StrawberryShake.Transport.WebSockets;
 
 /// <summary>
-/// Represents a output sink into which bytes can be written.
+/// Represents an output sink into which bytes can be written.
 /// Exposes the written buffer with the Body property
 /// </summary>
 public interface IRequestWriter

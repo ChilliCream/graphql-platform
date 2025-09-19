@@ -11,19 +11,20 @@ public class ArgumentNonNullValidatorTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddDocumentFromString(@"
-                    type Query {
-                        test(bar: Bar): String
-                    }
+            .AddDocumentFromString(
+                """
+                type Query {
+                    test(bar: Bar): String
+                }
 
-                    input Bar {
-                        a: String! = ""bar""
-                    }
-                ")
+                input Bar {
+                    a: String! = "bar"
+                }
+                """)
             .Use(_ => _ => default)
             .Create();
 
-        IInputField field = schema.QueryType.Fields["test"].Arguments["bar"];
+        IInputValueDefinition field = schema.QueryType.Fields["test"].Arguments["bar"];
 
         // act
         var report =
@@ -52,7 +53,7 @@ public class ArgumentNonNullValidatorTests
             .Use(_ => _ => default)
             .Create();
 
-        IInputField field = schema.QueryType.Fields["test"].Arguments["bar"];
+        var field = schema.QueryType.Fields["test"].Arguments["bar"];
 
         // act
         var report = ArgumentNonNullValidator.Validate(

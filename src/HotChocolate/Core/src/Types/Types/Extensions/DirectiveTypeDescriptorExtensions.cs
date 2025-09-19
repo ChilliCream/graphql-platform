@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 
@@ -8,17 +7,10 @@ public static class DirectiveTypeDescriptorExtensions
 {
     public static IDirectiveTypeDescriptor<T> Ignore<T>(
         this IDirectiveTypeDescriptor<T> descriptor,
-        Expression<Func<T, object>> property)
+        Expression<Func<T, object?>> property)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (property is null)
-        {
-            throw new ArgumentNullException(nameof(property));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(property);
 
         descriptor.Argument(property).Ignore();
         return descriptor;
@@ -47,15 +39,8 @@ public static class DirectiveTypeDescriptorExtensions
         this IDirectiveArgumentDescriptor descriptor,
         string typeSyntax)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (typeSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(typeSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(typeSyntax);
 
         return descriptor.Type(Utf8GraphQLParser.Syntax.ParseTypeReference(typeSyntax));
     }

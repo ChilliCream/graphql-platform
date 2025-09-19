@@ -1,4 +1,5 @@
-using System;
+#nullable disable
+
 using System.Globalization;
 
 namespace HotChocolate;
@@ -10,10 +11,7 @@ public static class SchemaErrorBuilderExtensions
         string format,
         params object[] args)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.SetMessage(string.Format(
             CultureInfo.InvariantCulture,
@@ -24,13 +22,14 @@ public static class SchemaErrorBuilderExtensions
     public static SchemaErrorBuilder SpecifiedBy(
         this SchemaErrorBuilder errorBuilder,
         string section,
-        bool condition = true)
+        bool condition = true,
+        bool isDraft = false)
     {
         if (condition)
         {
             errorBuilder.SetExtension(
                 "specifiedBy",
-                "https://spec.graphql.org/October2021/#" + section);
+                $"https://spec.graphql.org/{(isDraft ? "draft" : "October2021")}/#{section}");
         }
 
         return errorBuilder;

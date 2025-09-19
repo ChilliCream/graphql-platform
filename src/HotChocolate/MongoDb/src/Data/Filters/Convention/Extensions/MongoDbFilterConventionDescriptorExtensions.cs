@@ -18,14 +18,14 @@ public static class MongoDbFilterConventionDescriptorExtensions
     /// Initializes the default configuration for MongoDb on the convention by adding operations
     /// </summary>
     /// <param name="descriptor">The descriptor where the handlers are registered</param>
-    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
+    /// <param name="compatibilityMode">Uses the old behavior of naming the filters</param>
     /// <returns>The descriptor that was passed in as a parameter</returns>
     public static IFilterConventionDescriptor AddMongoDbDefaults(
         this IFilterConventionDescriptor descriptor,
-        bool compatabilityMode) =>
+        bool compatibilityMode) =>
         descriptor
             .AddDefaultMongoDbOperations()
-            .BindDefaultMongoDbTypes(compatabilityMode)
+            .BindDefaultMongoDbTypes(compatibilityMode)
             .UseMongoDbProvider();
 
     /// <summary>
@@ -39,10 +39,7 @@ public static class MongoDbFilterConventionDescriptorExtensions
     public static IFilterConventionDescriptor AddDefaultMongoDbOperations(
         this IFilterConventionDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
         descriptor.Operation(DefaultFilterOperations.NotEquals).Name("neq");
@@ -79,20 +76,17 @@ public static class MongoDbFilterConventionDescriptorExtensions
     /// </summary>
     /// <param name="descriptor">The descriptor where the handlers are registered</param>
     /// <returns>The descriptor that was passed in as a parameter</returns>
-    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
+    /// <param name="compatibilityMode">Uses the old behavior of naming the filters</param>
     /// <exception cref="ArgumentNullException">
     /// Throws in case the argument <paramref name="descriptor"/> is null
     /// </exception>
     public static IFilterConventionDescriptor BindDefaultMongoDbTypes(
         this IFilterConventionDescriptor descriptor,
-        bool compatabilityMode = false)
+        bool compatibilityMode = false)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
-        if (compatabilityMode)
+        if (compatibilityMode)
         {
             return descriptor
                 .BindRuntimeType<string, StringOperationFilterInputType>()
@@ -114,10 +108,8 @@ public static class MongoDbFilterConventionDescriptorExtensions
                 .BindComparableType<Guid>()
                 .BindComparableType<DateTime>()
                 .BindComparableType<DateTimeOffset>()
-#if NET6_0_OR_GREATER
                 .BindComparableType<DateOnly>()
                 .BindComparableType<TimeOnly>()
-#endif
                 .BindComparableType<TimeSpan>()
                 .BindRuntimeType<Uri, ComparableOperationFilterInputType<Uri>>()
                 .BindRuntimeType<Uri?, ComparableOperationFilterInputType<Uri?>>();
@@ -152,12 +144,10 @@ public static class MongoDbFilterConventionDescriptorExtensions
                .BindRuntimeType<DateTime?, DateTimeOperationFilterInputType>()
                .BindRuntimeType<DateTimeOffset, DateTimeOperationFilterInputType>()
                .BindRuntimeType<DateTimeOffset?, DateTimeOperationFilterInputType>()
-#if NET6_0_OR_GREATER
-               .BindRuntimeType<DateOnly, DateOperationFilterInputType>()
-               .BindRuntimeType<DateOnly?, DateOperationFilterInputType>()
-               .BindRuntimeType<TimeOnly, TimeSpanOperationFilterInputType>()
-               .BindRuntimeType<TimeOnly?, TimeSpanOperationFilterInputType>()
-#endif
+               .BindRuntimeType<DateOnly, LocalDateOperationFilterInputType>()
+               .BindRuntimeType<DateOnly?, LocalDateOperationFilterInputType>()
+               .BindRuntimeType<TimeOnly, LocalTimeOperationFilterInputType>()
+               .BindRuntimeType<TimeOnly?, LocalTimeOperationFilterInputType>()
                .BindRuntimeType<TimeSpan, TimeSpanOperationFilterInputType>()
                .BindRuntimeType<TimeSpan?, TimeSpanOperationFilterInputType>()
                .BindRuntimeType<Uri, UrlOperationFilterInputType>()

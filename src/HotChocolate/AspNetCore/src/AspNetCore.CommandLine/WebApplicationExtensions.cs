@@ -1,5 +1,4 @@
 using System.CommandLine.Parsing;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.CommandLine;
 
 namespace Microsoft.Extensions.Hosting;
@@ -93,6 +92,13 @@ public static class HostBuilderExtensions
         }
     }
 
-    private static bool IsGraphQLCommand(this string[] args)
-        => args is ["schema", ..,];
+    /// <summary>
+    /// Checks if the provided arguments are a GraphQL command.
+    /// </summary>
+    /// <param name="args">The command line arguments.</param>
+    /// <returns>
+    /// Returns <see langword="true"/> if the arguments are a GraphQL command; otherwise, <see langword="false"/>.
+    /// </returns>
+    public static bool IsGraphQLCommand(this string[] args)
+        => args is ["schema", ..];
 }

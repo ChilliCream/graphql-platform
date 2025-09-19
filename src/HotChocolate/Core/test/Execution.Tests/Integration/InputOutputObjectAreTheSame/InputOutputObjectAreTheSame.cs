@@ -1,5 +1,4 @@
-﻿using HotChocolate.Types;
-using Snapshooter.Xunit;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Integration.InputOutputObjectAreTheSame;
 
@@ -12,8 +11,8 @@ public class InputOutputObjectAreTheSame
         var schema = CreateSchema();
 
         // act
-        var containsPersonInputType = schema.TryGetType("PersonInput", out INamedInputType _);
-        var containsPersonOutputType = schema.TryGetType("Person", out INamedOutputType _);
+        var containsPersonInputType = schema.Types.TryGetType<IInputTypeDefinition>("PersonInput", out _);
+        var containsPersonOutputType = schema.Types.TryGetType<IOutputTypeDefinition>("Person", out _);
 
         // assert
         Assert.True(containsPersonInputType);
@@ -28,18 +27,21 @@ public class InputOutputObjectAreTheSame
 
         // act
         var result =
-            await schema.MakeExecutable().ExecuteAsync(@"{
-                    person(person: { firstName:""a"", lastName:""b"" }) {
+            await schema.MakeExecutable().ExecuteAsync(
+                """
+                {
+                    person(person: { firstName: "a", lastName: "b" }) {
                         lastName
                         firstName
                     }
-                }");
+                }
+                """);
 
         // assert
         result.ToJson().MatchSnapshot();
     }
 
-    private static ISchema CreateSchema()
+    private static Schema CreateSchema()
         => SchemaBuilder.New()
             .AddQueryType<Query>()
             .AddType<ObjectType<Person>>()

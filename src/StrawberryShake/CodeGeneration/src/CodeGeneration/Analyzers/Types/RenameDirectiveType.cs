@@ -9,9 +9,9 @@ public class RenameDirectiveType : DirectiveType<RenameDirective>
         descriptor.Name("rename");
         descriptor.Argument(t => t.Name).Type<NonNullType<StringType>>();
         descriptor.Location(
-            DirectiveLocation.InputFieldDefinition |
-            DirectiveLocation.InputObject |
-            DirectiveLocation.Enum |
-            DirectiveLocation.EnumValue);
+            DirectiveLocation.InputFieldDefinition
+            | DirectiveLocation.InputObject
+            | DirectiveLocation.Enum
+            | DirectiveLocation.EnumValue);
     }
 }

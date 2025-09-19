@@ -1,9 +1,10 @@
 {
   "recommendations": [
-    "ms-dotnettools.csharp",
+    "davidanson.vscode-markdownlint",
+    "ms-dotnettools.csdevkit",
     "EditorConfig.EditorConfig",
-    "k--kato.docomment",
     "dbaeumer.vscode-eslint",
-    "josefpihrt-vscode.roslynator"
+    "streetsidesoftware.code-spell-checker",
+    "graphql.vscode-graphql"
   ]
 }

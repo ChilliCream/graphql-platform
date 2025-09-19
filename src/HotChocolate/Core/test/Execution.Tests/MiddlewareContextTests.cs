@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,14 +19,13 @@ public class MiddlewareContextTests
             .AddResolver(
                 "Query",
                 "foo",
-                ctx =>
-                    ctx.Variables.GetVariable<string>("abc"))
+                ctx => ctx.Variables.GetValue<StringValueNode>("abc")?.Value)
             .Create();
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("query abc($abc: String){ foo(bar: $abc) }")
-            .SetVariableValue("abc", "def")
-            .Create();
+        var request = OperationRequestBuilder.New()
+            .SetDocument("query abc($abc: String){ foo(bar: $abc) }")
+            .SetVariableValues(new Dictionary<string, object?> { { "abc", "def" } })
+            .Build();
 
         // act
         var result = await schema.MakeExecutable().ExecuteAsync(request);
@@ -46,14 +44,13 @@ public class MiddlewareContextTests
             .AddResolver(
                 "Query",
                 "foo",
-                ctx =>
-                    ctx.Variables.GetVariable<string>("abc"))
+                ctx => ctx.Variables.GetValue<StringValueNode>("abc")?.Value)
             .Create();
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("query abc($def: String){ foo(bar: $def) }")
-            .SetVariableValue("def", "ghi")
-            .Create();
+        var request = OperationRequestBuilder.New()
+            .SetDocument("query abc($def: String){ foo(bar: $def) }")
+            .SetVariableValues(new Dictionary<string, object?> { { "def", "ghi" } })
+            .Build();
 
         // act
         var result =
@@ -71,18 +68,19 @@ public class MiddlewareContextTests
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
-                @"
-                    type Query {
-                        foo: Foo
-                    }
+                """
+                type Query {
+                    foo: Foo
+                }
 
-                    type Foo {
-                        bar: Bar
-                    }
+                type Foo {
+                    bar: Bar
+                }
 
-                    type Bar {
-                        baz: String
-                    }")
+                type Bar {
+                    baz: String
+                }
+                """)
             .Use(
                 _ => context =>
                 {
@@ -163,9 +161,9 @@ public class MiddlewareContextTests
 
                                             foreach (var argumentValue in current.Values)
                                             {
-                                                if (argumentValue.Type.RuntimeType ==
-                                                    typeof(string) &&
-                                                    argumentValue
+                                                if (argumentValue.Type.ToRuntimeType()
+                                                    == typeof(string)
+                                                    && argumentValue
                                                         .ValueLiteral is StringValueNode sv)
                                                 {
                                                     sv = sv.WithValue(sv.Value.Trim());
@@ -215,7 +213,7 @@ public class MiddlewareContextTests
                         .Use(
                             next => async context =>
                             {
-                                var original = context.ReplaceArguments(_ => null);
+                                var original = context.ReplaceArguments(_ => null!);
 
                                 await next(context);
 
@@ -336,7 +334,7 @@ public class MiddlewareContextTests
             }
 
             Assert.NotNull(queryResult.Incremental?[0].ContextData);
-            Assert.True(queryResult.Incremental[0].ContextData.TryGetValue("abc", out var value));
+            Assert.True(queryResult.Incremental[0].ContextData!.TryGetValue("abc", out var value));
             Assert.Equal(2, value);
         }
     }
@@ -399,14 +397,16 @@ public class MiddlewareContextTests
             .Create()
             .Add(result)
             .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
+                """
+                {
+                  "data": {
+                    "abc": "abc"
                   },
-                  ""extensions"": {
-                    ""abc"": 1
+                  "extensions": {
+                    "abc": 1
                   }
-                }");
+                }
+                """);
     }
 
     [Fact]
@@ -434,14 +434,16 @@ public class MiddlewareContextTests
             .Create()
             .Add(result)
             .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
+                """
+                {
+                  "data": {
+                    "abc": "abc"
                   },
-                  ""extensions"": {
-                    ""abc"": 2
+                  "extensions": {
+                    "abc": 2
                   }
-                }");
+                }
+                """);
     }
 
     [Fact]
@@ -472,14 +474,16 @@ public class MiddlewareContextTests
             .Create()
             .Add(result)
             .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
+                """
+                {
+                  "data": {
+                    "abc": "abc"
                   },
-                  ""extensions"": {
-                    ""abc"": 6
+                  "extensions": {
+                    "abc": 6
                   }
-                }");
+                }
+                """);
     }
 
     [Fact]
@@ -506,14 +510,16 @@ public class MiddlewareContextTests
             .Create()
             .Add(result)
             .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
+                """
+                {
+                  "data": {
+                    "abc": "abc"
                   },
-                  ""extensions"": {
-                    ""abc"": 1
+                  "extensions": {
+                    "abc": 1
                   }
-                }");
+                }
+                """);
     }
 
     [Fact]
@@ -540,16 +546,18 @@ public class MiddlewareContextTests
             .Create()
             .Add(result)
             .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
+                """
+                {
+                  "data": {
+                    "abc": "abc"
                   },
-                  ""extensions"": {
-                    ""abc"": {
-                      ""someField"": ""def""
+                  "extensions": {
+                    "abc": {
+                      "someField": "def"
                     }
                   }
-                }");
+                }
+                """);
     }
 
     [Fact]
@@ -595,22 +603,24 @@ public class MiddlewareContextTests
                 .Create()
                 .AddResult(queryResult)
                 .MatchInline(
-                    @"{
-                      ""incremental"": [
+                    """
+                    {
+                      "incremental": [
                         {
-                          ""data"": {
-                            ""abc"": ""abc""
+                          "data": {
+                            "abc": "abc"
                           },
-                          ""extensions"": {
-                            ""abc"": {
-                              ""someField"": ""def""
+                          "extensions": {
+                            "abc": {
+                              "someField": "def"
                             }
                           },
-                          ""path"": []
+                          "path": []
                         }
                       ],
-                      ""hasNext"": false
-                    }");
+                      "hasNext": false
+                    }
+                    """);
         }
     }
 

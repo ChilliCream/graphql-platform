@@ -1,5 +1,5 @@
 using System.Text;
-using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
+using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
 namespace HotChocolate.Types;
 
@@ -7,11 +7,11 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 {
     private readonly ErrorTypeHelper _errorTypeHelper = new();
     private readonly StringBuilder _sb = new();
-    private readonly List<ObjectTypeDefinition> _typeDefs = new();
-    private TypeInitializer _typeInitializer = default!;
-    private TypeRegistry _typeRegistry = default!;
-    private IDescriptorContext _context = default!;
-    private ObjectTypeDefinition _mutationDef = default!;
+    private readonly List<ObjectTypeConfiguration> _typeDefs = [];
+    private TypeInitializer _typeInitializer = null!;
+    private TypeRegistry _typeRegistry = null!;
+    private IDescriptorContext _context = null!;
+    private ObjectTypeConfiguration _mutationDef = null!;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -26,28 +26,27 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
         _errorTypeHelper.InitializerErrorTypeInterface(_context);
     }
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType is OperationType.Mutation)
         {
-            _mutationDef = definition;
+            _mutationDef = configuration;
         }
     }
 
     public override void OnAfterCompleteName(
-        ITypeCompletionContext completionContext, 
-        DefinitionBase definition)
+        ITypeCompletionContext completionContext,
+        TypeSystemConfiguration configuration)
     {
-        if (completionContext.Type is ObjectType &&
-            definition is ObjectTypeDefinition typeDef)
+        if (completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
         {
             _typeDefs.Add(typeDef);
         }
-        
-        base.OnAfterCompleteName(completionContext, definition);
+
+        base.OnAfterCompleteName(completionContext, configuration);
     }
 
     public override void OnBeforeCompleteTypes()
@@ -55,7 +54,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
         var errorInterfaceTypeRef = _errorTypeHelper.ErrorTypeInterfaceRef;
         var errorInterfaceIsRegistered = false;
         List<TypeReference>? typeSet = null;
-        
+
         foreach (var typeDef in _typeDefs.ToArray())
         {
             if (_mutationDef == typeDef)
@@ -69,34 +68,33 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                 {
                     continue;
                 }
-                
+
                 typeSet?.Clear();
-                
-                if (field.ResultType != null && 
-                    typeof(IFieldResult).IsAssignableFrom(field.ResultType) &&
-                    _context.TryInferSchemaType(
-                        _context.TypeInspector.GetOutputTypeRef(field.ResultType), 
+
+                if (field.ResultType != null
+                    && typeof(IFieldResult).IsAssignableFrom(field.ResultType)
+                    && _context.TryInferSchemaType(
+                        _context.TypeInspector.GetOutputTypeRef(field.ResultType),
                         out var schemaTypeRefs))
                 {
-
                     foreach (var errorTypeRef in schemaTypeRefs.Skip(1))
                     {
                         (typeSet ??= []).Add(errorTypeRef);
-                        
+
                         if (_typeRegistry.TryGetType(errorTypeRef, out var errorType))
                         {
-                            ((ObjectType)errorType.Type).Definition!.Interfaces.Add(errorInterfaceTypeRef);
+                            ((ObjectType)errorType.Type).Configuration!.Interfaces.Add(errorInterfaceTypeRef);
                         }
                     }
                 }
 
                 // collect error definitions from query field.
-                var errorDefinitions = _errorTypeHelper.GetErrorDefinitions(field);
-                
+                var errorDefinitions = _errorTypeHelper.GetErrorConfigurations(field);
+
                 // collect error factories for middleware
-                var errorFactories = errorDefinitions.Count == 0 
-                    ? Array.Empty<CreateError>() 
-                    : errorDefinitions.Select(t => t.Factory).ToArray();
+                var errorFactories = errorDefinitions.Count != 0
+                    ? errorDefinitions.Select(t => t.Factory).ToArray()
+                    : [];
 
                 if (errorDefinitions.Count > 0)
                 {
@@ -110,22 +108,21 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                             var errorTypeRef = TypeReference.Create(obj.Type);
                             RegisterErrorType(errorTypeRef, errorDef.SchemaType);
                             RegisterErrorType(errorTypeRef, errorDef.RuntimeType);
-                            ((ObjectType)obj.Type).Definition!.Interfaces.Add(errorInterfaceTypeRef);
+                            ((ObjectType)obj.Type).Configuration!.Interfaces.Add(errorInterfaceTypeRef);
                         }
 
                         var errorSchemaTypeRef = _context.TypeInspector.GetOutputTypeRef(errorDef.SchemaType);
 
                         if (obj is null && _typeRegistry.TryGetType(errorSchemaTypeRef, out obj))
                         {
-                            ((ObjectType)obj.Type).Definition!.Interfaces.Add(errorInterfaceTypeRef);
+                            ((ObjectType)obj.Type).Configuration!.Interfaces.Add(errorInterfaceTypeRef);
                         }
-                        
+
                         (typeSet ??= []).Add(errorSchemaTypeRef);
                     }
                 }
-                
-                if (!errorInterfaceIsRegistered && 
-                    !_typeRegistry.TryGetTypeRef(errorInterfaceTypeRef, out _))
+
+                if (!errorInterfaceIsRegistered && !_typeRegistry.TryGetTypeRef(errorInterfaceTypeRef, out _))
                 {
                     var err = TryRegisterType(errorInterfaceTypeRef.Type.Type);
 
@@ -135,7 +132,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                         _typeRegistry.Register(err);
                         _typeRegistry.TryRegister(errorInterfaceTypeRef, TypeReference.Create(err.Type));
                     }
-                    
+
                     errorInterfaceIsRegistered = true;
                 }
 
@@ -144,17 +141,17 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                     typeSet.Insert(0, GetFieldType(field.Type!));
                     field.Type = CreateFieldResultType(field.Name, typeSet);
                     typeDef.Dependencies.Add(new TypeDependency(field.Type, Completed));
-                    
+
                     // create middleware
                     var errorMiddleware =
-                        new FieldMiddlewareDefinition(
+                        new FieldMiddlewareConfiguration(
                             FieldClassMiddlewareFactory.Create<QueryResultMiddleware>(
                                 (typeof(IReadOnlyList<CreateError>), errorFactories)),
-                            key: "Query Results",
-                            isRepeatable: false);
+                            isRepeatable: false,
+                            key: "Query Results");
 
                     // last but not least we insert the result middleware to the query field.
-                    field.MiddlewareDefinitions.Insert(0, errorMiddleware);
+                    field.MiddlewareConfigurations.Insert(0, errorMiddleware);
                 }
             }
         }
@@ -162,8 +159,8 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
     private static TypeReference GetFieldType(TypeReference typeRef)
     {
-        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true, } extendedTypeRef &&
-            typeof(IFieldResult).IsAssignableFrom(extendedTypeRef.Type.Type))
+        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true } extendedTypeRef
+            && typeof(IFieldResult).IsAssignableFrom(extendedTypeRef.Type.Type))
         {
             return TypeReference.Create(extendedTypeRef.Type.TypeArguments[0], TypeContext.Output);
         }
@@ -177,9 +174,9 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
             d =>
             {
                 d.Name(CreateResultTypeName(fieldName));
-                
-                var typeDef = d.Extend().Definition;
-                
+
+                var typeDef = d.Extend().Configuration;
+
                 foreach (var schemaTypeRef in typeSet)
                 {
                     typeDef.Types.Add(schemaTypeRef);
@@ -190,13 +187,14 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
         var resultTypeRef = new SchemaTypeReference(new NonNullType(resultType));
         registeredType.References.Add(resultTypeRef);
         _typeRegistry.Register(registeredType);
-        
+
         _typeInitializer.CompleteTypeName(registeredType);
+        _typeInitializer.CompileResolvers(registeredType);
         _typeInitializer.CompleteType(registeredType);
 
         return resultTypeRef;
     }
-    
+
     private RegisteredType? TryRegisterType(Type type)
     {
         if (_typeRegistry.IsRegistered(_context.TypeInspector.GetOutputTypeRef(type)))
@@ -206,41 +204,40 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
         var registeredType = _typeInitializer.InitializeType(type);
         _typeInitializer.CompleteTypeName(registeredType);
+        _typeInitializer.CompileResolvers(registeredType);
 
-        if (registeredType.Type is ObjectType errorObject &&
-            errorObject.RuntimeType != typeof(object))
+        if (registeredType.Type is ObjectType errorObject && errorObject.RuntimeType != typeof(object))
         {
             foreach (var possibleInterface in _typeRegistry.Types)
             {
-                if (possibleInterface.Type is InterfaceType interfaceType &&
-                    interfaceType.RuntimeType != typeof(object) &&
-                    interfaceType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
+                if (possibleInterface.Type is InterfaceType interfaceType
+                    && interfaceType.RuntimeType != typeof(object)
+                    && interfaceType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
                 {
                     var typeRef = possibleInterface.TypeReference;
-                    errorObject.Definition!.Interfaces.Add(typeRef);
-                    registeredType.Dependencies.Add(new(typeRef, Completed));
+                    errorObject.Configuration!.Interfaces.Add(typeRef);
+                    registeredType.Dependencies.Add(new TypeDependency(typeRef, Completed));
                 }
-                else if (possibleInterface.Type is UnionType unionType &&
-                    unionType.RuntimeType != typeof(object) &&
-                    unionType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
+                else if (possibleInterface.Type is UnionType unionType
+                    && unionType.RuntimeType != typeof(object)
+                    && unionType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
                 {
                     var typeRef = registeredType.TypeReference;
-                    unionType.Definition!.Types.Add(typeRef);
-                    possibleInterface.Dependencies.Add(new(typeRef, Completed));
+                    unionType.Configuration!.Types.Add(typeRef);
+                    possibleInterface.Dependencies.Add(new TypeDependency(typeRef, Completed));
                 }
             }
         }
-        else if (registeredType.Type is ObjectType errorInterface &&
-            errorInterface.RuntimeType != typeof(object))
+        else if (registeredType.Type is ObjectType errorInterface && errorInterface.RuntimeType != typeof(object))
         {
             foreach (var possibleInterface in _typeRegistry.Types)
             {
-                if (possibleInterface.Type is InterfaceType interfaceType &&
-                    interfaceType.RuntimeType != typeof(object) &&
-                    interfaceType.RuntimeType.IsAssignableFrom(errorInterface.RuntimeType))
+                if (possibleInterface.Type is InterfaceType interfaceType
+                    && interfaceType.RuntimeType != typeof(object)
+                    && interfaceType.RuntimeType.IsAssignableFrom(errorInterface.RuntimeType))
                 {
                     var typeRef = possibleInterface.TypeReference;
-                    errorInterface.Definition!.Interfaces.Add(typeRef);
+                    errorInterface.Configuration!.Interfaces.Add(typeRef);
                     registeredType.Dependencies.Add(new(typeRef, Completed));
                 }
             }
@@ -259,11 +256,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
         if (fieldName.Length > 1)
         {
-#if NET6_0_OR_GREATER
             _sb.Append(fieldName.AsSpan()[1..]);
-#else
-            _sb.Append(fieldName.Substring(1));
-#endif
         }
 
         _sb.Append("Result");

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Projections;
@@ -28,21 +24,29 @@ public sealed class FirstOrDefaultMiddleware<T>
         switch (context.Result)
         {
             case IAsyncEnumerable<T> ae:
+            {
+                // Apply limit.
+                if (ae is IQueryable<T> q)
                 {
-                    await using var enumerator =
-                        ae.GetAsyncEnumerator(context.RequestAborted);
+                    q = q.Take(1);
 
-                    if (await enumerator.MoveNextAsync().ConfigureAwait(false))
-                    {
-                        context.Result = enumerator.Current;
-                    }
-                    else
-                    {
-                        context.Result = default(T)!;
-                    }
-
-                    break;
+                    ae = (IAsyncEnumerable<T>)q;
                 }
+
+                await using var enumerator =
+                    ae.GetAsyncEnumerator(context.RequestAborted);
+
+                if (await enumerator.MoveNextAsync().ConfigureAwait(false))
+                {
+                    context.Result = enumerator.Current;
+                }
+                else
+                {
+                    context.Result = default(T)!;
+                }
+
+                break;
+            }
             case IEnumerable<T> e:
                 context.Result = await Task
                     .Run(() => e.FirstOrDefault(), context.RequestAborted)

@@ -15,13 +15,13 @@
 {
   ... on Query {
     hero(episode: EMPIRE) @__execute(id: 0, kind: PURE, type: COMPOSITE) {
-      ... on Human {
-        name @__execute(id: 1, kind: PURE, type: LEAF)
-        homePlanet @__execute(id: 2, kind: PURE, type: LEAF)
-      }
       ... on Droid {
+        name @__execute(id: 1, kind: PURE, type: LEAF)
+        primaryFunction @__execute(id: 2, kind: PURE, type: LEAF)
+      }
+      ... on Human {
         name @__execute(id: 3, kind: PURE, type: LEAF)
-        primaryFunction @__execute(id: 4, kind: PURE, type: LEAF)
+        homePlanet @__execute(id: 4, kind: PURE, type: LEAF)
       }
     }
   }

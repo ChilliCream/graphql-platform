@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;
@@ -6,9 +5,9 @@ namespace HotChocolate.Language;
 // Implements the parsing rules in the Type Definition section.
 public ref partial struct Utf8GraphQLParser
 {
-    private static readonly List<EnumValueDefinitionNode> _emptyEnumValues = [];
-    private static readonly List<InputValueDefinitionNode> _emptyInputValues = [];
-    private static readonly List<FieldDefinitionNode> _emptyFieldDefinitions = [];
+    private static readonly List<EnumValueDefinitionNode> s_emptyEnumValues = [];
+    private static readonly List<InputValueDefinitionNode> s_emptyInputValues = [];
+    private static readonly List<FieldDefinitionNode> s_emptyFieldDefinitions = [];
 
     /// <summary>
     /// Parses a description.
@@ -17,7 +16,7 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private StringValueNode? ParseDescription()
     {
-        if (TokenHelper.IsDescription(in _reader))
+        if (TokenHelper.IsDescription(ref _reader))
         {
             return ParseStringLiteral();
         }
@@ -43,7 +42,7 @@ public ref partial struct Utf8GraphQLParser
             throw new SyntaxException(_reader,
                 ParseMany_InvalidOpenToken,
                 TokenKind.LeftBrace,
-                TokenPrinter.Print(in _reader));
+                TokenPrinter.Print(ref _reader));
         }
 
         var operationTypeDefinitions =
@@ -200,14 +199,11 @@ public ref partial struct Utf8GraphQLParser
 
             return list;
         }
-        return _emptyFieldDefinitions;
+        return s_emptyFieldDefinitions;
     }
 
-
-
-
     /// <summary>
-    /// Parses a interface type or object type field definition.
+    /// Parses an interface type or object type field definition.
     /// <see cref="FieldDefinitionNode" />:
     /// Description?
     /// Name ArgumentsDefinition? : Type Directives[isConstant=true]?
@@ -261,7 +257,7 @@ public ref partial struct Utf8GraphQLParser
             return list;
         }
 
-        return _emptyInputValues;
+        return s_emptyInputValues;
     }
 
     /// <summary>
@@ -327,7 +323,7 @@ public ref partial struct Utf8GraphQLParser
     }
 
     /// <summary>
-    /// Parses an union type definition.
+    /// Parses a union type definition.
     /// <see cref="UnionTypeDefinitionNode" />:
     /// Description? union Name Directives[isConstant=true]?
     /// UnionMemberTypes?
@@ -430,10 +426,8 @@ public ref partial struct Utf8GraphQLParser
             return list;
         }
 
-        return _emptyEnumValues;
+        return s_emptyEnumValues;
     }
-
-
 
     /// <summary>
     /// Parses an enum value definitions.
@@ -501,6 +495,6 @@ public ref partial struct Utf8GraphQLParser
             return list;
         }
 
-        return _emptyInputValues;
+        return s_emptyInputValues;
     }
 }

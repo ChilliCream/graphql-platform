@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -9,8 +6,6 @@ namespace HotChocolate.Data.Filters;
 
 public class FilterVisitorTestBase
 {
-    private readonly object _lock = new();
-
     private Func<IResolverContext, IEnumerable<TResult>> BuildResolver<TResult>(
         params TResult[] results)
     {

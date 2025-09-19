@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
     <ProjectReference Include="..\..\src\Caching\HotChocolate.Caching.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />

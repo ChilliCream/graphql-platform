@@ -2,8 +2,6 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types;
 
-#pragma warning disable CA1812
-
 internal sealed class ExecutableMiddleware(FieldDelegate next)
 {
     public async ValueTask InvokeAsync(IMiddlewareContext context)

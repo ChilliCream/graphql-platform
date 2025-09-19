@@ -1,0 +1,11 @@
+{
+  "id": "123",
+  "operationName": "abc",
+  "variables": {
+    "abc": {
+      "abc": {
+        "def": "def"
+      }
+    }
+  }
+}

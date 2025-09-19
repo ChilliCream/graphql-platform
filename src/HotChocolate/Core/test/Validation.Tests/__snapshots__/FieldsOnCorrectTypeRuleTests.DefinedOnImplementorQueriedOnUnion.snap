@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "A union type cannot declare a field directly. Use inline fragments or fragments instead.",
     "Code": null,
@@ -14,49 +14,14 @@
     },
     "Locations": [
       {
-        "Line": 2,
-        "Column": 73
+        "Line": 1,
+        "Column": 58
       }
     ],
     "Extensions": {
       "type": "CatOrDog",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "SelectionSet",
-      "Location": {
-        "Start": 73,
-        "End": 140,
-        "Line": 2,
-        "Column": 73
-      },
-      "Selections": [
-        {
-          "Kind": "Field",
-          "Alias": null,
-          "Arguments": [],
-          "Required": null,
-          "SelectionSet": null,
-          "Location": {
-            "Start": 95,
-            "End": 117,
-            "Line": 3,
-            "Column": 21
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 95,
-              "End": 117,
-              "Line": 3,
-              "Column": 21
-            },
-            "Value": "name"
-          },
-          "Directives": []
-        }
-      ]
-    }
+    "Exception": null
   }
 ]

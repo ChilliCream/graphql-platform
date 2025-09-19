@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Execution.Properties;
-using HotChocolate.Execution.Serialization;
+using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,9 +10,9 @@ internal partial class MiddlewareContext : IMiddlewareContext
 {
     private readonly OperationResultBuilderFacade _operationResultBuilder = new();
     private readonly List<Func<ValueTask>> _cleanupTasks = [];
-    private OperationContext _operationContext = default!;
-    private IServiceProvider _services = default!;
-    private InputParser _parser = default!;
+    private OperationContext _operationContext = null!;
+    private IServiceProvider _services = null!;
+    private InputParser _parser = null!;
     private object? _resolverResult;
     private bool _hasResolverResult;
 
@@ -28,7 +24,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public IServiceProvider RequestServices => _operationContext.Services;
 
-    public ISchema Schema => _operationContext.Schema;
+    public Schema Schema => _operationContext.Schema;
 
     public IOperation Operation => _operationContext.Operation;
 
@@ -38,21 +34,15 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public IVariableValueCollection Variables => _operationContext.Variables;
 
-    IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
-        => ScopedContextData;
-
     public CancellationToken RequestAborted { get; private set; }
 
     public bool HasCleanupTasks => _cleanupTasks.Count > 0;
-    
+
+    public IFeatureCollection Features => _operationContext.Features;
+
     public void ReportError(string errorMessage)
     {
-        if (string.IsNullOrEmpty(errorMessage))
-        {
-            throw new ArgumentException(
-                Resources.MiddlewareContext_ReportErrorCannotBeNull,
-                nameof(errorMessage));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(errorMessage);
 
         ReportError(
             ErrorBuilder.New()
@@ -62,16 +52,13 @@ internal partial class MiddlewareContext : IMiddlewareContext
                 .Build());
     }
 
-    public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+    public void ReportError(Exception exception, Action<ErrorBuilder>? configure = null)
     {
-        if (exception is null)
-        {
-            throw new ArgumentNullException(nameof(exception));
-        }
+        ArgumentNullException.ThrowIfNull(exception);
 
-        if (exception is GraphQLException graphQLException)
+        if (exception is GraphQLException ex)
         {
-            foreach (var error in graphQLException.Errors)
+            foreach (var error in ex.Errors)
             {
                 ReportError(error);
             }
@@ -85,8 +72,8 @@ internal partial class MiddlewareContext : IMiddlewareContext
         }
         else
         {
-            var errorBuilder = _operationContext.ErrorHandler
-                .CreateUnexpectedError(exception)
+            var errorBuilder = ErrorBuilder
+                .FromException(exception)
                 .SetPath(Path)
                 .AddLocation(_selection.SyntaxNode);
 
@@ -98,10 +85,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public void ReportError(IError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         if (error is AggregateError aggregateError)
         {
@@ -118,22 +102,40 @@ internal partial class MiddlewareContext : IMiddlewareContext
         void ReportSingle(IError singleError)
         {
             var handled = _operationContext.ErrorHandler.Handle(singleError);
+            var diagnosticEvents = _operationContext.DiagnosticEvents;
 
             if (handled is AggregateError ar)
             {
                 foreach (var ie in ar.Errors)
                 {
-                    _operationContext.Result.AddError(ie, _selection);
-                    _operationContext.DiagnosticEvents.ResolverError(this, ie);
+                    var errorWithPath = EnsurePathAndLocation(ie, _selection.SyntaxNode, Path);
+                    _operationContext.Result.AddError(errorWithPath, _selection);
+                    diagnosticEvents.ResolverError(this, errorWithPath);
                 }
             }
             else
             {
-                _operationContext.Result.AddError(handled, _selection);
-                _operationContext.DiagnosticEvents.ResolverError(this, handled);
+                var errorWithPath = EnsurePathAndLocation(handled, _selection.SyntaxNode, Path);
+                _operationContext.Result.AddError(errorWithPath, _selection);
+                diagnosticEvents.ResolverError(this, errorWithPath);
             }
 
             HasErrors = true;
+        }
+
+        static IError EnsurePathAndLocation(IError error, ISyntaxNode node, Path path)
+        {
+            if (error.Path is null)
+            {
+                error = error.WithPath(path);
+            }
+
+            if (error.Locations is not { Count: > 0 } && node.Location is not null)
+            {
+                error = error.WithLocations([new Location(node.Location.Line, node.Location.Column)]);
+            }
+
+            return error;
         }
     }
 
@@ -141,9 +143,9 @@ internal partial class MiddlewareContext : IMiddlewareContext
     {
         if (!_hasResolverResult)
         {
-            _resolverResult = Field.Resolver is null
+            _resolverResult = _selection.Field.Resolver is null
                 ? null
-                : await Field.Resolver(this).ConfigureAwait(false);
+                : await _selection.Field.Resolver(this).ConfigureAwait(false);
             _hasResolverResult = true;
         }
 
@@ -152,21 +154,16 @@ internal partial class MiddlewareContext : IMiddlewareContext
             : (T)_resolverResult;
     }
 
-    public T Resolver<T>() 
+    public T Resolver<T>()
         => _operationContext.Resolvers.GetResolver<T>(_operationContext.Services);
 
     public T Service<T>() where T : notnull => Services.GetRequiredService<T>();
 
-#if NET8_0_OR_GREATER
-    public T? Service<T>(object key) where T : notnull => Services.GetKeyedService<T>(key);
-#endif
+    public T Service<T>(object key) where T : notnull => Services.GetRequiredKeyedService<T>(key);
 
     public object Service(Type service)
     {
-        if (service is null)
-        {
-            throw new ArgumentNullException(nameof(service));
-        }
+        ArgumentNullException.ThrowIfNull(service);
 
         return Services.GetRequiredService(service);
     }
@@ -175,10 +172,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
         Func<ValueTask> action,
         CleanAfter cleanAfter = CleanAfter.Resolver)
     {
-        if (action is null)
-        {
-            throw new ArgumentNullException(nameof(action));
-        }
+        ArgumentNullException.ThrowIfNull(action);
 
         if (cleanAfter is CleanAfter.Request)
         {
@@ -192,9 +186,32 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public async ValueTask ExecuteCleanupTasksAsync()
     {
-        foreach (var task in _cleanupTasks)
+        var count = _cleanupTasks.Count;
+
+        if (count == 1)
         {
-            await task.Invoke().ConfigureAwait(false);
+            await _cleanupTasks[0].Invoke().ConfigureAwait(false);
+            return;
+        }
+
+        if (count == 2)
+        {
+            await _cleanupTasks[0].Invoke().ConfigureAwait(false);
+            await _cleanupTasks[1].Invoke().ConfigureAwait(false);
+            return;
+        }
+
+        if (count == 3)
+        {
+            await _cleanupTasks[0].Invoke().ConfigureAwait(false);
+            await _cleanupTasks[1].Invoke().ConfigureAwait(false);
+            await _cleanupTasks[2].Invoke().ConfigureAwait(false);
+            return;
+        }
+
+        for (var i = 0; i < count; i++)
+        {
+            await _cleanupTasks[i].Invoke().ConfigureAwait(false);
         }
     }
 
@@ -204,7 +221,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
     public IMiddlewareContext Clone()
     {
         // The middleware context is bound to a resolver task,
-        // so we need to create a resolver task in order to clone
+        // so we need to create a resolver task to clone
         // this context.
         var resolverTask =
             _operationContext.CreateResolverTask(
@@ -217,10 +234,10 @@ internal partial class MiddlewareContext : IMiddlewareContext
         // We need to manually copy the local state.
         resolverTask.Context.LocalContextData = LocalContextData;
 
-        // Since resolver tasks are pooled and returned to the pool after they are executed
+        // Since resolver tasks are pooled and returned to the pool after they are executed,
         // we need to complete the task manually when the resolver task of the current context
         // is completed.
-        RegisterForCleanup(() => resolverTask.CompleteUnsafeAsync());
+        RegisterForCleanup(resolverTask.CompleteUnsafeAsync);
 
         return resolverTask.Context;
     }
@@ -230,7 +247,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     private sealed class OperationResultBuilderFacade : IOperationResultBuilder
     {
-        public OperationContext Context { get; set; } = default!;
+        public OperationContext Context { get; set; } = null!;
 
         public void SetResultState(string key, object? value)
             => Context.Result.SetContextData(key, value);

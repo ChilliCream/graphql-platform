@@ -1,6 +1,11 @@
 {
   "data": {
     "foos": {
+      "nodes": [
+        {
+          "bar": "a"
+        }
+      ],
       "totalCount": 5
     }
   }

@@ -1,4 +1,3 @@
-using System;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,7 +6,7 @@ namespace HotChocolate.Fetching;
 
 public sealed class ExecutionDataLoaderScopeFactory(IServiceProvider services) : IDataLoaderScopeFactory
 {
-    public void BeginScope(IBatchScheduler? scheduler = default)
+    public void BeginScope(IBatchScheduler? scheduler = null)
     {
         var batchHandler = scheduler ?? services.GetRequiredService<IBatchScheduler>();
         var dataLoaderScopeHolder = services.GetRequiredService<DataLoaderScopeHolder>();

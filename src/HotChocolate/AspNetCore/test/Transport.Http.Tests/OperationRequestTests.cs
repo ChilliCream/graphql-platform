@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Json;
 
 namespace HotChocolate.Transport.Http.Tests;
@@ -16,10 +16,10 @@ public class OperationRequestTests
             variables: new Dictionary<string, object?>()
             {
                 ["abc"] = "def",
-                ["hij"] = null,
+                ["hij"] = null
             });
 
-        using var memory = new MemoryStream();
+        await using var memory = new MemoryStream();
         await using var writer = new Utf8JsonWriter(memory);
 
         // act

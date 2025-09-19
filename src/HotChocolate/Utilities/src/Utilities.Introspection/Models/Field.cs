@@ -1,6 +1,3 @@
-#pragma warning disable CA1812
-using System.Collections.Generic;
-
 #nullable disable
 
 namespace HotChocolate.Utilities.Introspection;
@@ -14,4 +11,3 @@ internal class Field
     public bool IsDeprecated { get; set; }
     public string DeprecationReason { get; set; }
 }
-#pragma warning restore CA1812

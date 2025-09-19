@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -11,12 +9,12 @@ using static HotChocolate.Data.ThrowHelper;
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// A <see cref="FilterProvider{TContext}"/> translates a incoming query to another
+/// A <see cref="FilterProvider{TContext}"/> translates an incoming query to another
 /// object structure at runtime
 /// </summary>
 /// <typeparam name="TContext">The type of the context</typeparam>
 public abstract class FilterProvider<TContext>
-    : Convention<FilterProviderDefinition>
+    : Convention<FilterProviderConfiguration>
     , IFilterProvider
     , IFilterProviderConvention
     where TContext : IFilterVisitorContext
@@ -32,16 +30,16 @@ public abstract class FilterProvider<TContext>
     }
 
     /// <inheritdoc />
-    public FilterProvider(Action<IFilterProviderDescriptor<TContext>> configure)
+    protected FilterProvider(Action<IFilterProviderDescriptor<TContext>> configure)
         => _configure = configure ?? throw new ArgumentNullException(nameof(configure));
 
-    internal new FilterProviderDefinition? Definition => base.Definition;
+    internal new FilterProviderConfiguration? Configuration => base.Configuration;
 
     /// <inheritdoc />
     public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers => _fieldHandlers;
 
     /// <inheritdoc />
-    protected override FilterProviderDefinition CreateDefinition(IConventionContext context)
+    protected override FilterProviderConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -53,7 +51,7 @@ public abstract class FilterProvider<TContext>
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     void IFilterProviderConvention.Initialize(
@@ -61,7 +59,7 @@ public abstract class FilterProvider<TContext>
         IFilterConvention convention)
     {
         _filterConvention = convention;
-        base.Initialize(context);
+        Initialize(context);
     }
 
     void IFilterProviderConvention.Complete(IConventionContext context)
@@ -72,7 +70,7 @@ public abstract class FilterProvider<TContext>
     /// <inheritdoc />
     protected internal override void Complete(IConventionContext context)
     {
-        if (Definition!.Handlers.Count == 0)
+        if (Configuration!.Handlers.Count == 0)
         {
             throw FilterProvider_NoHandlersConfigured(this);
         }
@@ -96,7 +94,7 @@ public abstract class FilterProvider<TContext>
                 (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
             context.Services);
 
-        foreach (var (type, instance) in Definition.Handlers)
+        foreach (var (type, instance) in Configuration.Handlers)
         {
             if (instance is IFilterFieldHandler<TContext> casted)
             {
@@ -118,7 +116,7 @@ public abstract class FilterProvider<TContext>
 
     /// <summary>
     /// This method is called on initialization of the provider but before the provider is
-    /// completed. The default implementation of this method does nothing. It can be overriden
+    /// completed. The default implementation of this method does nothing. It can be overridden
     /// by a derived class such that the provider can be further configured before it is
     /// completed
     /// </summary>
@@ -151,7 +149,7 @@ public abstract class FilterProvider<TContext>
 
     public virtual IFilterMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
         => null;
 }

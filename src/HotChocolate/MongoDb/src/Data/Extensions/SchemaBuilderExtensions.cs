@@ -14,15 +14,15 @@ public static class MongoDbSchemaBuilderExtensions
     /// The <see cref="ISchemaBuilder"/>.
     /// </param>
     /// <param name="name"></param>
-    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
+    /// <param name="compatibilityMode">Uses the old behavior of naming the filters</param>
     /// <returns>
     /// Returns the <see cref="ISchemaBuilder"/>.
     /// </returns>
     public static ISchemaBuilder AddMongoDbFiltering(
         this ISchemaBuilder builder,
         string? name = null,
-        bool compatabilityMode = false) =>
-        builder.AddFiltering(x => x.AddMongoDbDefaults(compatabilityMode), name);
+        bool compatibilityMode = false) =>
+        builder.AddFiltering(x => x.AddMongoDbDefaults(compatibilityMode), name);
 
     /// <summary>
     /// Adds sorting support.

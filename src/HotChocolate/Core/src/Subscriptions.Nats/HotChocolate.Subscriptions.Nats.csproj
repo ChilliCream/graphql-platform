@@ -7,23 +7,17 @@
     <Description>Contains a Hot Chocolate GraphQL subscription provider for NATS.</Description>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Subscriptions.Nats.Tests" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution.Configuration.Abstractions\HotChocolate.Execution.Configuration.Abstractions.csproj" />
     <ProjectReference Include="..\Subscriptions\HotChocolate.Subscriptions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AlterNats.Hosting" Version="1.0.6" />
+    <PackageReference Include="AlterNats.Hosting" />
   </ItemGroup>
 
   <ItemGroup>

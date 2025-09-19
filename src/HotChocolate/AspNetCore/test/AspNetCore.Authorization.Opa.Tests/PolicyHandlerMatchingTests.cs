@@ -64,7 +64,6 @@ public class PolicyHandlerMatchingTests
         Assert.Equal(exactHandler, foundHandler);
     }
 
-
     [Fact]
     public void OnlySingleRegexMatchIsAllowed()
     {

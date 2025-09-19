@@ -22,16 +22,16 @@ public class QueryDocumentRewriterTests
 
         schema =
             SchemaHelper.Load(
-                new GraphQLFile[]
-                {
-                    new(schema.ToDocument()),
-                    new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")")),
-                });
+                [
+                    new(schema.ToSyntaxNode()),
+                    new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
+                ]);
 
         var document =
-            Utf8GraphQLParser.Parse(@"
+            Utf8GraphQLParser.Parse(
+                """
                 query GetHero {
-                    hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
+                    hero(episode: NEW_HOPE) @returns(fragment: "Hero") {
                         ... Characters
                     }
                 }
@@ -53,7 +53,8 @@ public class QueryDocumentRewriterTests
                 fragment Droid on Droid {
                     ... Hero
                     primaryFunction
-                }");
+                }
+                """);
 
         // act
         document = QueryDocumentRewriter.Rewrite(document, schema);

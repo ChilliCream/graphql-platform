@@ -1,9 +1,6 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -18,14 +15,16 @@ public class InterfaceType<T> : InterfaceType
     public InterfaceType() =>
         _configure = Configure;
 
-    protected override InterfaceTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override InterfaceTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var descriptor = InterfaceTypeDescriptor.New<T>(context.DescriptorContext);
 
         _configure!(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        context.DescriptorContext.TypeConfiguration.Apply(typeof(T), descriptor);
+
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(IInterfaceTypeDescriptor<T> descriptor) { }

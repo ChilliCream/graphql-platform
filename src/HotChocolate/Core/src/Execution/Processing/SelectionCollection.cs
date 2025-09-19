@@ -1,9 +1,7 @@
 // ReSharper disable RedundantSuppressNullableWarningExpression
 
-using System;
 using System.Buffers;
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Resolvers;
@@ -13,51 +11,78 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Execution.Processing;
 
 internal sealed class SelectionCollection(
-    ISchema schema,
+    Schema schema,
     IOperation operation,
     ISelection[] selections,
     long includeFlags)
     : ISelectionCollection
 {
-    private readonly ISchema _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+    private readonly Schema _schema = schema ?? throw new ArgumentNullException(nameof(schema));
     private readonly IOperation _operation = operation ?? throw new ArgumentNullException(nameof(operation));
     private readonly ISelection[] _selections = selections ?? throw new ArgumentNullException(nameof(selections));
-    
+
     public int Count => _selections.Length;
 
     public ISelection this[int index] => _selections[index];
 
     public ISelectionCollection Select(string fieldName)
     {
+        ArgumentNullException.ThrowIfNull(fieldName);
+
         if (!CollectSelections(fieldName, out var buffer, out var size))
         {
-            return new SelectionCollection(_schema, _operation, Array.Empty<ISelection>(), includeFlags);
+            return new SelectionCollection(_schema, _operation, [], includeFlags);
         }
 
         var selections = new ISelection[size];
-        buffer.AsSpan().Slice(0, size).CopyTo(selections);
+        buffer.AsSpan()[..size].CopyTo(selections);
+        ArrayPool<ISelection>.Shared.Return(buffer);
+        return new SelectionCollection(_schema, _operation, selections, includeFlags);
+    }
+
+    public ISelectionCollection Select(ReadOnlySpan<string> fieldNames)
+    {
+        if (!CollectSelections(fieldNames, out var buffer, out var size))
+        {
+            return new SelectionCollection(_schema, _operation, [], includeFlags);
+        }
+
+        var selections = new ISelection[size];
+        buffer.AsSpan()[..size].CopyTo(selections);
+        ArrayPool<ISelection>.Shared.Return(buffer);
+        return new SelectionCollection(_schema, _operation, selections, includeFlags);
+    }
+
+    public ISelectionCollection Select(ITypeDefinition typeContext)
+    {
+        ArgumentNullException.ThrowIfNull(typeContext);
+
+        if (!CollectSelections(typeContext, out var buffer, out var size))
+        {
+            return new SelectionCollection(_schema, _operation, [], includeFlags);
+        }
+
+        var selections = new ISelection[size];
+        buffer.AsSpan()[..size].CopyTo(selections);
         ArrayPool<ISelection>.Shared.Return(buffer);
         return new SelectionCollection(_schema, _operation, selections, includeFlags);
     }
 
     public bool IsSelected(string fieldName)
     {
-        if (fieldName is null)
-        {
-            throw new ArgumentNullException(nameof(fieldName));
-        }
+        ArgumentNullException.ThrowIfNull(fieldName);
 
         ref var start = ref MemoryMarshal.GetReference(_selections.AsSpan());
         ref var end = ref Unsafe.Add(ref start, _selections.Length);
 
         while (Unsafe.IsAddressLessThan(ref start, ref end))
         {
-            if (!start.Type.IsCompositeType())
+            var namedType = start.Type.NamedType();
+
+            if (!namedType.IsCompositeType())
             {
                 return false;
             }
-
-            var namedType = start.Type.NamedType();
 
             if (namedType.IsAbstractType())
             {
@@ -79,7 +104,7 @@ internal sealed class SelectionCollection(
                 if (IsChildSelected(
                     _operation,
                     includeFlags,
-                    (ObjectType)namedType,
+                    Unsafe.As<ITypeDefinition, ObjectType>(ref namedType),
                     start,
                     fieldName))
                 {
@@ -102,13 +127,13 @@ internal sealed class SelectionCollection(
             var selectionSet = operation.GetSelectionSet(parent, objectType);
             var operationIncludeFlags = includeFlags;
             var selectionCount = selectionSet.Selections.Count;
-            ref var start = ref ((SelectionSet)selectionSet).GetSelectionsReference();
+            ref var start = ref Unsafe.As<ISelectionSet, SelectionSet>(ref selectionSet).GetSelectionsReference();
             ref var end = ref Unsafe.Add(ref start, selectionCount);
 
             while (Unsafe.IsAddressLessThan(ref start, ref end))
             {
-                if (start.IsIncluded(operationIncludeFlags) &&
-                    fieldName.EqualsOrdinal(start.Field.Name))
+                if (start.IsIncluded(operationIncludeFlags)
+                    && fieldName.EqualsOrdinal(start.Field.Name))
                 {
                     return true;
                 }
@@ -122,15 +147,8 @@ internal sealed class SelectionCollection(
 
     public bool IsSelected(string fieldName1, string fieldName2)
     {
-        if (fieldName1 is null)
-        {
-            throw new ArgumentNullException(nameof(fieldName1));
-        }
-
-        if (fieldName2 is null)
-        {
-            throw new ArgumentNullException(nameof(fieldName2));
-        }
+        ArgumentNullException.ThrowIfNull(fieldName1);
+        ArgumentNullException.ThrowIfNull(fieldName2);
 
         ref var start = ref MemoryMarshal.GetReference(_selections.AsSpan());
         ref var end = ref Unsafe.Add(ref start, _selections.Length);
@@ -165,7 +183,7 @@ internal sealed class SelectionCollection(
                 if (IsChildSelected(
                     _operation,
                     includeFlags,
-                    (ObjectType)namedType,
+                    Unsafe.As<ITypeDefinition, ObjectType>(ref namedType),
                     start,
                     fieldName1,
                     fieldName2))
@@ -190,14 +208,14 @@ internal sealed class SelectionCollection(
             var selectionSet = operation.GetSelectionSet(parent, objectType);
             var operationIncludeFlags = includeFlags;
             var selectionCount = selectionSet.Selections.Count;
-            ref var start = ref ((SelectionSet)selectionSet).GetSelectionsReference();
+            ref var start = ref Unsafe.As<ISelectionSet, SelectionSet>(ref selectionSet).GetSelectionsReference();
             ref var end = ref Unsafe.Add(ref start, selectionCount);
 
             while (Unsafe.IsAddressLessThan(ref start, ref end))
             {
-                if (start.IsIncluded(operationIncludeFlags) &&
-                    (fieldName1.EqualsOrdinal(start.Field.Name) ||
-                        fieldName2.EqualsOrdinal(start.Field.Name)))
+                if (start.IsIncluded(operationIncludeFlags)
+                    && (fieldName1.EqualsOrdinal(start.Field.Name)
+                    || fieldName2.EqualsOrdinal(start.Field.Name)))
                 {
                     return true;
                 }
@@ -211,20 +229,9 @@ internal sealed class SelectionCollection(
 
     public bool IsSelected(string fieldName1, string fieldName2, string fieldName3)
     {
-        if (fieldName1 is null)
-        {
-            throw new ArgumentNullException(nameof(fieldName1));
-        }
-
-        if (fieldName2 is null)
-        {
-            throw new ArgumentNullException(nameof(fieldName2));
-        }
-
-        if (fieldName3 is null)
-        {
-            throw new ArgumentNullException(nameof(fieldName3));
-        }
+        ArgumentNullException.ThrowIfNull(fieldName1);
+        ArgumentNullException.ThrowIfNull(fieldName2);
+        ArgumentNullException.ThrowIfNull(fieldName3);
 
         ref var start = ref MemoryMarshal.GetReference(_selections.AsSpan());
         ref var end = ref Unsafe.Add(ref start, _selections.Length);
@@ -260,7 +267,7 @@ internal sealed class SelectionCollection(
                 if (IsChildSelected(
                     _operation,
                     includeFlags,
-                    (ObjectType)namedType,
+                    Unsafe.As<ITypeDefinition, ObjectType>(ref namedType),
                     start,
                     fieldName1,
                     fieldName2,
@@ -287,15 +294,15 @@ internal sealed class SelectionCollection(
             var selectionSet = operation.GetSelectionSet(parent, objectType);
             var operationIncludeFlags = includeFlags;
             var selectionCount = selectionSet.Selections.Count;
-            ref var start = ref ((SelectionSet)selectionSet).GetSelectionsReference();
+            ref var start = ref Unsafe.As<ISelectionSet, SelectionSet>(ref selectionSet).GetSelectionsReference();
             ref var end = ref Unsafe.Add(ref start, selectionCount);
 
             while (Unsafe.IsAddressLessThan(ref start, ref end))
             {
-                if (start.IsIncluded(operationIncludeFlags) &&
-                    (fieldName1.EqualsOrdinal(start.Field.Name) ||
-                        fieldName2.EqualsOrdinal(start.Field.Name) ||
-                        fieldName3.EqualsOrdinal(start.Field.Name)))
+                if (start.IsIncluded(operationIncludeFlags)
+                    && (fieldName1.EqualsOrdinal(start.Field.Name)
+                    || fieldName2.EqualsOrdinal(start.Field.Name)
+                    || fieldName3.EqualsOrdinal(start.Field.Name)))
                 {
                     return true;
                 }
@@ -309,10 +316,7 @@ internal sealed class SelectionCollection(
 
     public bool IsSelected(ISet<string> fieldNames)
     {
-        if (fieldNames is null)
-        {
-            throw new ArgumentNullException(nameof(fieldNames));
-        }
+        ArgumentNullException.ThrowIfNull(fieldNames);
 
         ref var start = ref MemoryMarshal.GetReference(_selections.AsSpan());
         ref var end = ref Unsafe.Add(ref start, _selections.Length);
@@ -338,7 +342,12 @@ internal sealed class SelectionCollection(
             }
             else
             {
-                if (IsChildSelected(_operation, includeFlags, (ObjectType)namedType, start, fieldNames))
+                if (IsChildSelected(
+                    _operation,
+                    includeFlags,
+                    Unsafe.As<ITypeDefinition, ObjectType>(ref namedType),
+                    start,
+                    fieldNames))
                 {
                     return true;
                 }
@@ -359,13 +368,13 @@ internal sealed class SelectionCollection(
             var selectionSet = operation.GetSelectionSet(parent, objectType);
             var operationIncludeFlags = includeFlags;
             var selectionCount = selectionSet.Selections.Count;
-            ref var start = ref ((SelectionSet)selectionSet).GetSelectionsReference();
+            ref var start = ref Unsafe.As<ISelectionSet, SelectionSet>(ref selectionSet).GetSelectionsReference();
             ref var end = ref Unsafe.Add(ref start, selectionCount);
 
             while (Unsafe.IsAddressLessThan(ref start, ref end))
             {
-                if (start.IsIncluded(operationIncludeFlags) &&
-                    fieldNames.Contains(start.Field.Name))
+                if (start.IsIncluded(operationIncludeFlags)
+                    && fieldNames.Contains(start.Field.Name))
                 {
                     return true;
                 }
@@ -377,7 +386,24 @@ internal sealed class SelectionCollection(
         }
     }
 
-    private bool CollectSelections(string fieldName, out ISelection[] buffer, out int size)
+    private bool CollectSelections(
+        string fieldName,
+        out ISelection[] buffer,
+        out int size)
+    {
+        var fieldNames = ArrayPool<string>.Shared.Rent(1);
+        var fieldNamesSpan = fieldNames.AsSpan()[..1];
+        fieldNamesSpan[0] = fieldName;
+
+        var result = CollectSelections(fieldNamesSpan, out buffer, out size);
+        ArrayPool<string>.Shared.Return(fieldNames);
+        return result;
+    }
+
+    private bool CollectSelections(
+        ReadOnlySpan<string> fieldNames,
+        out ISelection[] buffer,
+        out int size)
     {
         buffer = ArrayPool<ISelection>.Shared.Rent(4);
         size = 0;
@@ -387,27 +413,58 @@ internal sealed class SelectionCollection(
 
         while (Unsafe.IsAddressLessThan(ref start, ref end))
         {
-            if (!start.Type.IsCompositeType())
-            {
-                continue;
-            }
-
             var namedType = start.Type.NamedType();
+
+            if (!namedType.IsCompositeType())
+            {
+                goto NEXT;
+            }
 
             if (namedType.IsAbstractType())
             {
                 foreach (var possibleType in _schema.GetPossibleTypes(namedType))
                 {
                     var selectionSet = _operation.GetSelectionSet(start, possibleType);
-                    Collect(ref buffer, selectionSet, size, out var written);
+                    CollectFields(fieldNames, includeFlags, ref buffer, selectionSet, size, out var written);
                     size += written;
                 }
             }
             else
             {
-                var selectionSet = _operation.GetSelectionSet(start, (ObjectType)namedType);
-                Collect(ref buffer, selectionSet, size, out var written);
+                var selectionSet = _operation.GetSelectionSet(start, Unsafe.As<ITypeDefinition, ObjectType>(ref namedType));
+                CollectFields(fieldNames, includeFlags, ref buffer, selectionSet, size, out var written);
                 size += written;
+            }
+
+NEXT:
+            start = ref Unsafe.Add(ref start, 1)!;
+        }
+
+        if (size == 0)
+        {
+            ArrayPool<ISelection>.Shared.Return(buffer);
+            buffer = [];
+        }
+
+        return size > 0;
+    }
+
+    private bool CollectSelections(
+        ITypeDefinition typeContext,
+        out ISelection[] buffer,
+        out int size)
+    {
+        buffer = ArrayPool<ISelection>.Shared.Rent(_selections.Length);
+        size = 0;
+
+        ref var start = ref MemoryMarshal.GetReference(_selections.AsSpan());
+        ref var end = ref Unsafe.Add(ref start, _selections.Length);
+
+        while (Unsafe.IsAddressLessThan(ref start, ref end))
+        {
+            if (typeContext.IsAssignableFrom(start.Type.NamedType()))
+            {
+                buffer[size++] = start;
             }
 
             start = ref Unsafe.Add(ref start, 1)!;
@@ -416,32 +473,43 @@ internal sealed class SelectionCollection(
         if (size == 0)
         {
             ArrayPool<ISelection>.Shared.Return(buffer);
-            buffer = Array.Empty<ISelection>();
+            buffer = [];
         }
 
         return size > 0;
+    }
 
-        void Collect(ref ISelection[] buffer, ISelectionSet selectionSet, int index, out int written)
+    private static void CollectFields(
+        ReadOnlySpan<string> fieldNames,
+        long includeFlags,
+        ref ISelection[] buffer,
+        ISelectionSet selectionSet,
+        int index,
+        out int written)
+    {
+        written = 0;
+
+        var operationIncludeFlags = includeFlags;
+        var selectionCount = selectionSet.Selections.Count;
+
+        ref var selectionRef = ref ((SelectionSet)selectionSet).GetSelectionsReference();
+        ref var end = ref Unsafe.Add(ref selectionRef, selectionCount);
+
+        EnsureCapacity(ref buffer, index, selectionCount);
+
+        while (Unsafe.IsAddressLessThan(ref selectionRef, ref end))
         {
-            written = 0;
-
-            var operationIncludeFlags = includeFlags;
-            var selectionCount = selectionSet.Selections.Count;
-            ref var selectionRef = ref ((SelectionSet)selectionSet).GetSelectionsReference();
-
-            EnsureCapacity(ref buffer, index, selectionCount);
-
-            for (var i = 0; i < selectionCount; i++)
+            foreach (var fieldName in fieldNames)
             {
-                var childSelection = Unsafe.Add(ref selectionRef, i);
-
-                if (childSelection.IsIncluded(operationIncludeFlags) &&
-                    childSelection.Field.Name.EqualsOrdinal(fieldName))
+                if (selectionRef.IsIncluded(operationIncludeFlags)
+                    && selectionRef.Field.Name.EqualsOrdinal(fieldName))
                 {
-                    buffer[index++] = childSelection;
+                    buffer[index++] = selectionRef;
                     written++;
                 }
             }
+
+            selectionRef = ref Unsafe.Add(ref selectionRef, 1)!;
         }
     }
 
@@ -460,7 +528,7 @@ internal sealed class SelectionCollection(
         }
 
         var newBuffer = ArrayPool<ISelection>.Shared.Rent(capacity);
-        buffer.AsSpan().Slice(0, index).CopyTo(newBuffer);
+        buffer.AsSpan()[..index].CopyTo(newBuffer);
         ArrayPool<ISelection>.Shared.Return(buffer);
         buffer = newBuffer;
     }

@@ -19,7 +19,7 @@ public class NegativeIntType : IntType
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="NegativeIntType"/> class.
     /// </summary>

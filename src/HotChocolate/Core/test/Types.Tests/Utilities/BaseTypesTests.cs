@@ -1,4 +1,3 @@
-﻿using System;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 
@@ -58,11 +57,11 @@ public class BaseTypesTests
 
     public class Foo
     {
-        public string Bar { get; set; }
+        public required string Bar { get; set; }
     }
 
     public enum FooEnum
     {
-        Bar,
+        Bar
     }
 }

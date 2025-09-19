@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using CookieCrumble;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
@@ -71,6 +68,6 @@ public class FilterConventionScopeTests
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 }

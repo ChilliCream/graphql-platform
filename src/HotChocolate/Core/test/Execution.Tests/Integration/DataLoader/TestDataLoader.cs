@@ -1,4 +1,4 @@
-﻿using GreenDonut;
+using GreenDonut;
 
 namespace HotChocolate.Execution.Integration.DataLoader;
 
@@ -17,7 +17,7 @@ public class TestDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions op
 
         for (var i = 0; i < keys.Count; i++)
         {
-            dict.Add( keys[i], keys[i]);
+            dict.Add(keys[i], keys[i]);
         }
 
         await Task.Delay(1, cancellationToken);

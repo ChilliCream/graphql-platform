@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -18,6 +16,9 @@ public sealed class VariableDefinitionNode : ISyntaxNode, IHasDirectives
     /// <param name="variable">
     /// The variable.
     /// </param>
+    /// <param name="description">
+    /// The variable description.
+    /// </param>
     /// <param name="type">
     /// The variable type.
     /// </param>
@@ -30,12 +31,14 @@ public sealed class VariableDefinitionNode : ISyntaxNode, IHasDirectives
     public VariableDefinitionNode(
         Location? location,
         VariableNode variable,
+        StringValueNode? description,
         ITypeNode type,
         IValueNode? defaultValue,
         IReadOnlyList<DirectiveNode> directives)
     {
         Location = location;
         Variable = variable ?? throw new ArgumentNullException(nameof(variable));
+        Description = description;
         Type = type ?? throw new ArgumentNullException(nameof(type));
         DefaultValue = defaultValue;
         Directives = directives ?? throw new ArgumentNullException(nameof(directives));
@@ -51,6 +54,11 @@ public sealed class VariableDefinitionNode : ISyntaxNode, IHasDirectives
     /// Gets the variable.
     /// </summary>
     public VariableNode Variable { get; }
+
+    /// <summary>
+    /// Gets the variable description.
+    /// </summary>
+    public StringValueNode? Description { get; }
 
     /// <summary>
     /// Gets the variable type.
@@ -116,7 +124,7 @@ public sealed class VariableDefinitionNode : ISyntaxNode, IHasDirectives
     /// Returns the new node with the new <paramref name="location" />.
     /// </returns>
     public VariableDefinitionNode WithLocation(Location? location)
-        => new(location, Variable, Type, DefaultValue, Directives);
+        => new(location, Variable, Description, Type, DefaultValue, Directives);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -129,7 +137,7 @@ public sealed class VariableDefinitionNode : ISyntaxNode, IHasDirectives
     /// Returns the new node with the new <paramref name="variable" />.
     /// </returns>
     public VariableDefinitionNode WithVariable(VariableNode variable)
-        => new(Location, variable, Type, DefaultValue, Directives);
+        => new(Location, variable, Description, Type, DefaultValue, Directives);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -142,7 +150,7 @@ public sealed class VariableDefinitionNode : ISyntaxNode, IHasDirectives
     /// Returns the new node with the new <paramref name="type" />.
     /// </returns>
     public VariableDefinitionNode WithType(ITypeNode type)
-        => new(Location, Variable, type, DefaultValue, Directives);
+        => new(Location, Variable, Description, type, DefaultValue, Directives);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -155,7 +163,7 @@ public sealed class VariableDefinitionNode : ISyntaxNode, IHasDirectives
     /// Returns the new node with the new <paramref name="defaultValue" />.
     /// </returns>
     public VariableDefinitionNode WithDefaultValue(IValueNode? defaultValue)
-        => new(Location, Variable, Type, defaultValue, Directives);
+        => new(Location, Variable, Description, Type, defaultValue, Directives);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -168,7 +176,6 @@ public sealed class VariableDefinitionNode : ISyntaxNode, IHasDirectives
     /// <returns>
     /// Returns the new node with the new <paramref name="directives" />.
     /// </returns>
-
     public VariableDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
-        => new(Location, Variable, Type, DefaultValue, directives);
+        => new(Location, Variable, Description, Type, DefaultValue, directives);
 }

@@ -6,52 +6,8 @@ using HotChocolate.Types;
 using Marten;
 using Marten.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data;
-
-public sealed class ResourceContainer : IAsyncDisposable
-{
-    private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private int _testClassInstances = 0;
-    
-    public PostgreSqlResource Resource { get; } = new(); 
-    
-    public async ValueTask InitializeAsync()
-    {
-        await _semaphore.WaitAsync();
-
-        try
-        {
-            if (_testClassInstances == 0)
-            {
-                await Resource.InitializeAsync();
-            }
-            _testClassInstances++;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-    } 
-    
-    public async ValueTask DisposeAsync()
-    {
-        await _semaphore.WaitAsync();
-
-        try
-        {
-            if (--_testClassInstances == 0)
-            {
-                await Resource.DisposeAsync();
-            }
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-    }
-}
 
 public abstract class FilterVisitorTestBase : IAsyncLifetime
 {
@@ -63,22 +19,24 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;
 
-    protected IRequestExecutor CreateSchema<TEntity, T>(
+    protected async Task<IRequestExecutor> CreateSchemaAsync<TEntity, T>(
         TEntity[] entities,
         FilterConvention? convention = null,
         bool withPaging = false,
-        Action<ISchemaBuilder>? configure = null)
+        Action<IRequestExecutorBuilder>? configure = null)
         where TEntity : class
         where T : FilterInputType<TEntity>
     {
         var dbName = $"DB_{Guid.NewGuid():N}";
-        Container.Resource.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
+        await Container.Resource.CreateDatabaseAsync(dbName);
         var store = DocumentStore.For(Container.Resource.GetConnectionString(dbName));
 
-        var resolver =
-            BuildResolver(store, entities);
+        var resolver = await BuildResolverAsync(store, entities);
 
-        var builder = SchemaBuilder.New()
+        var services = new ServiceCollection();
+        var builder = services.AddGraphQL();
+
+        builder
             .AddMartenFiltering()
             .AddQueryType(
                 c =>
@@ -99,33 +57,28 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 
         configure?.Invoke(builder);
 
-        var schema = builder.Create();
-
-        return new ServiceCollection()
-            .Configure<RequestExecutorSetup>(
-                Schema.DefaultName,
-                o => o.Schema = schema)
-            .AddGraphQL()
+        builder
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                            OperationResultBuilder
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("sql", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
+            .ModifyPagingOptions(o => o.IncludeTotalCount = true)
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
-            .UseDefaultPipeline()
-            .Services
+            .UseDefaultPipeline();
+
+        return await services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
-            .Result;
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
     }
 
     private void ApplyConfigurationToField<TEntity, TType>(
@@ -141,7 +94,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
             context.LocalContextData = context.LocalContextData.SetItem("session", session);
             await next(context);
         });
-        
+
         field.Use(next => async context =>
         {
             await next(context);
@@ -161,19 +114,19 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         field.UseFiltering<TType>();
     }
 
-    private Func<IResolverContext, IQueryable<TResult>> BuildResolver<TResult>(
+    private async Task<Func<IResolverContext, IQueryable<TResult>>> BuildResolverAsync<TResult>(
         IDocumentStore store,
         params TResult[] results)
         where TResult : class
     {
-        using var session = store.LightweightSession();
+        await using var session = store.LightweightSession();
 
         foreach (var item in results)
         {
             session.Store(item);
         }
 
-        session.SaveChanges();
+        await session.SaveChangesAsync();
 
         return ctx => ((IDocumentSession)ctx.LocalContextData["session"]!).Query<TResult>();
     }

@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Authorization;
 
 namespace HotChocolate.Types;
@@ -23,10 +22,7 @@ public static class AuthorizeObjectTypeDescriptorExtensions
         this IObjectTypeDescriptor descriptor,
         ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(new AuthorizeDirective(apply: apply));
     }
@@ -48,10 +44,7 @@ public static class AuthorizeObjectTypeDescriptorExtensions
         string policy,
         ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(new AuthorizeDirective(policy, apply: apply));
     }
@@ -71,10 +64,7 @@ public static class AuthorizeObjectTypeDescriptorExtensions
         this IObjectTypeDescriptor descriptor,
         params string[] roles)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(new AuthorizeDirective(roles));
     }
@@ -94,10 +84,7 @@ public static class AuthorizeObjectTypeDescriptorExtensions
         this IObjectTypeDescriptor<T> descriptor,
         ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(new AuthorizeDirective(apply: apply));
     }
@@ -119,10 +106,7 @@ public static class AuthorizeObjectTypeDescriptorExtensions
         string policy,
         ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(new AuthorizeDirective(policy, apply: apply));
     }
@@ -142,10 +126,7 @@ public static class AuthorizeObjectTypeDescriptorExtensions
         this IObjectTypeDescriptor<T> descriptor,
         params string[] roles)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(new AuthorizeDirective(roles));
     }

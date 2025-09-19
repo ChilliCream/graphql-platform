@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using CookieCrumble;
 
 namespace HotChocolate.Types;
 
@@ -127,7 +121,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         Assert.Collection(
-            schema.GetType<ObjectType>("Bar").Directives,
+            schema.Types.GetType<ObjectType>("Bar").Directives,
             t =>
             {
                 Assert.Equal("foo", t.Type.Name);
@@ -172,8 +166,8 @@ public class DirectiveTypeTests : TypeTestBase
             t =>
             {
                 Assert.Equal(
-                    "The specified directive `@foo` " +
-                    "is unique and cannot be added twice.",
+                    "The specified directive `@foo` "
+                    + "is unique and cannot be added twice.",
                     t.Message);
             });
     }
@@ -188,7 +182,6 @@ public class DirectiveTypeTests : TypeTestBase
                 .Location(DirectiveLocation.FieldDefinition)
                 .Use((_, _) => _ => default)
                 .Argument("a").Type<StringType>());
-
 
         var objectType = new ObjectType(
             t =>
@@ -207,7 +200,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         IReadOnlyCollection<Directive> collection =
-            schema.GetType<ObjectType>("Bar")
+            schema.Types.GetType<ObjectType>("Bar")
                 .Fields["foo"].Directives
                 .Where(t => t.Type.Middleware is not null)
                 .ToList();
@@ -228,7 +221,7 @@ public class DirectiveTypeTests : TypeTestBase
         // act
         Action action = () =>
             DirectiveTypeDescriptorExtensions
-                .Ignore<CustomDirective2>(null, t => t.Argument2);
+                .Ignore<CustomDirective2>(null!, t => t.Argument2);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -243,7 +236,7 @@ public class DirectiveTypeTests : TypeTestBase
                 DescriptorContext.Create());
 
         // act
-        void Action() => descriptor.Ignore(null);
+        void Action() => descriptor.Ignore(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -296,10 +289,10 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var directive = schema.GetDirectiveType("foo");
+        var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
     }
-    
+
     [Fact]
     public async Task Use_EnsureClassMiddlewareDoesNotTrap_Next()
     {
@@ -311,13 +304,13 @@ public class DirectiveTypeTests : TypeTestBase
                 {
                     descriptor
                         .Name("Query");
-                    
+
                     descriptor
                         .Field("foo")
                         .Type<StringType>()
                         .Resolve("bar")
                         .Directive("foo");
-                    
+
                     descriptor
                         .Field("foo1")
                         .Type<IntType>()
@@ -333,14 +326,14 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var directive = schema.GetDirectiveType("foo");
+        var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
 
         await schema.MakeExecutable().ExecuteAsync("{ foo }");
         await schema.MakeExecutable().ExecuteAsync("{ foo1 }");
         await schema.MakeExecutable().ExecuteAsync("{ foo foo1 }");
         var result = await schema.MakeExecutable().ExecuteAsync("{ foo foo1 }");
-        
+
         result.MatchSnapshot();
     }
 
@@ -366,7 +359,7 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var directive = schema.GetDirectiveType("foo");
+        var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
     }
 
@@ -392,7 +385,7 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var directive = schema.GetDirectiveType("foo");
+        var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
     }
 
@@ -442,7 +435,7 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var directive = schema.GetDirectiveType("foo");
+        var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
     }
 
@@ -468,7 +461,7 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var directive = schema.GetDirectiveType("foo");
+        var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
     }
 
@@ -494,7 +487,7 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var directive = schema.GetDirectiveType("foo");
+        var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
     }
 
@@ -515,7 +508,7 @@ public class DirectiveTypeTests : TypeTestBase
                     new DirectiveType(
                         d => d.Name("foo")
                             .Location(DirectiveLocation.Object)
-                            .Use(null)))
+                            .Use(null!)))
                 .Create();
 
         // assert
@@ -554,7 +547,7 @@ public class DirectiveTypeTests : TypeTestBase
             .AddDirectiveType<DirectiveWithSyntaxTypeArg>()
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -585,7 +578,7 @@ public class DirectiveTypeTests : TypeTestBase
     {
         // arrange
         // act
-        static async Task call() =>
+        static async Task Call() =>
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(
@@ -600,7 +593,7 @@ public class DirectiveTypeTests : TypeTestBase
                 .BuildRequestExecutorAsync();
 
         // assert
-        var exception = await Assert.ThrowsAsync<SchemaException>(call);
+        var exception = await Assert.ThrowsAsync<SchemaException>(Call);
         exception.Errors.Single().ToString().MatchSnapshot();
     }
 
@@ -674,8 +667,9 @@ public class DirectiveTypeTests : TypeTestBase
                     .Resolve("asd")
                     .Directive("Qux"))
             .AddDocumentFromString(
-                @"directive @Qux(bar: String @deprecated(reason: ""reason""))
-                    on FIELD_DEFINITION")
+                """
+                directive @Qux(bar: String @deprecated(reason: "reason")) on FIELD_DEFINITION
+                """)
             .BuildSchemaAsync();
 
         // assert
@@ -697,8 +691,9 @@ public class DirectiveTypeTests : TypeTestBase
                         .Resolve("asd")
                         .Directive("Qux", new ArgumentNode("bar", "abc")))
                 .AddDocumentFromString(
-                    @"directive @Qux(bar: String! @deprecated(reason: ""reason""))
-                        on FIELD_DEFINITION")
+                    """
+                    directive @Qux(bar: String! @deprecated(reason: "reason")) on FIELD_DEFINITION
+                    """)
                 .BuildSchemaAsync();
 
         // assert
@@ -710,7 +705,7 @@ public class DirectiveTypeTests : TypeTestBase
     public void Directive_ValidateArgs_InvalidArg()
     {
         // arrange
-        var sourceText = @"
+        const string sourceText = @"
             type Query {
                 foo: String @a(d:1 e:true)
             }
@@ -726,7 +721,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         var errors = Assert.Throws<SchemaException>(Action).Errors;
-        Assert.Equal(1, errors.Count);
+        Assert.Single(errors);
         Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
         errors[0].Message.MatchSnapshot();
     }
@@ -735,7 +730,7 @@ public class DirectiveTypeTests : TypeTestBase
     public void Directive_ValidateArgs_ArgMissing()
     {
         // arrange
-        var sourceText = @"
+        const string sourceText = @"
             type Query {
                 foo: String @a
             }
@@ -751,7 +746,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         var errors = Assert.Throws<SchemaException>(Action).Errors;
-        Assert.Equal(1, errors.Count);
+        Assert.Single(errors);
         Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
         errors[0].Message.MatchSnapshot();
     }
@@ -760,7 +755,7 @@ public class DirectiveTypeTests : TypeTestBase
     public void Directive_ValidateArgs_NonNullArgIsNull()
     {
         // arrange
-        var sourceText = @"
+        const string sourceText = @"
             type Query {
                 foo: String @a(d: null)
             }
@@ -776,7 +771,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         var errors = Assert.Throws<SchemaException>(Action).Errors;
-        Assert.Equal(1, errors.Count);
+        Assert.Single(errors);
         Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
         errors[0].Message.MatchSnapshot();
     }
@@ -785,12 +780,14 @@ public class DirectiveTypeTests : TypeTestBase
     public void Directive_ValidateArgs_Overflow()
     {
         // arrange
-        var sourceText = $@"
-            type Query {{
-                foo: String @a(d: {long.MaxValue})
-            }}
+        var sourceText =
+            $$"""
+            type Query {
+               foo: String @a(d: {{long.MaxValue}})
+            }
 
-            directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION";
+            directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION
+            """;
 
         // act
         void Action() =>
@@ -801,9 +798,37 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         var errors = Assert.Throws<SchemaException>(Action).Errors;
-        Assert.Equal(1, errors.Count);
+        Assert.Single(errors);
         Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
         errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Directive_ArgumentDirective_AddedToSchema()
+    {
+        // arrange
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("Qux"))
+            .AddDocumentFromString(
+                """
+                directive @Example on ARGUMENT_DEFINITION
+                directive @Qux(bar: String @Example) on FIELD_DEFINITION
+                """)
+            .BuildSchemaAsync();
+
+        // assert
+        Assert.True(
+            schema.DirectiveTypes
+                .Single(d => d.Name == "Qux")
+                .Arguments["bar"]
+                .Directives[0].Type.Name == "Example");
     }
 
     [Fact]
@@ -902,7 +927,9 @@ public class DirectiveTypeTests : TypeTestBase
 
     public class DirectiveMiddleware
     {
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly FieldDelegate _next;
+#pragma warning restore IDE0052 // Remove unread private members
 
         public DirectiveMiddleware(FieldDelegate next)
         {
@@ -912,17 +939,17 @@ public class DirectiveTypeTests : TypeTestBase
         public Task InvokeAsync(IMiddlewareContext context) =>
             Task.CompletedTask;
     }
-    
+
     public class DirectiveMiddleware1
     {
         private readonly FieldDelegate _next;
-        private static int _instances;
+        private static int s_instances;
         private readonly int _count;
 
         public DirectiveMiddleware1(FieldDelegate next)
         {
             _next = next;
-            _count = Interlocked.Increment(ref _instances);
+            _count = Interlocked.Increment(ref s_instances);
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)
@@ -948,42 +975,42 @@ public class DirectiveTypeTests : TypeTestBase
 
     public class CustomDirective
     {
-        public string Argument { get; set; }
+        public required string Argument { get; set; }
     }
 
     public class CustomDirective2
     {
-        public string Argument1 { get; set; }
+        public string? Argument1 { get; set; }
 
-        public string Argument2 { get; set; }
+        public string? Argument2 { get; set; }
     }
 
     public class DirectiveWithDefaults
     {
-        [DefaultValue("abc")] public string Argument1 { get; set; }
+        [DefaultValue("abc")] public required string Argument1 { get; set; }
 
-        public string Argument2 { get; set; }
+        public string? Argument2 { get; set; }
     }
 
     [DirectiveType("anno", DirectiveLocation.FieldDefinition)]
     public sealed class AnnotationDirective
     {
-        public AnnotationDirective(string foo)
+        public AnnotationDirective(string? foo)
         {
             Foo = foo;
         }
 
-        public string Foo { get; }
+        public string? Foo { get; }
     }
 
     [DirectiveType(DirectiveLocation.FieldDefinition)]
     public sealed class FooDirective
     {
-        public FooDirective(string foo)
+        public FooDirective(string? foo)
         {
             Foo = foo;
         }
 
-        public string Foo { get; }
+        public string? Foo { get; }
     }
 }

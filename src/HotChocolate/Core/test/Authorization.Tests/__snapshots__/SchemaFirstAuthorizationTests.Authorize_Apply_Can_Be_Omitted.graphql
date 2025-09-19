@@ -1,0 +1,23 @@
+schema {
+  query: Query
+}
+
+type Query @authorize(roles: [ "policy_tester_noupdate", "policy_tester_update_noread", "authorizationHandlerTester" ]) {
+  hello: String @authorize(roles: [ "admin" ]) @cost(weight: "10")
+}
+
+"Defines when a policy shall be executed."
+enum ApplyPolicy {
+  "Before the resolver was executed."
+  BEFORE_RESOLVER
+  "After the resolver was executed."
+  AFTER_RESOLVER
+  "The policy is applied in the validation step before the execution."
+  VALIDATION
+}
+
+"The authorize directive."
+directive @authorize("The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!] "Defines when when the authorize directive shall be applied.By default the authorize directives are applied during the validation phase." apply: ApplyPolicy! = BEFORE_RESOLVER) repeatable on OBJECT | FIELD_DEFINITION
+
+"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
+directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION

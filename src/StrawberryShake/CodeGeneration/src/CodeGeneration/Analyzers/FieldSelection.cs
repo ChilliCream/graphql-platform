@@ -1,13 +1,13 @@
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
 public class FieldSelection
 {
     public FieldSelection(
-        IOutputField field,
+        IOutputFieldDefinition field,
         FieldNode syntaxNode,
         Path path,
         bool isConditional = true)
@@ -21,7 +21,7 @@ public class FieldSelection
 
     public string ResponseName { get; }
 
-    public IOutputField Field { get; }
+    public IOutputFieldDefinition Field { get; }
 
     public FieldNode SyntaxNode { get; }
 

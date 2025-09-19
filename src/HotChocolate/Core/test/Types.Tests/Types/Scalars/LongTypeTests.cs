@@ -1,4 +1,3 @@
-﻿using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -54,7 +53,7 @@ public class LongTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.IsInstanceOfType(null));
+            () => type.IsInstanceOfType(null!));
     }
 
     [Fact]
@@ -62,7 +61,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType();
-        long value = 123;
+        const long value = 123;
 
         // act
         var serializedValue = type.Serialize(value);
@@ -90,7 +89,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType();
-        var input = "abc";
+        const string input = "abc";
 
         // act
         // assert
@@ -103,7 +102,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType(0, 100);
-        long value = 200;
+        const long value = 200;
 
         // act
         // assert
@@ -161,7 +160,7 @@ public class LongTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.ParseLiteral(null));
+            () => type.ParseLiteral(null!));
     }
 
     [Fact]
@@ -169,7 +168,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType(1, 100);
-        long input = 100;
+        const long input = 100;
 
         // act
         var literal = (IntValueNode)type.ParseValue(input);
@@ -183,7 +182,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType(1, 100);
-        long input = 101;
+        const long input = 101;
 
         // act
         Action action = () => type.ParseValue(input);
@@ -197,7 +196,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType(1, 100);
-        long input = 1;
+        const long input = 1;
 
         // act
         var literal = (IntValueNode)type.ParseValue(input);
@@ -211,7 +210,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType(1, 100);
-        long input = 0;
+        const long input = 0;
 
         // act
         Action action = () => type.ParseValue(input);
@@ -220,13 +219,12 @@ public class LongTypeTests
         Assert.Throws<SerializationException>(action);
     }
 
-
     [Fact]
     public void ParseValue_Wrong_Value_Throws()
     {
         // arrange
         var type = new LongType();
-        var value = "123";
+        const string value = "123";
 
         // act
         // assert
@@ -239,7 +237,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType();
-        object input = null;
+        object input = null!;
 
         // act
         object output = type.ParseValue(input);

@@ -7,8 +7,8 @@
     <Description>Contains an introspection client to download a GraphQL schema over HTTP.</Description>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Text.Json" Version="6.0.7" />
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Utilities.Introspection.Tests" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,6 +26,7 @@
     <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.Shared\HotChocolate.Types.Shared.csproj" />
     <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+    <ProjectReference Include="..\Utilities\HotChocolate.Utilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>

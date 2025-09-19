@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Properties.Resources;
@@ -78,9 +76,6 @@ internal static class ThrowHelper
                 .AddLocation(selection)
                 .Build());
     }
-
-    public static NotSupportedException QueryTypeNotSupported() =>
-        new(ThrowHelper_QueryTypeNotSupported_Message);
 
     public static GraphQLException VariableNotFound(
         string variableName) =>
@@ -220,7 +215,7 @@ internal static class ThrowHelper
         new(ErrorBuilder.New()
             .SetMessage(ThrowHelper_CollectVariablesVisitor_NoCompatibleType_Message)
             .SetCode(ErrorCodes.Execution.AutoMapVarError)
-            .SetPath(path)
+            .SetPath(Path.FromList(path))
             .AddLocation(node)
             .Build());
 
@@ -252,33 +247,33 @@ internal static class ThrowHelper
         new("The specified object was not initialized and is no longer usable.");
 
     public static GraphQLException ResolverContext_CannotCastParent(
-        FieldCoordinate field,
+        SchemaCoordinate fieldCoordinate,
         Path path,
         Type requestType,
         Type parentType)
         => new(ErrorBuilder.New()
             .SetMessage(
                 ThrowHelper_ResolverContext_CannotCastParent,
-                field,
+                fieldCoordinate,
                 parentType,
                 requestType)
             .SetPath(path)
-            .SetExtension(nameof(field), field.ToString())
+            .SetFieldCoordinate(fieldCoordinate)
             .SetCode(ErrorCodes.Execution.CannotCastParent)
             .Build());
 
     public static GraphQLException OneOfFieldMustBeNonNull(
-        FieldCoordinate field)
+        SchemaCoordinate field)
         => new(ErrorBuilder.New()
-            .SetMessage(string.Format(ThrowHelper_OneOfFieldMustBeNonNull, field.FieldName))
+            .SetMessage(string.Format(ThrowHelper_OneOfFieldMustBeNonNull, field.MemberName))
             .SetCode(ErrorCodes.Execution.OneOfFieldMustBeNonNull)
             .SetExtension(nameof(field), field.ToString())
             .Build());
 
-    public static ArgumentException SelectionSet_TypeContextInvalid(IObjectType typeContext)
+    public static ArgumentException SelectionSet_TypeContextInvalid(IObjectTypeDefinition typeContext)
         => new(string.Format(SelectionVariants_TypeContextInvalid, typeContext.Name));
 
-    public static InvalidOperationException SelectionSet_TypeAlreadyAdded(IObjectType typeContext)
+    public static InvalidOperationException SelectionSet_TypeAlreadyAdded(IObjectTypeDefinition typeContext)
         => new(string.Format(ThrowHelper_SelectionSet_TypeAlreadyAdded, typeContext.Name));
 
     public static ArgumentException Operation_NoSelectionSet()
@@ -289,5 +284,4 @@ internal static class ThrowHelper
 
     public static NotSupportedException MultiPartFormatter_ResultNotSupported(string typeName)
         => new(string.Format(ThrowHelper_JsonFormatter_ResultNotSupported, typeName));
-
 }

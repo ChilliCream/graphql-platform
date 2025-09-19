@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using static HotChocolate.Properties.AbstractionResources;
 
 namespace HotChocolate;
@@ -17,12 +15,9 @@ public sealed class FieldError : IFieldResult
     /// </param>
     public FieldError(object error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
-        Errors = new[] { error, };
+        Errors = new[] { error };
     }
 
     /// <summary>
@@ -33,10 +28,7 @@ public sealed class FieldError : IFieldResult
     /// </param>
     public FieldError(IReadOnlyList<object> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Count == 0)
         {
@@ -50,7 +42,7 @@ public sealed class FieldError : IFieldResult
     /// Gets the error objects.
     /// </summary>
     public IReadOnlyList<object> Errors { get; }
-    
+
     /// <summary>
     /// Gets the mutation result value.
     /// </summary>
@@ -62,7 +54,7 @@ public sealed class FieldError : IFieldResult
     public bool IsSuccess => false;
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     public bool IsError => true;
 }

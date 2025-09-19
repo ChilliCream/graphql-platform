@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Types;
 
@@ -9,7 +8,7 @@ internal sealed partial class OperationContext
     /// <summary>
     /// Gets the schema on which the query is being executed.
     /// </summary>
-    public ISchema Schema
+    public Schema Schema
     {
         get
         {
@@ -71,7 +70,7 @@ internal sealed partial class OperationContext
     /// The type context.
     /// </param>
     /// <returns></returns>
-    public ISelectionSet CollectFields(ISelection selection, IObjectType typeContext)
+    public ISelectionSet CollectFields(ISelection selection, ObjectType typeContext)
     {
         AssertInitialized();
         return Operation.GetSelectionSet(selection, typeContext);
@@ -92,9 +91,9 @@ internal sealed partial class OperationContext
 
         var query = _resolveQueryRootValue();
 
-        if (query is null &&
-            typeof(T) == typeof(object) &&
-            new object() is T dummy)
+        if (query is null
+            && typeof(T) == typeof(object)
+            && new object() is T dummy)
         {
             return dummy;
         }

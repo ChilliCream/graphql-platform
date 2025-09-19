@@ -7,14 +7,14 @@ namespace HotChocolate.Execution.DependencyInjection;
 public class RequestExecutorBuilderExtensionsSchemaOptionsTests
 {
     [Fact]
-    public async Task SetOptions_ValidatePipelineOrder_False()
+    public async Task ModifyOptions_ValidatePipelineOrder_False()
     {
         var interceptor = new OptionsInterceptor();
 
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddType<Query>()
-            .SetOptions(new SchemaOptions { ValidatePipelineOrder = false, })
+            .ModifyOptions(o => o.ValidatePipelineOrder = false)
             .TryAddTypeInterceptor(interceptor)
             .BuildRequestExecutorAsync();
 
@@ -23,7 +23,7 @@ public class RequestExecutorBuilderExtensionsSchemaOptionsTests
 
     private sealed class OptionsInterceptor : TypeInterceptor
     {
-        public IReadOnlySchemaOptions Options { get; private set; } = default!;
+        public IReadOnlySchemaOptions Options { get; private set; } = null!;
 
         internal override void OnBeforeCreateSchemaInternal(
             IDescriptorContext context,

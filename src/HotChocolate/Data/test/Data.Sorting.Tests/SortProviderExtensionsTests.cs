@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Types.Descriptors;
@@ -73,7 +72,7 @@ public class SortProviderExtensionsTests
         Action<ISortProviderDescriptor<QueryableSortContext>> configure)
         : SortProvider<QueryableSortContext>(configure)
     {
-        public SortProviderDefinition? DefinitionAccessor => Definition;
+        public SortProviderConfiguration? DefinitionAccessor => Configuration;
 
         public override IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
             => throw new NotImplementedException();

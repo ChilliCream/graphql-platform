@@ -1,6 +1,5 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -11,7 +10,7 @@ namespace HotChocolate.Types;
 /// The runtime type.
 /// </typeparam>"
 public interface IEnumTypeDescriptor<TRuntimeType>
-    : IDescriptor<EnumTypeDefinition>
+    : IDescriptor<EnumTypeConfiguration>
     , IFluent
 {
     /// <summary>
@@ -39,7 +38,7 @@ public interface IEnumTypeDescriptor<TRuntimeType>
     IEnumValueDescriptor Value(TRuntimeType value);
 
     /// <summary>
-    /// Specifies if the enum values shall be inferred or explicitly specfied.
+    /// Specifies if the enum values shall be inferred or explicitly specified.
     /// </summary>
     /// <param name="behavior">
     /// The binding behavior.

@@ -1,9 +1,7 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// Represents a collection of filter fields and operations .
+/// Represents a collection of filter fields and operations.
 /// </summary>
 public interface IFilterInfo
 {

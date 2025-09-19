@@ -1,4 +1,3 @@
-﻿using System.Linq;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Directives;
@@ -25,7 +24,7 @@ public class SpecedDirectiveTypeTests : TypeTestBase
             {
                 Assert.Equal("if", t.Name);
                 Assert.IsType<NonNullType>(t.Type);
-                Assert.IsType<BooleanType>(((NonNullType)t.Type).Type);
+                Assert.IsType<BooleanType>(((NonNullType)t.Type).NullableType);
             });
         Assert.Collection(directive.Locations.AsEnumerable(),
             t => Assert.Equal(DirectiveLocation.Field, t),
@@ -53,7 +52,7 @@ public class SpecedDirectiveTypeTests : TypeTestBase
             {
                 Assert.Equal("if", t.Name);
                 Assert.IsType<NonNullType>(t.Type);
-                Assert.IsType<BooleanType>(((NonNullType)t.Type).Type);
+                Assert.IsType<BooleanType>(((NonNullType)t.Type).NullableType);
             });
         Assert.Collection(directive.Locations.AsEnumerable(),
             t => Assert.Equal(DirectiveLocation.Field, t),

@@ -1,8 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -42,7 +40,7 @@ public class FloatType : FloatTypeBase<double>
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="FloatType"/> class.
     /// </summary>
@@ -50,7 +48,6 @@ public class FloatType : FloatTypeBase<double>
     public FloatType()
         : this(double.MinValue, double.MaxValue)
     {
-
     }
 
     protected override double ParseLiteral(IFloatValueLiteral valueSyntax) =>

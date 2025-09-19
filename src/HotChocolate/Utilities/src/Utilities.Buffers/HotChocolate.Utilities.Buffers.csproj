@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(ExtendedTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Buffers</AssemblyName>
+    <RootNamespace>HotChocolate.Buffers</RootNamespace>
+    <PackageId>HotChocolate.Utilities.Buffers</PackageId>
+    <Description>This package contains the HotChocolate.Buffers.ArrayWriter.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsAotCompliant>true</IsAotCompliant>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Bcl.HashCode" />
+    <PackageReference Include="System.Memory" />
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\BuffersResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>BuffersResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\BuffersResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>BuffersResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

@@ -1,6 +1,5 @@
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -12,26 +11,25 @@ public class SourceObjectConversionTests
         // arrange
         var conversionTriggered = false;
 
-        var executor = new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddTypeConverter<Foo, Baz>(input =>
             {
                 conversionTriggered = true;
-                return new Baz { Qux = input.Bar, };
+                return new Baz(qux: input.Bar);
             })
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
-            .Result;
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ foo { qux } }");
 
         // assert
         Assert.True(
-            Assert.IsType<QueryResult>(result).Errors is null,
+            Assert.IsType<OperationResult>(result).Errors is null,
             "There should be no errors.");
         Assert.True(
             conversionTriggered,
@@ -50,9 +48,9 @@ public class SourceObjectConversionTests
 
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo { qux } }")
-                .Create();
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo { qux } }")
+                .Build();
 
         var result =
             await schema.MakeExecutable().ExecuteAsync(request);
@@ -63,7 +61,7 @@ public class SourceObjectConversionTests
 
     public class Query
     {
-        public Foo Foo { get; } = new Foo { Bar = "bar", };
+        public Foo Foo { get; } = new(bar: "bar");
     }
 
     public class QueryType : ObjectType<Query>
@@ -75,17 +73,15 @@ public class SourceObjectConversionTests
         }
     }
 
-    public class Foo
+    public class Foo(string bar)
     {
-        public string Bar { get; set; }
+        public string Bar { get; set; } = bar;
     }
 
-    public class Baz
+    public class Baz(string qux)
     {
-        public string Qux { get; set; }
+        public string Qux { get; set; } = qux;
     }
 
-    public class BazType : ObjectType<Baz>
-    {
-    }
+    public class BazType : ObjectType<Baz>;
 }

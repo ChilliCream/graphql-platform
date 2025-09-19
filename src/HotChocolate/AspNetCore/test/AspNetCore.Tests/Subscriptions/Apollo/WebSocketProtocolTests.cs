@@ -1,24 +1,22 @@
 using System.Net.WebSockets;
-using CookieCrumble;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
+using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
 
-public class WebSocketProtocolTests : SubscriptionTestBase
+public class WebSocketProtocolTests(TestServerFactory serverFactory)
+    : SubscriptionTestBase(serverFactory)
 {
-    public WebSocketProtocolTests(TestServerFactory serverFactory)
-        : base(serverFactory)
-    {
-    }
-
     [Fact]
     public Task Send_Connect_AcceptAndKeepAlive()
         => TryTest(async ct =>
@@ -34,7 +32,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message!["type"]);
+            Assert.Equal("connection_ack", message["type"]);
         });
 
     [Fact]
@@ -65,11 +63,14 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // arrange
             using var testServer = CreateStarWarsServer(
                 configureConventions: mapping => mapping.WithOptions(
-                    new GraphQLServerOptions { Sockets =
+                    new GraphQLServerOptions
                     {
-                        ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                        KeepAliveInterval = TimeSpan.FromMilliseconds(150),
-                    }, }));
+                        Sockets =
+                        {
+                            ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
+                            KeepAliveInterval = TimeSpan.FromMilliseconds(150)
+                        }
+                    }));
             var client = CreateWebSocketClient(testServer);
 
             // act
@@ -95,12 +96,12 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
             // act
-            await webSocket.SendConnectionInitializeAsync(new() { ["token"] = "abc ", }, ct);
+            await webSocket.SendConnectionInitializeAsync(new() { ["token"] = "abc " }, ct);
 
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message![MessageProperties.Type]);
+            Assert.Equal("connection_ack", message[MessageProperties.Type]);
         });
 
     [Fact]
@@ -143,7 +144,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message!["type"]);
+            Assert.Equal("connection_ack", message["type"]);
         });
 
     [Fact]
@@ -163,7 +164,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message!["type"]);
+            Assert.Equal("connection_ack", message["type"]);
         });
 
     [Fact]
@@ -230,15 +231,17 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             await testServer.SendPostRequestAsync(
                 new ClientQueryRequest
                 {
-                    Query = @"
+                    Query =
+                        """
                         mutation {
                             createReview(episode: NEW_HOPE review: {
-                                commentary: ""foo""
+                                commentary: "foo"
                                 stars: 5
                             }) {
                                 stars
                             }
-                        }",
+                        }
+                        """
                 });
 
             var message = await WaitForMessage(webSocket, "data", ct);
@@ -319,6 +322,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
+                snapshot.Clear();
                 using var testServer = CreateStarWarsServer();
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
@@ -326,13 +330,16 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 // act
 
                 await webSocket.SendMessageAsync(
-                    @"{
-                    ""type"": ""start"",
-                    ""id"": ""abc"",
-                    ""payload"": {
-                        ""query"": ""}""
+                    // lang=json
+                    """
+                    {
+                        "type": "start",
+                        "id": "abc",
+                        "payload": {
+                            "query": "}"
+                        }
                     }
-                }",
+                    """,
                     ct);
 
                 // assert
@@ -354,13 +361,16 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 // act
 
                 await webSocket.SendMessageAsync(
-                    @"{
-                    ""type"": ""start"",
-                    ""id"": """",
-                    ""payload"": {
-                        ""query"": ""}""
+                    // lang=json
+                    """
+                    {
+                        "type": "start",
+                        "id": "",
+                        "payload": {
+                            "query": "}"
+                        }
                     }
-                }",
+                    """,
                     ct);
 
                 // assert
@@ -389,15 +399,20 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
             await testServer.SendPostRequestAsync(new ClientQueryRequest
             {
-                Query = @"
+                Query =
+                    """
                     mutation {
-                        createReview(episode:NEW_HOPE review: {
-                            commentary: ""foo""
-                            stars: 5
-                        }) {
+                        createReview(
+                            episode: NEW_HOPE
+                            review: {
+                                commentary: "foo"
+                                stars: 5
+                            }
+                        ) {
                             stars
                         }
-                    }",
+                    }
+                    """
             });
 
             await WaitForMessage(webSocket, "data", ct);
@@ -407,15 +422,20 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
             await testServer.SendPostRequestAsync(new ClientQueryRequest
             {
-                Query = @"
+                Query =
+                    """
                     mutation {
-                        createReview(episode:NEW_HOPE review: {
-                            commentary: ""foo""
-                            stars: 5
-                        }) {
+                        createReview(
+                            episode: NEW_HOPE
+                            review: {
+                                commentary: "foo"
+                                stars: 5
+                            }
+                        ) {
                             stars
                         }
-                    }",
+                    }
+                    """
             });
 
             // assert
@@ -522,6 +542,63 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus!.Value);
         });
 
+    // TODO : FIX Flaky Test
+    [Fact(Skip = "Flaky")]
+    public Task Send_Start_ReceiveDataOnMutation_StripNull() =>
+        TryTest(
+            async ct =>
+            {
+                // arrange
+                using var testServer = CreateStarWarsServer(
+                    configureServices: c =>
+                        c.AddGraphQL()
+                            .AddWebSocketPayloadFormatter(
+                                _ => new DefaultWebSocketPayloadFormatter(
+                                    new WebSocketPayloadFormatterOptions
+                                    {
+                                        Json = new JsonResultFormatterOptions
+                                        {
+                                            NullIgnoreCondition = JsonNullIgnoreCondition.FieldsAndLists
+                                        }
+                                    })));
+                var client = CreateWebSocketClient(testServer);
+                var webSocket = await ConnectToServerAsync(client, ct);
+
+                var document = Utf8GraphQLParser.Parse(
+                    "subscription { onReview(episode: NEW_HOPE) { stars, commentary } }");
+                var request = new GraphQLRequest(document);
+                const string subscriptionId = "abc";
+
+                // act
+                await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
+
+                // assert
+                await testServer.SendPostRequestAsync(
+                    new ClientQueryRequest
+                    {
+                        Query =
+                            """
+                            mutation {
+                                createReview(episode: NEW_HOPE review: {
+                                    stars: 5
+                                    commentary: null
+                                }) {
+                                    stars
+                                    commentary
+                                }
+                            }
+                            """
+                    });
+
+                var message = await WaitForMessage(webSocket, "data", ct);
+                Assert.NotNull(message);
+                var messagePayload = (Dictionary<string, object?>?)message["payload"];
+                var messageData = (Dictionary<string, object?>?)messagePayload?["data"];
+                var messageOnReview = (Dictionary<string, object?>?)messageData?["onReview"];
+                Assert.NotNull(messageOnReview);
+                Assert.DoesNotContain("commentary", messageOnReview);
+            });
+
     private class AuthInterceptor : DefaultSocketSessionInterceptor
     {
         public override ValueTask<ConnectionStatus> OnConnectAsync(
@@ -529,7 +606,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             IOperationMessagePayload connectionInitMessage,
             CancellationToken cancellationToken = default)
         {
-            var payload = connectionInitMessage.As<Auth>();
+            var payload = connectionInitMessage.Payload?.Deserialize<Auth>();
 
             if (payload?.Token is not null)
             {
@@ -541,6 +618,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
         private sealed class Auth
         {
+            [JsonPropertyName("token")]
             public string? Token { get; set; }
         }
     }

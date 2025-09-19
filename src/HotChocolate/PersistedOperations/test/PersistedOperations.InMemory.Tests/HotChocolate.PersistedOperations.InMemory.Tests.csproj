@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.PersistedOperations.InMemory.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.PersistedOperations.InMemory</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\src\PersistedOperations.InMemory\HotChocolate.PersistedOperations.InMemory.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -1,6 +1,6 @@
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using HotChocolate.Execution.Internal;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -12,20 +12,14 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext
 {
-    private sealed class PureResolverContext : IPureResolverContext
+    private sealed class PureResolverContext(MiddlewareContext parentContext) : IResolverContext
     {
-        private readonly MiddlewareContext _parentContext;
         private ITypeConverter? _typeConverter;
-        private IReadOnlyDictionary<string, ArgumentValue> _argumentValues = default!;
-        private ISelection _selection = default!;
-        private ObjectType _parentType = default!;
-        private ObjectResult _parentResult = default!;
+        private IReadOnlyDictionary<string, ArgumentValue> _argumentValues = null!;
+        private ISelection _selection = null!;
+        private ObjectType _parentType = null!;
+        private ObjectResult _parentResult = null!;
         private object? _parent;
-
-        public PureResolverContext(MiddlewareContext parentContext)
-        {
-            _parentContext = parentContext;
-        }
 
         public bool Initialize(
             ISelection selection,
@@ -44,9 +38,7 @@ internal partial class MiddlewareContext
                 return true;
             }
 
-            if (selection.Arguments.TryCoerceArguments(
-                _parentContext,
-                out var coercedArgs))
+            if (selection.Arguments.TryCoerceArguments(parentContext, out var coercedArgs))
             {
                 _argumentValues = coercedArgs;
                 return true;
@@ -57,30 +49,73 @@ internal partial class MiddlewareContext
 
         public void Clear()
         {
-            _selection = default!;
-            _parentType = default!;
-            _parentResult = default!;
+            _selection = null!;
+            _parentType = null!;
+            _parentResult = null!;
             _parent = null;
-            _argumentValues = default!;
+            _argumentValues = null!;
         }
 
-        public ISchema Schema => _parentContext.Schema;
+        public Schema Schema => parentContext.Schema;
 
-        public IObjectType ObjectType => _parentType;
+        public ObjectType ObjectType => _parentType;
 
-        public IOperation Operation => _parentContext.Operation;
+        public IOperation Operation => parentContext.Operation;
 
         public ISelection Selection => _selection;
 
         public Path Path => PathHelper.CreatePathFromContext(_selection, _parentResult, -1);
 
-        public IReadOnlyDictionary<string, object?> ScopedContextData
-            => _parentContext.ScopedContextData;
+        public CancellationToken RequestAborted => parentContext.RequestAborted;
 
-        public IVariableValueCollection Variables => _parentContext.Variables;
+        public void ReportError(string errorMessage)
+            => throw new NotSupportedException();
+
+        public void ReportError(IError error)
+            => throw new NotSupportedException();
+
+        public void ReportError(Exception exception, Action<ErrorBuilder>? configure = null)
+            => throw new NotSupportedException();
+
+        public IReadOnlyList<ISelection> GetSelections(
+            ObjectType typeContext,
+            ISelection? selection = null,
+            bool allowInternals = false)
+            => throw new NotSupportedException();
+
+        public ISelectionCollection Select()
+            => throw new NotSupportedException();
+
+        public ISelectionCollection Select(string fieldName)
+            => throw new NotSupportedException();
+
+        public T GetQueryRoot<T>()
+            => throw new NotSupportedException();
+
+        public IResolverContext Clone()
+            => throw new NotSupportedException();
+
+        public string ResponseName => _selection.ResponseName;
+
+        public bool HasErrors
+            => throw new NotSupportedException();
+
+        public IImmutableDictionary<string, object?> ScopedContextData
+        {
+            get => parentContext.ScopedContextData;
+            set => throw new NotSupportedException();
+        }
+
+        public IImmutableDictionary<string, object?> LocalContextData
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public IVariableValueCollection Variables => parentContext.Variables;
 
         public IDictionary<string, object?> ContextData
-            => _parentContext.ContextData;
+            => parentContext.ContextData;
 
         public T Parent<T>()
             => _parent switch
@@ -91,15 +126,12 @@ internal partial class MiddlewareContext
                     Selection.Field.Coordinate,
                     Path,
                     typeof(T),
-                    _parent.GetType()),
+                    _parent.GetType())
             };
 
         public T ArgumentValue<T>(string name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
@@ -112,10 +144,7 @@ internal partial class MiddlewareContext
         public TValueNode ArgumentLiteral<TValueNode>(string name)
             where TValueNode : IValueNode
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
@@ -135,10 +164,7 @@ internal partial class MiddlewareContext
 
         public Optional<T> ArgumentOptional<T>(string name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
@@ -162,13 +188,26 @@ internal partial class MiddlewareContext
             return argument.Kind ?? ValueKind.Unknown;
         }
 
-        public T Service<T>() where T: notnull => _parentContext.Service<T>();
+        public IServiceProvider Services
+        {
+            get => parentContext.Services;
+            set => throw new NotSupportedException();
+        }
 
-#if NET8_0_OR_GREATER
-        public T? Service<T>(object key) where T : notnull => _parentContext.Service<T>(key);
-#endif
+        public IServiceProvider RequestServices
+            => parentContext.RequestServices;
 
-        public T Resolver<T>() => _parentContext.Resolver<T>();
+        public IFeatureCollection Features
+            => parentContext.Features;
+
+        public object Service(Type service)
+            => parentContext.Service(service);
+
+        public T Service<T>() where T : notnull => parentContext.Service<T>();
+
+        public T Service<T>(object key) where T : notnull => parentContext.Service<T>(key);
+
+        public T Resolver<T>() => parentContext.Resolver<T>();
 
         private T CoerceArgumentValue<T>(ArgumentValue argument)
         {
@@ -178,7 +217,7 @@ internal partial class MiddlewareContext
             // runtime version we can skip over parsing it.
             if (!argument.IsFullyCoerced)
             {
-                value = _parentContext._parser.ParseLiteral(
+                value = parentContext._parser.ParseLiteral(
                     argument.ValueLiteral!,
                     argument,
                     typeof(T));
@@ -191,11 +230,11 @@ internal partial class MiddlewareContext
             }
 
             _typeConverter ??=
-                _parentContext.Services.GetService<ITypeConverter>() ??
-                    DefaultTypeConverter.Default;
+                parentContext.Services.GetService<ITypeConverter>() ??
+                DefaultTypeConverter.Default;
 
-            if (value is T castedValue ||
-                _typeConverter.TryConvert(value, out castedValue))
+            if (value is T castedValue
+                || _typeConverter.TryConvert(value, out castedValue))
             {
                 return castedValue;
             }
@@ -217,7 +256,7 @@ internal partial class MiddlewareContext
 
                 if (typeof(T).IsInterface)
                 {
-                    var o = dictToObjConverter.Convert(value, argument.Type.RuntimeType);
+                    var o = dictToObjConverter.Convert(value, argument.Type.ToRuntimeType());
                     if (o is T c)
                     {
                         return c;

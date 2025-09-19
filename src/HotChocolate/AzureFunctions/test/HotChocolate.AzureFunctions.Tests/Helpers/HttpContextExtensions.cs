@@ -1,5 +1,3 @@
-using System.IO;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AzureFunctions.Tests.Helpers;
@@ -31,7 +29,7 @@ public static class HttpContextExtensions
 
     public static async Task<string?> ReadResponseContentAsync(this HttpContext? httpContext)
     {
-        var responseStream = httpContext?.Response?.Body;
+        var responseStream = httpContext?.Response.Body;
         return responseStream != null
             ? await responseStream.ReadStreamAsStringAsync().ConfigureAwait(false)
             : null;

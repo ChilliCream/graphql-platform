@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using StrawberryShake.Properties;
 
 namespace StrawberryShake;
@@ -10,10 +8,7 @@ internal sealed class EntityStoreUpdateSession : IEntityStoreUpdateSession
 
     public EntityStoreUpdateSession(EntityStoreSnapshot originalSnapshot)
     {
-        if (originalSnapshot == null)
-        {
-            throw new ArgumentNullException(nameof(originalSnapshot));
-        }
+        ArgumentNullException.ThrowIfNull(originalSnapshot);
 
         var version = originalSnapshot.Version;
 
@@ -56,10 +51,7 @@ internal sealed class EntityStoreUpdateSession : IEntityStoreUpdateSession
 
     public void RemoveEntityRange(IEnumerable<EntityId> entityIds)
     {
-        if (entityIds == null)
-        {
-            throw new ArgumentNullException(nameof(entityIds));
-        }
+        ArgumentNullException.ThrowIfNull(entityIds);
 
         foreach (var entityId in entityIds)
         {

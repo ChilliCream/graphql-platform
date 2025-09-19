@@ -1,4 +1,3 @@
-using System;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -8,7 +7,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.WellKnownContextData;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -36,7 +34,7 @@ public static class TestServerHelper
 
                             builder
                                 .AddStarWarsTypes()
-                                .AddExportDirectiveType()
+                                .DisableIntrospection(disable: false)
                                 .AddStarWarsRepositories()
                                 .AddInMemorySubscriptions()
                                 .ModifyOptions(
@@ -51,27 +49,27 @@ public static class TestServerHelper
                                     {
                                         if (context.ContextData.TryGetValue(
                                                 nameof(HttpContext),
-                                                out var value) &&
-                                            value is HttpContext httpContext &&
-                                            context.Result is IQueryResult result)
+                                                out var value)
+                                            && value is HttpContext httpContext
+                                            && context.Result is HotChocolate.Execution.IOperationResult result)
                                         {
                                             var headers = httpContext.Request.Headers;
                                             if (headers.ContainsKey("sendErrorStatusCode"))
                                             {
                                                 context.Result = result =
-                                                    QueryResultBuilder
+                                                    OperationResultBuilder
                                                         .FromResult(result)
-                                                        .SetContextData(HttpStatusCode, 403)
-                                                        .Create();
+                                                        .SetContextData(ExecutionContextData.HttpStatusCode, 403)
+                                                        .Build();
                                             }
 
                                             if (headers.ContainsKey("sendError"))
                                             {
                                                 context.Result =
-                                                    QueryResultBuilder
+                                                    OperationResultBuilder
                                                         .FromResult(result)
-                                                        .AddError(new Error("Some error!"))
-                                                        .Create();
+                                                        .AddError(new Error { Message = "Some error!" })
+                                                        .Build();
                                             }
                                         }
 

@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
     <!--HotChocolateImplicitUsings: default|disable|enable-->
-    <HotChocolateImplicitUsings>default</HotChocolateImplicitUsings>
+    <HotChocolateImplicitUsings Condition="'$(HotChocolateImplicitUsings)' == ''">default</HotChocolateImplicitUsings>
   </PropertyGroup>
 </Project>

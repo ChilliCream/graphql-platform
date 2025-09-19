@@ -1,11 +1,8 @@
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-
 namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser
 {
-    private static readonly List<DirectiveNode> _emptyDirectives = [];
+    private static readonly List<DirectiveNode> s_emptyDirectives = [];
 
     private DirectiveDefinitionNode ParseDirectiveDefinition()
     {
@@ -79,10 +76,9 @@ public ref partial struct Utf8GraphQLParser
             return list;
         }
 
-        return _emptyDirectives;
+        return s_emptyDirectives;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private DirectiveNode ParseDirective(bool isConstant)
     {
         var start = Start();

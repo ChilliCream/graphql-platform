@@ -5,21 +5,21 @@ using Raven.Client.Documents.Linq;
 
 namespace HotChocolate.Data.Raven.Filtering.Handlers;
 
-public class RavenFilterExpressionBuilder
+public static class RavenFilterExpressionBuilder
 {
-    private static readonly MethodInfo _inMethod =
+    private static readonly MethodInfo s_inMethod =
         typeof(RavenQueryableExtensions)
             .GetMethods()
-            .Single(x => x.Name == nameof(RavenQueryableExtensions.In) &&
-                x.GetParameters() is [_, { ParameterType.IsArray: false, },]);
+            .Single(x => x.Name == nameof(RavenQueryableExtensions.In)
+                && x.GetParameters() is [_, { ParameterType.IsArray: false }]);
 
-    private static readonly MethodInfo _isMatch =
+    private static readonly MethodInfo s_isMatch =
         typeof(Regex)
             .GetMethods()
-            .Single(x => x.Name == nameof(Regex.IsMatch) &&
-                x.GetParameters() is [{ } first, { } second,] &&
-                first.ParameterType == typeof(string) &&
-                second.ParameterType == typeof(string));
+            .Single(x => x.Name == nameof(Regex.IsMatch)
+                && x.GetParameters() is [{ } first, { } second]
+                && first.ParameterType == typeof(string)
+                && second.ParameterType == typeof(string));
 
     public static Expression In(
         Expression property,
@@ -27,8 +27,8 @@ public class RavenFilterExpressionBuilder
         object? parsedValue)
     {
         return Expression.Call(
-            _inMethod.MakeGenericMethod(genericType),
-            [property, Expression.Constant(parsedValue),]);
+            s_inMethod.MakeGenericMethod(genericType),
+            [property, Expression.Constant(parsedValue)]);
     }
 
     public static Expression IsMatch(
@@ -38,7 +38,7 @@ public class RavenFilterExpressionBuilder
         parsedValue = $".*{Regex.Escape(parsedValue)}.*";
 
         return Expression.Call(
-            _isMatch,
-            [property, Expression.Constant(parsedValue),]);
+            s_isMatch,
+            [property, Expression.Constant(parsedValue)]);
     }
 }

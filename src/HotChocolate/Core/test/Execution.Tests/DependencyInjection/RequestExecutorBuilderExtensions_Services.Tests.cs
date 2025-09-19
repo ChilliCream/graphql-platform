@@ -14,12 +14,12 @@ public class RequestExecutorBuilderExtensionsServicesTests
 
         Assert.Throws<ArgumentNullException>(Fail);
     }
-    
+
     [Fact]
     public void AddScopedServiceInitializer_1_Initializer_Is_Null()
     {
         var mock = new Mock<IRequestExecutorBuilder>();
-        
+
         void Fail() => RequestExecutorBuilderExtensions
             .AddScopedServiceInitializer<string>(mock.Object, null!);
 

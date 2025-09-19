@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp;
 
 public static class Keywords
 {
-    private static readonly HashSet<string> _keywords =
+    private static readonly HashSet<string> s_keywords =
     [
         "abstract",
         "as",
@@ -117,12 +115,12 @@ public static class Keywords
         "when",
         "where",
         "with",
-        "yield",
+        "yield"
     ];
 
     public static string ToSafeName(string name)
     {
-        if (_keywords.Contains(name))
+        if (s_keywords.Contains(name))
         {
             return $"@{name}";
         }
@@ -132,7 +130,7 @@ public static class Keywords
 
     public static string ToEscapedName(this string name)
     {
-        if (_keywords.Contains(name))
+        if (s_keywords.Contains(name))
         {
             return $"@{name}";
         }

@@ -1,14 +1,12 @@
-using System;
-using System.Collections.Generic;
+#nullable disable
+
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Properties.TypeResources;
-using IHasName = HotChocolate.Types.IHasName;
 
 namespace HotChocolate.Utilities;
 
@@ -98,7 +96,7 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException TypeCompletionContext_UnableToResolveType(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         TypeReference typeRef) =>
         new SchemaException(
             SchemaErrorBuilder.New()
@@ -110,8 +108,8 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException TypeInitializer_DuplicateTypeName(
-        ITypeSystemObject type,
-        ITypeSystemObject otherType) =>
+        TypeSystemObject type,
+        TypeSystemObject otherType) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -123,7 +121,7 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException TypeInitializer_MutationDuplicateErrorName(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         string mutationName,
         string errorName,
         IReadOnlyList<ISchemaError> originalErrors)
@@ -197,7 +195,7 @@ internal static class ThrowHelper
                 .Build());
 
     public static SerializationException RequiredInputFieldIsMissing(
-        IInputField field,
+        IInputValueInfo field,
         Path fieldPath)
         => new SerializationException(
             ErrorBuilder.New()
@@ -214,7 +212,7 @@ internal static class ThrowHelper
         T type,
         IReadOnlyList<string> invalidFieldNames,
         Path path)
-        where T : ITypeSystemMember, IHasName
+        where T : ITypeSystemMember, INameProvider
     {
         if (invalidFieldNames.Count == 1)
         {
@@ -277,7 +275,7 @@ internal static class ThrowHelper
             .SetMessage(ThrowHelper_OneOfFieldIsNull, field.Name, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
             .SetPath(path)
-            .SetExtension(nameof(field), field.Coordinate.ToString());
+            .SetFieldCoordinate(field.Coordinate);
 
         return new(builder.Build(), type, path);
     }
@@ -285,7 +283,7 @@ internal static class ThrowHelper
     public static SerializationException NonNullInputViolation(
         ITypeSystemMember type,
         Path? path,
-        IInputField? field = null)
+        IInputValueInfo? field = null)
     {
         var builder = ErrorBuilder.New()
             .SetMessage(ThrowHelper_NonNullInputViolation)
@@ -294,7 +292,7 @@ internal static class ThrowHelper
 
         if (field is not null)
         {
-            builder.SetExtension(nameof(field), field.Coordinate.ToString());
+            builder.SetFieldCoordinate(field.Coordinate);
         }
 
         return new(builder.Build(), type, path);
@@ -354,16 +352,19 @@ internal static class ThrowHelper
         ListType type,
         Type listType,
         Path path)
-        => new SerializationException(
+    {
+        var runtimeType = type.ToRuntimeType();
+        return new SerializationException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_ParseList_InvalidObjectKind,
                     listType.FullName ?? listType.Name,
                     type.Print(),
-                    type.RuntimeType.FullName ?? type.RuntimeType.Name)
+                    runtimeType.FullName ?? runtimeType.Name)
                 .Build(),
             type,
             path);
+    }
 
     public static SerializationException FormatValueList_InvalidObjectKind(
         ListType type,
@@ -436,7 +437,7 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 ThrowHelper_Schema_GetMember_DirectiveArgumentNotFound,
-                coordinate.ArgumentName!,
+                coordinate.ArgumentName,
                 coordinate.Name),
             coordinate);
 
@@ -455,7 +456,7 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 ThrowHelper_Schema_GetMember_EnumValueNotFound,
-                coordinate.MemberName!,
+                coordinate.MemberName,
                 coordinate.Name),
             coordinate);
 
@@ -465,13 +466,13 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 ThrowHelper_Schema_GetMember_InputFieldNotFound,
-                coordinate.MemberName!,
+                coordinate.MemberName,
                 coordinate.Name),
             coordinate);
 
     public static InvalidSchemaCoordinateException Schema_GetMember_InvalidCoordinate(
         SchemaCoordinate coordinate,
-        INamedType type)
+        ITypeDefinition type)
         => new InvalidSchemaCoordinateException(
             string.Format(
                 CultureInfo.InvariantCulture,
@@ -486,9 +487,9 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 ThrowHelper_Schema_GetMember_FieldArgNotFound,
-                coordinate.ArgumentName!,
+                coordinate.ArgumentName,
                 coordinate.Name,
-                coordinate.MemberName!),
+                coordinate.MemberName),
             coordinate);
 
     public static InvalidSchemaCoordinateException Schema_GetMember_FieldNotFound(
@@ -497,7 +498,7 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 ThrowHelper_Schema_GetMember_FieldNotFound,
-                coordinate.MemberName!,
+                coordinate.MemberName,
                 coordinate.Name),
             coordinate);
 
@@ -516,12 +517,12 @@ internal static class ThrowHelper
     public static InvalidOperationException NodeResolver_ArgumentTypeMissing()
         => new(ThrowHelper_NodeResolver_ArgumentTypeMissing);
 
-    public static InvalidOperationException NodeResolver_ObjNoDefinition()
+    public static InvalidOperationException NodeResolver_ObjNoConfig()
         => new(ThrowHelper_NodeResolver_ObjNoDefinition);
 
     public static SchemaException RelayIdFieldHelpers_NoFieldType(
         string fieldName,
-        ITypeSystemObject? type = null)
+        TypeSystemObject? type = null)
     {
         var builder = SchemaErrorBuilder.New();
         builder.SetMessage(ThrowHelper_RelayIdFieldHelpers_NoFieldType, fieldName);
@@ -573,7 +574,7 @@ internal static class ThrowHelper
         return new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(ThrowHelper_InputTypeExpected_Message, namedType.Name)
-                .SetTypeSystemObject((ITypeSystemObject)namedType)
+                .SetTypeSystemObject((TypeSystemObject)namedType)
                 .SetExtension("type", type.Print())
                 .Build());
     }
@@ -585,7 +586,7 @@ internal static class ThrowHelper
         return new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(ThrowHelper_OutputTypeExpected_Message, namedType.Name)
-                .SetTypeSystemObject((ITypeSystemObject)namedType)
+                .SetTypeSystemObject((TypeSystemObject)namedType)
                 .SetExtension("type", type.Print())
                 .Build());
     }

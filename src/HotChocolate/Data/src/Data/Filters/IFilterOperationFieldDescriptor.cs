@@ -1,11 +1,10 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
 
 public interface IFilterOperationFieldDescriptor
-    : IDescriptor<FilterOperationFieldDefinition>
+    : IDescriptor<FilterOperationFieldConfiguration>
     , IFluent
 {
     IFilterOperationFieldDescriptor Name(string value);

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 <PropertyGroup>
     <PackageId>HotChocolate.Utilities.DependencyInjection</PackageId>
@@ -11,20 +11,12 @@
     <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
     <InternalsVisibleTo Include="HotChocolate.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Types" />
-    <InternalsVisibleTo Include="HotChocolate.PersistedQueries.FileSystem" />
-    <InternalsVisibleTo Include="HotChocolate.PersistedQueries.InMemory" />
+    <InternalsVisibleTo Include="HotChocolate.PersistedOperations.FileSystem" />
+    <InternalsVisibleTo Include="HotChocolate.PersistedOperations.InMemory" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
   </ItemGroup>
 
 </Project>

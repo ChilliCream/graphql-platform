@@ -1,0 +1,16 @@
+﻿{
+  "data": {
+    "foo": [
+      {
+        "barRecord": {
+          "baz": "Baz"
+        }
+      },
+      {
+        "barRecord": {
+          "baz": "Baz"
+        }
+      }
+    ]
+  }
+}

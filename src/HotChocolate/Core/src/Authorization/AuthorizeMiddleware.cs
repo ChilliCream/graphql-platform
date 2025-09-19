@@ -1,38 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using static HotChocolate.Authorization.Properties.AuthCoreResources;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Authorization;
 
-internal sealed class AuthorizeMiddleware
+internal sealed class AuthorizeMiddleware(
+    FieldDelegate next,
+    AuthorizeDirective directive)
 {
-    private readonly FieldDelegate _next;
-    private readonly AuthorizeDirective _directive;
-
-    public AuthorizeMiddleware(
-        FieldDelegate next,
-        AuthorizeDirective directive)
-    {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _directive = directive ??
-            throw new ArgumentNullException(nameof(directive));
-    }
+    private readonly FieldDelegate _next = next ??
+        throw new ArgumentNullException(nameof(next));
+    private readonly AuthorizeDirective _directive = directive ??
+        throw new ArgumentNullException(nameof(directive));
 
     public async Task InvokeAsync(IMiddlewareContext context)
     {
-        var handler = context.GetGlobalStateOrDefault<IAuthorizationHandler>(AuthorizationHandler);
-
-        if (handler is null)
-        {
-            throw new MissingStateException(
-                "Authorization",
-                AuthorizationHandler,
-                StateKind.Global);
-        }
+        var handler = context.GetAuthorizationHandler();
 
         switch (_directive.Apply)
         {
@@ -107,6 +89,6 @@ internal sealed class AuthorizeMiddleware
                             : ErrorCodes.Authentication.NotAuthenticated)
                     .SetPath(context.Path)
                     .AddLocation(context.Selection.SyntaxNode)
-                    .Build(),
+                    .Build()
         };
 }

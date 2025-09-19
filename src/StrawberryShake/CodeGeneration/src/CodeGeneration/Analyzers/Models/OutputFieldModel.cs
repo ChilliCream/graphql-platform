@@ -1,8 +1,7 @@
-using System;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 
@@ -12,7 +11,7 @@ public class OutputFieldModel : IFieldModel
         string name,
         string responseName,
         string? description,
-        IOutputField field,
+        IOutputFieldDefinition field,
         IOutputType type,
         FieldNode syntaxNode,
         Path path)
@@ -32,9 +31,9 @@ public class OutputFieldModel : IFieldModel
 
     public string? Description { get; }
 
-    public IOutputField Field { get; }
+    public IOutputFieldDefinition Field { get; }
 
-    IField IFieldModel.Field => Field;
+    IFieldDefinition IFieldModel.Field => Field;
 
     public IOutputType Type { get; }
 

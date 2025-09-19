@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Data.Filters;
@@ -12,7 +9,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data;
 
@@ -83,14 +80,14 @@ internal static class ThrowHelper
                 .SetExtension("typeName", context.Selection.Type.NamedType().Name)
                 .Build());
 
-    public static SchemaException Filtering_TypeMissmatch(
+    public static SchemaException Filtering_TypeMismatch(
         IResolverContext context,
         Type expectedType,
         Type resultType) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    DataResources.Filtering_TypeMissmatch,
+                    DataResources.Filtering_TypeMismatch,
                     expectedType.FullName ?? expectedType.Name,
                     resultType.FullName ?? resultType.Name)
                 .SetPath(context.Path)
@@ -99,8 +96,8 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException FilterInterceptor_NoHandlerFoundForField(
-        FilterInputTypeDefinition type,
-        FilterFieldDefinition field) =>
+        FilterInputTypeConfiguration type,
+        FilterFieldConfiguration field) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -110,8 +107,8 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException FilterInterceptor_OperationHasNoTypeSpecified(
-        FilterInputTypeDefinition type,
-        FilterFieldDefinition field) =>
+        FilterInputTypeConfiguration type,
+        FilterFieldConfiguration field) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -204,6 +201,18 @@ internal static class ThrowHelper
                 .SetExtension(nameof(sortProvider), sortProvider)
                 .Build());
 
+    public static SchemaException SortConvention_ProviderHasToBeInitializedByConvention(
+        Type provider,
+        string? scope) =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    DataResources.SortConvention_ProviderHasToBeInitializedByConvention,
+                    provider.FullName ?? provider.Name,
+                    scope is null ? "" : "in scope " + scope)
+                .SetExtension(nameof(scope), scope)
+                .Build());
+
     public static SchemaException SortDescriptorContextExtensions_NoConvention(string? scope) =>
         new SchemaException(
             SchemaErrorBuilder.New()
@@ -216,8 +225,8 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException SortInterceptor_NoFieldHandlerFoundForField(
-        SortInputTypeDefinition type,
-        SortFieldDefinition field) =>
+        SortInputTypeConfiguration type,
+        SortFieldConfiguration field) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -227,8 +236,8 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException SortInterceptor_NoOperationHandlerFoundForValue(
-        EnumTypeDefinition type,
-        SortEnumValueDefinition value) =>
+        EnumTypeConfiguration type,
+        SortEnumValueConfiguration value) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -303,14 +312,14 @@ internal static class ThrowHelper
                 .SetExtension("typeName", context.Selection.Type.NamedType().Name)
                 .Build());
 
-    public static SchemaException Sorting_TypeMissmatch(
+    public static SchemaException Sorting_TypeMismatch(
         IResolverContext context,
         Type expectedType,
         Type resultType) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    DataResources.Sorting_TypeMissmatch,
+                    DataResources.Sorting_TypeMismatch,
                     expectedType.FullName ?? expectedType.Name,
                     resultType.FullName ?? resultType.Name)
                 .SetPath(context.Path)
@@ -368,7 +377,7 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    DataResources.Projection_TypeMissmatch,
+                    DataResources.Projection_TypeMismatch,
                     expectedType.FullName ?? expectedType.Name,
                     resultType.FullName ?? resultType.Name)
                 .SetPath(context.Path)
@@ -378,13 +387,13 @@ internal static class ThrowHelper
 
     public static InvalidOperationException PagingProjectionOptimizer_NotAPagingField(
         IType actualType,
-        IObjectField fieldName) =>
+        IOutputFieldDefinition field) =>
         new(string.Format(
             CultureInfo.InvariantCulture,
             DataResources.PagingProjectionOptimizer_NotAPagingField,
             actualType.Print(),
-            fieldName.Name,
-            fieldName.Type.Print()));
+            field.Name,
+            field.Type.Print()));
 
     public static InvalidOperationException Filtering_CouldNotParseValue(
         IFilterFieldHandler handler,
@@ -423,14 +432,14 @@ internal static class ThrowHelper
             field.Type.Print()));
 
     public static SchemaException QueryableFilterProvider_ExpressionParameterInvalid(
-        ITypeSystemObject type,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition field) =>
+        TypeSystemObject type,
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration field) =>
         new(SchemaErrorBuilder
                 .New()
                 .SetMessage(
                     DataResources.QueryableFilterProvider_ExpressionParameterInvalid,
-                    typeDefinition.EntityType?.FullName,
+                    typeConfiguration.EntityType?.FullName,
                     field.Name)
                 .SetTypeSystemObject(type)
                 .Build());
@@ -518,14 +527,14 @@ internal static class ThrowHelper
             field.Type.Print()));
 
     public static SchemaException QueryableSortProvider_ExpressionParameterInvalid(
-        ITypeSystemObject type,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition field) =>
+        TypeSystemObject type,
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration field) =>
         new(SchemaErrorBuilder
             .New()
             .SetMessage(
                 DataResources.QueryableSortProvider_ExpressionParameterInvalid,
-                typeDefinition.EntityType?.FullName,
+                typeConfiguration.EntityType?.FullName,
                 field.Name)
             .SetTypeSystemObject(type)
             .Build());
@@ -564,7 +573,7 @@ internal static class ThrowHelper
             .Build());
 
     public static InvalidOperationException SelectionContext_NoTypeForAbstractFieldProvided(
-        INamedType type,
+        ITypeDefinition type,
         IEnumerable<ObjectType> possibleTypes) =>
         new(string.Format(
             CultureInfo.CurrentCulture,

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
@@ -27,7 +24,6 @@ public class CodeBlockBuilder : ICode
             {
                 builder.AddCode(CodeLineBuilder.From(line));
             }
-
         } while (line is not null);
 
         return builder;
@@ -35,10 +31,7 @@ public class CodeBlockBuilder : ICode
 
     public CodeBlockBuilder AddCode(ICodeBuilder value)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         _blockParts.Add(value);
         return this;
@@ -46,10 +39,7 @@ public class CodeBlockBuilder : ICode
 
     public CodeBlockBuilder AddCode(string value)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         _blockParts.Add(CodeInlineBuilder.New().SetText(value));
         return this;
@@ -63,10 +53,7 @@ public class CodeBlockBuilder : ICode
 
     public void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         foreach (var code in _blockParts)
         {

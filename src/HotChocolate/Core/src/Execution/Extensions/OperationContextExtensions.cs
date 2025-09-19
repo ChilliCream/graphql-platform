@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 
 // ReSharper disable once CheckNamespace
@@ -17,22 +15,19 @@ internal static class OperationContextExtensions
         selection ??= resolverContext.Selection;
         path ??= resolverContext.Path;
 
-        if (exception is null)
-        {
-            throw new ArgumentNullException(nameof(exception));
-        }
+        ArgumentNullException.ThrowIfNull(exception);
 
-        if (exception is GraphQLException graphQLException)
+        if (exception is GraphQLException ex)
         {
-            foreach (var error in graphQLException.Errors)
+            foreach (var error in ex.Errors)
             {
                 ReportError(operationContext, error, resolverContext, selection);
             }
         }
         else
         {
-            var error = operationContext.ErrorHandler
-                .CreateUnexpectedError(exception)
+            var error = ErrorBuilder
+                .FromException(exception)
                 .SetPath(path)
                 .AddLocation(selection.SyntaxNode)
                 .Build();
@@ -49,46 +44,55 @@ internal static class OperationContextExtensions
         MiddlewareContext resolverContext,
         ISelection? selection = null)
     {
+        var errors = new List<IError>();
+
+        ReportSingleError(
+            operationContext.ErrorHandler,
+            error,
+            errors);
+
         selection ??= resolverContext.Selection;
 
-        if (error is AggregateError aggregateError)
+        foreach (var handled in errors)
         {
-            foreach (var innerError in aggregateError.Errors)
-            {
-                ReportSingleError(operationContext, innerError, resolverContext, selection);
-            }
-        }
-        else
-        {
-            ReportSingleError(operationContext, error, resolverContext, selection);
+            operationContext.Result.AddError(handled, selection);
+            operationContext.DiagnosticEvents.ResolverError(resolverContext, handled);
         }
 
         return operationContext;
     }
 
     private static void ReportSingleError(
-        OperationContext operationContext,
+        IErrorHandler errorHandler,
         IError error,
-        MiddlewareContext resolverContext,
-        ISelection selection)
+        List<IError> errors,
+        int depth = 0)
     {
-        var handled = operationContext.ErrorHandler.Handle(error);
-
-        if (handled is AggregateError ar)
+        if (depth > 4)
         {
-            foreach (var ie in ar.Errors)
+            throw new InvalidOperationException(
+                "Error reporting depth exceeded. "
+                + "Aggregate error are not allowed to be nested beyond 4 levels.");
+        }
+
+        var handled = errorHandler.Handle(error);
+
+        if (handled is AggregateError aggregateError)
+        {
+            foreach (var innerError in aggregateError.Errors)
             {
-                operationContext.Result.AddError(ie, selection);
-                operationContext.DiagnosticEvents.ResolverError(resolverContext, ie);
+                ReportSingleError(
+                    errorHandler,
+                    innerError,
+                    errors,
+                    depth++);
             }
         }
         else
         {
-            operationContext.Result.AddError(handled, selection);
-            operationContext.DiagnosticEvents.ResolverError(resolverContext, handled);
+            errors.Add(error);
         }
     }
-
 
     public static OperationContext SetLabel(
         this OperationContext context,
@@ -137,7 +141,7 @@ internal static class OperationContextExtensions
         return context;
     }
 
-    public static IQueryResult BuildResult(
+    public static IOperationResult BuildResult(
         this OperationContext context) =>
         context.Result.BuildResult();
 }

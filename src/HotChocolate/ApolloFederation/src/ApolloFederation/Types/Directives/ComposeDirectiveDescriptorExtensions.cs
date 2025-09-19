@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Features;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.ApolloFederation.FederationContextData;
 
 namespace HotChocolate.ApolloFederation.Types;
 
@@ -38,7 +37,7 @@ public static class ComposeDirectiveDescriptorExtensions
     /// <paramref name="directiveName"/> is <c>null</c>.
     /// </exception>
     public static IRequestExecutorBuilder ExportDirective(
-        this IRequestExecutorBuilder builder, 
+        this IRequestExecutorBuilder builder,
         string directiveName)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -53,7 +52,7 @@ public static class ComposeDirectiveDescriptorExtensions
 
         return builder;
     }
-    
+
     public static IRequestExecutorBuilder ExportDirective<T>(
         this IRequestExecutorBuilder builder)
     {
@@ -61,18 +60,9 @@ public static class ComposeDirectiveDescriptorExtensions
 
         builder.AddType<T>();
         builder.AddType<ComposeDirective>();
-        
-        builder.ConfigureSchema(
-            sb =>
-            {
-                if(!sb.ContextData.TryGetValue(ExportedDirectives, out var directiveTypes))
-                {
-                    directiveTypes = new List<Type>();
-                    sb.ContextData[ExportedDirectives] = directiveTypes;
-                }
 
-                ((List<Type>)directiveTypes!).Add(typeof(T));
-            });
+        builder.ConfigureSchema(
+            sb => sb.Features.GetOrSet<ExportedDirectives>().Directives.Add(typeof(T)));
 
         return builder;
     }

@@ -1,12 +1,14 @@
-using System;
+#nullable disable
+
 using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
 public interface IInterfaceTypeDescriptor<T>
-    : IDescriptor<InterfaceTypeDefinition>
+    : IDescriptor<InterfaceTypeConfiguration>
     , IFluent
 {
     /// <summary>
@@ -88,6 +90,9 @@ public interface IInterfaceTypeDescriptor<T>
 
     IInterfaceFieldDescriptor Field(
         Expression<Func<T, object>> propertyOrMethod);
+
+    IInterfaceFieldDescriptor Field(
+        MemberInfo propertyOrMethod);
 
     IInterfaceFieldDescriptor Field(string name);
 

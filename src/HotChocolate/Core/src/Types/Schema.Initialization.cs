@@ -1,20 +1,22 @@
-using System;
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#endif
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate;
 
 public partial class Schema
 {
-    private Action<ISchemaTypeDescriptor> _configure;
+    private AggregateSchemaDocumentFormatter? _formatter;
+    private FrozenDictionary<string, ImmutableArray<ObjectType>> _possibleTypes = null!;
+    private Action<ISchemaTypeDescriptor>? _configure;
     private bool _sealed;
+
+    [GeneratedRegex(@"^[A-Za-z_][A-Za-z0-9_-]*$", RegexOptions.Compiled)]
+    private static partial Regex NameValidationRegex();
 
     protected internal Schema()
     {
@@ -28,71 +30,77 @@ public partial class Schema
 
     protected virtual void Configure(ISchemaTypeDescriptor descriptor) { }
 
-    protected sealed override SchemaTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected sealed override SchemaTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var descriptor = SchemaTypeDescriptor.New(context.DescriptorContext, GetType());
 
-        _configure(descriptor);
+        _configure?.Invoke(descriptor);
 
         context.DescriptorContext.ApplySchemaConfigurations(descriptor);
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
+    }
+
+    private protected override string ValidateName(string name)
+    {
+        if (string.IsNullOrEmpty(name) || !NameValidationRegex().IsMatch(name))
+        {
+            throw new ArgumentException(
+                "The schema name must start with a letter or underscore, "
+                + "followed by letters, digits, underscores, or hyphens.",
+                nameof(name));
+        }
+
+        return name;
     }
 
     protected override void OnAfterInitialize(
         ITypeDiscoveryContext context,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        base.OnAfterInitialize(context, definition);
+        base.OnAfterInitialize(context, configuration);
 
-        // we clear the configuration delegate to make sure that we do not hold on to any references
-        // if we do not do this all the instances used during initialization will be kept in memory
-        // until the schema is phased out.
+        // We clear the configuration delegate to make sure that we do not hold on to any references.
+        // This ensures that all the instances used during initialization will be garbage collected.
         // We do this in OnAfterInitialized because after this point the schema is marked as
-        // initialized. This means that a subsequent call to Initialize will throw anyway and
+        // initialized. This means that a later call to Initialize will throw anyway, and
         // therefore we do not need to keep the configuration delegate.
         _configure = null;
     }
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        SchemaTypeDefinition definition)
+        SchemaTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
+        base.OnRegisterDependencies(context, configuration);
 
-        if (definition.HasDirectives)
+        foreach (var directive in configuration.GetDirectives())
         {
-            foreach (var directive in definition.Directives)
-            {
-                context.Dependencies.Add(new(directive.Type, TypeDependencyFulfilled.Completed));
-            }
-        }
-
-        foreach (var typeReference in definition.GetDirectives().Select(t => t.Type))
-        {
-            context.Dependencies.Add(new TypeDependency(typeReference));
+            context.Dependencies.Add(new TypeDependency(directive.Type, TypeDependencyFulfilled.Completed));
         }
     }
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        SchemaTypeDefinition definition)
+        SchemaTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        Directives = DirectiveCollection.CreateAndComplete(
-            context,
-            this,
-            definition.GetDirectives());
         Services = context.Services;
     }
 
-    internal void CompleteSchema(SchemaTypesDefinition schemaTypesDefinition)
+    protected override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        SchemaTypeConfiguration configuration)
     {
-        if (schemaTypesDefinition is null)
-        {
-            throw new ArgumentNullException(nameof(schemaTypesDefinition));
-        }
+        base.OnCompleteMetadata(context, configuration);
+
+        Directives = DirectiveCollection.CreateAndComplete(context, this, configuration.GetDirectives());
+    }
+
+    internal void CompleteSchema(SchemaTypesConfiguration schemaTypesConfiguration)
+    {
+        ArgumentNullException.ThrowIfNull(schemaTypesConfiguration);
 
         if (_sealed)
         {
@@ -100,100 +108,64 @@ public partial class Schema
                 "This schema is already sealed and cannot be mutated.");
         }
 
-        if (schemaTypesDefinition.Types is null || schemaTypesDefinition.DirectiveTypes is null)
+        if (schemaTypesConfiguration.Types is null || schemaTypesConfiguration.DirectiveTypes is null)
         {
             throw new InvalidOperationException(
                 "The schema type collections are not initialized.");
         }
 
-        DirectiveTypes = schemaTypesDefinition.DirectiveTypes;
-        _types = new SchemaTypes(schemaTypesDefinition);
-#if NET8_0_OR_GREATER
-        _directiveTypes = DirectiveTypes.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
-#else
-        _directiveTypes = DirectiveTypes.ToDictionary(t => t.Name, StringComparer.Ordinal);
-#endif
+        QueryType = schemaTypesConfiguration.QueryType!;
+        MutationType = schemaTypesConfiguration.MutationType;
+        SubscriptionType = schemaTypesConfiguration.SubscriptionType;
+        Types = new TypeDefinitionCollection(schemaTypesConfiguration.Types ?? []);
+        _possibleTypes = CreatePossibleTypeLookup(schemaTypesConfiguration.Types ?? []);
+        DirectiveTypes = new DirectiveTypeCollection(schemaTypesConfiguration.DirectiveTypes ?? []);
         _sealed = true;
     }
-}
 
-internal static class SchemaTools
-{
-    public static void AddSchemaConfiguration(
-        this ISchemaBuilder builder,
-        Action<ISchemaTypeDescriptor> configure)
+    private static FrozenDictionary<string, ImmutableArray<ObjectType>> CreatePossibleTypeLookup(
+        ITypeDefinition[] types)
     {
-        if (builder is null)
+        var possibleTypes = new Dictionary<string, ImmutableArray<ObjectType>.Builder>(StringComparer.Ordinal);
+
+        foreach (var type in types)
         {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
-
-        List<Action<ISchemaTypeDescriptor>> options;
-
-        if (!builder.ContextData.TryGetValue(WellKnownContextData.InternalSchemaOptions, out var value))
-        {
-            options = [];
-            builder.ContextData.Add(WellKnownContextData.InternalSchemaOptions, options);
-            value = options;
-        }
-
-        options = (List<Action<ISchemaTypeDescriptor>>)value!;
-        options.Add(configure);
-    }
-
-    public static void AddSchemaConfiguration(
-        this IDescriptorContext context,
-        Action<ISchemaTypeDescriptor> configure)
-    {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
-
-        List<Action<ISchemaTypeDescriptor>> options;
-
-        if (!context.ContextData.TryGetValue(WellKnownContextData.InternalSchemaOptions, out var value))
-        {
-            options = [];
-            context.ContextData.Add(WellKnownContextData.InternalSchemaOptions, options);
-            value = options;
-        }
-
-        options = (List<Action<ISchemaTypeDescriptor>>)value!;
-        options.Add(configure);
-    }
-
-    public static void ApplySchemaConfigurations(
-        this IDescriptorContext context,
-        ISchemaTypeDescriptor descriptor)
-    {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (context.ContextData.TryGetValue(WellKnownContextData.InternalSchemaOptions, out var value) &&
-            value is List<Action<ISchemaTypeDescriptor>> options)
-        {
-            foreach (var option in options)
+            switch (type)
             {
-                option(descriptor);
+                case ObjectType ot:
+                    var builder = ImmutableArray.CreateBuilder<ObjectType>();
+                    builder.Add(ot);
+                    possibleTypes[ot.Name] = builder;
+
+                    foreach (var interfaceType in ot.Implements)
+                    {
+                        if (!possibleTypes.TryGetValue(interfaceType.Name, out var pt))
+                        {
+                            pt = ImmutableArray.CreateBuilder<ObjectType>();
+                            possibleTypes[interfaceType.Name] = pt;
+                        }
+
+                        pt.Add(ot);
+                    }
+
+                    break;
+
+                case UnionType ut:
+                    foreach (var objectType in ut.Types)
+                    {
+                        if (!possibleTypes.TryGetValue(ut.Name, out var pt))
+                        {
+                            pt = ImmutableArray.CreateBuilder<ObjectType>();
+                            possibleTypes[ut.Name] = pt;
+                        }
+
+                        pt.Add(objectType);
+                    }
+
+                    break;
             }
         }
+
+        return possibleTypes.ToFrozenDictionary(k => k.Key, v => v.Value.ToImmutable());
     }
 }

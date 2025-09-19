@@ -1,9 +1,7 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>
-/// Represents a collection of sorting fields and operations .
+/// Represents a collection of sorting fields and operations.
 /// </summary>
 public interface ISortingInfo
 {

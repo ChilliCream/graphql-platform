@@ -1,0 +1,18 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo(input: FooInput!): String!
+}
+
+input FooInput {
+  contextData1: [KeyValuePairOfStringAndStringInput!]
+  contextData2: [KeyValuePairOfStringAndStringInput!]
+  contextData3: [KeyValuePairOfStringAndStringInput!]
+}
+
+input KeyValuePairOfStringAndStringInput {
+  key: String!
+  value: String!
+}

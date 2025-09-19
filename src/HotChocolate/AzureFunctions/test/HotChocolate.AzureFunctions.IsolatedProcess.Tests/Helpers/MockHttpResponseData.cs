@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -33,7 +30,7 @@ public class MockHttpResponseData : HttpResponseData, IDisposable
 /// </summary>
 public class MockHttpResponseDataCookies : HttpCookies
 {
-    private readonly Dictionary<string, IHttpCookie> _cookieJar = new();
+    private readonly Dictionary<string, IHttpCookie> _cookieJar = [];
 
     public override void Append(string name, string value)
         => _cookieJar.TryAdd(name, new HttpCookie(name, value));

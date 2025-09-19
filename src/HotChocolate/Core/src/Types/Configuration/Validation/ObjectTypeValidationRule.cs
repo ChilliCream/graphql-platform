@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
-using static HotChocolate.WellKnownContextData;
-
-#nullable enable
 
 namespace HotChocolate.Configuration.Validation;
 
@@ -17,17 +13,17 @@ namespace HotChocolate.Configuration.Validation;
 internal sealed class ObjectTypeValidationRule : ISchemaValidationRule
 {
     public void Validate(
-        ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
-        IReadOnlySchemaOptions options,
+        IDescriptorContext context,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
         NodeType? nodeType = null;
 
-        if (options.StrictValidation)
+        if (context.Options.StrictValidation)
         {
-            if (options.EnsureAllNodesCanBeResolved)
+            if (schema.Features.Get<NodeSchemaFeature>() is { Options.EnsureAllNodesCanBeResolved: true })
             {
-                foreach (var type in typeSystemObjects)
+                foreach (var type in schema.Types)
                 {
                     if (type is NodeType nt)
                     {
@@ -37,7 +33,7 @@ internal sealed class ObjectTypeValidationRule : ISchemaValidationRule
                 }
             }
 
-            foreach (var type in typeSystemObjects)
+            foreach (var type in schema.Types)
             {
                 if (type is ObjectType objectType)
                 {
@@ -46,9 +42,9 @@ internal sealed class ObjectTypeValidationRule : ISchemaValidationRule
                     EnsureInterfacesAreCorrectlyImplemented(objectType, errors);
                     EnsureArgumentDeprecationIsValid(objectType, errors);
 
-                    if (nodeType is not null && nodeType.IsAssignableFrom(objectType))
+                    if (nodeType?.IsAssignableFrom(objectType) == true)
                     {
-                        if (!objectType.ContextData.ContainsKey(NodeResolver))
+                        if (objectType.Features.Get<NodeTypeFeature>() is null)
                         {
                             errors.Add(ErrorHelper.NodeResolverMissing(objectType));
                         }

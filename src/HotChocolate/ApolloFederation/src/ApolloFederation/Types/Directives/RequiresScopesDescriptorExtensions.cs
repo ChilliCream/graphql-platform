@@ -1,7 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.ApolloFederation.Types;
@@ -35,16 +33,13 @@ public static class RequiresScopesDescriptorExtensions
         IReadOnlyList<Scope> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
-    
+
     /// <summary>
     /// Applies @requiresScopes directive to indicate that the target element is accessible only to the authenticated supergraph users with the appropriate JWT scopes.
     /// <example>
@@ -69,12 +64,10 @@ public static class RequiresScopesDescriptorExtensions
         IReadOnlyList<string> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -85,28 +78,23 @@ public static class RequiresScopesDescriptorExtensions
         IReadOnlyList<Scope> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
-    
+
     /// <inheritdoc cref="RequiresScopes(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IInterfaceFieldDescriptor RequiresScopes(
         this IInterfaceFieldDescriptor descriptor,
         IReadOnlyList<string> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -117,28 +105,23 @@ public static class RequiresScopesDescriptorExtensions
         IReadOnlyList<Scope> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
-    
+
     /// <inheritdoc cref="RequiresScopes(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IInterfaceTypeDescriptor RequiresScopes(
         this IInterfaceTypeDescriptor descriptor,
         IReadOnlyList<string> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -149,28 +132,23 @@ public static class RequiresScopesDescriptorExtensions
         IReadOnlyList<Scope> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
-    
+
     /// <inheritdoc cref="RequiresScopes(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IObjectFieldDescriptor RequiresScopes(
         this IObjectFieldDescriptor descriptor,
         IReadOnlyList<string> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -181,35 +159,30 @@ public static class RequiresScopesDescriptorExtensions
         IReadOnlyList<Scope> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
-    
+
     /// <inheritdoc cref="RequiresScopes(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IObjectTypeDescriptor RequiresScopes(
         this IObjectTypeDescriptor descriptor,
         IReadOnlyList<string> scopes)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
-    
+
     private static void AddScopes(
         IReadOnlyList<Scope> scopes,
-        IHasDirectiveDefinition definition, 
+        IDirectiveConfigurationProvider definition,
         ITypeInspector typeInspector)
     {
         var directive = definition

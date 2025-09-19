@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,20 +6,20 @@ namespace HotChocolate.Data.Sorting;
 
 public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new()
          {
              Name = "Sam",
              LastName = "Sampleman",
-             Bars = Array.Empty<Bar>(),
+             Bars = Array.Empty<Bar>()
          },
          new()
          {
              Name = "Foo",
              LastName = "Galoo",
-             Bars = new Bar[] { new() { Value = "A", }, },
-         },
+             Bars = new Bar[] { new() { Value = "A" } }
+         }
     ];
 
     private readonly SchemaCache _cache;
@@ -37,18 +33,18 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
     public async Task Create_StringConcatExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortInputType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(order: { displayName: DESC}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.New()
+            .SetDocument("{ root(order: { displayName: DESC}){ name lastName}}")
+            .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(order: { displayName: ASC}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.New()
+            .SetDocument("{ root(order: { displayName: ASC}){ name lastName}}")
+            .Build());
 
         // assert
         await Snapshot
@@ -87,18 +83,18 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
     public async Task Create_CollectionLengthExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortInputType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(order: { barLength: ASC}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.New()
+            .SetDocument("{ root(order: { barLength: ASC}){ name lastName}}")
+            .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(order: { barLength: DESC}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.New()
+            .SetDocument("{ root(order: { barLength: DESC}){ name lastName}}")
+            .Build());
 
         // assert
         await Snapshot

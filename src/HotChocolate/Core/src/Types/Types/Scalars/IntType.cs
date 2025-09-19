@@ -1,8 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -41,7 +39,7 @@ public class IntType : IntegerTypeBase<int>
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="IntType"/> class.
     /// </summary>

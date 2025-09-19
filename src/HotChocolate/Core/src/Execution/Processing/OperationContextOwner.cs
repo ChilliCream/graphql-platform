@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Extensions.ObjectPool;
 using static System.Threading.Interlocked;
 
@@ -34,10 +33,7 @@ internal sealed class OperationContextOwner : IDisposable
     {
         get
         {
-            if (_disposed == 1)
-            {
-                throw new ObjectDisposedException(nameof(OperationContextOwner));
-            }
+            ObjectDisposedException.ThrowIf(_disposed == 1, this);
 
             return _context;
         }

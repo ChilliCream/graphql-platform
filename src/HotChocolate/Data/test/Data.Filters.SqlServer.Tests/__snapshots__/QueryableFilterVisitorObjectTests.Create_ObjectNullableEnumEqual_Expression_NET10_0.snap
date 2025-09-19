@@ -1,0 +1,71 @@
+BAR Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barEnum": "BAR"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "BAR"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+BAR SQL:
+---------------
+.param set @p 1
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE "f"."BarEnum" = @p
+---------------
+
+FOO Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barEnum": "FOO"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+FOO SQL:
+---------------
+.param set @p 0
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE "f"."BarEnum" = @p
+---------------
+
+null Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+null SQL:
+---------------
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE "f"."BarEnum" IS NULL
+---------------

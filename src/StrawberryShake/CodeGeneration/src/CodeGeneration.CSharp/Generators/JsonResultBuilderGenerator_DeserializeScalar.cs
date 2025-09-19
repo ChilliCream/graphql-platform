@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
@@ -19,14 +18,14 @@ public partial class JsonResultBuilderGenerator
 
         if (namedType.SerializationType.ToString() == TypeNames.JsonElement)
         {
-            methodCall.AddArgument($"{_obj}.{nameof(Nullable<JsonElement>.Value)}!");
+            methodCall.AddArgument($"{Obj}.{nameof(Nullable<JsonElement>.Value)}!");
         }
         else
         {
             var deserializeMethod = JsonUtils.GetParseMethod(namedType.SerializationType);
             methodCall.AddArgument(MethodCallBuilder
                 .Inline()
-                .SetMethodName(_obj, nameof(Nullable<JsonElement>.Value), deserializeMethod)
+                .SetMethodName(Obj, nameof(Nullable<JsonElement>.Value), deserializeMethod)
                 .SetNullForgiving());
         }
 

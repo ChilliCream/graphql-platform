@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Reactive.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Moq;
 
 namespace StrawberryShake;
@@ -21,9 +17,9 @@ public class OperationExecutorTests
         var request = new OperationRequest("abc", document.Object);
         var observer = new ResultObserver();
 
-        var cacheResult = "cache result";
-        var networkResult = "network result";
-        var storeUpdateResult = "store result";
+        const string cacheResult = "cache result";
+        const string networkResult = "network result";
+        const string storeUpdateResult = "store result";
 
         var executor = new OperationExecutor<string, string>(
             connection.Object,
@@ -65,8 +61,8 @@ public class OperationExecutorTests
         var request = new OperationRequest("abc", document.Object);
         var observer = new ResultObserver();
 
-        var networkResult = "network result";
-        var storeUpdateResult = "store result";
+        const string networkResult = "network result";
+        const string storeUpdateResult = "store result";
 
         var executor = new OperationExecutor<string, string>(
             connection.Object,
@@ -108,9 +104,9 @@ public class OperationExecutorTests
         var request = new OperationRequest("abc", document.Object);
         var observer = new ResultObserver();
 
-        var cacheResult = "cache result";
-        var networkResult = "network result";
-        var storeUpdateResult = "store result";
+        const string cacheResult = "cache result";
+        const string networkResult = "network result";
+        const string storeUpdateResult = "store result";
 
         var executor = new OperationExecutor<string, string>(
             connection.Object,
@@ -155,8 +151,8 @@ public class OperationExecutorTests
         var request = new OperationRequest("abc", document.Object);
         var observer = new ResultObserver();
 
-        var networkResult = "network result";
-        var storeUpdateResult = "store result";
+        const string networkResult = "network result";
+        const string storeUpdateResult = "store result";
 
         var executor = new OperationExecutor<string, string>(
             connection.Object,
@@ -198,9 +194,9 @@ public class OperationExecutorTests
         var request = new OperationRequest("abc", document.Object);
         var observer = new ResultObserver();
 
-        var cacheResult = "cache result";
-        var networkResult = "network result";
-        var storeUpdateResult = "store result";
+        const string cacheResult = "cache result";
+        const string networkResult = "network result";
+        const string storeUpdateResult = "store result";
 
         var executor = new OperationExecutor<string, string>(
             connection.Object,
@@ -242,8 +238,8 @@ public class OperationExecutorTests
         var request = new OperationRequest("abc", document.Object);
         var observer = new ResultObserver();
 
-        var networkResult = "network result";
-        var storeUpdateResult = "store result";
+        const string networkResult = "network result";
+        const string storeUpdateResult = "store result";
 
         var executor = new OperationExecutor<string, string>(
             connection.Object,
@@ -293,16 +289,16 @@ public class OperationExecutorTests
 
     private sealed class ResultObserver : IObserver<IOperationResult<string>>
     {
-        private static readonly TimeSpan _timeout = TimeSpan.FromMilliseconds(500);
+        private static readonly TimeSpan s_timeout = TimeSpan.FromMilliseconds(500);
 
         private readonly SemaphoreSlim _resultSemaphore = new(0);
         private readonly Queue<IOperationResult<string>> _results = new();
 
         public async Task<IOperationResult<string>> WaitForResult()
         {
-            if (!await _resultSemaphore.WaitAsync(_timeout))
+            if (!await _resultSemaphore.WaitAsync(s_timeout))
             {
-                throw new TimeoutException($"Did not receive a result in {_timeout}");
+                throw new TimeoutException($"Did not receive a result in {s_timeout}");
             }
 
             return _results.Dequeue();

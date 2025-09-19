@@ -5,12 +5,12 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 9,
-        "Column": 21
+        "Line": 8,
+        "Column": 5
       },
       {
-        "Line": 10,
-        "Column": 21
+        "Line": 9,
+        "Column": 5
       }
     ],
     "Extensions": {
@@ -24,30 +24,6 @@
       "responseNameB": "doesKnowCommand",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 258,
-        "End": 291,
-        "Line": 10,
-        "Column": 21
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 258,
-          "End": 291,
-          "Line": 10,
-          "Column": 21
-        },
-        "Value": "doesKnowCommand"
-      },
-      "Directives": []
-    }
+    "Exception": null
   }
 ]

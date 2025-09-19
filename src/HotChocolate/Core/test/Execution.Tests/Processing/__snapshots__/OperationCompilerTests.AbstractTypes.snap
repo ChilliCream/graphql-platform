@@ -1,0 +1,187 @@
+﻿{
+  organizationUnits {
+    id
+    name
+    someType {
+      id
+      name
+    }
+    children {
+      id
+      name
+      someType {
+        id
+        name
+      }
+      children {
+        id
+        name
+        someType {
+          id
+          name
+        }
+      }
+    }
+  }
+}
+
+---------------------------------------------------------
+
+{
+  ... on Query {
+    organizationUnits @__execute(id: 0, kind: DEFAULT, type: COMPOSITE_LIST) {
+      ... on OrganizationUnit2 {
+        id @__execute(id: 1, kind: DEFAULT, type: LEAF)
+        name @__execute(id: 2, kind: DEFAULT, type: LEAF)
+        someType @__execute(id: 3, kind: DEFAULT, type: COMPOSITE) {
+          ... on SomeType {
+            id @__execute(id: 9, kind: DEFAULT, type: LEAF)
+            name @__execute(id: 10, kind: DEFAULT, type: LEAF)
+          }
+        }
+        children @__execute(id: 4, kind: DEFAULT, type: COMPOSITE_LIST) {
+          ... on OrganizationUnit2 {
+            id @__execute(id: 11, kind: DEFAULT, type: LEAF)
+            name @__execute(id: 12, kind: DEFAULT, type: LEAF)
+            someType @__execute(id: 13, kind: DEFAULT, type: COMPOSITE) {
+              ... on SomeType {
+                id @__execute(id: 19, kind: DEFAULT, type: LEAF)
+                name @__execute(id: 20, kind: DEFAULT, type: LEAF)
+              }
+            }
+            children @__execute(id: 14, kind: DEFAULT, type: COMPOSITE_LIST) {
+              ... on OrganizationUnit2 {
+                id @__execute(id: 21, kind: DEFAULT, type: LEAF)
+                name @__execute(id: 22, kind: DEFAULT, type: LEAF)
+                someType @__execute(id: 23, kind: DEFAULT, type: COMPOSITE) {
+                  ... on SomeType {
+                    id @__execute(id: 27, kind: DEFAULT, type: LEAF)
+                    name @__execute(id: 28, kind: DEFAULT, type: LEAF)
+                  }
+                }
+              }
+              ... on OrganizationUnit1 {
+                id @__execute(id: 24, kind: DEFAULT, type: LEAF)
+                name @__execute(id: 25, kind: DEFAULT, type: LEAF)
+                someType @__execute(id: 26, kind: DEFAULT, type: COMPOSITE) {
+                  ... on SomeType {
+                    id @__execute(id: 27, kind: DEFAULT, type: LEAF)
+                    name @__execute(id: 28, kind: DEFAULT, type: LEAF)
+                  }
+                }
+              }
+            }
+          }
+          ... on OrganizationUnit1 {
+            id @__execute(id: 15, kind: DEFAULT, type: LEAF)
+            name @__execute(id: 16, kind: DEFAULT, type: LEAF)
+            someType @__execute(id: 17, kind: DEFAULT, type: COMPOSITE) {
+              ... on SomeType {
+                id @__execute(id: 19, kind: DEFAULT, type: LEAF)
+                name @__execute(id: 20, kind: DEFAULT, type: LEAF)
+              }
+            }
+            children @__execute(id: 18, kind: DEFAULT, type: COMPOSITE_LIST) {
+              ... on OrganizationUnit2 {
+                id @__execute(id: 21, kind: DEFAULT, type: LEAF)
+                name @__execute(id: 22, kind: DEFAULT, type: LEAF)
+                someType @__execute(id: 23, kind: DEFAULT, type: COMPOSITE) {
+                  ... on SomeType {
+                    id @__execute(id: 27, kind: DEFAULT, type: LEAF)
+                    name @__execute(id: 28, kind: DEFAULT, type: LEAF)
+                  }
+                }
+              }
+              ... on OrganizationUnit1 {
+                id @__execute(id: 24, kind: DEFAULT, type: LEAF)
+                name @__execute(id: 25, kind: DEFAULT, type: LEAF)
+                someType @__execute(id: 26, kind: DEFAULT, type: COMPOSITE) {
+                  ... on SomeType {
+                    id @__execute(id: 27, kind: DEFAULT, type: LEAF)
+                    name @__execute(id: 28, kind: DEFAULT, type: LEAF)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      ... on OrganizationUnit1 {
+        id @__execute(id: 5, kind: DEFAULT, type: LEAF)
+        name @__execute(id: 6, kind: DEFAULT, type: LEAF)
+        someType @__execute(id: 7, kind: DEFAULT, type: COMPOSITE) {
+          ... on SomeType {
+            id @__execute(id: 9, kind: DEFAULT, type: LEAF)
+            name @__execute(id: 10, kind: DEFAULT, type: LEAF)
+          }
+        }
+        children @__execute(id: 8, kind: DEFAULT, type: COMPOSITE_LIST) {
+          ... on OrganizationUnit2 {
+            id @__execute(id: 11, kind: DEFAULT, type: LEAF)
+            name @__execute(id: 12, kind: DEFAULT, type: LEAF)
+            someType @__execute(id: 13, kind: DEFAULT, type: COMPOSITE) {
+              ... on SomeType {
+                id @__execute(id: 19, kind: DEFAULT, type: LEAF)
+                name @__execute(id: 20, kind: DEFAULT, type: LEAF)
+              }
+            }
+            children @__execute(id: 14, kind: DEFAULT, type: COMPOSITE_LIST) {
+              ... on OrganizationUnit2 {
+                id @__execute(id: 21, kind: DEFAULT, type: LEAF)
+                name @__execute(id: 22, kind: DEFAULT, type: LEAF)
+                someType @__execute(id: 23, kind: DEFAULT, type: COMPOSITE) {
+                  ... on SomeType {
+                    id @__execute(id: 27, kind: DEFAULT, type: LEAF)
+                    name @__execute(id: 28, kind: DEFAULT, type: LEAF)
+                  }
+                }
+              }
+              ... on OrganizationUnit1 {
+                id @__execute(id: 24, kind: DEFAULT, type: LEAF)
+                name @__execute(id: 25, kind: DEFAULT, type: LEAF)
+                someType @__execute(id: 26, kind: DEFAULT, type: COMPOSITE) {
+                  ... on SomeType {
+                    id @__execute(id: 27, kind: DEFAULT, type: LEAF)
+                    name @__execute(id: 28, kind: DEFAULT, type: LEAF)
+                  }
+                }
+              }
+            }
+          }
+          ... on OrganizationUnit1 {
+            id @__execute(id: 15, kind: DEFAULT, type: LEAF)
+            name @__execute(id: 16, kind: DEFAULT, type: LEAF)
+            someType @__execute(id: 17, kind: DEFAULT, type: COMPOSITE) {
+              ... on SomeType {
+                id @__execute(id: 19, kind: DEFAULT, type: LEAF)
+                name @__execute(id: 20, kind: DEFAULT, type: LEAF)
+              }
+            }
+            children @__execute(id: 18, kind: DEFAULT, type: COMPOSITE_LIST) {
+              ... on OrganizationUnit2 {
+                id @__execute(id: 21, kind: DEFAULT, type: LEAF)
+                name @__execute(id: 22, kind: DEFAULT, type: LEAF)
+                someType @__execute(id: 23, kind: DEFAULT, type: COMPOSITE) {
+                  ... on SomeType {
+                    id @__execute(id: 27, kind: DEFAULT, type: LEAF)
+                    name @__execute(id: 28, kind: DEFAULT, type: LEAF)
+                  }
+                }
+              }
+              ... on OrganizationUnit1 {
+                id @__execute(id: 24, kind: DEFAULT, type: LEAF)
+                name @__execute(id: 25, kind: DEFAULT, type: LEAF)
+                someType @__execute(id: 26, kind: DEFAULT, type: COMPOSITE) {
+                  ... on SomeType {
+                    id @__execute(id: 27, kind: DEFAULT, type: LEAF)
+                    name @__execute(id: 28, kind: DEFAULT, type: LEAF)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,9 +1,6 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -22,7 +19,7 @@ public class InputObjectType<T> : InputObjectType
         _configure = Configure;
     }
 
-    protected override InputObjectTypeDefinition CreateDefinition(
+    protected override InputObjectTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         var descriptor = InputObjectTypeDescriptor.New<T>(context.DescriptorContext);
@@ -30,7 +27,7 @@ public class InputObjectType<T> : InputObjectType
         _configure!(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(

@@ -96,7 +96,7 @@
         <member name="M:HotChocolate.Types.Descriptors.WithExceptionsXmlDoc.Foo">
              <summary>
              Query and manages users.
-            
+
              You need one of the following role: Owner,
              Editor, use XYZ to manage permissions.
              </summary>
@@ -107,7 +107,7 @@
         <member name="M:HotChocolate.Types.Descriptors.WithExceptionsXmlDoc.Bar">
              <summary>
              Query and manages users.
-            
+
              You need one of the following role: Owner,
              Editor, use XYZ to manage permissions.
              </summary>
@@ -119,7 +119,7 @@
         <member name="M:HotChocolate.Types.Descriptors.WithExceptionsXmlDoc.Baz">
              <summary>
              Query and manages users.
-            
+
              You need one of the following role: Owner,
              Editor, use XYZ to manage permissions.
              </summary>
@@ -132,13 +132,13 @@
         <member name="P:HotChocolate.Types.Descriptors.WithMultilineXmlDoc.Foo">
              <summary>
              Query and manages users.
-            
+
              Please note:
              * Users ...
              * Users ...
                  * Users ...
                  * Users ...
-            
+
              You need one of the following role: Owner,
              Editor, use XYZ to manage permissions.
              </summary>
@@ -146,7 +146,7 @@
         <member name="M:HotChocolate.Types.Descriptors.WithoutExceptionsXmlDoc.Foo">
              <summary>
              Query and manages users.
-            
+
              You need one of the following role: Owner,
              Editor, use XYZ to manage permissions.
              </summary>
@@ -155,7 +155,7 @@
         <member name="M:HotChocolate.Types.Descriptors.WithoutReturnsXmlDoc.Foo">
              <summary>
              Query and manages users.
-            
+
              You need one of the following role: Owner,
              Editor, use XYZ to manage permissions.
              </summary>
@@ -163,7 +163,7 @@
         <member name="M:HotChocolate.Types.Descriptors.WithReturnsXmlDoc.Foo">
              <summary>
              Query and manages users.
-            
+
              You need one of the following role: Owner,
              Editor, use XYZ to manage permissions.
              </summary>

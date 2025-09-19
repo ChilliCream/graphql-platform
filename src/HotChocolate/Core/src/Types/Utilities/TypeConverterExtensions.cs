@@ -1,4 +1,4 @@
-using System;
+#nullable disable
 
 namespace HotChocolate.Utilities;
 
@@ -15,17 +15,14 @@ public static class TypeConverterExtensions
         this ITypeConverter typeConverter,
         TFrom source, out TTo converted)
     {
-        if (typeConverter is null)
-        {
-            throw new ArgumentNullException(nameof(typeConverter));
-        }
+        ArgumentNullException.ThrowIfNull(typeConverter);
 
         if (typeConverter.TryConvert(
             typeof(TFrom), typeof(TTo),
-            source, out var conv)
-            && conv is TTo convcasted)
+            source, out var c)
+            && c is TTo convertedCasted)
         {
-            converted = convcasted;
+            converted = convertedCasted;
             return true;
         }
 
@@ -37,10 +34,7 @@ public static class TypeConverterExtensions
         this ITypeConverter typeConverter,
         object source)
     {
-        if (typeConverter is null)
-        {
-            throw new ArgumentNullException(nameof(typeConverter));
-        }
+        ArgumentNullException.ThrowIfNull(typeConverter);
 
         return (TTo)typeConverter.Convert(
             typeof(TFrom), typeof(TTo), source);

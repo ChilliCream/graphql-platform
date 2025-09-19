@@ -1,17 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Buffers;
+using System.Text;
+using HotChocolate.Buffers;
 using HotChocolate.Language.Properties;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
 /// <summary>
-/// <para>Represents a enum value literal.</para>
+/// <para>Represents an enum value literal.</para>
 /// <para>http://facebook.github.io/graphql/June2018/#sec-Enum-Value</para>
 /// </summary>
 public sealed class EnumValueNode : IValueNode<string>
 {
+    private ReadOnlyMemorySegment _memorySegment;
+    private string? _value;
+
     /// <summary>
     /// Initializes a new instance of <see cref="EnumTypeDefinitionNode"/>.
     /// </summary>
@@ -27,7 +30,7 @@ public sealed class EnumValueNode : IValueNode<string>
 
         var stringValue = value.ToString()?.ToUpperInvariant();
 
-        Value = stringValue ??
+        _value = stringValue ??
             throw new ArgumentException(
                 Resources.EnumValueNode_ValueIsNull,
                 nameof(value));
@@ -56,7 +59,23 @@ public sealed class EnumValueNode : IValueNode<string>
     public EnumValueNode(Location? location, string value)
     {
         Location = location;
-        Value = value ?? throw new ArgumentNullException(nameof(value));
+        _value = value ?? throw new ArgumentNullException(nameof(value));
+    }
+
+    public EnumValueNode(ReadOnlyMemorySegment value)
+        : this(null, value)
+    {
+    }
+
+    public EnumValueNode(Location? location, ReadOnlyMemorySegment value)
+    {
+        if (value.IsEmpty)
+        {
+            throw new ArgumentException("Value cannot be empty.", nameof(value));
+        }
+
+        Location = location;
+        _memorySegment = value;
     }
 
     /// <inheritdoc />
@@ -66,13 +85,28 @@ public sealed class EnumValueNode : IValueNode<string>
     public Location? Location { get; }
 
     /// <inheritdoc cref="IValueNode{T}" />
-    public string Value { get; }
+    public unsafe string Value
+    {
+        get
+        {
+            if (_value is null)
+            {
+                var span = AsSpan();
+                fixed (byte* b = span)
+                {
+                    _value = Encoding.UTF8.GetString(b, span.Length);
+                }
+            }
+
+            return _value;
+        }
+    }
 
     /// <inheritdoc cref="IValueNode" />
     object IValueNode.Value => Value;
 
     /// <inheritdoc />
-    public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
+    public IEnumerable<ISyntaxNode> GetNodes() => [];
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
@@ -94,6 +128,51 @@ public sealed class EnumValueNode : IValueNode<string>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
+
+    /// <summary>
+    /// Gets a readonly span to access the string value memory.
+    /// </summary>
+    public ReadOnlySpan<byte> AsSpan()
+    {
+        if (!_memorySegment.IsEmpty)
+        {
+            return _memorySegment.Span;
+        }
+
+        return AsMemorySegment().Span;
+    }
+
+    public ReadOnlyMemorySegment AsMemorySegment()
+    {
+        if (!_memorySegment.IsEmpty)
+        {
+            return _memorySegment;
+        }
+
+        var encoding = Encoding.UTF8;
+
+        byte[]? rented = null;
+        var requiredLength = encoding.GetByteCount(_value!);
+        var buffer = requiredLength < 256
+            ? stackalloc byte[32]
+            : (rented = ArrayPool<byte>.Shared.Rent(requiredLength)).AsSpan();
+
+        try
+        {
+            var written = encoding.GetBytes(_value!, buffer);
+            buffer = buffer.Slice(0, written);
+            _memorySegment = new ReadOnlyMemorySegment(buffer.ToArray());
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
+
+        return _memorySegment;
+    }
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the

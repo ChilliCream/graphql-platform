@@ -1,0 +1,59 @@
+schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@shareable", "@tag", "FieldSet" ]) {
+  query: Query
+}
+
+type Address {
+  street: String!
+}
+
+"A connection to a list of items."
+type AddressesConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [AddressesEdge!]
+  "A flattened list of the nodes."
+  nodes: [Address!]
+}
+
+"An edge in a connection."
+type AddressesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Address!
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean! @shareable
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean! @shareable
+  "When paginating backwards, the cursor to continue."
+  startCursor: String @shareable
+  "When paginating forwards, the cursor to continue."
+  endCursor: String @shareable
+}
+
+type Query {
+  addresses("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AddressesConnection
+  _service: _Service!
+}
+
+"This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+type _Service {
+  sdl: String!
+}
+
+"Links definitions within the document to external schemas."
+directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
+
+"Indicates that given object and\/or field can be resolved by multiple subgraphs."
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION
+
+"Scalar representing a set of fields."
+scalar FieldSet
+
+"The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+scalar _Any

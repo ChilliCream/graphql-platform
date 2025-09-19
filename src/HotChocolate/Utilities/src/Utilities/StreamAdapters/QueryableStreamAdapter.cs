@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Utilities.StreamAdapters;
 
 internal sealed class QueryableStreamAdapter : IAsyncEnumerable<object?>

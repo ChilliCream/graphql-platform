@@ -1,22 +1,22 @@
-﻿schema {
+schema {
   query: Query
 }
 
 interface Fruit {
-  taste: String
+  taste: String!
 }
 
 type Orange implements Fruit {
-  color: String
-  taste: String
+  color: String!
+  taste: String!
 }
 
 type Pineapple implements Fruit {
-  shape: String
-  taste: String
+  shape: String!
+  taste: String!
 }
 
 type Query {
-  fruits: [Fruit]
-  hello: String
+  fruits: [Fruit!]!
+  hello: String!
 }

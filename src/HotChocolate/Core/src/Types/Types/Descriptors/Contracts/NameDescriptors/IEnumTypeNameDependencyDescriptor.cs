@@ -1,4 +1,4 @@
-using System;
+using HotChocolate.Types.Descriptors;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
@@ -9,4 +9,6 @@ public interface IEnumTypeNameDependencyDescriptor
         where TDependency : IType;
 
     IEnumTypeDescriptor DependsOn(Type schemaType);
+
+    IEnumTypeDescriptor DependsOn(TypeReference typeReference);
 }

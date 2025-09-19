@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using GreenDonut;
 
 namespace HotChocolate.Fetching;
@@ -26,6 +21,6 @@ internal sealed class AdHocGroupedDataLoader<TKey, TValue> : GroupedDataLoader<T
 
     protected override Task<ILookup<TKey, TValue>> LoadGroupedBatchAsync(
         IReadOnlyList<TKey> keys,
-        CancellationToken cancellationToken) 
+        CancellationToken cancellationToken)
         => _fetch(keys, cancellationToken);
 }

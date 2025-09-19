@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Introspection;
@@ -20,7 +18,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         descriptor.Type<StringType>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(StringType),
@@ -38,7 +36,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         descriptor.Type(typeof(StringType));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(StringType),
@@ -58,7 +56,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
             .Type<NativeType<IReadOnlyDictionary<string, string>>>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(typeof(ListType<StringType>),
             Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
@@ -77,7 +75,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
             .Type<ListType<StringType>>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(typeof(ListType<StringType>),
             Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
@@ -99,7 +97,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
             .Resolve(c => c.Parent<ObjectField>().Arguments);
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(NonNullType<ListType<NonNullType<__InputValue>>>),
@@ -119,7 +117,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         descriptor.Name("args");
 
         // assert
-        Assert.Equal("args", descriptor.CreateDefinition().Name);
+        Assert.Equal("args", descriptor.CreateConfiguration().Name);
     }
 
     [Fact]
@@ -137,11 +135,11 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
 
         // assert
         Assert.Equal(expectedDescription,
-            descriptor.CreateDefinition().Description);
+            descriptor.CreateConfiguration().Description);
     }
 
     [Fact]
-    public void SetResolverAndInferTypeFromResolver()
+    public async Task SetResolverAndInferTypeFromResolver()
     {
         // arrange
         var descriptor =
@@ -154,7 +152,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         descriptor.Resolve(() => "ThisIsAString");
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(string),
@@ -163,12 +161,11 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         Assert.NotNull(description.Resolver);
 
         var context = new Mock<IResolverContext>(MockBehavior.Strict);
-        Assert.Equal("ThisIsAString",
-            description.Resolver(context.Object).Result);
+        Assert.Equal("ThisIsAString", await description.Resolver(context.Object));
     }
 
     [Fact]
-    public void SetResolverAndInferTypeIsAlwaysRecognisedAsDotNetType()
+    public void SetResolverAndInferTypeIsAlwaysRecognizedAsDotNetType()
     {
         // arrange
         var descriptor =
@@ -180,11 +177,10 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         // act
         descriptor
             .Type<__Type>()
-            .Resolve(ctx => ctx.Schema
-                .GetType<INamedType>(ctx.ArgumentValue<string>("type")));
+            .Resolve(ctx => ctx.Schema.Types[ctx.ArgumentValue<string>("type")]);
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(__Type),
@@ -195,14 +191,14 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
     [Fact]
     public void Type_Syntax_Type_Null()
     {
-        void Error() => ObjectFieldDescriptor.New(Context, "foo").Type((string)null);
+        void Error() => ObjectFieldDescriptor.New(Context, "foo").Type((string)null!);
         Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]
     public void Type_Syntax_Descriptor_Null()
     {
-        void Error() => default(IObjectFieldDescriptor).Type("foo");
+        void Error() => default(IObjectFieldDescriptor)!.Type("foo");
         Assert.Throws<ArgumentNullException>(Error);
     }
 
@@ -219,7 +215,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
                 typeof(string));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Equal(typeof(string), description.ResolverType);
     }
 }

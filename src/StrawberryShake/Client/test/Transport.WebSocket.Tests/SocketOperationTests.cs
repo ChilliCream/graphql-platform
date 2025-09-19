@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using Moq;
 using StrawberryShake.Transport.WebSockets.Messages;
@@ -48,7 +44,7 @@ public class SocketOperationTests
         // arrange
         var manager =
             new Mock<ISession>().Object;
-        var id = "123";
+        const string id = "123";
 
         // act
         var exception = Record.Exception(() =>
@@ -63,7 +59,7 @@ public class SocketOperationTests
     {
         // arrange
         ISession manager = null!;
-        var id = "123";
+        const string id = "123";
 
         // act
         var exception = Record.Exception(() =>
@@ -79,11 +75,11 @@ public class SocketOperationTests
         // arrange
         var manager =
             new Mock<ISession>().Object;
-        string id = null!;
+        const string id = null!;
 
         // act
         var exception = Record.Exception(() =>
-            new SocketOperation(manager, id));
+            new SocketOperation(manager, id!));
 
         // assert
         Assert.IsType<ArgumentNullException>(exception);
@@ -138,7 +134,7 @@ public class SocketOperationTests
     {
         // arrange
         var managerMock = new Mock<ISession>(MockBehavior.Strict);
-        var id = "123";
+        const string id = "123";
         managerMock
             .Setup(x => x.StopOperationAsync(id, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
@@ -157,7 +153,7 @@ public class SocketOperationTests
     {
         // arrange
         var managerMock = new Mock<ISession>(MockBehavior.Strict);
-        var id = "123";
+        const string id = "123";
         managerMock
             .Setup(x => x.StopOperationAsync(id, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);

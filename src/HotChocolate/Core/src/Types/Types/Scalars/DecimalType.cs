@@ -1,8 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class DecimalType : FloatTypeBase<decimal>
@@ -33,7 +31,7 @@ public class DecimalType : FloatTypeBase<decimal>
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="DecimalType"/> class.
     /// </summary>

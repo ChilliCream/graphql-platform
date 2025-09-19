@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -11,7 +10,7 @@
     <RootNamespace>HotChocolate.Types</RootNamespace>
     <Description>Adds additional scalars for better data integrity and validation</Description>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Using Include="Microsoft.Extensions.DependencyInjection" />
   </ItemGroup>

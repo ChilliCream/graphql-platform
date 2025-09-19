@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;

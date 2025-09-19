@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The specified argument value does not match the argument type.",
     "Code": null,
@@ -19,8 +19,8 @@
     },
     "Locations": [
       {
-        "Line": 4,
-        "Column": 51
+        "Line": 3,
+        "Column": 35
       }
     ],
     "Extensions": {
@@ -29,16 +29,6 @@
       "locationType": "String",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "BooleanValue",
-      "Location": {
-        "Start": 101,
-        "End": 106,
-        "Line": 4,
-        "Column": 51
-      },
-      "Value": true
-    }
+    "Exception": null
   }
 ]

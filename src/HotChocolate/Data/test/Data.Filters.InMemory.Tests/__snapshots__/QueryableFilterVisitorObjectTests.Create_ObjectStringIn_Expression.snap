@@ -41,7 +41,7 @@ testbtestAndNull
     }
   ],
   "data": {
-    "root": []
+    "root": null
   }
 }
 ---------------

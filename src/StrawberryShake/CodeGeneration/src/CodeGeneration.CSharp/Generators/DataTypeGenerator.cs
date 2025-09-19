@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Descriptors;

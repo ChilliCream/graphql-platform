@@ -137,7 +137,7 @@ query {
 }
 ```
 
-**⚠️ OR does not work when you use it like this: **
+**⚠️ OR does not work when you use it like this:**
 
 ```graphql
 query {

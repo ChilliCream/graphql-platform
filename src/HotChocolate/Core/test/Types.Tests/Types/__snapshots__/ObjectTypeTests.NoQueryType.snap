@@ -1,11 +1,1 @@
-﻿[
-  {
-    "Message": "The schema builder was unable to identify the query type of the schema. Either specify which type is the query type or set the schema builder to non-strict validation mode.",
-    "Code": null,
-    "TypeSystemObject": null,
-    "Path": null,
-    "SyntaxNodes": [],
-    "Extensions": {},
-    "Exception": null
-  }
-]
+The schema builder was unable to identify the query type of the schema. Either specify which type is the query type or set the schema builder to non-strict validation mode.

@@ -1,8 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class ShortType : IntegerTypeBase<short>
@@ -33,7 +31,7 @@ public class ShortType : IntegerTypeBase<short>
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ShortType"/> class.
     /// </summary>

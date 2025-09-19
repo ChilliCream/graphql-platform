@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -13,10 +10,10 @@ namespace HotChocolate.Data.Sorting;
 
 public class QueryableSortingExtensionsTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, Baz = "a", },
-        new() { Bar = false, Baz = "b", },
+        new() { Bar = true, Baz = "a" },
+        new() { Bar = false, Baz = "b" }
     ];
 
     [Fact]
@@ -31,17 +28,17 @@ public class QueryableSortingExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery("{ shouldWork(order: {bar: DESC}) { bar baz }}")
-                .Create());
+                .SetDocument("{ shouldWork(order: {bar: DESC}) { bar baz }}")
+                .Build());
 
         // assert
         res1.MatchSnapshot();
     }
 
     [Fact]
-    public async Task Extension_Should_BeTypeMissMatch()
+    public async Task Extension_Should_BeTypeMismatch()
     {
         // arrange
         var executor = await new ServiceCollection()
@@ -52,15 +49,15 @@ public class QueryableSortingExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery("{ typeMissmatch(order: {bar: DESC}) { bar baz }}")
-                .Create());
+                .SetDocument("{ typeMismatch(order: {bar: DESC}) { bar baz }}")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -76,15 +73,15 @@ public class QueryableSortingExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery("{ missingMiddleware { bar baz }}")
-                .Create());
+                .SetDocument("{ missingMiddleware { bar baz }}")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -93,21 +90,21 @@ public class QueryableSortingExtensionsTests
         [UseSorting]
         public IEnumerable<Foo> ShouldWork(IResolverContext context)
         {
-            return _fooEntities.Sort(context);
+            return s_fooEntities.Sort(context);
         }
 
         [CatchErrorMiddleware]
         [UseSorting]
-        [AddTypeMissmatchMiddleware]
-        public IEnumerable<Foo> TypeMissmatch(IResolverContext context)
+        [AddTypeMismatchMiddleware]
+        public IEnumerable<Foo> TypeMismatch(IResolverContext context)
         {
-            return _fooEntities.Sort(context);
+            return s_fooEntities.Sort(context);
         }
 
         [CatchErrorMiddleware]
         public IEnumerable<Foo> MissingMiddleware(IResolverContext context)
         {
-            return _fooEntities.Sort(context);
+            return s_fooEntities.Sort(context);
         }
     }
 
@@ -124,7 +121,7 @@ public class QueryableSortingExtensionsTests
         public string? NotSettable { get; }
     }
 
-    public class AddTypeMissmatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
+    public class AddTypeMismatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
     {
         protected override void OnConfigure(
             IDescriptorContext context,

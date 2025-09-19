@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class MethodBuilder : ICodeContainer<MethodBuilder>
@@ -134,10 +131,7 @@ public class MethodBuilder : ICodeContainer<MethodBuilder>
 
     public void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         var modifier = _accessModifier.ToString().ToLowerInvariant();
 
@@ -240,6 +234,6 @@ public class MethodBuilder : ICodeContainer<MethodBuilder>
             Inheritance.Override => "override ",
             Inheritance.Sealed => "sealed override ",
             Inheritance.Virtual => "virtual ",
-            _ => string.Empty,
+            _ => string.Empty
         };
 }

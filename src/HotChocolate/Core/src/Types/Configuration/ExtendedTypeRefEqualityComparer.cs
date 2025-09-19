@@ -1,10 +1,7 @@
-using System.Collections.Generic;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate.Configuration;
 

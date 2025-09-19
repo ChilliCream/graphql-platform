@@ -1,0 +1,15 @@
+{
+  "name": "ChilliCream Dev Container",
+  "build": {
+      "dockerfile": "dockerfile",
+      "context": "."
+  },
+  "features": {
+      "ghcr.io/devcontainers/features/docker-in-docker:2": {
+          "version": "latest",
+          "enableNonRootDocker": "true",
+          "moby": "true"
+      }
+  },
+  "postCreateCommand": "./init.sh"
+}

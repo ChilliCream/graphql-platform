@@ -1,24 +1,17 @@
-using System.Collections.Generic;
+using HotChocolate.Features;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Factories;
 
 internal static class SchemaBuildingDirectiveHelper
 {
-    private const string _definitionStackKey = "HotChocolate.Schema.Building.DefinitionStack";
+    public static Stack<ITypeSystemConfiguration> GetOrCreateConfigurationStack(
+        this IDescriptorContext context)
+        => context.Features.GetOrSet<ConfigurationFeature>().Configurations;
 
-    public static Stack<IDefinition> GetOrCreateDefinitionStack(this IDescriptorContext context)
+    private sealed class ConfigurationFeature
     {
-        if (!context.ContextData.TryGetValue(_definitionStackKey, out var value) || 
-            value is not Stack<IDefinition> stack)
-        {
-            stack = new Stack<IDefinition>();
-            context.ContextData[_definitionStackKey] = stack;
-        }
-
-        return stack;
+        public Stack<ITypeSystemConfiguration> Configurations { get; } = [];
     }
 }

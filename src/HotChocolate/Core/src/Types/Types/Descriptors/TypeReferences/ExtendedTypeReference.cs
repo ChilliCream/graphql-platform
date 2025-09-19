@@ -1,7 +1,4 @@
-using System;
 using HotChocolate.Internal;
-
-#nullable enable
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -127,10 +124,7 @@ public sealed class ExtendedTypeReference
     /// </exception>
     public ExtendedTypeReference WithType(IExtendedType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.Equals(Type))
         {
@@ -204,7 +198,7 @@ public sealed class ExtendedTypeReference
     /// Returns a new <see cref="ExtendedTypeReference"/>.
     /// </returns>
     public ExtendedTypeReference With(
-        IExtendedType? type = default,
+        IExtendedType? type = null,
         Optional<TypeContext> context = default,
         Optional<string?> scope = default)
         => Create(

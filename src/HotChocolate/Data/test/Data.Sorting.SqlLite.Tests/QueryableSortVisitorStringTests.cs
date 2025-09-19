@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Sorting;
@@ -7,17 +5,17 @@ namespace HotChocolate.Data.Sorting;
 public class QueryableSortVisitorStringTests
     : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = "testatest", },
-        new() { Bar = "testbtest", },
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = "testatest", },
-        new() { Bar = "testbtest", },
-        new() { Bar = null, },
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" },
+        new() { Bar = null }
     ];
 
     private readonly SchemaCache _cache;
@@ -31,24 +29,24 @@ public class QueryableSortVisitorStringTests
     public async Task Create_String_OrderBy()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { bar: ASC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { bar: ASC}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { bar: DESC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { bar: DESC}){ bar}}")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -57,24 +55,24 @@ public class QueryableSortVisitorStringTests
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableSortType>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { bar: ASC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { bar: ASC}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { bar: DESC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(order: { bar: DESC}){ bar}}")
+                .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 

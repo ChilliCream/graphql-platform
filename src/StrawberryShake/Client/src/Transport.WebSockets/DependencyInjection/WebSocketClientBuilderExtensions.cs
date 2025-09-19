@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Extensions.Options;
 using StrawberryShake;
 using StrawberryShake.Transport.WebSockets;
@@ -31,17 +30,10 @@ public static class WebSocketClientBuilderExtensions
         Action<IWebSocketClientBuilder>? configureClientBuilder = null)
         where T : IStoreAccessor
     {
-        if (clientBuilder == null)
-        {
-            throw new ArgumentNullException(nameof(clientBuilder));
-        }
+        ArgumentNullException.ThrowIfNull(clientBuilder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
-
-        IWebSocketClientBuilder builder = clientBuilder.Services
+        var builder = clientBuilder.Services
             .AddWebSocketClient(clientBuilder.ClientName, configureClient);
 
         configureClientBuilder?.Invoke(builder);
@@ -70,17 +62,10 @@ public static class WebSocketClientBuilderExtensions
         Action<IWebSocketClientBuilder>? configureClientBuilder = null)
         where T : IStoreAccessor
     {
-        if (clientBuilder == null)
-        {
-            throw new ArgumentNullException(nameof(clientBuilder));
-        }
+        ArgumentNullException.ThrowIfNull(clientBuilder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
-
-        IWebSocketClientBuilder builder = clientBuilder.Services
+        var builder = clientBuilder.Services
             .AddWebSocketClient(clientBuilder.ClientName, configureClient);
 
         configureClientBuilder?.Invoke(builder);
@@ -104,15 +89,8 @@ public static class WebSocketClientBuilderExtensions
         this IWebSocketClientBuilder builder,
         Action<IWebSocketClient> configureClient)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         builder.Services.Configure<SocketClientFactoryOptions>(
             builder.Name,
@@ -148,15 +126,8 @@ public static class WebSocketClientBuilderExtensions
         this IWebSocketClientBuilder builder,
         Action<IServiceProvider, IWebSocketClient> configureClient)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configureClient == null)
-        {
-            throw new ArgumentNullException(nameof(configureClient));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureClient);
 
         builder.Services.AddTransient<IConfigureOptions<SocketClientFactoryOptions>>(sp =>
             new ConfigureNamedOptions<SocketClientFactoryOptions>(
@@ -232,15 +203,8 @@ public static class WebSocketClientBuilderExtensions
         this IWebSocketClientBuilder builder,
         Func<IServiceProvider, ISocketConnectionInterceptor> factory)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (factory == null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
         return builder
             .ConfigureWebSocketClient((sp, x) => x.ConnectionInterceptor = factory(sp));

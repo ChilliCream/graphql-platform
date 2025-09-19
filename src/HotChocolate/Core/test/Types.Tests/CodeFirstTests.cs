@@ -1,11 +1,4 @@
-#nullable enable
-
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,7 +66,7 @@ public class CodeFirstTests
             .Create();
 
         // assert
-        var exists = schema.TryGetType<INamedType>("Url", out _);
+        var exists = schema.Types.TryGetType<ITypeDefinition>("Url", out _);
         Assert.False(exists);
     }
 
@@ -84,7 +77,7 @@ public class CodeFirstTests
             .AddQueryType<QueryInterfaces>()
             .AddType<Foo>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -96,7 +89,7 @@ public class CodeFirstTests
             .AddType<Foo>()
             .AddType<IBar>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -218,19 +211,47 @@ public class CodeFirstTests
                 .AddGraphQLServer()
                 .AddQueryType<QueryWithEnumerableArg>()
                 .BuildSchemaAsync();
-        
+
         schema.MatchInlineSnapshot(
             """
             schema {
               query: QueryWithEnumerableArg
             }
-            
+
             type QueryWithEnumerableArg {
               foo(foo: [String!]!): String!
             }
             """);
     }
-    
+
+    [Fact]
+    public async Task Schema_Name_With_Hyphen()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer("abc-def")
+                .AddQueryType<QueryWithEnumerableArg>()
+                .BuildSchemaAsync("abc-def");
+
+        schema.MatchInlineSnapshot(
+            """
+            schema {
+              query: QueryWithEnumerableArg
+            }
+
+            type QueryWithEnumerableArg {
+              foo(foo: [String!]!): String!
+            }
+            """);
+    }
+
+    [Fact]
+    public void Disallow_Implicitly_Binding_Object()
+    {
+        Assert.Throws<ArgumentException>(
+            () => SchemaBuilder.New().BindRuntimeType<object, StringType>());
+    }
+
     public class Query
     {
         public string SayHello(string name) =>
@@ -270,7 +291,7 @@ public class CodeFirstTests
 
     public class QueryWithEnumerableArg
     {
-        public string GetFoo(IEnumerable<string> foo) 
+        public string GetFoo(IEnumerable<string> foo)
             => "foo";
     }
 
@@ -303,9 +324,7 @@ public class CodeFirstTests
             throw new NotImplementedException();
     }
 
-    public class Cat : Dog
-    {
-    }
+    public class Cat : Dog;
 
     public class QueryWithDateTimeType : ObjectType<QueryWithDateTime>
     {
@@ -364,7 +383,7 @@ public class CodeFirstTests
 
     public class EquatableExample : IStructuralEquatable
     {
-        public string Some { get; set; } = default!;
+        public string Some { get; set; } = null!;
 
         public bool Equals(object? other, IEqualityComparer comparer) => throw new NotImplementedException();
 
@@ -378,7 +397,7 @@ public class CodeFirstTests
 
     public class ComparableExample : IComparable, IComparable<EquatableExample>
     {
-        public string Some { get; set; } = default!;
+        public string Some { get; set; } = null!;
 
         public int CompareTo(object? obj)
         {

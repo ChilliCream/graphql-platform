@@ -1,24 +1,18 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Internal;
-using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using Raven.Client.Documents.Session;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 
 namespace HotChocolate.Data.Raven;
 
-internal sealed class DocumentStoreParameterExpressionBuilder
-    : LambdaParameterExpressionBuilder<IResolverContext, IAsyncDocumentSession>
+internal sealed class DocumentStoreParameterExpressionBuilder()
+    : LambdaParameterExpressionBuilder<IAsyncDocumentSession>(ctx => ctx.AsyncSession(), isPure: false)
     , IParameterFieldConfiguration
 {
-    public DocumentStoreParameterExpressionBuilder()
-        : base(ctx => ctx.AsyncSession())
-    {
-    }
-
     public override ArgumentKind Kind => ArgumentKind.Service;
 
     public override bool CanHandle(ParameterInfo parameter)
@@ -26,14 +20,14 @@ internal sealed class DocumentStoreParameterExpressionBuilder
 
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
     {
-        if (descriptor.Extend().Definition is { ResultType: { } resultType, } definition &&
-            TryExtractEntityType(resultType, out var entityType))
+        if (descriptor.Extend().Configuration is { ResultType: { } resultType } definition
+            && TryExtractEntityType(resultType, out var entityType))
         {
-            var middleware = new FieldMiddlewareDefinition(
+            var middleware = new FieldMiddlewareConfiguration(
                 Create(typeof(ToListMiddleware<>).MakeGenericType(entityType)),
                 key: WellKnownMiddleware.ToList);
 
-            definition.MiddlewareDefinitions.Insert(0, middleware);
+            definition.MiddlewareConfigurations.Insert(0, middleware);
         }
     }
 

@@ -1,21 +1,17 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
 public class AnyType : ScalarType
 {
     private readonly ObjectValueToDictionaryConverter _objectValueToDictConverter = new();
-    private ObjectToDictionaryConverter _objectToDictConverter = default!;
+    private ObjectToDictionaryConverter _objectToDictConverter = null!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AnyType"/> class.
@@ -41,18 +37,15 @@ public class AnyType : ScalarType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        ScalarTypeDefinition definition)
+        ScalarTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
         _objectToDictConverter = new ObjectToDictionaryConverter(Converter);
     }
 
     public override bool IsInstanceOfType(IValueNode literal)
     {
-        if (literal is null)
-        {
-            throw new ArgumentNullException(nameof(literal));
-        }
+        ArgumentNullException.ThrowIfNull(literal);
 
         switch (literal)
         {
@@ -106,7 +99,7 @@ public class AnyType : ScalarType
     {
         return value is null
             ? NullValueNode.Default
-            : ParseValue(value, new HashSet<object>());
+            : ParseValue(value, new HashSet<object>(ReferenceEqualityComparer.Instance));
     }
 
     private IValueNode ParseValue(object? value, ISet<object> set)
@@ -160,6 +153,9 @@ public class AnyType : ScalarType
                         field.Key,
                         ParseValue(field.Value, set)));
                 }
+
+                set.Remove(value);
+
                 return new ObjectValueNode(fields);
             }
 
@@ -170,10 +166,17 @@ public class AnyType : ScalarType
                 {
                     valueList.Add(ParseValue(element, set));
                 }
+
+                set.Remove(value);
+
                 return new ListValueNode(valueList);
             }
 
-            return ParseValue(_objectToDictConverter.Convert(value), set);
+            var valueNode = ParseValue(_objectToDictConverter.Convert(value), set);
+
+            set.Remove(value);
+
+            return valueNode;
         }
 
         throw new SerializationException(
@@ -210,9 +213,9 @@ public class AnyType : ScalarType
             default:
                 var type = runtimeValue.GetType();
 
-                if (type.IsValueType &&
-                    Converter.TryConvert(type, typeof(string), runtimeValue, out var c) &&
-                    c is string casted)
+                if (type.IsValueType
+                    && Converter.TryConvert(type, typeof(string), runtimeValue, out var c)
+                    && c is string casted)
                 {
                     resultValue = casted;
                     return true;
@@ -230,43 +233,42 @@ public class AnyType : ScalarType
         switch (resultValue)
         {
             case IDictionary<string, object> dictionary:
+            {
+                var result = new Dictionary<string, object?>();
+                foreach (var element in dictionary)
                 {
-                    var result = new Dictionary<string, object?>();
-                    foreach (var element in dictionary)
+                    if (TryDeserialize(element.Value, out elementValue))
                     {
-                        if (TryDeserialize(element.Value, out elementValue))
-                        {
-                            result[element.Key] = elementValue;
-                        }
-                        else
-                        {
-                            return false;
-                        }
+                        result[element.Key] = elementValue;
                     }
-
-                    runtimeValue = result;
-                    return true;
+                    else
+                    {
+                        return false;
+                    }
                 }
+
+                runtimeValue = result;
+                return true;
+            }
 
             case IList list:
+            {
+                var result = new object?[list.Count];
+                for (var i = 0; i < list.Count; i++)
                 {
-                    var result = new object?[list.Count];
-                    for (var i = 0; i < list.Count; i++)
+                    if (TryDeserialize(list[i], out elementValue))
                     {
-                        if (TryDeserialize(list[i], out elementValue))
-                        {
-                            result[i] = elementValue;
-                        }
-                        else
-                        {
-                            return false;
-                        }
-
+                        result[i] = elementValue;
                     }
-
-                    runtimeValue = result;
-                    return true;
+                    else
+                    {
+                        return false;
+                    }
                 }
+
+                runtimeValue = result;
+                return true;
+            }
 
             // TODO: this is only done for a bug in schema stitching and needs to be removed
             // once we have release stitching 2.

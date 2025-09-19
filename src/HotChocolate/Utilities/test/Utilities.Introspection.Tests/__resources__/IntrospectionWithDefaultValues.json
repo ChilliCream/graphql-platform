@@ -637,7 +637,7 @@
             },
             {
               "name": "UNION",
-              "description": "Indicates the directive is valid on an union SDL definition.",
+              "description": "Indicates the directive is valid on a union SDL definition.",
               "isDeprecated": false,
               "deprecationReason": null
             },

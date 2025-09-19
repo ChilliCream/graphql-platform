@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -140,7 +138,7 @@ public sealed class DocumentNode : ISyntaxNode
             {
                 var node = stack.Pop();
 
-                if(node.Kind == SyntaxKind.Field)
+                if (node.Kind == SyntaxKind.Field)
                 {
                     count++;
                 }

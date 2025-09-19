@@ -1,0 +1,40 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barString": "testatest",
+          "objectSet": [
+            {
+              "foo": {
+                "barString": "a",
+                "barShort": 12
+              }
+            }
+          ]
+        }
+      },
+      {
+        "foo": {
+          "barString": "testbtest",
+          "objectSet": [
+            {
+              "foo": {
+                "barString": "d",
+                "barShort": 14
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+from 'Bars' as _s1 select { Foo : { BarString : _s1.Foo.BarString, ObjectSet : _s1.Foo.ObjectSet.map(p2=>({Foo:{BarString:p2.Foo.BarString,BarShort:p2.Foo.BarShort}})) } }
+---------------

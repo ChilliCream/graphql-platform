@@ -1,0 +1,8 @@
+{
+  "data": {
+    "findPets": {
+      "code": 400,
+      "message": "Limit must be 10 or less."
+    }
+  }
+}

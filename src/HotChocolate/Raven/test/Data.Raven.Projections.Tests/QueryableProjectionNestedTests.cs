@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Raven;
@@ -6,10 +5,10 @@ namespace HotChocolate.Data.Raven;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableProjectionNestedTests
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
-        new() { Foo = new Foo { BarString = "testatest", }, },
-        new() { Foo = new Foo { BarString = "testbtest", }, },
+        new() { Foo = new Foo { BarString = "testatest" } },
+        new() { Foo = new Foo { BarString = "testbtest" } }
     ];
 
     private readonly SchemaCache _cache;
@@ -23,12 +22,12 @@ public class QueryableProjectionNestedTests
     public async Task Create_Object()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -37,7 +36,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -49,12 +48,12 @@ public class QueryableProjectionNestedTests
     public async Task Create_ObjectNotSettable()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -63,7 +62,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -75,12 +74,12 @@ public class QueryableProjectionNestedTests
     public async Task Create_ObjectNotSettableList()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -89,7 +88,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -101,12 +100,12 @@ public class QueryableProjectionNestedTests
     public async Task Create_ObjectMethod()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -115,7 +114,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -127,12 +126,12 @@ public class QueryableProjectionNestedTests
     public async Task Create_ObjectMethodList()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -141,7 +140,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -160,14 +159,14 @@ public class QueryableProjectionNestedTests
     {
         public string? Id { get; set; }
 
-        public Foo Foo { get; set; } = default!;
+        public Foo Foo { get; set; } = null!;
 
-        public Foo NotSettable { get; } = new() { BarString = "Worked", };
+        public Foo NotSettable { get; } = new() { BarString = "Worked" };
 
-        public Foo Method() => new() { BarString = "Worked", };
+        public Foo Method() => new() { BarString = "Worked" };
 
-        public Foo[] NotSettableList { get; } = [new() { BarString = "Worked", },];
+        public Foo[] NotSettableList { get; } = [new() { BarString = "Worked" }];
 
-        public Foo[] MethodList() => [new Foo { BarString = "Worked", },];
+        public Foo[] MethodList() => [new Foo { BarString = "Worked" }];
     }
 }

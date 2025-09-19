@@ -223,7 +223,6 @@ public class GeoJsonTypeSerializerTests
         Assert.Equal(stringValue, enumValue.Value);
     }
 
-
     [Fact]
     public void ParseValue_Should_Throw_OnInvalidValue()
     {
@@ -315,7 +314,6 @@ public class GeoJsonTypeSerializerTests
         var enumValue = Assert.IsType<EnumValueNode>(resultValue);
         Assert.Equal(stringValue, enumValue.Value);
     }
-
 
     [Fact]
     public void ParseResult_Should_Throw_OnInvalidValue()

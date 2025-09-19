@@ -1,0 +1,67 @@
+a Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "test": {
+          "prop": "a"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+a SQL:
+---------------
+from 'BarInterfaces' where Test.Prop = $p0
+---------------
+
+ba Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "test": {
+          "prop": "b"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+ba SQL:
+---------------
+from 'BarInterfaces' where Test.Prop = $p0
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `eq` of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 37
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

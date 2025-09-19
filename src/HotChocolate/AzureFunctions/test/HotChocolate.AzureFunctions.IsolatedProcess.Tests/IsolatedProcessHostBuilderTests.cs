@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 using HotChocolate.Types;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -25,10 +24,7 @@ public class IsolatedProcessHostBuilderTests
     private static void AssertFunctionsHostBuilderIsValid(
         MockIsolatedProcessHostBuilder hostBuilder)
     {
-        if (hostBuilder is null)
-        {
-            throw new ArgumentNullException(nameof(hostBuilder));
-        }
+        ArgumentNullException.ThrowIfNull(hostBuilder);
 
         var host = hostBuilder.Build();
 

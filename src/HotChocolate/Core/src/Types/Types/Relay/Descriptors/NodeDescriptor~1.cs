@@ -1,17 +1,14 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
-
-#nullable enable
 
 namespace HotChocolate.Types.Relay.Descriptors;
 
 /// <summary>
-/// The node descriptor allows to configure a node type.
+/// The node descriptor allows configuring a node type.
 /// </summary>
 /// <typeparam name="TNode">
 /// The node runtime type.
@@ -33,23 +30,23 @@ public class NodeDescriptor<TNode>
     {
         _typeDescriptor = descriptor;
 
-        // we use the CompleteConfiguration  instead of the higher level api since
+        // we use the CompleteConfiguration instead of the higher level api since
         // we want to target a specific event.
-        var ownerDef = _typeDescriptor.Implements<NodeType>().Extend().Definition;
+        var ownerDef = _typeDescriptor.Implements<NodeType>().Extend().Configuration;
 
-        var configuration = new CompleteConfiguration(
-            (c, d) => OnCompleteDefinition(c, (ObjectTypeDefinition)d),
+        var configuration = new OnCompleteTypeSystemConfigurationTask(
+            (c, d) => OnCompleteConfiguration(c, (ObjectTypeConfiguration)d),
             ownerDef,
             ApplyConfigurationOn.AfterNaming);
 
-        ownerDef.Configurations.Add(configuration);
+        ownerDef.Tasks.Add(configuration);
     }
 
-    private void OnCompleteDefinition(
+    private void OnCompleteConfiguration(
         ITypeCompletionContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration configuration)
     {
-        if (Definition.ResolverField is null)
+        if (Configuration.ResolverField is null)
         {
             var resolverMethod =
                 Context.TypeInspector.GetNodeResolverMethod(typeof(TNode), typeof(TNode));
@@ -68,19 +65,15 @@ public class NodeDescriptor<TNode>
             }
         }
 
-        CompleteResolver(context, definition);
+        CompleteResolver(context, configuration);
     }
 
     protected override IObjectFieldDescriptor ConfigureNodeField()
     {
-        Definition.NodeType = typeof(TNode);
+        Configuration.NodeType = typeof(TNode);
+        Configuration.IdMember ??= Context.TypeInspector.GetNodeIdMember(typeof(TNode));
 
-        if (Definition.IdMember is null)
-        {
-            Definition.IdMember = Context.TypeInspector.GetNodeIdMember(typeof(TNode));
-        }
-
-        if (Definition.IdMember is null)
+        if (Configuration.IdMember is null)
         {
             var descriptor = _typeDescriptor
                 .Field(NodeType.Names.Id)
@@ -91,7 +84,7 @@ public class NodeDescriptor<TNode>
         else
         {
             var descriptor = _typeDescriptor
-                .Field(Definition.IdMember)
+                .Field(Configuration.IdMember)
                 .Name(NodeType.Names.Id)
                 .Type<NonNullType<IdType>>();
 
@@ -103,17 +96,14 @@ public class NodeDescriptor<TNode>
     public INodeDescriptor<TNode, TId> IdField<TId>(
         Expression<Func<TNode, TId>> propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         var member = propertyOrMethod.TryExtractMember();
 
         if (member is MethodInfo or PropertyInfo)
         {
-            Definition.IdMember = member;
-            return new NodeDescriptor<TNode, TId>(Context, Definition, ConfigureNodeField);
+            Configuration.IdMember = member;
+            return new NodeDescriptor<TNode, TId>(Context, Configuration, ConfigureNodeField);
         }
 
         throw new ArgumentException(NodeDescriptor_IdMember, nameof(member));
@@ -122,14 +112,11 @@ public class NodeDescriptor<TNode>
     /// <inheritdoc cref="INodeDescriptor{TNode}.IdField"/>
     public INodeDescriptor<TNode> IdField(MemberInfo propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         if (propertyOrMethod is MethodInfo or PropertyInfo)
         {
-            Definition.IdMember = propertyOrMethod;
+            Configuration.IdMember = propertyOrMethod;
             return this;
         }
 
@@ -140,15 +127,12 @@ public class NodeDescriptor<TNode>
     public IObjectFieldDescriptor ResolveNode<TId>(
         NodeResolverDelegate<TNode, TId> fieldResolver)
     {
-        if (fieldResolver is null)
-        {
-            throw new ArgumentNullException(nameof(fieldResolver));
-        }
+        ArgumentNullException.ThrowIfNull(fieldResolver);
 
         return ResolveNode(async ctx =>
         {
-            if (ctx.LocalContextData.TryGetValue(WellKnownContextData.InternalId, out var o) &&
-                o is TId id)
+            if (ctx.LocalContextData.TryGetValue(WellKnownContextData.InternalId, out var o)
+                && o is TId id)
             {
                 return await fieldResolver(ctx, id).ConfigureAwait(false);
             }

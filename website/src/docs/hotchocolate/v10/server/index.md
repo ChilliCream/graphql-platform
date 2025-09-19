@@ -254,8 +254,10 @@ There are two response serializers that can be customized. By default we have ad
 - IQueryResultSerializer
 - IResponseStreamSerializer
 
-We have a added some helper extension to swap the default serializer out:
+We have added some helper extension to swap the default serializer out:
 
 ```csharp
 services.AddResponseStreamSerializer<CustomResponseStreamSerializer>();
 ```
+
+<!-- spell-checker:ignore Cbnia, Yero -->

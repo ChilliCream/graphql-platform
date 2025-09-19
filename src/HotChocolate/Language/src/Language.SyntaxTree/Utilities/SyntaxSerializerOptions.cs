@@ -3,7 +3,7 @@ namespace HotChocolate.Language.Utilities;
 public struct SyntaxSerializerOptions
 {
     private int? _maxDirectivesPerLine;
-    
+
     /// <summary>
     /// Gets or sets a value that indicates whether the <see cref="SyntaxSerializer" />
     /// should format the GraphQL output, which includes indenting nested GraphQL tokens, adding

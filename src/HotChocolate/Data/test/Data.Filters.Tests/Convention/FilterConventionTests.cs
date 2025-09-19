@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -42,10 +38,10 @@ public class FilterConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a", };
+        var a = new Foo { Bar = "a" };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b", };
+        var b = new Foo { Bar = "b" };
         Assert.False(func(b));
     }
 
@@ -54,10 +50,7 @@ public class FilterConventionTests
     {
         // arrange
         var provider = new QueryableFilterProvider(
-            descriptor =>
-            {
-                descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-            });
+            descriptor => descriptor.AddFieldHandler<QueryableDefaultFieldHandler>());
 
         var convention = new FilterConvention(
             descriptor =>
@@ -82,10 +75,7 @@ public class FilterConventionTests
     {
         // arrange
         var provider = new QueryableFilterProvider(
-            descriptor =>
-            {
-                descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-            });
+            descriptor => descriptor.AddFieldHandler<QueryableStringEqualsHandler>());
 
         var convention = new FilterConvention(
             descriptor =>
@@ -230,10 +220,7 @@ public class FilterConventionTests
             });
 
         var extension2 = new FilterConventionExtension(
-            descriptor =>
-            {
-                descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
-            });
+            descriptor => descriptor.Operation(DefaultFilterOperations.Equals).Name("eq"));
 
         var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
         var type = new FooFilterInput();
@@ -245,10 +232,10 @@ public class FilterConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a", };
+        var a = new Foo { Bar = "a" };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b", };
+        var b = new Foo { Bar = "b" };
         Assert.False(func(b));
     }
 
@@ -283,10 +270,10 @@ public class FilterConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a", };
+        var a = new Foo { Bar = "a" };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b", };
+        var b = new Foo { Bar = "b" };
         Assert.False(func(b));
     }
 
@@ -295,10 +282,7 @@ public class FilterConventionTests
     {
         // arrange
         var provider = new QueryableFilterProvider(
-            descriptor =>
-            {
-                descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-            });
+            descriptor => descriptor.AddFieldHandler<QueryableDefaultFieldHandler>());
 
         var convention = new FilterConvention(
             descriptor =>
@@ -324,10 +308,10 @@ public class FilterConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a", };
+        var a = new Foo { Bar = "a" };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b", };
+        var b = new Foo { Bar = "b" };
         Assert.False(func(b));
     }
 
@@ -427,7 +411,7 @@ public class FilterConventionTests
         schema.MatchSnapshot();
     }
 
-    protected ISchema CreateSchemaWithTypes(
+    protected Schema CreateSchemaWithTypes(
         IFilterInputType type,
         FilterConvention convention,
         params Type[] extensions)
@@ -451,7 +435,7 @@ public class FilterConventionTests
         return builder.Create();
     }
 
-    protected ISchema CreateSchemaWith(
+    protected Schema CreateSchemaWith(
         IFilterInputType type,
         FilterConvention convention,
         params FilterConventionExtension[] extensions)
@@ -516,7 +500,7 @@ public class FilterConventionTests
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class FooFilterInput
@@ -530,8 +514,5 @@ public class FilterConventionTests
         }
     }
 
-    public class CustomFooFilterInput : FilterInputType<Foo>
-    {
-
-    }
+    public class CustomFooFilterInput : FilterInputType<Foo>;
 }

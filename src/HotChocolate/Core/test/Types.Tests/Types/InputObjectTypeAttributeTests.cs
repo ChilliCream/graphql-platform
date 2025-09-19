@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
-using Snapshooter.Xunit;
-using QueryRequestBuilder = HotChocolate.Execution.QueryRequestBuilder;
+using OperationRequestBuilder = HotChocolate.Execution.OperationRequestBuilder;
 
 namespace HotChocolate.Types;
 
@@ -22,7 +18,7 @@ public class InputObjectTypeAttributeTests
 
         // assert
         Assert.True(
-            schema.GetType<InputObjectType>("Object1Input")
+            schema.Types.GetType<InputObjectType>("Object1Input")
                 .Fields
                 .ContainsField("bar"));
     }
@@ -38,7 +34,7 @@ public class InputObjectTypeAttributeTests
 
         // assert
         Assert.True(
-            schema.GetType<InputObjectType>("Bar")
+            schema.Types.GetType<InputObjectType>("Bar")
                 .Fields
                 .ContainsField("foo"));
     }
@@ -54,7 +50,7 @@ public class InputObjectTypeAttributeTests
 
         // assert
         Assert.True(
-            schema.GetType<InputObjectType>("Foo")
+            schema.Types.GetType<InputObjectType>("Foo")
                 .Fields
                 .ContainsField("foo"));
     }
@@ -66,7 +62,7 @@ public class InputObjectTypeAttributeTests
             .AddInputObjectType<InputWithDefaults>()
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -87,12 +83,11 @@ public class InputObjectTypeAttributeTests
             .Create()
             .MakeExecutable()
             .ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ foo(a: { }) { foo bar baz qux quux } }")
-                    .Create())
+                OperationRequestBuilder.New()
+                    .SetDocument("{ foo(a: { }) { foo bar baz qux quux } }")
+                    .Build())
             .MatchSnapshotAsync();
     }
-
 
     [Fact]
     public async Task Infer_Default_Values_From_Attribute_Execute_With_Variables()
@@ -111,22 +106,22 @@ public class InputObjectTypeAttributeTests
             .Create()
             .MakeExecutable()
             .ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(@"
+                OperationRequestBuilder.New()
+                    .SetDocument(@"
                             query($q: InputWithDefaultsInput) {
                                 foo(a: $q) {
                                     foo bar baz qux quux
                                 }
                             }")
-                    .SetVariableValue("q", new Dictionary<string, object>())
-                    .Create())
+                    .SetVariableValues(new Dictionary<string, object?> { { "q", new Dictionary<string, object>() } })
+                    .Build())
             .MatchSnapshotAsync();
     }
 
     public class Object1
     {
         [RenameField]
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
     }
 
     public class RenameFieldAttribute
@@ -144,7 +139,7 @@ public class InputObjectTypeAttributeTests
     [RenameType]
     public class Object2
     {
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
     }
 
     [InputObjectType(Name = "Foo")]
@@ -168,7 +163,7 @@ public class InputObjectTypeAttributeTests
     public class InputWithDefaults
     {
         [DefaultValue("DefaultValue123")]
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
 
         [DefaultValue(2)]
         public int Bar { get; set; }
@@ -186,6 +181,6 @@ public class InputObjectTypeAttributeTests
     public enum Quux
     {
         Corge,
-        Grault,
+        Grault
     }
 }

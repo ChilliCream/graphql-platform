@@ -1,7 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Execution.Configuration;
 
 /// <summary>
@@ -22,7 +18,7 @@ public readonly struct OnConfigureSchemaBuilderAction
     public OnConfigureSchemaBuilderAction(OnConfigureSchemaBuilder action)
     {
         Configure = action ?? throw new ArgumentNullException(nameof(action));
-        ConfigureAsync = default;
+        ConfigureAsync = null;
     }
 
     /// <summary>
@@ -36,7 +32,7 @@ public readonly struct OnConfigureSchemaBuilderAction
     /// </exception>
     public OnConfigureSchemaBuilderAction(OnConfigureSchemaBuilderAsync asyncAction)
     {
-        Configure = default;
+        Configure = null;
         ConfigureAsync = asyncAction ?? throw new ArgumentNullException(nameof(asyncAction));
     }
 

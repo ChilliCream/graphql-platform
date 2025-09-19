@@ -1,5 +1,3 @@
-using System.IO;
-
 namespace StrawberryShake;
 
 /// <summary>
@@ -7,13 +5,20 @@ namespace StrawberryShake;
 /// </summary>
 public readonly struct Upload
 {
-    /// <summary>
-    /// Creates a new instance of Upload
-    /// </summary>
+    /// <inheritdoc cref="Upload(Stream, string, string?)"/>
     public Upload(Stream content, string fileName)
+        : this(content, fileName, null)
+    {
+    }
+
+    /// <summary>
+    /// Creates a new instance of the Upload-scalar.
+    /// </summary>
+    public Upload(Stream content, string fileName, string? contentType)
     {
         Content = content;
         FileName = fileName;
+        ContentType = contentType;
     }
 
     /// <summary>
@@ -25,4 +30,12 @@ public readonly struct Upload
     /// The name of the file
     /// </summary>
     public string FileName { get; }
+
+    /// <summary>
+    /// The optional MIME type of the file.
+    /// </summary>
+    /// <remarks>
+    /// If specified, this value is applied as the HTTP Content-Type header.
+    /// </remarks>
+    public string? ContentType { get; }
 }

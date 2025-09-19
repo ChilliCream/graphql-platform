@@ -1,6 +1,4 @@
-using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;
@@ -37,21 +35,21 @@ public class IsolatedProcessEndToEndTests
         // Execute Query Test for end-to-end validation...
         // NOTE: This uses the new Az Func Isolated Process extension to execute
         // via HttpRequestData...
-        var response = await requestExecutor.ExecuteAsync(request).ConfigureAwait(false);
+        var response = await requestExecutor.ExecuteAsync(request);
 
         // Read, Parse & Validate the response...
-        var resultContent = await ReadResponseAsStringAsync(response).ConfigureAwait(false);
+        var resultContent = await ReadResponseAsStringAsync(response);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
 
-        dynamic json = JObject.Parse(resultContent!);
+        dynamic json = JObject.Parse(resultContent);
         Assert.Null(json.errors);
-        Assert.Equal("Luke Skywalker",json.data.person.ToString());
+        Assert.Equal("Luke Skywalker", json.data.person.ToString());
     }
 
     [Fact]
     public async Task AzFuncIsolatedProcess_FunctionsContextItemsTestAsync()
     {
-        const string DarkSideLeaderKey = "DarkSideLeader";
+        const string darkSideLeaderKey = "DarkSideLeader";
 
         var host = new MockIsolatedProcessHostBuilder()
             .AddGraphQLFunction(graphQL =>
@@ -59,12 +57,11 @@ public class IsolatedProcessEndToEndTests
                 graphQL.AddQueryType(
                     d => d.Name("Query").Field("person").Resolve(ctx =>
                     {
-
                         var darkSideLeader = ctx.ContextData.TryGetValue(
                             nameof(HttpContext),
                             out var httpContext)
-                            ? (httpContext as HttpContext)?.Items[DarkSideLeaderKey] as string
-                            : default;
+                            ? (httpContext as HttpContext)?.Items[darkSideLeaderKey] as string
+                            : null;
 
                         return darkSideLeader;
                     }));
@@ -82,24 +79,24 @@ public class IsolatedProcessEndToEndTests
             }");
 
         //Set Up our global Items now available from the Functions Context...
-        request.FunctionContext.Items.Add(DarkSideLeaderKey, "Darth Vader");
+        request.FunctionContext.Items.Add(darkSideLeaderKey, "Darth Vader");
 
         // Execute Query Test for end-to-end validation...
         // NOTE: This uses the new Az Func Isolated Process extension to execute
         // via HttpRequestData...
-        var response = await requestExecutor.ExecuteAsync(request).ConfigureAwait(false);
+        var response = await requestExecutor.ExecuteAsync(request);
 
         // Read, Parse & Validate the response...
-        var resultContent = await ReadResponseAsStringAsync(response).ConfigureAwait(false);
+        var resultContent = await ReadResponseAsStringAsync(response);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
 
-        dynamic json = JObject.Parse(resultContent!);
+        dynamic json = JObject.Parse(resultContent);
         Assert.Null(json.errors);
         Assert.Equal("Darth Vader", json.data.person.ToString());
     }
 
     [Fact]
-    public async Task AzFuncIsolatedProcess_BananaCakePopTestAsync()
+    public async Task AzFuncIsolatedProcess_NitroTestAsync()
     {
         var host = new MockIsolatedProcessHostBuilder()
             .AddGraphQLFunction(
@@ -111,18 +108,18 @@ public class IsolatedProcessEndToEndTests
         var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
 
         // Build an HttpRequestData that is valid for the Isolated Process to execute with...
-        var httpRequestData = TestHttpRequestDataHelper.NewBcpHttpRequestData(host.Services, "index.html");
+        var httpRequestData = TestHttpRequestDataHelper.NewNitroHttpRequestData(host.Services, "index.html");
 
         // Execute Query Test for end-to-end validation...
         // NOTE: This uses the new Az Func Isolated Process extension to execute
         // via HttpRequestData...
-        var httpResponseData = await requestExecutor.ExecuteAsync(httpRequestData).ConfigureAwait(false);
+        var httpResponseData = await requestExecutor.ExecuteAsync(httpRequestData);
 
         // Read, Parse & Validate the response...
-        var resultContent = await ReadResponseAsStringAsync(httpResponseData).ConfigureAwait(false);
+        var resultContent = await ReadResponseAsStringAsync(httpResponseData);
         Assert.NotNull(resultContent);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
-        Assert.True(resultContent!.Contains("<html") && resultContent.Contains("</html>"));
+        Assert.True(resultContent.Contains("<html") && resultContent.Contains("</html>"));
     }
 
     private static Task<string> ReadResponseAsStringAsync(HttpResponseData responseData)

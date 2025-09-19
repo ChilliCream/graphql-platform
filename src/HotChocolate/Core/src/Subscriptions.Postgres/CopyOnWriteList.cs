@@ -4,7 +4,7 @@ internal sealed class CopyOnWriteList<T> where T : class
 {
     private readonly object _sync = new();
 
-    private T[] _items = Array.Empty<T>();
+    private T[] _items = [];
 
     public void Add(T item)
     {
@@ -37,7 +37,7 @@ internal sealed class CopyOnWriteList<T> where T : class
         }
     }
 
-    // we do not return a IReadOnlyList<T> because array access is faster and it's an internal
+    // we do not return an IReadOnlyList<T> because array access is faster and it's an internal
     // collection
     public T[] Items => _items;
 }

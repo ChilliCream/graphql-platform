@@ -1,8 +1,5 @@
-using System;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
-
-#nullable enable
 
 namespace HotChocolate.Types.Relay;
 
@@ -21,7 +18,7 @@ namespace HotChocolate.Types.Relay;
 /// </remarks>
 /// <example>
 /// <para>
-/// A field can be rewritten to a id by adding <c>[ID]</c> to the resolver.
+/// A field can be rewritten to an ID by adding <c>[ID]</c> to the resolver.
 /// </para>
 /// <code>
 /// public class User
@@ -50,14 +47,14 @@ namespace HotChocolate.Types.Relay;
 /// </code>
 /// results in
 /// <code>
-/// VXNlcgppMQ==
+/// VXNlcjox
 /// </code>
 /// </para>
 /// </example>
 [AttributeUsage(
-    AttributeTargets.Parameter |
-    AttributeTargets.Property |
-    AttributeTargets.Method)]
+    AttributeTargets.Parameter
+    | AttributeTargets.Property
+    | AttributeTargets.Method)]
 // ReSharper disable once InconsistentNaming
 public class IDAttribute : DescriptorAttribute
 {
@@ -68,13 +65,13 @@ public class IDAttribute : DescriptorAttribute
     }
 
     /// <summary>
-    /// With the <see cref="IDAttribute.TypeName"/> property you can override the type name
+    /// With the <see cref="TypeName"/> property you can override the type name
     /// of the ID. This is useful to rewrite a parameter of a mutation or query, to a specific
     /// id.
     /// </summary>
     /// <example>
     /// <para>
-    /// A field can be rewritten to a id by adding <c>[ID]</c> to the resolver.
+    /// A field can be rewritten to an ID by adding <c>[ID]</c> to the resolver.
     /// </para>
     /// <code>
     /// public class UserQuery
@@ -83,7 +80,7 @@ public class IDAttribute : DescriptorAttribute
     /// }
     /// </code>
     /// <para>
-    /// The argument is rewritten to <c>ID</c> and expect a id of type User.
+    /// The argument is rewritten to <c>ID</c> and expect an ID of type User.
     /// Assuming `<c>User.id</c>` has the value 1. The following string is base64 encoded
     /// </para>
     /// </example>
@@ -128,7 +125,7 @@ public class IDAttribute : DescriptorAttribute
 /// </remarks>
 /// <example>
 /// <para>
-/// A field can be rewritten to a id by adding <c>[ID]</c> to the resolver.
+/// A field can be rewritten to an ID by adding <c>[ID]</c> to the resolver.
 /// </para>
 /// <code>
 /// public class User
@@ -157,14 +154,14 @@ public class IDAttribute : DescriptorAttribute
 /// </code>
 /// results in
 /// <code>
-/// VXNlcgppMQ==
+/// VXNlcjox
 /// </code>
 /// </para>
 /// </example>
 [AttributeUsage(
-    AttributeTargets.Parameter |
-    AttributeTargets.Property |
-    AttributeTargets.Method)]
+    AttributeTargets.Parameter
+    | AttributeTargets.Property
+    | AttributeTargets.Method)]
 // ReSharper disable once InconsistentNaming
 public class IDAttribute<T> : DescriptorAttribute
 {
@@ -181,7 +178,7 @@ public class IDAttribute<T> : DescriptorAttribute
     /// </summary>
     /// <example>
     /// <para>
-    /// A field can be rewritten to a id by adding <c>[ID]</c> to the resolver.
+    /// A field can be rewritten to an ID by adding <c>[ID]</c> to the resolver.
     /// </para>
     /// <code>
     /// public class UserQuery
@@ -190,7 +187,7 @@ public class IDAttribute<T> : DescriptorAttribute
     /// }
     /// </code>
     /// <para>
-    /// The argument is rewritten to <c>ID</c> and expect a id of type User.
+    /// The argument is rewritten to <c>ID</c> and expect an ID of type User.
     /// Assuming `<c>User.id</c>` has the value 1. The following string is base64 encoded
     /// </para>
     /// </example>

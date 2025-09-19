@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// Represents a collection of filter fields and operations .
+/// Represents a collection of filter fields and operations.
 /// </summary>
 public class FilterInfo : FilterValueNode, IFilterInfo
 {
@@ -48,11 +46,11 @@ public class FilterInfo : FilterValueNode, IFilterInfo
         var type = Type;
         if (Type is NonNullType nonNullType)
         {
-            type = nonNullType.Type;
+            type = nonNullType.NullableType;
         }
 
-        if (ValueNode is ObjectValueNode valueNode &&
-            type is FilterInputType filterInputType)
+        if (ValueNode is ObjectValueNode valueNode
+            && type is FilterInputType filterInputType)
         {
             List<IFilterFieldInfo>? fieldInfos = null;
             List<IFilterOperationInfo>? operationInfos = null;
@@ -89,12 +87,12 @@ public class FilterInfo : FilterValueNode, IFilterInfo
         var normalizedType = type;
         if (type is NonNullType nonNullType)
         {
-            normalizedType = nonNullType.Type;
+            normalizedType = nonNullType.NullableType;
         }
 
-        if (valueNode is ListValueNode listValueNode &&
-            normalizedType.IsListType() &&
-            normalizedType.NamedType() is IFilterInputType)
+        if (valueNode is ListValueNode listValueNode
+            && normalizedType.IsListType()
+            && normalizedType.NamedType() is IFilterInputType)
         {
             List<IFilterValueNode> values = new(listValueNode.Items.Count);
 

@@ -1,7 +1,3 @@
-#nullable enable
-
-using System.Linq;
-using Snapshooter.Xunit;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -21,7 +17,7 @@ public class InterfaceTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
+        var type = schema.Types.GetType<InterfaceType>("Foo");
         Assert.True(type.Fields.ContainsField("test"));
     }
 
@@ -42,7 +38,7 @@ public class InterfaceTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
+        var type = schema.Types.GetType<InterfaceType>("Foo");
         Assert.True(type.Fields["description"].IsDeprecated);
         Assert.Equal("Foo", type.Fields["description"].DeprecationReason);
     }
@@ -64,10 +60,10 @@ public class InterfaceTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
+        var type = schema.Types.GetType<InterfaceType>("Foo");
         Assert.True(type.Fields["description"].IsDeprecated);
         Assert.Equal(
-            WellKnownDirectives.DeprecationDefaultReason,
+            DirectiveNames.Deprecated.Arguments.DefaultReason,
             type.Fields["description"].DeprecationReason);
     }
 
@@ -102,13 +98,13 @@ public class InterfaceTypeExtensionTests
             .AddType(new InterfaceTypeExtension(d => d
                 .Name("Foo")
                 .Extend()
-                .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features.Set(new CustomFeature()))))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
-        Assert.True(type.ContextData.ContainsKey("foo"));
+        var type = schema.Types.GetType<InterfaceType>("Foo");
+        Assert.NotNull(type.Features.Get<CustomFeature>());
     }
 
     [Fact]
@@ -123,14 +119,13 @@ public class InterfaceTypeExtensionTests
                 .Name("Foo")
                 .Field("description")
                 .Extend()
-                .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features.Set(new CustomFeature()))))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
-        Assert.True(type.Fields["description"]
-            .ContextData.ContainsKey("foo"));
+        var type = schema.Types.GetType<InterfaceType>("Foo");
+        Assert.NotNull(type.Fields["description"].Features.Get<CustomFeature>());
     }
 
     [Fact]
@@ -148,14 +143,13 @@ public class InterfaceTypeExtensionTests
                 .Argument("a", a => a
                     .Type<StringType>()
                     .Extend()
-                    .OnBeforeCreate(c => c.ContextData["foo"] = "bar"))))
+                    .OnBeforeCreate(c => c.Features.Set(new CustomFeature())))))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
-        Assert.True(type.Fields["name"].Arguments["a"]
-            .ContextData.ContainsKey("foo"));
+        var type = schema.Types.GetType<InterfaceType>("Foo");
+        Assert.NotNull(type.Fields["name"].Arguments["a"].Features.Get<CustomFeature>());
     }
 
     [Fact]
@@ -174,7 +168,7 @@ public class InterfaceTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
+        var type = schema.Types.GetType<InterfaceType>("Foo");
         Assert.True(type.Directives.ContainsDirective("dummy"));
     }
 
@@ -195,7 +189,7 @@ public class InterfaceTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
+        var type = schema.Types.GetType<InterfaceType>("Foo");
         Assert.True(type.Fields["name"].Directives.ContainsDirective("dummy"));
     }
 
@@ -216,7 +210,7 @@ public class InterfaceTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
+        var type = schema.Types.GetType<InterfaceType>("Foo");
         Assert.True(type.Fields["name"].Arguments["a"].Directives.ContainsDirective("dummy"));
     }
 
@@ -238,9 +232,8 @@ public class InterfaceTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
-        var value = type.Directives["dummy_arg"]
-            .First().GetArgumentValue<string>("a");
+        var type = schema.Types.GetType<InterfaceType>("Foo");
+        var value = type.Directives["dummy_arg"].First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 
@@ -264,9 +257,8 @@ public class InterfaceTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
-        var value = type.Fields["description"].Directives["dummy_arg"]
-            .First().GetArgumentValue<string>("a");
+        var type = schema.Types.GetType<InterfaceType>("Foo");
+        var value = type.Fields["description"].Directives["dummy_arg"].First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 
@@ -279,7 +271,7 @@ public class InterfaceTypeExtensionTests
             .AddQueryType<DummyQuery>()
             .AddType(new InterfaceType<IFoo>(t => t
                 .Name("Foo")
-                .Field(f => f.GetName(default!))
+                .Field(f => f.GetName(null!))
                 .Argument("a", a => a
                     .Type<StringType>()
                     .Directive("dummy_arg", new ArgumentNode("a", "a")))))
@@ -293,10 +285,8 @@ public class InterfaceTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
-        var value = type.Fields["name"].Arguments["a"]
-            .Directives["dummy_arg"]
-            .First().GetArgumentValue<string>("a");
+        var type = schema.Types.GetType<InterfaceType>("Foo");
+        var value = type.Fields["name"].Arguments["a"].Directives["dummy_arg"].First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 
@@ -318,10 +308,8 @@ public class InterfaceTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
-        var value = type.Fields["name"].Arguments["a"]
-            .Directives["dummy_arg"]
-            .First().GetArgumentValue<string>("a");
+        var type = schema.Types.GetType<InterfaceType>("Foo");
+        var value = type.Fields["name"].Arguments["a"].Directives["dummy_arg"].First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 
@@ -343,7 +331,7 @@ public class InterfaceTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
+        var type = schema.Types.GetType<InterfaceType>("Foo");
         var count = type.Directives["dummy_rep"].Count();
         Assert.Equal(2, count);
     }
@@ -368,9 +356,8 @@ public class InterfaceTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
-        var count = type.Fields["description"]
-            .Directives["dummy_rep"].Count();
+        var type = schema.Types.GetType<InterfaceType>("Foo");
+        var count = type.Fields["description"].Directives["dummy_rep"].Count();
         Assert.Equal(2, count);
     }
 
@@ -383,7 +370,7 @@ public class InterfaceTypeExtensionTests
             .AddQueryType<DummyQuery>()
             .AddType(new InterfaceType<IFoo>(t => t
                 .Name("Foo")
-                .Field(f => f.GetName(default!))
+                .Field(f => f.GetName(null!))
                 .Argument("a", a => a
                     .Type<StringType>()
                     .Directive("dummy_rep", new ArgumentNode("a", "a")))))
@@ -397,16 +384,14 @@ public class InterfaceTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Foo");
-        var count = type.Fields["name"].Arguments["a"]
-            .Directives["dummy_rep"]
-            .Count();
+        var type = schema.Types.GetType<InterfaceType>("Foo");
+        var count = type.Fields["name"].Arguments["a"].Directives["dummy_rep"].Count();
         Assert.Equal(2, count);
     }
 
     public class DummyQuery
     {
-        public string Foo { get; set; } = default!;
+        public string Foo { get; set; } = null!;
     }
 
     public class FooType : InterfaceType<IFoo>
@@ -483,4 +468,6 @@ public class InterfaceTypeExtensionTests
             descriptor.Location(DirectiveLocation.ArgumentDefinition);
         }
     }
+
+    public sealed class CustomFeature;
 }

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Resolvers;
@@ -10,11 +8,11 @@ namespace HotChocolate.Execution.Processing;
 internal partial class MiddlewareContext
 {
     private readonly PureResolverContext _childContext;
-    private ISelection _selection = default!;
+    private ISelection _selection = null!;
 
-    public IObjectType ObjectType => _selection.DeclaringType;
+    public ObjectType ObjectType => _selection.DeclaringType;
 
-    public IObjectField Field => _selection.Field;
+    public ObjectField Field => _selection.Field;
 
     public ISelection Selection => _selection;
 
@@ -31,7 +29,7 @@ internal partial class MiddlewareContext
         ObjectType parentType,
         ObjectResult parentResult,
         object? parent,
-        [NotNullWhen(true)] out IPureResolverContext? context)
+        [NotNullWhen(true)] out IResolverContext? context)
     {
         if (_childContext.Initialize(selection, parentType, parentResult, parent))
         {
@@ -44,20 +42,17 @@ internal partial class MiddlewareContext
     }
 
     public IReadOnlyList<ISelection> GetSelections(
-        IObjectType typeContext,
+        ObjectType typeContext,
         ISelection? selection = null,
         bool allowInternals = false)
     {
-        if (typeContext is null)
-        {
-            throw new ArgumentNullException(nameof(typeContext));
-        }
+        ArgumentNullException.ThrowIfNull(typeContext);
 
         selection ??= _selection;
 
         if (selection.SelectionSet is null)
         {
-            return Array.Empty<ISelection>();
+            return [];
         }
 
         var selectionSet = _operationContext.CollectFields(selection, typeContext);
@@ -85,11 +80,12 @@ internal partial class MiddlewareContext
         return selectionSet.Selections;
     }
 
+    public ISelectionCollection Select()
+    {
+        var schema = Unsafe.As<Schema>(_operationContext.Schema);
+        return new SelectionCollection(schema, Operation, [Selection], _operationContext.IncludeFlags);
+    }
+
     public ISelectionCollection Select(string fieldName)
-        => new SelectionCollection(
-            Schema,
-            Operation,
-            [Selection,],
-            _operationContext.IncludeFlags)
-            .Select(fieldName);
+        => Select().Select(fieldName);
 }

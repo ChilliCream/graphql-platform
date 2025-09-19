@@ -1,44 +1,41 @@
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.WellKnownMiddleware;
 
-#nullable enable
-
 namespace HotChocolate.Types.Pagination;
 
+/// <summary>
+/// Paging utilities.
+/// </summary>
 public static class PagingHelper
 {
-    public static IObjectFieldDescriptor UsePaging(
+    internal static IObjectFieldDescriptor UsePaging(
         IObjectFieldDescriptor descriptor,
         Type? entityType,
         GetPagingProvider resolvePagingProvider,
-        PagingOptions options)
+        PagingOptions? options)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
-        FieldMiddlewareDefinition placeholder = new(_ => _ => default, key: Paging);
+        FieldMiddlewareConfiguration placeholder = new(_ => _ => default, key: Paging);
 
-        var definition = descriptor.Extend().Definition;
-        definition.MiddlewareDefinitions.Add(placeholder);
-        definition.Configurations.Add(
-            new CompleteConfiguration<ObjectFieldDefinition>(
+        var definition = descriptor.Extend().Configuration;
+        definition.MiddlewareConfigurations.Add(placeholder);
+        definition.Tasks.Add(
+            new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                 (c, d) => ApplyConfiguration(
                     c,
                     d,
                     entityType,
-                    options.ProviderName,
+                    options?.ProviderName,
                     resolvePagingProvider,
                     options,
                     placeholder),
@@ -50,14 +47,14 @@ public static class PagingHelper
 
     private static void ApplyConfiguration(
         ITypeCompletionContext context,
-        ObjectFieldDefinition definition,
+        ObjectFieldConfiguration definition,
         Type? entityType,
         string? name,
         GetPagingProvider resolvePagingProvider,
-        PagingOptions options,
-        FieldMiddlewareDefinition placeholder)
+        PagingOptions? options,
+        FieldMiddlewareConfiguration placeholder)
     {
-        options = context.GetSettings(options);
+        options = context.GetPagingOptions(options);
         entityType ??= context.GetType<IOutputType>(definition.Type!).ToRuntimeType();
 
         var source = GetSourceType(context.TypeInspector, definition, entityType);
@@ -65,13 +62,14 @@ public static class PagingHelper
         var pagingHandler = pagingProvider.CreateHandler(source, options);
         var middleware = CreateMiddleware(pagingHandler);
 
-        var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] = new(middleware, key: Paging);
+        var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
+        definition.MiddlewareConfigurations[index] = new(middleware, key: Paging);
+        definition.Features.Set(options);
     }
 
     private static IExtendedType GetSourceType(
         ITypeInspector typeInspector,
-        ObjectFieldDefinition definition,
+        ObjectFieldConfiguration definition,
         Type entityType)
     {
         var type = ResolveType();
@@ -82,11 +80,11 @@ public static class PagingHelper
         }
 
         return type;
-        
+
         IExtendedType ResolveType()
         {
             // if an explicit result type is defined we will type it since it expresses the
-            // intend.
+            // intent.
             if (definition.ResultType is not null)
             {
                 return typeInspector.GetType(definition.ResultType);
@@ -114,22 +112,22 @@ public static class PagingHelper
             return context => middleware.InvokeAsync(context);
         };
 
-    public static IExtendedType GetSchemaType(
+    internal static IExtendedType GetSchemaType(
         IDescriptorContext context,
         MemberInfo? member,
         Type? type = null)
     {
         var typeInspector = context.TypeInspector;
 
-        if (type is null &&
-            member is not null &&
-            typeInspector.GetOutputReturnTypeRef(member) is ExtendedTypeReference r &&
-            typeInspector.TryCreateTypeInfo(r.Type, out var typeInfo))
+        if (type is null
+            && member is not null
+            && typeInspector.GetOutputReturnTypeRef(member) is ExtendedTypeReference r
+            && typeInspector.TryCreateTypeInfo(r.Type, out var typeInfo))
         {
             // if the member has already associated a schema type we will just take it.
             // Since we want the entity element we are going to take
             // the element type of the list or array as our entity type.
-            if (r.Type is { IsSchemaType: true, IsArrayOrList: true, })
+            if (r.Type is { IsSchemaType: true, IsArrayOrList: true })
             {
                 return r.Type.ElementType!;
             }
@@ -140,10 +138,10 @@ public static class PagingHelper
             // in special cases. In the case we are getting it wrong the user has
             // to explicitly bind the type.
             if (context.TryInferSchemaType(
-                r.WithType(typeInspector.GetType(typeInfo.NamedType)),
-                out var schemaTypeRefs) &&
-                schemaTypeRefs is { Length:> 0, } &&
-                schemaTypeRefs[0] is ExtendedTypeReference schemaTypeRef)
+                    r.WithType(typeInspector.GetType(typeInfo.NamedType)),
+                    out var schemaTypeRefs)
+                && schemaTypeRefs is { Length: > 0 }
+                && schemaTypeRefs[0] is ExtendedTypeReference schemaTypeRef)
             {
                 // if we are able to infer the type we will reconstruct its structure so that
                 // we can correctly extract from it the element type with the correct
@@ -162,7 +160,7 @@ public static class PagingHelper
                     }
                 }
 
-                if (typeInspector.GetType(current) is { IsArrayOrList: true, } schemaType)
+                if (typeInspector.GetType(current) is { IsArrayOrList: true } schemaType)
                 {
                     return schemaType.ElementType!;
                 }
@@ -177,14 +175,14 @@ public static class PagingHelper
         return typeInspector.GetType(type);
     }
 
-    public static bool TryGetNamedType(
+    internal static bool TryGetNamedType(
         ITypeInspector typeInspector,
         MemberInfo? member,
         [NotNullWhen(true)] out Type? namedType)
     {
-        if (member is not null &&
-            typeInspector.GetReturnType(member) is { } returnType &&
-            typeInspector.TryCreateTypeInfo(returnType, out var typeInfo))
+        if (member is not null
+            && typeInspector.GetReturnType(member) is { } returnType
+            && typeInspector.TryCreateTypeInfo(returnType, out var typeInfo))
         {
             namedType = typeInfo.NamedType;
             return true;
@@ -194,23 +192,39 @@ public static class PagingHelper
         return false;
     }
 
-    public static PagingOptions GetSettings(
+    public static PagingOptions GetPagingOptions(ISchemaDefinition schema, IOutputFieldDefinition field)
+        => field.Features.TryGet<PagingOptions>(out var options)
+            ? options
+            : schema.Features.GetRequired<PagingOptions>();
+
+    internal static PagingOptions GetPagingOptions(
         this ITypeCompletionContext context,
-        PagingOptions options) =>
-        context.DescriptorContext.GetSettings(options);
+        PagingOptions? options)
+        => context.DescriptorContext.GetPagingOptions(options);
 
-    public static PagingOptions GetSettings(
+    public static PagingOptions GetPagingOptions(
         this IDescriptorContext context,
-        PagingOptions options)
+        PagingOptions? options)
     {
-        options = options.Copy();
+        options = options?.Copy() ?? new();
 
-        if (context.ContextData.TryGetValue(typeof(PagingOptions).FullName!, out var o) &&
-            o is PagingOptions global)
+        if (context.Features.TryGet<PagingOptions>(out var global))
         {
             options.Merge(global);
         }
 
         return options;
+    }
+
+    public static void RegisterPageObserver(
+        this IMiddlewareContext context,
+        IPageObserver observer)
+    {
+        var observers = context.GetLocalStateOrDefault(
+            WellKnownContextData.PagingObserver,
+            ImmutableArray<IPageObserver>.Empty);
+        context.SetLocalState(
+            WellKnownContextData.PagingObserver,
+            observers.Add(observer));
     }
 }

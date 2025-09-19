@@ -1,9 +1,6 @@
-using System;
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
-using System.Threading;
-using System.Threading.Tasks;
 using static HotChocolate.Transport.Sockets.Delimiter;
 
 namespace HotChocolate.Transport.Sockets;

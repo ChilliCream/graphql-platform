@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using GreenDonut;
 
 namespace HotChocolate.Fetching;
@@ -21,6 +18,6 @@ internal sealed class AdHocCacheDataLoader<TKey, TValue> : CacheDataLoader<TKey,
 
     protected override Task<TValue> LoadSingleAsync(
         TKey key,
-        CancellationToken cancellationToken) 
+        CancellationToken cancellationToken)
         => _fetch(key, cancellationToken);
 }

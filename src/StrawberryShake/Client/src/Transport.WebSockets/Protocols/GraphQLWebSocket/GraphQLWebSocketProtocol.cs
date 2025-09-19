@@ -1,15 +1,12 @@
-using System;
 using System.Buffers;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using StrawberryShake.Properties;
 using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
 /// <summary>
-/// A implementation of <see cref="ISocketProtocol"/> that uses graphql-ws protocol to
+/// An implementation of <see cref="ISocketProtocol"/> that uses graphql-ws protocol to
 /// communicate with the server
 /// </summary>
 public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
@@ -100,14 +97,13 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
         await _receiver.Stop().ConfigureAwait(false);
     }
 
-
     private ValueTask ProcessAsync(
         ReadOnlySequence<byte> slice,
         CancellationToken cancellationToken)
     {
         try
         {
-            GraphQLWebSocketMessage message = GraphQLWebSocketMessageParser.Parse(slice);
+            var message = GraphQLWebSocketMessageParser.Parse(slice);
 
             if (message.Id is { } id)
             {
@@ -139,7 +135,7 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
 
                     _ => CloseSocketOnProtocolError(
                         "Invalid message type received: " + message.Type,
-                        cancellationToken),
+                        cancellationToken)
                 };
             }
         }
@@ -155,8 +151,8 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
 
     private static IClientError CreateError(JsonDocument error)
     {
-        if (error.RootElement.TryGetProperty("message", out JsonElement messageProp) &&
-            messageProp.GetString() is {  Length: > 0, } message)
+        if (error.RootElement.TryGetProperty("message", out var messageProp)
+            && messageProp.GetString() is { Length: > 0 } message)
         {
             return new ClientError(message);
         }

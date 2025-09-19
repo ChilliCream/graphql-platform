@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
-using System.Threading.Tasks;
-using ChilliCream.Testing;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
 
 namespace HotChocolate;
 
@@ -50,20 +44,18 @@ public class SchemaSerializerTests
     }
 
     [Fact]
-    public void SerializeAsync_SchemaIsNull_ArgumentNullException()
+    public async Task SerializeAsync_SchemaIsNull_ArgumentNullException()
     {
         // arrange
         // act
-        async Task Action() => await SchemaPrinter.PrintAsync(
-            default(ISchema),
-            new MemoryStream());
+        async Task Action() => await SchemaPrinter.PrintAsync(default(Schema), new MemoryStream());
 
         // assert
-        Assert.ThrowsAsync<ArgumentNullException>(Action);
+        await Assert.ThrowsAsync<ArgumentNullException>(Action);
     }
 
     [Fact]
-    public void SerializeAsync_WriterIsNull_ArgumentNullException()
+    public async Task SerializeAsync_WriterIsNull_ArgumentNullException()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -75,7 +67,7 @@ public class SchemaSerializerTests
         async Task Action() => await SchemaPrinter.PrintAsync(schema, null);
 
         // assert
-        Assert.ThrowsAsync<ArgumentNullException>(Action);
+        await Assert.ThrowsAsync<ArgumentNullException>(Action);
     }
 
     [Fact]
@@ -103,7 +95,7 @@ public class SchemaSerializerTests
             .AddDocumentFromString("type Query { foo: String }")
             .AddResolver("Query", "foo", "bar")
             .Create();
-        using var stream = new MemoryStream();
+        await using var stream = new MemoryStream();
 
         // act
         await SchemaPrinter.PrintAsync(schema, stream);
@@ -158,9 +150,9 @@ public class SchemaSerializerTests
             .Create();
 
         // act
-        using var stream = new MemoryStream();
+        await using var stream = new MemoryStream();
         await SchemaPrinter.PrintAsync(
-            new INamedType[] { schema.QueryType, },
+            new ITypeDefinition[] { schema.QueryType },
             stream,
             true);
 
@@ -178,9 +170,9 @@ public class SchemaSerializerTests
             .Create();
 
         // act
-        using var stream = new MemoryStream();
+        await using var stream = new MemoryStream();
         async Task Fail() => await SchemaPrinter.PrintAsync(
-            default(IEnumerable<INamedType>),
+            default(IEnumerable<ITypeDefinition>),
             stream,
             true);
 
@@ -198,9 +190,9 @@ public class SchemaSerializerTests
             .Create();
 
         // act
-        using var stream = new MemoryStream();
+        await using var stream = new MemoryStream();
         async Task Fail() => await SchemaPrinter.PrintAsync(
-            new INamedType[] { schema.QueryType, },
+            [schema.QueryType],
             null,
             true);
 
@@ -210,6 +202,6 @@ public class SchemaSerializerTests
 
     public class Query
     {
-        public string Bar { get; set; }
+        public required string Bar { get; set; }
     }
 }

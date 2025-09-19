@@ -59,24 +59,24 @@ public class ProjectionVisitorTestBase
                             useOffsetPaging);
                     }))
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                            OperationResultBuilder
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("query", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .Result;
     }
 

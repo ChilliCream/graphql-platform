@@ -1,0 +1,9 @@
+{
+  "data": {
+    "findPetById": {
+      "id": 1,
+      "name": "Chopper",
+      "tag": "dog"
+    }
+  }
+}

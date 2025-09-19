@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using HotChocolate.Language;
 
@@ -59,7 +56,7 @@ public class TypeReferenceBuilder : ICode
     private enum TypeKindToken
     {
         List,
-        Nullable,
+        Nullable
     }
 
     public override string ToString()

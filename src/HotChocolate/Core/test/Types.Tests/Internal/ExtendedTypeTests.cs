@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Types;
-
-#nullable enable
 
 namespace HotChocolate.Internal;
 
@@ -37,7 +31,7 @@ public class ExtendedTypeTests
             typeof(NativeType<List<byte?>>),
             _cache);
         list = ExtendedType.Tools.ChangeNullability(
-            list, new bool?[] { false, }, _cache);
+            list, [false], _cache);
 
         var nullableList = ExtendedType.FromType(
             typeof(List<byte?>),
@@ -236,7 +230,7 @@ public class ExtendedTypeTests
         var a = ExtendedType.FromType(typeof(byte), _cache);
 
         // act
-        var result = a.Equals(default(ExtendedType));
+        var result = a.Equals(null);
 
         // assert
         Assert.False(result);
@@ -337,7 +331,7 @@ public class ExtendedTypeTests
         // act
         IExtendedType list = ExtendedType.FromType(listType, _cache);
         list = ExtendedType.Tools.ChangeNullability(
-            list, new bool?[] { null, false, }, _cache);
+            list, [null, false], _cache);
 
         // assert
         Assert.False(list.ElementType!.IsNullable);
@@ -401,15 +395,11 @@ public class ExtendedTypeTests
     }
 
     private sealed class CustomStringList1
-        : List<string>
-    {
-    }
+        : List<string>;
 
     private sealed class CustomStringList2<T>
         : List<T>
-        where T : notnull
-    {
-    }
+        where T : notnull;
 
     private sealed class CustomStringList3<T, TK>
         : List<T>
@@ -418,14 +408,12 @@ public class ExtendedTypeTests
         public TK Foo { get; set; } = default!;
     }
 
-#nullable enable
-
     public class Nullability
     {
-        public Nullable<Optional<string?>> NullableOptionalNullableString() =>
+        public Optional<string?>? NullableOptionalNullableString() =>
             throw new NotImplementedException();
 
-        public Optional<Nullable<Optional<string?>>> OptionalNullableOptionalNullableString() =>
+        public Optional<Optional<string?>?> OptionalNullableOptionalNullableString() =>
             throw new NotImplementedException();
 
         public Nested? NestedProp { get; set; }
@@ -435,6 +423,4 @@ public class ExtendedTypeTests
             public string? Value { get; set; }
         }
     }
-
-#nullable disable
 }

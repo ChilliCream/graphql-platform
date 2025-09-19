@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
@@ -25,7 +21,7 @@ internal sealed class ExtractOperationContext
             .ToDictionary(t => t.Name.Value);
     }
 
-    public OperationDefinitionNode Operation { get; private set; } = default!;
+    public OperationDefinitionNode Operation { get; private set; } = null!;
 
     public List<FragmentDefinitionNode> ExportedFragments { get; } = [];
 

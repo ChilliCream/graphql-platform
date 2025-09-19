@@ -1,5 +1,3 @@
-﻿using System;
-
 namespace HotChocolate;
 
 public static class TestUtils

@@ -27,17 +27,14 @@ internal sealed class RavenFilteringConvention : FilterConvention
 
     public override ExtendedTypeReference GetFieldType(MemberInfo member)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         var runtimeType = _typeInspector.GetReturnType(member, true);
 
         if (runtimeType.IsArrayOrList)
         {
-            if (runtimeType.ElementType is { } &&
-                TryCreateFilterType(runtimeType.ElementType, out var elementType))
+            if (runtimeType.ElementType is { }
+                && TryCreateFilterType(runtimeType.ElementType, out var elementType))
             {
                 return _typeInspector.GetTypeRef(
                     typeof(RavenListFilterInputType<>).MakeGenericType(elementType),

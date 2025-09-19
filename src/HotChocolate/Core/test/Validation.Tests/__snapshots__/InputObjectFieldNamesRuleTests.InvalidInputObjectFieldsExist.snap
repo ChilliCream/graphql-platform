@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The specified input object field `favoriteCookieFlavor` does not exist.",
     "Code": null,
@@ -14,44 +14,14 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 40
+        "Line": 2,
+        "Column": 22
       }
     ],
     "Extensions": {
       "field": "favoriteCookieFlavor",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "ObjectField",
-      "Location": {
-        "Start": 58,
-        "End": 89,
-        "Line": 3,
-        "Column": 40
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 58,
-          "End": 79,
-          "Line": 3,
-          "Column": 40
-        },
-        "Value": "favoriteCookieFlavor"
-      },
-      "Value": {
-        "Kind": "StringValue",
-        "Location": {
-          "Start": 80,
-          "End": 89,
-          "Line": 3,
-          "Column": 62
-        },
-        "Value": "Bacon",
-        "Block": false
-      }
-    }
+    "Exception": null
   }
 ]

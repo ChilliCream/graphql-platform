@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Language.Visitors;
 
 internal static class ListExtensions
@@ -22,7 +20,7 @@ internal static class ListExtensions
     {
         if (list.Count == 0)
         {
-            item = default;
+            item = null;
             return false;
         }
 

@@ -1,5 +1,3 @@
-#nullable enable
-using System;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 
@@ -59,6 +57,6 @@ public sealed class DirectiveTypeAttribute
             descriptor.Repeatable();
         }
 
-        descriptor.Extend().Definition.Arguments.BindingBehavior = BindingBehavior.Implicit;
+        descriptor.Extend().Configuration.Arguments.BindingBehavior = BindingBehavior.Implicit;
     }
 }

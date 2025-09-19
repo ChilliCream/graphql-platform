@@ -1,4 +1,3 @@
-using System;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;

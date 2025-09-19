@@ -1,0 +1,84 @@
+false Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "objectArray": null
+        }
+      }
+    ]
+  }
+}
+---------------
+
+false SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.data @? '$ ? (@.Foo.ObjectArray == null || @.Foo.ObjectArray.size() == 0)';
+---------------
+
+true Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "objectArray": [
+            {
+              "foo": {
+                "barString": "a"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "foo": {
+          "objectArray": [
+            {
+              "foo": {
+                "barString": "d"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+---------------
+
+true SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.data @? '$ ? (@.Foo.ObjectArray[*] != null && @.Foo.ObjectArray[*].size() > 0)';
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `any` of type ListFilterInputTypeOfBarFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 44
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "Boolean!",
+        "filterType": "ListFilterInputTypeOfBarFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

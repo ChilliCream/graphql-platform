@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text.Json;
 
 namespace HotChocolate.StarWars.Models;
@@ -6,29 +5,36 @@ namespace HotChocolate.StarWars.Models;
 /// <summary>
 /// A human character in the Star Wars universe.
 /// </summary>
-public class Human
+public class Human(
+    string id,
+    string name,
+    IReadOnlyList<string> friends,
+    IReadOnlyList<Episode> appearsIn,
+    string? homePlanet = null,
+    double height = 1.72d,
+    JsonElement? traits = null)
     : ICharacter
 {
     /// <inheritdoc />
-    public string Id { get; set; }
+    public string Id { get; set; } = id;
 
     /// <inheritdoc />
-    public string Name { get; set; }
+    public string Name { get; set; } = name;
 
     /// <inheritdoc />
-    public IReadOnlyList<string> Friends { get; set; }
+    public IReadOnlyList<string> Friends { get; set; } = friends;
 
     /// <inheritdoc />
-    public IReadOnlyList<Episode> AppearsIn { get; set; }
+    public IReadOnlyList<Episode> AppearsIn { get; set; } = appearsIn;
 
     /// <summary>
     /// The planet the character is originally from.
     /// </summary>
-    public string HomePlanet { get; set; }
+    public string? HomePlanet { get; set; } = homePlanet;
 
     /// <inheritdoc />
-    public double Height { get; } = 1.72d;
+    public double Height { get; } = height;
 
     /// <inheritdoc />
-    public JsonElement? Traits { get; set; }
+    public JsonElement? Traits { get; set; } = traits;
 }

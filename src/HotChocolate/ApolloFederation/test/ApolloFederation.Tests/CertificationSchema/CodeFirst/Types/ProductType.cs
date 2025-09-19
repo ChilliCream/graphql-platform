@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types;
@@ -11,7 +10,7 @@ public class ProductType : ObjectType<Product>
     {
         descriptor
             .Key("id")
-            .ResolveReferenceWith(t => GetProductById(default!, default!));
+            .ResolveReferenceWith(t => GetProductById(null!, null!));
 
         descriptor
             .Field(t => t.Id)
@@ -19,11 +18,11 @@ public class ProductType : ObjectType<Product>
 
         descriptor
             .Key("sku package")
-            .ResolveReferenceWith(t => GetProductByPackage(default!, default!, default!));
+            .ResolveReferenceWith(t => GetProductByPackage(null!, null!, null!));
 
         descriptor
             .Key("sku variation { id }")
-            .ResolveReferenceWith(t => GetProductByVariation(default!, default!, default!));
+            .ResolveReferenceWith(t => GetProductByVariation(null!, null!, null!));
 
         ProvidesDescriptorExtensions.Provides(
                 descriptor
@@ -41,14 +40,14 @@ public class ProductType : ObjectType<Product>
         string package,
         Data repository)
         => repository.Products.FirstOrDefault(
-            t => (t.Sku?.Equals(sku) ?? false) &&
-                 (t.Package?.Equals(package) ?? false));
+            t => (t.Sku?.Equals(sku) ?? false)
+                && (t.Package?.Equals(package) ?? false));
 
     private static Product? GetProductByVariation(
         string sku,
         [Map("variation.id")] string variationId,
         Data repository)
         => repository.Products.FirstOrDefault(
-            t => (t.Sku?.Equals(sku) ?? false) &&
-                 (t.Variation?.Id.Equals(variationId) ?? false));
+            t => (t.Sku?.Equals(sku) ?? false)
+                && (t.Variation?.Id.Equals(variationId) ?? false));
 }

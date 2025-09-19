@@ -1,22 +1,20 @@
-using System;
-using System.Collections.Generic;
+using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types;
 
 public partial class EnumType
 {
-    private Dictionary<string, IEnumValue> _enumValues = default!;
-    private Dictionary<object, IEnumValue> _valueLookup = default!;
+    private FrozenDictionary<object, EnumValue> _valueLookup = null!;
+    private EnumValueCollection _values = null!;
+    private INamingConventions _naming = null!;
     private Action<IEnumTypeDescriptor>? _configure;
-    private INamingConventions _naming = default!;
 
     /// <summary>
     /// Initializes a new instance of <see cref="EnumType"/>.
@@ -46,8 +44,8 @@ public partial class EnumType
     /// <returns>
     /// Returns the newly created enum type.
     /// </returns>
-    public static EnumType CreateUnsafe(EnumTypeDefinition definition)
-        => new() { Definition = definition, };
+    public static EnumType CreateUnsafe(EnumTypeConfiguration definition)
+        => new() { Configuration = definition };
 
     /// <summary>
     /// Override this in order to specify the type configuration explicitly.
@@ -58,20 +56,20 @@ public partial class EnumType
     protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
 
     /// <inheritdoc />
-    protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override EnumTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = EnumTypeDescriptor.FromSchemaType(
                     context.DescriptorContext,
                     GetType());
                 _configure!(descriptor);
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -82,26 +80,25 @@ public partial class EnumType
     /// <inheritdoc />
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        EnumTypeDefinition definition)
+        EnumTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        context.RegisterDependencies(definition);
+        base.OnRegisterDependencies(context, configuration);
+        context.RegisterDependencies(configuration);
         SetTypeIdentity(typeof(EnumType<>));
     }
 
     /// <inheritdoc />
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        EnumTypeDefinition definition)
+        EnumTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        _enumValues = new Dictionary<string, IEnumValue>(definition.NameComparer);
-        _valueLookup = new Dictionary<object, IEnumValue>(definition.ValueComparer);
-
+        var builder = new List<EnumValue>(configuration.Values.Count);
+        var valueLookupBuilder = new Dictionary<object, EnumValue>(configuration.ValueComparer);
         _naming = context.DescriptorContext.Naming;
 
-        foreach (var enumValueDefinition in definition.Values)
+        foreach (var enumValueDefinition in configuration.Values)
         {
             if (enumValueDefinition.Ignore)
             {
@@ -110,12 +107,12 @@ public partial class EnumType
 
             if (TryCreateEnumValue(context, enumValueDefinition, out var enumValue))
             {
-                _enumValues[enumValue.Name] = enumValue;
-                _valueLookup[enumValue.Value] = enumValue;
+                valueLookupBuilder[enumValue.Value] = enumValue;
+                builder.Add(enumValue);
             }
         }
 
-        if (Values.Count == 0)
+        if (builder.Count == 0)
         {
             context.ReportError(
                 SchemaErrorBuilder.New()
@@ -124,14 +121,29 @@ public partial class EnumType
                     .SetTypeSystemObject(this)
                     .Build());
         }
+
+        _values = new EnumValueCollection([.. builder], configuration.NameComparer);
+        _valueLookup = valueLookupBuilder.ToFrozenDictionary(configuration.ValueComparer);
+    }
+
+    protected override void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        EnumTypeConfiguration configuration)
+    {
+        base.OnCompleteMetadata(context, configuration);
+
+        foreach (var value in _values.OfType<IEnumValueCompletion>())
+        {
+            value.CompleteMetadata(context, this);
+        }
     }
 
     protected virtual bool TryCreateEnumValue(
         ITypeCompletionContext context,
-        EnumValueDefinition definition,
-        [NotNullWhen(true)] out IEnumValue? enumValue)
+        EnumValueConfiguration definition,
+        [NotNullWhen(true)] out EnumValue? enumValue)
     {
-        enumValue = new EnumValue(context, definition);
+        enumValue = new DefaultEnumValue(definition);
         return true;
     }
 }

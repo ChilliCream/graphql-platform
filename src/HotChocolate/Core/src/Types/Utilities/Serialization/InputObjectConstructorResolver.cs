@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Types;
 using static System.Reflection.BindingFlags;
-
-#nullable enable
 
 namespace HotChocolate.Utilities.Serialization;
 
@@ -17,7 +12,7 @@ internal static class InputObjectConstructorResolver
         FieldCollection<T> fields,
         Dictionary<string, T> fieldMap,
         HashSet<string> required)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         var constructors = type.GetConstructors(NonPublic | Public | Instance);
 
@@ -66,14 +61,14 @@ internal static class InputObjectConstructorResolver
         }
 
         throw new InvalidOperationException(
-            $"No compatible constructor found for input type type `{type.FullName}`.\r\n" +
-            "Either you have to provide a public constructor with settable properties or " +
-            "a public constructor that allows to pass in values for read-only properties. " +
-            $"There was no way to set the following properties: {string.Join(", ", required)}.");
+            $"No compatible constructor found for input type type `{type.FullName}`.\r\n"
+            + "Either you have to provide a public constructor with settable properties or "
+            + "a public constructor that allows to pass in values for read-only properties. "
+            + $"There was no way to set the following properties: {string.Join(", ", required)}.");
     }
 
     private static bool AllPropertiesCanWrite<T>(FieldCollection<T> fields)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         foreach (var field in fields.AsSpan())
         {
@@ -90,21 +85,39 @@ internal static class InputObjectConstructorResolver
         ConstructorInfo constructor,
         IReadOnlyDictionary<string, T> fields,
         HashSet<string> required)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         var count = required.Count;
 
         foreach (var parameter in constructor.GetParameters())
         {
-            if (fields.TryGetParameter(parameter, out var field) &&
-                parameter.ParameterType == field.Property!.PropertyType)
+            if (fields.TryGetParameter(parameter, out var field))
             {
-                if (required.Contains(field.Name))
+                if (parameter.ParameterType == field.Property!.PropertyType)
                 {
-                    count--;
+                    if (required.Contains(field.Name))
+                    {
+                        count--;
+                    }
+                }
+                else if (
+                    parameter.ParameterType.IsValueType
+                    && field.Property!.PropertyType.IsValueType
+                    && parameter.ParameterType.IsGenericType
+                    && typeof(Nullable<>) == parameter.ParameterType.GetGenericTypeDefinition()
+                    && parameter.ParameterType.GetGenericArguments()[0] == field.Property!.PropertyType)
+                {
+                    if (required.Contains(field.Name))
+                    {
+                        count--;
+                    }
+                }
+                else
+                {
+                    return false;
                 }
             }
-            else
+            else if (!parameter.HasDefaultValue)
             {
                 return false;
             }
@@ -116,7 +129,7 @@ internal static class InputObjectConstructorResolver
     private static void CollectReadOnlyProperties<T>(
         FieldCollection<T> fields,
         ISet<string> required)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         required.Clear();
 
@@ -133,7 +146,7 @@ internal static class InputObjectConstructorResolver
         this IReadOnlyDictionary<string, T> fields,
         ParameterInfo parameter,
         [NotNullWhen(true)] out T? field)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         var name = parameter.Name!;
         var alterName = GetAlternativeParameterName(parameter.Name!);
@@ -142,10 +155,6 @@ internal static class InputObjectConstructorResolver
 
     private static string GetAlternativeParameterName(string name)
         => name.Length > 1
-#if NET6_0_OR_GREATER
             ? string.Concat(name[..1].ToUpperInvariant(), name.AsSpan(1))
-#else
-            ? string.Concat(name.Substring(0, 1).ToUpperInvariant(), name.Substring(1))
-#endif
             : name.ToUpperInvariant();
 }

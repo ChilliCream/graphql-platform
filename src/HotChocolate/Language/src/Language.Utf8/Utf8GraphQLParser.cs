@@ -1,7 +1,7 @@
-using System;
 using System.Buffers;
-using System.Collections.Generic;
+#if NET8_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
+#endif
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;
@@ -16,14 +16,15 @@ public ref partial struct Utf8GraphQLParser
     private StringValueNode? _description;
     private int _parsedNodes;
     private int _parsedFields;
+    private Utf8MemoryBuilder? _memory;
 
     public Utf8GraphQLParser(
-        ReadOnlySpan<byte> graphQLData,
+        ReadOnlySpan<byte> sourceText,
         ParserOptions? options = null)
     {
-        if (graphQLData.Length == 0)
+        if (sourceText.Length == 0)
         {
-            throw new ArgumentException(GraphQLData_Empty, nameof(graphQLData));
+            throw new ArgumentException(GraphQLData_Empty, nameof(sourceText));
         }
 
         options ??= ParserOptions.Default;
@@ -31,7 +32,7 @@ public ref partial struct Utf8GraphQLParser
         _allowFragmentVars = options.Experimental.AllowFragmentVariables;
         _maxAllowedNodes = options.MaxAllowedNodes;
         _maxAllowedFields = options.MaxAllowedFields;
-        _reader = new Utf8GraphQLReader(graphQLData, options.MaxAllowedTokens);
+        _reader = new Utf8GraphQLReader(sourceText, options.MaxAllowedTokens);
         _description = null;
     }
 
@@ -63,35 +64,43 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     public bool IsEndOfFile => _reader.Kind is TokenKind.EndOfFile;
 
-    // note: we added this internal access for legacy stitching.
-    /// <summary>
-    /// Provides internal access to the underlying GraphQL reader.
-    /// </summary>
-    internal Utf8GraphQLReader Reader => _reader;
-
     public DocumentNode Parse()
     {
-        _parsedNodes = 0;
-        var definitions = new List<IDefinitionNode>();
-
-        var start = Start();
-
-        MoveNext();
-
-        while (_reader.Kind != TokenKind.EndOfFile)
+        try
         {
-            definitions.Add(ParseDefinition());
+            _parsedNodes = 0;
+            var definitions = new List<IDefinitionNode>();
+
+            var start = Start();
+
+            MoveNext();
+
+            while (_reader.Kind != TokenKind.EndOfFile)
+            {
+                definitions.Add(ParseDefinition());
+            }
+
+            var location = CreateLocation(in start);
+
+            return new DocumentNode(location, definitions, _parsedNodes, _parsedFields);
         }
-
-        var location = CreateLocation(in start);
-
-        return new DocumentNode(location, definitions, _parsedNodes, _parsedFields);
+        catch
+        {
+            _memory?.Abandon();
+            _memory = null;
+            throw;
+        }
+        finally
+        {
+            _memory?.Seal();
+            _memory = null;
+        }
     }
 
     private IDefinitionNode ParseDefinition()
     {
         _description = null;
-        if (TokenHelper.IsDescription(in _reader))
+        if (TokenHelper.IsDescription(ref _reader))
         {
             _description = ParseDescription();
         }
@@ -164,41 +173,41 @@ public ref partial struct Utf8GraphQLParser
     }
 
     public static DocumentNode Parse(
-        ReadOnlySpan<byte> graphQLData)
+        ReadOnlySpan<byte> sourceText)
     {
-        if (graphQLData.Length == 0)
+        if (sourceText.Length == 0)
         {
-            return new DocumentNode(Array.Empty<IDefinitionNode>());
+            return new DocumentNode([]);
         }
 
-        return new Utf8GraphQLParser(graphQLData).Parse();
+        return new Utf8GraphQLParser(sourceText).Parse();
     }
 
     public static DocumentNode Parse(
-        ReadOnlySpan<byte> graphQLData,
+        ReadOnlySpan<byte> sourceText,
         ParserOptions options)
     {
-        if (graphQLData.Length == 0)
+        if (sourceText.Length == 0)
         {
-            return new DocumentNode(Array.Empty<IDefinitionNode>());
+            return new DocumentNode([]);
         }
 
-        return new Utf8GraphQLParser(graphQLData, options).Parse();
+        return new Utf8GraphQLParser(sourceText, options).Parse();
     }
 
     public static DocumentNode Parse(
-#if NET7_0_OR_GREATER
-        [StringSyntax("graphql")] string sourceText) =>
-#else
+#if NETSTANDARD2_0
         string sourceText) =>
+#else
+        [StringSyntax("graphql")] string sourceText) =>
 #endif
         Parse(sourceText, ParserOptions.Default);
 
     public static DocumentNode Parse(
-#if NET7_0_OR_GREATER
-        [StringSyntax("graphql")] string sourceText,
-#else
+#if NETSTANDARD2_0
         string sourceText,
+#else
+        [StringSyntax("graphql")] string sourceText,
 #endif
         ParserOptions options)
     {
@@ -225,7 +234,7 @@ public ref partial struct Utf8GraphQLParser
 
             if (sourceSpan.Length == 0)
             {
-                return new DocumentNode(Array.Empty<IDefinitionNode>());
+                return new DocumentNode([]);
             }
 
             var parser = new Utf8GraphQLParser(sourceSpan, options);

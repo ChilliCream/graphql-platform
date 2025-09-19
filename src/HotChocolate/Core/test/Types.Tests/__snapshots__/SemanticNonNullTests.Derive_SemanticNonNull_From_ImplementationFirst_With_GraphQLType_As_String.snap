@@ -1,0 +1,27 @@
+schema {
+  query: Query
+}
+
+type Foo {
+  bar: String @semanticNonNull
+}
+
+type Query {
+  scalar: String
+  nonNulScalar: String @semanticNonNull
+  scalarArray: [String]
+  nonNullScalarArray: [String] @semanticNonNull(levels: [ 0, 1 ])
+  outerNonNullScalarArray: [String] @semanticNonNull
+  scalarNestedArray: [[String]]
+  nonNullScalarNestedArray: [[String]] @semanticNonNull(levels: [ 0, 1, 2 ])
+  innerNonNullScalarNestedArray: [[String]] @semanticNonNull(levels: [ 0, 2 ])
+  object: Foo
+  nonNullObject: Foo @semanticNonNull
+  objectArray: [Foo]
+  nonNullObjectArray: [Foo] @semanticNonNull(levels: [ 0, 1 ])
+  objectNestedArray: [[Foo]]
+  nonNullObjectNestedArray: [[Foo]] @semanticNonNull(levels: [ 0, 1, 2 ])
+  innerNonNullObjectNestedArray: [[Foo]] @semanticNonNull(levels: [ 0, 2 ])
+}
+
+directive @semanticNonNull(levels: [Int!] = [ 0 ]) on FIELD_DEFINITION

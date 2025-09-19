@@ -2,17 +2,15 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 /// <summary>
 /// Builds parameter expressions for resolver level dependency injection.
-/// Parameters need to be annotated with the <see cref="ServiceAttribute"/> or the
-/// <c>FromServicesAttribute</c>.
+/// Parameters need to be annotated with the <see cref="ServiceAttribute"/>.
 /// </summary>
 internal sealed class ServiceParameterExpressionBuilder
     : IParameterExpressionBuilder
+    , IParameterBindingFactory
 {
     public ArgumentKind Kind => ArgumentKind.Service;
 
@@ -25,13 +23,51 @@ internal sealed class ServiceParameterExpressionBuilder
 
     public Expression Build(ParameterExpressionBuilderContext context)
     {
-#if NET8_0_OR_GREATER
         var attribute = context.Parameter.GetCustomAttribute<ServiceAttribute>()!;
+
         if (!string.IsNullOrEmpty(attribute.Key))
         {
             return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, attribute.Key);
         }
-#endif
+
         return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext);
+    }
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => new ServiceParameterBinding(context.Parameter);
+
+    private sealed class ServiceParameterBinding : IParameterBinding
+    {
+        public ServiceParameterBinding(ParameterInfo parameter)
+        {
+            var attribute = parameter.GetCustomAttribute<ServiceAttribute>();
+            Key = attribute?.Key;
+
+            var context = new NullabilityInfoContext();
+            var nullabilityInfo = context.Create(parameter);
+            IsRequired = nullabilityInfo.ReadState == NullabilityState.NotNull;
+        }
+
+        public string? Key { get; }
+
+        public bool IsRequired { get; }
+
+        public ArgumentKind Kind => ArgumentKind.Service;
+
+        public bool IsPure => true;
+
+        public T Execute<T>(IResolverContext context) where T : notnull
+        {
+            if (Key is not null)
+            {
+                return IsRequired
+                    ? context.Services.GetRequiredKeyedService<T>(Key)
+                    : context.Services.GetKeyedService<T>(Key)!;
+            }
+
+            return IsRequired
+                ? context.Services.GetRequiredService<T>()
+                : context.Services.GetService<T>()!;
+        }
     }
 }

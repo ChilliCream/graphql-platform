@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -17,10 +15,7 @@ public class TestServerFactory : IDisposable
     {
         var builder = new WebHostBuilder()
             .Configure(configureApplication)
-            .ConfigureServices(services =>
-            {
-                configureServices?.Invoke(services);
-            });
+            .ConfigureServices(configureServices);
 
         var server = new TestServer(builder);
         _instances.Add(server);

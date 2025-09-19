@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Data.Sorting.Expressions;
@@ -90,10 +88,10 @@ public class QueryableSortVisitorAscTests
     [Theory]
     [InlineData(null, "2018-01-01", "2019-01-01", "2020-01-01")]
     [InlineData("2020-01-01", "2019-01-01", "2018-01-01", null)]
-    public void Sort_NullableDateTimeAsc(params string[] dataObject)
+    public void Sort_NullableDateTimeAsc(params string?[] dataObject)
     {
         Test_Asc(
-            dataObject.Select(x => x is null ? default : (DateTime?)DateTime.Parse(x))
+            dataObject.Select(x => x is null ? null : (DateTime?)DateTime.Parse(x))
                 .ToArray());
     }
 
@@ -113,7 +111,7 @@ public class QueryableSortVisitorAscTests
 
         // assert
         var inputs =
-            data.Select(x => new FooNullable<string> { Bar = x, }).ToArray();
+            data.Select(x => new FooNullable<string> { Bar = x }).ToArray();
         var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)
@@ -134,7 +132,7 @@ public class QueryableSortVisitorAscTests
         var func = tester.Build<Foo<T>>(value);
 
         // assert
-        var inputs = data.Select(x => new Foo<T> { Bar = x, }).ToArray();
+        var inputs = data.Select(x => new Foo<T> { Bar = x }).ToArray();
         var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)
@@ -155,20 +153,16 @@ public class QueryableSortVisitorAscTests
     }
 
     public class FooSortType<T>
-        : SortInputType<Foo<T>>
-    {
-    }
+        : SortInputType<Foo<T>>;
 
     public enum TestEnum
     {
         Foo = 0,
         Bar = 1,
-        Baz = 2,
+        Baz = 2
     }
 
     public class FooNullableSortType<T>
         : SortInputType<FooNullable<T>>
-        where T : class
-    {
-    }
+        where T : class;
 }

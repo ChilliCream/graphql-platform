@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -17,8 +16,8 @@ public abstract class FilterInputTypeDescriptorAttribute
         IDescriptor descriptor,
         ICustomAttributeProvider element)
     {
-        if (descriptor is IFilterInputTypeDescriptor d &&
-            element is Type t)
+        if (descriptor is IFilterInputTypeDescriptor d
+            && element is Type t)
         {
             OnConfigure(context, d, t);
         }

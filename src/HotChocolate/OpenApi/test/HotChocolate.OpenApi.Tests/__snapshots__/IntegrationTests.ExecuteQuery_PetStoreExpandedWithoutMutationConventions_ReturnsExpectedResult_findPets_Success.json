@@ -1,0 +1,18 @@
+{
+  "data": {
+    "findPets": {
+      "value": [
+        {
+          "id": 1,
+          "name": "Chopper",
+          "tag": "dog"
+        },
+        {
+          "id": 2,
+          "name": "Rex",
+          "tag": "dog"
+        }
+      ]
+    }
+  }
+}

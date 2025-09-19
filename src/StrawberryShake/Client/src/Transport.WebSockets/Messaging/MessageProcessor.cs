@@ -1,8 +1,5 @@
-using System;
 using System.Buffers;
 using System.IO.Pipelines;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -44,11 +41,7 @@ internal static class MessageProcessor
         PipeReader reader,
         ProcessAsync process,
         CancellationToken cancellationToken)
-        => Task.Factory.StartNew(
-            () => ProcessMessagesAsync(reader, process, cancellationToken),
-            cancellationToken,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
+        => ProcessMessagesAsync(reader, process, cancellationToken);
 
     private static async Task ProcessMessagesAsync(
         PipeReader reader,
@@ -59,8 +52,8 @@ internal static class MessageProcessor
         {
             while (true)
             {
-                ReadResult result = await reader.ReadAsync(ct).ConfigureAwait(false);
-                ReadOnlySequence<byte> buffer = result.Buffer;
+                var result = await reader.ReadAsync(ct).ConfigureAwait(false);
+                var buffer = result.Buffer;
                 SequencePosition? position;
 
                 do

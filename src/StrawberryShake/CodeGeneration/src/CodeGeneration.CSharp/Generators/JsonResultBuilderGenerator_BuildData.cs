@@ -1,4 +1,3 @@
-using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
@@ -10,8 +9,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public partial class JsonResultBuilderGenerator
 {
-    private const string _session = "session";
-    private const string _snapshot = "snapshot";
+    private const string Session = "session";
+    private const string Snapshot = "snapshot";
 
     private void AddBuildDataMethod(
         CSharpSyntaxGeneratorSettings settings,
@@ -29,7 +28,7 @@ public partial class JsonResultBuilderGenerator
             .SetOverride()
             .SetName("BuildData")
             .SetReturnType(TypeNames.IOperationResultDataInfo)
-            .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement));
+            .AddParameter(Obj, x => x.SetType(TypeNames.JsonElement));
 
         // var entityIds = new HashSet<EntityId>();
         // var pathToEntityId = new Dictionary<string, EntityId>();
@@ -39,8 +38,8 @@ public partial class JsonResultBuilderGenerator
                 .AddCode(
                     AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {GetParameterName(_entityIds)}")
-                        .SetRighthandSide(MethodCallBuilder
+                        .SetLeftHandSide($"var {GetParameterName(EntityIds)}")
+                        .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetNew()
                             .SetMethodName(TypeNames.HashSet)
@@ -48,8 +47,8 @@ public partial class JsonResultBuilderGenerator
                 .AddCode(
                     AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"{TypeNames.IEntityStoreSnapshot} {_snapshot}")
-                        .SetRighthandSide("default!"));
+                        .SetLeftHandSide($"{TypeNames.IEntityStoreSnapshot} {Snapshot}")
+                        .SetRightHandSide("default!"));
         }
 
         buildDataMethod.AddEmptyLine();
@@ -66,33 +65,33 @@ public partial class JsonResultBuilderGenerator
                 buildDataMethod
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide(CodeBlockBuilder
+                        .SetLeftHandSide(CodeBlockBuilder
                             .New()
                             .AddCode(property.Type.ToStateTypeReference())
                             .AddCode(variableName))
-                        .SetRighthandSide("default!"));
+                        .SetRightHandSide("default!"));
 
                 storeUpdateBody
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide(variableName)
-                        .SetRighthandSide(BuildUpdateMethodCall(property)));
+                        .SetLeftHandSide(variableName)
+                        .SetRightHandSide(BuildUpdateMethodCall(property)));
             }
 
             storeUpdateBody
                 .AddEmptyLine()
                 .AddCode(AssignmentBuilder
                     .New()
-                    .SetLefthandSide(_snapshot)
-                    .SetRighthandSide($"{_session}.CurrentSnapshot"));
+                    .SetLeftHandSide(Snapshot)
+                    .SetRightHandSide($"{Session}.CurrentSnapshot"));
 
             buildDataMethod
                 .AddCode(MethodCallBuilder
                     .New()
-                    .SetMethodName(GetFieldName(_entityStore), "Update")
+                    .SetMethodName(GetFieldName(EntityStore), "Update")
                     .AddArgument(LambdaBuilder
                         .New()
-                        .AddArgument(_session)
+                        .AddArgument(Session)
                         .SetBlock(true)
                         .SetCode(storeUpdateBody)));
         }
@@ -132,8 +131,8 @@ public partial class JsonResultBuilderGenerator
         if (settings.IsStoreEnabled())
         {
             resultInfoConstructor
-                .AddArgument(_entityIds)
-                .AddArgument($"{_snapshot}.Version");
+                .AddArgument(EntityIds)
+                .AddArgument($"{Snapshot}.Version");
         }
 
         return resultInfoConstructor;

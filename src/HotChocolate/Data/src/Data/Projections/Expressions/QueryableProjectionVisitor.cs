@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Execution.Processing;
@@ -9,7 +8,7 @@ namespace HotChocolate.Data.Projections.Expressions;
 public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionContext>
 {
     protected override ISelectionVisitorAction VisitObjectType(
-        IOutputField field,
+        IOutputFieldDefinition field,
         ObjectType objectType,
         ISelection selection,
         QueryableProjectionContext context)
@@ -20,7 +19,7 @@ public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionC
         {
             return base.VisitObjectType(field, objectType, selection, context);
         }
-        
+
         var selections = context.ResolverContext.GetSelections(objectType, selection, true);
 
         if (selections.Count == 0)
@@ -37,7 +36,6 @@ public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionC
         scope.AddAbstractType(objectType.RuntimeType, scope.Level.Pop());
 
         return res;
-
     }
 
     public static readonly QueryableProjectionVisitor Default = new();

@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using CookieCrumble;
-
 namespace StrawberryShake.Transport.WebSockets;
 
 public class WebSocketClientTests
@@ -12,7 +6,7 @@ public class WebSocketClientTests
     public void Constructor_AllArgs_CreateObject()
     {
         // arrange
-        var name = "Foo";
+        const string name = "Foo";
         IReadOnlyList<ISocketProtocolFactory> protocolFactories =
             Array.Empty<ISocketProtocolFactory>();
 
@@ -28,13 +22,13 @@ public class WebSocketClientTests
     public void Constructor_MonitorNull_CreateObject()
     {
         // arrange
-        string name = null!;
+        const string name = null!;
         IReadOnlyList<ISocketProtocolFactory> protocolFactories =
             Array.Empty<ISocketProtocolFactory>();
 
         // act
         var exception = Record.Exception(() =>
-            new WebSocketClient(name, protocolFactories));
+            new WebSocketClient(name!, protocolFactories));
 
         // assert
         Assert.IsType<ArgumentNullException>(exception);
@@ -44,7 +38,7 @@ public class WebSocketClientTests
     public void Constructor_FactoriesNull_CreateObject()
     {
         // arrange
-        var name = "Foo";
+        const string name = "Foo";
         IReadOnlyList<ISocketProtocolFactory> protocolFactories = null!;
 
         // act
@@ -59,7 +53,7 @@ public class WebSocketClientTests
     public async Task OpenAsync_Disposed_ThrowsException()
     {
         // arrange
-        var name = "Foo";
+        const string name = "Foo";
         IReadOnlyList<ISocketProtocolFactory> protocolFactories =
             Array.Empty<ISocketProtocolFactory>();
         var socket = new WebSocketClient(name, protocolFactories);
@@ -77,7 +71,7 @@ public class WebSocketClientTests
     public async Task OpenAsync_UriIsNull_ThrowsException()
     {
         // arrange
-        var name = "Foo";
+        const string name = "Foo";
         IReadOnlyList<ISocketProtocolFactory> protocolFactories =
             Array.Empty<ISocketProtocolFactory>();
         var socket = new WebSocketClient(name, protocolFactories);

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
@@ -35,11 +33,11 @@ public partial class JsonResultBuilderGenerator
         methodBuilder.AddCode(
             AssignmentBuilder
                 .New()
-                .SetLefthandSide($"var {_typename}")
-                .SetRighthandSide(MethodCallBuilder
+                .SetLeftHandSide($"var {Typename}")
+                .SetRightHandSide(MethodCallBuilder
                     .Inline()
                     .SetMethodName(
-                        _obj,
+                        Obj,
                         "Value",
                         nameof(JsonElement.GetProperty))
                     .AddArgument(WellKnownNames.TypeName.AsStringToken())
@@ -55,19 +53,19 @@ public partial class JsonResultBuilderGenerator
                     .AddCode(
                         AssignmentBuilder
                             .New()
-                            .SetLefthandSide($"{TypeNames.EntityId} {_entityId}")
-                            .SetRighthandSide(
+                            .SetLeftHandSide($"{TypeNames.EntityId} {EntityId}")
+                            .SetRightHandSide(
                                 MethodCallBuilder
                                     .Inline()
-                                    .SetMethodName(GetFieldName(_idSerializer), "Parse")
-                                    .AddArgument($"{_obj}.Value")))
+                                    .SetMethodName(GetFieldName(IdSerializer), "Parse")
+                                    .AddArgument($"{Obj}.Value")))
                     .AddCode(CreateUpdateEntityStatement(concreteType)
                         .AddCode(MethodCallBuilder
                             .New()
                             .SetReturn()
                             .SetNew()
                             .SetMethodName(TypeNames.EntityIdOrData)
-                            .AddArgument(_entityId)));
+                            .AddArgument(EntityId)));
             }
             else
             {
@@ -87,8 +85,8 @@ public partial class JsonResultBuilderGenerator
                 .AddCode(IfBuilder
                     .New()
                     .SetCondition(
-                        $"typename?.Equals(\"{concreteType.Name}\", " +
-                        $"{TypeNames.OrdinalStringComparison}) ?? false")
+                        $"typename?.Equals(\"{concreteType.Name}\", "
+                        + $"{TypeNames.OrdinalStringComparison}) ?? false")
                     .AddCode(builder));
         }
 

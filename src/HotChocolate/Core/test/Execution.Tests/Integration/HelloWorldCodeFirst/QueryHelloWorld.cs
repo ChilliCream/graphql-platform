@@ -1,4 +1,4 @@
-﻿using HotChocolate.Types;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Integration.HelloWorldCodeFirst;
 
@@ -18,7 +18,7 @@ public class QueryHelloWorld
 
         descriptor.Field("hello")
             .Argument("to", a => a.Type<StringType>())
-            .Resolve(c => c.ArgumentValue<string>("to") ?? "world");
+            .Resolve(c => c.ArgumentValue<string?>("to") ?? "world");
 
         descriptor.Field("state").Resolve(() => DataStore.State);
     }

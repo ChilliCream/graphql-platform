@@ -1,22 +1,20 @@
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = null, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = null },
+        new() { Bar = false }
     ];
 
     private readonly SchemaCache _cache;
@@ -30,20 +28,20 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
         var snapshot = new Snapshot();
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
+                .Build());
         snapshot.Add(res1, "true");
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
+                .Build());
         snapshot.Add(res2, "false");
 
         // assert
@@ -54,20 +52,20 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
     public async Task Create_BooleanNotEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
         var snapshot = new Snapshot();
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { neq: true}}){ bar}}")
+                .Build());
         snapshot.Add(res1, "true");
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { neq: false}}){ bar}}")
+                .Build());
         snapshot.Add(res2, "false");
 
         // assert
@@ -78,26 +76,26 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
     public async Task Create_NullableBooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
         var snapshot = new Snapshot();
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
+                .Build());
         snapshot.Add(res1, "true");
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
+                .Build());
         snapshot.Add(res2, "false");
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { eq: null}}){ bar}}")
+                .Build());
         snapshot.Add(res3, "null");
 
         // assert
@@ -108,26 +106,26 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
     public async Task Create_NullableBooleanNotEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
         var snapshot = new Snapshot();
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { neq: true}}){ bar}}")
+                .Build());
         snapshot.Add(res1, "true");
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { neq: false}}){ bar}}")
+                .Build());
         snapshot.Add(res2, "false");
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { neq: null}}){ bar}}")
+                .Build());
         snapshot.Add(res3, "null");
 
         // assert
@@ -148,11 +146,7 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
         public bool? Bar { get; set; }
     }
 
-    public class FooFilterInput : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterInput : FilterInputType<Foo>;
 
-    public class FooNullableFilterInput : FilterInputType<FooNullable>
-    {
-    }
+    public class FooNullableFilterInput : FilterInputType<FooNullable>;
 }

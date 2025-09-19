@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -32,14 +30,14 @@ internal sealed class TypeReferenceComparer
             return false;
         }
 
-        if (x is SchemaTypeReference xSchemaType &&
-            y is ExtendedTypeReference yExtendedTypeReference)
+        if (x is SchemaTypeReference xSchemaType
+            && y is ExtendedTypeReference yExtendedTypeReference)
         {
             return CompareSchemaAndExtendedTypeRef(xSchemaType, yExtendedTypeReference);
         }
 
-        if (y is SchemaTypeReference ySchemaType &&
-            x is ExtendedTypeReference xExtendedTypeReference)
+        if (y is SchemaTypeReference ySchemaType
+            && x is ExtendedTypeReference xExtendedTypeReference)
         {
             return CompareSchemaAndExtendedTypeRef(ySchemaType, xExtendedTypeReference);
         }

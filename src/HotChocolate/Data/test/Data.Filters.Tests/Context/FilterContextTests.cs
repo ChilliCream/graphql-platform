@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using CookieCrumble;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -30,13 +29,14 @@ public class FilterContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        const string query = @"
+        const string query =
+            """
             {
-                test(where: { title: { eq: ""test"" } }) {
+                test(where: { title: { eq: "test" } }) {
                     title
                 }
             }
-        ";
+            """;
 
         await executor.ExecuteAsync(query);
 
@@ -50,7 +50,7 @@ public class FilterContextTests
         Assert.Equal("eq", operation.Field.Name);
         Assert.Equal("test", Assert.IsType<FilterValue>(operation.Value).Value);
     }
-    
+
     [Fact]
     public async Task When_Query_Is_Empty_IsDefined_Should_Be_False()
     {
@@ -72,7 +72,7 @@ public class FilterContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        const string query = 
+        const string query =
             """
             {
               test {
@@ -87,7 +87,7 @@ public class FilterContextTests
         Assert.NotNull(context);
         Assert.False(context!.IsDefined);
     }
-    
+
     [Fact]
     public async Task When_Query_Is_Set_IsDefined_Should_Be_False()
     {
@@ -109,7 +109,7 @@ public class FilterContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        const string query = 
+        const string query =
             """
             {
               test(where: { title: { eq: "test" } }) {
@@ -146,13 +146,14 @@ public class FilterContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        const string query = @"
+        const string query =
+            """
             {
-                test(where: { title: { in: [""a"", ""b""] } }) {
+                test(where: { title: { in: ["a", "b"] } }) {
                     title
                 }
             }
-        ";
+            """;
 
         await executor.ExecuteAsync(query);
 
@@ -165,7 +166,7 @@ public class FilterContextTests
         Assert.Empty(Assert.IsType<FilterInfo>(field.Value).GetFields());
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("in", operation.Field.Name);
-        var value = Assert.IsType<FilterValue>(operation.Value!).Value as IEnumerable<string>;
+        var value = Assert.IsType<FilterValue>(operation.Value).Value as IEnumerable<string>;
         Assert.Equal("a", value!.FirstOrDefault());
         Assert.Equal("b", value!.LastOrDefault());
     }
@@ -191,18 +192,19 @@ public class FilterContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        const string query = @"
+        const string query =
+            """
             {
                 test(where: {
                     or: [
-                        { title: { eq: ""a"" } }
-                        { title: { eq: ""b"" } }
+                        { title: { eq: "a" } }
+                        { title: { eq: "b" } }
                     ]
                 }) {
                     title
                 }
             }
-        ";
+            """;
 
         await executor.ExecuteAsync(query);
 
@@ -244,13 +246,14 @@ public class FilterContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        const string query = @"
+        const string query =
+            """
             {
-                test(where: { author: { name: { eq: ""test"" } } }) {
+                test(where: { author: { name: { eq: "test" } } }) {
                     title
                 }
             }
-        ";
+            """;
 
         await executor.ExecuteAsync(query);
 
@@ -290,18 +293,19 @@ public class FilterContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        const string query = @"
+        const string query =
+            """
             {
                 test(where: {
                     and: [
                         {
                             title: {
-                                in: [""a"", ""b""]
+                                in: ["a", "b"]
                             }
                             author: {
                                 name: {
-                                    eq: ""test""
-                                    neq: ""test""
+                                    eq: "test"
+                                    neq: "test"
                                 }
                             }
                         }
@@ -309,14 +313,14 @@ public class FilterContextTests
                         { isActive: { eq: true } }
                     ],
                     or: [
-                        { title: { eq: ""a"" } }
-                        { title: { eq: ""b"" } }
+                        { title: { eq: "a" } }
+                        { title: { eq: "b" } }
                     ]
                 }) {
                     title
                 }
             }
-        ";
+            """;
 
         await executor.ExecuteAsync(query);
 
@@ -348,23 +352,24 @@ public class FilterContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        const string query = @"
+        const string query =
+            """
             {
                 test(where: {
                     title: {
-                        in: [""a"", ""b""]
+                        in: ["a", "b"]
                     }
                     author: {
                         name: {
-                            eq: ""test""
-                            neq: ""test""
+                            eq: "test"
+                            neq: "test"
                         }
                     }
                 }) {
                     title
                 }
             }
-        ";
+            """;
 
         await executor.ExecuteAsync(query);
 
@@ -396,24 +401,25 @@ public class FilterContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        const string query = @"
+        const string query =
+            """
             {
                 test(where: {
                     title: {
-                        in: [""a"", ""b""]
+                        in: ["a", "b"]
                         eq: null
                     }
                     author: {
                         name: {
-                            eq: ""test""
-                            neq: ""test""
+                            eq: "test"
+                            neq: "test"
                         }
                     }
                 }) {
                     title
                 }
             }
-        ";
+            """;
 
         await executor.ExecuteAsync(query);
 

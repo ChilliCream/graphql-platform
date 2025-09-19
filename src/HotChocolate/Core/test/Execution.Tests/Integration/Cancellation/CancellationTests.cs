@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,9 +24,9 @@ public class CancellationTests
 
         // act
         await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ task1 task2 }")
-                .Create(),
+            OperationRequestBuilder.New()
+                .SetDocument("{ task1 task2 }")
+                .Build(),
                 cts.Token);
 
         // assert
@@ -132,7 +131,7 @@ public class CancellationTests
             return "bar";
         }
     }
-    
+
     protected static async Task TryTest(Func<CancellationToken, Task> action)
     {
         // we will try four times ....

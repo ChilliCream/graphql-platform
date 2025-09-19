@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 
 namespace HotChocolate.Utilities.Introspection;
@@ -22,26 +20,24 @@ internal static class IntrospectionQueryBuilder
             new FieldNode(
                 new NameNode("queryType"),
                 null,
-                null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 new SelectionSetNode(
                     new ISelectionNode[]
                     {
-                        new FieldNode("name"),
+                        new FieldNode("name")
                     })));
 
         selections.Add(
             new FieldNode(
                 new NameNode("mutationType"),
                 null,
-                null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 new SelectionSetNode(
                     new ISelectionNode[]
                     {
-                        new FieldNode("name"),
+                        new FieldNode("name")
                     })));
 
         if (features.HasSubscriptionSupport)
@@ -50,13 +46,12 @@ internal static class IntrospectionQueryBuilder
                 new FieldNode(
                     new NameNode("subscriptionType"),
                     null,
-                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     new SelectionSetNode(
                         new ISelectionNode[]
                         {
-                            new FieldNode("name"),
+                            new FieldNode("name")
                         })));
         }
 
@@ -73,6 +68,7 @@ internal static class IntrospectionQueryBuilder
                 new OperationDefinitionNode(
                     null,
                     new NameNode("IntrospectionQuery"),
+                    description: null,
                     OperationType.Query,
                     Array.Empty<VariableDefinitionNode>(),
                     Array.Empty<DirectiveNode>(),
@@ -82,21 +78,19 @@ internal static class IntrospectionQueryBuilder
                             new FieldNode(
                                 new NameNode("__schema"),
                                 null,
-                                null,
                                 Array.Empty<DirectiveNode>(),
                                 Array.Empty<ArgumentNode>(),
-                                new SelectionSetNode(selections)),
+                                new SelectionSetNode(selections))
                         })),
                 BuildFullTypeFragment(features.HasArgumentDeprecation),
                 BuildInputValueFragment(),
-                BuildTypeRefFragment(options.TypeDepth),
+                BuildTypeRefFragment(options.TypeDepth)
             });
     }
 
     private static FieldNode CreateTypesField()
         => new FieldNode(
             new NameNode("types"),
-            null,
             null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
@@ -106,7 +100,7 @@ internal static class IntrospectionQueryBuilder
                     new FragmentSpreadNode(
                         null,
                         new NameNode("FullType"),
-                        Array.Empty<DirectiveNode>()),
+                        Array.Empty<DirectiveNode>())
                 }));
 
     private static FieldNode CreateDirectivesField(bool hasLocationsField, bool hasRepeatableDirective)
@@ -118,7 +112,6 @@ internal static class IntrospectionQueryBuilder
             new FieldNode(
                 new NameNode("args"),
                 null,
-                null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 new SelectionSetNode(
@@ -127,8 +120,8 @@ internal static class IntrospectionQueryBuilder
                         new FragmentSpreadNode(
                             null,
                             new NameNode("InputValue"),
-                            Array.Empty<DirectiveNode>()),
-                    })),
+                            Array.Empty<DirectiveNode>())
+                    }))
         };
 
         if (hasLocationsField)
@@ -150,7 +143,6 @@ internal static class IntrospectionQueryBuilder
         return new FieldNode(
             new NameNode("directives"),
             null,
-            null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
             new SelectionSetNode(selections));
@@ -160,6 +152,7 @@ internal static class IntrospectionQueryBuilder
         => new FragmentDefinitionNode(
             null,
             new NameNode("FullType"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("__Type"),
             Array.Empty<DirectiveNode>(),
@@ -173,18 +166,17 @@ internal static class IntrospectionQueryBuilder
                     CreateInputFields(includeDeprecatedArgs),
                     CreateInterfacesField(),
                     CreateEnumValuesField(),
-                    CreatePossibleTypesField(),
+                    CreatePossibleTypesField()
                 }));
 
     private static FieldNode CreateFields(bool includeDeprecatedArgs)
         => new FieldNode(
             new NameNode("fields"),
             null,
-            null,
             Array.Empty<DirectiveNode>(),
             new[]
             {
-                new ArgumentNode("includeDeprecated", true),
+                new ArgumentNode("includeDeprecated", true)
             },
             new SelectionSetNode(
                 new ISelectionNode[]
@@ -194,7 +186,7 @@ internal static class IntrospectionQueryBuilder
                     CreateArgsField(includeDeprecatedArgs),
                     CreateTypeField(),
                     new FieldNode("isDeprecated"),
-                    new FieldNode("deprecationReason"),
+                    new FieldNode("deprecationReason")
                 }));
 
     private static FieldNode CreateArgsField(bool includeDeprecated)
@@ -202,11 +194,10 @@ internal static class IntrospectionQueryBuilder
             ? new FieldNode(
                 new NameNode("args"),
                 null,
-                null,
                 Array.Empty<DirectiveNode>(),
                 new[]
                 {
-                    new ArgumentNode("includeDeprecated", true),
+                    new ArgumentNode("includeDeprecated", true)
                 },
                 new SelectionSetNode(
                     new ISelectionNode[]
@@ -216,11 +207,10 @@ internal static class IntrospectionQueryBuilder
                             new NameNode("InputValue"),
                             Array.Empty<DirectiveNode>()),
                         new FieldNode("isDeprecated"),
-                        new FieldNode("deprecationReason"),
+                        new FieldNode("deprecationReason")
                     }))
             : new FieldNode(
                 new NameNode("args"),
-                null,
                 null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
@@ -230,14 +220,12 @@ internal static class IntrospectionQueryBuilder
                         new FragmentSpreadNode(
                             null,
                             new NameNode("InputValue"),
-                            Array.Empty<DirectiveNode>()),
+                            Array.Empty<DirectiveNode>())
                     }));
-
 
     private static FieldNode CreateTypeField()
         => new FieldNode(
             new NameNode("type"),
-            null,
             null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
@@ -247,7 +235,7 @@ internal static class IntrospectionQueryBuilder
                     new FragmentSpreadNode(
                         null,
                         new NameNode("TypeRef"),
-                        Array.Empty<DirectiveNode>()),
+                        Array.Empty<DirectiveNode>())
                 }));
 
     private static FieldNode CreateInputFields(bool includeDeprecatedFields)
@@ -255,11 +243,10 @@ internal static class IntrospectionQueryBuilder
             ? new FieldNode(
                 new NameNode("inputFields"),
                 null,
-                null,
                 Array.Empty<DirectiveNode>(),
                 new[]
                 {
-                    new ArgumentNode("includeDeprecated", true),
+                    new ArgumentNode("includeDeprecated", true)
                 },
                 new SelectionSetNode(
                     new ISelectionNode[]
@@ -269,11 +256,10 @@ internal static class IntrospectionQueryBuilder
                             new NameNode("InputValue"),
                             Array.Empty<DirectiveNode>()),
                         new FieldNode("isDeprecated"),
-                        new FieldNode("deprecationReason"),
+                        new FieldNode("deprecationReason")
                     }))
             : new FieldNode(
                 new NameNode("inputFields"),
-                null,
                 null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
@@ -283,13 +269,12 @@ internal static class IntrospectionQueryBuilder
                         new FragmentSpreadNode(
                             null,
                             new NameNode("InputValue"),
-                            Array.Empty<DirectiveNode>()),
+                            Array.Empty<DirectiveNode>())
                     }));
 
     private static FieldNode CreateInterfacesField()
         => new FieldNode(
             new NameNode("interfaces"),
-            null,
             null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
@@ -299,18 +284,17 @@ internal static class IntrospectionQueryBuilder
                     new FragmentSpreadNode(
                         null,
                         new NameNode("TypeRef"),
-                        Array.Empty<DirectiveNode>()),
+                        Array.Empty<DirectiveNode>())
                 }));
 
     private static FieldNode CreateEnumValuesField()
         => new FieldNode(
             new NameNode("enumValues"),
             null,
-            null,
             Array.Empty<DirectiveNode>(),
             new[]
             {
-                new ArgumentNode("includeDeprecated", true),
+                new ArgumentNode("includeDeprecated", true)
             },
             new SelectionSetNode(
                 new ISelectionNode[]
@@ -318,13 +302,12 @@ internal static class IntrospectionQueryBuilder
                     new FieldNode("name"),
                     new FieldNode("description"),
                     new FieldNode("isDeprecated"),
-                    new FieldNode("deprecationReason"),
+                    new FieldNode("deprecationReason")
                 }));
 
     private static FieldNode CreatePossibleTypesField()
         => new FieldNode(
             new NameNode("possibleTypes"),
-            null,
             null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
@@ -334,7 +317,7 @@ internal static class IntrospectionQueryBuilder
                     new FragmentSpreadNode(
                         null,
                         new NameNode("TypeRef"),
-                        Array.Empty<DirectiveNode>()),
+                        Array.Empty<DirectiveNode>())
                 }));
 
     private static FragmentDefinitionNode BuildInputValueFragment()
@@ -365,17 +348,16 @@ internal static class IntrospectionQueryBuilder
         return new FragmentDefinitionNode(
             null,
             new NameNode("TypeRef"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("__Type"),
             Array.Empty<DirectiveNode>(),
             CreateKindTypePair(ofType));
     }
 
-
     private static FieldNode CreateOfType(FieldNode? ofType = null)
         => new(
             new NameNode("ofType"),
-            null,
             null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
@@ -389,17 +371,15 @@ internal static class IntrospectionQueryBuilder
                     new FieldNode(
                         new NameNode("kind"),
                         null,
-                        null,
                         Array.Empty<DirectiveNode>(),
                         Array.Empty<ArgumentNode>(),
                         null),
                     new FieldNode(
                         new NameNode("name"),
                         null,
-                        null,
                         Array.Empty<DirectiveNode>(),
                         Array.Empty<ArgumentNode>(),
-                        null),
+                        null)
                 })
             : new SelectionSetNode(
                 new ISelectionNode[]
@@ -407,17 +387,15 @@ internal static class IntrospectionQueryBuilder
                     new FieldNode(
                         new NameNode("kind"),
                         null,
-                        null,
                         Array.Empty<DirectiveNode>(),
                         Array.Empty<ArgumentNode>(),
                         null),
                     new FieldNode(
                         new NameNode("name"),
                         null,
-                        null,
                         Array.Empty<DirectiveNode>(),
                         Array.Empty<ArgumentNode>(),
                         null),
-                    ofType,
+                    ofType
                 });
 }

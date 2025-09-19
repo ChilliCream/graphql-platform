@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
@@ -17,7 +15,7 @@ public interface IFilterVisitorContext
     /// <summary>
     /// The already visited operations
     /// </summary>
-    Stack<IInputField> Operations { get; }
+    Stack<IInputValueDefinition> Operations { get; }
 
     /// <summary>
     /// A list of errors that will be raised once the visitation is finished

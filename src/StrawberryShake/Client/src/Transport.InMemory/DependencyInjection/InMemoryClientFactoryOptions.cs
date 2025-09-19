@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace StrawberryShake.Transport.InMemory;
 
 /// <summary>
@@ -23,6 +19,5 @@ public class InMemoryClientFactoryOptions
     /// <summary>
     /// Gets a list of operations used to configure an <see cref="IInMemoryClient"/>.
     /// </summary>
-    public IList<ConfigureInMemoryClientAsync> InMemoryClientActions { get; } =
-        new List<ConfigureInMemoryClientAsync>();
+    public IList<ConfigureInMemoryClientAsync> InMemoryClientActions { get; } = [];
 }

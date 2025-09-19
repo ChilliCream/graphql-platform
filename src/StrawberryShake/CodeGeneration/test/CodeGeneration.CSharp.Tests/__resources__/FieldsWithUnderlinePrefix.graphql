@@ -2341,7 +2341,7 @@ type UpdateNestedPayload {
 }
 
 """
-The built-in `Decimal` scalar type.
+The `Decimal` scalar type represents a decimal floating-point number.
 """
 scalar Decimal
 

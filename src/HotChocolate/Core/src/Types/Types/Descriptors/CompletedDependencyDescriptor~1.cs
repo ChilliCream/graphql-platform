@@ -1,5 +1,4 @@
-using System;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -9,7 +8,7 @@ internal class CompletedDependencyDescriptor
 {
     public CompletedDependencyDescriptor(
         ITypeInspector typeInspector,
-        CompleteConfiguration configuration)
+        OnCompleteTypeSystemConfigurationTask configuration)
         : base(typeInspector, configuration)
     {
     }

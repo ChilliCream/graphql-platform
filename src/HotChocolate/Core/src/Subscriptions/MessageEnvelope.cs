@@ -1,4 +1,4 @@
-﻿using static HotChocolate.Subscriptions.Properties.Resources;
+using static HotChocolate.Subscriptions.Properties.Resources;
 
 namespace HotChocolate.Subscriptions;
 
@@ -19,7 +19,7 @@ public readonly struct MessageEnvelope<TBody>
     {
         Body = body;
         Kind = kind;
-        
+
         if (kind is MessageKind.Default && body is null)
         {
             throw new ArgumentException(
@@ -27,7 +27,7 @@ public readonly struct MessageEnvelope<TBody>
                 nameof(body));
         }
 
-        if(kind is MessageKind.Completed)
+        if (kind is MessageKind.Completed)
         {
             Body = default;
         }

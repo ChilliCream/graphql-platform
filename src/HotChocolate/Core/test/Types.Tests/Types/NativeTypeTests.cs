@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Types;
 
 public class NativeTypeTests
@@ -25,8 +23,7 @@ public class NativeTypeTests
         var type = new NativeType<string>();
 
         // act
-        Type clrType;
-        void Action() => clrType = ((IInputType)type).RuntimeType;
+        void Action() => type.ToRuntimeType();
 
         // assert
         Assert.Throws<NotSupportedException>(Action);

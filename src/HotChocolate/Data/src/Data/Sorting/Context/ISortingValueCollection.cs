@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>
@@ -7,6 +5,4 @@ namespace HotChocolate.Data.Sorting;
 /// </summary>
 public interface ISortingValueCollection
     : IEnumerable<ISortingValueNode>
-    , ISortingValueNode
-{
-}
+    , ISortingValueNode;

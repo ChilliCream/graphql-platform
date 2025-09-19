@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Descriptors;
@@ -74,7 +72,7 @@ public sealed class DataTypeDescriptor : ICodeDescriptor
     public RuntimeTypeInfo RuntimeType { get; }
 
     /// <summary>
-    /// Defines if this data type descriptor reptresents an interface.
+    /// Defines if this data type descriptor represents an interface.
     /// </summary>
     public bool IsInterface { get; }
 

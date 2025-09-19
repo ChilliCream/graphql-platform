@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Raven;
@@ -6,7 +5,7 @@ namespace HotChocolate.Data.Raven;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableProjectionFilterTests
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new()
         {
@@ -16,12 +15,9 @@ public class QueryableProjectionFilterTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
-                ObjectArray = new List<BarDeep>
-                {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
-                },
-            },
+                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }]
+            }
         },
         new()
         {
@@ -31,16 +27,13 @@ public class QueryableProjectionFilterTests
                 BarBool = true,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d", }, },
-                ObjectArray = new List<BarDeep>
-                {
-                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d", }, },
-                },
-            },
-        },
+                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }]
+            }
+        }
     ];
 
-    private static readonly BarNullable[] _barNullableEntities =
+    private static readonly BarNullable[] s_barNullableEntities =
     [
         new()
         {
@@ -50,11 +43,8 @@ public class QueryableProjectionFilterTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<BarNullableDeep?>
-                {
-                    new() { Foo = new FooDeep { BarShort = 12, }, },
-                },
-            },
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 12 } }]
+            }
         },
         new()
         {
@@ -64,11 +54,8 @@ public class QueryableProjectionFilterTests
                 BarBool = null,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<BarNullableDeep?>
-                {
-                    new BarNullableDeep { Foo = new FooDeep { BarShort = 9, }, },
-                },
-            },
+                ObjectArray = [new BarNullableDeep { Foo = new FooDeep { BarShort = 9 } }]
+            }
         },
         new()
         {
@@ -78,11 +65,8 @@ public class QueryableProjectionFilterTests
                 BarBool = false,
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
-                ObjectArray = new List<BarNullableDeep?>
-                {
-                    new BarNullableDeep { Foo = new FooDeep { BarShort = 14, }, },
-                },
-            },
+                ObjectArray = [new BarNullableDeep { Foo = new FooDeep { BarShort = 14 } }]
+            }
         },
         new()
         {
@@ -92,12 +76,12 @@ public class QueryableProjectionFilterTests
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
-                ObjectArray = null,
-            },
-        },
+                ObjectArray = null
+            }
+        }
     ];
 
-    private static readonly BarNullable[] _barWithoutRelation =
+    private static readonly BarNullable[] s_barWithoutRelation =
     [
         new()
         {
@@ -109,20 +93,20 @@ public class QueryableProjectionFilterTests
                 {
                     Foo = new FooDeep
                     {
-                        BarString = "Foo",
-                    },
-                },
-            },
+                        BarString = "Foo"
+                    }
+                }
+            }
         },
         new()
         {
             Foo = new FooNullable
             {
                 BarEnum = BarEnum.FOO,
-                BarShort = 14,
-            },
+                BarShort = 14
+            }
         },
-        new(),
+        new()
     ];
 
     private readonly SchemaCache _cache;
@@ -136,23 +120,25 @@ public class QueryableProjectionFilterTests
     public async Task Create_DeepFilterObjectTwoProjections()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    @"{
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
                         root {
                             foo {
                                 objectArray(
                                     where: {
                                         foo: {
                                             barString: {
-                                                eq: ""a""
+                                                eq: "a"
                                             }
                                         }
-                                    }) {
+                                    }
+                                ) {
                                     foo {
                                         barString
                                         barShort
@@ -160,8 +146,9 @@ public class QueryableProjectionFilterTests
                                 }
                             }
                         }
-                    }")
-                .Create());
+                    }
+                    """)
+                .Build());
 
         // assert
         await Snapshot
@@ -173,34 +160,36 @@ public class QueryableProjectionFilterTests
     public async Task Create_ListObjectDifferentLevelProjection()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    @"
-                        {
-                            root {
-                                foo {
-                                    barString
-                                    objectArray(
-                                        where: {
-                                            foo: {
-                                                barString: {
-                                                    eq: ""a""
-                                                }
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                        root {
+                            foo {
+                                barString
+                                objectArray(
+                                    where: {
+                                        foo: {
+                                            barString: {
+                                                eq: "a"
                                             }
-                                        }) {
-                                        foo {
-                                            barString
-                                            barShort
                                         }
+                                    }
+                                ) {
+                                    foo {
+                                        barString
+                                        barShort
                                     }
                                 }
                             }
-                        }")
-                .Create());
+                        }
+                    }
+                    """)
+                .Build());
 
         // assert
         await Snapshot
@@ -212,23 +201,25 @@ public class QueryableProjectionFilterTests
     public async Task Create_DeepFilterObjectTwoProjections_Nullable()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barNullableEntities);
+        var tester = _cache.CreateSchema(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    @"{
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
                         root {
                             foo {
                                 objectArray(
                                     where: {
                                         foo: {
                                             barString: {
-                                                eq: ""a""
+                                                eq: "a"
                                             }
                                         }
-                                    }) {
+                                    }
+                                ) {
                                     foo {
                                         barString
                                         barShort
@@ -236,8 +227,9 @@ public class QueryableProjectionFilterTests
                                 }
                             }
                         }
-                    }")
-                .Create());
+                    }
+                    """)
+                .Build());
 
         // assert
         await Snapshot
@@ -249,13 +241,14 @@ public class QueryableProjectionFilterTests
     public async Task Create_ListObjectDifferentLevelProjection_Nullable()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barNullableEntities);
+        var tester = _cache.CreateSchema(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    @"{
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
                         root {
                             foo {
                                 barString
@@ -263,10 +256,11 @@ public class QueryableProjectionFilterTests
                                     where: {
                                         foo: {
                                             barString: {
-                                                eq: ""a""
+                                                eq: "a"
                                             }
                                         }
-                                    }) {
+                                    }
+                                ) {
                                     foo {
                                         barString
                                         barShort
@@ -274,8 +268,9 @@ public class QueryableProjectionFilterTests
                                 }
                             }
                         }
-                    }")
-                .Create());
+                    }
+                    """)
+                .Build());
 
         // assert
         await Snapshot
@@ -287,12 +282,12 @@ public class QueryableProjectionFilterTests
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barWithoutRelation);
+        var tester = _cache.CreateSchema(s_barWithoutRelation);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"{
                         root {
                             foo {
@@ -300,7 +295,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -312,12 +307,12 @@ public class QueryableProjectionFilterTests
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_TwoFields()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barWithoutRelation);
+        var tester = _cache.CreateSchema(s_barWithoutRelation);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"{
                         root {
                             id
@@ -327,7 +322,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -339,12 +334,12 @@ public class QueryableProjectionFilterTests
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_Deep()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barWithoutRelation);
+        var tester = _cache.CreateSchema(s_barWithoutRelation);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"{
                         root {
                             id
@@ -359,7 +354,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -418,14 +413,14 @@ public class QueryableProjectionFilterTests
     {
         public string? Id { get; set; }
 
-        public Foo Foo { get; set; } = default!;
+        public Foo Foo { get; set; } = null!;
     }
 
     public class BarDeep
     {
         public string? Id { get; set; }
 
-        public FooDeep Foo { get; set; } = default!;
+        public FooDeep Foo { get; set; } = null!;
     }
 
     public class BarNullableDeep
@@ -447,6 +442,6 @@ public class QueryableProjectionFilterTests
         FOO,
         BAR,
         BAZ,
-        QUX,
+        QUX
     }
 }

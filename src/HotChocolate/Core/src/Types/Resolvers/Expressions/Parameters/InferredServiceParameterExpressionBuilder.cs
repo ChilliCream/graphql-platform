@@ -1,7 +1,4 @@
-#nullable enable
-
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -13,6 +10,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 /// </summary>
 internal sealed class InferredServiceParameterExpressionBuilder(IServiceProviderIsService serviceInspector)
     : IParameterExpressionBuilder
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     public ArgumentKind Kind => ArgumentKind.Service;
 
@@ -22,16 +21,22 @@ internal sealed class InferredServiceParameterExpressionBuilder(IServiceProvider
 
     public bool CanHandle(ParameterInfo parameter)
     {
-        if (parameter.ParameterType.IsGenericType &&
-            typeof(IEnumerable).IsAssignableFrom(parameter.ParameterType) &&
-            parameter.ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+        if (parameter.ParameterType.IsGenericType
+            && typeof(IEnumerable).IsAssignableFrom(parameter.ParameterType)
+            && parameter.ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
         {
             return serviceInspector.IsService(parameter.ParameterType.GetGenericArguments()[0]);
         }
-        
+
         return serviceInspector.IsService(parameter.ParameterType);
     }
 
     public Expression Build(ParameterExpressionBuilderContext context)
         => ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext);
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context) where T : notnull
+        => context.Service<T>();
 }

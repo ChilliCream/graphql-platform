@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Options;
 
 namespace HotChocolate.Execution.Configuration;
@@ -23,7 +20,7 @@ public readonly struct OnConfigureRequestExecutorOptionsAction
     public OnConfigureRequestExecutorOptionsAction(OnConfigureRequestExecutorOptions action)
     {
         Configure = action ?? throw new ArgumentNullException(nameof(action));
-        ConfigureAsync = default;
+        ConfigureAsync = null;
     }
 
     /// <summary>
@@ -37,7 +34,7 @@ public readonly struct OnConfigureRequestExecutorOptionsAction
     /// </exception>
     public OnConfigureRequestExecutorOptionsAction(OnConfigureRequestExecutorOptionsAsync async)
     {
-        Configure = default;
+        Configure = null;
         ConfigureAsync = async ?? throw new ArgumentNullException(nameof(async));
     }
 

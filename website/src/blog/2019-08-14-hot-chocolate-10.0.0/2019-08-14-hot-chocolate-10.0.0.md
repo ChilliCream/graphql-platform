@@ -38,7 +38,7 @@ All you have to do in your schema type is to add a `UseFiltering` to your field 
 public class QueryType
   : ObjectType<Query>
 {
-    protected override void Configure(IObjetcTypeDescriptor<Query> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
         descriptor.Field(t => t.GetPersons(default))
           .Type<ListType<PersonType>>()
@@ -53,7 +53,7 @@ Filters are easily combined with our pagination.
 public class QueryType
   : ObjectType<Query>
 {
-    protected override void Configure(IObjetcTypeDescriptor<Query> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
         descriptor.Field(t => t.GetPersons(default))
           .UsePaging<PersonType>()
@@ -68,7 +68,7 @@ Also, it is possible to customize filters by describing what fields are filterab
 public class QueryType
   : ObjectType<Query>
 {
-    protected override void Configure(IObjetcTypeDescriptor<Query> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
         descriptor
           .Field(t => t.GetPersons(default))
@@ -104,7 +104,7 @@ And then use this filter type where you need it.
 public class QueryType
   : ObjectType<Query>
 {
-    protected override void Configure(IObjetcTypeDescriptor<Query> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
         descriptor
           .Field(t => t.GetPersons(default))
@@ -344,11 +344,11 @@ Moreover, this one will be the backbone of our new stitching layer that will bri
 
 The second thing we already started work on is a client API for .NET Core. We are currently experimenting with how we design this new piece of API. We have started a discussion around this in our slack channel and will start with some coding soon.
 
-## Banana Cakepop
+## Banana Cake Pop
 
 **Oh, didn't you forget something?**
 
-Yes, yes originally, we had planned to release _Banana Cakepop_ alongside this version. We ran into some performance issues with the tree we originally selected when using large schemas with more than 1000 types.
+Yes, yes originally, we had planned to release _Banana Cake Pop_ alongside this version. We ran into some performance issues with the tree we originally selected when using large schemas with more than 1000 types.
 
 We have now started to write the tree component ourselves which is taking some extra time. We already see that we can handle now massive schemas far beyond 1000 types without any hiccups. But we have still lots to do on the new tree.
 
@@ -360,6 +360,6 @@ We also will add more features to our filter API and make working with databases
 
 Also, we will add more subscription provider like Kafka and EventHub.
 
-Furthermore, we will rework our `Utf8GraphQLReader` to use `ReadOnlySequence<byte>` instead of `ReadOnlySpan<byte>` in order to make this even better work with the Pipeline API. Apart from that we will optimize the syntax tree to be able to work with raw bytes instead of strings. At the moment scalar like String, Int, Float and Enum are parsed as string representation like with the original node parser. The scalar type parses then the string into the native type. The same goes for the new UTF-8 request parser. This is unnecessary with the `Utf8Parser` and `Utf8Formater`. We will change the AST to instead have the raw bytes. The current `Value` property will still be there but only for compatibility with tools that use the current version of the AST. The new scalar types will have access to a `ReadOnlySpan<byte>` and can decide how to efficiently parse literals.
+Furthermore, we will rework our `Utf8GraphQLReader` to use `ReadOnlySequence<byte>` instead of `ReadOnlySpan<byte>` in order to make this even better work with the Pipeline API. Apart from that we will optimize the syntax tree to be able to work with raw bytes instead of strings. At the moment scalar like String, Int, Float and Enum are parsed as string representation like with the original node parser. The scalar type parses then the string into the native type. The same goes for the new UTF-8 request parser. This is unnecessary with the `Utf8Parser` and `Utf8Formatter`. We will change the AST to instead have the raw bytes. The current `Value` property will still be there but only for compatibility with tools that use the current version of the AST. The new scalar types will have access to a `ReadOnlySpan<byte>` and can decide how to efficiently parse literals.
 
 If you want to get into contact with us head over to our slack channel and join our community.

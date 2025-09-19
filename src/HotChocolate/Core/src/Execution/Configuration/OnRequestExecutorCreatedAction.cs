@@ -1,7 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Execution.Configuration;
 
 /// <summary>
@@ -24,7 +20,7 @@ public readonly struct OnRequestExecutorCreatedAction
     public OnRequestExecutorCreatedAction(OnRequestExecutorCreated created)
     {
         Created = created ?? throw new ArgumentNullException(nameof(created));
-        CreatedAsync = default;
+        CreatedAsync = null;
     }
 
     /// <summary>
@@ -38,7 +34,7 @@ public readonly struct OnRequestExecutorCreatedAction
     /// </exception>
     public OnRequestExecutorCreatedAction(OnRequestExecutorCreatedAsync createdAsync)
     {
-        Created = default;
+        Created = null;
         CreatedAsync = createdAsync ?? throw new ArgumentNullException(nameof(createdAsync));
     }
 

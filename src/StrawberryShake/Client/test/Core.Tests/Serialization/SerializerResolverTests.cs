@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -25,7 +22,7 @@ public class SerializerResolverTests
     public void Constructor_NoSerializer_ThrowException()
     {
         // arrange
-        IEnumerable<ISerializer> serializers = default!;
+        IEnumerable<ISerializer> serializers = null!;
 
         // act
         var exception = Record.Exception(() => new SerializerResolver(serializers));
@@ -97,7 +94,7 @@ public class SerializerResolverTests
         ISerializer[] serializers =
         [
             new CustomIntSerializer(),
-                new IntSerializer(),
+                new IntSerializer()
         ];
         var resolver = new SerializerResolver(serializers);
 
@@ -114,7 +111,7 @@ public class SerializerResolverTests
         // arrange
         ISerializer[] serializers =
         [
-            new IntSerializer(),
+            new IntSerializer()
         ];
         var resolver = new SerializerResolver(serializers);
 
@@ -132,7 +129,7 @@ public class SerializerResolverTests
         // arrange
         ISerializer[] serializers =
         [
-            new IntSerializer(),
+            new IntSerializer()
         ];
         var resolver = new SerializerResolver(serializers);
 
@@ -149,7 +146,7 @@ public class SerializerResolverTests
         // arrange
         ISerializer[] serializers =
         [
-            new IntSerializer(),
+            new IntSerializer()
         ];
         var resolver = new SerializerResolver(serializers);
 
@@ -166,7 +163,7 @@ public class SerializerResolverTests
         // arrange
         ISerializer[] serializers =
         [
-            new IntSerializer(),
+            new IntSerializer()
         ];
         var resolver = new SerializerResolver(serializers);
 
@@ -177,14 +174,13 @@ public class SerializerResolverTests
         Assert.IsType<ArgumentNullException>(ex);
     }
 
-
     [Fact]
     public void GetInputValueFormatter_FormatterRegistered_ReturnFormatter()
     {
         // arrange
         ISerializer[] serializers =
         [
-            new CustomInputValueFormatter(),
+            new CustomInputValueFormatter()
         ];
 
         var resolver = new SerializerResolver(serializers);
@@ -202,7 +198,7 @@ public class SerializerResolverTests
         // arrange
         ISerializer[] serializers =
         [
-            new CustomInputValueFormatter(),
+            new CustomInputValueFormatter()
         ];
         var resolver = new SerializerResolver(serializers);
 
@@ -221,7 +217,7 @@ public class SerializerResolverTests
         serializerMock.Setup(x => x.TypeName).Returns("Int");
         ISerializer[] serializers =
         [
-            serializerMock.Object,
+            serializerMock.Object
         ];
 
         var resolver = new SerializerResolver(serializers);
@@ -239,7 +235,7 @@ public class SerializerResolverTests
         // arrange
         ISerializer[] serializers =
         [
-            new IntSerializer(),
+            new IntSerializer()
         ];
         var resolver = new SerializerResolver(serializers);
 

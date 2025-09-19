@@ -1,11 +1,9 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Data.Projections;
 
 /// <summary>
 /// A logical scope of the projection visitor.
 /// </summary>
-/// <typeparam name="T">The type of the filter definition</typeparam>
+/// <typeparam name="T">The type of the filter configuration</typeparam>
 public class ProjectionScope<T>
 {
     public ProjectionScope()

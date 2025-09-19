@@ -2,7 +2,7 @@
 title: "Scalars"
 ---
 
-Scalar types are the primitives of our schema and can hold a specific type of data. They are leaf types, meaning we cannot use e.g. `{ fieldname }` to further drill down into the type. The main purpose of a scalar is to define how a value is serialized and deserialized.
+Scalar types are the primitives of our schema and can hold a specific type of data. They are leaf types, meaning we cannot use e.g. `{ fieldName }` to further drill down into the type. The main purpose of a scalar is to define how a value is serialized and deserialized.
 
 Besides basic scalars like `String` and `Int`, we can also create custom scalars like `CreditCardNumber` or `SocialSecurityNumber`. These custom scalars can greatly enhance the expressiveness of our schema and help new developers to get a grasp of our API.
 
@@ -18,7 +18,7 @@ type Product {
 }
 ```
 
-This scalar represents an UTF-8 character sequence.
+This scalar represents a UTF-8 character sequence.
 
 It is automatically inferred from the usage of the .NET [string type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/reference-types#the-string-type).
 
@@ -75,7 +75,7 @@ It is **not** automatically inferred and the `IdType` needs to be [explicitly sp
 `ID` values are always represented as a [String](#string) in client-server communication, but can be coerced to their expected type on the server.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Product
@@ -93,7 +93,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -556,10 +556,7 @@ public class CreditCardNumberType : ScalarType
     // define which value nodes this type can be parsed from
     public override bool IsInstanceOfType(IValueNode valueSyntax)
     {
-        if (valueSyntax == null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         return valueSyntax is StringValueNode stringValueNode &&
             _validator.ValidateCreditCard(stringValueNode.Value);

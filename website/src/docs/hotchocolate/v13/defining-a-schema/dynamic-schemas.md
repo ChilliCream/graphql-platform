@@ -84,13 +84,12 @@ The unsafe way to create types, as the name implies, bypasses some of the standa
 
 The `CreateUnsafe` method allows you to create types directly from a `TypeDefinition`.
 
-````csharp
 ```csharp
 var typeDefinition = new ObjectTypeDefinition("DynamicType");
 // ... populate typeDefinition ...
 
 var dynamicType = ObjectType.CreateUnsafe(typeDefinition);
-````
+```
 
 Using `CreateUnsafe` method for type creation can be a complex task as it involves operating directly on the type definition.
 This allows for a lot of flexibility, but it also requires a deeper understanding of the Hot Chocolate type system.
@@ -132,7 +131,6 @@ var priceFieldDefinition = new ObjectFieldDefinition(
     "Price of the product",
     TypeReference.Parse("Float!"),
     pureResolver: context => context.Parent<Dictionary<string, object>>()["price"]);
-
 
 objectTypeDefinition.Fields.Add(idFieldDefinition);
 objectTypeDefinition.Fields.Add(nameFieldDefinition);
@@ -197,7 +195,7 @@ A resolver in Hot Chocolate is a delegate that fetches the data for a specific f
 2. **Pure Resolvers**:
 
    ```csharp
-   public delegate object? PureFieldDelegate(IPureResolverContext context);
+   public delegate object? PureFieldDelegate(IResolverContext context);
    ```
 
    _Pure Resolvers_ is used where no side-effects or async calls are needed. All your properties are turned into pure resolvers by Hot Chocolate.

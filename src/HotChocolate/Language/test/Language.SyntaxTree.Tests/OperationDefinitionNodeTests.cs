@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class OperationDefinitionNodeTests
@@ -12,6 +9,7 @@ public class OperationDefinitionNodeTests
         var a = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
+            description: null,
             OperationType.Query,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -19,6 +17,7 @@ public class OperationDefinitionNodeTests
         var b = new OperationDefinitionNode(
             TestLocations.Location2,
             new NameNode("aa"),
+            description: null,
             OperationType.Query,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -26,6 +25,7 @@ public class OperationDefinitionNodeTests
         var c = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
+            description: null,
             OperationType.Mutation,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -33,6 +33,7 @@ public class OperationDefinitionNodeTests
         var d = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
+            description: null,
             OperationType.Mutation,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -43,7 +44,7 @@ public class OperationDefinitionNodeTests
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
         var adResult = SyntaxComparer.BySyntax.Equals(a, d);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -60,6 +61,7 @@ public class OperationDefinitionNodeTests
         var a = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
+            description: null,
             OperationType.Query,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -67,6 +69,7 @@ public class OperationDefinitionNodeTests
         var b = new OperationDefinitionNode(
             TestLocations.Location2,
             new NameNode("aa"),
+            description: null,
             OperationType.Query,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -74,6 +77,7 @@ public class OperationDefinitionNodeTests
         var c = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
+            description: null,
             OperationType.Mutation,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -81,6 +85,7 @@ public class OperationDefinitionNodeTests
         var d = new OperationDefinitionNode(
             TestLocations.Location2,
             new NameNode("aa"),
+            description: null,
             OperationType.Mutation,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -91,7 +96,7 @@ public class OperationDefinitionNodeTests
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
         var adResult = SyntaxComparer.BySyntax.Equals(a, d);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -108,6 +113,7 @@ public class OperationDefinitionNodeTests
         var a = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
+            description: null,
             OperationType.Query,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -115,6 +121,7 @@ public class OperationDefinitionNodeTests
         var b = new OperationDefinitionNode(
             TestLocations.Location2,
             new NameNode("aa"),
+            description: null,
             OperationType.Query,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -122,6 +129,7 @@ public class OperationDefinitionNodeTests
         var c = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
+            description: null,
             OperationType.Mutation,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
@@ -129,6 +137,7 @@ public class OperationDefinitionNodeTests
         var d = new OperationDefinitionNode(
             TestLocations.Location2,
             new NameNode("aa"),
+            description: null,
             OperationType.Mutation,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),

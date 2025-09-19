@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,39 +48,38 @@ public class BsonTypeTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddBsonType()
-            .AddQueryType(x => x.Name("Query")
-                .Field("in")
-                .Type<StringType>()
-                .Argument("val", x => x.Type<BsonType>())
-                .Resolve(ctx =>
-                {
-                    res = ctx.ArgumentValue<object>("val");
-                    return "done";
-                }))
+            .AddQueryType(
+                x => x.Name("Query")
+                    .Field("in")
+                    .Type<StringType>()
+                    .Argument("val", x => x.Type<BsonType>())
+                    .Resolve(
+                        ctx =>
+                        {
+                            res = ctx.ArgumentValue<object>("val");
+                            return "done";
+                        }))
             .BuildRequestExecutorAsync();
 
         // act
-        await executor.ExecuteAsync(@"
-        {
-            in(val: {
-                  int32: 42,
-                  int64: 42,
-                  decimal: ""42.123456789123456789123456789"",
-                  double: 42.23,
-                  boolean: true,
-                  bsonArray: [
-                    false,
-                    true
-                  ],
-                  string: ""String"",
-                  null: null,
-                  nested: {
-                    int32: 42,
-                    int64: 42
-                  }
-                })
+        await executor.ExecuteAsync(
+            """
+            {
+                in(
+                    val: {
+                        int32: 42
+                        int64: 42
+                        decimal: "42.123456789123456789123456789"
+                        double: 42.23
+                        boolean: true
+                        bsonArray: [false, true]
+                        string: "String"
+                        null: null
+                        nested: { int32: 42, int64: 42 }
+                    }
+                )
             }
-        ");
+            """);
 
         // assert
         Assert.IsType<BsonDocument>(res).ToString().MatchSnapshot();
@@ -95,15 +93,17 @@ public class BsonTypeTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddBsonType()
-            .AddQueryType(x => x.Name("Query")
-                .Field("in")
-                .Type<StringType>()
-                .Argument("val", x => x.Type<BsonType>())
-                .Resolve(ctx =>
-                {
-                    res = ctx.ArgumentValue<object>("val");
-                    return "done";
-                }))
+            .AddQueryType(
+                x => x.Name("Query")
+                    .Field("in")
+                    .Type<StringType>()
+                    .Argument("val", x => x.Type<BsonType>())
+                    .Resolve(
+                        ctx =>
+                        {
+                            res = ctx.ArgumentValue<object>("val");
+                            return "done";
+                        }))
             .BuildRequestExecutorAsync();
 
         // act
@@ -113,8 +113,8 @@ public class BsonTypeTests
             {
                 ["val"] = new Dictionary<string, object>
                 {
-                    ["foo"] = true,
-                },
+                    ["foo"] = true
+                }
             });
 
         // assert
@@ -130,15 +130,17 @@ public class BsonTypeTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddBsonType()
-            .AddQueryType(x => x.Name("Query")
-                .Field("in")
-                .Type<StringType>()
-                .Argument("val", x => x.Type<BsonType>())
-                .Resolve(ctx =>
-                {
-                    res = ctx.ArgumentValue<object>("val");
-                    return "done";
-                }))
+            .AddQueryType(
+                x => x.Name("Query")
+                    .Field("in")
+                    .Type<StringType>()
+                    .Argument("val", x => x.Type<BsonType>())
+                    .Resolve(
+                        ctx =>
+                        {
+                            res = ctx.ArgumentValue<object>("val");
+                            return "done";
+                        }))
             .BuildRequestExecutorAsync();
 
         // act
@@ -146,7 +148,7 @@ public class BsonTypeTests
             "query Test($val: Bson){ in(val:$val) }",
             new Dictionary<string, object?>
             {
-                ["val"] = new List<string> { "foo", "bar", },
+                ["val"] = new List<string> { "foo", "bar" }
             });
 
         // assert
@@ -186,7 +188,8 @@ public class BsonTypeTests
     [Theory]
     [InlineData("int", "42", typeof(BsonInt64))]
     [InlineData("long", long.MaxValue, typeof(BsonInt64))]
-    [InlineData("decimal",
+    [InlineData(
+        "decimal",
         "\"42.1234\"",
         typeof(BsonString))] // we do not know that it should be a BsonDecimal
     [InlineData("double", 43.23, typeof(BsonDouble))]
@@ -203,15 +206,17 @@ public class BsonTypeTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddBsonType()
-            .AddQueryType(x => x.Name("Query")
-                .Field("in")
-                .Type<StringType>()
-                .Argument("val", x => x.Type<BsonType>())
-                .Resolve(ctx =>
-                {
-                    res = ctx.ArgumentValue<object>("val");
-                    return "done";
-                }))
+            .AddQueryType(
+                x => x.Name("Query")
+                    .Field("in")
+                    .Type<StringType>()
+                    .Argument("val", x => x.Type<BsonType>())
+                    .Resolve(
+                        ctx =>
+                        {
+                            res = ctx.ArgumentValue<object>("val");
+                            return "done";
+                        }))
             .BuildRequestExecutorAsync();
 
         // act
@@ -239,15 +244,17 @@ public class BsonTypeTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddBsonType()
-            .AddQueryType(x => x.Name("Query")
-                .Field("in")
-                .Type<StringType>()
-                .Argument("val", x => x.Type<BsonType>())
-                .Resolve(ctx =>
-                {
-                    res = ctx.ArgumentValue<object>("val");
-                    return "done";
-                }))
+            .AddQueryType(
+                x => x.Name("Query")
+                    .Field("in")
+                    .Type<StringType>()
+                    .Argument("val", x => x.Type<BsonType>())
+                    .Resolve(
+                        ctx =>
+                        {
+                            res = ctx.ArgumentValue<object>("val");
+                            return "done";
+                        }))
             .BuildRequestExecutorAsync();
 
         // act
@@ -255,7 +262,7 @@ public class BsonTypeTests
             "query Test($val: Bson){ in(val:$val) }",
             new Dictionary<string, object?>
             {
-                ["val"] = value,
+                ["val"] = value
             });
 
         // assert
@@ -272,7 +279,7 @@ public class BsonTypeTests
             .AddGraphQL()
             .AddBsonType()
             .ModifyOptions(x => x.StrictValidation = false)
-            .BuildSchemaAsync()).GetType<BsonType>("Bson");
+            .BuildSchemaAsync()).Types.GetType<BsonType>("Bson");
 
         // act
         var serialize = type.TrySerialize(null, out var value);
@@ -290,7 +297,7 @@ public class BsonTypeTests
             .AddGraphQL()
             .AddBsonType()
             .ModifyOptions(x => x.StrictValidation = false)
-            .BuildSchemaAsync()).GetType<BsonType>("Bson");
+            .BuildSchemaAsync()).Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.TrySerialize("Failes", out _);
@@ -304,11 +311,12 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Resolve(_ => new BsonDocument { { "foo", "bar" }, }))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Resolve(_ => new BsonDocument { { "foo", "bar" } }))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -325,11 +333,12 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Resolve(_ => new BsonArray { new BsonDocument(), }))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Resolve(_ => new BsonArray { new BsonDocument() }))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -346,12 +355,13 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -369,12 +379,13 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -392,12 +403,13 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -415,12 +427,13 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -438,12 +451,13 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -461,12 +475,13 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -483,12 +498,13 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -506,12 +522,13 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -529,22 +546,27 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValue("foo", new List<object> { "abc", })
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
+                .SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        { "foo", new List<object> { "abc" } }
+                    })
+                .Build());
 
         // assert
         result.MatchSnapshot();
@@ -555,24 +577,30 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValue(
-                    "foo",
-                    new List<object> { new Dictionary<string, object> { { "abc", "def" }, }, })
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
+                .SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        {
+                            "foo",
+                            new List<object> { new Dictionary<string, object> { { "abc", "def" } } }
+                        }
+                    })
+                .Build());
 
         // assert
         result.MatchSnapshot();
@@ -583,22 +611,23 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValue("foo", "bar")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", "bar" } })
+                .Build());
 
         // assert
         result.MatchSnapshot();
@@ -609,22 +638,23 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValue("foo", 123)
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", 123 } })
+                .Build());
 
         // assert
         result.MatchSnapshot();
@@ -635,22 +665,23 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValue("foo", 1.2)
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", 1.2 } })
+                .Build());
 
         // assert
         result.MatchSnapshot();
@@ -661,22 +692,27 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValue("foo", new BsonDocument { { "a", "b" }, })
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
+                .SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        { "foo", new BsonDocument { { "a", "b" } } }
+                    })
+                .Build());
 
         // assert
         result.MatchSnapshot();
@@ -687,22 +723,23 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValue("foo", false)
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", false } })
+                .Build());
 
         // assert
         result.MatchSnapshot();
@@ -713,22 +750,23 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValue("foo", null)
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", null } })
+                .Build());
 
         // assert
         result.MatchSnapshot();
@@ -739,15 +777,16 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.IsInstanceOfType(new EnumValueNode("foo"));
@@ -761,18 +800,19 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new ObjectValueNode(Array.Empty<ObjectFieldNode>()));
+        var result = type.IsInstanceOfType(new ObjectValueNode([]));
 
         // assert
         Assert.True(result);
@@ -783,18 +823,19 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new ListValueNode(Array.Empty<IValueNode>()));
+        var result = type.IsInstanceOfType(new ListValueNode([]));
 
         // assert
         Assert.True(result);
@@ -805,15 +846,16 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.IsInstanceOfType(new StringValueNode("foo"));
@@ -827,15 +869,16 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.IsInstanceOfType(new IntValueNode(123));
@@ -849,15 +892,16 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.IsInstanceOfType(new FloatValueNode(1.2));
@@ -871,15 +915,16 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.IsInstanceOfType(new BooleanValueNode(true));
@@ -893,15 +938,16 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var result = type.IsInstanceOfType(NullValueNode.Default);
@@ -915,15 +961,16 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         void Action() => type.IsInstanceOfType(null!);
@@ -945,15 +992,16 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var literal = type.ParseValue(value);
@@ -967,15 +1015,16 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var literal = type.ParseValue((decimal)1);
@@ -989,15 +1038,16 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var literal = type.ParseValue(new List<object>());
@@ -1011,15 +1061,16 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var literal = type.ParseValue(new List<string>());
@@ -1033,15 +1084,16 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var literal = type.ParseValue(new List<Foo>());
@@ -1055,15 +1107,16 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var literal = type.ParseValue(
@@ -1078,15 +1131,16 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
         var value = type.Deserialize(new StringValueNode("Foo"));
@@ -1100,19 +1154,20 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         var toDeserialize = new Dictionary<string, object>
         {
-            { "Foo", new StringValueNode("Bar") },
+            { "Foo", new StringValueNode("Bar") }
         };
 
         // act
@@ -1127,19 +1182,20 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
 
         var toDeserialize = new Dictionary<string, object>
         {
-            { "Foo", new Dictionary<string, object> { { "Bar", new StringValueNode("Baz") }, } },
+            { "Foo", new Dictionary<string, object> { { "Bar", new StringValueNode("Baz") } } }
         };
 
         // act
@@ -1155,24 +1211,25 @@ public class BsonTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<BsonType>()
+                    .Argument("input", a => a.Type<BsonType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<BsonType>("Bson");
+        var type = schema.Types.GetType<BsonType>("Bson");
         var toDeserialize =
-            new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar"), };
+            new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar") };
 
         // act
         var value = type.Deserialize(toDeserialize);
 
         // assert
         Assert.Collection(
-            Assert.IsType<BsonArray>(value)!,
+            Assert.IsType<BsonArray>(value),
             x => Assert.Equal("Foo", x),
             x => Assert.Equal("Bar", x));
     }
@@ -1191,7 +1248,7 @@ public class BsonTypeTests
     {
         [GraphQLType(typeof(BsonType))]
         public IDictionary<string, object> SomeObject =>
-            new Dictionary<string, object> { { "a", "b" }, };
+            new Dictionary<string, object> { { "a", "b" } };
     }
 
     public class OutputQuery
@@ -1213,7 +1270,7 @@ public class BsonTypeTests
             3,
             4,
             5,
-            6,
+            6
         ]);
 
         public BsonDecimal128 Decimal => new(42.123456789123456789123456789123456789123456789m);
@@ -1222,11 +1279,7 @@ public class BsonTypeTests
 
         public BsonBoolean Boolean => new(true);
 
-        public BsonArray BsonArray => new(new[]
-        {
-            BsonBoolean.False,
-            BsonBoolean.True,
-        });
+        public BsonArray BsonArray => [BsonBoolean.False, BsonBoolean.True];
 
         public BsonString String => new("String");
 
@@ -1248,23 +1301,23 @@ public class BsonTypeTests
                 3,
                 4,
                 5,
-                6,
+                6
             ]),
             ["Double"] = new BsonDouble(42.23),
             ["Double"] = new BsonDouble(42.23),
             ["Boolean"] = new BsonBoolean(true),
-            ["BsonArray"] = new BsonArray(new[]
-            {
-                BsonBoolean.False,
-                BsonBoolean.True,
-            }),
+            ["BsonArray"] = new BsonArray(
+                [
+                    BsonBoolean.False,
+                    BsonBoolean.True
+                ]),
             ["String"] = new BsonString("String"),
             ["Null"] = BsonNull.Value,
             ["Nested"] = new BsonDocument()
             {
                 ["Int32"] = new BsonInt32(42),
-                ["Int64"] = new BsonInt64(42),
-            },
+                ["Int64"] = new BsonInt64(42)
+            }
         };
     }
 }

@@ -1,9 +1,6 @@
-using System;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Types.FieldBindingFlags;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -12,9 +9,9 @@ namespace HotChocolate.Types;
 /// interpreted as a GraphQL object type.
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Struct |
-    AttributeTargets.Interface)]
+    AttributeTargets.Class
+    | AttributeTargets.Struct
+    | AttributeTargets.Interface)]
 public sealed class ObjectTypeAttribute
     : ObjectTypeDescriptorAttribute
     , ITypeAttribute
@@ -53,7 +50,7 @@ public sealed class ObjectTypeAttribute
             descriptor.Name(Name);
         }
 
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
         definition.Fields.BindingBehavior = BindingBehavior.Implicit;
 
         if (IncludeStaticMembers)
@@ -68,9 +65,8 @@ public sealed class ObjectTypeAttribute
 /// interpreted as a GraphQL object type.
 /// This class is used by the Hot Chocolate source generator.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class)]
-public sealed class ObjectTypeAttribute<T>
-    : Attribute where T : class
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+public sealed class ObjectTypeAttribute<T> : Attribute
 {
     public Type Type => typeof(T);
 }

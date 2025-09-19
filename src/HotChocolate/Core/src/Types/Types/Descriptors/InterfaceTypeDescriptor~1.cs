@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
@@ -19,27 +16,27 @@ public class InterfaceTypeDescriptor<T>
     protected internal InterfaceTypeDescriptor(IDescriptorContext context)
         : base(context, typeof(T))
     {
-        Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
+        Configuration.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
     }
 
     protected internal InterfaceTypeDescriptor(
         IDescriptorContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
         : base(context, definition)
     {
     }
 
-    Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
+    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCompleteFields(
-        IDictionary<string, InterfaceFieldDefinition> fields,
+        IDictionary<string, InterfaceFieldConfiguration> fields,
         ISet<MemberInfo> handledMembers)
     {
-        if (Definition.Fields.IsImplicitBinding())
+        if (Configuration.Fields.IsImplicitBinding())
         {
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
-                p => InterfaceFieldDescriptor.New(Context, p).CreateDefinition(),
+                p => InterfaceFieldDescriptor.New(Context, p).CreateConfiguration(),
                 fields,
                 handledMembers);
         }
@@ -62,7 +59,7 @@ public class InterfaceTypeDescriptor<T>
     public IInterfaceTypeDescriptor<T> BindFields(
         BindingBehavior behavior)
     {
-        Definition.Fields.BindingBehavior = behavior;
+        Configuration.Fields.BindingBehavior = behavior;
         return this;
     }
 
@@ -95,15 +92,12 @@ public class InterfaceTypeDescriptor<T>
     public IInterfaceFieldDescriptor Field(
         Expression<Func<T, object>> propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         var member = propertyOrMethod.ExtractMember();
         if (member is PropertyInfo or MethodInfo)
         {
-            var fieldDescriptor = Fields.FirstOrDefault(t => t.Definition.Member == member);
+            var fieldDescriptor = Fields.FirstOrDefault(t => t.Configuration.Member == member);
 
             if (fieldDescriptor is not null)
             {
@@ -118,6 +112,20 @@ public class InterfaceTypeDescriptor<T>
         throw new ArgumentException(
             InterfaceTypeDescriptor_MustBePropertyOrMethod,
             nameof(propertyOrMethod));
+    }
+
+    public IInterfaceFieldDescriptor Field(MemberInfo propertyOrMethod)
+    {
+        if (propertyOrMethod is not { MemberType: MemberTypes.Property or MemberTypes.Method })
+        {
+            throw new ArgumentException(
+                InterfaceTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
+        }
+
+        var fieldDescriptor = new InterfaceFieldDescriptor(Context, propertyOrMethod);
+        Fields.Add(fieldDescriptor);
+        return fieldDescriptor;
     }
 
     public new IInterfaceTypeDescriptor<T> ResolveAbstractType(

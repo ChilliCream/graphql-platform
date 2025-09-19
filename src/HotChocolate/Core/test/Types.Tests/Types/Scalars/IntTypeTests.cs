@@ -1,4 +1,3 @@
-﻿using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -54,7 +53,7 @@ public class IntTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.IsInstanceOfType(null));
+            () => type.IsInstanceOfType(null!));
     }
 
     [Fact]
@@ -62,7 +61,7 @@ public class IntTypeTests
     {
         // arrange
         var type = new IntType();
-        var value = 123;
+        const int value = 123;
 
         // act
         var serializedValue = type.Serialize(value);
@@ -90,7 +89,7 @@ public class IntTypeTests
     {
         // arrange
         var type = new IntType();
-        var input = "abc";
+        const string input = "abc";
 
         // act
         // assert
@@ -103,7 +102,7 @@ public class IntTypeTests
     {
         // arrange
         var type = new IntType(0, 100);
-        var value = 200;
+        const int value = 200;
 
         // act
         // assert
@@ -161,7 +160,7 @@ public class IntTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.ParseLiteral(null));
+            () => type.ParseLiteral(null!));
     }
 
     [Fact]
@@ -169,7 +168,7 @@ public class IntTypeTests
     {
         // arrange
         var type = new IntType(1, 100);
-        var input = 100;
+        const int input = 100;
 
         // act
         var literal = (IntValueNode)type.ParseValue(input);
@@ -183,7 +182,7 @@ public class IntTypeTests
     {
         // arrange
         var type = new IntType(1, 100);
-        var input = 101;
+        const int input = 101;
 
         // act
         Action action = () => type.ParseValue(input);
@@ -197,7 +196,7 @@ public class IntTypeTests
     {
         // arrange
         var type = new IntType(1, 100);
-        var input = 1;
+        const int input = 1;
 
         // act
         var literal = (IntValueNode)type.ParseValue(input);
@@ -211,7 +210,7 @@ public class IntTypeTests
     {
         // arrange
         var type = new IntType(1, 100);
-        var input = 0;
+        const int input = 0;
 
         // act
         Action action = () => type.ParseValue(input);
@@ -220,13 +219,12 @@ public class IntTypeTests
         Assert.Throws<SerializationException>(action);
     }
 
-
     [Fact]
     public void ParseValue_Wrong_Value_Throws()
     {
         // arrange
         var type = new IntType();
-        var value = "123";
+        const string value = "123";
 
         // act
         // assert
@@ -239,7 +237,7 @@ public class IntTypeTests
     {
         // arrange
         var type = new IntType();
-        object input = null;
+        object input = null!;
 
         // act
         object output = type.ParseValue(input);

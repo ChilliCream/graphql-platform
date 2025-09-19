@@ -1,33 +1,22 @@
-using System;
+#nullable disable
+
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Internal;
 
 namespace HotChocolate.Utilities;
 
-public sealed class DictionaryToObjectConverter : DictionaryVisitor<ConverterContext>
+public sealed class DictionaryToObjectConverter(ITypeConverter converter)
+    : DictionaryVisitor<ConverterContext>
 {
-    private readonly ITypeConverter _converter;
-
-    public DictionaryToObjectConverter(ITypeConverter converter)
-    {
-        _converter = converter ?? throw new ArgumentNullException(nameof(converter));
-    }
+    private readonly ITypeConverter _converter = converter
+        ?? throw new ArgumentNullException(nameof(converter));
 
     public object Convert(object from, Type to)
     {
-        if (from is null)
-        {
-            throw new ArgumentNullException(nameof(from));
-        }
+        ArgumentNullException.ThrowIfNull(from);
+        ArgumentNullException.ThrowIfNull(to);
 
-        if (to is null)
-        {
-            throw new ArgumentNullException(nameof(to));
-        }
-
-        var context = new ConverterContext { ClrType = to, };
+        var context = new ConverterContext { ClrType = to };
         Visit(from, context);
         return context.Object;
     }
@@ -36,8 +25,8 @@ public sealed class DictionaryToObjectConverter : DictionaryVisitor<ConverterCon
         IReadOnlyDictionary<string, object> dictionary,
         ConverterContext context)
     {
-        if (!context.ClrType.IsValueType &&
-            context.ClrType != typeof(string))
+        if (!context.ClrType.IsValueType
+            && context.ClrType != typeof(string))
         {
             var properties =
                 context.ClrType.CreatePropertyLookup();
@@ -79,7 +68,7 @@ public sealed class DictionaryToObjectConverter : DictionaryVisitor<ConverterCon
 
             for (var i = 0; i < list.Count; i++)
             {
-                var valueContext = new ConverterContext { ClrType = elementType, };
+                var valueContext = new ConverterContext { ClrType = elementType };
                 Visit(list[i], valueContext);
                 temp!.Add(valueContext.Object);
             }

@@ -1,4 +1,3 @@
-using System;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp;

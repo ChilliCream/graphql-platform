@@ -1,7 +1,3 @@
-#nullable enable
-
-using System.Diagnostics.CodeAnalysis;
-using CookieCrumble;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.SnapshotHelpers;
@@ -16,11 +12,11 @@ public class ErrorBehaviorTests
         var executor = await CreateExecutorAsync();
         executor.Schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task SyntaxError()
         => await MatchQueryAsync("{ error1");
-    
+
     [Fact]
     public async Task AsyncMethod_NoAwait_Throw_ApplicationError()
         => await MatchQueryAsync("{ error1 }");
@@ -61,7 +57,6 @@ public class ErrorBehaviorTests
     public async Task AsyncMethod_Await_Return_ApplicationError()
         => await MatchQueryAsync("{ error6 }");
 
-
     [Fact]
     public async Task SyncMethod_Return_ApplicationError()
         => await MatchQueryAsync("{ error9 }");
@@ -73,11 +68,11 @@ public class ErrorBehaviorTests
     [Fact]
     public async Task Property_Return_UnexpectedErrorWithPath()
         => await MatchQueryAsync("{ error13 }");
-    
+
     [Fact]
     public async Task Error_On_NonNull_Root_Field()
         => await MatchQueryAsync("{ error15 }");
-    
+
     [Fact]
     public Task RootFieldNotDefined()
         => MatchQueryAsync("query { doesNotExist }");
@@ -86,18 +81,18 @@ public class ErrorBehaviorTests
     public async Task RootTypeNotDefined()
         => await MatchQueryAsync("mutation { doesNotExist }");
 
-    [Fact] 
+    [Fact]
     public async Task Error_Filter_Adds_Details()
     {
         // arrange
         using var snapshot = StartResultSnapshot();
-        
+
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddErrorFilter(error => error.SetExtension("foo", "bar"))
             .BuildRequestExecutorAsync();
-        
+
         // act
         var result = await executor.ExecuteAsync("{ error14 }");
 
@@ -106,11 +101,11 @@ public class ErrorBehaviorTests
     }
 
     [Fact]
-    public async void Resolver_InvalidParentCast()
+    public async Task Resolver_InvalidParentCast()
     {
         // arrange
         using var snapshot = StartResultSnapshot();
-        
+
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(d => d
@@ -118,9 +113,9 @@ public class ErrorBehaviorTests
                 .Type<ObjectType<Foo>>()
                 .Extend()
                 // in the pure resolver we will return the wrong type
-                .Definition.Resolver = _ => new ValueTask<object?>(new Baz()))
+                .Configuration.Resolver = _ => new ValueTask<object?>(new Baz()))
             .BuildRequestExecutorAsync();
-        
+
         // act
         var result = await executor.ExecuteAsync("{ foo { bar } }");
 
@@ -129,11 +124,11 @@ public class ErrorBehaviorTests
     }
 
     [Fact]
-    public async void PureResolver_InvalidParentCast()
+    public async Task PureResolver_InvalidParentCast()
     {
         // arrange
         using var snapshot = StartResultSnapshot();
-        
+
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(d => d
@@ -141,9 +136,9 @@ public class ErrorBehaviorTests
                 .Type<ObjectType<Foo>>()
                 .Extend()
                 // in the pure resolver we will return the wrong type
-                .Definition.PureResolver = _ => new Baz())
+                .Configuration.PureResolver = _ => new Baz())
             .BuildRequestExecutorAsync();
-        
+
         // act
         var result = await executor.ExecuteAsync("{ foo { bar } }");
 
@@ -152,11 +147,11 @@ public class ErrorBehaviorTests
     }
 
     [Fact]
-    public async void SetMaxAllowedValidationErrors_To_1()
+    public async Task SetMaxAllowedValidationErrors_To_1()
     {
         // arrange
         using var snapshot = StartResultSnapshot();
-        
+
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(d => d
@@ -164,10 +159,10 @@ public class ErrorBehaviorTests
                 .Type<ObjectType<Foo>>()
                 .Extend()
                 // in the pure resolver we will return the wrong type
-                .Definition.PureResolver = _ => new Baz())
+                .Configuration.PureResolver = _ => new Baz())
             .SetMaxAllowedValidationErrors(1)
             .BuildRequestExecutorAsync();
-        
+
         // act
         var result = await executor.ExecuteAsync("{ a b c d }");
 
@@ -184,7 +179,7 @@ public class ErrorBehaviorTests
 
         snapshot.Add(result);
     }
-    
+
     private static async Task<IRequestExecutor> CreateExecutorAsync()
     {
         return await new ServiceCollection()
@@ -205,12 +200,11 @@ public class ErrorBehaviorTests
         }
     }
 
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class Query
     {
         public Task<string?> Error1()
         {
-            throw new QueryException("query error 1");
+            throw new GraphQLException("query error 1");
         }
 
         public Task<string?> Error2()
@@ -229,7 +223,7 @@ public class ErrorBehaviorTests
         public async Task<string?> Error4()
         {
             await Task.Delay(1);
-            throw new QueryException("query error 4");
+            throw new GraphQLException("query error 4");
         }
 
         public async Task<string?> Error5()
@@ -249,7 +243,7 @@ public class ErrorBehaviorTests
 
         public string? Error7()
         {
-            throw new QueryException("query error 7");
+            throw new GraphQLException("query error 7");
         }
 
         public string? Error8()
@@ -264,7 +258,7 @@ public class ErrorBehaviorTests
                 .Build();
         }
 
-        public string? Error10 => throw new QueryException("query error 10");
+        public string? Error10 => throw new GraphQLException("query error 10");
 
         public string? Error11 => throw new Exception("query error 11");
 
@@ -275,17 +269,15 @@ public class ErrorBehaviorTests
         public Foo? Error13 => new Foo();
 
         public string? Error14 => throw new ArgumentNullException("Error14");
-        
+
         public string Error15 => throw new ArgumentNullException("Error15");
     }
 
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class Foo
     {
         public string? Bar => throw new Exception("baz");
     }
 
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class Baz
     {
         public string? Bar => throw new Exception("baz");

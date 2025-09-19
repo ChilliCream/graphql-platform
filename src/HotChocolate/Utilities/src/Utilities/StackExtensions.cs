@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-
-#nullable enable
 
 namespace HotChocolate.Utilities;
 
@@ -12,10 +8,7 @@ public static class StackExtensions
         this Stack<T> stack,
         [NotNullWhen(true)] out T value)
     {
-        if (stack == null)
-        {
-            throw new ArgumentNullException(nameof(stack));
-        }
+        ArgumentNullException.ThrowIfNull(stack);
 
         if (stack.Count > 0)
         {

@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
@@ -12,7 +14,7 @@ public interface IFilterContext : IFilterInfo
     /// </summary>
     /// <param name="isHandled">If false, sorting is applied on the result of the resolver</param>
     void Handled(bool isHandled);
-    
+
     /// <summary>
     /// Specifies if a filter was defined.
     /// </summary>
@@ -22,4 +24,9 @@ public interface IFilterContext : IFilterInfo
     /// Serializes the input object to a dictionary
     /// </summary>
     IDictionary<string, object?>? ToDictionary();
+
+    /// <summary>
+    /// Creates a predicate expression for the filter context.
+    /// </summary>
+    Expression<Func<T, bool>>? AsPredicate<T>();
 }

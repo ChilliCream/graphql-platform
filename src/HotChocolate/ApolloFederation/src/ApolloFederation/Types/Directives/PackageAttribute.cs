@@ -15,6 +15,6 @@ public sealed class PackageAttribute : Attribute
     }
 
     public Uri Url { get; }
-    
+
     internal bool IsFederationType { get; }
 }

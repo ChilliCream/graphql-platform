@@ -222,7 +222,7 @@ services
 **v12**
 
 ```csharp
-sevices
+services
     .AddGraphQL()
     .AddQueryFieldToMutationPayloads(options =>
     {

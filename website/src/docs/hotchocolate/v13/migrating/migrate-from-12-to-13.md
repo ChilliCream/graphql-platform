@@ -196,7 +196,7 @@ Previously only the first character in a property or method name was lowercased 
 
 **Before**
 
-```
+```text
 FooBar --> fooBar
 IPAddress --> iPAddress
 PLZ --> pLZ
@@ -204,7 +204,7 @@ PLZ --> pLZ
 
 **After**
 
-```
+```text
 FooBar --> fooBar
 IPAddress --> ipAddress
 PLZ --> plz
@@ -350,7 +350,7 @@ public class Subscription
 public class Subscription
 {
     [Subscribe]
-    // What's inbetween the curly braces must match an argument name.
+    // What's in between the curly braces must match an argument name.
     [Topic("{author}")]
     public Book BookPublished(string author, [EventMessage] Book book)
         => book;

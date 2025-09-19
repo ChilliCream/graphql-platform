@@ -1,7 +1,3 @@
-using System;
-
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public abstract class Convention : IConvention

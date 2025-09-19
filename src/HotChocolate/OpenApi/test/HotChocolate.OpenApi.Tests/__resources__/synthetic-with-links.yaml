@@ -1,0 +1,82 @@
+openapi: 3.0.0
+
+info:
+  title: Synthetic with links
+  version: 1.0.0
+
+paths:
+  /articles:
+    get:
+      operationId: getArticles
+      responses:
+        200:
+          description: Articles response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    title:
+                      type: string
+                    authorUserId:
+                      type: integer
+          links:
+            author:
+              operationId: getUserById
+              parameters:
+                id: $response.body#/authorUserId
+              description: Link to author.
+  /articles/{id}:
+    get:
+      operationId: getArticleById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Article response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  authorUserId:
+                    type: integer
+          links:
+            author:
+              operationId: getUserById
+              parameters:
+                id: $response.body#/authorUserId
+              description: Link to author.
+  /users/{id}:
+    get:
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: User response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  username:
+                    type: string

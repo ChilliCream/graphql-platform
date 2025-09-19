@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+#nullable disable
+
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
@@ -37,7 +36,7 @@ internal static class ExpressionHelper
     {
         if (contextData.TryGetValue(key, out var value))
         {
-            if (ReferenceEquals(value, null))
+            if (value is null)
             {
                 return default;
             }
@@ -67,7 +66,7 @@ internal static class ExpressionHelper
         => value => contextData[key] = value;
 
     public static TContextData GetScopedState<TContextData>(
-        IPureResolverContext context,
+        IResolverContext context,
         IReadOnlyDictionary<string, object> contextData,
         string key,
         bool defaultIfNotExists = false)
@@ -75,7 +74,7 @@ internal static class ExpressionHelper
             context, contextData, key, defaultIfNotExists, default);
 
     public static TContextData GetScopedStateWithDefault<TContextData>(
-        IPureResolverContext context,
+        IResolverContext context,
         IReadOnlyDictionary<string, object> contextData,
         string key,
         bool hasDefaultValue,
@@ -88,8 +87,8 @@ internal static class ExpressionHelper
                 return default;
             }
 
-            if (value is TContextData v ||
-                context.Service<ITypeConverter>().TryConvert(value, out v))
+            if (value is TContextData v
+                || context.Service<ITypeConverter>().TryConvert(value, out v))
             {
                 return v;
             }

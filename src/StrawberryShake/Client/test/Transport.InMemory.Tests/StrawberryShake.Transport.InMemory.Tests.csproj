@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-
   <PropertyGroup>
     <AssemblyName>StrawberryShake.Transport.InMemory.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.Transport.InMemory</RootNamespace>

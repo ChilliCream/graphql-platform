@@ -1,9 +1,6 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -151,7 +148,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         ScalarType scalar = new UtcOffsetType();
         var dateTime = new TimeSpan(10, 0, 0);
 
-        var expectedValue = "+10:00";
+        const string expectedValue = "+10:00";
 
         // act
         var serializedValue = (string)scalar.Serialize(dateTime)!;
@@ -332,7 +329,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
 
     public class DefaultUtcOffset
     {
-        public TimeSpan Test => new();
+        public TimeSpan Test => TimeSpan.Zero;
     }
 
     public class DefaultUtcOffsetType : ObjectType<DefaultUtcOffset>

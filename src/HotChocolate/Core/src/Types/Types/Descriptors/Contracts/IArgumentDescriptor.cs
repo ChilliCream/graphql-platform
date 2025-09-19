@@ -1,11 +1,12 @@
-using System;
+#nullable disable
+
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
 public interface IArgumentDescriptor
-    : IDescriptor<ArgumentDefinition>
+    : IDescriptor<ArgumentConfiguration>
     , IFluent
 {
     /// <summary>

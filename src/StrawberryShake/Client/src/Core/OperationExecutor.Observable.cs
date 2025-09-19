@@ -1,6 +1,3 @@
-using System;
-using System.Threading.Tasks;
-
 namespace StrawberryShake;
 
 public partial class OperationExecutor<TData, TResult>
@@ -32,8 +29,8 @@ public partial class OperationExecutor<TData, TResult>
 
         public IDisposable Subscribe(IObserver<IOperationResult<TResult>> observer)
         {
-            if (_strategy is ExecutionStrategy.NetworkOnly ||
-                _request.Document.Kind is OperationKind.Subscription)
+            if (_strategy is ExecutionStrategy.NetworkOnly
+                || _request.Document.Kind is OperationKind.Subscription)
             {
                 return BeginExecute(observer, lastEmittedResult: null);
             }

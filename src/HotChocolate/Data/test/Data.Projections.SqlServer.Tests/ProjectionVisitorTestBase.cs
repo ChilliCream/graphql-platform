@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -36,7 +34,7 @@ public class ProjectionVisitorTestBase
             dbContext.SaveChanges();
         }
 
-        return ctx => dbContext.Data.AsQueryable();
+        return _ => dbContext.Data.AsQueryable();
     }
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;
@@ -47,7 +45,7 @@ public class ProjectionVisitorTestBase
         Action<ModelBuilder>? onModelCreating = null,
         bool usePaging = false,
         bool useOffsetPaging = false,
-        INamedType? objectType = null,
+        ITypeDefinition? objectType = null,
         Action<ISchemaBuilder>? configure = null,
         Type? schemaType = null)
         where TEntity : class
@@ -55,9 +53,7 @@ public class ProjectionVisitorTestBase
         provider ??= new QueryableProjectionProvider(x => x.AddDefaults());
         var convention = new ProjectionConvention(x => x.Provider(provider));
 
-        var resolver =
-            BuildResolver(onModelCreating, entities);
-
+        var resolver = BuildResolver(onModelCreating, entities);
         ISchemaBuilder builder = SchemaBuilder.New();
 
         if (objectType is not null)
@@ -85,8 +81,7 @@ public class ProjectionVisitorTestBase
                             useOffsetPaging);
 
                         ApplyConfigurationToFieldDescriptor<TEntity>(
-                            c.Field("rootExecutable")
-                                .Resolve(ctx => resolver(ctx).AsExecutable()),
+                            c.Field("rootExecutable").Resolve(ctx => resolver(ctx).AsExecutable()),
                             schemaType,
                             usePaging,
                             useOffsetPaging);
@@ -97,25 +92,25 @@ public class ProjectionVisitorTestBase
         var schema = builder.Create();
 
         return new ServiceCollection()
-            .Configure<RequestExecutorSetup>(Schema.DefaultName, o => o.Schema = schema)
+            .Configure<RequestExecutorSetup>(ISchemaDefinition.DefaultName, o => o.Schema = schema)
             .AddGraphQL()
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
-                        context.Result = QueryResultBuilder
-                            .FromResult(context.Result!.ExpectQueryResult())
+                        context.Result = OperationResultBuilder
+                            .FromResult(context.Result!.ExpectOperationResult())
                             .SetContextData("sql", queryString)
-                            .Create();
+                            .Build();
                     }
                 })
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .Result;
     }
 

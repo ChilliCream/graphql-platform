@@ -1,11 +1,6 @@
-#nullable enable
-
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -25,9 +20,9 @@ public class ArgumentTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery(@"{
+                .SetDocument(@"{
                         arrayOfScalarsA: arrayOfScalars(values: 1)
                         arrayOfScalarsB: arrayOfScalars(values: [1, 2])
                         arrayOfObjectsA: arrayOfObjects(values: { bar: 1 }) { bar }
@@ -37,7 +32,7 @@ public class ArgumentTests
                         listOfObjectsA: listOfObjects(values: { bar: 1 }) { bar }
                         listOfObjectsB: listOfObjects(values: [{ bar: 1 }, { bar: 2 }]) { bar }
                     }")
-                .Create());
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -66,7 +61,7 @@ public class ArgumentTests
 
         public async Task InvokeAsync(IMiddlewareContext context)
         {
-            IFieldCollection<IInputField> arguments = context.Selection.Field.Arguments;
+            var arguments = context.Selection.Field.Arguments;
             foreach (var argument in arguments)
             {
                 var value = context.ArgumentValue<object?>(argument.Name)!;
@@ -75,8 +70,8 @@ public class ArgumentTests
                 if (argument.RuntimeType != actualType)
                 {
                     context.ReportError(
-                        $"RuntimeType ({argument.RuntimeType}) not equal " +
-                        $"to actual type ({actualType})");
+                        $"RuntimeType ({argument.RuntimeType}) not equal "
+                        + $"to actual type ({actualType})");
                 }
 
                 if (context.Selection.Field.Name.StartsWith("array"))
@@ -84,15 +79,15 @@ public class ArgumentTests
                     if (!argument.RuntimeType.IsArray)
                     {
                         context.ReportError(
-                            "Field defined with array but ArgDeg saying " +
-                            $"it's a {argument.RuntimeType}");
+                            "Field defined with array but ArgDeg saying "
+                            + $"it's a {argument.RuntimeType}");
                     }
 
                     if (!actualType.IsArray)
                     {
                         context.ReportError(
-                            "Field defined with array but actual type " +
-                            $"is a {actualType}");
+                            "Field defined with array but actual type "
+                            + $"is a {actualType}");
                     }
                 }
             }

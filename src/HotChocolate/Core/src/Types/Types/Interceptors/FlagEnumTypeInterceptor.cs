@@ -1,26 +1,23 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Interceptors;
-#nullable enable
 
 public class FlagsEnumInterceptor : TypeInterceptor
 {
-    private const string _flagNameAddition = "Flags";
+    private const string FlagNameAddition = "Flags";
 
-    private readonly Dictionary<Type, string> _outputTypeCache = new();
-    private readonly Dictionary<Type, RegisteredInputType> _inputTypeCache = new();
-    private INamingConventions _namingConventions = default!;
-    private TypeInitializer _typeInitializer = default!;
+    private readonly Dictionary<Type, string> _outputTypeCache = [];
+    private readonly Dictionary<Type, RegisteredInputType> _inputTypeCache = [];
+    private INamingConventions _namingConventions = null!;
+    private TypeInitializer _typeInitializer = null!;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -35,33 +32,33 @@ public class FlagsEnumInterceptor : TypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        switch (definition)
+        switch (configuration)
         {
-            case ObjectTypeDefinition o:
+            case ObjectTypeConfiguration o:
                 ProcessOutputFields(o.Fields);
 
                 break;
 
-            case InterfaceTypeDefinition i:
+            case InterfaceTypeConfiguration i:
                 ProcessOutputFields(i.Fields);
 
                 break;
 
-            case InputObjectTypeDefinition i:
+            case InputObjectTypeConfiguration i:
                 ProcessInputFields(i.Fields);
 
                 break;
 
-            case DirectiveTypeDefinition i:
+            case DirectiveTypeConfiguration i:
                 ProcessArguments(i.Arguments);
 
                 break;
         }
     }
 
-    private void ProcessOutputFields(IEnumerable<OutputFieldDefinitionBase> fields)
+    private void ProcessOutputFields(IEnumerable<OutputFieldConfiguration> fields)
     {
         foreach (var field in fields)
         {
@@ -75,7 +72,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         }
     }
 
-    private void ProcessArguments(IEnumerable<ArgumentDefinition> argumentDefinitions)
+    private void ProcessArguments(IEnumerable<ArgumentConfiguration> argumentDefinitions)
     {
         foreach (var arg in argumentDefinitions)
         {
@@ -88,11 +85,11 @@ public class FlagsEnumInterceptor : TypeInterceptor
         }
     }
 
-    private void ProcessInputFields(IEnumerable<InputFieldDefinition> fields)
+    private void ProcessInputFields(IEnumerable<InputFieldConfiguration> fields)
     {
         foreach (var field in fields)
         {
-            if (IsFlagsEnum(field.Type, out Type? t))
+            if (IsFlagsEnum(field.Type, out var t))
             {
                 var type = CreateInputObjectType(t);
                 field.Type = CreateTypeReference(field.Type, type.Name);
@@ -101,7 +98,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         }
     }
 
-    private void RegisterType(TypeSystemObjectBase type)
+    private void RegisterType(TypeSystemObject type)
     {
         _typeInitializer.InitializeType(type);
     }
@@ -113,11 +110,11 @@ public class FlagsEnumInterceptor : TypeInterceptor
             return outputType;
         }
 
-        var typeName = _namingConventions.GetTypeName(type) + _flagNameAddition;
+        var typeName = _namingConventions.GetTypeName(type) + FlagNameAddition;
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
-        var objectTypeDefinition = new ObjectTypeDefinition(typeName, desc)
+        var objectTypeDefinition = new ObjectTypeConfiguration(typeName, desc)
         {
-            RuntimeType = typeof(Dictionary<string, object>),
+            RuntimeType = typeof(Dictionary<string, object>)
         };
 
         foreach (var value in Enum.GetValues(type))
@@ -127,7 +124,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
             var typeReference = TypeReference.Parse("Boolean!");
             PureFieldDelegate resolver = c => c.Parent<Enum>().HasFlag((Enum)value);
             var fieldDefinition =
-                new ObjectFieldDefinition(valueName, description, typeReference, null, resolver);
+                new ObjectFieldConfiguration(valueName, description, typeReference, null, resolver);
             objectTypeDefinition.Fields.Add(fieldDefinition);
         }
 
@@ -144,11 +141,11 @@ public class FlagsEnumInterceptor : TypeInterceptor
             return result;
         }
 
-        var typeName = $"{_namingConventions.GetTypeName(type)}{_flagNameAddition}Input";
+        var typeName = $"{_namingConventions.GetTypeName(type)}{FlagNameAddition}Input";
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
-        var objectTypeDefinition = new InputObjectTypeDefinition(typeName, desc)
+        var objectTypeDefinition = new InputObjectTypeConfiguration(typeName, desc)
         {
-            RuntimeType = typeof(Dictionary<string, object>),
+            RuntimeType = typeof(Dictionary<string, object>)
         };
 
         var metadata = new Dictionary<string, object>();
@@ -157,7 +154,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
             var valueName = GetFlagFieldName(type, value);
             var description = _namingConventions.GetEnumValueDescription(value);
             var typeReference = TypeReference.Parse("Boolean");
-            var fieldDefinition = new InputFieldDefinition(valueName, description, typeReference);
+            var fieldDefinition = new InputFieldConfiguration(valueName, description, typeReference);
             objectTypeDefinition.Fields.Add(fieldDefinition);
             metadata[valueName] = value;
         }
@@ -204,7 +201,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
             throw ThrowHelper.Flags_IllegalFlagEnumName(type, valueName);
         }
 
-        return $"is{char.ToUpper(valueName[0])}{valueName.Substring(1)}";
+        return $"is{char.ToUpper(valueName[0])}{valueName[1..]}";
     }
 
     private static TypeReference? CreateTypeReference(TypeReference? reference, string typeName)
@@ -226,7 +223,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
                 return $"[{Rewrite(reference.ElementType, typeName)}]{nullability}";
             }
 
-            return $"{typeName}{nullability}";
+            return typeName + nullability;
         }
     }
 
@@ -254,9 +251,9 @@ public class FlagsEnumInterceptor : TypeInterceptor
             _inputType = inputType;
         }
 
-        public object Format(object? runtimeValue)
+        public object Format(object? originalValue)
         {
-            if (runtimeValue is IDictionary<string, object> dict)
+            if (originalValue is IDictionary<string, object> dict)
             {
                 T? value = null;
                 foreach (var key in dict)
@@ -278,7 +275,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
                 return value ?? throw ThrowHelper.Flags_Parser_NoSelection(_inputType);
             }
 
-            if (runtimeValue is IList l)
+            if (originalValue is IList l)
             {
                 var list = new List<object>(l.Count);
                 for (var i = 0; i < l.Count; i++)
@@ -289,7 +286,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
                 return list;
             }
 
-            return runtimeValue!;
+            return originalValue!;
         }
 
         /// <summary>
@@ -303,27 +300,27 @@ public class FlagsEnumInterceptor : TypeInterceptor
             {
                 // byte, sbyte
                 case 1:
-                    byte b =
+                    var b =
                         (byte)(Unsafe.As<T, byte>(ref e) | Unsafe.As<T, byte>(ref flag));
 
                     return Unsafe.As<byte, T>(ref b);
 
                 //short, ushort
                 case 2:
-                    short s =
+                    var s =
                         (short)(Unsafe.As<T, short>(ref e) | Unsafe.As<T, short>(ref flag));
 
                     return Unsafe.As<short, T>(ref s);
 
                 //int, uint
                 case 4:
-                    uint i = Unsafe.As<T, uint>(ref e) | Unsafe.As<T, uint>(ref flag);
+                    var i = Unsafe.As<T, uint>(ref e) | Unsafe.As<T, uint>(ref flag);
 
                     return Unsafe.As<uint, T>(ref i);
 
                 //long , ulong
                 case 8:
-                    ulong l = Unsafe.As<T, ulong>(ref e) | Unsafe.As<T, ulong>(ref flag);
+                    var l = Unsafe.As<T, ulong>(ref e) | Unsafe.As<T, ulong>(ref flag);
 
                     return Unsafe.As<ulong, T>(ref l);
 

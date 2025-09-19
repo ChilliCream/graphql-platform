@@ -1,8 +1,7 @@
-using System;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Filters;
 
@@ -11,14 +10,16 @@ namespace HotChocolate.Data.Filters;
 /// </summary>
 internal sealed class FilterContextParameterExpressionBuilder
     : IParameterExpressionBuilder
+    , IParameterBindingFactory
+    , IParameterBinding
 {
-    private const string _getFilterContext =
+    private const string GetFilterContext =
         nameof(FilterContextResolverContextExtensions.GetFilterContext);
 
-    private static readonly MethodInfo _getFilterContextMethod =
+    private static readonly MethodInfo s_getFilterContextMethod =
         typeof(FilterContextResolverContextExtensions)
             .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .First(method => method.Name.Equals(_getFilterContext, StringComparison.Ordinal));
+            .First(method => method.Name.Equals(GetFilterContext, StringComparison.Ordinal));
 
     /// <inheritdoc />
     public ArgumentKind Kind => ArgumentKind.Service;
@@ -35,5 +36,11 @@ internal sealed class FilterContextParameterExpressionBuilder
 
     /// <inheritdoc />
     public Expression Build(ParameterExpressionBuilderContext context)
-        => Expression.Call(_getFilterContextMethod, context.ResolverContext);
+        => Expression.Call(s_getFilterContextMethod, context.ResolverContext);
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => (T)context.GetFilterContext()!;
 }

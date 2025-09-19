@@ -1,6 +1,3 @@
-using System.Text;
-using CookieCrumble;
-
 namespace HotChocolate.Language;
 
 public class MD5DocumentHashProviderTests
@@ -15,7 +12,7 @@ public class MD5DocumentHashProviderTests
 
         Snapshot
             .Create()
-            .Add(hash)
+            .Add(hash.Value)
             .MatchInline("kAFQmDzST7DWlj99KOF_cg");
     }
 
@@ -29,7 +26,7 @@ public class MD5DocumentHashProviderTests
 
         Snapshot
             .Create()
-            .Add(hash)
+            .Add(hash.Value)
             .MatchInline("900150983cd24fb0d6963f7d28e17f72");
     }
 }

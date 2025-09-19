@@ -1,6 +1,4 @@
-using System;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -23,6 +21,12 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData(typeof(IntValueNode), 1, false)]
     [InlineData(typeof(BooleanValueNode), true, false)]
     [InlineData(typeof(StringValueNode), "", false)]
+    [InlineData(typeof(StringValueNode), "MK9 3HS", false)] // K = Kelvin Sign (U+212A)
+    [InlineData(typeof(StringValueNode), "K1A 0B1", false)] // K = Kelvin Sign (U+212A)
+    [InlineData(typeof(StringValueNode), "F-2|000", false)]
+    [InlineData(typeof(StringValueNode), "MK٩ ٣HS", false)]
+    [InlineData(typeof(StringValueNode), "٢٠٠٠١-١٢٣٤", false)]
+    [InlineData(typeof(StringValueNode), "٨٠٠١", false)]
     [InlineData(typeof(StringValueNode), "44256", true)]
     [InlineData(typeof(StringValueNode), "97909", true)]
     [InlineData(typeof(StringValueNode), "64200", true)]
@@ -52,7 +56,7 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, true)]
     public void IsInstanceOfType_GivenValueNode_MatchExpected(
         Type type,
-        object value,
+        object? value,
         bool expected)
     {
         // arrange
@@ -69,6 +73,12 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData(1, false)]
     [InlineData(true, false)]
     [InlineData("", false)]
+    [InlineData("MK9 3HS", false)] // K = Kelvin Sign (U+212A)
+    [InlineData("K1A 0B1", false)] // K = Kelvin Sign (U+212A)
+    [InlineData("F-2|000", false)]
+    [InlineData("MK٩ ٣HS", false)]
+    [InlineData("٢٠٠٠١-١٢٣٤", false)]
+    [InlineData("٨٠٠١", false)]
     [InlineData("44256", true)]
     [InlineData("97909", true)]
     [InlineData("64200", true)]
@@ -96,8 +106,7 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData("1001", true)]
     [InlineData("7004", true)]
     [InlineData(null, true)]
-
-    public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
+    public void IsInstanceOfType_GivenObject_MatchExpected(object? value, bool expected)
     {
         // arrange
         // act
@@ -135,8 +144,8 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, null)]
     public void ParseLiteral_GivenValueNode_MatchExpected(
         Type type,
-        object value,
-        object expected)
+        object? value,
+        object? expected)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
@@ -157,6 +166,12 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "XYZ ZZ")]
     [InlineData(typeof(StringValueNode), "XYZ 12")]
     [InlineData(typeof(StringValueNode), "XYZ 123")]
+    [InlineData(typeof(StringValueNode), "MK9 3HS")] // K = Kelvin Sign (U+212A)
+    [InlineData(typeof(StringValueNode), "K1A 0B1")] // K = Kelvin Sign (U+212A)
+    [InlineData(typeof(StringValueNode), "F-2|000")]
+    [InlineData(typeof(StringValueNode), "MK٩ ٣HS")]
+    [InlineData(typeof(StringValueNode), "٢٠٠٠١-١٢٣٤")]
+    [InlineData(typeof(StringValueNode), "٨٠٠١")]
     public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
     {
         // arrange
@@ -196,8 +211,8 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData("7004", "7004")]
     [InlineData(null, null)]
     public void Deserialize_GivenValue_MatchExpected(
-        object resultValue,
-        object runtimeValue)
+        object? resultValue,
+        object? runtimeValue)
     {
         // arrange
         // act
@@ -215,6 +230,12 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData("XYZ ZZ")]
     [InlineData("XYZ 12")]
     [InlineData("XYZ 123")]
+    [InlineData("MK9 3HS")] // K = Kelvin Sign (U+212A)
+    [InlineData("K1A 0B1")] // K = Kelvin Sign (U+212A)
+    [InlineData("F-2|000")]
+    [InlineData("MK٩ ٣HS")]
+    [InlineData("٢٠٠٠١-١٢٣٤")]
+    [InlineData("٨٠٠١")]
     public void Deserialize_GivenValue_ThrowSerializationException(object value)
     {
         // arrange
@@ -252,8 +273,8 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData("7004", "7004")]
     [InlineData(null, null)]
     public void Serialize_GivenObject_MatchExpectedType(
-        object runtimeValue,
-        object resultValue)
+        object? runtimeValue,
+        object? resultValue)
     {
         // arrange
         // act
@@ -270,6 +291,12 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData("XYZ ZZ")]
     [InlineData("XYZ 12")]
     [InlineData("XYZ 123")]
+    [InlineData("MK9 3HS")] // K = Kelvin Sign (U+212A)
+    [InlineData("K1A 0B1")] // K = Kelvin Sign (U+212A)
+    [InlineData("F-2|000")]
+    [InlineData("MK٩ ٣HS")]
+    [InlineData("٢٠٠٠١-١٢٣٤")]
+    [InlineData("٨٠٠١")]
     public void Serialize_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
@@ -306,7 +333,7 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "1001")]
     [InlineData(typeof(StringValueNode), "7004")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseValue_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -323,6 +350,12 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData("XYZ ZZ")]
     [InlineData("XYZ 12")]
     [InlineData("XYZ 123")]
+    [InlineData("MK9 3HS")] // K = Kelvin Sign (U+212A)
+    [InlineData("K1A 0B1")] // K = Kelvin Sign (U+212A)
+    [InlineData("F-2|000")]
+    [InlineData("MK٩ ٣HS")]
+    [InlineData("٢٠٠٠١-١٢٣٤")]
+    [InlineData("٨٠٠١")]
     public void ParseValue_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
@@ -359,7 +392,7 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "1001")]
     [InlineData(typeof(StringValueNode), "7004")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseResult_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -376,6 +409,12 @@ public class PostalCodeTypeTests : ScalarTypeTestBase
     [InlineData("XYZ ZZ")]
     [InlineData("XYZ 12")]
     [InlineData("XYZ 123")]
+    [InlineData("MK9 3HS")] // K = Kelvin Sign (U+212A)
+    [InlineData("K1A 0B1")] // K = Kelvin Sign (U+212A)
+    [InlineData("F-2|000")]
+    [InlineData("MK٩ ٣HS")]
+    [InlineData("٢٠٠٠١-١٢٣٤")]
+    [InlineData("٨٠٠١")]
     public void ParseResult_GivenObject_ThrowSerializationException(object value)
     {
         // arrange

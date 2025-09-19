@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
 
 namespace HotChocolate.Data.Filters;
@@ -12,7 +11,7 @@ namespace HotChocolate.Data.Filters;
 /// users.Where(x => x.Company.Addresses.Any(y => y.Street == "221B Baker Street"))
 /// </code>
 /// </summary>
-/// <typeparam name="T">The type of the filter definition</typeparam>
+/// <typeparam name="T">The type of the filter configuration</typeparam>
 public class FilterScope<T>
 {
     public FilterScope()
@@ -24,7 +23,7 @@ public class FilterScope<T>
 
     ///<summary>
     /// Contains a queue for each level of the AST. The queues contain all operations of a level
-    /// A new queue is neeeded when entering new <see cref="ObjectValueNode"/>
+    /// A new queue is needed when entering new <see cref="ObjectValueNode"/>
     ///</summary>
     public Stack<Queue<T>> Level { get; }
 

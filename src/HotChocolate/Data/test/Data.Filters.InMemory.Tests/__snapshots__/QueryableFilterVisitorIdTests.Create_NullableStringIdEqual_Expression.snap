@@ -4,7 +4,7 @@ testatest
   "data": {
     "root": [
       {
-        "bar": "Rm9vTnVsbGFibGUKZHRlc3RhdGVzdA=="
+        "bar": "Rm9vTnVsbGFibGU6dGVzdGF0ZXN0"
       }
     ]
   }
@@ -17,7 +17,7 @@ testbtest
   "data": {
     "root": [
       {
-        "bar": "Rm9vTnVsbGFibGUKZHRlc3RidGVzdA=="
+        "bar": "Rm9vTnVsbGFibGU6dGVzdGF0ZXN0"
       }
     ]
   }

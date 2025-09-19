@@ -1,5 +1,3 @@
-using System;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class FieldBuilder : ICodeBuilder
@@ -90,10 +88,7 @@ public class FieldBuilder : ICodeBuilder
 
     public void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         if (_type is null)
         {

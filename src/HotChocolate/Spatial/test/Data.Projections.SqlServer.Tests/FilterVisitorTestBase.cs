@@ -7,25 +7,18 @@ using Squadron;
 
 namespace HotChocolate.Data.Projections.Spatial;
 
-public class ProjectionVisitorTestBase
+public class ProjectionVisitorTestBase(PostgreSqlResource<PostgisConfig> resource)
 {
-    private readonly PostgreSqlResource<PostgisConfig> _resource;
-
-    public ProjectionVisitorTestBase(PostgreSqlResource<PostgisConfig> resource)
-    {
-        _resource = resource;
-    }
-
     private async Task<Func<IResolverContext, IEnumerable<T>>> BuildResolverAsync<T>(
         params T[] results)
         where T : class
     {
         var databaseName = Guid.NewGuid().ToString("N");
-        var dbContext = new DatabaseContext<T>(_resource, databaseName);
+        var dbContext = new DatabaseContext<T>(resource, databaseName);
 
         var sql = dbContext.Database.GenerateCreateScript();
-        await _resource.CreateDatabaseAsync(databaseName);
-        await _resource.RunSqlScriptAsync("CREATE EXTENSION postgis;\n" + sql, databaseName);
+        await resource.CreateDatabaseAsync(databaseName);
+        await resource.RunSqlScriptAsync("CREATE EXTENSION postgis;\n" + sql, databaseName);
 
         var set = dbContext.Set<T>();
 
@@ -80,10 +73,10 @@ public class ProjectionVisitorTestBase
                 if (context.ContextData.TryGetValue("sql", out var queryString))
                 {
                     context.Result =
-                        QueryResultBuilder
-                            .FromResult(context.Result!.ExpectQueryResult())
+                        OperationResultBuilder
+                            .FromResult(context.Result!.ExpectOperationResult())
                             .SetContextData("sql", queryString)
-                            .Create();
+                            .Build();
                 }
             })
             .UseDefaultPipeline()

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -27,7 +24,7 @@ public class SortVisitorTestBase
     {
         convention ??= new SortConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
 
-        var resolver = BuildResolver(entities!);
+        var resolver = BuildResolver(entities);
 
         var builder = SchemaBuilder.New()
             .AddConvention<ISortConvention>(convention)

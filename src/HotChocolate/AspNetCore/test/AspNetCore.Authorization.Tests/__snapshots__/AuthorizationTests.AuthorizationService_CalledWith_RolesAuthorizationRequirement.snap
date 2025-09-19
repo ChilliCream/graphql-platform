@@ -1,0 +1,9 @@
+{
+  "ContentType": "application/graphql-response+json; charset=utf-8",
+  "StatusCode": "OK",
+  "Data": {
+    "rolesAndPolicy": "foo"
+  },
+  "Errors": null,
+  "Extensions": null
+}

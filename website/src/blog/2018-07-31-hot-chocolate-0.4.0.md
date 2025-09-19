@@ -238,7 +238,6 @@ public async Task<Person> Example1(string id, [Service]IPersonRepository reposit
     return await repository.GetPersonById(id);
 }
 
-
 public async Task<Person> Example2(string id, [Service]HttpContext context)
 {
     return await repository.GetPersonById(id);

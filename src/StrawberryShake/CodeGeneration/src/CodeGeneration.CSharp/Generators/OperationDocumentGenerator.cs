@@ -1,5 +1,5 @@
-using System;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Properties;
@@ -27,7 +27,7 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             MutationOperationDescriptor => "Mutation",
             QueryOperationDescriptor => "Query",
             SubscriptionOperationDescriptor => "Subscription",
-            _ => throw new ArgumentOutOfRangeException(nameof(descriptor)),
+            _ => throw new ArgumentOutOfRangeException(nameof(descriptor))
         };
 
         var classBuilder = ClassBuilder
@@ -59,7 +59,7 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             .SetType(TypeNames.OperationKind)
             .AsLambda($"{TypeNames.OperationKind}.{operationKind}");
 
-        if (descriptor.Strategy == RequestStrategy.PersistedQuery)
+        if (descriptor.Strategy == RequestStrategy.PersistedOperation)
         {
             classBuilder
                 .AddProperty("Body")
@@ -71,16 +71,16 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             classBuilder
                 .AddProperty("Body")
                 .SetType(TypeNames.IReadOnlySpan.WithGeneric(TypeNames.Byte))
-                .AsLambda(GetByteArray(descriptor.Body));
+                .AsLambda(SymbolDisplay.FormatLiteral(Encoding.UTF8.GetString(descriptor.Body), quote: true) + "u8");
         }
 
         classBuilder
             .AddProperty("Hash")
             .SetType(TypeNames.DocumentHash)
             .SetValue(
-                $@"new {TypeNames.DocumentHash}(" +
-                $@"""{descriptor.HashAlgorithm}"", " +
-                $@"""{descriptor.HashValue}"")");
+                $@"new {TypeNames.DocumentHash}("
+                + $@"""{descriptor.HashAlgorithm}"", "
+                + $@"""{descriptor.HashValue}"")");
 
         classBuilder
             .AddMethod("ToString")
@@ -102,25 +102,5 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             .AddCode("#endif");
 
         classBuilder.Build(writer);
-    }
-
-    private static string GetByteArray(byte[] bytes)
-    {
-        var builder = new StringBuilder();
-        builder.Append($"new {TypeNames.Byte}[]{{ ");
-
-        for (var i = 0; i < bytes.Length; i++)
-        {
-            builder.Append("0x");
-            builder.Append(bytes[i].ToString("x2"));
-            if (i < bytes.Length - 1)
-            {
-                builder.Append(", ");
-            }
-        }
-
-        builder.Append(" }");
-
-        return builder.ToString();
     }
 }

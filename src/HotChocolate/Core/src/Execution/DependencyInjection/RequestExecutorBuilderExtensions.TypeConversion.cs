@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Utilities;
@@ -12,10 +11,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : class, IChangeTypeProvider
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.AddSingleton<IChangeTypeProvider, T>();
         return builder;
@@ -26,10 +22,8 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IServiceProvider, T> factory)
         where T : class, IChangeTypeProvider
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
         builder.Services.AddSingleton<IChangeTypeProvider>(factory);
         return builder;
@@ -39,13 +33,11 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         ChangeType<TSource, TTarget> changeType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(changeType);
 
         builder.Services.AddSingleton<IChangeTypeProvider>(
-            sp => new DelegateChangeTypeProvider<TSource, TTarget>(changeType));
+            new DelegateChangeTypeProvider<TSource, TTarget>(changeType));
         return builder;
     }
 
@@ -53,13 +45,11 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         ChangeTypeProvider changeType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(changeType);
 
         builder.Services.AddSingleton<IChangeTypeProvider>(
-            sp => new DelegateChangeTypeProvider(changeType));
+            new DelegateChangeTypeProvider(changeType));
         return builder;
     }
 
@@ -67,10 +57,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IServiceCollection services)
         where T : class, IChangeTypeProvider
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         return services.AddSingleton<IChangeTypeProvider, T>();
     }
@@ -80,10 +67,8 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IServiceProvider, T> factory)
         where T : class, IChangeTypeProvider
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(factory);
 
         return services.AddSingleton<IChangeTypeProvider>(factory);
     }
@@ -92,56 +77,43 @@ public static partial class RequestExecutorBuilderExtensions
         this IServiceCollection services,
         ChangeType<TSource, TTarget> changeType)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(changeType);
 
         return services.AddSingleton<IChangeTypeProvider>(
-            sp => new DelegateChangeTypeProvider<TSource, TTarget>(changeType));
+            new DelegateChangeTypeProvider<TSource, TTarget>(changeType));
     }
 
     public static IServiceCollection AddTypeConverter(
         this IServiceCollection services,
         ChangeTypeProvider changeType)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(changeType);
 
         return services.AddSingleton<IChangeTypeProvider>(
-            sp => new DelegateChangeTypeProvider(changeType));
+            new DelegateChangeTypeProvider(changeType));
     }
 
-    private sealed class DelegateChangeTypeProvider : IChangeTypeProvider
+    private sealed class DelegateChangeTypeProvider(
+        ChangeTypeProvider changeTypeProvider)
+        : IChangeTypeProvider
     {
-        private readonly ChangeTypeProvider _changeTypeProvider;
-
-        public DelegateChangeTypeProvider(ChangeTypeProvider changeTypeProvider)
-        {
-            _changeTypeProvider = changeTypeProvider;
-        }
+        private readonly ChangeTypeProvider _changeTypeProvider = changeTypeProvider;
 
         public bool TryCreateConverter(
             Type source,
             Type target,
             ChangeTypeProvider root,
             [NotNullWhen(true)] out ChangeType? converter)
-        {
-            return _changeTypeProvider(source, target, out converter);
-        }
+            => _changeTypeProvider(source, target, out converter);
     }
 
-    private sealed class DelegateChangeTypeProvider<TSource, TTarget> : IChangeTypeProvider
+    private sealed class DelegateChangeTypeProvider<TSource, TTarget>(
+        ChangeType<TSource, TTarget> changeType)
+        : IChangeTypeProvider
     {
-        private readonly ChangeType<TSource, TTarget> _changeType;
-
-        public DelegateChangeTypeProvider(
-            ChangeType<TSource, TTarget> changeType)
-        {
-            _changeType = changeType;
-        }
+        private readonly ChangeType<TSource, TTarget> _changeType = changeType;
 
         public bool TryCreateConverter(
             Type source,

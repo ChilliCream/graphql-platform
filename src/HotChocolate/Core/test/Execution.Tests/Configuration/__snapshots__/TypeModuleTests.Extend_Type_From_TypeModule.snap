@@ -3,11 +3,11 @@
 }
 
 type Person {
-  name: String
+  name: String!
   dynamic: String!
 }
 
 type Query {
   hello: String!
-  person: Person
+  person: Person!
 }

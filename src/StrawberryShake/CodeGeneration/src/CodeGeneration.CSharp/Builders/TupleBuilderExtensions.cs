@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public static class TupleBuilderExtensions

@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Subscriptions;
@@ -29,7 +27,7 @@ public interface ITopicEventSender
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Completes a event topic which causes the
+    /// Completes an event topic which causes the
     /// <see cref="ISourceStream{TMessage}" /> to complete.
     /// </summary>
     /// <param name="topicName">

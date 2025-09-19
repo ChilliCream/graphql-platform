@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using static HotChocolate.Properties.AbstractionResources;
 
 namespace HotChocolate;
@@ -42,13 +39,10 @@ public readonly struct FieldResult<TResult> : IFieldResult
     /// </exception>
     public FieldResult(object error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
-        Errors = new[] { error, };
+        Errors = new[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -68,10 +62,7 @@ public readonly struct FieldResult<TResult> : IFieldResult
     /// </exception>
     public FieldResult(IEnumerable<object> errors)
     {
-        if (errors == null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var temp = errors.ToArray();
 
@@ -147,18 +138,12 @@ public readonly struct FieldResult<TResult> : IFieldResult
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Errors))]
-#endif
     public bool IsError { get; }
 
-#if NET5_0_OR_GREATER
     object? IFieldResult.Value => IsSuccess ? Value : Errors;
-#else
-    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
-#endif
 
     /// <summary>
     /// Implicitly converts the success result value <typeparamref name="TResult"/>
@@ -223,7 +208,7 @@ public readonly struct FieldResult<TResult, TError> : IFieldResult
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -243,10 +228,7 @@ public readonly struct FieldResult<TResult, TError> : IFieldResult
     /// </exception>
     public FieldResult(IEnumerable<TError> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -286,10 +268,7 @@ public readonly struct FieldResult<TResult, TError> : IFieldResult
     /// </exception>
     public FieldResult(params TError[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -334,18 +313,12 @@ public readonly struct FieldResult<TResult, TError> : IFieldResult
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Errors))]
-#endif
     public bool IsError { get; }
 
-#if NET5_0_OR_GREATER
     object? IFieldResult.Value => IsSuccess ? Value : Errors;
-#else
-    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
-#endif
 
     /// <summary>
     /// Implicitly converts the success result value <typeparamref name="TResult"/>
@@ -437,7 +410,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -457,10 +430,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     /// </exception>
     public FieldResult(IEnumerable<TError1> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -500,10 +470,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     /// </exception>
     public FieldResult(params TError1[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -547,7 +514,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -567,10 +534,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     /// </exception>
     public FieldResult(IEnumerable<TError2> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -610,10 +574,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     /// </exception>
     public FieldResult(params TError2[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -655,10 +616,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     /// </exception>
     public FieldResult(IEnumerable<object> errors)
     {
-        if (errors == null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var temp = errors.ToArray();
 
@@ -733,18 +691,12 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Errors))]
-#endif
     public bool IsError { get; }
 
-#if NET5_0_OR_GREATER
     object? IFieldResult.Value => IsSuccess ? Value : Errors;
-#else
-    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
-#endif
 
     /// <summary>
     /// Implicitly converts the success result value <typeparamref name="TResult"/>
@@ -865,7 +817,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -885,10 +837,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult(IEnumerable<TError1> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -928,10 +877,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult(params TError1[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -975,7 +921,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -995,10 +941,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult(IEnumerable<TError2> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -1038,10 +981,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult(params TError2[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -1085,7 +1025,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1105,10 +1045,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult(IEnumerable<TError3> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -1148,10 +1085,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult(params TError3[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -1193,10 +1127,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     /// </exception>
     public FieldResult(IEnumerable<object> errors)
     {
-        if (errors == null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var temp = errors.ToArray();
 
@@ -1271,18 +1202,12 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Errors))]
-#endif
     public bool IsError { get; }
 
-#if NET5_0_OR_GREATER
     object? IFieldResult.Value => IsSuccess ? Value : Errors;
-#else
-    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
-#endif
 
     /// <summary>
     /// Implicitly converts the success result value <typeparamref name="TResult"/>
@@ -1431,7 +1356,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1451,10 +1376,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(IEnumerable<TError1> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -1494,10 +1416,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(params TError1[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -1541,7 +1460,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1561,10 +1480,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(IEnumerable<TError2> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -1604,10 +1520,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(params TError2[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -1651,7 +1564,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1671,10 +1584,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(IEnumerable<TError3> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -1714,10 +1624,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(params TError3[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -1761,7 +1668,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1781,10 +1688,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(IEnumerable<TError4> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -1824,10 +1728,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(params TError4[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -1869,10 +1770,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     /// </exception>
     public FieldResult(IEnumerable<object> errors)
     {
-        if (errors == null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var temp = errors.ToArray();
 
@@ -1947,18 +1845,12 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Errors))]
-#endif
     public bool IsError { get; }
 
-#if NET5_0_OR_GREATER
     object? IFieldResult.Value => IsSuccess ? Value : Errors;
-#else
-    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
-#endif
 
     /// <summary>
     /// Implicitly converts the success result value <typeparamref name="TResult"/>
@@ -2135,7 +2027,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2155,10 +2047,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(IEnumerable<TError1> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -2198,10 +2087,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(params TError1[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -2245,7 +2131,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2265,10 +2151,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(IEnumerable<TError2> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -2308,10 +2191,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(params TError2[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -2355,7 +2235,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2375,10 +2255,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(IEnumerable<TError3> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -2418,10 +2295,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(params TError3[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -2465,7 +2339,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2485,10 +2359,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(IEnumerable<TError4> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -2528,10 +2399,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(params TError4[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -2558,7 +2426,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         IsError = !IsSuccess;
     }
 
-        /// <summary>
+    /// <summary>
     /// Initializes a mutation error result.
     /// </summary>
     /// <param name="error">
@@ -2575,7 +2443,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2595,10 +2463,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(IEnumerable<TError5> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var list = new List<object>();
 
@@ -2638,10 +2503,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(params TError5[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -2683,10 +2545,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     /// </exception>
     public FieldResult(IEnumerable<object> errors)
     {
-        if (errors == null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         var temp = errors.ToArray();
 
@@ -2761,18 +2620,12 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Errors))]
-#endif
     public bool IsError { get; }
 
-#if NET5_0_OR_GREATER
     object? IFieldResult.Value => IsSuccess ? Value : Errors;
-#else
-    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
-#endif
 
     /// <summary>
     /// Implicitly converts the success result value <typeparamref name="TResult"/>

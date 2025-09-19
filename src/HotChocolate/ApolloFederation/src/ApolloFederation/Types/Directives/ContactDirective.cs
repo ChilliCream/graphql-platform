@@ -51,7 +51,7 @@ public sealed class ContactDirective
     public ContactDirective(string name, string? url, string? description)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
-        
+
         Name = name;
         Url = url;
         Description = description;

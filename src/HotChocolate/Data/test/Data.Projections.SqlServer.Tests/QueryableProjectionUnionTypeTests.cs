@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
@@ -10,36 +7,36 @@ namespace HotChocolate.Data.Projections;
 
 public class QueryableProjectionUnionTypeTests
 {
-    private static readonly AbstractType[] _barEntities =
+    private static readonly AbstractType[] s_barEntities =
     [
-        new Bar { Name = "Bar", BarProp = "BarProp", },
-        new Foo { Name = "Foo", FooProp = "FooProp", },
+        new Bar { Name = "Bar", BarProp = "BarProp" },
+        new Foo { Name = "Foo", FooProp = "FooProp" }
     ];
 
-    private static readonly NestedObject[] _barNestedEntities =
+    private static readonly NestedObject[] s_barNestedEntities =
     [
-        new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp", }, },
-        new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp", }, },
+        new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp" } },
+        new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp" } }
     ];
 
-    private static readonly NestedList[] _barListEntities =
+    private static readonly NestedList[] s_barListEntities =
     [
         new()
         {
             List =
             [
-                new Foo { Name = "Foo", FooProp = "FooProp", },
-                new Bar { Name = "Bar", BarProp = "BarProp", },
-            ],
+                new Foo { Name = "Foo", FooProp = "FooProp" },
+                new Bar { Name = "Bar", BarProp = "BarProp" }
+            ]
         },
         new()
         {
             List =
             [
-                new Bar { Name = "Bar", BarProp = "BarProp", },
-                new Foo { Name = "Foo", FooProp = "FooProp", },
-            ],
-        },
+                new Bar { Name = "Bar", BarProp = "BarProp" },
+                new Foo { Name = "Foo", FooProp = "FooProp" }
+            ]
+        }
     ];
 
     private readonly SchemaCache _cache = new SchemaCache();
@@ -49,12 +46,12 @@ public class QueryableProjectionUnionTypeTests
     {
         // arrange
         var tester =
-            _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
+            _cache.CreateSchema(s_barEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -66,7 +63,7 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -80,7 +77,7 @@ public class QueryableProjectionUnionTypeTests
     {
         // arrange
         var tester =
-            _cache.CreateSchema(_barEntities,
+            _cache.CreateSchema(s_barEntities,
                 OnModelCreating,
                 configure: x =>
                 {
@@ -99,8 +96,8 @@ public class QueryableProjectionUnionTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -114,7 +111,7 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -128,12 +125,12 @@ public class QueryableProjectionUnionTypeTests
     {
         // arrange
         var tester = _cache
-            .CreateSchema(_barNestedEntities, OnModelCreating, configure: ConfigureSchema);
+            .CreateSchema(s_barNestedEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -147,7 +144,7 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -161,12 +158,12 @@ public class QueryableProjectionUnionTypeTests
     {
         // arrange
         var tester = _cache
-            .CreateSchema(_barListEntities, OnModelCreating, configure: ConfigureSchema);
+            .CreateSchema(s_barListEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -180,7 +177,7 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -194,12 +191,12 @@ public class QueryableProjectionUnionTypeTests
     {
         // arrange
         var tester =
-            _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
+            _cache.CreateSchema(s_barEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.New()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -208,7 +205,7 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -236,19 +233,19 @@ public class QueryableProjectionUnionTypeTests
     {
         public int Id { get; set; }
 
-        public List<AbstractType> List { get; set; } = default!;
+        public List<AbstractType> List { get; set; } = null!;
     }
 
     public class NestedObject
     {
         public int Id { get; set; }
 
-        public AbstractType Nested { get; set; } = default!;
+        public AbstractType Nested { get; set; } = null!;
     }
 
     public class Foo : AbstractType
     {
-        public string FooProp { get; set; } = default!;
+        public string FooProp { get; set; } = null!;
     }
 
     [UnionType]
@@ -256,11 +253,11 @@ public class QueryableProjectionUnionTypeTests
     {
         public int Id { get; set; }
 
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 
     public class Bar : AbstractType
     {
-        public string BarProp { get; set; } = default!;
+        public string BarProp { get; set; } = null!;
     }
 }

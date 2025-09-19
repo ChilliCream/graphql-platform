@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>StrawberryShake.Tools.Configuration</RootNamespace>
-  </PropertyGroup>  
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Configuration\StrawberryShake.Tools.Configuration.csproj" />

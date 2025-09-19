@@ -1,0 +1,18 @@
+mutation DeleteClientByIdCommandMutation($input: DeleteClientByIdInput!) {
+  deleteClientById(input: $input) {
+    client {
+      ...DeleteClientByIdCommandMutation_Client
+    }
+    errors {
+      ...Error
+      ...ClientNotFoundError
+      ...UnauthorizedOperation
+    }
+  }
+}
+
+fragment DeleteClientByIdCommandMutation_Client on Client {
+  name
+  id
+  ...ClientDetailPrompt_Client
+}

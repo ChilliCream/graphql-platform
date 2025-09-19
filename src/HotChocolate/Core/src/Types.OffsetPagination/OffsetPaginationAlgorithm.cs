@@ -1,8 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -23,32 +19,32 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
     /// </summary>
     /// <param name="query">The query builder.</param>
     /// <param name="arguments">The paging arguments.</param>
+    /// <param name="requireTotalCount">Specifies if the total count is needed.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
     public ValueTask<CollectionSegment<TEntity>> ApplyPaginationAsync(
         TQuery query,
         OffsetPagingArguments arguments,
-        CancellationToken cancellationToken) =>
-        ApplyPaginationAsync(query, arguments, null, cancellationToken);
+        bool requireTotalCount,
+        CancellationToken cancellationToken)
+        => ApplyPaginationAsync(query, arguments, null, requireTotalCount, cancellationToken);
 
     /// <summary>
     /// Applies the pagination algorithm to the provided data.
     /// </summary>
     /// <param name="query">The query builder.</param>
     /// <param name="arguments">The paging arguments.</param>
-    /// <param name="totalCount">Specify the total amount of elements</param>
+    /// <param name="totalCount">Specify the total amount of elements.</param>
+    /// <param name="requireTotalCount">Specifies if the total count is needed.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
     public async ValueTask<CollectionSegment<TEntity>> ApplyPaginationAsync(
         TQuery query,
         OffsetPagingArguments arguments,
         int? totalCount,
+        bool requireTotalCount,
         CancellationToken cancellationToken)
     {
-        Func<CancellationToken, ValueTask<int>> getTotalCount = totalCount is null
-            ? async ct => await CountAsync(query, ct)
-            : _ => new ValueTask<int>(totalCount.Value);
-
         var sliced = query;
 
         if (arguments.Skip is { } skip)
@@ -61,8 +57,12 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
             sliced = ApplyTake(sliced, take + 1);
         }
 
-        var items =
-            await ExecuteAsync(sliced, cancellationToken).ConfigureAwait(false);
+        var items = await ExecuteAsync(sliced, cancellationToken).ConfigureAwait(false);
+
+        if (requireTotalCount)
+        {
+            totalCount = await CountAsync(query, cancellationToken);
+        }
 
         var hasNextPage = items.Count == arguments.Take + 1;
         var hasPreviousPage = (arguments.Skip ?? 0) > 0;
@@ -71,7 +71,7 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
 
         items = new SkipLastCollection<TEntity>(items, skipLast: hasNextPage);
 
-        return new CollectionSegment<TEntity>( items, pageInfo, getTotalCount);
+        return new CollectionSegment<TEntity>(items, pageInfo, totalCount ?? -1);
     }
 
     /// <summary>
@@ -97,9 +97,6 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
     protected abstract ValueTask<IReadOnlyList<TEntity>> ExecuteAsync(
         TQuery query,
         CancellationToken cancellationToken);
-
-    private static ValueTask<int> GetTotalCountAssert(CancellationToken _) =>
-        throw new InvalidOperationException();
 
     private sealed class SkipLastCollection<T> : IReadOnlyList<T>
     {

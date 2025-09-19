@@ -1,9 +1,9 @@
 <Project>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0' OR '$(TargetFramework)' == 'netcoreapp2.1'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <NoWarn>$(NoWarn);8600;8601;8602;8603;8604;CS0436</NoWarn>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' OR '$(TargetFramework)' == 'netcoreapp2.1'">
-    <Compile Condition="'$(MSBuildProjectExtension)' == '.csproj'" Include="$(MSBuildThisFileDirectory)/Nullable.cs" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <Compile Include="$(MSBuildThisFileDirectory)/Nullable.cs" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,3 @@
-using System;
-using Snapshooter.Xunit;
 using HotChocolate.Types;
 using HotChocolate.Language;
 
@@ -11,11 +9,11 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeDesc_ConfigureIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddQueryType(builder, (Action<IObjectTypeDescriptor>)null);
+            .AddQueryType(builder, (Action<IObjectTypeDescriptor>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -27,7 +25,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddQueryType(null, t => { });
+            .AddQueryType(null!, t => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -37,7 +35,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeDesc_ConfigureQueryType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         SchemaBuilderExtensions.AddQueryType(builder,
@@ -51,11 +49,11 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeDesc_ConfigureIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType(builder, (Action<IObjectTypeDescriptor>)null);
+            .AddMutationType(builder, (Action<IObjectTypeDescriptor>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -67,7 +65,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType(null, t => { });
+            .AddMutationType(null!, t => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -77,7 +75,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeDesc_ConfigureQueryType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -92,11 +90,11 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeDesc_ConfigureIsNull_ArgNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType(builder, (Action<IObjectTypeDescriptor>)null);
+            .AddMutationType(builder, (Action<IObjectTypeDescriptor>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -108,7 +106,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType(null, t => { });
+            .AddMutationType(null!, t => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -118,7 +116,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeDesc_ConfigureQueryType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -133,12 +131,12 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeDescT_ConfigureIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
             .AddQueryType(builder,
-                (Action<IObjectTypeDescriptor<Foo>>)null);
+                (Action<IObjectTypeDescriptor<Foo>>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -150,7 +148,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddQueryType<Foo>(null, t => { });
+            .AddQueryType<Foo>(null!, t => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -160,7 +158,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeDescT_ConfigureQueryType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         SchemaBuilderExtensions.AddQueryType<Foo>(builder,
@@ -174,12 +172,11 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeDescT_ConfigureIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType(builder,
-                (Action<IObjectTypeDescriptor<Foo>>)null);
+            .AddMutationType<Foo>(builder, null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -191,7 +188,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType<Foo>(null, t => { });
+            .AddMutationType<Foo>(null!, t => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -201,7 +198,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeDescT_ConfigureQueryType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -216,12 +213,11 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeDescT_ConfigureIsNull_ArgNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType(builder,
-                (Action<IObjectTypeDescriptor<Foo>>)null);
+            .AddMutationType<Foo>(builder, null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -233,7 +229,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType<Foo>(null, t => { });
+            .AddMutationType<Foo>(null!, t => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -243,7 +239,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeDescT_ConfQueryType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -258,11 +254,11 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeType_TypeIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddQueryType(builder, (Type)null);
+            .AddQueryType(builder, (Type)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -274,7 +270,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddQueryType(null, typeof(FooType));
+            .AddQueryType(null!, typeof(FooType));
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -284,7 +280,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeType_TypeIsFooType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         SchemaBuilderExtensions.AddQueryType(builder, typeof(FooType));
@@ -297,11 +293,11 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeType_TypeIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType(builder, (Type)null);
+            .AddMutationType(builder, (Type)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -313,7 +309,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType(null, typeof(FooType));
+            .AddMutationType(null!, typeof(FooType));
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -323,7 +319,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeType_TypeIsFooType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -337,11 +333,11 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeType_TypeIsNull_ArgNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType(builder, (Type)null);
+            .AddMutationType(builder, (Type)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -353,7 +349,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType(null, typeof(FooType));
+            .AddMutationType(null!, typeof(FooType));
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -363,7 +359,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeType_TypeIsFooType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -378,11 +374,11 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeObjectType_TypeIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddQueryType(builder, (ObjectType)null);
+            .AddQueryType(builder, (ObjectType)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -394,7 +390,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddQueryType(null, new FooType());
+            .AddQueryType(null!, new FooType());
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -404,7 +400,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeObjectType_TypeIsFooType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         SchemaBuilderExtensions.AddQueryType(builder, new FooType());
@@ -417,11 +413,11 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeObjectType_TypeIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType(builder, (ObjectType)null);
+            .AddMutationType(builder, (ObjectType)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -433,7 +429,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType(null, new FooType());
+            .AddMutationType(null!, new FooType());
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -443,7 +439,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeObjectType_TypeIsFooType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -457,11 +453,11 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeObjectType_TypeIsNull_ArgNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType(builder, (ObjectType)null);
+            .AddMutationType(builder, (ObjectType)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -473,7 +469,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () => SchemaBuilderExtensions
-            .AddMutationType(null, new FooType());
+            .AddMutationType(null!, new FooType());
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -483,7 +479,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeObjType_TypeIsFooType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -498,11 +494,11 @@ public class SchemaBuilderExtensionsTypeTests
     public void SetSchema_BuilderIsNull_ArgumentException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () =>
-            SchemaBuilderExtensions.SetSchema<MySchema>(null);
+            SchemaBuilderExtensions.SetSchema<MySchema>(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -535,7 +531,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddObjectType(
-                null, c => { });
+                null!, c => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -548,7 +544,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddObjectType(
-                SchemaBuilder.New(), null);
+                SchemaBuilder.New(), null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -561,7 +557,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddObjectType<Foo>(
-                null, c => { });
+                null!, c => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -573,7 +569,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () =>
-            SchemaBuilderExtensions.AddObjectType<Foo>(null);
+            SchemaBuilderExtensions.AddObjectType<Foo>(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -586,7 +582,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddObjectType<Foo>(
-                SchemaBuilder.New(), null);
+                SchemaBuilder.New(), null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -599,7 +595,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddDirectiveType(
-                null, typeof(MyDirective));
+                null!, typeof(MyDirective));
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -609,11 +605,11 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddDirectiveType_TypeIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () =>
-            SchemaBuilderExtensions.AddDirectiveType(builder, (Type)null);
+            SchemaBuilderExtensions.AddDirectiveType(builder, null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -623,7 +619,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddDirectiveType_TypeIsDirectiveType_ArgumentException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () =>
@@ -638,7 +634,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddDirectiveType_TypeIsDirectiveTypeFoo_ArgumentException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () =>
@@ -653,7 +649,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddDirectiveType_TypeIsMyDirectiveType_SchemaIsValid()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -671,7 +667,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddInterfaceType(
-                null, c => { });
+                null!, c => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -702,7 +698,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddInterfaceType(
-                SchemaBuilder.New(), null);
+                SchemaBuilder.New(), null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -715,7 +711,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddInterfaceType<Foo>(
-                null, c => { });
+                null!, c => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -727,7 +723,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () =>
-            SchemaBuilderExtensions.AddInterfaceType<Foo>(null);
+            SchemaBuilderExtensions.AddInterfaceType<Foo>(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -740,7 +736,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddInterfaceType<Foo>(
-                SchemaBuilder.New(), null);
+                SchemaBuilder.New(), null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -771,7 +767,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddUnionType(
-                null, c => { });
+                null!, c => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -784,7 +780,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddUnionType(
-                SchemaBuilder.New(), null);
+                SchemaBuilder.New(), null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -820,7 +816,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddUnionType<Foo>(
-                null, c => { });
+                null!, c => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -832,7 +828,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () =>
-            SchemaBuilderExtensions.AddUnionType<Foo>(null);
+            SchemaBuilderExtensions.AddUnionType<Foo>(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -845,7 +841,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddUnionType<Foo>(
-                SchemaBuilder.New(), null);
+                SchemaBuilder.New(), null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -881,7 +877,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddInputObjectType(
-                null, c => { });
+                null!, c => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -894,7 +890,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddInputObjectType(
-                SchemaBuilder.New(), null);
+                SchemaBuilder.New(), null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -925,7 +921,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddInputObjectType<Foo>(
-                null, c => { });
+                null!, c => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -937,7 +933,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () =>
-            SchemaBuilderExtensions.AddInputObjectType<Foo>(null);
+            SchemaBuilderExtensions.AddInputObjectType<Foo>(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -950,7 +946,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddInputObjectType<Foo>(
-                SchemaBuilder.New(), null);
+                SchemaBuilder.New(), null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -974,7 +970,6 @@ public class SchemaBuilderExtensionsTypeTests
             .MatchSnapshot();
     }
 
-
     [Fact]
     public void AddEnumType_BuilderIsNull_ArgumentNullException()
     {
@@ -982,7 +977,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddEnumType(
-                null, c => { });
+                null!, c => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -995,7 +990,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddEnumType(
-                SchemaBuilder.New(), null);
+                SchemaBuilder.New(), null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1025,7 +1020,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddEnumType<Foo>(
-                null, c => { });
+                null!, c => { });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1037,7 +1032,7 @@ public class SchemaBuilderExtensionsTypeTests
         // arrange
         // act
         Action action = () =>
-            SchemaBuilderExtensions.AddEnumType<Foo>(null);
+            SchemaBuilderExtensions.AddEnumType<Foo>(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1050,7 +1045,7 @@ public class SchemaBuilderExtensionsTypeTests
         // act
         Action action = () =>
             SchemaBuilderExtensions.AddObjectType<Foo>(
-                SchemaBuilder.New(), null);
+                SchemaBuilder.New(), null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1118,18 +1113,16 @@ public class SchemaBuilderExtensionsTypeTests
     }
 
     public class BarType
-        : ObjectType<Bar>
-    {
-    }
+        : ObjectType<Bar>;
 
-    public class Foo
+    public class Foo(Bar bar)
     {
-        public Bar Bar { get; }
+        public Bar Bar { get; } = bar;
     }
 
     public class Bar
     {
-        public string Baz { get; }
+        public required string Baz { get; init; }
     }
 
     public class MySchema
@@ -1152,14 +1145,11 @@ public class SchemaBuilderExtensionsTypeTests
         }
     }
 
-    public interface IMyInterface
-    {
-
-    }
+    public interface IMyInterface;
 
     public enum MyEnum
     {
         A,
-        B,
+        B
     }
 }

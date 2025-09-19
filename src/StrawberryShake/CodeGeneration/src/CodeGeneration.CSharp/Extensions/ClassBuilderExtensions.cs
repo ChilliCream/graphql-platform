@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -125,7 +122,6 @@ internal static class ClassBuilderExtensions
                 .GetCompilationUnitRoot()
                 .Members
                 .ToArray());
-
 
         BuildGetHashCodeMethod(properties).Build(codeWriter);
         codeWriter.Flush();
@@ -291,16 +287,16 @@ internal static class ClassBuilderExtensions
             {
                 NonNullTypeDescriptor d =>
                     BuildPropertyInternal(d.InnerType, false),
-                ILeafTypeDescriptor { SerializationType.IsValueType: true, } =>
+                ILeafTypeDescriptor { SerializationType.IsValueType: true } =>
                     CodeInlineBuilder
                         .New()
                         .SetText($"global::System.Object.{nameof(Equals)}({propertyName}, {other}.{propertyName})"),
                 INamedTypeDescriptor when isNullable =>
                     ConditionBuilder
                         .New()
-                        .Set($"({propertyName} is null && {other}.{propertyName} is null) ||" +
-                             $"{propertyName} != null && {propertyName}.{nameof(Equals)}(" +
-                             $"{other}.{propertyName})"),
+                        .Set($"({propertyName} is null && {other}.{propertyName} is null) ||"
+                            + $"{propertyName} != null && {propertyName}.{nameof(Equals)}("
+                            + $"{other}.{propertyName})"),
                 INamedTypeDescriptor =>
                     MethodCallBuilder
                         .Inline()
@@ -312,7 +308,7 @@ internal static class ClassBuilderExtensions
                         .SetMethodName(TypeNames.SequenceEqual)
                         .AddArgument(propertyName)
                         .AddArgument($"{other}.{propertyName}"),
-                _ => throw new ArgumentOutOfRangeException(),
+                _ => throw new ArgumentOutOfRangeException()
             };
         }
     }

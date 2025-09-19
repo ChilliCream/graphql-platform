@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-
 namespace StrawberryShake.Tools.Configuration;
 
 public class StrawberryShakeSettingsTransportProfile
 {
-    public string Name { get; set; } = default!;
+    public string Name { get; set; } = null!;
 
     public TransportType Default { get; set; } = TransportType.Http;
 
@@ -16,7 +14,7 @@ public class StrawberryShakeSettingsTransportProfile
 
     public IEnumerable<TransportType> GetUsedTransports()
     {
-        var set = new HashSet<TransportType> { Default, };
+        var set = new HashSet<TransportType> { Default };
 
         if (Query is not null)
         {

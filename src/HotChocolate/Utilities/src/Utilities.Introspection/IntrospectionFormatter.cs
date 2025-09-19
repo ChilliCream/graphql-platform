@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Utilities.Introspection.Properties;
 
@@ -13,8 +10,11 @@ internal static class IntrospectionFormatter
 {
     public static DocumentNode Format(IntrospectionResult result)
     {
-        var typeDefinitions = new List<IDefinitionNode>();
-        typeDefinitions.Add(CreateSchema(result.Data!.Schema));
+        var typeDefinitions = new List<IDefinitionNode>
+        {
+            CreateSchema(result.Data!.Schema)
+        };
+
         typeDefinitions.AddRange(CreateTypes(result.Data.Schema.Types));
 
         foreach (var directive in result.Data.Schema.Directives)
@@ -62,7 +62,7 @@ internal static class IntrospectionFormatter
         OperationType operation,
         ICollection<OperationTypeDefinitionNode> operations)
     {
-        if (rootType is { Name: not null, })
+        if (rootType is { Name: not null })
         {
             operations.Add(new OperationTypeDefinitionNode(
                 null,
@@ -115,7 +115,7 @@ internal static class IntrospectionFormatter
             null,
             new NameNode(type.Name),
             CreateDescription(type.Description),
-            Array.Empty<DirectiveNode>(),
+            [],
             CreateEnumValues(type.EnumValues)
         );
     }
@@ -127,7 +127,6 @@ internal static class IntrospectionFormatter
 
         foreach (var value in enumValues)
         {
-
             values.Add(new EnumValueDefinitionNode
             (
                 null,
@@ -150,7 +149,7 @@ internal static class IntrospectionFormatter
             null,
             new NameNode(type.Name),
             CreateDescription(type.Description),
-            Array.Empty<DirectiveNode>(),
+            [],
             CreateInputValues(type.InputFields)
         );
     }
@@ -186,8 +185,8 @@ internal static class IntrospectionFormatter
             null,
             new NameNode(type.Name),
             CreateDescription(type.Description),
-            Array.Empty<DirectiveNode>(),
-            Array.Empty<NamedTypeNode>(),
+            [],
+            [],
             CreateFields(type.Fields)
         );
     }
@@ -200,7 +199,7 @@ internal static class IntrospectionFormatter
             null,
             new NameNode(type.Name),
             CreateDescription(type.Description),
-            Array.Empty<DirectiveNode>(),
+            [],
             CreateNamedTypeRefs(type.Interfaces),
             CreateFields(type.Fields)
         );
@@ -236,7 +235,7 @@ internal static class IntrospectionFormatter
             null,
             new NameNode(type.Name),
             CreateDescription(type.Description),
-            Array.Empty<DirectiveNode>(),
+            [],
             CreateNamedTypeRefs(type.PossibleTypes)
         );
     }
@@ -249,7 +248,7 @@ internal static class IntrospectionFormatter
             null,
             new NameNode(type.Name),
             CreateDescription(type.Description),
-            Array.Empty<DirectiveNode>()
+            []
         );
     }
 
@@ -332,10 +331,10 @@ internal static class IntrospectionFormatter
                         WellKnownDirectives.DeprecationReasonArgument,
                         new StringValueNode(deprecationReason)
                     )
-                ),
+                )
             };
         }
-        return Array.Empty<DirectiveNode>();
+        return [];
     }
 
     private static StringValueNode? CreateDescription(string description)

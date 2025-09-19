@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Types;
-
-#nullable enable
 
 namespace HotChocolate.Resolvers;
 

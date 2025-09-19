@@ -1,5 +1,3 @@
-using System.Linq;
-using CookieCrumble;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting;
@@ -65,7 +63,7 @@ public class SortConventionScopeTests
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class FooSortType : SortInputType<Foo>

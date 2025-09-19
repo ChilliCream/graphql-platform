@@ -1,4 +1,3 @@
-﻿using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
@@ -13,14 +12,14 @@ public class EnumTypeDescriptorTests : DescriptorTestBase
         var descriptor = EnumTypeDescriptor.New(Context, typeof(FooEnum));
 
         // assert
-        Assert.Equal("FooEnum", descriptor.CreateDefinition().Name);
+        Assert.Equal("FooEnum", descriptor.CreateConfiguration().Name);
     }
 
     [Fact]
     public void NoTypeProvided()
     {
         // act
-        Action a = () => EnumTypeDescriptor.New(Context, (Type)null);
+        Action a = () => EnumTypeDescriptor.New(Context, null);
 
         // assert
         Assert.Throws<ArgumentNullException>(a);
@@ -33,7 +32,7 @@ public class EnumTypeDescriptorTests : DescriptorTestBase
         var descriptor = EnumTypeDescriptor.New(Context, typeof(FooEnum));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Collection(description.Values,
             t =>
             {
@@ -58,7 +57,7 @@ public class EnumTypeDescriptorTests : DescriptorTestBase
         desc.Value(FooEnum.Bar1).Name("FOOBAR");
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Collection(description.Values,
             t =>
             {
@@ -84,7 +83,7 @@ public class EnumTypeDescriptorTests : DescriptorTestBase
         desc.BindValues(BindingBehavior.Explicit);
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Collection(description.Values,
             t =>
             {
@@ -104,7 +103,7 @@ public class EnumTypeDescriptorTests : DescriptorTestBase
         desc.Directive("Bar");
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Collection(
             description.Directives,
             t => Assert.Equal("Bar", Assert.IsType<DirectiveNode>(t.Value).Name.Value));
@@ -121,7 +120,7 @@ public class EnumTypeDescriptorTests : DescriptorTestBase
         desc.Directive(new DirectiveNode("Bar"));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Collection(description.Directives,
             t => Assert.Equal("Bar", Assert.IsType<DirectiveNode>(t.Value).Name.Value));
     }
@@ -138,7 +137,7 @@ public class EnumTypeDescriptorTests : DescriptorTestBase
             new ArgumentNode("a", new StringValueNode("b")));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Collection(description.Directives,
             t =>
             {
@@ -154,10 +153,9 @@ public class EnumTypeDescriptorTests : DescriptorTestBase
             });
     }
 
-
     private enum FooEnum
     {
         Bar1,
-        Bar2,
+        Bar2
     }
 }

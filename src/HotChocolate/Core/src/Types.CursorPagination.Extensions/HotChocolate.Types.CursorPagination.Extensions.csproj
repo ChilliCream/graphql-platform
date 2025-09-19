@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Types.CursorPagination.Extensions</PackageId>
+    <AssemblyName>HotChocolate.Types.CursorPagination.Extensions</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Pagination</RootNamespace>
+    <Description>Contains middleware and types for cursor based pagination.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data\GreenDonut.Data.csproj" />
+    <ProjectReference Include="..\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj" />
+  </ItemGroup>
+
+
+
+</Project>

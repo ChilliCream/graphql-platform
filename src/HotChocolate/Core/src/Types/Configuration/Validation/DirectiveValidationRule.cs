@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
 using static HotChocolate.Utilities.ErrorHelper;
 
@@ -12,37 +11,34 @@ namespace HotChocolate.Configuration.Validation;
 /// </summary>
 internal sealed class DirectiveValidationRule : ISchemaValidationRule
 {
-    private const char _prefixCharacter = '_';
+    private const char PrefixCharacter = '_';
 
     public void Validate(
-        ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
-        IReadOnlySchemaOptions options,
+        IDescriptorContext context,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
-        if (options.StrictValidation)
+        if (context.Options.StrictValidation)
         {
-            foreach (var type in typeSystemObjects)
+            foreach (var directiveDefinition in schema.DirectiveDefinitions)
             {
-                if (type is DirectiveType directiveType)
-                {
-                    EnsureDirectiveNameIsValid(directiveType, errors);
-                    EnsureArgumentNamesAreValid(directiveType, errors);
-                    EnsureArgumentDeprecationIsValid(directiveType, errors);
-                }
+                EnsureDirectiveNameIsValid(directiveDefinition, errors);
+                EnsureArgumentNamesAreValid(directiveDefinition, errors);
+                EnsureArgumentDeprecationIsValid(directiveDefinition, errors);
             }
         }
     }
 
     private static void EnsureDirectiveNameIsValid(
-        DirectiveType type,
+        IDirectiveDefinition type,
         ICollection<ISchemaError> errors)
     {
         if (type.Name.Length > 2)
         {
-            var firstTwoLetters = type.Name.AsSpan().Slice(0, 2);
+            var firstTwoLetters = type.Name.AsSpan()[..2];
 
-            if (firstTwoLetters[0] == _prefixCharacter &&
-                firstTwoLetters[1] == _prefixCharacter)
+            if (firstTwoLetters[0] == PrefixCharacter
+                && firstTwoLetters[1] == PrefixCharacter)
             {
                 errors.Add(TwoUnderscoresNotAllowedOnDirectiveName(type));
             }

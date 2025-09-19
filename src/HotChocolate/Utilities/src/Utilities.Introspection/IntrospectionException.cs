@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Utilities.Introspection;
 
 /// <summary>

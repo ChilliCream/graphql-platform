@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,15 +24,8 @@ public abstract class CodeGenerator<TDescriptor>
         ICodeDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (settings is null)
-        {
-            throw new ArgumentNullException(nameof(settings));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(settings);
 
         var code = new StringBuilder();
         using var stringWriter = new StringWriter(code);

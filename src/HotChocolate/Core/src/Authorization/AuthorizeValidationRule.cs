@@ -1,37 +1,50 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 
 namespace HotChocolate.Authorization;
 
-internal sealed class AuthorizeValidationRule : IDocumentValidatorRule
+internal sealed class AuthorizeValidationRule(AuthorizationCache cache) : IDocumentValidatorRule
 {
     private readonly AuthorizeValidationVisitor _visitor = new();
-    private readonly AuthorizationCache _cache;
+    private readonly AuthorizationCache _cache = cache ?? throw new ArgumentNullException(nameof(cache));
 
-    public AuthorizeValidationRule(AuthorizationCache cache)
-    {
-        _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-    }
+    public ushort Priority => ushort.MaxValue;
 
     public bool IsCacheable => false;
 
-    public void Validate(IDocumentValidatorContext context, DocumentNode document)
+    public void Validate(DocumentValidatorContext context, DocumentNode document)
     {
-        if (context.Schema.ContextData.ContainsKey(WellKnownContextData.AuthorizationRequestPolicy))
+        if (context.Schema.IsAuthorizedAtRequestLevel())
         {
-            if (!_cache.TryGetDirectives(context.DocumentId, out var directives))
+            if (!_cache.TryGetDirectives(context.DocumentId.Value, out var directives))
             {
-                _visitor.Visit(document, context);
-                directives = ((HashSet<AuthorizeDirective>)
-                    context.ContextData[AuthContextData.Directives]!).ToArray();
-                _cache.TryAddDirectives(context.DocumentId, directives);
+                directives = _cache.GetOrCreate(
+                    context.DocumentId.Value,
+                    static (_, d) => d.CollectDirectives(),
+                    new CacheContext(context, _visitor, document));
             }
 
             // update context data with the array result.
-            context.ContextData[AuthContextData.Directives] = directives;
+            context.SetAuthorizeDirectives(directives.Value);
+        }
+    }
+
+    internal sealed class CacheContext(
+        DocumentValidatorContext context,
+        AuthorizeValidationVisitor visitor,
+        DocumentNode document)
+    {
+        public DocumentValidatorContext Context => context;
+
+        public AuthorizeValidationVisitor Visitor => visitor;
+
+        public DocumentNode Document => document;
+
+        public ImmutableArray<AuthorizeDirective> CollectDirectives()
+        {
+            Visitor.Visit(document, context);
+            return context.GetAuthorizeDirectives();
         }
     }
 }

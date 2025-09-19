@@ -11,7 +11,7 @@ internal static class PatternExtensions
         [NotNullWhen(true)] out NodaTimeType? output)
         where NodaTimeType : struct
     {
-        ParseResult<NodaTimeType> result = pattern.Parse(text);
+        var result = pattern.Parse(text);
 
         if (result.Success)
         {
@@ -29,7 +29,7 @@ internal static class PatternExtensions
         [NotNullWhen(true)] out NodaTimeType? output)
         where NodaTimeType : class
     {
-        ParseResult<NodaTimeType> result = pattern.Parse(text);
+        var result = pattern.Parse(text);
 
         if (result.Success)
         {
@@ -47,7 +47,7 @@ internal static class PatternExtensions
         [NotNullWhen(true)] out NodaTimeType? output)
         where NodaTimeType : struct
     {
-        foreach (IPattern<NodaTimeType> pattern in patterns)
+        foreach (var pattern in patterns)
         {
             if (pattern.TryParse(text, out output))
             {
@@ -55,7 +55,7 @@ internal static class PatternExtensions
             }
         }
 
-        output = default;
+        output = null;
         return false;
     }
 
@@ -65,7 +65,7 @@ internal static class PatternExtensions
         [NotNullWhen(true)] out NodaTimeType? output)
         where NodaTimeType : class
     {
-        foreach (IPattern<NodaTimeType> pattern in patterns)
+        foreach (var pattern in patterns)
         {
             if (pattern.TryParse(text, out output))
             {
@@ -73,7 +73,7 @@ internal static class PatternExtensions
             }
         }
 
-        output = default;
+        output = null;
         return false;
     }
 }

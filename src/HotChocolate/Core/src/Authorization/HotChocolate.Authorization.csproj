@@ -1,18 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Authorization</PackageId>
     <AssemblyName>HotChocolate.Authorization</AssemblyName>
     <RootNamespace>HotChocolate.Authorization</RootNamespace>
     <Description>This package contains the authorization abstractions for Hot Chocolate.</Description>
-    <Nullable>enable</Nullable>
+    <NoWarn>HC8001;$(NoWarn)</NoWarn>
   </PropertyGroup>
-  
+
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Authorization" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Authorization.Tests" />
   </ItemGroup>
 

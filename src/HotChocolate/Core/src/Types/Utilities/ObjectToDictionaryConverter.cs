@@ -1,9 +1,9 @@
-using System.Linq;
-using System;
+#nullable disable
+
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Reflection;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Utilities;
 
@@ -16,17 +16,14 @@ internal class ObjectToDictionaryConverter
     {
         _converter = converter ?? throw new ArgumentNullException(nameof(converter));
     }
-    
+
     public object Convert(object obj)
     {
-        if(obj is null)
-        {
-            throw new ArgumentNullException(nameof(obj));
-        }
+        ArgumentNullException.ThrowIfNull(obj);
 
         object value = null;
         void SetValue(object v) => value = v;
-        VisitValue(obj, SetValue, []);
+        VisitValue(obj, SetValue, new HashSet<object>(ReferenceEqualityComparer.Instance));
         return value;
     }
 
@@ -61,14 +58,14 @@ internal class ObjectToDictionaryConverter
 
         var type = obj.GetType();
 
-        if (type.IsValueType &&
-            _converter.TryConvert(type, typeof(string), obj, out var converted) &&
-            converted is string s)
+        if (type.IsValueType
+            && _converter.TryConvert(type, typeof(string), obj, out var converted)
+            && converted is string s)
         {
             setValue(s);
         }
-        else if (!typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type) &&
-            obj is ICollection list)
+        else if (!typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type)
+            && obj is ICollection list)
         {
             VisitList(list, setValue, processed);
         }
@@ -143,6 +140,13 @@ internal class ObjectToDictionaryConverter
                     VisitValue(value, SetField, processed);
                 }
             }
+
+            processed.Remove(obj);
+        }
+        else
+        {
+            throw new GraphQLException(
+                TypeResources.ObjectToDictionaryConverter_CycleInObjectGraph);
         }
     }
 

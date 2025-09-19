@@ -168,7 +168,7 @@ type Bar {
 
 ## IsOfType
 
-The object type descriptor will by default use an instance of approach to figure out if a resolver result is of a certain object type. In some cases when you either have no explicit type binding or you use a .NET net type in multiple schema types it is necessary to specify a IsOfType delegate that determines the type of a resolver result.
+The object type descriptor will by default use an instance of approach to figure out if a resolver result is of a certain object type. In some cases when you either have no explicit type binding or you use a .NET net type in multiple schema types it is necessary to specify an IsOfType delegate that determines the type of a resolver result.
 
 ```csharp
 public class Bar
@@ -287,3 +287,5 @@ type Bar {
 ```
 
 Compared to the generic descriptor interface you are loosing the generic field descriptor that is able to bind a field to a .NET property or method.
+
+<!-- spell-checker:ignore amet, consectetur, adipiscing, elit -->

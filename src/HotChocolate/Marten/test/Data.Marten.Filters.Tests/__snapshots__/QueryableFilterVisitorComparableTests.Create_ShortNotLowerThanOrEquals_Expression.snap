@@ -1,0 +1,80 @@
+12 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": 14
+      },
+      {
+        "barShort": 13
+      }
+    ]
+  }
+}
+---------------
+
+12 SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo as d where CAST(d.data ->> 'BarShort' as smallint) > :p0;
+---------------
+
+13 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": 14
+      }
+    ]
+  }
+}
+---------------
+
+13 SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo as d where CAST(d.data ->> 'BarShort' as smallint) > :p0;
+---------------
+
+14 Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+14 SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo as d where CAST(d.data ->> 'BarShort' as smallint) > :p0;
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `nlte` of type ShortOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 35
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "Short!",
+        "filterType": "ShortOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

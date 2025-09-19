@@ -8,21 +8,19 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-    <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="6.0.0" />
-  </ItemGroup>
-
-
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+    <InternalsVisibleTo Include="HotChocolate.Abstractions.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Core.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
+
+    <!-- Legacy -->
+    <InternalsVisibleTo Include="HotChocolate.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Types" />
+    <InternalsVisibleTo Include="HotChocolate.Validation" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,15 +29,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>AbstractionResources.resx</DependentUpon>
     </Compile>
-    <Compile Update="Execution\IQueryRequestBuilder.cs">
-      <DependentUpon>IQueryResult.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IndexerPathSegment.cs">
-      <DependentUpon>Path.cs</DependentUpon>
-    </Compile>
-    <Compile Update="NamePathSegment.cs">
-      <DependentUpon>Path.cs</DependentUpon>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -47,6 +36,12 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>AbstractionResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+    <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
+    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

@@ -15,13 +15,12 @@ public sealed class InstrumentationOptions
     /// <summary>
     /// Specifies the activity scopes that shall be instrumented.
     /// </summary>
-    public ActivityScopes Scopes { get; set; } = ActivityScopes.Default;
+    public ActivityScopes Scopes { get; set; } = Default;
 
     /// <summary>
     /// Specifies if the parsed document shall be included into the tracing data.
     /// </summary>
     public bool IncludeDocument { get; set; }
-
 
     /// <summary>
     /// Specifies if DataLoader batch keys shall included into the tracing data.

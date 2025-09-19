@@ -69,7 +69,7 @@ services.AddGraphQLServer()
 Hot Chocolate will infer the sorting types directly from your .Net Model and then use a Middleware to apply the order to `IQueryable<T>` or `IEnumerable<T>` on execution.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -80,7 +80,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -174,7 +174,7 @@ enum AscOnlySortEnumType {
 To apply this sorting type we just have to provide it to the `UseSorting` extension method with as the generic type argument.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -185,7 +185,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -376,7 +376,7 @@ When you build extensions for sorting, you may want to modify or extend the `Def
 
 ```csharp
 descriptor.ConfigureEnum<DefaultSortEnumType>(
-    x => x.Operaion(CustomOperations.NULL_FIRST).Name("NULL_FIRST));
+    x => x.Operation(CustomOperations.NULL_FIRST).Name("NULL_FIRST));
 ```
 
 ```sdl
@@ -394,11 +394,11 @@ You can use `Configure<TSortType>()` to alter the configuration of a type.
 
 ```csharp
 descriptor.Configure<CustomSortInputType>(
-    x => x.Description("This is my custome description"));
+    x => x.Description("This is my custom description"));
 ```
 
 ```sdl
-"This is my customer description"
+"This is my custom description"
 input CustomSortInputType {
   name: SortEnumType
 }

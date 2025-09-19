@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Types;
 
@@ -20,11 +19,11 @@ public static class SerializerNameUtils
         var sb = new StringBuilder();
         sb.Append(prefix);
 
-        while (!(current is INamedType))
+        while (current is not ITypeDefinition)
         {
-            if (current is HotChocolate.Types.ListType)
+            if (current is ListType)
             {
-                if (types.Count == 0 || !(types.Peek() is NonNullType))
+                if (types.Count == 0 || types.Peek() is not NonNullType)
                 {
                     sb.Append("Nullable");
                 }
@@ -34,7 +33,7 @@ public static class SerializerNameUtils
             current = current.InnerType();
         }
 
-        if (types.Count == 0 || !(types.Peek() is NonNullType))
+        if (types.Count == 0 || types.Peek() is not NonNullType)
         {
             sb.Append("Nullable");
         }

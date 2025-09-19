@@ -1,9 +1,6 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.ApolloFederation.CertificationSchema.CodeFirst;
 
@@ -13,7 +10,7 @@ public class CertificationTests
     public async Task Schema_Snapshot()
     {
         var executor = await SchemaSetup.CreateAsync();
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.MatchSnapshot();
     }
 
     [Fact]
@@ -33,7 +30,7 @@ public class CertificationTests
             """);
 
         // assert
-        var queryResult = Assert.IsType<QueryResult>(result);
+        var queryResult = Assert.IsType<OperationResult>(result);
         var data = Assert.IsType<ObjectResult>(queryResult.Data);
         var service = Assert.IsType<ObjectResult>(data.GetValueOrDefault("_service"));
         service.GetValueOrDefault("sdl").MatchSnapshot();
@@ -62,8 +59,8 @@ public class CertificationTests
                 {
                     new ObjectValueNode(
                         new ObjectFieldNode("__typename", "Product"),
-                        new ObjectFieldNode("id", "apollo-federation")),
-                },
+                        new ObjectFieldNode("id", "apollo-federation"))
+                }
             });
 
         // assert
@@ -94,8 +91,8 @@ public class CertificationTests
                     new ObjectValueNode(
                         new ObjectFieldNode("__typename", "Product"),
                         new ObjectFieldNode("sku", "federation"),
-                        new ObjectFieldNode("package", "@apollo/federation")),
-                },
+                        new ObjectFieldNode("package", "@apollo/federation"))
+                }
             });
 
         // assert
@@ -128,8 +125,8 @@ public class CertificationTests
                         new ObjectFieldNode("sku", "federation"),
                         new ObjectFieldNode("variation",
                             new ObjectValueNode(
-                                new ObjectFieldNode("id", "OSS")))),
-                },
+                                new ObjectFieldNode("id", "OSS"))))
+                }
             });
 
         // assert
@@ -153,7 +150,7 @@ public class CertificationTests
             """,
             new Dictionary<string, object?>
             {
-                ["id"] = "apollo-federation",
+                ["id"] = "apollo-federation"
             });
 
         // assert
@@ -177,7 +174,7 @@ public class CertificationTests
             """,
             new Dictionary<string, object?>
             {
-                ["id"] = "apollo-federation",
+                ["id"] = "apollo-federation"
             });
 
         // assert

@@ -21,7 +21,7 @@ public static class RabbitMQPubSubExtensions
     /// </param>
     /// <param name="connectionFactory">
     /// The RabbitMQ connection factory. This parameter is optional; the default value is <c>null</c>.
-    /// The following properties will be overriden with <c>true</c> to make the connection recoverable.
+    /// The following properties will be overridden with <c>true</c> to make the connection recoverable.
     /// - <c>AutomaticRecoveryEnabled</c>
     /// - <c>DispatchConsumersAsync</c>
     /// </param>
@@ -39,10 +39,7 @@ public static class RabbitMQPubSubExtensions
         ConnectionFactory? connectionFactory = null,
         SubscriptionOptions? options = null)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services
             .AddRabbitMQSubscriptionPublisher(connectionFactory, options)
@@ -56,11 +53,11 @@ public static class RabbitMQPubSubExtensions
     /// not running, but you still want to publish events via RabbitMQ for another process to receive.
     /// </summary>
     /// <param name="services">
-    /// The service collecion builder.
+    /// The service collection builder.
     /// </param>
     /// <param name="connectionFactory">
     /// The RabbitMQ connection factory. This parameter is optional; the default value is <c>null</c>.
-    /// The following properties will be overriden with <c>true</c> to make the connection recoverable.
+    /// The following properties will be overridden with <c>true</c> to make the connection recoverable.
     /// - <c>AutomaticRecoveryEnabled</c>
     /// - <c>DispatchConsumersAsync</c>
     /// </param>

@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -6,10 +5,9 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// The filter input descriptor allows to configure a <see cref="FilterInputType"/>.
+/// The filter input descriptor allows configuring a <see cref="FilterInputType"/>.
 /// </summary>
-public interface IFilterInputTypeDescriptor<T>
-    : IFilterInputTypeDescriptor
+public interface IFilterInputTypeDescriptor<T> : IFilterInputTypeDescriptor
 {
     /// <summary>
     /// Defines the name of the <see cref="FilterInputType{T}"/>.
@@ -87,7 +85,7 @@ public interface IFilterInputTypeDescriptor<T>
     /// <summary>
     /// Ignore the specified property.
     /// </summary>
-    /// <param  name="propertyOrMember">
+    /// <param name="propertyOrMember">
     /// The property that shall be ignored.
     /// </param>
     IFilterInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> propertyOrMember);

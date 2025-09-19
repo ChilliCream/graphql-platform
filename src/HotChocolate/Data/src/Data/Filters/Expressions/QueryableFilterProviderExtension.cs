@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Data.Filters.Expressions;
 
 public class QueryableFilterProviderExtension

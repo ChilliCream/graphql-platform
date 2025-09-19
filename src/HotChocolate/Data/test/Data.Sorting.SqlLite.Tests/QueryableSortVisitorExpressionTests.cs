@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,10 +6,10 @@ namespace HotChocolate.Data.Sorting;
 
 public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new Foo { Name = "Sam", LastName = "Sampleman", Bars = Array.Empty<Bar>(), },
-         new Foo { Name = "Foo", LastName = "Galoo", Bars = new Bar[]{ new Bar { Value="A", }, }, },
+        new Foo { Name = "Sam", LastName = "Sampleman", Bars = Array.Empty<Bar>() },
+         new Foo { Name = "Foo", LastName = "Galoo", Bars = new Bar[]{ new Bar { Value="A" } } }
     ];
 
     private readonly SchemaCache _cache;
@@ -27,24 +23,24 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
     public async Task Create_StringConcatExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortInputType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(order: { displayName: DESC}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.New()
+            .SetDocument("{ root(order: { displayName: DESC}){ name lastName}}")
+            .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(order: { displayName: ASC}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.New()
+            .SetDocument("{ root(order: { displayName: ASC}){ name lastName}}")
+            .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "DESC"), res2, "ASC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "DESC")
+            .AddResult(res2, "ASC")
             .MatchAsync();
     }
 
@@ -77,25 +73,25 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
     public async Task Create_CollectionLengthExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortInputType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(order: { barLength: ASC}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.New()
+            .SetDocument("{ root(order: { barLength: ASC}){ name lastName}}")
+            .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(order: { barLength: DESC}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.New()
+            .SetDocument("{ root(order: { barLength: DESC}){ name lastName}}")
+            .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
-            .MatchAsync();;
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
+            .MatchAsync();
     }
 
     public class Foo

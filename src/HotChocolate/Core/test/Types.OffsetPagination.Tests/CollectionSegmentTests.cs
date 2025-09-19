@@ -1,85 +1,61 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+namespace HotChocolate.Types.Pagination;
 
-namespace HotChocolate.Types.Pagination
+public class CollectionSegmentTests
 {
-    public class CollectionSegmentTests
+    [Fact]
+    public void CreateCollectionSegment_PageInfoAndItems_PassedCorrectly()
     {
-        [Fact]
-        public void CreateCollectionSegment_PageInfoAndItems_PassedCorrectly()
-        {
-            // arrange
-            var pageInfo = new CollectionSegmentInfo(true, true);
-            var items = new List<string>();
+        // arrange
+        var pageInfo = new CollectionSegmentInfo(true, true);
+        var items = new List<string>();
 
-            // act
-            var collection = new CollectionSegment(
-                items,
-                pageInfo,
-                ct => throw new NotSupportedException());
+        // act
+        var collection = new CollectionSegment(
+            items,
+            pageInfo,
+            1);
 
-            // assert
-            Assert.Equal(pageInfo, collection.Info);
-            Assert.Equal(items, collection.Items);
-        }
+        // assert
+        Assert.Equal(pageInfo, collection.Info);
+        Assert.Equal(items, collection.Items);
+    }
 
-        [Fact]
-        public void CreateCollectionSegment_PageInfoNull_ArgumentNullException()
-        {
-            // arrange
-            var items = new List<string>();
+    [Fact]
+    public void CreateCollectionSegment_PageInfoNull_ArgumentNullException()
+    {
+        // arrange
+        // act
+        void Error() => new CollectionSegment<string>([], null!, 1);
 
-            // act
-            Action a = () => new CollectionSegment<string>(
-                items, null, ct => throw new NotSupportedException());
+        // assert
+        Assert.Throws<ArgumentNullException>(Error);
+    }
 
-            // assert
-            Assert.Throws<ArgumentNullException>(a);
-        }
+    [Fact]
+    public void CreateCollectionSegment_ItemsNull_ArgumentNullException()
+    {
+        // arrange
+        // act
+        void Verify() => new CollectionSegment<string>(
+            null!,
+            new CollectionSegmentInfo(true, true),
+            1);
 
-        [Fact]
-        public void CreateCollectionSegment_ItemsNull_ArgumentNullException()
-        {
-            // arrange
-            var pageInfo = new CollectionSegmentInfo(true, true);
+        // assert
+        Assert.Throws<ArgumentNullException>(Verify);
+    }
 
-            // act
-            void Verify() => new CollectionSegment<string>(
-                null!,
-                pageInfo,
-                _ => throw new NotSupportedException());
+    [Fact]
+    public void GetTotalCountAsync_Value_ReturnsTotalCount()
+    {
+        // arrange
+        // act
+        var collection = new CollectionSegment(
+            [],
+            new CollectionSegmentInfo(true, true),
+            2);
 
-            // assert
-            Assert.Throws<ArgumentNullException>(Verify);
-        }
-
-        [Fact]
-        public async Task GetTotalCountAsync_Delegate_ReturnsTotalCount()
-        {
-            // arrange
-            var pageInfo = new CollectionSegmentInfo(true, true);
-            var items = new List<string>();
-
-            // act
-            var collection = new CollectionSegment(items, pageInfo, _ => new ValueTask<int>(2));
-
-            // assert
-            Assert.Equal(2, await collection.GetTotalCountAsync(default));
-        }
-
-        [Fact]
-        public async Task GetTotalCountAsync_Value_ReturnsTotalCount()
-        {
-            // arrange
-            var pageInfo = new CollectionSegmentInfo(true, true);
-            var items = new List<string>();
-
-            // act
-            var collection = new CollectionSegment(items, pageInfo, 2);
-
-            // assert
-            Assert.Equal(2, await collection.GetTotalCountAsync(default));
-        }
+        // assert
+        Assert.Equal(2, collection.TotalCount);
     }
 }

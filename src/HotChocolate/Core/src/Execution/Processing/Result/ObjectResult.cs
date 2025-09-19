@@ -1,10 +1,7 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using HotChocolate.Types;
-using HotChocolate.Utilities;
+using System.Text.Json;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -17,7 +14,7 @@ public sealed class ObjectResult
     , IReadOnlyDictionary<string, object?>
     , IEnumerable<ObjectFieldResult>
 {
-    private ObjectFieldResult[] _buffer = Array.Empty<ObjectFieldResult>();
+    private ObjectFieldResult[] _buffer = [];
     private int _capacity;
 
     /// <summary>
@@ -35,7 +32,7 @@ public sealed class ObjectResult
     /// <summary>
     /// Gets a reference to the first <see cref="ObjectFieldResult"/> in the buffer.
     /// </summary>
-    internal ref ObjectFieldResult GetReference()
+    private ref ObjectFieldResult GetReference()
         => ref MemoryMarshal.GetReference(_buffer.AsSpan());
 
     /// <summary>
@@ -108,10 +105,10 @@ public sealed class ObjectResult
     {
         ref var searchSpace = ref GetReference();
 
-        for(var i = 0; i < _capacity; i++)
+        for (var i = 0; i < _capacity; i++)
         {
             var item = Unsafe.Add(ref searchSpace, i);
-            if (name.EqualsOrdinal(item.Name))
+            if (name.Equals(item.Name, StringComparison.Ordinal))
             {
                 index = i;
                 return item;
@@ -119,7 +116,7 @@ public sealed class ObjectResult
         }
 
         index = -1;
-        return default;
+        return null;
     }
 
     /// <summary>
@@ -143,12 +140,60 @@ public sealed class ObjectResult
 
             for (var i = oldCapacity; i < _buffer.Length; i++)
             {
-                var field = new ObjectFieldResult();
-                _buffer[i] = field;
+                _buffer[i] = new ObjectFieldResult();
             }
         }
 
         _capacity = capacity;
+    }
+
+    public override void WriteTo(
+        Utf8JsonWriter writer,
+        JsonSerializerOptions? options = null,
+        JsonNullIgnoreCondition nullIgnoreCondition = JsonNullIgnoreCondition.None)
+    {
+#if NET9_0_OR_GREATER
+        options ??= JsonSerializerOptions.Web;
+#else
+        options ??= JsonSerializerOptions.Default;
+#endif
+
+        writer.WriteStartObject();
+
+        ref var field = ref GetReference();
+        ref var end = ref Unsafe.Add(ref field, _capacity);
+
+        while (Unsafe.IsAddressLessThan(ref field, ref end))
+        {
+            if (field.IsInitialized)
+            {
+                switch (field.Value)
+                {
+                    case null:
+                        if ((nullIgnoreCondition & JsonNullIgnoreCondition.Fields) == JsonNullIgnoreCondition.Fields)
+                        {
+                            break;
+                        }
+
+                        writer.WriteNull(field.Name);
+                        break;
+
+                    case ResultData resultData:
+                        writer.WritePropertyName(field.Name);
+                        resultData.WriteTo(writer, options, nullIgnoreCondition);
+                        break;
+
+                    default:
+                        writer.WritePropertyName(field.Name);
+                        JsonValueFormatter.WriteValue(writer, field.Value, options, nullIgnoreCondition);
+                        break;
+                }
+            }
+
+            field = ref Unsafe.Add(ref field, 1)!;
+        }
+
+        writer.WriteEndObject();
     }
 
     /// <summary>
@@ -158,7 +203,7 @@ public sealed class ObjectResult
     {
         ref var searchSpace = ref GetReference();
 
-        for(var i = 0; i < _capacity; i++)
+        for (var i = 0; i < _capacity; i++)
         {
             Unsafe.Add(ref searchSpace, i).Reset();
         }
@@ -180,11 +225,11 @@ public sealed class ObjectResult
         {
             for (var i = 0; i < _capacity; i++)
             {
-                var field = _buffer[i];
+                var fieldResult = _buffer[i];
 
-                if (field.IsInitialized)
+                if (fieldResult.IsInitialized)
                 {
-                    yield return field.Name;
+                    yield return fieldResult.Name;
                 }
             }
         }
@@ -196,11 +241,11 @@ public sealed class ObjectResult
         {
             for (var i = 0; i < _capacity; i++)
             {
-                var field = _buffer[i];
+                var fieldResult = _buffer[i];
 
-                if (field.IsInitialized)
+                if (fieldResult.IsInitialized)
                 {
-                    yield return field.Value;
+                    yield return fieldResult.Value;
                 }
             }
         }
@@ -222,7 +267,7 @@ public sealed class ObjectResult
         }
 
         value = null;
-        return true;
+        return false;
     }
 
     public IEnumerator<ObjectFieldResult> GetEnumerator()
@@ -253,11 +298,4 @@ public sealed class ObjectResult
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-}
-
-internal static class ObjectResultExtensions
-{
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void InitValueUnsafe(this ObjectResult result, int index, ISelection selection)
-        => result.SetValueUnsafe(index, selection.ResponseName, null, selection.Type.Kind is not TypeKind.NonNull);
 }

@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace StrawberryShake;
 
@@ -50,8 +47,7 @@ public sealed partial class OperationStore
         , IDisposable
     {
         private readonly object _sync = new();
-        private ImmutableList<OperationStoreSession> _sessions =
-            ImmutableList<OperationStoreSession>.Empty;
+        private ImmutableList<OperationStoreSession> _sessions = [];
 
         public void Next(OperationUpdate operationUpdate)
         {

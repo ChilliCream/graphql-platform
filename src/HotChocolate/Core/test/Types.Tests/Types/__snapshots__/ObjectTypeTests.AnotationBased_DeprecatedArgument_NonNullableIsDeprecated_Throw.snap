@@ -1,5 +1,5 @@
 ﻿{
-  "message": "Required argument QueryWithDeprecatedArgumentsIllegal.field(deprecated) cannot be deprecated.",
+  "message": "Required argument QueryWithDeprecatedArgumentsIllegal.field(deprecated:) cannot be deprecated.",
   "type": "QueryWithDeprecatedArgumentsIllegal",
   "extensions": {
     "argument": "deprecated",

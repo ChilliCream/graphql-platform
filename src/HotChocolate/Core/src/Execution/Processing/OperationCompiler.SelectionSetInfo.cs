@@ -4,16 +4,10 @@ namespace HotChocolate.Execution.Processing;
 
 public sealed partial class OperationCompiler
 {
-    internal readonly struct SelectionSetInfo
+    internal readonly struct SelectionSetInfo(SelectionSetNode selectionSet, long includeCondition)
     {
-        public SelectionSetInfo(SelectionSetNode selectionSet, long includeCondition)
-        {
-            SelectionSet = selectionSet;
-            IncludeCondition = includeCondition;
-        }
+        public SelectionSetNode SelectionSet { get; } = selectionSet;
 
-        public SelectionSetNode SelectionSet { get; }
-
-        public long IncludeCondition { get; }
+        public long IncludeCondition { get; } = includeCondition;
     }
 }

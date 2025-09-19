@@ -1,0 +1,19 @@
+openapi: 3.0.0
+
+info:
+  title: Synthetic with tags
+  version: 1.0.0
+
+paths:
+  /:
+    get:
+      responses:
+        200:
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: boolean
+      tags:
+        - Tag 1
+        - Tag 2

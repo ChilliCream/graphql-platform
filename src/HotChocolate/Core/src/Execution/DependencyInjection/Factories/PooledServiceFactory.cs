@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.DependencyInjection;

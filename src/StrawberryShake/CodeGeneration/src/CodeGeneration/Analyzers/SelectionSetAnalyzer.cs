@@ -1,4 +1,4 @@
-﻿using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Analyzers.Models;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 

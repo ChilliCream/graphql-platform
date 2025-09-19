@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language.Visitors;
 
 public partial class SyntaxVisitor<TContext>
@@ -789,7 +787,6 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-
         for (var i = 0; i < node.Values.Count; i++)
         {
             if (Visit(node.Values[i], node, context).IsBreak())
@@ -1139,16 +1136,16 @@ public partial class SyntaxVisitor<TContext>
             return Break;
         }
 
-        if(_options.VisitNames &&
-            node.MemberName is not null &&
-            Visit(node.MemberName, node, context).IsBreak())
+        if (_options.VisitNames
+            && node.MemberName is not null
+            && Visit(node.MemberName, node, context).IsBreak())
         {
             return Break;
         }
 
-        if(_options.VisitNames &&
-            node.ArgumentName is not null &&
-            Visit(node.ArgumentName, node, context).IsBreak())
+        if (_options.VisitNames
+            && node.ArgumentName is not null
+            && Visit(node.ArgumentName, node, context).IsBreak())
         {
             return Break;
         }

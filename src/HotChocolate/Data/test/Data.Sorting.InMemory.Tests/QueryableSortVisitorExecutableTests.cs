@@ -1,22 +1,20 @@
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Sorting;
 
 public class QueryableSortVisitorExecutableTests : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = null, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = null },
+        new() { Bar = false }
     ];
 
     private readonly SchemaCache _cache;
@@ -30,18 +28,18 @@ public class QueryableSortVisitorExecutableTests : IClassFixture<SchemaCache>
     public async Task Create_Boolean_OrderBy()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(order: { bar: ASC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(order: { bar: ASC}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(order: { bar: DESC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(order: { bar: DESC}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -55,18 +53,18 @@ public class QueryableSortVisitorExecutableTests : IClassFixture<SchemaCache>
     public async Task Create_Boolean_OrderBy_List()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(order: [{ bar: ASC}]){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(order: [{ bar: ASC}]){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(order: [{ bar: DESC}]){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(order: [{ bar: DESC}]){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -81,18 +79,18 @@ public class QueryableSortVisitorExecutableTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableSortType>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(order: { bar: ASC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(order: { bar: ASC}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(order: { bar: DESC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(order: { bar: DESC}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -116,11 +114,7 @@ public class QueryableSortVisitorExecutableTests : IClassFixture<SchemaCache>
         public bool? Bar { get; set; }
     }
 
-    public class FooSortType : SortInputType<Foo>
-    {
-    }
+    public class FooSortType : SortInputType<Foo>;
 
-    public class FooNullableSortType : SortInputType<FooNullable>
-    {
-    }
+    public class FooNullableSortType : SortInputType<FooNullable>;
 }

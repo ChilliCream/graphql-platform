@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types;
@@ -17,7 +15,7 @@ public class DirectiveDescriptorTests
         descriptor.Name("Foo");
 
         // assert
-        Assert.Equal("Foo", descriptor.CreateDefinition().Name);
+        Assert.Equal("Foo", descriptor.CreateConfiguration().Name);
     }
 
     [Fact]
@@ -28,7 +26,7 @@ public class DirectiveDescriptorTests
         var descriptor = DirectiveTypeDescriptor.New<CustomDirective>(Context);
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Equal("custom", description.Name);
     }
 
@@ -44,7 +42,7 @@ public class DirectiveDescriptorTests
 
         // assert
         var description =
-            descriptor.CreateDefinition();
+            descriptor.CreateConfiguration();
         Assert.Equal("Foo", description.Name);
     }
 
@@ -55,7 +53,7 @@ public class DirectiveDescriptorTests
         var descriptor = DirectiveTypeDescriptor.New(Context);
 
         // act
-        Action a = () => descriptor.Name(null);
+        Action a = () => descriptor.Name(null!);
 
         // assert
         Assert.Throws<ArgumentException>(a);
@@ -84,7 +82,7 @@ public class DirectiveDescriptorTests
         descriptor.Description("Desc");
 
         // assert
-        Assert.Equal("Desc", descriptor.CreateDefinition().Description);
+        Assert.Equal("Desc", descriptor.CreateConfiguration().Description);
     }
 
     [Fact]
@@ -94,10 +92,10 @@ public class DirectiveDescriptorTests
         var descriptor = DirectiveTypeDescriptor.New(Context);
 
         // act
-        descriptor.Argument("arg").Type<BooleanType>(); ;
+        descriptor.Argument("arg").Type<BooleanType>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Equal("arg", description.Arguments.Single().Name);
     }
 
@@ -110,7 +108,7 @@ public class DirectiveDescriptorTests
 
         // assert
         var description =
-            descriptor.CreateDefinition();
+            descriptor.CreateConfiguration();
         Assert.Collection(description.Arguments,
             t => Assert.Equal("fieldA", t.Name),
             t => Assert.Equal("fieldB", t.Name));
@@ -129,7 +127,7 @@ public class DirectiveDescriptorTests
 
         // assert
         var description =
-            descriptor.CreateDefinition();
+            descriptor.CreateConfiguration();
         Assert.Collection(description.Arguments,
             t => Assert.Equal("fieldA", t.Name));
     }
@@ -144,7 +142,7 @@ public class DirectiveDescriptorTests
         descriptor.Argument(t => t.FieldA).Type<NonNullType<StringType>>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Collection(description.Arguments,
             t => Assert.Equal(
                 typeof(NonNullType<StringType>),
@@ -164,7 +162,7 @@ public class DirectiveDescriptorTests
         descriptor.Argument(t => t.FieldA).Type(typeof(NonNullType<StringType>));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Collection(description.Arguments,
             t => Assert.Equal(
                 typeof(NonNullType<StringType>),
@@ -186,7 +184,7 @@ public class DirectiveDescriptorTests
 
         // assert
         var description =
-            descriptor.CreateDefinition();
+            descriptor.CreateConfiguration();
         Assert.Collection(description.Arguments,
             t => Assert.Equal("fieldB", t.Name));
     }
@@ -204,7 +202,7 @@ public class DirectiveDescriptorTests
 
         // assert
         var description =
-            descriptor.CreateDefinition();
+            descriptor.CreateConfiguration();
         Assert.Collection(description.Arguments,
             t => Assert.Equal("fieldA", t.Name),
             t => Assert.Equal("fieldB", t.Name));
@@ -237,17 +235,17 @@ public class DirectiveDescriptorTests
 
         // assert
         var description =
-            descriptor.CreateDefinition();
+            descriptor.CreateConfiguration();
         Assert.Collection(description.Locations.AsEnumerable(),
             t => Assert.Equal(DirectiveLocation.Enum, t),
             t => Assert.Equal(DirectiveLocation.EnumValue, t));
     }
 
-    public class CustomDirective
+    public class CustomDirective(string fieldA, string fieldB)
     {
-        public string FieldA { get; }
+        public string FieldA { get; } = fieldA;
 
-        public string FieldB { get; }
+        public string FieldB { get; } = fieldB;
 
         public string Foo() => throw new NotSupportedException();
     }

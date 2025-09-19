@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.Properties.Resources;
@@ -11,13 +10,13 @@ namespace HotChocolate.Execution.Processing;
 internal static class RootValueResolver
 {
     public static object? Resolve(
-        IRequestContext context,
+        RequestContext context,
         IServiceProvider services,
         ObjectType rootType,
         ref object? cachedValue)
     {
-        if (context.ContextData.TryGetValue(WellKnownContextData.InitialValue, out var o) &&
-            o is not null)
+        if (context.ContextData.TryGetValue(WellKnownContextData.InitialValue, out var o)
+            && o is not null)
         {
             return o;
         }
@@ -36,11 +35,11 @@ internal static class RootValueResolver
             var rootValue = services.GetService(rootType.RuntimeType);
 
             // if the request services did not provide a rootValue and the runtime
-            // representation is a instantiatable class we will create a singleton ourselfs
+            // representation is an instantiable class we will create a singleton ourselves
             // and store it as cached value in order to reuse it.
-            if (rootValue is null &&
-                !rootType.RuntimeType.IsAbstract &&
-                !rootType.RuntimeType.IsInterface)
+            if (rootValue is null
+                && !rootType.RuntimeType.IsAbstract
+                && !rootType.RuntimeType.IsInterface)
             {
                 try
                 {

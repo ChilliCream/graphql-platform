@@ -4,9 +4,7 @@
     <PackageId>StrawberryShake.Razor</PackageId>
     <AssemblyName>StrawberryShake.Razor</AssemblyName>
     <RootNamespace>StrawberryShake.Razor</RootNamespace>
-    <Nullable>enable</Nullable>
     <Description>Provides razor components for using StrawberryShake.</Description>
-    <TargetFrameworks>net8.0; net7.0; net6.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,19 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Reactive" Version="6.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'netstandard2.1' OR '$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
+    <PackageReference Include="System.Reactive" />
   </ItemGroup>
 
   <ItemGroup>

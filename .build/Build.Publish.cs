@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using Nuke.Common;
 using Nuke.Common.IO;
@@ -8,8 +10,6 @@ using Nuke.Common.Tools.NuGet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
 using static Nuke.Common.Tools.NuGet.NuGetTasks;
-using Nuke.Common.Utilities.Collections;
-using System.Linq;
 
 partial class Build
 {
@@ -18,6 +18,36 @@ partial class Build
     [Parameter("NuGet Api Key")] readonly string NuGetApiKey;
     [Parameter("NuGet Source for Packages")] readonly string MyGetSource = "https://www.myget.org/F/hotchocolate/api/v3/index.json";
     [Parameter("MyGet Api Key")] readonly string MyGetApiKey;
+
+    [NuGetPackage(
+        packageId: "ChilliCream.Nitro.CLI",
+        packageExecutable: "ChilliCream.Nitro.CLI.dll",
+        Framework = "net8.0")]
+    readonly Tool NitroCli;
+
+    Target PublishAot => _ => _
+        .Requires(() => SemVersion)
+        .Requires(() => Configuration.Equals(Release))
+        .Executes(() =>
+        {
+            DotNetPublish(c => c
+                .SetProject("src/Nitro/CommandLine/src/CommandLine")
+                .SetOutput(PublishDirectory)
+                .SetRuntime(RuntimeIdentifier)
+                .SetFramework("net10.0")
+                .SetConfiguration(Configuration)
+                .SetSelfContained(true)
+                .SetInformationalVersion(SemVersion)
+                .SetFileVersion(Version)
+                .SetAssemblyVersion(Version)
+                .SetVersion(SemVersion)
+                .SetProperty("NitroApiClientId", NitroApiClientId)
+                .SetProperty("NitroIdentityClientId", NitroIdentityClientId)
+                .SetProperty("NitroIdentityScopes", NitroIdentityScopes)
+                .SetProperty("PublishAot", true)
+                .SetProperty("TargetFrameworks", "NET10.0")
+                .SetProperty("RuntimeIdentifiers", RuntimeIdentifier));
+        });
 
     Target Pack => _ => _
         .DependsOn(PackLocal)
@@ -41,29 +71,19 @@ partial class Build
             */
         });
 
-
     Target PackLocal => _ => _
         .Produces(PackageDirectory / "*.nupkg")
         .Produces(PackageDirectory / "*.snupkg")
         .Executes(() =>
         {
-            var projFile = File.ReadAllText(StarWarsProj);
-            File.WriteAllText(StarWarsProj, projFile.Replace("11.1.0", SemVersion));
-
-            projFile = File.ReadAllText(EmptyServer12Proj);
-            File.WriteAllText(EmptyServer12Proj, projFile.Replace("11.1.0", SemVersion));
+            var projFile = File.ReadAllText(EmptyServer12Proj);
+            File.WriteAllText(EmptyServer12Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
             projFile = File.ReadAllText(EmptyAzf12Proj);
-            File.WriteAllText(EmptyAzf12Proj, projFile.Replace("11.1.0", SemVersion));
-
-            projFile = File.ReadAllText(EmptyAzfUp12Proj);
-            File.WriteAllText(EmptyAzfUp12Proj, projFile.Replace("11.1.0", SemVersion));
+            File.WriteAllText(EmptyAzf12Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
             projFile = File.ReadAllText(Gateway13Proj);
-            File.WriteAllText(Gateway13Proj, projFile.Replace("11.1.0", SemVersion));
-
-            projFile = File.ReadAllText(GatewayManaged13Proj);
-            File.WriteAllText(GatewayManaged13Proj, projFile.Replace("11.1.0", SemVersion));
+            File.WriteAllText(Gateway13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
             DotNetBuildSonarSolution(
                 PackSolutionFile,
@@ -80,16 +100,10 @@ partial class Build
                 .SetInformationalVersion(SemVersion)
                 .SetFileVersion(Version)
                 .SetAssemblyVersion(Version)
-                .SetVersion(SemVersion));
-
-            DotNetPack(c => c
-                .SetProject(FSharpTypes)
-                .SetConfiguration(Configuration)
-                .SetOutputDirectory(PackageDirectory)
-                .SetInformationalVersion(SemVersion)
-                .SetFileVersion(Version)
-                .SetAssemblyVersion(Version)
-                .SetVersion(SemVersion));
+                .SetVersion(SemVersion)
+                .SetProperty("NitroApiClientId", NitroApiClientId)
+                .SetProperty("NitroIdentityClientId", NitroIdentityClientId)
+                .SetProperty("NitroIdentityScopes", NitroIdentityScopes));
 
             DotNetPack(c => c
                 .SetNoRestore(true)
@@ -106,9 +120,7 @@ partial class Build
                 .SetVersion(SemVersion)
                 .SetOutputDirectory(PackageDirectory)
                 .SetConfiguration(Configuration)
-                .CombineWith(
-                    t => t.SetTargetPath(StarWarsTemplateNuSpec),
-                    t => t.SetTargetPath(TemplatesNuSpec)));
+                .CombineWith(t => t.SetTargetPath(TemplatesNuSpec)));
         });
 
     Target Publish => _ => _
@@ -130,5 +142,44 @@ partial class Build
                         (_, v) => _.SetTargetPath(v)),
                 degreeOfParallelism: 2,
                 completeOnFailure: true);
+        });
+
+    Target UploadNitroClient => _ => _
+        .Requires(() => NitroApiKey)
+        .Requires(() => NitroApiClientId)
+        .Requires(() => SemVersion)
+        .Executes(() =>
+        {
+            NitroCli(
+                arguments: "client upload",
+                environmentVariables: new Dictionary<string, string>
+                {
+                    ["NITRO_CLIENT_ID"] = NitroApiClientId,
+                    ["NITRO_TAG"] = SemVersion,
+                    ["NITRO_OPERATIONS_FILE"] = NitroCommandLineOperations,
+                    ["NITRO_API_KEY"] = NitroApiKey
+                });
+        });
+
+    Target PublishNitroClient => _ => _
+        .Requires(() => NitroApiKey)
+        .Requires(() => NitroApiClientId)
+        .Requires(() => SemVersion)
+        .Executes(() =>
+        {
+            string[] environments = ["Dev", "Prod"];
+
+            foreach (var environment in environments)
+            {
+                NitroCli(
+                    arguments: "client publish --force",
+                    environmentVariables: new Dictionary<string, string>
+                    {
+                        ["NITRO_CLIENT_ID"] = NitroApiClientId,
+                        ["NITRO_TAG"] = SemVersion,
+                        ["NITRO_STAGE"] = environment,
+                        ["NITRO_API_KEY"] = NitroApiKey
+                    });
+            }
         });
 }

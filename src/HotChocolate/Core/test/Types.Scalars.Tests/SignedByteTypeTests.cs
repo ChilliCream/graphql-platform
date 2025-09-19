@@ -1,7 +1,4 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -31,7 +28,7 @@ public class SignedByteTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, true)]
     public void IsInstanceOfType_GivenValueNode_MatchExpected(
         Type type,
-        object value,
+        object? value,
         bool expected)
     {
         // arrange
@@ -54,7 +51,7 @@ public class SignedByteTypeTests : ScalarTypeTestBase
     [InlineData((sbyte)1, true)]
     [InlineData(sbyte.MaxValue, true)]
     [InlineData(sbyte.MinValue, true)]
-    public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
+    public void IsInstanceOfType_GivenObject_MatchExpected(object? value, bool expected)
     {
         // arrange
         // act
@@ -70,8 +67,8 @@ public class SignedByteTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, null)]
     public void ParseLiteral_GivenValueNode_MatchExpected(
         Type type,
-        object value,
-        object expected)
+        object? value,
+        object? expected)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
@@ -101,7 +98,7 @@ public class SignedByteTypeTests : ScalarTypeTestBase
     [InlineData(typeof(IntValueNode), sbyte.MaxValue)]
     [InlineData(typeof(IntValueNode), sbyte.MinValue)]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseValue_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -129,8 +126,8 @@ public class SignedByteTypeTests : ScalarTypeTestBase
     [InlineData(sbyte.MinValue, sbyte.MinValue)]
     [InlineData(null, null)]
     public void Deserialize_GivenValue_MatchExpected(
-        object resultValue,
-        object runtimeValue)
+        object? resultValue,
+        object? runtimeValue)
     {
         // arrange
         // act
@@ -159,8 +156,8 @@ public class SignedByteTypeTests : ScalarTypeTestBase
     [InlineData(sbyte.MaxValue, sbyte.MaxValue)]
     [InlineData(null, null)]
     public void Serialize_GivenObject_MatchExpectedType(
-        object runtimeValue,
-        object resultValue)
+        object? runtimeValue,
+        object? resultValue)
     {
         // arrange
         // act
@@ -186,7 +183,7 @@ public class SignedByteTypeTests : ScalarTypeTestBase
     [InlineData(typeof(IntValueNode), sbyte.MaxValue)]
     [InlineData(typeof(IntValueNode), sbyte.MinValue)]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseResult_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act

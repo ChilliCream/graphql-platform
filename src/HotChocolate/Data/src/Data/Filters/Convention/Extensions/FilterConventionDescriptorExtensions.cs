@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Data.Filters;
 
 namespace HotChocolate.Data;
@@ -22,14 +19,14 @@ public static class FilterConventionDescriptorExtensions
     /// <see cref="IEnumerable{T}"/> on the convention
     /// </summary>
     /// <param name="descriptor">The descriptor where the handlers are registered</param>
-    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
+    /// <param name="compatibilityMode">Uses the old behavior of naming the filters</param>
     /// <returns>The descriptor that was passed in as a parameter</returns>
     public static IFilterConventionDescriptor AddDefaults(
         this IFilterConventionDescriptor descriptor,
-        bool compatabilityMode) =>
+        bool compatibilityMode) =>
         descriptor
             .AddDefaultOperations()
-            .BindDefaultTypes(compatabilityMode)
+            .BindDefaultTypes(compatibilityMode)
             .UseQueryableProvider();
 
     /// <summary>
@@ -43,10 +40,7 @@ public static class FilterConventionDescriptorExtensions
     public static IFilterConventionDescriptor AddDefaultOperations(
         this IFilterConventionDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
         descriptor.Operation(DefaultFilterOperations.NotEquals).Name("neq");
@@ -81,21 +75,18 @@ public static class FilterConventionDescriptorExtensions
     /// Binds common runtime types to the according <see cref="FilterInputType"/>
     /// </summary>
     /// <param name="descriptor">The descriptor where the handlers are registered</param>
-    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
+    /// <param name="compatibilityMode">Uses the old behavior of naming the filters</param>
     /// <returns>The descriptor that was passed in as a parameter</returns>
     /// <exception cref="ArgumentNullException">
     /// Throws in case the argument <paramref name="descriptor"/> is null
     /// </exception>
     public static IFilterConventionDescriptor BindDefaultTypes(
         this IFilterConventionDescriptor descriptor,
-        bool compatabilityMode = false)
+        bool compatibilityMode = false)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
-        if (compatabilityMode)
+        if (compatibilityMode)
         {
             return descriptor
                 .BindRuntimeType<string, StringOperationFilterInputType>()
@@ -115,10 +106,8 @@ public static class FilterConventionDescriptorExtensions
                 .BindComparableType<Guid>()
                 .BindComparableType<DateTime>()
                 .BindComparableType<DateTimeOffset>()
-#if NET6_0_OR_GREATER
                 .BindComparableType<DateOnly>()
                 .BindComparableType<TimeOnly>()
-#endif
                 .BindComparableType<TimeSpan>()
                 .BindRuntimeType<Uri, ComparableOperationFilterInputType<Uri>>()
                 .BindRuntimeType<Uri?, ComparableOperationFilterInputType<Uri?>>();
@@ -151,12 +140,10 @@ public static class FilterConventionDescriptorExtensions
                 .BindRuntimeType<DateTime?, DateTimeOperationFilterInputType>()
                 .BindRuntimeType<DateTimeOffset, DateTimeOperationFilterInputType>()
                 .BindRuntimeType<DateTimeOffset?, DateTimeOperationFilterInputType>()
-#if NET6_0_OR_GREATER
-               .BindRuntimeType<DateOnly, DateOperationFilterInputType>()
-               .BindRuntimeType<DateOnly?, DateOperationFilterInputType>()
-               .BindRuntimeType<TimeOnly, TimeSpanOperationFilterInputType>()
-               .BindRuntimeType<TimeOnly?, TimeSpanOperationFilterInputType>()
-#endif
+                .BindRuntimeType<DateOnly, LocalDateOperationFilterInputType>()
+                .BindRuntimeType<DateOnly?, LocalDateOperationFilterInputType>()
+                .BindRuntimeType<TimeOnly, LocalTimeOperationFilterInputType>()
+                .BindRuntimeType<TimeOnly?, LocalTimeOperationFilterInputType>()
                 .BindRuntimeType<TimeSpan, TimeSpanOperationFilterInputType>()
                 .BindRuntimeType<TimeSpan?, TimeSpanOperationFilterInputType>()
                 .BindRuntimeType<Uri, UrlOperationFilterInputType>()

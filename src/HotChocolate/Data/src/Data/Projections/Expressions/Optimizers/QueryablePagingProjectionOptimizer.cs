@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -13,8 +10,8 @@ namespace HotChocolate.Data.Projections.Handlers;
 public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
 {
     public bool CanHandle(ISelection field) =>
-        field.DeclaringType is IPageType &&
-        field.Field.Name is "edges" or "items" or "nodes";
+        field.DeclaringType is IPageType
+        && field.Field.Name is "edges" or "items" or "nodes";
 
     public Selection RewriteSelection(
         SelectionSetOptimizerContext context,
@@ -53,7 +50,7 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
     private Selection CreateCombinedSelection(
         SelectionSetOptimizerContext context,
         ISelection selection,
-        IObjectType declaringType,
+        ObjectType declaringType,
         IPageType pageType,
         IReadOnlyList<ISelectionNode> selections)
     {
@@ -63,7 +60,6 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             null,
             new NameNode(fieldName),
             new NameNode(CombinedEdgeField),
-            null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
             new SelectionSetNode(selections));
@@ -79,19 +75,19 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             nodesField.Type,
             combinedField,
             CombinedEdgeField,
-            resolverPipeline: nodesPipeline,
             arguments: selection.Arguments,
-            isInternal: true);
+            isInternal: true,
+            resolverPipeline: nodesPipeline);
     }
 
-    private static (string filedName, IObjectField field) TryGetObjectField(IPageType type)
+    private static (string filedName, ObjectField field) TryGetObjectField(IPageType type)
     {
-        if (type.Fields.FirstOrDefault(x => x.Name == "nodes") is { } nodes)
+        if (type.Fields.FirstOrDefault(x => x.Name == "nodes") is ObjectField nodes)
         {
             return ("nodes", nodes);
         }
 
-        if (type.Fields.FirstOrDefault(x => x.Name == "items") is { } items)
+        if (type.Fields.FirstOrDefault(x => x.Name == "items") is ObjectField items)
         {
             return ("items", items);
         }
@@ -120,14 +116,14 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         {
             foreach (var edgeSubField in edgeSelection.SelectionSet!.Selections)
             {
-                if (edgeSubField is FieldNode edgeSubFieldNode &&
-                    edgeSubFieldNode.Name.Value is "node" &&
-                    edgeSubFieldNode.SelectionSet?.Selections is not null)
+                if (edgeSubField is FieldNode edgeSubFieldNode
+                    && edgeSubFieldNode.Name.Value is "node"
+                    && edgeSubFieldNode.SelectionSet?.Selections is not null)
                 {
                     foreach (var nodeField in edgeSubFieldNode.SelectionSet.Selections)
                     {
                         selections.Add(
-                            _cloneSelectionSetRewriter.Rewrite(nodeField) ??
+                            s_cloneSelectionSetRewriter.Rewrite(nodeField) ??
                                 throw new SyntaxNodeCannotBeNullException(nodeField));
                     }
                 }
@@ -145,7 +141,7 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             foreach (var nodeField in itemSelection.SelectionSet!.Selections)
             {
                 selections.Add(
-                    _cloneSelectionSetRewriter.Rewrite(nodeField) ??
+                    s_cloneSelectionSetRewriter.Rewrite(nodeField) ??
                         throw new SyntaxNodeCannotBeNullException(nodeField));
             }
         }
@@ -160,13 +156,13 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             foreach (var nodeField in nodeSelection.SelectionSet!.Selections)
             {
                 selections.Add(
-                    _cloneSelectionSetRewriter.Rewrite(nodeField) ??
+                    s_cloneSelectionSetRewriter.Rewrite(nodeField) ??
                         throw new SyntaxNodeCannotBeNullException(nodeField));
             }
         }
     }
 
-    private static readonly ISyntaxRewriter<object?> _cloneSelectionSetRewriter =
+    private static readonly ISyntaxRewriter<object?> s_cloneSelectionSetRewriter =
         SyntaxRewriter.Create(
             n => n.Kind is SyntaxKind.SelectionSet
                 ? new SelectionSetNode(((SelectionSetNode)n).Selections)

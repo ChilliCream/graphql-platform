@@ -198,14 +198,6 @@ namespace HotChocolate.ApolloFederation.Properties
             }
         }
 
-        internal static string ThrowHelper_EntityType_NoEntities
-        {
-            get
-            {
-                return ResourceManager.GetString("ThrowHelper_EntityType_NoEntities", resourceCulture);
-            }
-        }
-
         internal static string ThrowHelper_EntityResolver_NoEntityResolverFound
         {
             get

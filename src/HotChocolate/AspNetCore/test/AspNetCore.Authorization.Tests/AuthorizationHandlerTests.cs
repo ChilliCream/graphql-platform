@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Authorization;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -23,11 +22,11 @@ public class AuthorizationHandlerTests
             .AddTypeExtension<QueryExtensions>()
             .AddAuthorizationHandler<CustomHandler>()
             .ExecuteRequestAsync(
-                QueryRequestBuilder
+                OperationRequestBuilder
                     .New()
-                    .SetQuery("{ bar }")
+                    .SetDocument("{ bar }")
                     .AddGlobalState("auth", authResult)
-                    .Create());
+                    .Build());
 
         result.MatchSnapshot(authResult);
     }

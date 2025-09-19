@@ -1,6 +1,4 @@
-using System;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -45,7 +43,7 @@ public class MacAddressTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, true)]
     public void IsInstanceOfType_GivenValueNode_MatchExpected(
         Type type,
-        object value,
+        object? value,
         bool expected)
     {
         // arrange
@@ -82,7 +80,7 @@ public class MacAddressTypeTests : ScalarTypeTestBase
     [InlineData("fa:7e:9e:ff:fe:9f:13:78", true)]
     [InlineData("fa7e.9eff.fe9f.1378", true)]
     [InlineData(null, true)]
-    public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
+    public void IsInstanceOfType_GivenObject_MatchExpected(object? value, bool expected)
     {
         // arrange
         // act
@@ -102,8 +100,8 @@ public class MacAddressTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, null)]
     public void ParseLiteral_GivenValueNode_MatchExpected(
         Type type,
-        object value,
-        object expected)
+        object? value,
+        object? expected)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
@@ -146,8 +144,8 @@ public class MacAddressTypeTests : ScalarTypeTestBase
     [InlineData("fa7e.9eff.fe9f.1378", "fa7e.9eff.fe9f.1378")]
     [InlineData(null, null)]
     public void Deserialize_GivenValue_MatchExpected(
-        object resultValue,
-        object runtimeValue)
+        object? resultValue,
+        object? runtimeValue)
     {
         // arrange
         // act
@@ -186,8 +184,8 @@ public class MacAddressTypeTests : ScalarTypeTestBase
     [InlineData("fa7e.9eff.fe9f.1378", "fa7e.9eff.fe9f.1378")]
     [InlineData(null, null)]
     public void Serialize_GivenObject_MatchExpectedType(
-        object runtimeValue,
-        object resultValue)
+        object? runtimeValue,
+        object? resultValue)
     {
         // arrange
         // act
@@ -225,7 +223,7 @@ public class MacAddressTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "fa:7e:9e:ff:fe:9f:13:78")]
     [InlineData(typeof(StringValueNode), "fa7e.9eff.fe9f.1378")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseValue_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -263,7 +261,7 @@ public class MacAddressTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "fa:7e:9e:ff:fe:9f:13:78")]
     [InlineData(typeof(StringValueNode), "fa7e.9eff.fe9f.1378")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseResult_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act

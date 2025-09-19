@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types;
@@ -17,10 +16,7 @@ public static class MiddlewareObjectFieldDescriptorExtensions
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
     {
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(factory);
 
         return descriptor.Use(FieldClassMiddlewareFactory.Create(factory));
     }

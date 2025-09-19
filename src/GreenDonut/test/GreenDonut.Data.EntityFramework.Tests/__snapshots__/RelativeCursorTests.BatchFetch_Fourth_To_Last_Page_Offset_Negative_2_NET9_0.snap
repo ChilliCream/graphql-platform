@@ -1,0 +1,33 @@
+---------------
+{
+  "Page": 7,
+  "TotalCount": 20,
+  "Items": [
+    "Momentumix",
+    "Nebularis"
+  ]
+}
+---------------
+
+SQL 0
+---------------
+-- @__value_0='Synerflux'
+-- @__value_1='19'
+SELECT b1."GroupId", b3."Id", b3."GroupId", b3."Name"
+FROM (
+    SELECT b."GroupId"
+    FROM "Brands" AS b
+    WHERE b."GroupId" = 2
+    GROUP BY b."GroupId"
+) AS b1
+LEFT JOIN (
+    SELECT b2."Id", b2."GroupId", b2."Name"
+    FROM (
+        SELECT b0."Id", b0."GroupId", b0."Name", ROW_NUMBER() OVER(PARTITION BY b0."GroupId" ORDER BY b0."Name" DESC, b0."Id" DESC) AS row
+        FROM "Brands" AS b0
+        WHERE b0."GroupId" = 2 AND (b0."Name" < @__value_0 OR (b0."Name" = @__value_0 AND b0."Id" < @__value_1))
+    ) AS b2
+    WHERE 4 < b2.row AND b2.row <= 7
+) AS b3 ON b1."GroupId" = b3."GroupId"
+ORDER BY b1."GroupId", b3."GroupId", b3."Name" DESC, b3."Id" DESC
+---------------

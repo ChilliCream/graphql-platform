@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate;
 
 [AttributeUsage(AttributeTargets.Class
@@ -14,10 +12,7 @@ public sealed class GraphQLNameAttribute : Attribute
 {
     public GraphQLNameAttribute(string name)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         Name = name;
     }

@@ -1,7 +1,3 @@
-using System;
-using Snapshooter.Xunit;
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class SchemaCoordinateTests
@@ -11,10 +7,10 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        bool ofDirective = false;
-        NameNode name = new NameNode("Foo");
-        NameNode memberName = new NameNode("bar");
-        NameNode argumentName = new NameNode("baz");
+        const bool ofDirective = false;
+        var name = new NameNode("Foo");
+        var memberName = new NameNode("bar");
+        var argumentName = new NameNode("baz");
 
         // act
         var coordinate =
@@ -34,10 +30,10 @@ public class SchemaCoordinateTests
     public void CreateSchemaCoordinateWithoutLocation()
     {
         // arrange
-        bool ofDirective = false;
-        NameNode name = new NameNode("Foo");
-        NameNode memberName = new NameNode("bar");
-        NameNode argumentName = new NameNode("baz");
+        const bool ofDirective = false;
+        var name = new NameNode("Foo");
+        var memberName = new NameNode("bar");
+        var argumentName = new NameNode("baz");
 
         // act
         var coordinate =
@@ -58,9 +54,9 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        bool ofDirective = false;
-        NameNode name = new NameNode("Foo");
-        NameNode memberName = new NameNode("bar");
+        const bool ofDirective = false;
+        var name = new NameNode("Foo");
+        var memberName = new NameNode("bar");
 
         // act
         var coordinate =
@@ -81,8 +77,8 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        bool ofDirective = false;
-        NameNode name = new NameNode("Foo");
+        const bool ofDirective = false;
+        var name = new NameNode("Foo");
 
         // act
         var coordinate =
@@ -103,9 +99,9 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        bool ofDirective = true;
-        NameNode name = new NameNode("Foo");
-        NameNode argumentName = new NameNode("baz");
+        const bool ofDirective = true;
+        var name = new NameNode("Foo");
+        var argumentName = new NameNode("baz");
 
         // act
         var coordinate =
@@ -126,8 +122,8 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        bool ofDirective = true;
-        NameNode name = new NameNode("Foo");
+        const bool ofDirective = true;
+        var name = new NameNode("Foo");
 
         // act
         var coordinate =
@@ -148,15 +144,14 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        bool ofDirective = true;
-        NameNode name = new NameNode("Foo");
-        NameNode memberName = new NameNode("Foo");
+        const bool ofDirective = true;
+        var name = new NameNode("Foo");
+        var memberName = new NameNode("Foo");
 
         // act
-        Exception ex = Record.Exception(() =>
-        {
-            new SchemaCoordinateNode(location, ofDirective, name, memberName, null);
-        });
+        var ex =
+            Record.Exception(
+                () => new SchemaCoordinateNode(location, ofDirective, name, memberName, null));
 
         // assert
         Assert.IsType<ArgumentException>(ex);
@@ -167,15 +162,14 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        bool ofDirective = false;
-        NameNode name = new NameNode("Foo");
-        NameNode argumentName = new NameNode("baz");
+        const bool ofDirective = false;
+        var name = new NameNode("Foo");
+        var argumentName = new NameNode("baz");
 
         // act
-        Exception ex = Record.Exception(() =>
-        {
-            new SchemaCoordinateNode(location, ofDirective, name, null, argumentName);
-        });
+        var ex =
+            Record.Exception(
+                () => new SchemaCoordinateNode(location, ofDirective, name, null, argumentName));
 
         // assert
         Assert.IsType<ArgumentException>(ex);
@@ -186,13 +180,12 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        bool ofDirective = false;
+        const bool ofDirective = false;
 
         // act
-        Exception ex = Record.Exception(() =>
-        {
-            new SchemaCoordinateNode(location, ofDirective, null!, null, null);
-        });
+        var ex =
+            Record.Exception(
+                () => new SchemaCoordinateNode(location, ofDirective, null!, null, null));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -203,11 +196,11 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        NameNode name = new NameNode("Foo");
+        var name = new NameNode("Foo");
         var node = new SchemaCoordinateNode(null, false, name, null, null);
 
         // act
-        SchemaCoordinateNode rewrittenNode = node.WithLocation(location);
+        var rewrittenNode = node.WithLocation(location);
 
         // assert
         Assert.Equal(location, rewrittenNode.Location);
@@ -217,12 +210,12 @@ public class SchemaCoordinateTests
     public void SchemaCoordinate_With_Name()
     {
         // arrange
-        NameNode name = new NameNode("Foo");
-        NameNode newName = new NameNode("newName");
+        var name = new NameNode("Foo");
+        var newName = new NameNode("newName");
         var node = new SchemaCoordinateNode(null, false, name, null, null);
 
         // act
-        SchemaCoordinateNode rewrittenNode = node.WithName(newName);
+        var rewrittenNode = node.WithName(newName);
 
         // assert
         Assert.Equal(newName, rewrittenNode.Name);
@@ -232,12 +225,12 @@ public class SchemaCoordinateTests
     public void SchemaCoordinate_With_MemberName()
     {
         // arrange
-        NameNode name = new NameNode("Foo");
-        NameNode memberName = new NameNode("foo");
+        var name = new NameNode("Foo");
+        var memberName = new NameNode("foo");
         var node = new SchemaCoordinateNode(null, false, name, null, null);
 
         // act
-        SchemaCoordinateNode rewrittenNode = node.WithMemberName(memberName);
+        var rewrittenNode = node.WithMemberName(memberName);
 
         // assert
         Assert.Equal(memberName, rewrittenNode.MemberName);
@@ -247,13 +240,13 @@ public class SchemaCoordinateTests
     public void SchemaCoordinate_With_ArgumentName()
     {
         // arrange
-        NameNode name = new NameNode("Foo");
-        NameNode memberName = new NameNode("foo");
-        NameNode argumentName = new NameNode("baz");
+        var name = new NameNode("Foo");
+        var memberName = new NameNode("foo");
+        var argumentName = new NameNode("baz");
         var node = new SchemaCoordinateNode(null, false, name, memberName, null);
 
         // act
-        SchemaCoordinateNode rewrittenNode = node.WithArgumentName(argumentName);
+        var rewrittenNode = node.WithArgumentName(argumentName);
 
         // assert
         Assert.Equal(argumentName, rewrittenNode.ArgumentName);
@@ -263,11 +256,11 @@ public class SchemaCoordinateTests
     public void SchemaCoordinate_With_OfDirective()
     {
         // arrange
-        NameNode name = new NameNode("Foo");
+        var name = new NameNode("Foo");
         var node = new SchemaCoordinateNode(null, false, name, null, null);
 
         // act
-        SchemaCoordinateNode rewrittenNode = node.WithOfDirective(true);
+        var rewrittenNode = node.WithOfDirective(true);
 
         // assert
         Assert.True(rewrittenNode.OfDirective);

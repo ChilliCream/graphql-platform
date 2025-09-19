@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.Resolvers.Expressions;
 
 namespace HotChocolate.Resolvers;
@@ -10,7 +9,7 @@ public class ResolverDescriptorTests
     {
         var descriptor = new ResolverDescriptor(
             typeof(string),
-            new FieldMember("a", "b",  typeof(object).GetMembers().First()),
+            new FieldMember("a", "b", typeof(object).GetMembers().First()),
             resolverType: typeof(object));
 
         Assert.Equal(typeof(string), descriptor.SourceType);
@@ -25,7 +24,7 @@ public class ResolverDescriptorTests
     {
         var descriptor = new ResolverDescriptor(
             typeof(string),
-            new FieldMember("a", "b",  typeof(object).GetMembers().First()));
+            new FieldMember("a", "b", typeof(object).GetMembers().First()));
 
         Assert.Equal(typeof(string), descriptor.SourceType);
         Assert.Null(descriptor.ResolverType);
@@ -39,7 +38,7 @@ public class ResolverDescriptorTests
     {
         var descriptor = new ResolverDescriptor(
             typeof(string),
-            new FieldMember("a", "b",  typeof(object).GetMembers().First()),
+            new FieldMember("a", "b", typeof(object).GetMembers().First()),
             resolverType: typeof(int));
 
         Assert.Equal(typeof(string), descriptor.SourceType);

@@ -1,4 +1,4 @@
-﻿{
+{
   "registered": [
     {
       "type": "HotChocolate.Types.Introspection.__Directive",
@@ -20,38 +20,38 @@
     },
     {
       "type": "HotChocolate.Types.Introspection.__EnumValue",
-      "runtimeType": "HotChocolate.Types.IEnumValue",
+      "runtimeType": "HotChocolate.Types.EnumValue",
       "references": [
         "HotChocolate.Types.Introspection.__EnumValue (Output)",
         "__EnumValue (Output)",
-        "ObjectType<IEnumValue> (Output)"
+        "ObjectType<EnumValue> (Output)"
       ]
     },
     {
       "type": "HotChocolate.Types.Introspection.__Field",
-      "runtimeType": "HotChocolate.Types.IOutputField",
+      "runtimeType": "HotChocolate.Types.IOutputFieldDefinition",
       "references": [
         "HotChocolate.Types.Introspection.__Field (Output)",
         "__Field (Output)",
-        "ObjectType<IOutputField> (Output)"
+        "ObjectType<IOutputFieldDefinition> (Output)"
       ]
     },
     {
       "type": "HotChocolate.Types.Introspection.__InputValue",
-      "runtimeType": "HotChocolate.Types.IInputField",
+      "runtimeType": "HotChocolate.Types.IInputValueDefinition",
       "references": [
         "HotChocolate.Types.Introspection.__InputValue (Output)",
         "__InputValue (Output)",
-        "ObjectType<IInputField> (Output)"
+        "ObjectType<IInputValueDefinition> (Output)"
       ]
     },
     {
       "type": "HotChocolate.Types.Introspection.__Schema",
-      "runtimeType": "HotChocolate.ISchema",
+      "runtimeType": "HotChocolate.ISchemaDefinition",
       "references": [
         "HotChocolate.Types.Introspection.__Schema (Output)",
         "__Schema (Output)",
-        "ObjectType<ISchema> (Output)"
+        "ObjectType<ISchemaDefinition> (Output)"
       ]
     },
     {
@@ -70,6 +70,14 @@
         "HotChocolate.Types.Introspection.__TypeKind",
         "__TypeKind",
         "EnumType<TypeKind!>"
+      ]
+    },
+    {
+      "type": "HotChocolate.Types.OneOfDirectiveType",
+      "runtimeType": "System.Object",
+      "references": [
+        "HotChocolate.Types.OneOfDirectiveType",
+        "OneOfDirectiveType"
       ]
     },
     {
@@ -120,7 +128,7 @@
       "references": [
         "DirectiveType<Tag>",
         "@Tag",
-        "HotChocolate.Types.DirectiveType`1[HotChocolate.Types.Tag]"
+        "HotChocolate.Types.DirectiveType`1[[HotChocolate.Types.Tag, HotChocolate.Types, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"
       ]
     },
     {
@@ -128,7 +136,7 @@
       "runtimeType": "HotChocolate.Configuration.TypeDiscovererTests.Foo",
       "references": [
         "ObjectType<Foo> (Output)",
-        "HotChocolate.Types.ObjectType`1[HotChocolate.Configuration.TypeDiscovererTests+Foo] (Output)"
+        "HotChocolate.Types.ObjectType`1[[HotChocolate.Configuration.TypeDiscovererTests+Foo, HotChocolate.Types.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]] (Output)"
       ]
     },
     {
@@ -136,17 +144,17 @@
       "runtimeType": "HotChocolate.Configuration.TypeDiscovererTests.Bar",
       "references": [
         "ObjectType<Bar> (Output)",
-        "HotChocolate.Types.ObjectType`1[HotChocolate.Configuration.TypeDiscovererTests+Bar] (Output)"
+        "HotChocolate.Types.ObjectType`1[[HotChocolate.Configuration.TypeDiscovererTests+Bar, HotChocolate.Types.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]] (Output)"
       ]
     }
   ],
   "runtimeTypeRefs": {
     "DirectiveType (Output)": "HotChocolate.Types.Introspection.__Directive (Output)",
     "DirectiveLocation!": "HotChocolate.Types.Introspection.__DirectiveLocation",
-    "IEnumValue (Output)": "HotChocolate.Types.Introspection.__EnumValue (Output)",
-    "IOutputField (Output)": "HotChocolate.Types.Introspection.__Field (Output)",
-    "IInputField (Output)": "HotChocolate.Types.Introspection.__InputValue (Output)",
-    "ISchema (Output)": "HotChocolate.Types.Introspection.__Schema (Output)",
+    "EnumValue (Output)": "HotChocolate.Types.Introspection.__EnumValue (Output)",
+    "IOutputFieldDefinition (Output)": "HotChocolate.Types.Introspection.__Field (Output)",
+    "IInputValueDefinition (Output)": "HotChocolate.Types.Introspection.__InputValue (Output)",
+    "ISchemaDefinition (Output)": "HotChocolate.Types.Introspection.__Schema (Output)",
     "IType (Output)": "HotChocolate.Types.Introspection.__Type (Output)",
     "TypeKind!": "HotChocolate.Types.Introspection.__TypeKind",
     "DeprecatedDirective": "HotChocolate.Types.DeprecatedDirectiveType",

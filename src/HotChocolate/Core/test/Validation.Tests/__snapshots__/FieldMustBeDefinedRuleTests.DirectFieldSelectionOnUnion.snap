@@ -1,4 +1,4 @@
-﻿{
+{
   "Message": "A union type cannot declare a field directly. Use inline fragments or fragments instead.",
   "Code": null,
   "Path": {
@@ -13,72 +13,13 @@
   },
   "Locations": [
     {
-      "Line": 8,
-      "Column": 66
+      "Line": 7,
+      "Column": 50
     }
   ],
   "Extensions": {
     "type": "CatOrDog",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
   },
-  "Exception": null,
-  "SyntaxNode": {
-    "Kind": "SelectionSet",
-    "Location": {
-      "Start": 218,
-      "End": 306,
-      "Line": 8,
-      "Column": 66
-    },
-    "Selections": [
-      {
-        "Kind": "Field",
-        "Alias": null,
-        "Arguments": [],
-        "Required": null,
-        "SelectionSet": null,
-        "Location": {
-          "Start": 240,
-          "End": 275,
-          "Line": 9,
-          "Column": 21
-        },
-        "Name": {
-          "Kind": "Name",
-          "Location": {
-            "Start": 240,
-            "End": 275,
-            "Line": 9,
-            "Column": 21
-          },
-          "Value": "name"
-        },
-        "Directives": []
-      },
-      {
-        "Kind": "Field",
-        "Alias": null,
-        "Arguments": [],
-        "Required": null,
-        "SelectionSet": null,
-        "Location": {
-          "Start": 265,
-          "End": 293,
-          "Line": 10,
-          "Column": 21
-        },
-        "Name": {
-          "Kind": "Name",
-          "Location": {
-            "Start": 265,
-            "End": 293,
-            "Line": 10,
-            "Column": 21
-          },
-          "Value": "barkVolume"
-        },
-        "Directives": []
-      }
-    ]
-  }
+  "Exception": null
 }

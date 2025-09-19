@@ -1,9 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace HotChocolate.Data.TestContext.EntityConfigurations;
 
-internal sealed  class BrandEntityTypeConfiguration : IEntityTypeConfiguration<Brand>
+internal sealed class BrandEntityTypeConfiguration : IEntityTypeConfiguration<Brand>
 {
     public void Configure(EntityTypeBuilder<Brand> builder)
     {

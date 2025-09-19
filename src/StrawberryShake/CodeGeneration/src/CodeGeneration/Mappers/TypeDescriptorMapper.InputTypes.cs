@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -16,11 +14,9 @@ public static partial class TypeDescriptorMapper
     {
         foreach (var inputType in model.InputObjectTypes)
         {
-            if (!typeDescriptors.TryGetValue(
-                    inputType.Name,
-                    out var descriptorModel))
+            if (!typeDescriptors.ContainsKey(inputType.Name))
             {
-                descriptorModel = new InputTypeDescriptorModel(
+                var descriptorModel = new InputTypeDescriptorModel(
                     inputType,
                     new InputObjectTypeDescriptor(
                         inputType.Type.Name,
@@ -72,7 +68,7 @@ public static partial class TypeDescriptorMapper
     }
 
     private static INamedTypeDescriptor GetInputTypeDescriptor(
-        INamedType fieldNamedType,
+        ITypeDefinition fieldNamedType,
         Dictionary<string, InputTypeDescriptorModel> typeDescriptors)
     {
         return typeDescriptors.Values

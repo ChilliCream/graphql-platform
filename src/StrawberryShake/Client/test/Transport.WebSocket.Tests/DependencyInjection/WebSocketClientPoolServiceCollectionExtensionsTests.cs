@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -32,8 +30,7 @@ public class WebSocketClientPoolServiceCollectionExtensionsTests
         ServiceCollection services = null!;
 
         // act
-        var ex =
-            Record.Exception(() => services.AddWebSocketClientPool());
+        var ex = Record.Exception(services.AddWebSocketClientPool);
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);

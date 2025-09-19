@@ -1,15 +1,15 @@
 namespace HotChocolate.Validation;
 
-public class Dog
+public class Dog(string name, string? nickname = null, int? barkVolume = null, bool barks = false)
     : IPet
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = name;
 
-    public string Nickname { get; set; }
+    public string? Nickname { get; set; } = nickname;
 
-    public int? BarkVolume { get; set; }
-        
-    public bool Barks { get; set; }
+    public int? BarkVolume { get; set; } = barkVolume;
+
+    public bool Barks { get; set; } = barks;
 
     public bool DoesKnowCommand(DogCommand dogCommand)
     {
@@ -21,7 +21,7 @@ public class Dog
         return true;
     }
 
-    public Human GetOwner()
+    public Human? GetOwner()
     {
         return null;
     }

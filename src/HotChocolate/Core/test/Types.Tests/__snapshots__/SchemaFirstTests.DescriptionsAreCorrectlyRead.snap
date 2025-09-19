@@ -1,4 +1,4 @@
-﻿{
+{
   "data": {
     "__schema": {
       "queryType": {
@@ -20,9 +20,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false",
                   "isDeprecated": false,
@@ -374,9 +378,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false",
                   "isDeprecated": false,
@@ -709,9 +717,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false",
                   "isDeprecated": false,
@@ -742,9 +754,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false",
                   "isDeprecated": false,
@@ -775,9 +791,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false",
                   "isDeprecated": false,
@@ -816,6 +836,18 @@
                     "ofType": null
                   }
                 }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "isOneOf",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Boolean",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -1267,6 +1299,27 @@
           "onOperation": false,
           "onFragment": true,
           "onField": true
+        },
+        {
+          "name": "deprecated",
+          "description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.",
+          "args": [
+            {
+              "name": "reason",
+              "description": "Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "defaultValue": "\"No longer supported.\"",
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "onOperation": false,
+          "onFragment": false,
+          "onField": false
         }
       ]
     }

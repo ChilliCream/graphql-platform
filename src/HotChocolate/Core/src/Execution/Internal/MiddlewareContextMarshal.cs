@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 
@@ -23,16 +22,13 @@ public static class MiddlewareContextMarshal
     /// </returns>
     public static ObjectResult? GetParentResultUnsafe(IResolverContext context)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         return context is MiddlewareContext middlewareContext
             ? middlewareContext.ParentResult
             : null;
     }
-    
+
     /// <summary>
     /// Gets the parent result data of the current <paramref name="resultData"/>.
     /// </summary>
@@ -50,11 +46,8 @@ public static class MiddlewareContextMarshal
     /// </exception>
     public static ResultData? GetParent<T>(T resultData) where T : ResultData
     {
-        if (resultData == null)
-        {
-            throw new ArgumentNullException(nameof(resultData));
-        }
-        
+        ArgumentNullException.ThrowIfNull(resultData);
+
         return resultData.Parent;
     }
 
@@ -75,11 +68,8 @@ public static class MiddlewareContextMarshal
     /// </exception>
     public static int GetParentIndex<T>(T resultData) where T : ResultData
     {
-        if (resultData == null)
-        {
-            throw new ArgumentNullException(nameof(resultData));
-        }
-        
+        ArgumentNullException.ThrowIfNull(resultData);
+
         return resultData.ParentIndex;
     }
 }

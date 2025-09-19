@@ -6,23 +6,36 @@ namespace HotChocolate.Utilities;
 
 internal static class ThrowHelper
 {
+    public static GraphQLException PagingHandler_MinPageSize(
+        int requestedItems,
+        IOutputFieldDefinition field,
+        Path path)
+        => new GraphQLException(
+            ErrorBuilder.New()
+                .SetMessage(ThrowHelper_PagingHandler_MinPageSize)
+                .SetCode(ErrorCodes.Paging.MinPaginationItems)
+                .SetPath(path)
+                .SetFieldCoordinate(field.Coordinate)
+                .SetExtension(nameof(requestedItems), requestedItems)
+                .Build());
+
     public static GraphQLException PagingHandler_MaxPageSize(
         int requestedItems,
         int maxAllowedItems,
-        IObjectField field,
+        IOutputFieldDefinition field,
         Path path)
         => new GraphQLException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_PagingHandler_MaxPageSize)
                 .SetCode(ErrorCodes.Paging.MaxPaginationItems)
                 .SetPath(path)
-                .SetExtension(nameof(field), field.Coordinate.ToString())
+                .SetFieldCoordinate(field.Coordinate)
                 .SetExtension(nameof(requestedItems), requestedItems)
                 .SetExtension(nameof(maxAllowedItems), maxAllowedItems)
                 .Build());
 
     public static GraphQLException PagingHandler_NoBoundariesSet(
-        IObjectField field,
+        IOutputFieldDefinition field,
         Path path)
         => new GraphQLException(
             ErrorBuilder.New()
@@ -31,7 +44,20 @@ internal static class ThrowHelper
                     field.Type.TypeName())
                 .SetCode(ErrorCodes.Paging.NoPagingBoundaries)
                 .SetPath(path)
-                .SetExtension(nameof(field), field.Coordinate.ToString())
+                .SetFieldCoordinate(field.Coordinate)
+                .Build());
+
+    public static GraphQLException PagingHandler_FirstValueNotSet(
+        IOutputFieldDefinition field,
+        Path path)
+        => new GraphQLException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_PagingHandler_FirstValueNotSet,
+                    field.Type.TypeName())
+                .SetCode(ErrorCodes.Paging.FirstValueNotSet)
+                .SetPath(path)
+                .SetFieldCoordinate(field.Coordinate)
                 .Build());
 
     public static SchemaException PagingObjectFieldDescriptorExtensions_InvalidType()

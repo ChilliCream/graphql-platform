@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -18,7 +16,7 @@ internal struct Iso8601Duration
         HasDays = 8,
         HasHours = 16,
         HasMinutes = 32,
-        HasSeconds = 64,
+        HasSeconds = 64
     }
 
     /// <summary>
@@ -106,19 +104,19 @@ internal struct Iso8601Duration
 
     internal static bool TryParse(string s, out TimeSpan? result)
     {
-        int years = default;
-        int months = default;
-        int weeks = default;
-        int days = default;
-        int hours = default;
-        int minutes = default;
-        int seconds = default;
-        uint nanoseconds = default;
+        var years = 0;
+        var months = 0;
+        var weeks = 0;
+        var days = 0;
+        var hours = 0;
+        var minutes = 0;
+        var seconds = 0;
+        uint nanoseconds = 0;
         var isNegative = false;
 
         var parts = Parts.HasNone;
 
-        result = default;
+        result = null;
 
         s = s.Trim();
         var length = s.Length;
@@ -225,7 +223,7 @@ internal struct Iso8601Duration
             days = value;
             if (++pos <= length)
             {
-                if (!TryParseDigits(s, ref pos, false, out value, out numDigits))
+                if (!TryParseDigits(s, ref pos, false, out _, out numDigits))
                 {
                     return false;
                 }
@@ -359,13 +357,13 @@ internal struct Iso8601Duration
         return false;
     }
 
-    /// Helper method that constructs an integer from leading digits starting at s[offset].
-    /// "offset" is updated to contain an offset just beyond the last digit.
-    /// The number of digits consumed is returned in cntDigits.
-    /// The integer is returned (0 if no digits).  If the digits cannot fit into an Int32:
-    ///   1. If eatDigits is true, then additional digits will be silently discarded
-    ///      (don't count towards numDigits)
-    ///   2. If eatDigits is false, an overflow exception is thrown
+    // Helper method that constructs an integer from leading digits starting at s[offset].
+    // "offset" is updated to contain an offset just beyond the last digit.
+    // The number of digits consumed is returned in cntDigits.
+    // The integer is returned (0 if no digits).  If the digits cannot fit into an Int32:
+    //   1. If eatDigits is true, then additional digits will be silently discarded
+    //      (don't count towards numDigits)
+    //   2. If eatDigits is false, an overflow exception is thrown
     private static bool TryParseDigits(string s, ref int offset, bool eatDigits, out int result, out int numDigits)
     {
         var offsetStart = offset;

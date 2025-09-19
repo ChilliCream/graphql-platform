@@ -1,5 +1,4 @@
 using System.Text.Json;
-using CookieCrumble;
 
 namespace StrawberryShake.Json;
 
@@ -39,14 +38,15 @@ public class JsonErrorParserTests
     public void Error_With_Path()
     {
         // arrange
-        var result = JsonDocument.Parse(@"
-                [
-                    {
-                        ""message"": ""errors"",
-                        ""path"": [ 1, ""foo"", 2, ""bar"" ]
-                    }
-                ]
-            ");
+        var result = JsonDocument.Parse(
+            """
+            [
+                {
+                    "message": "errors",
+                    "path": [ 1, "foo", 2, "bar" ]
+                }
+            ]
+            """);
 
         // act
         var errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -70,14 +70,15 @@ public class JsonErrorParserTests
     public void Error_With_Path_With_Invalid_Path_Value()
     {
         // arrange
-        var result = JsonDocument.Parse(@"
-                [
-                    {
-                        ""message"": ""errors"",
-                        ""path"": [ true ]
-                    }
-                ]
-            ");
+        var result = JsonDocument.Parse(
+            """
+            [
+                {
+                    "message": "errors",
+                    "path": [ true ]
+                }
+            ]
+            """);
 
         // act
         var errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -100,14 +101,15 @@ public class JsonErrorParserTests
     public void Error_With_Locations()
     {
         // arrange
-        var result = JsonDocument.Parse(@"
-                [
-                    {
-                        ""message"": ""errors"",
-                        ""locations"": [ { ""line"": 1, ""column"": 5 } ]
-                    }
-                ]
-            ");
+        var result = JsonDocument.Parse(
+            """
+            [
+                {
+                    "message": "errors",
+                    "locations": [ { "line": 1, "column": 5 } ]
+                }
+            ]
+            """);
 
         // act
         var errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -132,25 +134,26 @@ public class JsonErrorParserTests
     public void Error_With_Extensions()
     {
         // arrange
-        var result = JsonDocument.Parse(@"
-                [
+        var result = JsonDocument.Parse(
+            """
+            [
+                {
+                    "message": "errors",
+                    "extensions":
                     {
-                        ""message"": ""errors"",
-                        ""extensions"":
-                        {
-                            ""s"": ""abc"",
-                            ""i"": 5,
-                            ""f"": 1.5,
-                            ""true"": true,
-                            ""false"": false,
-                            ""null"": null,
-                            ""il"": [ 1, 2, 3 ],
-                            ""sl"": [ ""a"", ""b"" ],
-                            ""ol"": [ { ""s"": ""abc"" } ]
-                        }
+                        "s": "abc",
+                        "i": 5,
+                        "f": 1.5,
+                        "true": true,
+                        "false": false,
+                        "null": null,
+                        "il": [ 1, 2, 3 ],
+                        "sl": [ "a", "b" ],
+                        "ol": [ { "s": "abc" } ]
                     }
-                ]
-            ");
+                }
+            ]
+            """);
 
         // act
         var errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -169,17 +172,18 @@ public class JsonErrorParserTests
     public void Error_With_Extensions_Code()
     {
         // arrange
-        var result = JsonDocument.Parse(@"
-                [
+        var result = JsonDocument.Parse(
+            """
+            [
+                {
+                    "message": "errors",
+                    "extensions":
                     {
-                        ""message"": ""errors"",
-                        ""extensions"":
-                        {
-                          ""code"": ""CS1234""
-                        }
+                        "code": "CS1234"
                     }
-                ]
-            ");
+                }
+            ]
+            """);
 
         // act
         var errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -199,14 +203,15 @@ public class JsonErrorParserTests
     public void Error_With_Code()
     {
         // arrange
-        var result = JsonDocument.Parse(@"
-                [
-                    {
-                        ""message"": ""errors"",
-                        ""code"": ""CS1234""
-                    }
-                ]
-            ");
+        var result = JsonDocument.Parse(
+            """
+            [
+                {
+                    "message": "errors",
+                    "code": "CS1234"
+                }
+            ]
+            """);
 
         // act
         var errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -225,18 +230,19 @@ public class JsonErrorParserTests
     public void Error_With_Root_Code_Takes_Preference()
     {
         // arrange
-        var result = JsonDocument.Parse(@"
+        var result = JsonDocument.Parse(
+            """
             [
                 {
-                    ""message"": ""errors"",
-                    ""code"": ""CSROOT"",
-                    ""extensions"":
+                    "message": "errors",
+                    "code": "CSROOT",
+                    "extensions":
                     {
-                      ""code"": ""CS1234""
+                        "code": "CS1234"
                     }
                 }
             ]
-        ");
+            """);
 
         // act
         var errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -256,18 +262,19 @@ public class JsonErrorParserTests
     public void Parsing_Error()
     {
         // arrange
-        var result = JsonDocument.Parse(@"
+        var result = JsonDocument.Parse(
+            """
             [
                 {
-                    ""message"": ""errors"",
-                    ""locations"": [ { ""column"": 5 } ]
+                    "message": "errors",
+                    "locations": [ { "column": 5 } ]
                 },
                 {
-                    ""message"": ""errors"",
-                    ""locations"": [ { ""column"": 5 } ]
+                    "message": "errors",
+                    "locations": [ { "column": 5 } ]
                 }
             ]
-        ");
+            """);
 
         // act
         var errors = JsonErrorParser.ParseErrors(result.RootElement);

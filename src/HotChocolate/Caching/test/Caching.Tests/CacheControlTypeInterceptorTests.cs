@@ -1,13 +1,8 @@
-using System;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Caching.Tests;
 
@@ -44,6 +39,24 @@ public class CacheControlTypeInterceptorTests
             .UseField(_ => _)
             .AddCacheControl()
             .ModifyCacheControlOptions(o => o.DefaultMaxAge = 100)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task QueryFields_ApplyDefaults_DifferentDefaultScope()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(@"
+                type Query {
+                    field1: String
+                    field2: String @cacheControl(maxAge: 200, scope: PUBLIC)
+                }
+            ")
+            .UseField(_ => _)
+            .AddCacheControl()
+            .ModifyCacheControlOptions(o => o.DefaultScope = CacheControlScope.Private)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -108,6 +121,18 @@ public class CacheControlTypeInterceptorTests
     }
 
     [Fact]
+    public async Task DataResolvers_ApplyDefaults_DifferentDefaultScope()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddCacheControl()
+            .ModifyCacheControlOptions(o => o.DefaultScope = CacheControlScope.Private)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task DataResolvers_ApplyDefaults_False()
     {
         await new ServiceCollection()
@@ -155,6 +180,23 @@ public class CacheControlTypeInterceptorTests
 
                 type NestedType {
                     field: String @cacheControl(maxAge: 10 inheritMaxAge: true)
+                }
+            ")
+            .Use(_ => _ => default)
+            .AddCacheControl());
+    }
+
+    [Fact]
+    public void SharedMaxAgeAndInheritMaxAgeOnSameField()
+    {
+        ExpectErrors(builder => builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: NestedType
+                }
+
+                type NestedType {
+                    field: String @cacheControl(sharedMaxAge: 10 inheritMaxAge: true)
                 }
             ")
             .Use(_ => _ => default)
@@ -262,7 +304,7 @@ public class CacheControlTypeInterceptorTests
 
             builder.Create();
 
-            Assert.False(true, "Expected error!");
+            Assert.Fail("Expected error!");
         }
         catch (SchemaException ex)
         {
@@ -289,51 +331,58 @@ public class CacheControlTypeInterceptorTests
 
     public class NestedType
     {
-        public string PureField { get; } = default!;
+        public string PureField { get; } = null!;
 
-        public Task<string> TaskField() => default!;
+        public Task<string> TaskField() => null!;
 
         public ValueTask<string> ValueTaskField() => default!;
 
-        public IExecutable<string> ExecutableField() => default!;
+        public IExecutable<string> ExecutableField() => null!;
 
-        public IQueryable<string> QueryableField() => default!;
+        public IQueryable<string> QueryableField() => null!;
 
         [UsePaging]
-        public IQueryable<string> QueryableFieldWithConnection() => default!;
+        public IQueryable<string> QueryableFieldWithConnection() => null!;
 
         [UseOffsetPaging]
-        public IQueryable<string> QueryableFieldWithCollectionSegment() => default!;
+        public IQueryable<string> QueryableFieldWithCollectionSegment() => null!;
 
         [CacheControl(200)]
-        public string PureFieldWithCacheControl { get; } = default!;
+        public string PureFieldWithCacheControl { get; } = null!;
 
         [CacheControl(200)]
-        public Task<string> TaskFieldWithCacheControl() => default!;
+        public Task<string> TaskFieldWithCacheControl() => null!;
 
         [CacheControl(200)]
         public ValueTask<string> ValueTaskFieldWithCacheControl() => default!;
 
         [CacheControl(200)]
-        public IExecutable<string> ExecutableFieldWithCacheControl() => default!;
+        public IExecutable<string> ExecutableFieldWithCacheControl() => null!;
 
-        [CacheControl(200)]
-        public IQueryable<string> QueryableFieldWithCacheControl() => default!;
+        [CacheControl(MaxAge = 200)]
+        public IQueryable<string> QueryableFieldWithCacheControl() => null!;
+
+        [CacheControl(SharedMaxAge = 200)]
+        public IQueryable<string> QueryableFieldWithCacheControlSharedMaxAge() => null!;
+
+        [CacheControl(500, SharedMaxAge = 200)]
+        public IQueryable<string> QueryableFieldWithCacheControlMaxAgeAndSharedMaxAge() => null!;
+
+        [CacheControl(500, SharedMaxAge = 200, Vary = ["accept-language", "x-timezoneoffset"])]
+        public IQueryable<string> QueryableFieldWithCacheControlMaxAgeAndSharedMaxAgeAndVary() => null!;
 
         [CacheControl(200)]
         [UsePaging]
-        public IQueryable<string>
-            QueryableFieldWithConnectionWithCacheControl() => default!;
+        public IQueryable<string> QueryableFieldWithConnectionWithCacheControl() => null!;
 
         [CacheControl(200)]
         [UseOffsetPaging]
-        public IQueryable<string>
-            QueryableFieldWithCollectionSegmentWithCacheControl() => default!;
+        public IQueryable<string> QueryableFieldWithCollectionSegmentWithCacheControl() => null!;
     }
 
     public class NestedType2
     {
         [CacheControl(InheritMaxAge = true)]
-        public Task<string> TaskFieldWithInheritMaxAge() => default!;
+        public Task<string> TaskFieldWithInheritMaxAge() => null!;
     }
 }

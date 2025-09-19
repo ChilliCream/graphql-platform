@@ -161,174 +161,56 @@ fragment TypeRef on __Type {
 query getHero {
   ... on Query {
     a: hero(episode: NEW_HOPE) @__execute(id: 0, kind: PURE, type: COMPOSITE) {
-      ... on Human {
-        id @__execute(id: 481, kind: PURE, type: LEAF)
-        name @__execute(id: 482, kind: PURE, type: LEAF)
-        friends @__execute(id: 483, kind: DEFAULT, type: COMPOSITE) {
-          ... on FriendsConnection {
-            nodes @__execute(id: 486, kind: PURE, type: COMPOSITE_LIST) {
-              ... on Human {
-                name @__execute(id: 487, kind: PURE, type: LEAF)
-                friends @__execute(id: 488, kind: DEFAULT, type: COMPOSITE) {
-                  ... on FriendsConnection {
-                    nodes @__execute(id: 489, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 490, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 491, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 492, kind: PURE, type: LEAF)
-                                name @__execute(id: 493, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 494, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 495, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 496, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 497, kind: PURE, type: LEAF)
-                                name @__execute(id: 498, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 499, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 500, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 501, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
-                      ... on Droid {
-                        friends @__execute(id: 502, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 503, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 504, kind: PURE, type: LEAF)
-                                name @__execute(id: 505, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 506, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 507, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 508, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 509, kind: PURE, type: LEAF)
-                                name @__execute(id: 510, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 511, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 512, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 513, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-              ... on Droid {
-                name @__execute(id: 514, kind: PURE, type: LEAF)
-                friends @__execute(id: 515, kind: DEFAULT, type: COMPOSITE) {
-                  ... on FriendsConnection {
-                    nodes @__execute(id: 516, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 517, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 518, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 519, kind: PURE, type: LEAF)
-                                name @__execute(id: 520, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 521, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 522, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 523, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 524, kind: PURE, type: LEAF)
-                                name @__execute(id: 525, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 526, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 527, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 528, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
-                      ... on Droid {
-                        friends @__execute(id: 529, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 530, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 531, kind: PURE, type: LEAF)
-                                name @__execute(id: 532, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 533, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 534, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 535, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 536, kind: PURE, type: LEAF)
-                                name @__execute(id: 537, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 538, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 539, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 540, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        height @__execute(id: 484, kind: PURE, type: LEAF)
-        appearsIn @__execute(id: 485, kind: PURE, type: LEAF_LIST)
-      }
       ... on Droid {
-        id @__execute(id: 541, kind: PURE, type: LEAF)
-        name @__execute(id: 542, kind: PURE, type: LEAF)
-        friends @__execute(id: 543, kind: DEFAULT, type: COMPOSITE) {
+        id @__execute(id: 5, kind: PURE, type: LEAF)
+        name @__execute(id: 6, kind: PURE, type: LEAF)
+        friends @__execute(id: 7, kind: DEFAULT, type: COMPOSITE) {
           ... on FriendsConnection {
-            nodes @__execute(id: 546, kind: PURE, type: COMPOSITE_LIST) {
-              ... on Human {
-                name @__execute(id: 547, kind: PURE, type: LEAF)
-                friends @__execute(id: 548, kind: DEFAULT, type: COMPOSITE) {
+            nodes @__execute(id: 56, kind: PURE, type: COMPOSITE_LIST) {
+              ... on Droid {
+                name @__execute(id: 77, kind: PURE, type: LEAF)
+                friends @__execute(id: 78, kind: DEFAULT, type: COMPOSITE) {
                   ... on FriendsConnection {
-                    nodes @__execute(id: 549, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 550, kind: DEFAULT, type: COMPOSITE) {
+                    nodes @__execute(id: 117, kind: PURE, type: COMPOSITE_LIST) {
+                      ... on Droid {
+                        friends @__execute(id: 140, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
-                            nodes @__execute(id: 551, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 552, kind: PURE, type: LEAF)
-                                name @__execute(id: 553, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 554, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 555, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 556, kind: PURE, type: LEAF)
-                              }
+                            nodes @__execute(id: 166, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Droid {
-                                id @__execute(id: 557, kind: PURE, type: LEAF)
-                                name @__execute(id: 558, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 559, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 560, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 561, kind: PURE, type: LEAF)
+                                id @__execute(id: 186, kind: PURE, type: LEAF)
+                                name @__execute(id: 187, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 188, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 189, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 190, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 191, kind: PURE, type: LEAF)
+                                name @__execute(id: 192, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 193, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 194, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 195, kind: PURE, type: LEAF)
                               }
                             }
                           }
                         }
                       }
-                      ... on Droid {
-                        friends @__execute(id: 562, kind: DEFAULT, type: COMPOSITE) {
+                      ... on Human {
+                        friends @__execute(id: 141, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
-                            nodes @__execute(id: 563, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 564, kind: PURE, type: LEAF)
-                                name @__execute(id: 565, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 566, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 567, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 568, kind: PURE, type: LEAF)
-                              }
+                            nodes @__execute(id: 166, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Droid {
-                                id @__execute(id: 569, kind: PURE, type: LEAF)
-                                name @__execute(id: 570, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 571, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 572, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 573, kind: PURE, type: LEAF)
+                                id @__execute(id: 186, kind: PURE, type: LEAF)
+                                name @__execute(id: 187, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 188, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 189, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 190, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 191, kind: PURE, type: LEAF)
+                                name @__execute(id: 192, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 193, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 194, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 195, kind: PURE, type: LEAF)
                               }
                             }
                           }
@@ -338,50 +220,50 @@ query getHero {
                   }
                 }
               }
-              ... on Droid {
-                name @__execute(id: 574, kind: PURE, type: LEAF)
-                friends @__execute(id: 575, kind: DEFAULT, type: COMPOSITE) {
+              ... on Human {
+                name @__execute(id: 79, kind: PURE, type: LEAF)
+                friends @__execute(id: 80, kind: DEFAULT, type: COMPOSITE) {
                   ... on FriendsConnection {
-                    nodes @__execute(id: 576, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 577, kind: DEFAULT, type: COMPOSITE) {
+                    nodes @__execute(id: 117, kind: PURE, type: COMPOSITE_LIST) {
+                      ... on Droid {
+                        friends @__execute(id: 140, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
-                            nodes @__execute(id: 578, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 579, kind: PURE, type: LEAF)
-                                name @__execute(id: 580, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 581, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 582, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 583, kind: PURE, type: LEAF)
-                              }
+                            nodes @__execute(id: 166, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Droid {
-                                id @__execute(id: 584, kind: PURE, type: LEAF)
-                                name @__execute(id: 585, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 586, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 587, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 588, kind: PURE, type: LEAF)
+                                id @__execute(id: 186, kind: PURE, type: LEAF)
+                                name @__execute(id: 187, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 188, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 189, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 190, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 191, kind: PURE, type: LEAF)
+                                name @__execute(id: 192, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 193, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 194, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 195, kind: PURE, type: LEAF)
                               }
                             }
                           }
                         }
                       }
-                      ... on Droid {
-                        friends @__execute(id: 589, kind: DEFAULT, type: COMPOSITE) {
+                      ... on Human {
+                        friends @__execute(id: 141, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
-                            nodes @__execute(id: 590, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 591, kind: PURE, type: LEAF)
-                                name @__execute(id: 592, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 593, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 594, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 595, kind: PURE, type: LEAF)
-                              }
+                            nodes @__execute(id: 166, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Droid {
-                                id @__execute(id: 596, kind: PURE, type: LEAF)
-                                name @__execute(id: 597, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 598, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 599, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 600, kind: PURE, type: LEAF)
+                                id @__execute(id: 186, kind: PURE, type: LEAF)
+                                name @__execute(id: 187, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 188, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 189, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 190, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 191, kind: PURE, type: LEAF)
+                                name @__execute(id: 192, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 193, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 194, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 195, kind: PURE, type: LEAF)
                               }
                             }
                           }
@@ -394,179 +276,179 @@ query getHero {
             }
           }
         }
-        height @__execute(id: 544, kind: PURE, type: LEAF)
-        appearsIn @__execute(id: 545, kind: PURE, type: LEAF_LIST)
+        height @__execute(id: 8, kind: PURE, type: LEAF)
+        appearsIn @__execute(id: 9, kind: PURE, type: LEAF_LIST)
+      }
+      ... on Human {
+        id @__execute(id: 10, kind: PURE, type: LEAF)
+        name @__execute(id: 11, kind: PURE, type: LEAF)
+        friends @__execute(id: 12, kind: DEFAULT, type: COMPOSITE) {
+          ... on FriendsConnection {
+            nodes @__execute(id: 56, kind: PURE, type: COMPOSITE_LIST) {
+              ... on Droid {
+                name @__execute(id: 77, kind: PURE, type: LEAF)
+                friends @__execute(id: 78, kind: DEFAULT, type: COMPOSITE) {
+                  ... on FriendsConnection {
+                    nodes @__execute(id: 117, kind: PURE, type: COMPOSITE_LIST) {
+                      ... on Droid {
+                        friends @__execute(id: 140, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 166, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 186, kind: PURE, type: LEAF)
+                                name @__execute(id: 187, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 188, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 189, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 190, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 191, kind: PURE, type: LEAF)
+                                name @__execute(id: 192, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 193, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 194, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 195, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                      ... on Human {
+                        friends @__execute(id: 141, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 166, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 186, kind: PURE, type: LEAF)
+                                name @__execute(id: 187, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 188, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 189, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 190, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 191, kind: PURE, type: LEAF)
+                                name @__execute(id: 192, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 193, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 194, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 195, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              ... on Human {
+                name @__execute(id: 79, kind: PURE, type: LEAF)
+                friends @__execute(id: 80, kind: DEFAULT, type: COMPOSITE) {
+                  ... on FriendsConnection {
+                    nodes @__execute(id: 117, kind: PURE, type: COMPOSITE_LIST) {
+                      ... on Droid {
+                        friends @__execute(id: 140, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 166, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 186, kind: PURE, type: LEAF)
+                                name @__execute(id: 187, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 188, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 189, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 190, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 191, kind: PURE, type: LEAF)
+                                name @__execute(id: 192, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 193, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 194, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 195, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                      ... on Human {
+                        friends @__execute(id: 141, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 166, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 186, kind: PURE, type: LEAF)
+                                name @__execute(id: 187, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 188, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 189, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 190, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 191, kind: PURE, type: LEAF)
+                                name @__execute(id: 192, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 193, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 194, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 195, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        height @__execute(id: 13, kind: PURE, type: LEAF)
+        appearsIn @__execute(id: 14, kind: PURE, type: LEAF_LIST)
       }
     }
     b: hero(episode: EMPIRE) @__execute(id: 1, kind: PURE, type: COMPOSITE) {
-      ... on Human {
-        id @__execute(id: 361, kind: PURE, type: LEAF)
-        name @__execute(id: 362, kind: PURE, type: LEAF)
-        friends @__execute(id: 363, kind: DEFAULT, type: COMPOSITE) {
-          ... on FriendsConnection {
-            nodes @__execute(id: 366, kind: PURE, type: COMPOSITE_LIST) {
-              ... on Human {
-                name @__execute(id: 367, kind: PURE, type: LEAF)
-                friends @__execute(id: 368, kind: DEFAULT, type: COMPOSITE) {
-                  ... on FriendsConnection {
-                    nodes @__execute(id: 369, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 370, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 371, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 372, kind: PURE, type: LEAF)
-                                name @__execute(id: 373, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 374, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 375, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 376, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 377, kind: PURE, type: LEAF)
-                                name @__execute(id: 378, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 379, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 380, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 381, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
-                      ... on Droid {
-                        friends @__execute(id: 382, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 383, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 384, kind: PURE, type: LEAF)
-                                name @__execute(id: 385, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 386, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 387, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 388, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 389, kind: PURE, type: LEAF)
-                                name @__execute(id: 390, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 391, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 392, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 393, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-              ... on Droid {
-                name @__execute(id: 394, kind: PURE, type: LEAF)
-                friends @__execute(id: 395, kind: DEFAULT, type: COMPOSITE) {
-                  ... on FriendsConnection {
-                    nodes @__execute(id: 396, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 397, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 398, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 399, kind: PURE, type: LEAF)
-                                name @__execute(id: 400, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 401, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 402, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 403, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 404, kind: PURE, type: LEAF)
-                                name @__execute(id: 405, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 406, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 407, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 408, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
-                      ... on Droid {
-                        friends @__execute(id: 409, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 410, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 411, kind: PURE, type: LEAF)
-                                name @__execute(id: 412, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 413, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 414, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 415, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 416, kind: PURE, type: LEAF)
-                                name @__execute(id: 417, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 418, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 419, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 420, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        height @__execute(id: 364, kind: PURE, type: LEAF)
-        appearsIn @__execute(id: 365, kind: PURE, type: LEAF_LIST)
-      }
       ... on Droid {
-        id @__execute(id: 421, kind: PURE, type: LEAF)
-        name @__execute(id: 422, kind: PURE, type: LEAF)
-        friends @__execute(id: 423, kind: DEFAULT, type: COMPOSITE) {
+        id @__execute(id: 15, kind: PURE, type: LEAF)
+        name @__execute(id: 16, kind: PURE, type: LEAF)
+        friends @__execute(id: 17, kind: DEFAULT, type: COMPOSITE) {
           ... on FriendsConnection {
-            nodes @__execute(id: 426, kind: PURE, type: COMPOSITE_LIST) {
-              ... on Human {
-                name @__execute(id: 427, kind: PURE, type: LEAF)
-                friends @__execute(id: 428, kind: DEFAULT, type: COMPOSITE) {
+            nodes @__execute(id: 57, kind: PURE, type: COMPOSITE_LIST) {
+              ... on Droid {
+                name @__execute(id: 81, kind: PURE, type: LEAF)
+                friends @__execute(id: 82, kind: DEFAULT, type: COMPOSITE) {
                   ... on FriendsConnection {
-                    nodes @__execute(id: 429, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 430, kind: DEFAULT, type: COMPOSITE) {
+                    nodes @__execute(id: 118, kind: PURE, type: COMPOSITE_LIST) {
+                      ... on Droid {
+                        friends @__execute(id: 142, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
-                            nodes @__execute(id: 431, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 432, kind: PURE, type: LEAF)
-                                name @__execute(id: 433, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 434, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 435, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 436, kind: PURE, type: LEAF)
-                              }
+                            nodes @__execute(id: 167, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Droid {
-                                id @__execute(id: 437, kind: PURE, type: LEAF)
-                                name @__execute(id: 438, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 439, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 440, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 441, kind: PURE, type: LEAF)
+                                id @__execute(id: 196, kind: PURE, type: LEAF)
+                                name @__execute(id: 197, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 198, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 199, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 200, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 201, kind: PURE, type: LEAF)
+                                name @__execute(id: 202, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 203, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 204, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 205, kind: PURE, type: LEAF)
                               }
                             }
                           }
                         }
                       }
-                      ... on Droid {
-                        friends @__execute(id: 442, kind: DEFAULT, type: COMPOSITE) {
+                      ... on Human {
+                        friends @__execute(id: 143, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
-                            nodes @__execute(id: 443, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 444, kind: PURE, type: LEAF)
-                                name @__execute(id: 445, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 446, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 447, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 448, kind: PURE, type: LEAF)
-                              }
+                            nodes @__execute(id: 167, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Droid {
-                                id @__execute(id: 449, kind: PURE, type: LEAF)
-                                name @__execute(id: 450, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 451, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 452, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 453, kind: PURE, type: LEAF)
+                                id @__execute(id: 196, kind: PURE, type: LEAF)
+                                name @__execute(id: 197, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 198, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 199, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 200, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 201, kind: PURE, type: LEAF)
+                                name @__execute(id: 202, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 203, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 204, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 205, kind: PURE, type: LEAF)
                               }
                             }
                           }
@@ -576,50 +458,50 @@ query getHero {
                   }
                 }
               }
-              ... on Droid {
-                name @__execute(id: 454, kind: PURE, type: LEAF)
-                friends @__execute(id: 455, kind: DEFAULT, type: COMPOSITE) {
+              ... on Human {
+                name @__execute(id: 83, kind: PURE, type: LEAF)
+                friends @__execute(id: 84, kind: DEFAULT, type: COMPOSITE) {
                   ... on FriendsConnection {
-                    nodes @__execute(id: 456, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 457, kind: DEFAULT, type: COMPOSITE) {
+                    nodes @__execute(id: 118, kind: PURE, type: COMPOSITE_LIST) {
+                      ... on Droid {
+                        friends @__execute(id: 142, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
-                            nodes @__execute(id: 458, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 459, kind: PURE, type: LEAF)
-                                name @__execute(id: 460, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 461, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 462, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 463, kind: PURE, type: LEAF)
-                              }
+                            nodes @__execute(id: 167, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Droid {
-                                id @__execute(id: 464, kind: PURE, type: LEAF)
-                                name @__execute(id: 465, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 466, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 467, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 468, kind: PURE, type: LEAF)
+                                id @__execute(id: 196, kind: PURE, type: LEAF)
+                                name @__execute(id: 197, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 198, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 199, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 200, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 201, kind: PURE, type: LEAF)
+                                name @__execute(id: 202, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 203, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 204, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 205, kind: PURE, type: LEAF)
                               }
                             }
                           }
                         }
                       }
-                      ... on Droid {
-                        friends @__execute(id: 469, kind: DEFAULT, type: COMPOSITE) {
+                      ... on Human {
+                        friends @__execute(id: 143, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
-                            nodes @__execute(id: 470, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 471, kind: PURE, type: LEAF)
-                                name @__execute(id: 472, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 473, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 474, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 475, kind: PURE, type: LEAF)
-                              }
+                            nodes @__execute(id: 167, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Droid {
-                                id @__execute(id: 476, kind: PURE, type: LEAF)
-                                name @__execute(id: 477, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 478, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 479, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 480, kind: PURE, type: LEAF)
+                                id @__execute(id: 196, kind: PURE, type: LEAF)
+                                name @__execute(id: 197, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 198, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 199, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 200, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 201, kind: PURE, type: LEAF)
+                                name @__execute(id: 202, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 203, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 204, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 205, kind: PURE, type: LEAF)
                               }
                             }
                           }
@@ -632,179 +514,179 @@ query getHero {
             }
           }
         }
-        height @__execute(id: 424, kind: PURE, type: LEAF)
-        appearsIn @__execute(id: 425, kind: PURE, type: LEAF_LIST)
+        height @__execute(id: 18, kind: PURE, type: LEAF)
+        appearsIn @__execute(id: 19, kind: PURE, type: LEAF_LIST)
+      }
+      ... on Human {
+        id @__execute(id: 20, kind: PURE, type: LEAF)
+        name @__execute(id: 21, kind: PURE, type: LEAF)
+        friends @__execute(id: 22, kind: DEFAULT, type: COMPOSITE) {
+          ... on FriendsConnection {
+            nodes @__execute(id: 57, kind: PURE, type: COMPOSITE_LIST) {
+              ... on Droid {
+                name @__execute(id: 81, kind: PURE, type: LEAF)
+                friends @__execute(id: 82, kind: DEFAULT, type: COMPOSITE) {
+                  ... on FriendsConnection {
+                    nodes @__execute(id: 118, kind: PURE, type: COMPOSITE_LIST) {
+                      ... on Droid {
+                        friends @__execute(id: 142, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 167, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 196, kind: PURE, type: LEAF)
+                                name @__execute(id: 197, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 198, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 199, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 200, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 201, kind: PURE, type: LEAF)
+                                name @__execute(id: 202, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 203, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 204, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 205, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                      ... on Human {
+                        friends @__execute(id: 143, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 167, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 196, kind: PURE, type: LEAF)
+                                name @__execute(id: 197, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 198, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 199, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 200, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 201, kind: PURE, type: LEAF)
+                                name @__execute(id: 202, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 203, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 204, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 205, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              ... on Human {
+                name @__execute(id: 83, kind: PURE, type: LEAF)
+                friends @__execute(id: 84, kind: DEFAULT, type: COMPOSITE) {
+                  ... on FriendsConnection {
+                    nodes @__execute(id: 118, kind: PURE, type: COMPOSITE_LIST) {
+                      ... on Droid {
+                        friends @__execute(id: 142, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 167, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 196, kind: PURE, type: LEAF)
+                                name @__execute(id: 197, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 198, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 199, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 200, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 201, kind: PURE, type: LEAF)
+                                name @__execute(id: 202, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 203, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 204, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 205, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                      ... on Human {
+                        friends @__execute(id: 143, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 167, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 196, kind: PURE, type: LEAF)
+                                name @__execute(id: 197, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 198, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 199, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 200, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 201, kind: PURE, type: LEAF)
+                                name @__execute(id: 202, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 203, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 204, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 205, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        height @__execute(id: 23, kind: PURE, type: LEAF)
+        appearsIn @__execute(id: 24, kind: PURE, type: LEAF_LIST)
       }
     }
     c: hero(episode: JEDI) @__execute(id: 2, kind: PURE, type: COMPOSITE) {
-      ... on Human {
-        id @__execute(id: 241, kind: PURE, type: LEAF)
-        name @__execute(id: 242, kind: PURE, type: LEAF)
-        friends @__execute(id: 243, kind: DEFAULT, type: COMPOSITE) {
-          ... on FriendsConnection {
-            nodes @__execute(id: 246, kind: PURE, type: COMPOSITE_LIST) {
-              ... on Human {
-                name @__execute(id: 247, kind: PURE, type: LEAF)
-                friends @__execute(id: 248, kind: DEFAULT, type: COMPOSITE) {
-                  ... on FriendsConnection {
-                    nodes @__execute(id: 249, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 250, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 251, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 252, kind: PURE, type: LEAF)
-                                name @__execute(id: 253, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 254, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 255, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 256, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 257, kind: PURE, type: LEAF)
-                                name @__execute(id: 258, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 259, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 260, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 261, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
-                      ... on Droid {
-                        friends @__execute(id: 262, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 263, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 264, kind: PURE, type: LEAF)
-                                name @__execute(id: 265, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 266, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 267, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 268, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 269, kind: PURE, type: LEAF)
-                                name @__execute(id: 270, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 271, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 272, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 273, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-              ... on Droid {
-                name @__execute(id: 274, kind: PURE, type: LEAF)
-                friends @__execute(id: 275, kind: DEFAULT, type: COMPOSITE) {
-                  ... on FriendsConnection {
-                    nodes @__execute(id: 276, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 277, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 278, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 279, kind: PURE, type: LEAF)
-                                name @__execute(id: 280, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 281, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 282, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 283, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 284, kind: PURE, type: LEAF)
-                                name @__execute(id: 285, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 286, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 287, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 288, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
-                      ... on Droid {
-                        friends @__execute(id: 289, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 290, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 291, kind: PURE, type: LEAF)
-                                name @__execute(id: 292, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 293, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 294, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 295, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 296, kind: PURE, type: LEAF)
-                                name @__execute(id: 297, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 298, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 299, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 300, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        height @__execute(id: 244, kind: PURE, type: LEAF)
-        appearsIn @__execute(id: 245, kind: PURE, type: LEAF_LIST)
-      }
       ... on Droid {
-        id @__execute(id: 301, kind: PURE, type: LEAF)
-        name @__execute(id: 302, kind: PURE, type: LEAF)
-        friends @__execute(id: 303, kind: DEFAULT, type: COMPOSITE) {
+        id @__execute(id: 25, kind: PURE, type: LEAF)
+        name @__execute(id: 26, kind: PURE, type: LEAF)
+        friends @__execute(id: 27, kind: DEFAULT, type: COMPOSITE) {
           ... on FriendsConnection {
-            nodes @__execute(id: 306, kind: PURE, type: COMPOSITE_LIST) {
-              ... on Human {
-                name @__execute(id: 307, kind: PURE, type: LEAF)
-                friends @__execute(id: 308, kind: DEFAULT, type: COMPOSITE) {
+            nodes @__execute(id: 58, kind: PURE, type: COMPOSITE_LIST) {
+              ... on Droid {
+                name @__execute(id: 85, kind: PURE, type: LEAF)
+                friends @__execute(id: 86, kind: DEFAULT, type: COMPOSITE) {
                   ... on FriendsConnection {
-                    nodes @__execute(id: 309, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 310, kind: DEFAULT, type: COMPOSITE) {
+                    nodes @__execute(id: 119, kind: PURE, type: COMPOSITE_LIST) {
+                      ... on Droid {
+                        friends @__execute(id: 144, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
-                            nodes @__execute(id: 311, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 312, kind: PURE, type: LEAF)
-                                name @__execute(id: 313, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 314, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 315, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 316, kind: PURE, type: LEAF)
-                              }
+                            nodes @__execute(id: 168, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Droid {
-                                id @__execute(id: 317, kind: PURE, type: LEAF)
-                                name @__execute(id: 318, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 319, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 320, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 321, kind: PURE, type: LEAF)
+                                id @__execute(id: 206, kind: PURE, type: LEAF)
+                                name @__execute(id: 207, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 208, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 209, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 210, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 211, kind: PURE, type: LEAF)
+                                name @__execute(id: 212, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 213, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 214, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 215, kind: PURE, type: LEAF)
                               }
                             }
                           }
                         }
                       }
-                      ... on Droid {
-                        friends @__execute(id: 322, kind: DEFAULT, type: COMPOSITE) {
+                      ... on Human {
+                        friends @__execute(id: 145, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
-                            nodes @__execute(id: 323, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 324, kind: PURE, type: LEAF)
-                                name @__execute(id: 325, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 326, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 327, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 328, kind: PURE, type: LEAF)
-                              }
+                            nodes @__execute(id: 168, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Droid {
-                                id @__execute(id: 329, kind: PURE, type: LEAF)
-                                name @__execute(id: 330, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 331, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 332, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 333, kind: PURE, type: LEAF)
+                                id @__execute(id: 206, kind: PURE, type: LEAF)
+                                name @__execute(id: 207, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 208, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 209, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 210, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 211, kind: PURE, type: LEAF)
+                                name @__execute(id: 212, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 213, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 214, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 215, kind: PURE, type: LEAF)
                               }
                             }
                           }
@@ -814,50 +696,50 @@ query getHero {
                   }
                 }
               }
-              ... on Droid {
-                name @__execute(id: 334, kind: PURE, type: LEAF)
-                friends @__execute(id: 335, kind: DEFAULT, type: COMPOSITE) {
+              ... on Human {
+                name @__execute(id: 87, kind: PURE, type: LEAF)
+                friends @__execute(id: 88, kind: DEFAULT, type: COMPOSITE) {
                   ... on FriendsConnection {
-                    nodes @__execute(id: 336, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 337, kind: DEFAULT, type: COMPOSITE) {
+                    nodes @__execute(id: 119, kind: PURE, type: COMPOSITE_LIST) {
+                      ... on Droid {
+                        friends @__execute(id: 144, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
-                            nodes @__execute(id: 338, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 339, kind: PURE, type: LEAF)
-                                name @__execute(id: 340, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 341, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 342, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 343, kind: PURE, type: LEAF)
-                              }
+                            nodes @__execute(id: 168, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Droid {
-                                id @__execute(id: 344, kind: PURE, type: LEAF)
-                                name @__execute(id: 345, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 346, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 347, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 348, kind: PURE, type: LEAF)
+                                id @__execute(id: 206, kind: PURE, type: LEAF)
+                                name @__execute(id: 207, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 208, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 209, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 210, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 211, kind: PURE, type: LEAF)
+                                name @__execute(id: 212, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 213, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 214, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 215, kind: PURE, type: LEAF)
                               }
                             }
                           }
                         }
                       }
-                      ... on Droid {
-                        friends @__execute(id: 349, kind: DEFAULT, type: COMPOSITE) {
+                      ... on Human {
+                        friends @__execute(id: 145, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
-                            nodes @__execute(id: 350, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 351, kind: PURE, type: LEAF)
-                                name @__execute(id: 352, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 353, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 354, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 355, kind: PURE, type: LEAF)
-                              }
+                            nodes @__execute(id: 168, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Droid {
-                                id @__execute(id: 356, kind: PURE, type: LEAF)
-                                name @__execute(id: 357, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 358, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 359, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 360, kind: PURE, type: LEAF)
+                                id @__execute(id: 206, kind: PURE, type: LEAF)
+                                name @__execute(id: 207, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 208, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 209, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 210, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 211, kind: PURE, type: LEAF)
+                                name @__execute(id: 212, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 213, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 214, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 215, kind: PURE, type: LEAF)
                               }
                             }
                           }
@@ -870,121 +752,180 @@ query getHero {
             }
           }
         }
-        height @__execute(id: 304, kind: PURE, type: LEAF)
-        appearsIn @__execute(id: 305, kind: PURE, type: LEAF_LIST)
+        height @__execute(id: 28, kind: PURE, type: LEAF)
+        appearsIn @__execute(id: 29, kind: PURE, type: LEAF_LIST)
+      }
+      ... on Human {
+        id @__execute(id: 30, kind: PURE, type: LEAF)
+        name @__execute(id: 31, kind: PURE, type: LEAF)
+        friends @__execute(id: 32, kind: DEFAULT, type: COMPOSITE) {
+          ... on FriendsConnection {
+            nodes @__execute(id: 58, kind: PURE, type: COMPOSITE_LIST) {
+              ... on Droid {
+                name @__execute(id: 85, kind: PURE, type: LEAF)
+                friends @__execute(id: 86, kind: DEFAULT, type: COMPOSITE) {
+                  ... on FriendsConnection {
+                    nodes @__execute(id: 119, kind: PURE, type: COMPOSITE_LIST) {
+                      ... on Droid {
+                        friends @__execute(id: 144, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 168, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 206, kind: PURE, type: LEAF)
+                                name @__execute(id: 207, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 208, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 209, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 210, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 211, kind: PURE, type: LEAF)
+                                name @__execute(id: 212, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 213, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 214, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 215, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                      ... on Human {
+                        friends @__execute(id: 145, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 168, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 206, kind: PURE, type: LEAF)
+                                name @__execute(id: 207, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 208, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 209, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 210, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 211, kind: PURE, type: LEAF)
+                                name @__execute(id: 212, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 213, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 214, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 215, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              ... on Human {
+                name @__execute(id: 87, kind: PURE, type: LEAF)
+                friends @__execute(id: 88, kind: DEFAULT, type: COMPOSITE) {
+                  ... on FriendsConnection {
+                    nodes @__execute(id: 119, kind: PURE, type: COMPOSITE_LIST) {
+                      ... on Droid {
+                        friends @__execute(id: 144, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 168, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 206, kind: PURE, type: LEAF)
+                                name @__execute(id: 207, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 208, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 209, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 210, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 211, kind: PURE, type: LEAF)
+                                name @__execute(id: 212, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 213, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 214, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 215, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                      ... on Human {
+                        friends @__execute(id: 145, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 168, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 206, kind: PURE, type: LEAF)
+                                name @__execute(id: 207, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 208, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 209, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 210, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 211, kind: PURE, type: LEAF)
+                                name @__execute(id: 212, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 213, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 214, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 215, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        height @__execute(id: 33, kind: PURE, type: LEAF)
+        appearsIn @__execute(id: 34, kind: PURE, type: LEAF_LIST)
       }
     }
     search(text: "") @__execute(id: 3, kind: PURE, type: COMPOSITE_LIST) {
-      ... on Starship {
-        __typename @__execute(id: 115, kind: PURE, type: LEAF)
-        shipId: id @__execute(id: 116, kind: PURE, type: LEAF)
-        length @__execute(id: 117, kind: PURE, type: LEAF)
-        name @__execute(id: 118, kind: PURE, type: LEAF)
-      }
-      ... on Human {
-        __typename @__execute(id: 119, kind: PURE, type: LEAF)
-        id @__execute(id: 120, kind: PURE, type: LEAF)
-        name @__execute(id: 121, kind: PURE, type: LEAF)
-        friends @__execute(id: 122, kind: DEFAULT, type: COMPOSITE) {
+      ... on Droid {
+        __typename @__execute(id: 35, kind: PURE, type: LEAF)
+        id @__execute(id: 36, kind: PURE, type: LEAF)
+        name @__execute(id: 37, kind: PURE, type: LEAF)
+        friends @__execute(id: 38, kind: DEFAULT, type: COMPOSITE) {
           ... on FriendsConnection {
-            nodes @__execute(id: 125, kind: PURE, type: COMPOSITE_LIST) {
-              ... on Human {
-                name @__execute(id: 126, kind: PURE, type: LEAF)
-                friends @__execute(id: 127, kind: DEFAULT, type: COMPOSITE) {
-                  ... on FriendsConnection {
-                    nodes @__execute(id: 128, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 129, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 130, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 131, kind: PURE, type: LEAF)
-                                name @__execute(id: 132, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 133, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 134, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 135, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 136, kind: PURE, type: LEAF)
-                                name @__execute(id: 137, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 138, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 139, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 140, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
-                      ... on Droid {
-                        friends @__execute(id: 141, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 142, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 143, kind: PURE, type: LEAF)
-                                name @__execute(id: 144, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 145, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 146, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 147, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 148, kind: PURE, type: LEAF)
-                                name @__execute(id: 149, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 150, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 151, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 152, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+            nodes @__execute(id: 59, kind: PURE, type: COMPOSITE_LIST) {
               ... on Droid {
-                name @__execute(id: 153, kind: PURE, type: LEAF)
-                friends @__execute(id: 154, kind: DEFAULT, type: COMPOSITE) {
+                name @__execute(id: 89, kind: PURE, type: LEAF)
+                friends @__execute(id: 90, kind: DEFAULT, type: COMPOSITE) {
                   ... on FriendsConnection {
-                    nodes @__execute(id: 155, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 156, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 157, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 158, kind: PURE, type: LEAF)
-                                name @__execute(id: 159, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 160, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 161, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 162, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 163, kind: PURE, type: LEAF)
-                                name @__execute(id: 164, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 165, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 166, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 167, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
+                    nodes @__execute(id: 120, kind: PURE, type: COMPOSITE_LIST) {
                       ... on Droid {
-                        friends @__execute(id: 168, kind: DEFAULT, type: COMPOSITE) {
+                        friends @__execute(id: 146, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
                             nodes @__execute(id: 169, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 170, kind: PURE, type: LEAF)
-                                name @__execute(id: 171, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 172, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 173, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 174, kind: PURE, type: LEAF)
-                              }
                               ... on Droid {
-                                id @__execute(id: 175, kind: PURE, type: LEAF)
-                                name @__execute(id: 176, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 177, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 178, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 179, kind: PURE, type: LEAF)
+                                id @__execute(id: 216, kind: PURE, type: LEAF)
+                                name @__execute(id: 217, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 218, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 219, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 220, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 221, kind: PURE, type: LEAF)
+                                name @__execute(id: 222, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 223, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 224, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 225, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                      ... on Human {
+                        friends @__execute(id: 147, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 169, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 216, kind: PURE, type: LEAF)
+                                name @__execute(id: 217, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 218, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 219, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 220, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 221, kind: PURE, type: LEAF)
+                                name @__execute(id: 222, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 223, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 224, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 225, kind: PURE, type: LEAF)
                               }
                             }
                           }
@@ -994,116 +935,50 @@ query getHero {
                   }
                 }
               }
-            }
-          }
-        }
-        height @__execute(id: 123, kind: PURE, type: LEAF)
-        appearsIn @__execute(id: 124, kind: PURE, type: LEAF_LIST)
-      }
-      ... on Droid {
-        __typename @__execute(id: 180, kind: PURE, type: LEAF)
-        id @__execute(id: 181, kind: PURE, type: LEAF)
-        name @__execute(id: 182, kind: PURE, type: LEAF)
-        friends @__execute(id: 183, kind: DEFAULT, type: COMPOSITE) {
-          ... on FriendsConnection {
-            nodes @__execute(id: 186, kind: PURE, type: COMPOSITE_LIST) {
               ... on Human {
-                name @__execute(id: 187, kind: PURE, type: LEAF)
-                friends @__execute(id: 188, kind: DEFAULT, type: COMPOSITE) {
+                name @__execute(id: 91, kind: PURE, type: LEAF)
+                friends @__execute(id: 92, kind: DEFAULT, type: COMPOSITE) {
                   ... on FriendsConnection {
-                    nodes @__execute(id: 189, kind: PURE, type: COMPOSITE_LIST) {
-                      ... on Human {
-                        friends @__execute(id: 190, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 191, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 192, kind: PURE, type: LEAF)
-                                name @__execute(id: 193, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 194, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 195, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 196, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 197, kind: PURE, type: LEAF)
-                                name @__execute(id: 198, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 199, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 200, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 201, kind: PURE, type: LEAF)
-                              }
-                            }
-                          }
-                        }
-                      }
+                    nodes @__execute(id: 120, kind: PURE, type: COMPOSITE_LIST) {
                       ... on Droid {
-                        friends @__execute(id: 202, kind: DEFAULT, type: COMPOSITE) {
+                        friends @__execute(id: 146, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
-                            nodes @__execute(id: 203, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 204, kind: PURE, type: LEAF)
-                                name @__execute(id: 205, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 206, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 207, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 208, kind: PURE, type: LEAF)
-                              }
+                            nodes @__execute(id: 169, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Droid {
-                                id @__execute(id: 209, kind: PURE, type: LEAF)
-                                name @__execute(id: 210, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 211, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 212, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 213, kind: PURE, type: LEAF)
+                                id @__execute(id: 216, kind: PURE, type: LEAF)
+                                name @__execute(id: 217, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 218, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 219, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 220, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 221, kind: PURE, type: LEAF)
+                                name @__execute(id: 222, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 223, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 224, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 225, kind: PURE, type: LEAF)
                               }
                             }
                           }
                         }
                       }
-                    }
-                  }
-                }
-              }
-              ... on Droid {
-                name @__execute(id: 214, kind: PURE, type: LEAF)
-                friends @__execute(id: 215, kind: DEFAULT, type: COMPOSITE) {
-                  ... on FriendsConnection {
-                    nodes @__execute(id: 216, kind: PURE, type: COMPOSITE_LIST) {
                       ... on Human {
-                        friends @__execute(id: 217, kind: DEFAULT, type: COMPOSITE) {
+                        friends @__execute(id: 147, kind: DEFAULT, type: COMPOSITE) {
                           ... on FriendsConnection {
-                            nodes @__execute(id: 218, kind: PURE, type: COMPOSITE_LIST) {
-                              ... on Human {
-                                id @__execute(id: 219, kind: PURE, type: LEAF)
-                                name @__execute(id: 220, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 221, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 222, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 223, kind: PURE, type: LEAF)
-                              }
+                            nodes @__execute(id: 169, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Droid {
-                                id @__execute(id: 224, kind: PURE, type: LEAF)
-                                name @__execute(id: 225, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 226, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 227, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 228, kind: PURE, type: LEAF)
+                                id @__execute(id: 216, kind: PURE, type: LEAF)
+                                name @__execute(id: 217, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 218, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 219, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 220, kind: PURE, type: LEAF)
                               }
-                            }
-                          }
-                        }
-                      }
-                      ... on Droid {
-                        friends @__execute(id: 229, kind: DEFAULT, type: COMPOSITE) {
-                          ... on FriendsConnection {
-                            nodes @__execute(id: 230, kind: PURE, type: COMPOSITE_LIST) {
                               ... on Human {
-                                id @__execute(id: 231, kind: PURE, type: LEAF)
-                                name @__execute(id: 232, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 233, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 234, kind: PURE, type: LEAF)
-                                homePlanet @__execute(id: 235, kind: PURE, type: LEAF)
-                              }
-                              ... on Droid {
-                                id @__execute(id: 236, kind: PURE, type: LEAF)
-                                name @__execute(id: 237, kind: PURE, type: LEAF)
-                                appearsIn @__execute(id: 238, kind: PURE, type: LEAF_LIST)
-                                height @__execute(id: 239, kind: PURE, type: LEAF)
-                                primaryFunction @__execute(id: 240, kind: PURE, type: LEAF)
+                                id @__execute(id: 221, kind: PURE, type: LEAF)
+                                name @__execute(id: 222, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 223, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 224, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 225, kind: PURE, type: LEAF)
                               }
                             }
                           }
@@ -1116,56 +991,181 @@ query getHero {
             }
           }
         }
-        height @__execute(id: 184, kind: PURE, type: LEAF)
-        appearsIn @__execute(id: 185, kind: PURE, type: LEAF_LIST)
+        height @__execute(id: 39, kind: PURE, type: LEAF)
+        appearsIn @__execute(id: 40, kind: PURE, type: LEAF_LIST)
+      }
+      ... on Human {
+        __typename @__execute(id: 41, kind: PURE, type: LEAF)
+        id @__execute(id: 42, kind: PURE, type: LEAF)
+        name @__execute(id: 43, kind: PURE, type: LEAF)
+        friends @__execute(id: 44, kind: DEFAULT, type: COMPOSITE) {
+          ... on FriendsConnection {
+            nodes @__execute(id: 59, kind: PURE, type: COMPOSITE_LIST) {
+              ... on Droid {
+                name @__execute(id: 89, kind: PURE, type: LEAF)
+                friends @__execute(id: 90, kind: DEFAULT, type: COMPOSITE) {
+                  ... on FriendsConnection {
+                    nodes @__execute(id: 120, kind: PURE, type: COMPOSITE_LIST) {
+                      ... on Droid {
+                        friends @__execute(id: 146, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 169, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 216, kind: PURE, type: LEAF)
+                                name @__execute(id: 217, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 218, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 219, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 220, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 221, kind: PURE, type: LEAF)
+                                name @__execute(id: 222, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 223, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 224, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 225, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                      ... on Human {
+                        friends @__execute(id: 147, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 169, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 216, kind: PURE, type: LEAF)
+                                name @__execute(id: 217, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 218, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 219, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 220, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 221, kind: PURE, type: LEAF)
+                                name @__execute(id: 222, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 223, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 224, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 225, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              ... on Human {
+                name @__execute(id: 91, kind: PURE, type: LEAF)
+                friends @__execute(id: 92, kind: DEFAULT, type: COMPOSITE) {
+                  ... on FriendsConnection {
+                    nodes @__execute(id: 120, kind: PURE, type: COMPOSITE_LIST) {
+                      ... on Droid {
+                        friends @__execute(id: 146, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 169, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 216, kind: PURE, type: LEAF)
+                                name @__execute(id: 217, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 218, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 219, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 220, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 221, kind: PURE, type: LEAF)
+                                name @__execute(id: 222, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 223, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 224, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 225, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                      ... on Human {
+                        friends @__execute(id: 147, kind: DEFAULT, type: COMPOSITE) {
+                          ... on FriendsConnection {
+                            nodes @__execute(id: 169, kind: PURE, type: COMPOSITE_LIST) {
+                              ... on Droid {
+                                id @__execute(id: 216, kind: PURE, type: LEAF)
+                                name @__execute(id: 217, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 218, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 219, kind: PURE, type: LEAF)
+                                primaryFunction @__execute(id: 220, kind: PURE, type: LEAF)
+                              }
+                              ... on Human {
+                                id @__execute(id: 221, kind: PURE, type: LEAF)
+                                name @__execute(id: 222, kind: PURE, type: LEAF)
+                                appearsIn @__execute(id: 223, kind: PURE, type: LEAF_LIST)
+                                height @__execute(id: 224, kind: PURE, type: LEAF)
+                                homePlanet @__execute(id: 225, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        height @__execute(id: 45, kind: PURE, type: LEAF)
+        appearsIn @__execute(id: 46, kind: PURE, type: LEAF_LIST)
+      }
+      ... on Starship {
+        __typename @__execute(id: 47, kind: PURE, type: LEAF)
+        shipId: id @__execute(id: 48, kind: PURE, type: LEAF)
+        length @__execute(id: 49, kind: PURE, type: LEAF)
+        name @__execute(id: 50, kind: PURE, type: LEAF)
       }
     }
     __schema @__execute(id: 4, kind: PURE, type: COMPOSITE) {
       ... on __Schema {
-        queryType @__execute(id: 5, kind: PURE, type: COMPOSITE) {
+        queryType @__execute(id: 51, kind: PURE, type: COMPOSITE) {
           ... on __Type {
-            name @__execute(id: 114, kind: PURE, type: LEAF)
+            name @__execute(id: 60, kind: PURE, type: LEAF)
           }
         }
-        mutationType @__execute(id: 6, kind: PURE, type: COMPOSITE) {
+        mutationType @__execute(id: 52, kind: PURE, type: COMPOSITE) {
           ... on __Type {
-            name @__execute(id: 113, kind: PURE, type: LEAF)
+            name @__execute(id: 61, kind: PURE, type: LEAF)
           }
         }
-        subscriptionType @__execute(id: 7, kind: PURE, type: COMPOSITE) {
+        subscriptionType @__execute(id: 53, kind: PURE, type: COMPOSITE) {
           ... on __Type {
-            name @__execute(id: 112, kind: PURE, type: LEAF)
+            name @__execute(id: 62, kind: PURE, type: LEAF)
           }
         }
-        types @__execute(id: 8, kind: PURE, type: COMPOSITE_LIST) {
+        types @__execute(id: 54, kind: PURE, type: COMPOSITE_LIST) {
           ... on __Type {
-            kind @__execute(id: 31, kind: PURE, type: LEAF)
-            name @__execute(id: 32, kind: PURE, type: LEAF)
-            description @__execute(id: 33, kind: PURE, type: LEAF)
-            fields(includeDeprecated: true) @__execute(id: 34, kind: PURE, type: COMPOSITE_LIST) {
+            kind @__execute(id: 63, kind: PURE, type: LEAF)
+            name @__execute(id: 64, kind: PURE, type: LEAF)
+            description @__execute(id: 65, kind: PURE, type: LEAF)
+            fields(includeDeprecated: true) @__execute(id: 66, kind: PURE, type: COMPOSITE_LIST) {
               ... on __Field {
-                name @__execute(id: 80, kind: PURE, type: LEAF)
-                description @__execute(id: 81, kind: PURE, type: LEAF)
-                args @__execute(id: 82, kind: PURE, type: COMPOSITE_LIST) {
+                name @__execute(id: 93, kind: PURE, type: LEAF)
+                description @__execute(id: 94, kind: PURE, type: LEAF)
+                args @__execute(id: 95, kind: PURE, type: COMPOSITE_LIST) {
                   ... on __InputValue {
-                    name @__execute(id: 97, kind: PURE, type: LEAF)
-                    description @__execute(id: 98, kind: PURE, type: LEAF)
-                    type @__execute(id: 99, kind: PURE, type: COMPOSITE) {
+                    name @__execute(id: 121, kind: PURE, type: LEAF)
+                    description @__execute(id: 122, kind: PURE, type: LEAF)
+                    type @__execute(id: 123, kind: PURE, type: COMPOSITE) {
                       ... on __Type {
-                        kind @__execute(id: 101, kind: PURE, type: LEAF)
-                        name @__execute(id: 102, kind: PURE, type: LEAF)
-                        ofType @__execute(id: 103, kind: PURE, type: COMPOSITE) {
+                        kind @__execute(id: 148, kind: PURE, type: LEAF)
+                        name @__execute(id: 149, kind: PURE, type: LEAF)
+                        ofType @__execute(id: 150, kind: PURE, type: COMPOSITE) {
                           ... on __Type {
-                            kind @__execute(id: 104, kind: PURE, type: LEAF)
-                            name @__execute(id: 105, kind: PURE, type: LEAF)
-                            ofType @__execute(id: 106, kind: PURE, type: COMPOSITE) {
+                            kind @__execute(id: 170, kind: PURE, type: LEAF)
+                            name @__execute(id: 171, kind: PURE, type: LEAF)
+                            ofType @__execute(id: 172, kind: PURE, type: COMPOSITE) {
                               ... on __Type {
-                                kind @__execute(id: 107, kind: PURE, type: LEAF)
-                                name @__execute(id: 108, kind: PURE, type: LEAF)
-                                ofType @__execute(id: 109, kind: PURE, type: COMPOSITE) {
+                                kind @__execute(id: 226, kind: PURE, type: LEAF)
+                                name @__execute(id: 227, kind: PURE, type: LEAF)
+                                ofType @__execute(id: 228, kind: PURE, type: COMPOSITE) {
                                   ... on __Type {
-                                    kind @__execute(id: 110, kind: PURE, type: LEAF)
-                                    name @__execute(id: 111, kind: PURE, type: LEAF)
+                                    kind @__execute(id: 235, kind: PURE, type: LEAF)
+                                    name @__execute(id: 236, kind: PURE, type: LEAF)
                                   }
                                 }
                               }
@@ -1174,25 +1174,25 @@ query getHero {
                         }
                       }
                     }
-                    defaultValue @__execute(id: 100, kind: PURE, type: LEAF)
+                    defaultValue @__execute(id: 124, kind: PURE, type: LEAF)
                   }
                 }
-                type @__execute(id: 83, kind: PURE, type: COMPOSITE) {
+                type @__execute(id: 96, kind: PURE, type: COMPOSITE) {
                   ... on __Type {
-                    kind @__execute(id: 86, kind: PURE, type: LEAF)
-                    name @__execute(id: 87, kind: PURE, type: LEAF)
-                    ofType @__execute(id: 88, kind: PURE, type: COMPOSITE) {
+                    kind @__execute(id: 125, kind: PURE, type: LEAF)
+                    name @__execute(id: 126, kind: PURE, type: LEAF)
+                    ofType @__execute(id: 127, kind: PURE, type: COMPOSITE) {
                       ... on __Type {
-                        kind @__execute(id: 89, kind: PURE, type: LEAF)
-                        name @__execute(id: 90, kind: PURE, type: LEAF)
-                        ofType @__execute(id: 91, kind: PURE, type: COMPOSITE) {
+                        kind @__execute(id: 151, kind: PURE, type: LEAF)
+                        name @__execute(id: 152, kind: PURE, type: LEAF)
+                        ofType @__execute(id: 153, kind: PURE, type: COMPOSITE) {
                           ... on __Type {
-                            kind @__execute(id: 92, kind: PURE, type: LEAF)
-                            name @__execute(id: 93, kind: PURE, type: LEAF)
-                            ofType @__execute(id: 94, kind: PURE, type: COMPOSITE) {
+                            kind @__execute(id: 173, kind: PURE, type: LEAF)
+                            name @__execute(id: 174, kind: PURE, type: LEAF)
+                            ofType @__execute(id: 175, kind: PURE, type: COMPOSITE) {
                               ... on __Type {
-                                kind @__execute(id: 95, kind: PURE, type: LEAF)
-                                name @__execute(id: 96, kind: PURE, type: LEAF)
+                                kind @__execute(id: 229, kind: PURE, type: LEAF)
+                                name @__execute(id: 230, kind: PURE, type: LEAF)
                               }
                             }
                           }
@@ -1201,30 +1201,30 @@ query getHero {
                     }
                   }
                 }
-                isDeprecated @__execute(id: 84, kind: PURE, type: LEAF)
-                deprecationReason @__execute(id: 85, kind: PURE, type: LEAF)
+                isDeprecated @__execute(id: 97, kind: PURE, type: LEAF)
+                deprecationReason @__execute(id: 98, kind: PURE, type: LEAF)
               }
             }
-            inputFields @__execute(id: 35, kind: PURE, type: COMPOSITE_LIST) {
+            inputFields @__execute(id: 67, kind: PURE, type: COMPOSITE_LIST) {
               ... on __InputValue {
-                name @__execute(id: 65, kind: PURE, type: LEAF)
-                description @__execute(id: 66, kind: PURE, type: LEAF)
-                type @__execute(id: 67, kind: PURE, type: COMPOSITE) {
+                name @__execute(id: 99, kind: PURE, type: LEAF)
+                description @__execute(id: 100, kind: PURE, type: LEAF)
+                type @__execute(id: 101, kind: PURE, type: COMPOSITE) {
                   ... on __Type {
-                    kind @__execute(id: 69, kind: PURE, type: LEAF)
-                    name @__execute(id: 70, kind: PURE, type: LEAF)
-                    ofType @__execute(id: 71, kind: PURE, type: COMPOSITE) {
+                    kind @__execute(id: 128, kind: PURE, type: LEAF)
+                    name @__execute(id: 129, kind: PURE, type: LEAF)
+                    ofType @__execute(id: 130, kind: PURE, type: COMPOSITE) {
                       ... on __Type {
-                        kind @__execute(id: 72, kind: PURE, type: LEAF)
-                        name @__execute(id: 73, kind: PURE, type: LEAF)
-                        ofType @__execute(id: 74, kind: PURE, type: COMPOSITE) {
+                        kind @__execute(id: 154, kind: PURE, type: LEAF)
+                        name @__execute(id: 155, kind: PURE, type: LEAF)
+                        ofType @__execute(id: 156, kind: PURE, type: COMPOSITE) {
                           ... on __Type {
-                            kind @__execute(id: 75, kind: PURE, type: LEAF)
-                            name @__execute(id: 76, kind: PURE, type: LEAF)
-                            ofType @__execute(id: 77, kind: PURE, type: COMPOSITE) {
+                            kind @__execute(id: 176, kind: PURE, type: LEAF)
+                            name @__execute(id: 177, kind: PURE, type: LEAF)
+                            ofType @__execute(id: 178, kind: PURE, type: COMPOSITE) {
                               ... on __Type {
-                                kind @__execute(id: 78, kind: PURE, type: LEAF)
-                                name @__execute(id: 79, kind: PURE, type: LEAF)
+                                kind @__execute(id: 231, kind: PURE, type: LEAF)
+                                name @__execute(id: 232, kind: PURE, type: LEAF)
                               }
                             }
                           }
@@ -1233,25 +1233,25 @@ query getHero {
                     }
                   }
                 }
-                defaultValue @__execute(id: 68, kind: PURE, type: LEAF)
+                defaultValue @__execute(id: 102, kind: PURE, type: LEAF)
               }
             }
-            interfaces @__execute(id: 36, kind: PURE, type: COMPOSITE_LIST) {
+            interfaces @__execute(id: 68, kind: PURE, type: COMPOSITE_LIST) {
               ... on __Type {
-                kind @__execute(id: 54, kind: PURE, type: LEAF)
-                name @__execute(id: 55, kind: PURE, type: LEAF)
-                ofType @__execute(id: 56, kind: PURE, type: COMPOSITE) {
+                kind @__execute(id: 103, kind: PURE, type: LEAF)
+                name @__execute(id: 104, kind: PURE, type: LEAF)
+                ofType @__execute(id: 105, kind: PURE, type: COMPOSITE) {
                   ... on __Type {
-                    kind @__execute(id: 57, kind: PURE, type: LEAF)
-                    name @__execute(id: 58, kind: PURE, type: LEAF)
-                    ofType @__execute(id: 59, kind: PURE, type: COMPOSITE) {
+                    kind @__execute(id: 131, kind: PURE, type: LEAF)
+                    name @__execute(id: 132, kind: PURE, type: LEAF)
+                    ofType @__execute(id: 133, kind: PURE, type: COMPOSITE) {
                       ... on __Type {
-                        kind @__execute(id: 60, kind: PURE, type: LEAF)
-                        name @__execute(id: 61, kind: PURE, type: LEAF)
-                        ofType @__execute(id: 62, kind: PURE, type: COMPOSITE) {
+                        kind @__execute(id: 157, kind: PURE, type: LEAF)
+                        name @__execute(id: 158, kind: PURE, type: LEAF)
+                        ofType @__execute(id: 159, kind: PURE, type: COMPOSITE) {
                           ... on __Type {
-                            kind @__execute(id: 63, kind: PURE, type: LEAF)
-                            name @__execute(id: 64, kind: PURE, type: LEAF)
+                            kind @__execute(id: 179, kind: PURE, type: LEAF)
+                            name @__execute(id: 180, kind: PURE, type: LEAF)
                           }
                         }
                       }
@@ -1260,30 +1260,30 @@ query getHero {
                 }
               }
             }
-            enumValues(includeDeprecated: true) @__execute(id: 37, kind: PURE, type: COMPOSITE_LIST) {
+            enumValues(includeDeprecated: true) @__execute(id: 69, kind: PURE, type: COMPOSITE_LIST) {
               ... on __EnumValue {
-                name @__execute(id: 50, kind: PURE, type: LEAF)
-                description @__execute(id: 51, kind: PURE, type: LEAF)
-                isDeprecated @__execute(id: 52, kind: PURE, type: LEAF)
-                deprecationReason @__execute(id: 53, kind: PURE, type: LEAF)
+                name @__execute(id: 106, kind: PURE, type: LEAF)
+                description @__execute(id: 107, kind: PURE, type: LEAF)
+                isDeprecated @__execute(id: 108, kind: PURE, type: LEAF)
+                deprecationReason @__execute(id: 109, kind: PURE, type: LEAF)
               }
             }
-            possibleTypes @__execute(id: 38, kind: PURE, type: COMPOSITE_LIST) {
+            possibleTypes @__execute(id: 70, kind: PURE, type: COMPOSITE_LIST) {
               ... on __Type {
-                kind @__execute(id: 39, kind: PURE, type: LEAF)
-                name @__execute(id: 40, kind: PURE, type: LEAF)
-                ofType @__execute(id: 41, kind: PURE, type: COMPOSITE) {
+                kind @__execute(id: 110, kind: PURE, type: LEAF)
+                name @__execute(id: 111, kind: PURE, type: LEAF)
+                ofType @__execute(id: 112, kind: PURE, type: COMPOSITE) {
                   ... on __Type {
-                    kind @__execute(id: 42, kind: PURE, type: LEAF)
-                    name @__execute(id: 43, kind: PURE, type: LEAF)
-                    ofType @__execute(id: 44, kind: PURE, type: COMPOSITE) {
+                    kind @__execute(id: 134, kind: PURE, type: LEAF)
+                    name @__execute(id: 135, kind: PURE, type: LEAF)
+                    ofType @__execute(id: 136, kind: PURE, type: COMPOSITE) {
                       ... on __Type {
-                        kind @__execute(id: 45, kind: PURE, type: LEAF)
-                        name @__execute(id: 46, kind: PURE, type: LEAF)
-                        ofType @__execute(id: 47, kind: PURE, type: COMPOSITE) {
+                        kind @__execute(id: 160, kind: PURE, type: LEAF)
+                        name @__execute(id: 161, kind: PURE, type: LEAF)
+                        ofType @__execute(id: 162, kind: PURE, type: COMPOSITE) {
                           ... on __Type {
-                            kind @__execute(id: 48, kind: PURE, type: LEAF)
-                            name @__execute(id: 49, kind: PURE, type: LEAF)
+                            kind @__execute(id: 181, kind: PURE, type: LEAF)
+                            name @__execute(id: 182, kind: PURE, type: LEAF)
                           }
                         }
                       }
@@ -1294,30 +1294,30 @@ query getHero {
             }
           }
         }
-        directives @__execute(id: 9, kind: PURE, type: COMPOSITE_LIST) {
+        directives @__execute(id: 55, kind: PURE, type: COMPOSITE_LIST) {
           ... on __Directive {
-            name @__execute(id: 10, kind: PURE, type: LEAF)
-            description @__execute(id: 11, kind: PURE, type: LEAF)
-            args @__execute(id: 12, kind: PURE, type: COMPOSITE_LIST) {
+            name @__execute(id: 71, kind: PURE, type: LEAF)
+            description @__execute(id: 72, kind: PURE, type: LEAF)
+            args @__execute(id: 73, kind: PURE, type: COMPOSITE_LIST) {
               ... on __InputValue {
-                name @__execute(id: 16, kind: PURE, type: LEAF)
-                description @__execute(id: 17, kind: PURE, type: LEAF)
-                type @__execute(id: 18, kind: PURE, type: COMPOSITE) {
+                name @__execute(id: 113, kind: PURE, type: LEAF)
+                description @__execute(id: 114, kind: PURE, type: LEAF)
+                type @__execute(id: 115, kind: PURE, type: COMPOSITE) {
                   ... on __Type {
-                    kind @__execute(id: 20, kind: PURE, type: LEAF)
-                    name @__execute(id: 21, kind: PURE, type: LEAF)
-                    ofType @__execute(id: 22, kind: PURE, type: COMPOSITE) {
+                    kind @__execute(id: 137, kind: PURE, type: LEAF)
+                    name @__execute(id: 138, kind: PURE, type: LEAF)
+                    ofType @__execute(id: 139, kind: PURE, type: COMPOSITE) {
                       ... on __Type {
-                        kind @__execute(id: 23, kind: PURE, type: LEAF)
-                        name @__execute(id: 24, kind: PURE, type: LEAF)
-                        ofType @__execute(id: 25, kind: PURE, type: COMPOSITE) {
+                        kind @__execute(id: 163, kind: PURE, type: LEAF)
+                        name @__execute(id: 164, kind: PURE, type: LEAF)
+                        ofType @__execute(id: 165, kind: PURE, type: COMPOSITE) {
                           ... on __Type {
-                            kind @__execute(id: 26, kind: PURE, type: LEAF)
-                            name @__execute(id: 27, kind: PURE, type: LEAF)
-                            ofType @__execute(id: 28, kind: PURE, type: COMPOSITE) {
+                            kind @__execute(id: 183, kind: PURE, type: LEAF)
+                            name @__execute(id: 184, kind: PURE, type: LEAF)
+                            ofType @__execute(id: 185, kind: PURE, type: COMPOSITE) {
                               ... on __Type {
-                                kind @__execute(id: 29, kind: PURE, type: LEAF)
-                                name @__execute(id: 30, kind: PURE, type: LEAF)
+                                kind @__execute(id: 233, kind: PURE, type: LEAF)
+                                name @__execute(id: 234, kind: PURE, type: LEAF)
                               }
                             }
                           }
@@ -1326,12 +1326,12 @@ query getHero {
                     }
                   }
                 }
-                defaultValue @__execute(id: 19, kind: PURE, type: LEAF)
+                defaultValue @__execute(id: 116, kind: PURE, type: LEAF)
               }
             }
-            onOperation @__execute(id: 13, kind: PURE, type: LEAF)
-            onFragment @__execute(id: 14, kind: PURE, type: LEAF)
-            onField @__execute(id: 15, kind: PURE, type: LEAF)
+            onOperation @__execute(id: 74, kind: PURE, type: LEAF)
+            onFragment @__execute(id: 75, kind: PURE, type: LEAF)
+            onField @__execute(id: 76, kind: PURE, type: LEAF)
           }
         }
       }

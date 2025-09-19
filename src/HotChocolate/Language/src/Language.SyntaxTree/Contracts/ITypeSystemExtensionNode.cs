@@ -10,6 +10,4 @@ namespace HotChocolate.Language;
 /// </para>
 /// <para>https://graphql.github.io/graphql-spec/June2018/#sec-Type-System-Extensions</para>
 /// </summary>
-public interface ITypeSystemExtensionNode : IDefinitionNode
-{
-}
+public interface ITypeSystemExtensionNode : IDefinitionNode;

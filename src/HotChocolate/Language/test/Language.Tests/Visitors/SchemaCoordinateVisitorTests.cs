@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-using Xunit;
 using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Language;
 
-public class SchemaCoordinateVisitorTests
+public static class SchemaCoordinateVisitorTests
 {
     [Fact]
     public static void VisitAllNodes()
@@ -25,7 +23,7 @@ public class SchemaCoordinateVisitorTests
                     }
                     return SyntaxVisitor.Continue;
                 },
-                options: new() { VisitNames = true, })
+                options: new() { VisitNames = true })
             .Visit(node);
 
         // assert
@@ -75,18 +73,18 @@ public class SchemaCoordinateVisitorTests
             s => Assert.Equal("ghi", s));
     }
 
-    public class CustomSyntaxWalker(List<string> list) 
-        : SyntaxWalker(new() { VisitNames = true, })
+    public class CustomSyntaxWalker(List<string> list)
+        : SyntaxWalker(new() { VisitNames = true })
     {
-        protected override ISyntaxVisitorAction Enter(NameNode node, object context)
+        protected override ISyntaxVisitorAction Enter(NameNode node, object? context)
         {
             list.Add(node.Value);
             return DefaultAction;
         }
     }
 
-    public class CustomGenericSyntaxWalker() 
-        : SyntaxWalker<CustomContext>(new SyntaxVisitorOptions { VisitNames = true, })
+    public class CustomGenericSyntaxWalker()
+        : SyntaxWalker<CustomContext>(new SyntaxVisitorOptions { VisitNames = true })
     {
         protected override ISyntaxVisitorAction Enter(NameNode node, CustomContext context)
         {

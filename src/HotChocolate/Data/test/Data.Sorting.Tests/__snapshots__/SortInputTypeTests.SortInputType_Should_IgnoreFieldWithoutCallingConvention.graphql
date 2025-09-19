@@ -1,0 +1,21 @@
+schema {
+  query: Query
+}
+
+type IgnoreTest {
+  id: Int!
+  name: String!
+}
+
+type Query {
+  foo(order: [IgnoreTestSortInput!]): [IgnoreTest]
+}
+
+input IgnoreTestSortInput {
+  id: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}

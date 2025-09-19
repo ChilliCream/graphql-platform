@@ -1,8 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -20,7 +17,6 @@ public class ListTypeTests
         // assert
         Assert.Equal(innerType, type.ElementType);
     }
-
 
     [Fact]
     public void EnsureNonNullElementTypeIsCorrectlySet()
@@ -43,7 +39,7 @@ public class ListTypeTests
         var type = new ListType(innerType);
 
         // act
-        var clrType = type.RuntimeType;
+        var clrType = type.ToRuntimeType();
 
         // assert
         Assert.Equal(typeof(List<string>), clrType);
@@ -60,10 +56,10 @@ public class ListTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery("{ scalars(values: [1,2]) }")
-                .Create());
+                .SetDocument("{ scalars(values: [1,2]) }")
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -80,10 +76,10 @@ public class ListTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery("{ scalars(values: 1) }")
-                .Create());
+                .SetDocument("{ scalars(values: 1) }")
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -100,10 +96,10 @@ public class ListTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery("{ objects(values: [{ bar: 1 }, { bar: 2 }]) { bar } }")
-                .Create());
+                .SetDocument("{ objects(values: [{ bar: 1 }, { bar: 2 }]) { bar } }")
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -120,10 +116,10 @@ public class ListTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery("{ objects(values: { bar: 1 }) { bar } }")
-                .Create());
+                .SetDocument("{ objects(values: { bar: 1 }) { bar } }")
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();

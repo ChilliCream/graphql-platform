@@ -1,11 +1,8 @@
-#nullable enable
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
 
@@ -13,27 +10,30 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
 {
     private readonly HashSet<DirectiveType> _usedDirectives = [];
 
-    public override void OnAfterCompleteType(
-        ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+    public override void OnAfterCompleteMetadata(
+        ITypeCompletionContext context,
+        TypeSystemConfiguration configuration)
     {
-        if (!((RegisteredType)completionContext).HasErrors)
+        base.OnAfterCompleteMetadata(context, configuration);
+
+        if (!((RegisteredType)context).HasErrors)
         {
-            InspectType(completionContext.Type);
+            InspectType(context.Type);
         }
     }
 
     internal override void OnBeforeRegisterSchemaTypes(
         IDescriptorContext context,
-        SchemaTypesDefinition schemaTypesDefinition)
+        SchemaTypesConfiguration configuration)
     {
         List<DirectiveType>? discarded = null;
 
-        foreach (var directiveType in schemaTypesDefinition.DirectiveTypes!)
+        foreach (var directiveType in configuration.DirectiveTypes!)
         {
-            if (directiveType.IsTypeSystemDirective &&
-                !directiveType.IsExecutableDirective &&
-                !_usedDirectives.Contains(directiveType))
+            if (directiveType is { IsTypeSystemDirective: true, IsExecutableDirective: false }
+                && !directiveType.Name.EqualsOrdinal(DirectiveNames.Deprecated.Name)
+                && !directiveType.Name.EqualsOrdinal(DirectiveNames.SpecifiedBy.Name)
+                && !_usedDirectives.Contains(directiveType))
             {
                 (discarded ??= []).Add(directiveType);
             }
@@ -41,16 +41,16 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
 
         if (discarded is not null)
         {
-            schemaTypesDefinition.DirectiveTypes =
-                schemaTypesDefinition.DirectiveTypes!.Except(discarded).ToArray();
+            configuration.DirectiveTypes =
+                configuration.DirectiveTypes!.Except(discarded).ToArray();
         }
     }
 
-    private void InspectType(ITypeSystemObject obj)
+    private void InspectType(TypeSystemObject obj)
     {
         switch (obj)
         {
-            case IComplexOutputType objectType:
+            case IComplexTypeDefinition objectType:
                 RegisterDirectiveUsage(objectType);
 
                 foreach (var field in objectType.Fields)
@@ -112,7 +112,7 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
         }
     }
 
-    private void RegisterDirectiveUsage(IHasDirectives member)
+    private void RegisterDirectiveUsage(IDirectivesProvider member)
     {
         if (member.Directives.Count == 0)
         {
@@ -121,7 +121,7 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
 
         foreach (var directive in member.Directives)
         {
-            _usedDirectives.Add(directive.Type);
+            _usedDirectives.Add(Unsafe.As<DirectiveType>(directive.Definition));
         }
     }
 }

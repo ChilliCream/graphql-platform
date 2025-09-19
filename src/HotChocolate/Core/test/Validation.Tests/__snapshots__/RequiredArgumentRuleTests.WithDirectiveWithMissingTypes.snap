@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The argument `if` is required.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 25
+        "Line": 2,
+        "Column": 7
       }
     ],
     "Extensions": {
@@ -23,27 +23,7 @@
       "argument": "if",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Directive",
-      "Location": {
-        "Start": 42,
-        "End": 52,
-        "Line": 3,
-        "Column": 25
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 43,
-          "End": 52,
-          "Line": 3,
-          "Column": 26
-        },
-        "Value": "include"
-      },
-      "Arguments": []
-    }
+    "Exception": null
   },
   {
     "Message": "The argument `if` is required.",
@@ -65,8 +45,8 @@
     },
     "Locations": [
       {
-        "Line": 4,
-        "Column": 30
+        "Line": 3,
+        "Column": 10
       }
     ],
     "Extensions": {
@@ -74,26 +54,6 @@
       "argument": "if",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Directive",
-      "Location": {
-        "Start": 82,
-        "End": 109,
-        "Line": 4,
-        "Column": 30
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 83,
-          "End": 109,
-          "Line": 4,
-          "Column": 31
-        },
-        "Value": "skip"
-      },
-      "Arguments": []
-    }
+    "Exception": null
   }
 ]

@@ -1,0 +1,11 @@
+{
+  "data": {
+    "addPet": {
+      "pet": {
+        "id": 4,
+        "name": "Goofy",
+        "tag": "Cartoon"
+      }
+    }
+  }
+}

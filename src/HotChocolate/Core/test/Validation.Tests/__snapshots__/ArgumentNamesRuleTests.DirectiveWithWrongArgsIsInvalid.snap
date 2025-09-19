@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The argument `if` does not exist.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 34
+        "Line": 2,
+        "Column": 16
       }
     ],
     "Extensions": {
@@ -23,35 +23,6 @@
       "argument": "if",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Argument",
-      "Location": {
-        "Start": 52,
-        "End": 61,
-        "Line": 3,
-        "Column": 34
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 52,
-          "End": 55,
-          "Line": 3,
-          "Column": 34
-        },
-        "Value": "if"
-      },
-      "Value": {
-        "Kind": "BooleanValue",
-        "Location": {
-          "Start": 55,
-          "End": 61,
-          "Line": 3,
-          "Column": 37
-        },
-        "Value": false
-      }
-    }
+    "Exception": null
   }
 ]

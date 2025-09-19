@@ -1,8 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -24,7 +22,7 @@ public class BooleanType : ScalarType<bool, BooleanValueNode>
     {
         Description = description;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="BooleanType"/> class.
     /// </summary>

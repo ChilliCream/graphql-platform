@@ -87,9 +87,9 @@ namespace HotChocolate.Language.Properties {
             }
         }
         
-        internal static string NameNode_Name_CannnotBeNullOrEmpty {
+        internal static string NameNode_Name_CannotBeNullOrEmpty {
             get {
-                return ResourceManager.GetString("NameNode_Name_CannnotBeNullOrEmpty", resourceCulture);
+                return ResourceManager.GetString("NameNode_Name_CannotBeNullOrEmpty", resourceCulture);
             }
         }
         

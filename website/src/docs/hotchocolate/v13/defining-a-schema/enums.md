@@ -80,7 +80,7 @@ Variables:
 We can define enums like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public enum UserRole
@@ -99,7 +99,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -135,7 +135,7 @@ public class QueryType : ObjectType
 
 Since there could be multiple enum types inheriting from `EnumType<UserRole>`, but differing in their name and values, it is not certain which of these types should be used when we return a `UserRole` CLR type from one of our resolvers.
 
-**Therefore it's important to note that Code-first enum types are not automatically inferred. They need to be explicitly specified or registered.**
+**Therefore it's important to note that code-first enum types are not automatically inferred. They need to be explicitly specified or registered.**
 
 We can either [explicitly specify the type on a per-resolver basis](/docs/hotchocolate/v13/defining-a-schema/object-types#explicit-types) or we can register the type once globally:
 
@@ -183,7 +183,7 @@ services
 
 ## Non-enum values
 
-In Code-first we can also bind the enum type to any other .NET type, for example a `string`.
+In code-first we can also bind the enum type to any other .NET type, for example a `string`.
 
 ```csharp
 public class UserRoleType : EnumType<string>
@@ -221,9 +221,9 @@ public class QueryType : ObjectType
 
 # Binding behavior
 
-In the Annotation-based approach all enum values are implicitly included on the schema enum type. The same is true for `T` of `EnumType<T>` when using the Code-first approach.
+In the implementation-first approach all enum values are implicitly included on the schema enum type. The same is true for `T` of `EnumType<T>` when using the code-first approach.
 
-In the Code-first approach we can also enable explicit binding, where we have to opt-in enum values we want to include instead of them being implicitly included.
+In the code-first approach we can also enable explicit binding, where we have to opt-in enum values we want to include instead of them being implicitly included.
 
 <!-- todo: this should not be covered in each type documentation, rather once in a server configuration section -->
 
@@ -259,9 +259,9 @@ public class UserRoleType : EnumType<UserRole>
 ## Ignoring values
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
-In the Annotation-based approach we can ignore values using the `[GraphQLIgnore]` attribute.
+In the implementation-first approach we can ignore values using the `[GraphQLIgnore]` attribute.
 
 ```csharp
 public enum UserRole
@@ -273,10 +273,10 @@ public enum UserRole
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
-In the Code-first approach we can ignore values using the `Ignore` method on the `IEnumTypeDescriptor`. This is only necessary, if the binding behavior of the enum type is implicit.
+In the code-first approach we can ignore values using the `Ignore` method on the `IEnumTypeDescriptor`. This is only necessary, if the binding behavior of the enum type is implicit.
 
 ```csharp
 public class UserRoleType : EnumType<UserRole>
@@ -291,14 +291,14 @@ public class UserRoleType : EnumType<UserRole>
 </Code>
 <Schema>
 
-We do not have to ignore values in the Schema-first approach.
+We do not have to ignore values in the schema-first approach.
 
 </Schema>
 </ExampleTabs>
 
 ## Including values
 
-In the Code-first approach we can explicitly include values using the `Value` method on the `IEnumTypeDescriptor`. This is only necessary, if the binding behavior of the enum type is explicit.
+In the code-first approach we can explicitly include values using the `Value` method on the `IEnumTypeDescriptor`. This is only necessary, if the binding behavior of the enum type is explicit.
 
 ```csharp
 public class UserRoleType : EnumType<UserRole>
@@ -314,7 +314,7 @@ public class UserRoleType : EnumType<UserRole>
 
 # Naming
 
-Unless specified explicitly, Hot Chocolate automatically infers the names of enums and their values. Per default the name of the enum becomes the name of the enum type. When using `EnumType<T>` in Code-first, the name of `T` is chosen as the name for the enum type.
+Unless specified explicitly, Hot Chocolate automatically infers the names of enums and their values. Per default the name of the enum becomes the name of the enum type. When using `EnumType<T>` in code-first, the name of `T` is chosen as the name for the enum type.
 
 Enum values are automatically formatted to the UPPER_SNAKE_CASE according to the GraphQL specification:
 
@@ -324,7 +324,7 @@ Enum values are automatically formatted to the UPPER_SNAKE_CASE according to the
 If we need to we can override these inferred names.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 The `[GraphQLName]` attribute allows us to specify an explicit name.
 
@@ -339,7 +339,7 @@ public enum UserRole
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 The `Name` method on the `IEnumTypeDescriptor` / `IEnumValueDescriptor` allows us to specify an explicit name.

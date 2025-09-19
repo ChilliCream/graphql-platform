@@ -1,7 +1,4 @@
-using System;
 using HotChocolate.Language;
-
-#nullable enable
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -16,7 +13,7 @@ public sealed class SyntaxTypeReference
         ITypeNode type,
         TypeContext context,
         string? scope = null,
-        Func<IDescriptorContext, TypeSystemObjectBase>? factory = null)
+        Func<IDescriptorContext, TypeSystemObject>? factory = null)
         : base(
             factory is null ? TypeReferenceKind.Syntax : TypeReferenceKind.Factory,
             context,
@@ -40,7 +37,7 @@ public sealed class SyntaxTypeReference
     /// <summary>
     /// Gets a factory to create this type. Note, a factory is optional.
     /// </summary>
-    public Func<IDescriptorContext, TypeSystemObjectBase>? Factory { get; }
+    public Func<IDescriptorContext, TypeSystemObject>? Factory { get; }
 
     /// <inheritdoc />
     public bool Equals(SyntaxTypeReference? other)
@@ -115,10 +112,7 @@ public sealed class SyntaxTypeReference
 
     public SyntaxTypeReference WithType(ITypeNode type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return new SyntaxTypeReference(type, Context, Scope);
     }
@@ -130,16 +124,16 @@ public sealed class SyntaxTypeReference
         => new(Type, Context, scope);
 
     public SyntaxTypeReference WithFactory(
-        Func<IDescriptorContext, TypeSystemObjectBase>? factory = null)
+        Func<IDescriptorContext, TypeSystemObject>? factory = null)
         => new(Type, Context, Scope, Factory);
 
     public SyntaxTypeReference With(
         Optional<ITypeNode> type = default,
         Optional<TypeContext> context = default,
         Optional<string?> scope = default,
-        Optional<Func<IDescriptorContext, TypeSystemObjectBase>?> factory = default)
+        Optional<Func<IDescriptorContext, TypeSystemObject>?> factory = default)
     {
-        if (type is { HasValue: true, Value: null, })
+        if (type is { HasValue: true, Value: null })
         {
             throw new ArgumentNullException(nameof(type));
         }

@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -21,7 +20,7 @@ public class SortTypeAttributeTests
         // assert
         Assert.Equal(
             TypeName,
-            schema.GetType<SortInputType<FooGeneric>>(TypeName).TypeName());
+            schema.Types.GetType<SortInputType<FooGeneric>>(TypeName).TypeName());
     }
 
     [Fact]
@@ -36,7 +35,7 @@ public class SortTypeAttributeTests
 
         // assert
         Assert.NotNull(
-            schema.GetType<SortInputType<FooFields>>("FooFieldsSortInput")
+            schema.Types.GetType<SortInputType<FooFields>>("FooFieldsSortInput")
                 .Fields
                 .FirstOrDefault(x => x.Name == SortFieldAttributeTest.Field));
     }
@@ -44,17 +43,17 @@ public class SortTypeAttributeTests
     [GenericTypeSort]
     public class FooGeneric
     {
-        public string StringSortTest { get; set; } = default!;
+        public string StringSortTest { get; set; } = null!;
     }
 
     [SortFieldAttributeTest]
     public class FooFields
     {
-        [SortFieldAttributeTest] public string Field { get; set; } = default!;
+        [SortFieldAttributeTest] public string Field { get; set; } = null!;
     }
 
-    public class GenericTypeSortAttribute
-        : DescriptorAttribute
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    public class GenericTypeSortAttribute : DescriptorAttribute
     {
         public static string TypeName { get; } = "ThisIsATest";
 

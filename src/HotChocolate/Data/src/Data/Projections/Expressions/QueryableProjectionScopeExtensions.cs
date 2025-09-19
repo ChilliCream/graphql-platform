@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace HotChocolate.Data.Projections.Expressions;
@@ -75,7 +72,7 @@ public static class QueryableProjectionScopeExtensions
             nameof(Enumerable.Select),
             [
                 scope.RuntimeType,
-                scope.RuntimeType,
+                scope.RuntimeType
             ],
             source,
             scope.CreateMemberInitLambda());
@@ -99,7 +96,7 @@ public static class QueryableProjectionScopeExtensions
             typeof(Enumerable),
             nameof(Enumerable.ToArray),
             [
-                scope.RuntimeType,
+                scope.RuntimeType
             ],
             source);
     }
@@ -110,7 +107,7 @@ public static class QueryableProjectionScopeExtensions
             typeof(Enumerable),
             nameof(Enumerable.ToList),
             [
-                scope.RuntimeType,
+                scope.RuntimeType
             ],
             source);
     }
@@ -125,7 +122,7 @@ public static class QueryableProjectionScopeExtensions
         var ctor =
             typedGeneric.GetConstructor(
             [
-                source.Type,
+                source.Type
             ]);
 
         if (ctor is null)
@@ -143,8 +140,8 @@ public static class QueryableProjectionScopeExtensions
         if (type.IsGenericType)
         {
             var typeDefinition = type.GetGenericTypeDefinition();
-            if (typeDefinition == typeof(ISet<>) ||
-                typeDefinition == typeof(HashSet<>))
+            if (typeDefinition == typeof(ISet<>)
+                || typeDefinition == typeof(HashSet<>))
             {
                 setType = typeof(HashSet<>);
                 return true;
@@ -157,7 +154,7 @@ public static class QueryableProjectionScopeExtensions
             }
         }
 
-        setType = default;
+        setType = null;
         return false;
     }
 }

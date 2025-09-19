@@ -1,8 +1,8 @@
-﻿namespace HotChocolate.Validation;
+namespace HotChocolate.Validation;
 
-public class Human : ISentient
+public class Human(string name, string address) : ISentient
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = name;
 
-    public string Address { get; set; }
+    public string Address { get; set; } = address;
 }

@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +26,7 @@ public class SelectionIncludeConditionTests
     {
         // arrange
         var variableValues = new Mock<IVariableValueCollection>();
-        variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(true);
+        variableValues.Setup(t => t.GetValue<BooleanValueNode>("b")).Returns(BooleanValueNode.True);
         var visibility = new SelectionIncludeCondition(skip: new VariableNode("b"));
 
         // act
@@ -56,7 +55,7 @@ public class SelectionIncludeConditionTests
     {
         // arrange
         var variableValues = new Mock<IVariableValueCollection>();
-        variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(false);
+        variableValues.Setup(t => t.GetValue<BooleanValueNode>("b")).Returns(BooleanValueNode.False);
         var visibility = new SelectionIncludeCondition(skip: new VariableNode("b"));
 
         // act
@@ -85,7 +84,7 @@ public class SelectionIncludeConditionTests
     {
         // arrange
         var variableValues = new Mock<IVariableValueCollection>();
-        variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(true);
+        variableValues.Setup(t => t.GetValue<BooleanValueNode>("b")).Returns(BooleanValueNode.True);
         var visibility = new SelectionIncludeCondition(include: new VariableNode("b"));
 
         // act
@@ -114,7 +113,7 @@ public class SelectionIncludeConditionTests
     {
         // arrange
         var variableValues = new Mock<IVariableValueCollection>();
-        variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(false);
+        variableValues.Setup(t => t.GetValue<BooleanValueNode>("b")).Returns(BooleanValueNode.False);
         var visibility = new SelectionIncludeCondition(include: new VariableNode("b"));
 
         // act
@@ -283,8 +282,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query {
                                 person @skip(if: true) @include(if: true) {
@@ -292,9 +291,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("skip", true)
-                        .SetVariableValue("include", true)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true }, { "include", true } })
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -303,7 +301,7 @@ public class SelectionIncludeConditionTests
             }
             """);
     }
-    
+
     [Fact]
     public async Task Skip_Include_Merge_Issue_6550_True()
     {
@@ -312,8 +310,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query($shouldSkip: Boolean! = true) {
                                 person @skip(if: $shouldSkip) {
@@ -327,8 +325,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("shouldSkip", true)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object?> { { "shouldSkip", true } })
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -337,7 +335,7 @@ public class SelectionIncludeConditionTests
             }
             """);
     }
-    
+
     [Fact]
     public async Task Skip_Include_Merge_Issue_6550_False()
     {
@@ -346,8 +344,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query($shouldSkip: Boolean! = true) {
                                 person @skip(if: $shouldSkip) {
@@ -361,8 +359,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("shouldSkip", false)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object?> { { "shouldSkip", false } })
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -386,8 +384,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query($skip: Boolean! $include: Boolean!) {
                                 person @skip(if: $skip) @include(if: $include) {
@@ -395,9 +393,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("skip", true)
-                        .SetVariableValue("include", true)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true }, { "include", true } })
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -415,8 +412,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query {
                                 person @skip(if: true) @include(if: false) {
@@ -424,9 +421,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("skip", true)
-                        .SetVariableValue("include", true)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true }, { "include", true } })
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -444,8 +440,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query($skip: Boolean! $include: Boolean!) {
                                 person @skip(if: $skip) @include(if: $include) {
@@ -453,9 +449,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("skip", true)
-                        .SetVariableValue("include", false)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true }, { "include", false } })
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -473,8 +468,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query {
                                 person @skip(if: false) @include(if: false) {
@@ -482,7 +477,7 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .Create());
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -500,8 +495,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query($skip: Boolean! $include: Boolean!) {
                                 person @skip(if: $skip) @include(if: $include) {
@@ -509,9 +504,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("skip", false)
-                        .SetVariableValue("include", false)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object?> { { "skip", false }, { "include", false } })
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -529,8 +523,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query {
                                 person @skip(if: false) @include(if: true) {
@@ -538,7 +532,7 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .Create());
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -560,8 +554,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query($skip: Boolean! $include: Boolean!) {
                                 person @skip(if: $skip) @include(if: $include) {
@@ -569,9 +563,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("skip", false)
-                        .SetVariableValue("include", true)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object?> { { "skip", false }, { "include", true } })
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -593,8 +586,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query {
                                 person @skip(if: true) {
@@ -602,7 +595,7 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .Create());
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -620,8 +613,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query($skip: Boolean!) {
                                 person @skip(if: $skip){
@@ -629,8 +622,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("skip", true)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object?> { { "skip", true } })
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -647,9 +640,10 @@ public class SelectionIncludeConditionTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query {
                                 persons @skip(if: true) {
@@ -659,7 +653,7 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .Create());
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -678,8 +672,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query($permission: Boolean!) {
                                 person {
@@ -699,8 +693,8 @@ public class SelectionIncludeConditionTests
                                 __typename
                             }
                             """)
-                        .SetVariableValue("permission", false)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object?> { { "permission", false } })
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -720,7 +714,7 @@ public class SelectionIncludeConditionTests
         public Person Person() => new Person();
 
         [UsePaging]
-        public Person[] Persons() => [new Person(),];
+        public Person[] Persons() => [new Person()];
     }
 
     public sealed class Person

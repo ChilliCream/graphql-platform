@@ -1,6 +1,5 @@
-﻿using GreenDonut;
+using GreenDonut;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution.Integration.DataLoader;
 
@@ -162,7 +161,7 @@ public class UseDataLoaderTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.Create(@"{ single { id }}"));
+            OperationRequest.FromSourceText("{ single { id }}"));
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -182,7 +181,7 @@ public class UseDataLoaderTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.Create(@"{ multiple { id }}"));
+            OperationRequest.FromSourceText("{ multiple { id }}"));
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -202,7 +201,7 @@ public class UseDataLoaderTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.Create(@"{ single { id }}"));
+            OperationRequest.FromSourceText("{ single { id }}"));
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -222,7 +221,7 @@ public class UseDataLoaderTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.Create(@"{ multiple { id }}"));
+            OperationRequest.FromSourceText("{ multiple { id }}"));
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -232,7 +231,7 @@ public class UseDataLoaderTests
     {
         public int Single { get; } = 1;
 
-        public int[] Multiple { get; } = [1, 2, 3, 4,];
+        public int[] Multiple { get; } = [1, 2, 3, 4];
     }
 
     public class BatchQuery
@@ -241,7 +240,7 @@ public class UseDataLoaderTests
         public int Single { get; } = 1;
 
         [UseDataLoader(typeof(TestBatchLoader))]
-        public int[] Multiple { get; } = [1, 2, 3, 4,];
+        public int[] Multiple { get; } = [1, 2, 3, 4];
     }
 
     public class GroupedQuery
@@ -250,14 +249,14 @@ public class UseDataLoaderTests
         public int Single { get; } = 1;
 
         [UseDataLoader(typeof(TestGroupedLoader))]
-        public int[] Multiple { get; } = [1, 2, 3, 4,];
+        public int[] Multiple { get; } = [1, 2, 3, 4];
     }
 
     public class TestGroupedLoader : GroupedDataLoader<int, Foo>
     {
         public TestGroupedLoader(
             IBatchScheduler batchScheduler,
-            DataLoaderOptions options = null)
+            DataLoaderOptions options)
             : base(batchScheduler, options)
         {
         }
@@ -274,7 +273,7 @@ public class UseDataLoaderTests
     {
         public TestBatchLoader(
             IBatchScheduler batchScheduler,
-            DataLoaderOptions options = null)
+            DataLoaderOptions options)
             : base(batchScheduler, options)
         {
         }

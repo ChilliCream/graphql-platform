@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -8,7 +7,7 @@ namespace HotChocolate.Data.Sorting;
 /// The sort input descriptor allows to configure a <see cref="SortInputType"/>.
 /// </summary>
 public interface ISortInputTypeDescriptor
-    : IDescriptor<SortInputTypeDefinition>
+    : IDescriptor<SortInputTypeConfiguration>
     , IHasRuntimeType
     , IFluent
 {

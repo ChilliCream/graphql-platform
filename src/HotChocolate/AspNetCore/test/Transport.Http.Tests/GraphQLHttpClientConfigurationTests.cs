@@ -18,16 +18,18 @@ public class GraphQLHttpClientConfigurationTests
         ))
         {
             DefaultRequestVersion = HttpVersion.Version20,
-            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,
+            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
         };
 
         var client = GraphQLHttpClient.Create(httpClient, true);
-        await client.SendAsync(new("{ __typename }", new(CreateUrl(default))), default);
+        await client.SendAsync(new("{ __typename }", new(CreateUrl(null))), CancellationToken.None);
     }
 
-    class TestHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> sender) : HttpMessageHandler
+    internal class TestHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> sender) : HttpMessageHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
             return Task.FromResult(sender.Invoke(request));
         }

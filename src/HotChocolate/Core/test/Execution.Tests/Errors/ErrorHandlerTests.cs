@@ -1,11 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.SnapshotHelpers;
 
 namespace HotChocolate.Execution.Errors;
 
-[SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
-[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class ErrorHandlerTests
 {
     [Fact]
@@ -45,7 +42,7 @@ public class ErrorHandlerTests
             .AddDocumentFromString("type Query { foo: String bar: String }")
             .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
             .AddResolver("Query", "bar", _ => throw new NullReferenceException("Foo"))
-            
+
             // error filter configuration
             .AddErrorFilter(
                 error =>
@@ -76,12 +73,13 @@ public class ErrorHandlerTests
         var executor = await new ServiceCollection()
             // error filter configuration
             .AddErrorFilter<DummyErrorFilter>()
-            
+
             // general graphql configuration
             .AddGraphQL()
             .AddDocumentFromString("type Query { foo: String }")
             .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
-            
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = false)
+
             // build graphql executor
             .BuildRequestExecutorAsync();
 
@@ -102,10 +100,10 @@ public class ErrorHandlerTests
             // general graphql configuration
             .AddGraphQL()
             .AddQueryType<Query>()
-            
+
             // error filter configuration
             .AddErrorFilter<DummyErrorFilter>()
-            
+
             // build graphql executor
             .BuildRequestExecutorAsync();
 
@@ -125,14 +123,14 @@ public class ErrorHandlerTests
         var executor = await new ServiceCollection()
             // service configuration
             .AddSingleton<SomeService>()
-            
+
             // general graphql configuration
             .AddGraphQL()
             .AddQueryType<Query>()
-            
+
             // error filter configuration
             .AddErrorFilter<DummyErrorFilterWithDependency>()
-            
+
             // build graphql executor
             .BuildRequestExecutorAsync();
 
@@ -153,10 +151,10 @@ public class ErrorHandlerTests
             // general graphql configuration
             .AddGraphQL()
             .AddQueryType<Query>()
-            
+
             // error filter configuration
             .AddErrorFilter(_ => new DummyErrorFilter())
-            
+
             // build graphql executor
             .BuildRequestExecutorAsync();
 
@@ -176,12 +174,12 @@ public class ErrorHandlerTests
         var executor = await new ServiceCollection()
             // error filter configuration
             .AddErrorFilter(_ => new DummyErrorFilter())
-            
+
             // general graphql configuration
             .AddGraphQL()
             .AddDocumentFromString("type Query { foo: String }")
             .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
-            
+
             // build graphql executor
             .BuildRequestExecutorAsync();
 
@@ -201,12 +199,12 @@ public class ErrorHandlerTests
         var executor = await new ServiceCollection()
             // error filter configuration
             .AddErrorFilter(_ => new AggregateErrorFilter())
-            
+
             // general graphql configuration
             .AddGraphQL()
             .AddDocumentFromString("type Query { foo: String }")
             .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
-            
+
             // build graphql executor
             .BuildRequestExecutorAsync();
 
@@ -232,10 +230,13 @@ public class ErrorHandlerTests
                 "foo",
                 ctx =>
                 {
-                    ctx.ReportError(new AggregateError(new Error("abc"), new Error("def")));
+                    ctx.ReportError(
+                        new AggregateError(
+                            new Error { Message = "abc" },
+                            new Error { Message = "def" }));
                     return "Hello";
                 })
-            
+
             // build graphql executor
             .BuildRequestExecutorAsync();
 
@@ -245,7 +246,7 @@ public class ErrorHandlerTests
         // assert
         snapshot.Add(result);
     }
-    
+
     public class DummyErrorFilter : IErrorFilter
     {
         public IError OnError(IError error)

@@ -1,5 +1,3 @@
-using System;
-
 namespace StrawberryShake;
 
 /// <summary>
@@ -70,8 +68,8 @@ public readonly struct EntityId
     {
         unchecked
         {
-            return Name.GetHashCode() * 397 ^
-                Value.GetHashCode() * 397;
+            return Name.GetHashCode() * 397
+                ^ Value.GetHashCode() * 397;
         }
     }
 

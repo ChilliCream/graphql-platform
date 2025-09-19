@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Data.Filters;
 
 public delegate void ConfigureFilterInputType(IFilterInputTypeDescriptor descriptor);

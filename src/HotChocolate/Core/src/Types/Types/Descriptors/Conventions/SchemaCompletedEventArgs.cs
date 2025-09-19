@@ -1,13 +1,15 @@
-using System;
-
 namespace HotChocolate.Types.Descriptors;
 
-public sealed class SchemaCompletedEventArgs : EventArgs
+/// <summary>
+/// Provides data for the <see cref="IDescriptorContext.OnSchemaCreated"/> event.
+/// </summary>
+/// <param name="schema">
+/// The schema that was created.
+/// </param>
+public sealed class SchemaCompletedEventArgs(Schema schema) : EventArgs
 {
-    public SchemaCompletedEventArgs(ISchema schema)
-    {
-        Schema = schema ?? throw new ArgumentNullException(nameof(schema));
-    }
-
-    public ISchema Schema { get; }
+    /// <summary>
+    /// Gets the schema that was created.
+    /// </summary>
+    public Schema Schema { get; } = schema ?? throw new ArgumentNullException(nameof(schema));
 }

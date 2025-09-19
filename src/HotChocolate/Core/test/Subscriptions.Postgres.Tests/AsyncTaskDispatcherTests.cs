@@ -1,7 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Subscriptions.Postgres;
 
 public class AsyncTaskDispatcherTests
@@ -42,7 +38,7 @@ public class AsyncTaskDispatcherTests
         await asyncEventHandler.DisposeAsync();
 
         // Assert
-        Assert.Throws<ObjectDisposedException>(() => asyncEventHandler.Dispatch());
+        Assert.Throws<ObjectDisposedException>(asyncEventHandler.Dispatch);
     }
 
     [Fact]

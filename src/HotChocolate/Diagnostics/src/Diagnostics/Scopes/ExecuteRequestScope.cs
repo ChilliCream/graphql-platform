@@ -8,7 +8,7 @@ internal sealed class ExecuteRequestScope : RequestScopeBase
 {
     public ExecuteRequestScope(
         ActivityEnricher enricher,
-        IRequestContext context,
+        RequestContext context,
         Activity activity)
         : base(enricher, context, activity)
     {
@@ -19,7 +19,7 @@ internal sealed class ExecuteRequestScope : RequestScopeBase
 
     protected override void SetStatus()
     {
-        if (Context.Result is IQueryResult { Data: null, })
+        if (Context.Result is null or IOperationResult { Errors: [_, ..] })
         {
             Activity.SetStatus(Status.Error);
             Activity.SetStatus(ActivityStatusCode.Error);

@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -17,8 +16,8 @@ public abstract class SortFieldDescriptorAttribute
         IDescriptor descriptor,
         ICustomAttributeProvider element)
     {
-        if (descriptor is ISortFieldDescriptor d &&
-            element is MemberInfo m)
+        if (descriptor is ISortFieldDescriptor d
+            && element is MemberInfo m)
         {
             OnConfigure(context, d, m);
         }

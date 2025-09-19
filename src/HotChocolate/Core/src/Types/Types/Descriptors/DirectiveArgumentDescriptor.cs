@@ -1,9 +1,6 @@
-using System;
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -11,7 +8,7 @@ namespace HotChocolate.Types.Descriptors;
 /// A fluent configuration API for GraphQL directive arguments.
 /// </summary>
 public class DirectiveArgumentDescriptor
-    : ArgumentDescriptorBase<DirectiveArgumentDefinition>
+    : ArgumentDescriptorBase<DirectiveArgumentConfiguration>
     , IDirectiveArgumentDescriptor
 {
     /// <summary>
@@ -22,7 +19,7 @@ public class DirectiveArgumentDescriptor
         string argumentName)
         : base(context)
     {
-        Definition.Name = argumentName;
+        Configuration.Name = argumentName;
     }
 
     /// <summary>
@@ -33,16 +30,16 @@ public class DirectiveArgumentDescriptor
         PropertyInfo property)
         : base(context)
     {
-        Definition.Name = context.Naming.GetMemberName(
+        Configuration.Name = context.Naming.GetMemberName(
             property, MemberKind.DirectiveArgument);
-        Definition.Description = context.Naming.GetMemberDescription(
+        Configuration.Description = context.Naming.GetMemberDescription(
             property, MemberKind.DirectiveArgument);
-        Definition.Type = context.TypeInspector.GetInputReturnTypeRef(property);
-        Definition.Property = property;
+        Configuration.Type = context.TypeInspector.GetInputReturnTypeRef(property);
+        Configuration.Property = property;
 
         if (context.TypeInspector.TryGetDefaultValue(property, out var defaultValue))
         {
-            Definition.RuntimeDefaultValue = defaultValue;
+            Configuration.RuntimeDefaultValue = defaultValue;
         }
 
         if (context.Naming.IsDeprecated(property, out var reason))
@@ -56,24 +53,24 @@ public class DirectiveArgumentDescriptor
     /// </summary>
     protected internal DirectiveArgumentDescriptor(
         IDescriptorContext context,
-        DirectiveArgumentDefinition definition)
+        DirectiveArgumentConfiguration definition)
         : base(context)
     {
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
     /// <inheritdoc />
-    protected override void OnCreateDefinition(DirectiveArgumentDefinition definition)
+    protected override void OnCreateConfiguration(DirectiveArgumentConfiguration definition)
     {
         Context.Descriptors.Push(this);
-            
-        if (Definition is { AttributesAreApplied: false, Property: not null, })
+
+        if (Configuration is { AttributesAreApplied: false, Property: not null })
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Definition.Property);
-            Definition.AttributesAreApplied = true;
+            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.Property);
+            Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }
@@ -81,7 +78,7 @@ public class DirectiveArgumentDescriptor
     /// <inheritdoc />
     public IDirectiveArgumentDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
@@ -153,7 +150,7 @@ public class DirectiveArgumentDescriptor
     /// <inheritdoc />
     public IDirectiveArgumentDescriptor Ignore(bool ignore = true)
     {
-        Definition.Ignore = ignore;
+        Configuration.Ignore = ignore;
         return this;
     }
 
@@ -187,6 +184,6 @@ public class DirectiveArgumentDescriptor
     /// <returns>An instance of <see cref="DirectiveArgumentDescriptor "/></returns>
     public static DirectiveArgumentDescriptor From(
         IDescriptorContext context,
-        DirectiveArgumentDefinition definition)
+        DirectiveArgumentConfiguration definition)
         => new(context, definition);
 }

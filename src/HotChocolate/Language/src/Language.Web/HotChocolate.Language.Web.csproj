@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -12,6 +10,15 @@
     <RootNamespace>HotChocolate.Language</RootNamespace>
     <Description>This package contains specialized parser utilities for the Hot Chocolate GraphQL server.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Language.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Language.Web.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Language" />
+    <InternalsVisibleTo Include="HotChocolate.Subscriptions" />
+    <InternalsVisibleTo Include="HotChocolate.Types" />
+    <InternalsVisibleTo Include="HotChocolate.Utilities.Introspection" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Language.Utf8\HotChocolate.Language.Utf8.csproj" />

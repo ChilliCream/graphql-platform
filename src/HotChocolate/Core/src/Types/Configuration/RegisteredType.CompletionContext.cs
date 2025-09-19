@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Utilities.ThrowHelper;
-
-#nullable enable
 
 namespace HotChocolate.Configuration;
 
@@ -33,7 +29,7 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
 
     /// <inheritdoc />
     IReadOnlyList<FieldMiddleware> ITypeCompletionContext.GlobalComponents
-        => GlobalComponents ?? (IReadOnlyList<FieldMiddleware>)Array.Empty<FieldMiddleware>();
+        => GlobalComponents ?? (IReadOnlyList<FieldMiddleware>)[];
 
     /// <inheritdoc />
     public IsOfTypeFallback? IsOfType { get; private set; }
@@ -61,8 +57,8 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
             throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
         }
 
-        if (_typeReferenceResolver.TryGetType(typeRef, out var t) &&
-            t is T casted)
+        if (_typeReferenceResolver.TryGetType(typeRef, out var t)
+            && t is T casted)
         {
             type = casted;
             return true;
@@ -75,10 +71,7 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
     /// <inheritdoc />
     public T GetType<T>(TypeReference typeRef) where T : IType
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         if (!TryGetType(typeRef, out T? type))
         {

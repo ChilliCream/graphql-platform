@@ -1,4 +1,4 @@
-using CookieCrumble;
+using CookieCrumble.Xunit;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.StarWars.Models;
 using HotChocolate.Subscriptions;
@@ -21,7 +21,7 @@ public class StarWarsOnReviewSubNoStoreTest : ServerTestBase
         using var cts = new CancellationTokenSource(20_000);
         using var host = TestServerHelper.CreateServer(_ => { }, out var port);
         var ct = cts.Token;
-        
+
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddHttpClient(
             StarWarsOnReviewSubNoStoreClient.ClientName,
@@ -48,7 +48,7 @@ public class StarWarsOnReviewSubNoStoreTest : ServerTestBase
         {
             await topicEventSender.SendAsync(
                 $"{OnReview}_{topic}",
-                new Review { Stars = 1, Commentary = "Commentary", }, 
+                new Review(stars: 1, commentary: "Commentary"),
                 ct);
             await Task.Delay(1_000, ct);
         }

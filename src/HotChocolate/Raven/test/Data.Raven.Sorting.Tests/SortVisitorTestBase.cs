@@ -71,7 +71,7 @@ public class SortVisitorTestBase : IAsyncLifetime
 
         return new ServiceCollection()
             .Configure<RequestExecutorSetup>(
-                Schema.DefaultName,
+                ISchemaDefinition.DefaultName,
                 o => o.Schema = schema)
             .AddGraphQL()
             .UseRequest(
@@ -81,18 +81,18 @@ public class SortVisitorTestBase : IAsyncLifetime
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                            OperationResultBuilder
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("sql", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .Result;
     }
 

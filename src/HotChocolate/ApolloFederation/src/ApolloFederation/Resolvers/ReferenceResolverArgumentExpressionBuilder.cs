@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -14,6 +13,14 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder :
         typeof(ArgumentParser).GetMethod(
             nameof(ArgumentParser.GetValue),
             BindingFlags.Static | BindingFlags.Public)!;
+
+    private readonly Type _targetType;
+
+    public ReferenceResolverArgumentExpressionBuilder(Type targetType)
+    {
+        ArgumentNullException.ThrowIfNull(targetType);
+        _targetType = targetType;
+    }
 
     public override Expression Build(ParameterExpressionBuilderContext context)
     {
@@ -36,7 +43,7 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder :
             param,
             typeKey,
             context.ResolverContext,
-            typeof(ObjectType));
+            _targetType);
         var getValueMethod = _getValue.MakeGenericMethod(param.ParameterType);
         var getValue = Expression.Call(
             getValueMethod,
@@ -48,14 +55,14 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder :
 
     // NOTE: It will use the default handler without these two.
     public override bool IsDefaultHandler => true;
-    
+
     public override bool CanHandle(ParameterInfo parameter) => true;
 
     private string[] RequirePathAndGetSeparatedPath(ParameterInfo parameter)
     {
         var path = parameter.GetCustomAttribute<MapAttribute>() is { } attr
             ? attr.Path.Split('.')
-            : [parameter.Name!,];
+            : [parameter.Name!];
 
         _requiredPaths.Add(path);
 
@@ -63,12 +70,11 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder :
     }
 
     private readonly List<string[]> _requiredPaths = [];
-    
+
     public IReadOnlyList<string[]> Required => _requiredPaths;
 
     protected override bool ResolveDefaultIfNotExistsParameterValue(
         Type targetType,
         ParameterInfo parameter)
         => false;
-
 }

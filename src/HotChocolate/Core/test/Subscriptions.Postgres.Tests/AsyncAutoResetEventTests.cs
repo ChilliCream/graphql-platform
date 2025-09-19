@@ -1,10 +1,6 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Subscriptions.Postgres;
 
-public class AsyncAutoResetEventTests
+public class AsyncManualResetEventTests
 {
     [Fact]
     public async Task Set_Should_SetResult_When_Called()
@@ -29,18 +25,18 @@ public class AsyncAutoResetEventTests
         autoResetEvent.Dispose();
 
         // Act & Assert
-        Assert.Throws<ObjectDisposedException>(() => autoResetEvent.Set());
+        Assert.Throws<ObjectDisposedException>(autoResetEvent.Set);
     }
 
     [Fact]
-    public void WaitAsync_Should_Throw_When_Disposed()
+    public async Task WaitAsync_Should_Throw_When_Disposed()
     {
         // Arrange
         var autoResetEvent = new AsyncAutoResetEvent();
         autoResetEvent.Dispose();
 
         // Act & Assert
-        Assert.ThrowsAsync<ObjectDisposedException>(()
+        await Assert.ThrowsAsync<ObjectDisposedException>(()
             => autoResetEvent.WaitAsync(CancellationToken.None));
     }
 

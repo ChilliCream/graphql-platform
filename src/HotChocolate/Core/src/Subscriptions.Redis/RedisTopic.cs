@@ -37,7 +37,7 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
         return new Session(Name, _connection, DiagnosticEvents);
     }
 
-    private sealed class Session : IDisposable
+    private sealed class Session : IDisposable, IAsyncDisposable
     {
         private readonly string _name;
         private readonly IConnectionMultiplexer _connection;
@@ -56,12 +56,26 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
 
         public void Dispose()
         {
-            if (!_disposed)
+            if (_disposed)
             {
-                _connection.GetSubscriber().Unsubscribe(_name);
-                _diagnosticEvents.ProviderTopicInfo(_name, RedisTopic_UnsubscribedFromRedis);
-                _disposed = true;
+                return;
             }
+
+            _connection.GetSubscriber().Unsubscribe(_name);
+            _diagnosticEvents.ProviderTopicInfo(_name, RedisTopic_UnsubscribedFromRedis);
+            _disposed = true;
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            await _connection.GetSubscriber().UnsubscribeAsync(_name);
+            _diagnosticEvents.ProviderTopicInfo(_name, RedisTopic_UnsubscribedFromRedis);
+            _disposed = true;
         }
     }
 }

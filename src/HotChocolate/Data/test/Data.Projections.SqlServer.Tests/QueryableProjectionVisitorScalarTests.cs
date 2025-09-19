@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
@@ -7,9 +5,9 @@ namespace HotChocolate.Data.Projections;
 
 public class QueryableProjectionVisitorScalarTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, Baz = "a", }, new() { Bar = false, Baz = "b", },
+        new() { Bar = true, Baz = "a" }, new() { Bar = false, Baz = "b" }
     ];
 
     private readonly SchemaCache _cache = new();
@@ -18,13 +16,13 @@ public class QueryableProjectionVisitorScalarTests
     public async Task Create_NotSettable_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ notSettable }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ notSettable }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -37,13 +35,13 @@ public class QueryableProjectionVisitorScalarTests
     public async Task Create_Computed_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ computed }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ computed }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -56,13 +54,13 @@ public class QueryableProjectionVisitorScalarTests
     public async Task Create_ProjectsTwoProperties_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ bar baz }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ bar baz }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -75,13 +73,13 @@ public class QueryableProjectionVisitorScalarTests
     public async Task Create_ProjectsOneProperty_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ baz }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ baz }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -95,18 +93,18 @@ public class QueryableProjectionVisitorScalarTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             objectType: new ObjectType<Foo>(
                 x => x
                     .Field("foo")
-                    .Resolve(new[] { "foo", })
+                    .Resolve(new[] { "foo" })
                     .Type<ListType<StringType>>()));
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ baz foo }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ baz foo }}")
+                .Build());
 
         // assert
         await Snapshot

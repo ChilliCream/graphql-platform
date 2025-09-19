@@ -1,9 +1,6 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -12,12 +9,12 @@ namespace HotChocolate.Types;
 /// </summary>
 /// <typeparam name="T">The type definition.</typeparam>
 public interface IDescriptorExtension<out T> : IHasDescriptorContext
-    where T : DefinitionBase
+    where T : TypeSystemConfiguration
 {
     /// <summary>
     /// The type definition.
     /// </summary>
-    T Definition { get; }
+    T Configuration { get; }
 
     /// <summary>
     /// Allows to rewrite the type definition before the type

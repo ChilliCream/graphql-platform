@@ -1,5 +1,3 @@
-using System;
-
 namespace StrawberryShake;
 
 public partial class CachePolicy : IDisposable

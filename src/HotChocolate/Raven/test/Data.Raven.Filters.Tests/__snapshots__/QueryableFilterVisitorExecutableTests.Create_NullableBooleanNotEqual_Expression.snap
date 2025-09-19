@@ -1,8 +1,11 @@
-true
+true Result:
 ---------------
 {
   "data": {
     "rootExecutable": [
+      {
+        "bar": null
+      },
       {
         "bar": false
       }
@@ -11,20 +14,33 @@ true
 }
 ---------------
 
-false
+true SQL:
+---------------
+from 'FooNullables' where Bar != $p0
+---------------
+
+false Result:
 ---------------
 {
   "data": {
     "rootExecutable": [
       {
         "bar": true
+      },
+      {
+        "bar": null
       }
     ]
   }
 }
 ---------------
 
-null
+false SQL:
+---------------
+from 'FooNullables' where Bar != $p0
+---------------
+
+null Result:
 ---------------
 {
   "data": {
@@ -38,4 +54,9 @@ null
     ]
   }
 }
+---------------
+
+null SQL:
+---------------
+from 'FooNullables' where Bar != $p0
 ---------------

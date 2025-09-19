@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class EnumBuilder : ITypeBuilder
@@ -60,15 +57,12 @@ public class EnumBuilder : ITypeBuilder
 
     public void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         _xmlComment?.Build(writer);
 
         writer.WriteGeneratedAttribute();
-        
+
         var modifier = _accessModifier.ToString().ToLowerInvariant();
 
         if (_underlyingType is null)

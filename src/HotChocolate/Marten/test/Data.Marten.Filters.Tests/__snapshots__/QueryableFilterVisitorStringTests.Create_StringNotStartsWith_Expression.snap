@@ -1,0 +1,63 @@
+testa Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+testa SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where NOT((d.data ->> 'Bar' is not null and d.data ->> 'Bar' LIKE :p0));
+---------------
+
+testb Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+testb SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where NOT((d.data ->> 'Bar' is not null and d.data ->> 'Bar' LIKE :p0));
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `nstartsWith` of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 37
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

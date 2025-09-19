@@ -3,10 +3,8 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Descriptors.TypeReference;
-
-#nullable enable
 
 namespace HotChocolate.Types.Introspection;
 
@@ -18,12 +16,12 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __AppliedDirective : ObjectType<DirectiveNode>
 {
-    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var nonNullStringType = Parse($"{ScalarNames.String}!");
         var locationListType = Parse($"[{nameof(__DirectiveArgument)}!]!");
 
-        return new ObjectTypeDefinition(
+        return new ObjectTypeConfiguration(
             Names.__AppliedDirective,
             TypeResources.AppliedDirective_Description,
             typeof(DirectiveNode))
@@ -31,17 +29,17 @@ internal sealed class __AppliedDirective : ObjectType<DirectiveNode>
             Fields =
             {
                 new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
-                new(Names.Args, type: locationListType, pureResolver: Resolvers.Arguments),
-            },
+                new(Names.Args, type: locationListType, pureResolver: Resolvers.Arguments)
+            }
         };
     }
 
     private static class Resolvers
     {
-        public static string Name(IPureResolverContext context)
+        public static string Name(IResolverContext context)
             => context.Parent<DirectiveNode>().Name.Value;
 
-        public static object Arguments(IPureResolverContext context)
+        public static object Arguments(IResolverContext context)
             => context.Parent<DirectiveNode>().Arguments;
     }
 

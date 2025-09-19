@@ -1,0 +1,189 @@
+{
+  "type": "object",
+  "properties": {
+    "any": {
+      "type": [
+        "object",
+        "array",
+        "boolean",
+        "string",
+        "number",
+        "integer"
+      ],
+      "description": "Any description"
+    },
+    "boolean": {
+      "type": "boolean",
+      "description": "Boolean description"
+    },
+    "byte": {
+      "type": "integer",
+      "description": "Byte description"
+    },
+    "byteArray": {
+      "type": "string",
+      "pattern": "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=)?$",
+      "description": "ByteArray description"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date description"
+    },
+    "dateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,7})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
+      "description": "DateTime description"
+    },
+    "decimal": {
+      "type": "number",
+      "description": "Decimal description"
+    },
+    "enum": {
+      "type": "string",
+      "enum": [
+        "VALUE1",
+        "VALUE2"
+      ],
+      "description": "Enum description"
+    },
+    "float": {
+      "type": "number",
+      "description": "Float description"
+    },
+    "id": {
+      "type": "string",
+      "description": "ID description"
+    },
+    "int": {
+      "type": "integer",
+      "description": "Int description"
+    },
+    "json": {
+      "type": [
+        "object",
+        "array",
+        "boolean",
+        "string",
+        "number",
+        "integer"
+      ],
+      "description": "JSON description"
+    },
+    "list": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List description"
+    },
+    "localDate": {
+      "type": "string",
+      "format": "date",
+      "description": "LocalDate description"
+    },
+    "localDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$",
+      "description": "LocalDateTime description"
+    },
+    "localTime": {
+      "type": "string",
+      "format": "time",
+      "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+      "description": "LocalTime description"
+    },
+    "long": {
+      "type": "integer",
+      "description": "Long description"
+    },
+    "object": {
+      "type": "object",
+      "properties": {
+        "field1A": {
+          "type": "object",
+          "properties": {
+            "field1B": {
+              "type": "object",
+              "properties": {
+                "field1C": {
+                  "type": "string",
+                  "format": "time",
+                  "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                  "description": "field1C description"
+                }
+              },
+              "required": [
+                "field1C"
+              ],
+              "description": "field1B description"
+            }
+          },
+          "required": [
+            "field1B"
+          ],
+          "description": "field1A description"
+        }
+      },
+      "required": [
+        "field1A"
+      ],
+      "description": "Object description"
+    },
+    "short": {
+      "type": "integer",
+      "description": "Short description"
+    },
+    "string": {
+      "type": "string",
+      "description": "String description"
+    },
+    "timeSpan": {
+      "type": "string",
+      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
+      "description": "TimeSpan description"
+    },
+    "unknown": {
+      "type": "string",
+      "description": "Unknown description"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri-reference",
+      "description": "URL description"
+    },
+    "uuid": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID description"
+    }
+  },
+  "required": [
+    "any",
+    "boolean",
+    "byte",
+    "byteArray",
+    "date",
+    "dateTime",
+    "decimal",
+    "enum",
+    "float",
+    "id",
+    "int",
+    "json",
+    "list",
+    "localDate",
+    "localDateTime",
+    "localTime",
+    "long",
+    "object",
+    "short",
+    "string",
+    "timeSpan",
+    "unknown",
+    "url",
+    "uuid"
+  ]
+}

@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "More than one argument with the same name in an argument set is ambiguous and invalid.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 9,
-        "Column": 69
+        "Line": 8,
+        "Column": 51
       }
     ],
     "Extensions": {
@@ -24,35 +24,6 @@
       "argument": "nonNullBooleanArg",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Argument-Uniqueness"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Argument",
-      "Location": {
-        "Start": 264,
-        "End": 288,
-        "Line": 9,
-        "Column": 69
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 264,
-          "End": 282,
-          "Line": 9,
-          "Column": 69
-        },
-        "Value": "nonNullBooleanArg"
-      },
-      "Value": {
-        "Kind": "BooleanValue",
-        "Location": {
-          "Start": 283,
-          "End": 288,
-          "Line": 9,
-          "Column": 88
-        },
-        "Value": true
-      }
-    }
+    "Exception": null
   }
 ]

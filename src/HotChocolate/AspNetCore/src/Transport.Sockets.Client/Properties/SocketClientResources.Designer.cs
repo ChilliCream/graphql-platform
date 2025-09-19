@@ -44,5 +44,11 @@ namespace HotChocolate.Transport.Sockets.Client.Properties {
                 resourceCulture = value;
             }
         }
+        
+        internal static string GraphQLOverWebsockets_MessageHasNoId {
+            get {
+                return ResourceManager.GetString("GraphQLOverWebsockets_MessageHasNoId", resourceCulture);
+            }
+        }
     }
 }

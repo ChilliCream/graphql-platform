@@ -1,58 +1,71 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Utilities.ErrorHelper;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
 /// <summary>
 /// Represents a field of an <see cref="ObjectType"/>.
 /// </summary>
-public sealed class ObjectField : OutputFieldBase, IObjectField
+public sealed class ObjectField : OutputField
 {
-    private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
+    private static readonly FieldDelegate s_empty = _ => throw new InvalidOperationException();
 
-    internal ObjectField(ObjectFieldDefinition definition, int index)
-        : base(definition, index)
+    internal ObjectField(ObjectFieldConfiguration configuration, int index)
+        : base(configuration, index)
     {
-        Member = definition.Member;
-        ResolverMember = definition.ResolverMember ?? definition.Member;
-        Middleware = _empty;
-        Resolver = definition.Resolver!;
-        ResolverExpression = definition.Expression;
-        SubscribeResolver = definition.SubscribeResolver;
+        Member = configuration.Member;
+        ResolverMember = configuration.ResolverMember ?? configuration.Member;
+        Middleware = s_empty;
+        Resolver = configuration.Resolver!;
+        ResolverExpression = configuration.Expression;
+        SubscribeResolver = configuration.SubscribeResolver;
+    }
+
+    internal ObjectField(ObjectField original, IType type)
+        : base(original, type)
+    {
+        Member = original.Member;
+        ResolverMember = original.ResolverMember ?? original.Member;
+        Middleware = original.Middleware;
+        Resolver = original.Resolver!;
+        ResolverExpression = original.ResolverExpression;
+        SubscribeResolver = original.SubscribeResolver;
+        ResultPostProcessor = original.ResultPostProcessor;
+        PureResolver = original.PureResolver;
+        DependencyInjectionScope = original.DependencyInjectionScope;
+        Middleware = original.Middleware;
+        Flags = original.Flags;
     }
 
     /// <summary>
     /// Gets the type that declares this field.
     /// </summary>
-    public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
-
-    IObjectType IObjectField.DeclaringType => DeclaringType;
+    public new ObjectType DeclaringType => Unsafe.As<ObjectType>(base.DeclaringType);
 
     /// <summary>
     /// Defines if this field can be executed in parallel with other fields.
     /// </summary>
     public bool IsParallelExecutable
     {
-        get => (Flags & FieldFlags.ParallelExecutable) == FieldFlags.ParallelExecutable;
+        get => (Flags & CoreFieldFlags.ParallelExecutable) == CoreFieldFlags.ParallelExecutable;
         private set
         {
             if (value)
             {
-                Flags |= FieldFlags.ParallelExecutable;
+                Flags |= CoreFieldFlags.ParallelExecutable;
             }
             else
             {
-                Flags &= ~FieldFlags.ParallelExecutable;
+                Flags &= ~CoreFieldFlags.ParallelExecutable;
             }
         }
     }
@@ -61,13 +74,6 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
     /// Defines in which DI scope this field is executed.
     /// </summary>
     public DependencyInjectionScope DependencyInjectionScope { get; private set; }
-
-    /// <summary>
-    /// Defines that the resolver pipeline returns an
-    /// <see cref="IAsyncEnumerable{T}"/> as its result.
-    /// </summary>
-    public bool HasStreamResult
-        => (Flags & FieldFlags.Stream) == FieldFlags.Stream;
 
     /// <summary>
     /// Gets the field resolver middleware.
@@ -81,8 +87,8 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
 
     /// <summary>
     /// Gets the pure field resolver. The pure field resolver is only available if this field
-    /// can be resolved without side-effects. The execution engine will prefer this resolver
-    /// variant if it is available and there are no executable directives that add a middleware
+    /// can be resolved without side effects. The execution engine will prefer this resolver
+    /// variant if it is available, and there are no executable directives that add middleware
     /// to this field.
     /// </summary>
     public PureFieldDelegate? PureResolver { get; private set; }
@@ -90,11 +96,16 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
     /// <summary>
     /// Gets the subscription resolver.
     /// </summary>
-    public SubscribeResolverDelegate? SubscribeResolver { get; }
+    public SubscribeResolverDelegate? SubscribeResolver { get; private set; }
+
+    /// <summary>
+    /// Gets the result post-processor.
+    /// </summary>
+    public IResolverResultPostProcessor? ResultPostProcessor { get; private set; }
 
     /// <summary>
     /// Gets the associated member of the runtime type for this field.
-    /// This property can be <c>null</c> if this field is not associated to
+    /// This property can be <c>null</c> if this field is not associated with
     /// a concrete member on the runtime type.
     /// </summary>
     public MemberInfo? Member { get; }
@@ -110,27 +121,23 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
     /// Gets the associated resolver expression.
     /// This expression can be <c>null</c>.
     /// </summary>
-    [Obsolete("Use resolver expression.")]
-    public Expression? Expression => ResolverExpression;
+    public Expression? ResolverExpression { get; private set; }
 
-    /// <summary>
-    /// Gets the associated resolver expression.
-    /// This expression can be <c>null</c>.
-    /// </summary>
-    public Expression? ResolverExpression { get; }
-
-    protected override void OnCompleteField(
+    protected override void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        OutputFieldDefinitionBase definition)
+        OutputFieldConfiguration definition)
     {
-        base.OnCompleteField(context, declaringMember, definition);
-        CompleteResolver(context, (ObjectFieldDefinition)definition);
+        var objectFieldDef = (ObjectFieldConfiguration)definition;
+        base.OnMakeExecutable(context, declaringMember, definition);
+        CompleteResolver(context, objectFieldDef);
+        ResolverExpression = objectFieldDef.Expression;
+        SubscribeResolver = objectFieldDef.SubscribeResolver;
     }
-    
+
     private void CompleteResolver(
         ITypeCompletionContext context,
-        ObjectFieldDefinition definition)
+        ObjectFieldConfiguration definition)
     {
         var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
         var fieldMiddlewareDefinitions = definition.GetMiddlewareDefinitions();
@@ -150,7 +157,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
 
         if (Directives.Count > 0)
         {
-            List<FieldMiddlewareDefinition>? middlewareDefinitions = null;
+            List<FieldMiddlewareConfiguration>? middlewareDefinitions = null;
 
             for (var i = Directives.Count - 1; i >= 0; i--)
             {
@@ -160,7 +167,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
                 {
                     (middlewareDefinitions ??= fieldMiddlewareDefinitions.ToList()).Insert(
                         0,
-                        new FieldMiddlewareDefinition(next => m(next, directive)));
+                        new FieldMiddlewareConfiguration(next => m(next, directive)));
                 }
             }
 
@@ -171,11 +178,10 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
         }
 
         var skipMiddleware =
-            options.FieldMiddleware is not FieldMiddlewareApplication.AllFields &&
-            isIntrospectionField;
+            options.FieldMiddleware is not FieldMiddlewareApplication.AllFields
+                && isIntrospectionField;
 
-        var resolvers = CompileResolver(context, definition);
-
+        var resolvers = definition.Resolvers;
         Resolver = resolvers.Resolver;
 
         if (resolvers.PureResolver is not null && IsPureContext())
@@ -186,7 +192,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
                 skipMiddleware);
         }
 
-        // by definition fields with pure resolvers are parallel executable.
+        // by definition, fields with pure resolvers are parallel executable.
         if (!IsParallelExecutable && PureResolver is not null)
         {
             IsParallelExecutable = true;
@@ -212,80 +218,74 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
             Middleware = middleware;
         }
 
+        ResultPostProcessor = definition.ResultPostProcessor;
+
+        // if the source generator has configured this field, we will not try to infer a post-processor with
+        // reflection.
+        if ((Flags & CoreFieldFlags.SourceGenerator) != CoreFieldFlags.SourceGenerator
+            && ResultPostProcessor is null
+            && PureResolver is null
+            && ((Flags & CoreFieldFlags.Stream) == CoreFieldFlags.Stream
+                || (Flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
+                || (Flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment
+                || Type.IsListType()))
+        {
+            ResultPostProcessor =
+                ResolverHelpers.CreateListPostProcessor(
+                    context.TypeInspector,
+                    GetResultType(definition, RuntimeType));
+        }
+
         bool IsPureContext()
+            => skipMiddleware
+                || (context.GlobalComponents.Count == 0
+                    && fieldMiddlewareDefinitions.Count == 0);
+
+        static Type GetResultType(ObjectFieldConfiguration definition, Type runtimeType)
         {
-            return skipMiddleware ||
-                (context.GlobalComponents.Count == 0 &&
-                    fieldMiddlewareDefinitions.Count == 0);
+            if (definition.ResultType == null
+                || definition.ResultType == typeof(object))
+            {
+                return runtimeType;
+            }
+
+            return definition.ResultType;
         }
     }
+}
 
-    private static FieldResolverDelegates CompileResolver(
-        ITypeCompletionContext context,
-        ObjectFieldDefinition definition)
+file static class ResolverHelpers
+{
+    private static readonly ConcurrentDictionary<Type, IResolverResultPostProcessor> s_methodCache = new();
+
+    private static readonly MethodInfo s_createListPostProcessor =
+        typeof(ResolverHelpers).GetMethod(
+            nameof(CreateListPostProcessor),
+            BindingFlags.NonPublic | BindingFlags.Static)!;
+
+    public static IResolverResultPostProcessor? CreateListPostProcessor(ITypeInspector inspector, Type type)
     {
-        var resolvers = definition.Resolvers;
+        var extendedType = inspector.GetType(type);
 
-        if (!resolvers.HasResolvers)
+        if (type == typeof(object))
         {
-            if (definition.Expression is LambdaExpression lambdaExpression)
-            {
-                resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
-                    lambdaExpression,
-                    definition.SourceType ??
-                    definition.Member?.ReflectedType ??
-                    definition.Member?.DeclaringType ??
-                    typeof(object),
-                    definition.ResolverType);
-            }
-            else if (definition.ResolverMember is not null)
-            {
-                var map = TypeMemHelper.RentArgumentNameMap();
-                BuildArgumentLookup(definition, map);
-
-                resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
-                    definition.ResolverMember,
-                    definition.SourceType ??
-                    definition.Member?.ReflectedType ??
-                    definition.Member?.DeclaringType ??
-                    typeof(object),
-                    definition.ResolverType,
-                    map,
-                    definition.GetParameterExpressionBuilders());
-
-                TypeMemHelper.Return(map);
-            }
-            else if (definition.Member is not null)
-            {
-                var map = TypeMemHelper.RentArgumentNameMap();
-                BuildArgumentLookup(definition, map);
-
-                resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
-                    definition.Member,
-                    definition.SourceType ??
-                    definition.Member.ReflectedType ??
-                    definition.Member.DeclaringType,
-                    definition.ResolverType,
-                    map,
-                    definition.GetParameterExpressionBuilders());
-
-                TypeMemHelper.Return(map);
-            }
+            return ListPostProcessor<object>.Default;
         }
 
-        return resolvers;
-
-        static void BuildArgumentLookup(
-            ObjectFieldDefinition definition,
-            Dictionary<ParameterInfo, string> argumentNames)
+        if (extendedType.IsArrayOrList)
         {
-            foreach (var argument in definition.Arguments)
-            {
-                if (argument.Parameter is not null)
-                {
-                    argumentNames[argument.Parameter] = argument.Name;
-                }
-            }
+            var elementType = extendedType.ElementType!.Type;
+            return GetFactoryMethod(elementType);
         }
+
+        return null;
     }
+
+    private static IResolverResultPostProcessor GetFactoryMethod(Type elementType)
+        => s_methodCache.GetOrAdd(
+            elementType,
+            static t => (IResolverResultPostProcessor)s_createListPostProcessor.MakeGenericMethod(t).Invoke(null, [])!);
+
+    private static IResolverResultPostProcessor CreateListPostProcessor<T>()
+        => ListPostProcessor<T>.Default;
 }

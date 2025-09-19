@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 public abstract class ComplexTypeDescriptor : INamedTypeDescriptor

@@ -1,4 +1,3 @@
-﻿using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -50,7 +49,7 @@ public class BooleanTypeTests
         var kind = type.Kind;
 
         // assert
-        Assert.Equal(TypeKind.Scalar, type.Kind);
+        Assert.Equal(TypeKind.Scalar, kind);
     }
 
     [Fact]

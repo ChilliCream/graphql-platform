@@ -1,12 +1,10 @@
-using System;
-
 namespace HotChocolate.Language;
 
 // Implements the parsing rules in the Fragments section.
 public ref partial struct Utf8GraphQLParser
 {
     /// <summary>
-    /// Parses a fragment spred or inline fragment within a selection set.
+    /// Parses a fragment spread or inline fragment within a selection set.
     /// <see cref="ParseFragmentSpread" /> and
     /// <see cref="ParseInlineFragment" />.
     /// </summary>
@@ -36,7 +34,7 @@ public ref partial struct Utf8GraphQLParser
     /// <summary>
     /// Parses a fragment definition.
     /// <see cref="FragmentDefinitionNode" />:
-    /// fragment FragmentName on TypeCondition Directives? SelectionSet
+    /// Description? fragment FragmentName on TypeCondition Directives? SelectionSet
     /// </summary>
     private FragmentDefinitionNode ParseFragmentDefinition()
     {
@@ -63,6 +61,7 @@ public ref partial struct Utf8GraphQLParser
             (
               location,
               name,
+              TakeDescription(),
               variableDefinitions,
               typeCondition,
               directives,
@@ -82,7 +81,8 @@ public ref partial struct Utf8GraphQLParser
             (
               location,
               name,
-              Array.Empty<VariableDefinitionNode>(),
+              TakeDescription(),
+              [],
               typeCondition,
               directives,
               selectionSet

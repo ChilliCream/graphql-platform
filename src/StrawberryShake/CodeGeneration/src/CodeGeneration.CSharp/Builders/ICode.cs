@@ -1,3 +1,3 @@
-﻿namespace StrawberryShake.CodeGeneration.CSharp.Builders;
+namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public interface ICode : ICodeBuilder;

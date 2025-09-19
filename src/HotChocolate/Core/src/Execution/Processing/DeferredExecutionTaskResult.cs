@@ -5,7 +5,7 @@ internal readonly struct DeferredExecutionTaskResult
     public DeferredExecutionTaskResult(
         uint taskId,
         uint parentTaskId,
-        IQueryResult? result = null)
+        IOperationResult? result = null)
     {
         TaskId = taskId;
         ParentTaskId = parentTaskId;
@@ -14,7 +14,7 @@ internal readonly struct DeferredExecutionTaskResult
 
     public uint TaskId { get; }
 
-    public  uint ParentTaskId { get; }
+    public uint ParentTaskId { get; }
 
-    public IQueryResult? Result { get; }
+    public IOperationResult? Result { get; }
 }

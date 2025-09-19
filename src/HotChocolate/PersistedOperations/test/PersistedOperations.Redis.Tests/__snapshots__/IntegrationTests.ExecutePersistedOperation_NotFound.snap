@@ -1,0 +1,11 @@
+{
+  "errors": [
+    {
+      "message": "The specified persisted operation key is invalid.",
+      "extensions": {
+        "code": "HC0020",
+        "requestedKey": "does_not_exist"
+      }
+    }
+  ]
+}

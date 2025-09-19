@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using static StrawberryShake.CodeGeneration.Properties.CodeGenerationResources;
 

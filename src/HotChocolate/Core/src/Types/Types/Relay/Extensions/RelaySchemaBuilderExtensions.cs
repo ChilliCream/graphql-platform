@@ -1,8 +1,5 @@
-using System;
+using HotChocolate.Features;
 using HotChocolate.Types.Relay;
-using static HotChocolate.WellKnownContextData;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -14,7 +11,11 @@ public static class RelaySchemaBuilderExtensions
     /// </summary>
     public static ISchemaBuilder AddGlobalObjectIdentification(
         this ISchemaBuilder schemaBuilder)
-        => AddGlobalObjectIdentification(schemaBuilder, true);
+    {
+        ArgumentNullException.ThrowIfNull(schemaBuilder);
+
+        return AddGlobalObjectIdentification(schemaBuilder, o => o.RegisterNodeInterface = true);
+    }
 
     /// <summary>
     /// Adds a <c>node</c> field to the root query according to the
@@ -23,16 +24,26 @@ public static class RelaySchemaBuilderExtensions
     public static ISchemaBuilder AddGlobalObjectIdentification(
         this ISchemaBuilder schemaBuilder,
         bool registerNodeInterface)
-    {
-        schemaBuilder.SetContextData(GlobalIdSupportEnabled, 1);
+        => AddGlobalObjectIdentification(schemaBuilder, o => o.RegisterNodeInterface = registerNodeInterface);
 
-        if (registerNodeInterface)
-        {
-            schemaBuilder
-                .TryAddTypeInterceptor<NodeFieldTypeInterceptor>()
-                .TryAddTypeInterceptor<NodeResolverTypeInterceptor>()
-                .AddType<NodeType>();
-        }
+    /// <summary>
+    /// Adds a <c>node</c> field to the root query according to the
+    /// Global Object Identification specification.
+    /// </summary>
+    public static ISchemaBuilder AddGlobalObjectIdentification(
+        this ISchemaBuilder schemaBuilder,
+        Action<GlobalObjectIdentificationOptions>? configure)
+    {
+        ArgumentNullException.ThrowIfNull(schemaBuilder);
+
+        var feature = schemaBuilder.Features.GetOrSet(new NodeSchemaFeature());
+        configure?.Invoke(feature.Options);
+
+        schemaBuilder.TryAddTypeInterceptor<NodeIdSerializerTypeInterceptor>();
+
+        schemaBuilder
+            .TryAddTypeInterceptor<NodeFieldTypeInterceptor>()
+            .TryAddTypeInterceptor<NodeResolverTypeInterceptor>();
 
         return schemaBuilder;
     }
@@ -44,19 +55,10 @@ public static class RelaySchemaBuilderExtensions
         this ISchemaBuilder schemaBuilder,
         Action<MutationPayloadOptions>? configureOptions = null)
     {
-        MutationPayloadOptions options = new();
+        ArgumentNullException.ThrowIfNull(schemaBuilder);
 
-        configureOptions?.Invoke(options);
-
-        return schemaBuilder.AddQueryFieldToMutationPayloads(options);
-    }
-
-    private static ISchemaBuilder AddQueryFieldToMutationPayloads(
-        this ISchemaBuilder schemaBuilder,
-        MutationPayloadOptions options)
-    {
         return schemaBuilder
-            .SetMutationPayloadOptions(options)
+            .ModifyMutationPayloadOptions(configureOptions)
             .TryAddTypeInterceptor<QueryFieldTypeInterceptor>();
     }
 }

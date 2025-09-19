@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -11,41 +9,34 @@ using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 namespace HotChocolate.Data.Projections;
 
 /// <summary>
-/// A <see cref="ProjectionProvider"/> translates a incoming query to another
+/// A <see cref="ProjectionProvider"/> translates an incoming query to another
 /// object structure at runtime
 /// </summary>
 public abstract class ProjectionProvider
-    : Convention<ProjectionProviderDefinition>
+    : Convention<ProjectionProviderConfiguration>
     , IProjectionProvider
     , IProjectionProviderConvention
 {
     private Action<IProjectionProviderDescriptor>? _configure;
-
-    private readonly IList<IProjectionFieldHandler> _fieldHandlers =
-        new List<IProjectionFieldHandler>();
-
-    private readonly IList<IProjectionFieldInterceptor> _fieldInterceptors =
-        new List<IProjectionFieldInterceptor>();
-
-    private readonly IList<IProjectionOptimizer> _optimizer = new List<IProjectionOptimizer>();
-
-    public const string ProjectionContextIdentifier = "ProjectionMiddleware";
+    private readonly IList<IProjectionFieldHandler> _fieldHandlers = [];
+    private readonly IList<IProjectionFieldInterceptor> _fieldInterceptors = [];
+    private readonly IList<IProjectionOptimizer> _optimizer = [];
 
     protected ProjectionProvider()
     {
         _configure = Configure;
     }
 
-    public ProjectionProvider(Action<IProjectionProviderDescriptor> configure)
+    protected ProjectionProvider(Action<IProjectionProviderDescriptor> configure)
     {
         _configure = configure ??
             throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new ProjectionProviderDefinition? Definition => base.Definition;
+    internal new ProjectionProviderConfiguration? Configuration => base.Configuration;
 
     /// <inheritdoc />
-    protected override ProjectionProviderDefinition CreateDefinition(
+    protected override ProjectionProviderConfiguration CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)
@@ -60,12 +51,12 @@ public abstract class ProjectionProvider
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     /// <summary>
     /// This method is called on initialization of the provider but before the provider is
-    /// completed. The default implementation of this method does nothing. It can be overriden
+    /// completed. The default implementation of this method does nothing. It can be overridden
     /// by a derived class such that the provider can be further configured before it is
     /// completed
     /// </summary>
@@ -83,7 +74,7 @@ public abstract class ProjectionProvider
 
     protected internal override void Complete(IConventionContext context)
     {
-        if (Definition!.Handlers.Count == 0)
+        if (Configuration!.Handlers.Count == 0)
         {
             throw ProjectionProvider_NoHandlersConfigured(this);
         }
@@ -95,7 +86,7 @@ public abstract class ProjectionProvider
                 (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
             context.Services);
 
-        foreach (var (type, instance) in Definition.Handlers)
+        foreach (var (type, instance) in Configuration.Handlers)
         {
             if (instance is not null)
             {
@@ -115,7 +106,7 @@ public abstract class ProjectionProvider
             }
         }
 
-        foreach (var (type, instance) in Definition.Interceptors)
+        foreach (var (type, instance) in Configuration.Interceptors)
         {
             if (instance is not null)
             {
@@ -135,7 +126,7 @@ public abstract class ProjectionProvider
             }
         }
 
-        foreach (var (type, instance) in Definition.Optimizers)
+        foreach (var (type, instance) in Configuration.Optimizers)
         {
             if (instance is not null)
             {

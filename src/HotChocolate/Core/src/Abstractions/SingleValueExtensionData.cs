@@ -1,15 +1,11 @@
-#nullable enable
-
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using HotChocolate.Execution;
 using static HotChocolate.Properties.AbstractionResources;
 
 namespace HotChocolate;
 
 /// <summary>
-/// An optimized extension data dictionary for <see cref="IQueryResult.Extensions"/> or
+/// An optimized extension data dictionary for <see cref="IOperationResult.Extensions"/> or
 /// <see cref="IExecutionResult.ContextData"/> when only one value is needed.
 /// </summary>
 public sealed class SingleValueExtensionData : IReadOnlyDictionary<string, object?>
@@ -24,10 +20,7 @@ public sealed class SingleValueExtensionData : IReadOnlyDictionary<string, objec
     /// <param name="value">The value.</param>
     public SingleValueExtensionData(string key, object? value)
     {
-        if (string.IsNullOrEmpty(key))
-        {
-            throw new ArgumentException(SingleValueExtensionData_KeyIsEmpty, nameof(key));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(key);
 
         _key = key;
         _value = value;

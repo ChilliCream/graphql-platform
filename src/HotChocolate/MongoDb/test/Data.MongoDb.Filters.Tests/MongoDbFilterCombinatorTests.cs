@@ -1,6 +1,6 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -10,10 +10,10 @@ public class MongoDbFilterCombinatorTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, }, 
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
     public MongoDbFilterCombinatorTests(MongoResource resource)
@@ -25,16 +25,17 @@ public class MongoDbFilterCombinatorTests
     public async Task Create_Empty_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { }){ bar }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { }){ bar }}")
+                .Build());
 
-        await Snapshot.Create()
+        await Snapshot
+            .Create()
             .Add(res1)
             .MatchAsync();
     }
@@ -42,13 +43,12 @@ public class MongoDbFilterCombinatorTests
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public bool Bar { get; set; }
     }
 
     public class FooFilterInput
-        : FilterInputType<Foo>
-    {
-    }
+        : FilterInputType<Foo>;
 }

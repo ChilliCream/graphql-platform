@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new()
         {
@@ -16,15 +12,15 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
             LastName = "Galoo",
             Bars = new[]
             {
-                new Bar { Value="A", },
-            },
+                new Bar { Value="A" }
+            }
         },
         new()
         {
             Name = "Sam",
             LastName = "Sampleman",
-            Bars = Array.Empty<Bar>(),
-        },
+            Bars = Array.Empty<Bar>()
+        }
     ];
 
     private readonly SchemaCache _cache;
@@ -38,27 +34,30 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
     public async Task Create_StringConcatExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInputType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(where: { displayName: { eq: \"Sam Sampleman\"}}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.New()
+            .SetDocument("{ root(where: { displayName: { eq: \"Sam Sampleman\"}}){ name lastName}}")
+            .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(where: { displayName: { eq: \"NoMatch\"}}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.New()
+            .SetDocument("{ root(where: { displayName: { eq: \"NoMatch\"}}){ name lastName}}")
+            .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(where: { displayName: { eq: null}}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.New()
+            .SetDocument("{ root(where: { displayName: { eq: null}}){ name lastName}}")
+            .Build());
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "Sam_Sampleman")
             .AddResult(res2, "NoMatch")
             .AddResult(res3, "null")
@@ -69,27 +68,30 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
     public async Task Create_CollectionLengthExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInputType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(where: { barLength: { eq: 1}}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.New()
+            .SetDocument("{ root(where: { barLength: { eq: 1}}){ name lastName}}")
+            .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(where: { barLength: { eq: 0}}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.New()
+            .SetDocument("{ root(where: { barLength: { eq: 0}}){ name lastName}}")
+            .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(where: { barLength: { eq: null}}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.New()
+            .SetDocument("{ root(where: { barLength: { eq: null}}){ name lastName}}")
+            .Build());
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "1")
             .AddResult(res2, "0")
             .AddResult(res3, "null")

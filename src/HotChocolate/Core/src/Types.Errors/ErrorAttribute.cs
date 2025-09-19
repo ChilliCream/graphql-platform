@@ -2,7 +2,7 @@ namespace HotChocolate.Types;
 
 /// <summary>
 /// The <see cref="ErrorAttribute"/> registers a middleware that will catch all exceptions of
-/// type <see cref="ErrorAttribute.ErrorType"/> on mutations and queries.
+/// type <see cref="ErrorType"/> on mutations and queries.
 ///
 /// By annotating the attribute the response type of the annotated resolver, will be automatically extended.
 /// </summary>
@@ -32,7 +32,6 @@ public class ErrorAttribute : ObjectFieldDescriptorAttribute
         => descriptor.Error(ErrorType);
 }
 
-#if NET6_0_OR_GREATER
 /// <summary>
 /// The <see cref="ErrorAttribute{T}"/> registers a middleware that will catch all exceptions of
 /// type <see cref="ErrorAttribute.ErrorType"/> on mutations and queries.
@@ -46,4 +45,3 @@ public sealed class ErrorAttribute<TError> : ErrorAttribute
     {
     }
 }
-#endif

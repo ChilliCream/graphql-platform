@@ -1,5 +1,3 @@
-using System;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class CodeInlineBuilder : ICode
@@ -8,7 +6,7 @@ public class CodeInlineBuilder : ICode
 
     public static CodeInlineBuilder New() => new();
 
-    public static CodeInlineBuilder From(string sourceText) => 
+    public static CodeInlineBuilder From(string sourceText) =>
         New().SetText(sourceText);
 
     public CodeInlineBuilder SetText(string value)
@@ -19,10 +17,7 @@ public class CodeInlineBuilder : ICode
 
     public void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         if (_value is null)
         {

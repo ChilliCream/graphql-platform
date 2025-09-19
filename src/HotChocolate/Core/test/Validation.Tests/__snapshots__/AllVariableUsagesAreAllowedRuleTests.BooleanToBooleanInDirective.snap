@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The variable `boolVar` is not compatible with the type of the current location.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 38
+        "Line": 2,
+        "Column": 20
       }
     ],
     "Extensions": {
@@ -24,25 +24,6 @@
       "locationType": "Boolean!",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Variable",
-      "Location": {
-        "Start": 87,
-        "End": 96,
-        "Line": 3,
-        "Column": 38
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 88,
-          "End": 96,
-          "Line": 3,
-          "Column": 39
-        },
-        "Value": "boolVar"
-      }
-    }
+    "Exception": null
   }
 ]

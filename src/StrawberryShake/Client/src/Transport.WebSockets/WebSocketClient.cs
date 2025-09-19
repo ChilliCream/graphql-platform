@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using StrawberryShake.Properties;
 
 namespace StrawberryShake.Transport.WebSockets;
@@ -15,15 +11,12 @@ namespace StrawberryShake.Transport.WebSockets;
 /// </summary>
 public sealed class WebSocketClient : IWebSocketClient
 {
-    private const int _maxMessageSize = 1024 * 4;
+    private const int MaxMessageSize = 1024 * 4;
     private readonly IReadOnlyList<ISocketProtocolFactory> _protocolFactories;
     private readonly ClientWebSocket _socket;
     private ISocketProtocol? _activeProtocol;
-    private bool _receiveFinishEventTriggered = false;
+    private bool _receiveFinishEventTriggered;
     private bool _disposed;
-
-    /// <inheritdoc />
-    public event EventHandler ReceiveFinished = default!;
 
     /// <summary>
     /// Creates a new instance of <see cref="WebSocketClient"/>
@@ -44,6 +37,8 @@ public sealed class WebSocketClient : IWebSocketClient
             _socket.Options.AddSubProtocol(_protocolFactories[i].ProtocolName);
         }
     }
+
+    public event EventHandler? OnConnectionClosed;
 
     /// <inheritdoc />
     public Uri? Uri { get; set; }
@@ -67,7 +62,8 @@ public sealed class WebSocketClient : IWebSocketClient
             if (closed && !_receiveFinishEventTriggered)
             {
                 _receiveFinishEventTriggered = true;
-                ReceiveFinished?.Invoke(this, EventArgs.Empty);
+                OnConnectionClosed?.Invoke(this, EventArgs.Empty);
+                ConnectionInterceptor.OnConnectionClosed(this);
             }
             return closed;
         }
@@ -79,10 +75,7 @@ public sealed class WebSocketClient : IWebSocketClient
     /// <inheritdoc />
     public async Task<ISocketProtocol> OpenAsync(CancellationToken cancellationToken = default)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(WebSocketClient));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (Uri is null)
         {
@@ -110,6 +103,8 @@ public sealed class WebSocketClient : IWebSocketClient
 
             throw ThrowHelper.SocketClient_ProtocolNotFound(_socket.SubProtocol ?? "null");
         }
+
+        ConnectionInterceptor.OnConnectionOpened(this);
 
         await _activeProtocol.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
@@ -167,7 +162,7 @@ public sealed class WebSocketClient : IWebSocketClient
             return;
         }
 
-        if (MemoryMarshal.TryGetArray(message, out ArraySegment<byte> buffer))
+        if (MemoryMarshal.TryGetArray(message, out var buffer))
         {
             await _socket.SendAsync(
                 buffer,
@@ -192,7 +187,7 @@ public sealed class WebSocketClient : IWebSocketClient
             WebSocketReceiveResult? socketResult = null;
             do
             {
-                Memory<byte> memory = writer.GetMemory(_maxMessageSize);
+                var memory = writer.GetMemory(MaxMessageSize);
                 try
                 {
                     if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer))
@@ -214,7 +209,7 @@ public sealed class WebSocketClient : IWebSocketClient
                     break;
                 }
 
-                FlushResult result = await writer
+                var result = await writer
                     .FlushAsync(cancellationToken)
                     .ConfigureAwait(false);
 
@@ -222,7 +217,7 @@ public sealed class WebSocketClient : IWebSocketClient
                 {
                     break;
                 }
-            } while (socketResult is not { EndOfMessage: true, });
+            } while (socketResult is not { EndOfMessage: true });
         }
         catch (ObjectDisposedException)
         {
@@ -242,7 +237,7 @@ public sealed class WebSocketClient : IWebSocketClient
             SocketCloseStatus.NormalClosure => WebSocketCloseStatus.NormalClosure,
             SocketCloseStatus.PolicyViolation => WebSocketCloseStatus.PolicyViolation,
             SocketCloseStatus.ProtocolError => WebSocketCloseStatus.ProtocolError,
-            _ => WebSocketCloseStatus.Empty,
+            _ => WebSocketCloseStatus.Empty
         };
 
     /// <inheritdoc />

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Validation.Tests</AssemblyName>
@@ -18,5 +18,8 @@
     <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup> 
+    <None Update="__resources__\introspection_without_cycle.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

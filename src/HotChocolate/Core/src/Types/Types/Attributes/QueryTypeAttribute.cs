@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 
@@ -32,7 +31,7 @@ public sealed class QueryTypeAttribute
     {
         descriptor.Name(OperationTypeNames.Query);
 
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
         definition.Fields.BindingBehavior = BindingBehavior.Implicit;
 
         if (IncludeStaticMembers)

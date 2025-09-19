@@ -1,9 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>CookieCrumble</AssemblyName>
     <RootNamespace>CookieCrumble</RootNamespace>
@@ -11,32 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DiffPlex" Version="1.7.1" />
-    <PackageReference Include="Xunit" Version="2.4.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'netstandard2.1' OR '$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
-    <ProjectReference Include="..\..\..\HotChocolate\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\..\HotChocolate\AspNetCore\src\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'net8.0'">
-    <ProjectReference Include="..\..\..\HotChocolate\Fusion\src\Core\HotChocolate.Fusion.csproj" />
-    <ProjectReference Include="..\..\..\HotChocolate\Skimmed\src\Skimmed\Skimmed.csproj" />
+    <PackageReference Include="DiffPlex" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
 
 </Project>

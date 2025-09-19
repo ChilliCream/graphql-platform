@@ -1,9 +1,6 @@
-using System;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types.Pagination;
-
-#nullable enable
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -11,30 +8,21 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static partial class SchemaRequestExecutorBuilderExtensions
 {
     /// <summary>
-    /// Sets the global paging options.
+    /// Modifies the global paging options.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
-    /// <param name="options">
-    /// The paging options.
+    /// <param name="configure">
+    /// A delegate to modify the paging options.
     /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
-    /// and its execution.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// The <paramref name="builder"/> is <c>null</c>.
-    /// </exception>
-    public static IRequestExecutorBuilder SetPagingOptions(
+    public static IRequestExecutorBuilder ModifyPagingOptions(
         this IRequestExecutorBuilder builder,
-        PagingOptions options)
+        Action<PagingOptions> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
-        return builder.ConfigureSchema(s => s.SetPagingOptions(options));
+        return builder.ConfigureSchema(s => s.ModifyPagingOptions(configure));
     }
 }

@@ -44,7 +44,7 @@ public class MongoDbProjectionProvider : ProjectionProvider
 
             if (visitorContext.Errors.Count == 0)
             {
-                if(visitorContext.TryCreateQuery(out var projectionDef))
+                if (visitorContext.TryCreateQuery(out var projectionDef))
                 {
                     return projectionDef;
                 }
@@ -73,7 +73,8 @@ public class MongoDbProjectionProvider : ProjectionProvider
                 return;
             }
 
-            var filterDef = context.GetLocalState<MongoDbProjectionDefinition>(ProjectionDefinitionKey);
+            var filterDef = context.GetLocalStateOrDefault<MongoDbProjectionDefinition>(ProjectionDefinitionKey);
+
             if (filterDef is null)
             {
                 return;

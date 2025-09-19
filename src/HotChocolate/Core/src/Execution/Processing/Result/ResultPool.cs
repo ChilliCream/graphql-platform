@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Execution.Processing;
 
 internal sealed class ResultPool

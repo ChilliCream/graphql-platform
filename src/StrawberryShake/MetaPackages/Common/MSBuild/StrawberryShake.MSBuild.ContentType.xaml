@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ProjectSchemaDefinitions 
+<ProjectSchemaDefinitions
     xmlns="http://schemas.microsoft.com/build/2009/properties">
 
     <ContentType
-        Name="GraphQL" 
-        DisplayName="GraphQL File" 
+        Name="GraphQL"
+        DisplayName="GraphQL File"
         ItemType="GraphQL" />
 
-    <ItemType 
-        Name="GraphQL" 
+    <ItemType
+        Name="GraphQL"
         DisplayName="GraphQL File"/>
 
-    <FileExtension 
-        Name=".graphql" 
+    <FileExtension
+        Name=".graphql"
         ContentType="GraphQL" />
 
 </ProjectSchemaDefinitions>

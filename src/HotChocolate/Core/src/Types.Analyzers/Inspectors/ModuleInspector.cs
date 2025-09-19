@@ -1,22 +1,30 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types.Analyzers.Filters;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static System.StringComparison;
-using static HotChocolate.Types.Analyzers.WellKnownTypes;
+using static HotChocolate.Types.Analyzers.WellKnownAttributes;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
-public class ModuleInspector : ISyntaxInspector
+public sealed class ModuleInspector : ISyntaxInspector
 {
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [AssemblyAttributeList.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.AttributeList];
+
     public bool TryHandle(
         GeneratorSyntaxContext context,
-        [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
+        [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
         if (context.Node is AttributeListSyntax attributeList)
         {
             foreach (var attributeSyntax in attributeList.Attributes)
             {
-                var symbol = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol;
+                var symbol = ModelExtensions.GetSymbolInfo(context.SemanticModel, attributeSyntax).Symbol;
                 if (symbol is not IMethodSymbol attributeSymbol)
                 {
                     continue;
@@ -25,8 +33,8 @@ public class ModuleInspector : ISyntaxInspector
                 var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                 var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                if (fullName.Equals(ModuleAttribute, Ordinal) &&
-                    attributeSyntax.ArgumentList is { Arguments.Count: > 0, })
+                if (fullName.Equals(ModuleAttribute, Ordinal)
+                    && attributeSyntax.ArgumentList is { Arguments.Count: > 0 })
                 {
                     var nameExpr = attributeSyntax.ArgumentList.Arguments[0].Expression;
                     var name = context.SemanticModel.GetConstantValue(nameExpr).ToString();

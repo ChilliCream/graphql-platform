@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
@@ -17,7 +15,7 @@ public class EnumTypeDescriptorAttributeTests
             .Create();
 
         // assert
-        var value = schema.GetType<EnumType>("Enum1").Values.First();
+        var value = schema.Types.GetType<EnumType>("Enum1").Values.First();
         Assert.Equal("ABC", value.Name);
     }
 
@@ -31,7 +29,7 @@ public class EnumTypeDescriptorAttributeTests
             .Create();
 
         // assert
-        Assert.NotNull(schema.GetType<EnumType>("Abc"));
+        Assert.NotNull(schema.Types.GetType<EnumType>("Abc"));
     }
 
     [Fact]
@@ -44,15 +42,14 @@ public class EnumTypeDescriptorAttributeTests
             .Create();
 
         // assert
-        Assert.NotNull(schema.GetType<EnumType>("Foo"));
+        Assert.NotNull(schema.Types.GetType<EnumType>("Foo"));
     }
 
     public enum Enum1
     {
-
         [RenameValue]
         Value1,
-        Value2,
+        Value2
     }
 
     public class RenameValueAttribute
@@ -70,17 +67,15 @@ public class EnumTypeDescriptorAttributeTests
     [RenameType]
     public enum Enum2
     {
-
         Value1,
-        Value2,
+        Value2
     }
 
     [EnumType(Name = "Foo")]
     public enum Enum3
     {
-
         Value1,
-        Value2,
+        Value2
     }
 
     public class RenameTypeAttribute

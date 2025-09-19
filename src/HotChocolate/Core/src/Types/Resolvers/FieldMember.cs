@@ -1,8 +1,5 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
-
-#nullable enable
 
 namespace HotChocolate.Resolvers;
 
@@ -139,10 +136,7 @@ public sealed class FieldMember
 
     public FieldReference ToFieldReference()
     {
-        if (_fieldReference is null)
-        {
-            _fieldReference = new FieldReference(TypeName, FieldName);
-        }
+        _fieldReference ??= new FieldReference(TypeName, FieldName);
         return _fieldReference;
     }
 }

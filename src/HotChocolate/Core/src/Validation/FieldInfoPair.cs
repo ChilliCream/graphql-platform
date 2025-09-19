@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Validation;
 
 /// <summary>
@@ -26,7 +24,7 @@ public readonly struct FieldInfoPair : IEquatable<FieldInfoPair>
     /// Gets the first field info.
     /// </summary>
     public FieldInfo FieldA { get; }
-    
+
     /// <summary>
     /// Gets the second field info.
     /// </summary>

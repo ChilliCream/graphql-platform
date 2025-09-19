@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-
-#nullable enable
 
 namespace HotChocolate.Resolvers;
 

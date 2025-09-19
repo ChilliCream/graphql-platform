@@ -87,9 +87,9 @@ namespace HotChocolate.Subscriptions.Postgres {
             }
         }
         
-        internal static string ChannelWriter_Disconnectd {
+        internal static string ChannelWriter_Disconnected {
             get {
-                return ResourceManager.GetString("ChannelWriter_Disconnectd", resourceCulture);
+                return ResourceManager.GetString("ChannelWriter_Disconnected", resourceCulture);
             }
         }
         
@@ -102,6 +102,12 @@ namespace HotChocolate.Subscriptions.Postgres {
         internal static string PostgresMessageEnvelope_PayloadTooLarge {
             get {
                 return ResourceManager.GetString("PostgresMessageEnvelope_PayloadTooLarge", resourceCulture);
+            }
+        }
+        
+        internal static string ChannelWriter_FailedToRequeueMessage {
+            get {
+                return ResourceManager.GetString("ChannelWriter_FailedToRequeueMessage", resourceCulture);
             }
         }
     }

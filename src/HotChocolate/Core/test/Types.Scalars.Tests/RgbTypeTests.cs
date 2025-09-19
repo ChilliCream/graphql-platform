@@ -1,6 +1,4 @@
-using System;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -23,6 +21,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(IntValueNode), 1, false)]
     [InlineData(typeof(BooleanValueNode), true, false)]
     [InlineData(typeof(StringValueNode), "", false)]
+    [InlineData(typeof(StringValueNode), "rgb(٢٥٥,٠,٠)", false)]
     [InlineData(typeof(StringValueNode), "rgb(255,0,0)", true)]
     [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 0%)", true)]
     [InlineData(typeof(StringValueNode), "rgb(300,0,0)", true)]
@@ -37,7 +36,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, true)]
     public void IsInstanceOfType_GivenValueNode_MatchExpected(
         Type type,
-        object value,
+        object? value,
         bool expected)
     {
         // arrange
@@ -54,6 +53,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(1, false)]
     [InlineData(true, false)]
     [InlineData("", false)]
+    [InlineData("rgb(٢٥٥,٠,٠)", false)]
     [InlineData("rgb(255,0,0)", true)]
     [InlineData("rgb(100%, 0%, 0%)", true)]
     [InlineData("rgb(300,0,0)", true)]
@@ -66,7 +66,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("rgb(255 0 153 / 1)", true)]
     [InlineData("rgb(255 0 153 / 100%)", true)]
     [InlineData(null, true)]
-    public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
+    public void IsInstanceOfType_GivenObject_MatchExpected(object? value, bool expected)
     {
         // arrange
         // act
@@ -89,8 +89,8 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, null)]
     public void ParseLiteral_GivenValueNode_MatchExpected(
         Type type,
-        object value,
-        object expected)
+        object? value,
+        object? expected)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
@@ -109,6 +109,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "1")]
     [InlineData(typeof(StringValueNode), "rgb(255, 0, 153.6, 1)")]
     [InlineData(typeof(StringValueNode), "rgb(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData(typeof(StringValueNode), "rgb(٢٥٥,٠,٠)")]
     public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
     {
         // arrange
@@ -133,8 +134,8 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("rgb(255 0 153 / 100%)", "rgb(255 0 153 / 100%)")]
     [InlineData(null, null)]
     public void Deserialize_GivenValue_MatchExpected(
-        object resultValue,
-        object runtimeValue)
+        object? resultValue,
+        object? runtimeValue)
     {
         // arrange
         // act
@@ -151,6 +152,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("1")]
     [InlineData("rgb(255, 0, 153.6, 1)")]
     [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData("rgb(٢٥٥,٠,٠)")]
     public void Deserialize_GivenValue_ThrowSerializationException(object value)
     {
         // arrange
@@ -173,8 +175,8 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("rgb(255 0 153 / 100%)", "rgb(255 0 153 / 100%)")]
     [InlineData(null, null)]
     public void Serialize_GivenObject_MatchExpectedType(
-        object runtimeValue,
-        object resultValue)
+        object? runtimeValue,
+        object? resultValue)
     {
         // arrange
         // act
@@ -191,6 +193,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("1")]
     [InlineData("rgb(255, 0, 153.6, 1)")]
     [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData("rgb(٢٥٥,٠,٠)")]
     public void Serialize_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
@@ -212,7 +215,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)")]
     [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseValue_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -229,6 +232,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("1")]
     [InlineData("rgb(255, 0, 153.6, 1)")]
     [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData("rgb(٢٥٥,٠,٠)")]
     public void ParseValue_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
@@ -250,7 +254,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)")]
     [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+    public void ParseResult_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
@@ -267,6 +271,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("1")]
     [InlineData("rgb(255, 0, 153.6, 1)")]
     [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData("rgb(٢٥٥,٠,٠)")]
     public void ParseResult_GivenObject_ThrowSerializationException(object value)
     {
         // arrange

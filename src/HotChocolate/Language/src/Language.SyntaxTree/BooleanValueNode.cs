@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -56,7 +54,7 @@ public sealed class BooleanValueNode : IValueNode<bool>
     object IValueNode.Value => Value;
 
     /// <inheritdoc />
-    public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
+    public IEnumerable<ISyntaxNode> GetNodes() => [];
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
@@ -115,4 +113,3 @@ public sealed class BooleanValueNode : IValueNode<bool>
     /// </summary>
     public static BooleanValueNode False { get; } = new(false);
 }
-

@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using Microsoft.Extensions.ObjectPool;
 using static System.Threading.Interlocked;
@@ -10,7 +9,7 @@ namespace HotChocolate.Execution.Processing.Tasks;
 /// </summary>
 internal sealed class ExecutionTaskPool<T, TPolicy> : ObjectPool<T>
     where T : class, IExecutionTask
-    where  TPolicy : ExecutionTaskPoolPolicy<T>
+    where TPolicy : ExecutionTaskPoolPolicy<T>
 {
     private readonly ObjectWrapper[] _items;
     private readonly TPolicy _policy;
@@ -36,8 +35,8 @@ internal sealed class ExecutionTaskPool<T, TPolicy> : ObjectPool<T>
             for (var i = 0; i < items.Length; i++)
             {
                 item = items[i].Element;
-                if (item != null &&
-                    CompareExchange(ref items[i].Element, null, item) == item)
+                if (item != null
+                    && CompareExchange(ref items[i].Element, null, item) == item)
                 {
                     return item;
                 }

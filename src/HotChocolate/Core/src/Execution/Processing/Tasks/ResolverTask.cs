@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.ObjectPool;
@@ -13,10 +9,15 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     private readonly MiddlewareContext _context = new();
     private readonly List<ResolverTask> _taskBuffer = [];
     private readonly Dictionary<string, ArgumentValue> _args = new(StringComparer.Ordinal);
-    private OperationContext _operationContext = default!;
-    private ISelection _selection = default!;
+    private OperationContext _operationContext = null!;
+    private ISelection _selection = null!;
     private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
     private Task? _task;
+
+    /// <summary>
+    /// Gets or sets the internal execution id.
+    /// </summary>
+    public uint Id { get; set; }
 
     /// <summary>
     /// Gets access to the resolver context for this task.
@@ -40,7 +41,7 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
             SelectionExecutionStrategy.Default => ExecutionTaskKind.Parallel,
             SelectionExecutionStrategy.Serial => ExecutionTaskKind.Serial,
             SelectionExecutionStrategy.Pure => ExecutionTaskKind.Pure,
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
 
     /// <inheritdoc />
@@ -55,7 +56,7 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     /// <summary>
     /// Gets access to the internal result map into which the task will write the result.
     /// </summary>
-    public ObjectResult ParentResult { get; private set; } = default!;
+    public ObjectResult ParentResult { get; private set; } = null!;
 
     /// <inheritdoc />
     public object? State { get; set; }

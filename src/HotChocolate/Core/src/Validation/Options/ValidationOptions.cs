@@ -1,28 +1,17 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Validation.Options;
 
 /// <summary>
 /// The validation options.
 /// </summary>
-public class ValidationOptions
+public sealed class ValidationOptions
     : IMaxExecutionDepthOptionsAccessor
     , IErrorOptionsAccessor
+    , IIntrospectionOptionsAccessor
 {
     private int? _maxAllowedExecutionDepth;
     private int _maxErrors = 5;
-
-    /// <summary>
-    /// Gets the document rules of the validation.
-    /// </summary>
-    public IList<IDocumentValidatorRule> Rules { get; } =
-        new List<IDocumentValidatorRule>();
-
-    /// <summary>
-    /// Gets the document rules that run async logic after the initial validators have run..
-    /// </summary>
-    public IList<IValidationResultAggregator> ResultAggregators { get; } =
-        new List<IValidationResultAggregator>();
+    private ushort _maxAllowedOfTypeDepth = 16;
+    private ushort _maxAllowedListRecursiveDepth = 1;
 
     /// <summary>
     /// Gets the maximum allowed depth of a query. The default value is
@@ -56,7 +45,24 @@ public class ValidationOptions
             {
                 value = 5;
             }
+
             _maxErrors = value;
         }
+    }
+
+    public bool DisableIntrospection { get; set; }
+
+    public bool DisableDepthRule { get; set; }
+
+    public ushort MaxAllowedOfTypeDepth
+    {
+        get => _maxAllowedOfTypeDepth;
+        set => _maxAllowedOfTypeDepth = value > 0 ? value : (ushort)1;
+    }
+
+    public ushort MaxAllowedListRecursiveDepth
+    {
+        get => _maxAllowedListRecursiveDepth;
+        set => _maxAllowedListRecursiveDepth = value > 0 ? value : (ushort)16;
     }
 }

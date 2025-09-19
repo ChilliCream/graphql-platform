@@ -20,6 +20,9 @@ partial class Build : NukeBuild
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly string Configuration = IsLocalBuild ? Debug : Release;
 
+    [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
+    readonly string RuntimeIdentifier;
+
     [CI] readonly AzurePipelines DevOpsPipeLine;
 
     Target Clean => _ => _
@@ -75,9 +78,9 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             DotNetBuildSonarSolution(AllSolutionFile);
-            var all = ProjectModelTasks.ParseSolution(AllSolutionFile);
+            var all = AllSolutionFile.ReadSolution();
 
-            var testProjects = all.GetProjects("*.Tests")
+            var testProjects = all.GetAllProjects("*.Tests")
                 .Select(p => new TestProject
                 {
                     Name = Path.GetFileNameWithoutExtension(p.Path),
@@ -85,7 +88,6 @@ partial class Build : NukeBuild
                 })
                 .OrderBy(p => p.Name)
                 .ToList();
-
 
             var matrix = new
             {
@@ -106,7 +108,7 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             foreach (var mismatchDir in Directory.GetDirectories(
-                RootDirectory, "__MISMATCH__", SearchOption.AllDirectories))
+                RootDirectory, "__mismatch__", SearchOption.AllDirectories))
             {
                 Log.Information("Analyzing {0} ...", mismatchDir);
 
@@ -132,7 +134,6 @@ partial class Build : NukeBuild
             }
         });
 }
-
 
 [Serializable]
 public class TestProject

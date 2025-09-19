@@ -1,10 +1,10 @@
-﻿namespace HotChocolate.Validation;
+namespace HotChocolate.Validation;
 
-public class ComplexInput2
+public class ComplexInput2(string name, string owner, ComplexInput2? child = null)
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = name;
 
-    public string Owner { get; set; }
+    public string Owner { get; set; } = owner;
 
-    public ComplexInput2 Child { get; set; }
+    public ComplexInput2? Child { get; set; } = child;
 }

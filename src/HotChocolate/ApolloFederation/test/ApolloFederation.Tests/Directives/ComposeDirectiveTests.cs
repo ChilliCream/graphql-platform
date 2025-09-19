@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -12,7 +10,7 @@ namespace HotChocolate.ApolloFederation;
 public class ComposeDirectiveTests
 {
     [Fact]
-    public async Task TestServiceTypeEmptyQueryTypePureCodeFirst()
+    public async Task ExportDirectiveUsingTypeCodeFirst()
     {
         // arrange
         var schema = await new ServiceCollection()
@@ -23,7 +21,30 @@ public class ComposeDirectiveTests
             .ExportDirective<Custom>()
             .BuildSchemaAsync();
 
-        var entityType = schema.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
+        var entityType = schema.Types.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
+        var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
+
+        // act
+        var value = await sdlResolver(TestHelper.CreateResolverContext(schema));
+
+        Utf8GraphQLParser
+            .Parse((string)value!)
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ExportDirectiveUsingNameCodeFirst()
+    {
+        // arrange
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddQueryType()
+            .AddType<Address>()
+            .ExportDirective("@custom")
+            .BuildSchemaAsync();
+
+        var entityType = schema.Types.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
 
         // act
@@ -45,6 +66,7 @@ public class ComposeDirectiveTests
     [DirectiveType(DirectiveLocation.FieldDefinition)]
     public sealed class Custom;
 
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
     public sealed class CustomDirectiveAttribute()
         : DirectiveAttribute<Custom>(new Custom());
 }

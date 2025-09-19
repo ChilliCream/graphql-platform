@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Data.Projections.Handlers;
@@ -14,10 +13,7 @@ public static class ProjectionProviderDescriptorExtensions
     public static IProjectionProviderDescriptor RegisterQueryableHandler(
         this IProjectionProviderDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.RegisterFieldHandler<QueryableProjectionScalarHandler>();
         descriptor.RegisterFieldHandler<QueryableProjectionListHandler>();

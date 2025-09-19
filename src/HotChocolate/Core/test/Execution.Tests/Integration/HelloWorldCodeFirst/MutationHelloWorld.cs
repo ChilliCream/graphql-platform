@@ -1,4 +1,4 @@
-﻿using HotChocolate.Types;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Integration.HelloWorldCodeFirst;
 
@@ -9,7 +9,6 @@ public class MutationHelloWorld
     {
         DataStore = dataStore;
     }
-
 
     public DataStoreHelloWorld DataStore { get; }
 

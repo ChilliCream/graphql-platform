@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class MethodCallBuilder : ICode
 {
-    private string[] _methodName = Array.Empty<string>();
+    private string[] _methodName = [];
     private bool _determineStatement = true;
     private bool _setNullForgiving;
     private bool _wrapArguments;
@@ -31,7 +28,7 @@ public class MethodCallBuilder : ICode
     {
         _methodName =
         [
-            methodName,
+            methodName
         ];
         return this;
     }
@@ -118,10 +115,7 @@ public class MethodCallBuilder : ICode
 
     public void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         if (_determineStatement)
         {

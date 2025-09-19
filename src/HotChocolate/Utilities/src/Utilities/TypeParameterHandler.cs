@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -19,10 +18,7 @@ public sealed class TypeParameterHandler : IParameterHandler
 
     public bool CanHandle(ParameterInfo parameter)
     {
-        if (parameter is null)
-        {
-            throw new ArgumentNullException(nameof(parameter));
-        }
+        ArgumentNullException.ThrowIfNull(parameter);
 
         return parameter.ParameterType == _parameterType;
     }

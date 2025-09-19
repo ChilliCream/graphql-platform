@@ -1,7 +1,3 @@
-#nullable enable
-
-using CookieCrumble;
-
 namespace HotChocolate.Execution;
 
 public static class SnapshotHelpers

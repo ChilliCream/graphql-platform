@@ -1,11 +1,8 @@
-using System;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using ExtendedType = HotChocolate.Internal.ExtendedType;
-
-#nullable enable
 
 namespace HotChocolate.Configuration;
 
@@ -17,8 +14,8 @@ internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
     {
         var typeRef = (ExtendedTypeReference)typeReference;
 
-        if (!typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo) ||
-            ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
+        if (!typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo)
+            || ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
         {
             return;
         }
@@ -80,5 +77,5 @@ internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
     }
 
     private static bool IsTypeSystemObject(Type type) =>
-        typeof(TypeSystemObjectBase).IsAssignableFrom(type);
+        typeof(TypeSystemObject).IsAssignableFrom(type);
 }

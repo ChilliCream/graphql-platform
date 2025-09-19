@@ -1,4 +1,3 @@
-using System.Linq;
 using StrawberryShake.CodeGeneration.Descriptors;
 
 namespace StrawberryShake.CodeGeneration.Mappers;

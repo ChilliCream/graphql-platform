@@ -1,12 +1,10 @@
 #pragma warning disable IDE1006 // Naming Styles
-using System.Linq;
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Descriptors.TypeReference;
-
-#nullable enable
 
 namespace HotChocolate.Types.Introspection;
 
@@ -14,7 +12,7 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Schema : ObjectType
 {
-    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var stringType = Create(ScalarNames.String);
         var typeListType = Parse($"[{nameof(__Type)}!]!");
@@ -23,7 +21,7 @@ internal sealed class __Schema : ObjectType
         var directiveListType = Parse($"[{nameof(__Directive)}!]!");
         var appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
-        var def = new ObjectTypeDefinition(Names.__Schema, Schema_Description, typeof(ISchema))
+        var def = new ObjectTypeConfiguration(Names.__Schema, Schema_Description, typeof(ISchemaDefinition))
         {
             Fields =
                 {
@@ -44,8 +42,8 @@ internal sealed class __Schema : ObjectType
                     new(Names.Directives,
                         Schema_Directives,
                         directiveListType,
-                        pureResolver: Resolvers.Directives),
-                },
+                        pureResolver: Resolvers.Directives)
+                }
         };
 
         if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
@@ -61,28 +59,30 @@ internal sealed class __Schema : ObjectType
 
     private static class Resolvers
     {
-        public static object? Description(IPureResolverContext context)
-            => context.Parent<ISchema>().Description;
+        public static object? Description(IResolverContext context)
+            => context.Parent<ISchemaDefinition>().Description;
 
-        public static object Types(IPureResolverContext context)
-            => context.Parent<ISchema>().Types;
+        public static object Types(IResolverContext context)
+            => context.Parent<ISchemaDefinition>().Types;
 
-        public static object QueryType(IPureResolverContext context)
-            => context.Parent<ISchema>().QueryType;
+        public static object QueryType(IResolverContext context)
+            => context.Parent<ISchemaDefinition>().QueryType;
 
-        public static object? MutationType(IPureResolverContext context)
-            => context.Parent<ISchema>().MutationType;
+        public static object? MutationType(IResolverContext context)
+            => context.Parent<ISchemaDefinition>().MutationType;
 
-        public static object? SubscriptionType(IPureResolverContext context)
-            => context.Parent<ISchema>().SubscriptionType;
+        public static object? SubscriptionType(IResolverContext context)
+            => context.Parent<ISchemaDefinition>().SubscriptionType;
 
-        public static object Directives(IPureResolverContext context)
-            => context.Parent<ISchema>().DirectiveTypes.Where(t => t.IsPublic);
+        public static object Directives(IResolverContext context)
+            => context.Parent<ISchemaDefinition>()
+                .DirectiveDefinitions
+                .Where(t => Unsafe.As<DirectiveType>(t).IsPublic);
 
-        public static object AppliedDirectives(IPureResolverContext context)
-            => context.Parent<ISchema>().Directives
-                .Where(t => t.Type.IsPublic)
-                .Select(d => d.AsSyntaxNode());
+        public static object AppliedDirectives(IResolverContext context)
+            => context.Parent<ISchemaDefinition>().Directives
+                .Where(t => Unsafe.As<DirectiveType>(t).IsPublic)
+                .Select(d => d.ToSyntaxNode());
     }
 
     public static class Names

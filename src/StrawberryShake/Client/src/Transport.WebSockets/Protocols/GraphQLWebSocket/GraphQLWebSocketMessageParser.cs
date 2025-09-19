@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using System.Runtime.Serialization;
 using System.Text.Json;
@@ -11,42 +10,22 @@ namespace StrawberryShake.Transport.WebSockets.Protocols;
 /// </summary>
 internal ref struct GraphQLWebSocketMessageParser
 {
-    private readonly ReadOnlySequence<byte> _messageData;
-    private const byte _a = (byte)'a';
-    private const byte _c = (byte)'c';
-    private const byte _d = (byte)'d';
-    private const byte _e = (byte)'e';
-    private const byte _i = (byte)'i';
-    private const byte _k = (byte)'k';
-    private const byte _m = (byte)'m';
-    private const byte _p = (byte)'p';
-    private const byte _s = (byte)'s';
-    private const byte _t = (byte)'t';
+    private const byte A = (byte)'a';
+    private const byte C = (byte)'c';
+    private const byte D = (byte)'d';
+    private const byte E = (byte)'e';
+    private const byte I = (byte)'i';
+    private const byte K = (byte)'k';
+    private const byte M = (byte)'m';
+    private const byte P = (byte)'p';
+    private const byte S = (byte)'s';
+    private const byte T = (byte)'t';
 
-    private static ReadOnlySpan<byte> Type => new[]
-    {
-        (byte)'t',
-        (byte)'y',
-        (byte)'p',
-        (byte)'e',
-    };
+    private static ReadOnlySpan<byte> Type => "type"u8;
 
-    private static ReadOnlySpan<byte> Id => new[]
-    {
-        (byte)'i',
-        (byte)'d',
-    };
+    private static ReadOnlySpan<byte> Id => "id"u8;
 
-    private static ReadOnlySpan<byte> Payload => new[]
-    {
-        (byte)'p',
-        (byte)'a',
-        (byte)'y',
-        (byte)'l',
-        (byte)'o',
-        (byte)'a',
-        (byte)'d',
-    };
+    private static ReadOnlySpan<byte> Payload => "payload"u8;
 
     private Utf8JsonReader _reader;
 
@@ -58,7 +37,6 @@ internal ref struct GraphQLWebSocketMessageParser
     /// </param>
     private GraphQLWebSocketMessageParser(ReadOnlySequence<byte> messageData)
     {
-        _messageData = messageData;
         _reader = new Utf8JsonReader(messageData);
     }
 
@@ -67,7 +45,7 @@ internal ref struct GraphQLWebSocketMessageParser
     /// </summary>
     /// <returns></returns>
     /// <exception cref="SerializationException">
-    /// Thrown when a invalid token, a unknown field or the type is not specified
+    /// Thrown when an invalid token, an unknown field or the type is not specified
     /// </exception>
     private GraphQLWebSocketMessage ParseMessage()
     {
@@ -94,12 +72,12 @@ internal ref struct GraphQLWebSocketMessageParser
     private void ParseMessageProperty(ref GraphQLWebSocketMessage message)
     {
         Expect(JsonTokenType.PropertyName);
-        ReadOnlySpan<byte> fieldName = _reader.ValueSpan;
+        var fieldName = _reader.ValueSpan;
 
         _reader.Read();
         switch (fieldName[0])
         {
-            case _t:
+            case T:
                 if (fieldName.SequenceEqual(Type))
                 {
                     Expect(JsonTokenType.String);
@@ -108,7 +86,7 @@ internal ref struct GraphQLWebSocketMessageParser
 
                 break;
 
-            case _i:
+            case I:
                 if (fieldName.SequenceEqual(Id))
                 {
                     Expect(JsonTokenType.String);
@@ -117,7 +95,7 @@ internal ref struct GraphQLWebSocketMessageParser
 
                 break;
 
-            case _p:
+            case P:
                 if (fieldName.SequenceEqual(Payload))
                 {
                     message.Payload = JsonDocument.ParseValue(ref _reader);
@@ -132,7 +110,7 @@ internal ref struct GraphQLWebSocketMessageParser
 
     private GraphQLWebSocketMessageType ParseMessageType()
     {
-        ReadOnlySpan<byte> typeName = _reader.ValueSpan;
+        var typeName = _reader.ValueSpan;
         if (typeName.IsEmpty)
         {
             throw ThrowHelper.Serialization_MessageHadNoTypeSpecified();
@@ -140,49 +118,49 @@ internal ref struct GraphQLWebSocketMessageParser
 
         switch (typeName[0])
         {
-            case _k:
+            case K:
                 if (typeName.SequenceEqual(GraphQLWebSocketMessageTypeSpans.KeepAlive))
                 {
                     return GraphQLWebSocketMessageType.KeepAlive;
                 }
 
                 break;
-            case _d:
+            case D:
                 if (typeName.SequenceEqual(GraphQLWebSocketMessageTypeSpans.Data))
                 {
                     return GraphQLWebSocketMessageType.Data;
                 }
 
                 break;
-            case _e:
+            case E:
                 if (typeName.SequenceEqual(GraphQLWebSocketMessageTypeSpans.Error))
                 {
                     return GraphQLWebSocketMessageType.Error;
                 }
 
                 break;
-            case _s when typeName[2] is _a:
+            case S when typeName[2] is A:
                 if (typeName.SequenceEqual(GraphQLWebSocketMessageTypeSpans.Start))
                 {
                     return GraphQLWebSocketMessageType.Start;
                 }
 
                 break;
-            case _s:
+            case S:
                 if (typeName.SequenceEqual(GraphQLWebSocketMessageTypeSpans.Stop))
                 {
                     return GraphQLWebSocketMessageType.Stop;
                 }
 
                 break;
-            case _c when typeName[2] is _m:
+            case C when typeName[2] is M:
                 if (typeName.SequenceEqual(GraphQLWebSocketMessageTypeSpans.Complete))
                 {
                     return GraphQLWebSocketMessageType.Complete;
                 }
 
                 break;
-            case _c when typeName[11] is _i:
+            case C when typeName[11] is I:
                 if (typeName.SequenceEqual(
                         GraphQLWebSocketMessageTypeSpans.ConnectionInitialize))
                 {
@@ -190,21 +168,21 @@ internal ref struct GraphQLWebSocketMessageParser
                 }
 
                 break;
-            case _c when typeName[11] is _a:
+            case C when typeName[11] is A:
                 if (typeName.SequenceEqual(GraphQLWebSocketMessageTypeSpans.ConnectionAccept))
                 {
                     return GraphQLWebSocketMessageType.ConnectionAccept;
                 }
 
                 break;
-            case _c when typeName[11] is _e:
+            case C when typeName[11] is E:
                 if (typeName.SequenceEqual(GraphQLWebSocketMessageTypeSpans.ConnectionError))
                 {
                     return GraphQLWebSocketMessageType.ConnectionError;
                 }
 
                 break;
-            case _c when typeName[11] is _t:
+            case C when typeName[11] is T:
                 if (typeName.SequenceEqual(GraphQLWebSocketMessageTypeSpans.ConnectionTerminate)
                    )
                 {
@@ -232,7 +210,7 @@ internal ref struct GraphQLWebSocketMessageParser
     /// The sequence of bytes containing the data of the message
     /// </param>
     /// <exception cref="SerializationException">
-    /// Thrown when a invalid token, a unknown field or the type is not specified
+    /// Thrown when an invalid token, an unknown field or the type is not specified
     /// </exception>
     /// <returns>The parsed message</returns>
     public static GraphQLWebSocketMessage Parse(ReadOnlySequence<byte> messageData)

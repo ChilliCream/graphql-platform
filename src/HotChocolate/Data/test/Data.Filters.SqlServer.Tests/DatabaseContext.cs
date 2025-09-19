@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data.Filters;
@@ -20,7 +17,7 @@ public class DatabaseContext<T> : DbContext
         _onModelCreating = onModelCreating;
     }
 
-    public DbSet<T> Data { get; set; } = default!;
+    public DbSet<T> Data { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

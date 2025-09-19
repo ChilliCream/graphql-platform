@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Net;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -58,12 +57,11 @@ internal static class ErrorHelper
 
     public static IError UnexpectedLeafValueSerializationError(
         Exception exception,
-        IErrorHandler errorHandler,
         FieldNode field,
         Path path)
     {
-        return errorHandler
-            .CreateUnexpectedError(exception)
+        return ErrorBuilder
+            .FromException(exception)
             .AddLocation(field)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
@@ -123,30 +121,30 @@ internal static class ErrorHelper
             .Build();
     }
 
-    public static IQueryResult RootTypeNotFound(OperationType operationType) =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult RootTypeNotFound(OperationType operationType) =>
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_RootTypeNotFound_Message, operationType)
                 .Build(),
             new Dictionary<string, object?>
             {
-                { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest },
+                { ExecutionContextData.HttpStatusCode, HttpStatusCode.BadRequest }
             });
 
-    public static IQueryResult StateInvalidForOperationResolver() =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult StateInvalidForOperationResolver() =>
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForOperationResolver_Message)
                 .Build());
 
-    public static IQueryResult StateInvalidForOperationVariableCoercion() =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult StateInvalidForOperationVariableCoercion() =>
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForOperationVariableCoercion_Message)
                 .Build());
 
-    public static IQueryResult StateInvalidForOperationExecution() =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult StateInvalidForOperationExecution() =>
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForOperationExecution_Message)
                 .Build());
@@ -164,63 +162,33 @@ internal static class ErrorHelper
             .AddLocation(field)
             .Build();
 
-    public static IQueryResult StateInvalidForDocumentValidation() =>
-        QueryResultBuilder.CreateError(
-            ErrorBuilder.New()
-                .SetMessage(ErrorHelper_StateInvalidForDocumentValidation_Message)
-                .SetCode(ErrorCodes.Execution.QueryNotFound)
-                .Build());
-
-    public static IQueryResult OperationKindNotAllowed() =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult OperationKindNotAllowed() =>
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage("The specified operation kind is not allowed.")
                 .Build(),
             new Dictionary<string, object?>
             {
-                    { WellKnownContextData.OperationNotAllowed, null },
+                { ExecutionContextData.OperationNotAllowed, null }
             });
 
-    public static IQueryResult RequestTimeout(TimeSpan timeout) =>
-        QueryResultBuilder.CreateError(
-            new Error(
-                string.Format(ErrorHelper_RequestTimeout, timeout),
-                ErrorCodes.Execution.Timeout));
-
-    public static IQueryResult OperationCanceled() =>
-        QueryResultBuilder.CreateError(
-            new Error(
-                ErrorHelper_OperationCanceled_Message,
-                ErrorCodes.Execution.Canceled));
-
-    public static IQueryResult MaxComplexityReached(
-        int complexity,
-        int allowedComplexity) =>
-        QueryResultBuilder.CreateError(
-            new Error(
-                ErrorHelper_MaxComplexityReached,
-                ErrorCodes.Execution.ComplexityExceeded,
-                extensions: new Dictionary<string, object?>
-                {
-                    { nameof(complexity), complexity },
-                    { nameof(allowedComplexity), allowedComplexity },
-                }),
-            contextData: new Dictionary<string, object?>
-            {
-                { WellKnownContextData.ValidationErrors, true },
-            });
-
-    public static IError MaxComplexityReached() =>
-        new Error(
-            ErrorHelper_MaxComplexityReached,
-            ErrorCodes.Execution.ComplexityExceeded);
-
-    public static IQueryResult StateInvalidForComplexityAnalyzer() =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult RequestTypeNotAllowed() =>
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
-                .SetMessage(ErrorHelper_StateInvalidForComplexityAnalyzer_Message)
-                .SetCode(ErrorCodes.Execution.ComplexityStateInvalid)
-                .Build());
+                .SetMessage("Variable batch requests are only allowed for mutations and subscriptions.")
+                .Build(),
+            new Dictionary<string, object?>
+            {
+                { ExecutionContextData.ValidationErrors, null }
+            });
+
+    public static IOperationResult RequestTimeout(TimeSpan timeout) =>
+        OperationResultBuilder.CreateError(
+            new Error
+            {
+                Message = string.Format(ErrorHelper_RequestTimeout, timeout),
+                Extensions = ImmutableDictionary<string, object?>.Empty.Add("code", ErrorCodes.Execution.Timeout)
+            });
 
     public static IError NonNullOutputFieldViolation(Path? path, FieldNode selection)
         => ErrorBuilder.New()
@@ -229,42 +197,4 @@ internal static class ErrorHelper
             .SetPath(path)
             .AddLocation(selection)
             .Build();
-
-    public static IError PersistedQueryNotFound(string requestedKey)
-        => ErrorBuilder.New()
-            .SetMessage(ErrorHelper_PersistedQueryNotFound)
-            .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
-            .SetExtension(nameof(requestedKey), requestedKey)
-            .Build();
-
-    public static IError OnlyPersistedQueriesAreAllowed()
-        => ErrorBuilder.New()
-            .SetMessage(ErrorHelper_OnlyPersistedQueriesAreAllowed)
-            .SetCode(ErrorCodes.Execution.OnlyPersistedQueriesAllowed)
-            .Build();
-
-    public static IError ReadPersistedQueryMiddleware_PersistedQueryNotFound()
-        => ErrorBuilder.New()
-            // this string is defined in the APQ spec!
-            .SetMessage("PersistedQueryNotFound")
-            .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
-            .Build();
-
-    public static IError NoNullBubbling_ArgumentValue_NotAllowed(
-        ArgumentNode argument)
-    {
-        var errorBuilder = ErrorBuilder.New();
-
-        if (argument.Value.Location is not null)
-        {
-            errorBuilder.AddLocation(
-                argument.Value.Location.Line,
-                argument.Value.Location.Column);
-        }
-
-        errorBuilder.SetSyntaxNode(argument.Value);
-        errorBuilder.SetMessage(ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed);
-
-        return errorBuilder.Build();
-    }
 }

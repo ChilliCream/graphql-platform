@@ -1,4 +1,4 @@
-﻿using HotChocolate.Types;
+using HotChocolate.Types;
 
 namespace HotChocolate.Validation.Types;
 
@@ -8,17 +8,17 @@ public class QueryType : ObjectType<Query>
     {
         descriptor.Field("arguments")
             .Type<ArgumentsType>()
-            .Resolve(() => null);
+            .Resolve(() => null!);
 
         descriptor.Field("invalidArg")
             .Type<StringType>()
             .Argument("arg", a => a.Type<InvalidScalar>())
-            .Resolve(() => null);
+            .Resolve(() => null!);
 
         descriptor.Field("anyArg")
             .Type<StringType>()
             .Argument("arg", a => a.Type<AnyType>())
-            .Resolve(() => null);
+            .Resolve(() => null!);
 
         descriptor.Field("field")
             .Type<StringType>()
@@ -27,7 +27,7 @@ public class QueryType : ObjectType<Query>
             .Argument("c", a => a.Type<StringType>())
             .Argument("d", a => a.Type<StringType>())
             .Type<QueryType>()
-            .Resolve(() => null);
+            .Resolve(() => null!);
 
         descriptor.Field(t => t.GetCatOrDog())
             .Type<CatOrDogType>();
@@ -38,5 +38,13 @@ public class QueryType : ObjectType<Query>
         descriptor.Field("nonNull")
             .Argument("a", a => a.Type<NonNullType<StringType>>().DefaultValue("abc"))
             .Resolve("foo");
+
+        descriptor.Field("listOfScalars")
+            .Type<ListType<StringType>>()
+            .Resolve<string[]>(_ => []);
+
+        descriptor.Field("listOfListOfScalars")
+            .Type<ListType<ListType<StringType>>>()
+            .Resolve<string[][]>(_ => []);
     }
 }

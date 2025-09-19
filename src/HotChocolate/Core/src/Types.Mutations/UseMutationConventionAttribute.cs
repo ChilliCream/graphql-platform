@@ -92,18 +92,15 @@ public class UseMutationConventionAttribute : ObjectFieldDescriptorAttribute
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
     {
-        descriptor.Extend().OnBeforeNaming((c, d) =>
-        {
-            c.ContextData
-                .GetMutationFields()
-                .Add(new(d,
+        descriptor.Extend().OnBeforeNaming(
+            (c, d) => c.GetMutationFields().Add(
+                new MutationContextData(d,
                     InputTypeName,
                     InputArgumentName,
                     PayloadTypeName,
                     PayloadFieldName,
                     PayloadErrorTypeName,
                     PayloadErrorsFieldName,
-                    !Disable));
-        });
+                    !Disable)));
     }
 }

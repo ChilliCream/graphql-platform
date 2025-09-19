@@ -1,5 +1,3 @@
-using System;
-
 namespace StrawberryShake;
 
 internal class ObserverSession : IDisposable
@@ -8,12 +6,7 @@ internal class ObserverSession : IDisposable
     private IDisposable? _storeSession;
     private bool _disposed;
 
-    public ObserverSession()
-    {
-        RequestSession = new RequestSession();
-    }
-
-    public RequestSession RequestSession { get; }
+    public RequestSession RequestSession { get; } = new();
 
     public bool HasStoreSession
     {
@@ -35,10 +28,7 @@ internal class ObserverSession : IDisposable
     {
         lock (_sync)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(typeof(ObserverSession).FullName);
-            }
+            ObjectDisposedException.ThrowIf(_disposed, this);
 
             _storeSession = storeSession;
         }

@@ -1,7 +1,6 @@
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.EmbeddedResolvers;
@@ -11,7 +10,6 @@ public class EmbeddedResolverTests
     [Fact]
     public async Task ResolverResultIsObject()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 "{ foo { bar { baz }}}",
                 configure: c => c.AddQueryType<QueryType>())

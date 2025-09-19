@@ -22,7 +22,7 @@ type Query {
 You can deprecate output fields, input fields, arguments and enum values.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -37,7 +37,7 @@ public class Query
 
 > Note: .NET's `[Obsolete("reason")]` attribute is handled in the same way as `[GraphQLDeprecated("reason")]`.
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

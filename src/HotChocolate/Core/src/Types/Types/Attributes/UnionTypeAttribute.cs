@@ -1,14 +1,11 @@
-using System;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Interface)]
+    AttributeTargets.Class
+    | AttributeTargets.Interface)]
 public sealed class UnionTypeAttribute
     : UnionTypeDescriptorAttribute
     , ITypeAttribute

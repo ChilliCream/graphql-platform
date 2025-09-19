@@ -1,19 +1,14 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Utilities.CompilerServices;
-
-#nullable enable
 
 namespace HotChocolate.Utilities;
 
 internal readonly struct NullableHelper
 {
-    private const string _nullableContextAttributeName =
+    private const string NullableContextAttributeName =
         "System.Runtime.CompilerServices.NullableContextAttribute";
-    private const string _nullableAttributeName =
+    private const string NullableAttributeName =
         "System.Runtime.CompilerServices.NullableAttribute";
 
     private readonly bool? _context;
@@ -43,12 +38,6 @@ internal readonly struct NullableHelper
         return GetContext(attribute);
     }
 
-    private bool? GetContext(ParameterInfo parameter)
-    {
-        var attribute = GetNullableContextAttribute(parameter);
-        return GetContext(attribute, GetContext(parameter.Member));
-    }
-
     private bool? GetContext(NullableContextAttribute? attribute)
     {
         return GetContext(attribute, _context);
@@ -64,7 +53,7 @@ internal readonly struct NullableHelper
             {
                 Nullable.Yes => true,
                 Nullable.No => false,
-                _ => null,
+                _ => null
             };
         }
         return parent;
@@ -96,21 +85,17 @@ internal readonly struct NullableHelper
                 {
                     Nullable.Yes => true,
                     Nullable.No => false,
-                    _ => null,
+                    _ => null
                 };
             }
 
             return flags;
         }
-        return Array.Empty<bool?>();
+        return [];
     }
 
     private static NullableContextAttribute? GetNullableContextAttribute(
         MemberInfo member) =>
-        GetNullableContextAttribute(member.GetCustomAttributesData());
-
-    private static NullableContextAttribute? GetNullableContextAttribute(
-        ParameterInfo member) =>
         GetNullableContextAttribute(member.GetCustomAttributesData());
 
     private static NullableContextAttribute? GetNullableContextAttribute(
@@ -121,7 +106,7 @@ internal readonly struct NullableHelper
         IList<CustomAttributeData> attributes)
     {
         var data = attributes.FirstOrDefault(t =>
-            t.AttributeType.FullName.EqualsOrdinal(_nullableContextAttributeName));
+            t.AttributeType.FullName.EqualsOrdinal(NullableContextAttributeName));
 
         if (data is not null)
         {
@@ -137,7 +122,7 @@ internal readonly struct NullableHelper
     {
         var attributes = method.ReturnTypeCustomAttributes.GetCustomAttributes(false);
         var attribute = attributes.FirstOrDefault(t =>
-            t.GetType().FullName.EqualsOrdinal(_nullableAttributeName));
+            t.GetType().FullName.EqualsOrdinal(NullableAttributeName));
 
         if (attribute is null)
         {
@@ -169,7 +154,7 @@ internal readonly struct NullableHelper
         IList<CustomAttributeData> attributes)
     {
         var data = attributes.FirstOrDefault(t =>
-            t.AttributeType.FullName.EqualsOrdinal(_nullableAttributeName));
+            t.AttributeType.FullName.EqualsOrdinal(NullableAttributeName));
 
         if (data is not null)
         {

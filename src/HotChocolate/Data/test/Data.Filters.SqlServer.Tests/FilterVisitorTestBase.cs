@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -79,27 +76,27 @@ public class FilterVisitorTestBase
 
         return new ServiceCollection()
             .Configure<RequestExecutorSetup>(
-                Schema.DefaultName,
+                ISchemaDefinition.DefaultName,
                 o => o.Schema = schema)
             .AddGraphQL()
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                            OperationResultBuilder
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("sql", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .Result;
     }
 

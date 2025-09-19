@@ -1,5 +1,4 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -9,17 +8,17 @@ namespace HotChocolate.Data.Raven;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableProjectionVisitorPagingTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, Baz = "a", },
-        new() { Bar = false, Baz = "b", },
+        new() { Bar = true, Baz = "a" },
+        new() { Bar = false, Baz = "b" }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = true, Baz = "a", },
-        new() { Bar = null, Baz = null, },
-        new() { Bar = false, Baz = "c", },
+        new() { Bar = true, Baz = "a" },
+        new() { Bar = null, Baz = null },
+        new() { Bar = false, Baz = "c" }
     ];
 
     private readonly SchemaCache _cache;
@@ -34,14 +33,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes { bar baz } }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ nodes { bar baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -54,14 +53,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes { baz } }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ nodes { baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -74,14 +73,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ edges { node { bar baz }} }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ edges { node { bar baz }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -94,14 +93,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ edges { node { baz }} }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ edges { node { baz }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -114,14 +113,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes{ baz } edges { node { bar }} }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ nodes{ baz } edges { node { bar }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -134,14 +133,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes{ baz } edges { node { baz }} }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ nodes{ baz } edges { node { baz }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -154,14 +153,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes { bar baz } }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ nodes { bar baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -174,14 +173,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes { baz } }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ nodes { baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -194,14 +193,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ edges { node { bar baz }} }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ edges { node { bar baz }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -214,14 +213,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ edges { node { baz }} }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ edges { node { baz }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -234,14 +233,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes{ baz } edges { node { bar }} }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ nodes{ baz } edges { node { bar }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -254,14 +253,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes{ baz } edges { node { baz }} }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ nodes{ baz } edges { node { baz }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -274,14 +273,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes{ bar list { barBaz } } }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ nodes{ bar list { barBaz } } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -294,14 +293,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes{ bar paging { nodes {barBaz }} } }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ nodes{ bar paging { nodes {barBaz }} } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -314,14 +313,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             useOffsetPaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(take:10, skip:1){ items { bar baz } }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(take:10, skip:1){ items { bar baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -334,14 +333,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             useOffsetPaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ items { bar baz } }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ items { bar baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -354,14 +353,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             useOffsetPaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ items { baz } }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ items { baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -369,20 +368,19 @@ public class QueryableProjectionVisitorPagingTests
             .MatchAsync();
     }
 
-
     [Fact]
     public async Task CreateOffsetPagingNullable_ProjectsTwoProperties_Items()
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             useOffsetPaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ items { bar baz } }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ items { bar baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -395,14 +393,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             useOffsetPaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ items { baz } }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ items { baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -415,14 +413,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             useOffsetPaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ items{ bar list { barBaz } } }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ items{ bar list { barBaz } } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -435,14 +433,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             useOffsetPaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ items{ bar paging { nodes {barBaz }} } }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ items{ bar paging { nodes {barBaz }} } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -455,14 +453,14 @@ public class QueryableProjectionVisitorPagingTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooNullableEntities,
+            s_fooNullableEntities,
             usePaging: true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ b: nodes{ baz } a: edges { node { bar }} }}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ root{ b: nodes{ baz } a: edges { node { bar }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -518,8 +516,8 @@ public class QueryableProjectionVisitorPagingTests
             descriptor.Resolve(
                 new List<Bar>
                 {
-                    new() { BarBaz = "a_a", BarQux = "a_c", },
-                    new() { BarBaz = "a_b", BarQux = "a_d", },
+                    new() { BarBaz = "a_a", BarQux = "a_c" },
+                    new() { BarBaz = "a_b", BarQux = "a_d" }
                 });
         }
     }

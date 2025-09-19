@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language;
@@ -47,7 +46,7 @@ public class LocalCurrencyType : ScalarType<decimal, StringValueNode>
             null => NullValueNode.Default,
             string s => new StringValueNode(s),
             decimal d => ParseValue(d),
-            _ => throw ThrowHelper.LocalCurrencyType_ParseValue_IsInvalid(this),
+            _ => throw ThrowHelper.LocalCurrencyType_ParseValue_IsInvalid(this)
         };
     }
 

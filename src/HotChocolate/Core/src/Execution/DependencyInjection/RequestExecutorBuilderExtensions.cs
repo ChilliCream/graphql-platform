@@ -1,10 +1,9 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
+using HotChocolate.Features;
+using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.Options;
 
 // ReSharper disable once CheckNamespace
@@ -16,13 +15,13 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static partial class RequestExecutorBuilderExtensions
 {
     /// <summary>
-    /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
+    /// Adds a delegate that will be used to configure a named <see cref="Schema"/>.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="configureSchema">
-    /// A delegate that is used to configure an <see cref="ISchema"/>.
+    /// A delegate that is used to configure an <see cref="Schema"/>.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
@@ -32,15 +31,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<ISchemaBuilder> configureSchema)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configureSchema is null)
-        {
-            throw new ArgumentNullException(nameof(configureSchema));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureSchema);
 
         return Configure(
             builder,
@@ -49,14 +41,28 @@ public static partial class RequestExecutorBuilderExtensions
                     (ctx, _) => configureSchema(ctx.SchemaBuilder))));
     }
 
+    internal static IRequestExecutorBuilder ConfigureSchemaFeature(
+        this IRequestExecutorBuilder builder,
+        Action<IFeatureCollection> configureSchema)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureSchema);
+
+        return Configure(
+            builder,
+            options => options.OnConfigureSchemaBuilderHooks.Add(
+                new OnConfigureSchemaBuilderAction(
+                    (ctx, _) => configureSchema(ctx.SchemaBuilder.Features))));
+    }
+
     /// <summary>
-    /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
+    /// Adds a delegate that will be used to configure a named <see cref="Schema"/>.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="configureSchema">
-    /// A delegate that is used to configure an <see cref="ISchema"/>.
+    /// A delegate that is used to configure an <see cref="Schema"/>.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
@@ -66,15 +72,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Func<ISchemaBuilder, CancellationToken, ValueTask> configureSchema)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configureSchema is null)
-        {
-            throw new ArgumentNullException(nameof(configureSchema));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureSchema);
 
         return Configure(
             builder,
@@ -84,13 +83,13 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
+    /// Adds a delegate that will be used to configure a named <see cref="Schema"/>.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="configureSchema">
-    /// A delegate that is used to configure an <see cref="ISchema"/>.
+    /// A delegate that is used to configure an <see cref="Schema"/>.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
@@ -104,15 +103,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IServiceProvider, ISchemaBuilder> configureSchema)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configureSchema is null)
-        {
-            throw new ArgumentNullException(nameof(configureSchema));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureSchema);
 
         return Configure(
             builder,
@@ -122,13 +114,30 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
+    /// Adds a delegate that will be used to configure the descriptor context.
+    /// </summary>
+    public static IRequestExecutorBuilder ConfigureDescriptorContext(
+        this IRequestExecutorBuilder builder,
+        Action<IDescriptorContext> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return Configure(
+            builder,
+            options => options.OnConfigureSchemaBuilderHooks.Add(
+                new OnConfigureSchemaBuilderAction(
+                    (ctx, _) => configure(ctx.DescriptorContext))));
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to configure a named <see cref="Schema"/>.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="configureSchema">
-    /// A delegate that is used to configure an <see cref="ISchema"/>.
+    /// A delegate that is used to configure an <see cref="Schema"/>.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
@@ -142,15 +151,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, ISchemaBuilder, CancellationToken, ValueTask> configureSchema)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configureSchema is null)
-        {
-            throw new ArgumentNullException(nameof(configureSchema));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureSchema);
 
         return Configure(
             builder,
@@ -163,7 +165,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// Adds a delegate that will be used to modify the <see cref="RequestExecutorOptions"/>.
     /// </summary>
     /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <param name="modify">
+    /// <param name="configure">
     /// A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.
     /// </param>
     /// <returns>
@@ -172,23 +174,16 @@ public static partial class RequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder ModifyRequestOptions(
         this IRequestExecutorBuilder builder,
-        Action<RequestExecutorOptions> modify)
+        Action<RequestExecutorOptions> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (modify is null)
-        {
-            throw new ArgumentNullException(nameof(modify));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return Configure(
             builder,
             options => options.OnConfigureRequestExecutorOptionsHooks.Add(
                 new OnConfigureRequestExecutorOptionsAction(
-                    (_, opt) => modify(opt))));
+                    (_, opt) => configure(opt))));
     }
 
     /// <summary>
@@ -197,7 +192,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
-    /// <param name="modify">
+    /// <param name="configure">
     /// A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.
     /// </param>
     /// <returns>
@@ -206,23 +201,16 @@ public static partial class RequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder ModifyRequestOptionsAsync(
         this IRequestExecutorBuilder builder,
-        Func<RequestExecutorOptions, CancellationToken, ValueTask> modify)
+        Func<RequestExecutorOptions, CancellationToken, ValueTask> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (modify is null)
-        {
-            throw new ArgumentNullException(nameof(modify));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return Configure(
             builder,
             options => options.OnConfigureRequestExecutorOptionsHooks.Add(
                 new OnConfigureRequestExecutorOptionsAction(
-                    (_, opt, ct) => modify(opt, ct))));
+                    (_, opt, ct) => configure(opt, ct))));
     }
 
     /// <summary>
@@ -231,7 +219,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
-    /// <param name="modify">
+    /// <param name="configure">
     /// A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.
     /// </param>
     /// <returns>
@@ -240,24 +228,16 @@ public static partial class RequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder ModifyRequestOptions(
         this IRequestExecutorBuilder builder,
-        Action<IServiceProvider, RequestExecutorOptions> modify)
+        Action<IServiceProvider, RequestExecutorOptions> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (modify is null)
-        {
-            throw new ArgumentNullException(nameof(modify));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return Configure(
             builder,
             (services, options) => options.OnConfigureRequestExecutorOptionsHooks.Add(
                 new OnConfigureRequestExecutorOptionsAction(
-                    (_, o) => modify(services, o))));
-
+                    (_, o) => configure(services, o))));
     }
 
     /// <summary>
@@ -277,15 +257,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, RequestExecutorOptions, CancellationToken, ValueTask> modify)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (modify is null)
-        {
-            throw new ArgumentNullException(nameof(modify));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(modify);
 
         return Configure(
             builder,
@@ -298,7 +271,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// Adds a delegate that will be used to modify the <see cref="RequestParserOptions"/>.
     /// </summary>
     /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <param name="modify">
+    /// <param name="configure">
     /// A delegate that is used to modify the <see cref="RequestParserOptions"/>.
     /// </param>
     /// <returns>
@@ -307,100 +280,48 @@ public static partial class RequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder ModifyParserOptions(
         this IRequestExecutorBuilder builder,
-        Action<RequestParserOptions> modify)
+        Action<RequestParserOptions> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
-        if (modify is null)
-        {
-            throw new ArgumentNullException(nameof(modify));
-        }
-
-        builder.Services.AddSingleton(modify);
+        builder.Services.AddSingleton(configure);
 
         return builder;
     }
 
     /// <summary>
-    /// Adds a delegate that will be used to create the <see cref="RequestExecutorOptions"/>.
+    /// Configures the result buffer options.
     /// </summary>
     /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// The request executor builder.
     /// </param>
-    /// <param name="factory">
-    /// A delegate that is used to create the <see cref="RequestExecutorOptions"/>.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a
-    /// schema and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder SetRequestOptions(
-        this IRequestExecutorBuilder builder,
-        Func<RequestExecutorOptions> factory)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
-
-        return Configure(
-            builder,
-            options => options.RequestExecutorOptions = factory());
-    }
-
-    /// <summary>
-    /// Adds a delegate that will be used to create the <see cref="RequestExecutorOptions"/>.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/>.
-    /// </param>
-    /// <param name="factory">
-    /// A delegate that is used to create the <see cref="RequestExecutorOptions"/>.
+    /// <param name="configure">
+    /// The configuration action.
     /// </param>
     /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a
-    /// schema and its execution.
+    /// Returns the request executor builder.
     /// </returns>
-    public static IRequestExecutorBuilder SetRequestOptions(
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    public static IRequestExecutorBuilder ModifyResultBuffersOptions(
         this IRequestExecutorBuilder builder,
-        Func<IServiceProvider, RequestExecutorOptions> factory)
+        Action<ResultBufferOptions> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
-
-        return Configure(
-            builder,
-            (services, options) => options.RequestExecutorOptions = factory(services));
+        builder.Services.AddSingleton(configure);
+        return builder;
     }
 
     public static IRequestExecutorBuilder ConfigureSchemaServices(
         this IRequestExecutorBuilder builder,
         Action<IServiceCollection> configureServices)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configureServices is null)
-        {
-            throw new ArgumentNullException(nameof(configureServices));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureServices);
 
         return Configure(
             builder,
@@ -408,19 +329,25 @@ public static partial class RequestExecutorBuilderExtensions
                 (_, sp) => configureServices(sp)));
     }
 
+    public static IRequestExecutorBuilder ConfigureSchemaServices(
+        this IRequestExecutorBuilder builder,
+        Action<IServiceProvider, IServiceCollection> configureServices)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureServices);
+
+        return Configure(
+            builder,
+            options => options.OnConfigureSchemaServicesHooks.Add(
+                (ctx, sp) => configureServices(ctx.ApplicationServices, sp)));
+    }
+
     public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreated(
         this IRequestExecutorBuilder builder,
         Action<IRequestExecutor> action)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (action == null)
-        {
-            throw new ArgumentNullException(nameof(action));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(action);
 
         return builder.Configure(
             o => o.OnRequestExecutorCreatedHooks.Add(
@@ -432,15 +359,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IServiceProvider, IRequestExecutor> action)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (action == null)
-        {
-            throw new ArgumentNullException(nameof(action));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(action);
 
         return builder.Configure(
             (s, o) => o.OnRequestExecutorCreatedHooks.Add(
@@ -452,15 +372,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Func<IRequestExecutor, CancellationToken, ValueTask> asyncAction)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (asyncAction == null)
-        {
-            throw new ArgumentNullException(nameof(asyncAction));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(asyncAction);
 
         return builder.Configure(
             o => o.OnRequestExecutorCreatedHooks.Add(
@@ -472,15 +385,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, IRequestExecutor, CancellationToken, ValueTask> asyncAction)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (asyncAction == null)
-        {
-            throw new ArgumentNullException(nameof(asyncAction));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(asyncAction);
 
         return builder.Configure(
             (s, o) => o.OnRequestExecutorCreatedHooks.Add(

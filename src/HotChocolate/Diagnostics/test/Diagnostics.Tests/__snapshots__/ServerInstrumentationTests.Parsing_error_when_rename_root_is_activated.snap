@@ -24,13 +24,25 @@
           ],
           "event": [
             {
-              "Name": "Error",
-              "Tags": {
-                "graphql.error.message": "Expected a `Name`-token, but found a `Integer`-token.",
-                "graphql.error.code": "HC0011",
-                "graphql.error.location.column": 21,
-                "graphql.error.location.line": 3
-              }
+              "Name": "exception",
+              "Tags": [
+                {
+                  "Key": "exception.message",
+                  "Value": "Expected a `Name`-token, but found a `Integer`-token."
+                },
+                {
+                  "Key": "exception.type",
+                  "Value": "HC0011"
+                },
+                {
+                  "Key": "graphql.error.location.column",
+                  "Value": 21
+                },
+                {
+                  "Key": "graphql.error.location.line",
+                  "Value": 3
+                }
+              ]
             }
           ]
         },

@@ -1,12 +1,9 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 
 namespace StrawberryShake.Transport.InMemory;
 
 /// <summary>
-/// Represents a interceptor for <see cref="OperationRequest"/> of a
+/// Represents an interceptor for <see cref="OperationRequest"/> of a
 /// <see cref="IInMemoryClient"/>
 /// </summary>
 public interface IInMemoryRequestInterceptor
@@ -34,6 +31,6 @@ public interface IInMemoryRequestInterceptor
     ValueTask OnCreateAsync(
         IServiceProvider serviceProvider,
         OperationRequest request,
-        IQueryRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken);
 }

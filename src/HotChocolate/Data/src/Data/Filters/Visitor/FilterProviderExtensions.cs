@@ -1,11 +1,10 @@
-using System;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Data.DataResources;
 
 namespace HotChocolate.Data.Filters;
 
 public abstract class FilterProviderExtensions<TContext>
-    : ConventionExtension<FilterProviderDefinition>,
+    : ConventionExtension<FilterProviderConfiguration>,
       IFilterProviderExtension,
       IFilterProviderConvention
     where TContext : IFilterVisitorContext
@@ -17,7 +16,7 @@ public abstract class FilterProviderExtensions<TContext>
         _configure = Configure;
     }
 
-    public FilterProviderExtensions(Action<IFilterProviderDescriptor<TContext>> configure)
+    protected FilterProviderExtensions(Action<IFilterProviderDescriptor<TContext>> configure)
     {
         _configure = configure ??
             throw new ArgumentNullException(nameof(configure));
@@ -27,7 +26,7 @@ public abstract class FilterProviderExtensions<TContext>
         IConventionContext context,
         IFilterConvention convention)
     {
-        base.Initialize(context);
+        Initialize(context);
     }
 
     void IFilterProviderConvention.Complete(IConventionContext context)
@@ -35,7 +34,7 @@ public abstract class FilterProviderExtensions<TContext>
         Complete(context);
     }
 
-    protected override FilterProviderDefinition CreateDefinition(IConventionContext context)
+    protected override FilterProviderConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -47,23 +46,23 @@ public abstract class FilterProviderExtensions<TContext>
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(IFilterProviderDescriptor<TContext> descriptor) { }
 
     public override void Merge(IConventionContext context, Convention convention)
     {
-        if (Definition is not null &&
-            convention is FilterProvider<TContext> conv &&
-            conv.Definition is { } target)
+        if (Configuration is not null
+            && convention is FilterProvider<TContext> filterProvider
+            && filterProvider.Configuration is { } target)
         {
             // Provider extensions should be applied by default before the default handlers, as
             // the interceptor picks up the first handler. A provider extension should adds more
             // specific handlers than the default providers
-            for (var i = Definition.Handlers.Count - 1; i >= 0; i--)
+            for (var i = Configuration.Handlers.Count - 1; i >= 0; i--)
             {
-                target.Handlers.Insert(0, Definition.Handlers[i]);
+                target.Handlers.Insert(0, Configuration.Handlers[i]);
             }
         }
     }

@@ -1,6 +1,5 @@
-using System;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types;
@@ -209,7 +208,7 @@ public static class TagDirectiveExtensions
         ApplyTag(descriptor, name);
         return descriptor;
     }
-    
+
     /// <summary>
     /// Adds a @tag(name: "your-value") to an <see cref="InterfaceType"/>.
     /// <code>
@@ -341,7 +340,7 @@ public static class TagDirectiveExtensions
     }
 
     /// <summary>
-    /// Adds a @tag(name: "your-value") to an <see cref="EnumValue"/>.
+    /// Adds a @tag(name: "your-value") to an <see cref="DefaultEnumValue"/>.
     /// <code>
     /// enum Episode {
     ///   NEWHOPE @tag(name: "your-value")
@@ -375,7 +374,7 @@ public static class TagDirectiveExtensions
     }
 
     /// <summary>
-    /// Adds a @tag(name: "your-value") to an <see cref="EnumValue"/>.
+    /// Adds a @tag(name: "your-value") to an <see cref="DefaultEnumValue"/>.
     /// <code>
     /// schema @myDirective(arg: "value") {
     ///   query: Query
@@ -417,10 +416,7 @@ public static class TagDirectiveExtensions
         this IDescriptor descriptor,
         string name)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         switch (descriptor)
         {
@@ -462,10 +458,10 @@ public static class TagDirectiveExtensions
 
             case IDirectiveArgumentDescriptor desc:
                 var extend = desc.Extend();
-                extend.Definition.AddDirective(
-                    new Tag(name), 
+                extend.Configuration.AddDirective(
+                    new Tag(name),
                     extend.Context.TypeInspector);
-                extend.Definition.Dependencies.Add(
+                extend.Configuration.Dependencies.Add(
                     new TypeDependency(
                         extend.Context.TypeInspector.GetTypeRef(typeof(Tag)),
                         TypeDependencyFulfilled.Completed));

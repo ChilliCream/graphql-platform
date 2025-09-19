@@ -36,7 +36,6 @@ public interface INode
     string Id { get; }
 }
 
-
 SchemaBuilder.New()
   .AddType<INode>()
   .Create();

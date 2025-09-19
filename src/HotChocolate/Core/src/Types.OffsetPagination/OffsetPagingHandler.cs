@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
@@ -88,7 +87,7 @@ public abstract class OffsetPagingHandler : IPagingHandler
         IResolverContext context,
         object source)
     {
-        var arguments =context.GetLocalState<OffsetPagingArguments>(WellKnownContextData.PagingArguments);
+        var arguments = context.GetLocalState<OffsetPagingArguments>(WellKnownContextData.PagingArguments);
         return await SliceAsync(context, source, arguments).ConfigureAwait(false);
     }
 

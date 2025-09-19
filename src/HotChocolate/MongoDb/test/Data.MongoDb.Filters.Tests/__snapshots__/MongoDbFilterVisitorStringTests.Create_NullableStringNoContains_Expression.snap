@@ -1,0 +1,69 @@
+a Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+a Query:
+---------------
+find({ "Bar" : { "$not" : { "$regex" : { "$regularExpression" : { "pattern" : "a", "options" : "" } } } } })
+---------------
+
+b Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+b Query:
+---------------
+find({ "Bar" : { "$not" : { "$regex" : { "$regularExpression" : { "pattern" : "b", "options" : "" } } } } })
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `ncontains` of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 35
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

@@ -1,4 +1,3 @@
-using System;
 using Moq;
 
 namespace StrawberryShake;
@@ -73,15 +72,9 @@ public class OperationStoreTests
         var request = new OperationRequest("abc", document.Object);
         IOperationResult<string>? lastResult = null;
 
-
         // act
         using var session =
-            System.ObservableExtensions.Subscribe(
-                store.Watch<string>(request),
-                r =>
-                {
-                    lastResult = r;
-                });
+            ObservableExtensions.Subscribe(store.Watch<string>(request), r => lastResult = r);
 
         // assert
         store.Set(request, result.Object);

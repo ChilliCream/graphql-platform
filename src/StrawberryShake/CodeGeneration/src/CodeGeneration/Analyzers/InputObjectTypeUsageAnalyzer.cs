@@ -1,83 +1,66 @@
-using System.Collections.Generic;
 using HotChocolate;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
-internal sealed class InputObjectTypeUsageAnalyzer : QuerySyntaxWalker<object?>
+internal sealed class InputObjectTypeUsageAnalyzer(Schema schema) : SyntaxWalker<object?>
 {
-    private readonly HashSet<INamedInputType> _inputTypes = [];
-    private readonly HashSet<IInputType> _visitedTypes = [];
-    private readonly ISchema _schema;
+    private readonly HashSet<IInputTypeDefinition> _inputTypes = [];
+    private readonly HashSet<IType> _visitedTypes = [];
 
-    public InputObjectTypeUsageAnalyzer(ISchema schema)
-    {
-        _schema = schema;
-    }
-
-    public ISet<INamedInputType> InputTypes => _inputTypes;
+    public ISet<IInputTypeDefinition> InputTypes => _inputTypes;
 
     public void Analyze(DocumentNode document)
     {
         Visit(document, null);
     }
 
-    protected override void VisitOperationDefinition(
-        OperationDefinitionNode node, object? context)
+    protected override ISyntaxVisitorAction Enter(VariableDefinitionNode node, object? context)
     {
-        var operationType = _schema.GetOperationType(node.Operation)!;
-
-        VisitMany(
-            node.VariableDefinitions,
-            context,
-            VisitVariableDefinition);
-    }
-
-    protected override void VisitVariableDefinition(
-        VariableDefinitionNode node,
-        object? context)
-    {
-        if (_schema.TryGetType<INamedType>(
-                node.Type.NamedType().Name.Value,
-                out var type)
+        if (schema.Types.TryGetType(node.Type.NamedType().Name.Value, out var type)
             && type is IInputType inputType)
         {
             VisitInputType(inputType);
         }
+
+        return Continue;
     }
 
     private void VisitInputType(IInputType type)
     {
-        if (_visitedTypes.Add(type))
+        while (true)
         {
-            if (type is HotChocolate.Types.ListType listType
-                && listType.ElementType is IInputType elementType)
+            if (_visitedTypes.Add(type))
             {
-                VisitInputType(elementType);
+                switch (type)
+                {
+                    case ListType { ElementType: IInputType elementType }:
+                        type = elementType;
+                        continue;
+
+                    case NonNullType { NullableType: IInputType innerType }:
+                        type = innerType;
+                        continue;
+
+                    case IInputTypeDefinition namedInputType:
+                        VisitNamedInputType(namedInputType);
+                        break;
+                }
             }
-            else if (type is NonNullType nonNullType
-                     && nonNullType.Type is IInputType innerType)
-            {
-                VisitInputType(innerType);
-            }
-            else if (type is INamedInputType namedInputType)
-            {
-                VisitNamedInputType(namedInputType);
-            }
+
+            break;
         }
     }
 
-    private void VisitNamedInputType(INamedInputType type)
+    private void VisitNamedInputType(IInputTypeDefinition type)
     {
-        if (_inputTypes.Add(type))
+        if (_inputTypes.Add(type) && type is InputObjectType inputObjectType)
         {
-            if (type is InputObjectType inputObjectType)
+            foreach (IInputValueDefinition field in inputObjectType.Fields)
             {
-                foreach (IInputField field in inputObjectType.Fields)
-                {
-                    VisitInputType(field.Type);
-                }
+                VisitInputType(field.Type);
             }
         }
     }

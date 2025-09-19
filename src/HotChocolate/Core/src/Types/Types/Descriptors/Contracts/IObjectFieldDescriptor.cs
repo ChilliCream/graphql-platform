@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -14,7 +10,7 @@ namespace HotChocolate.Types;
 /// A fluent configuration API for GraphQL object type fields.
 /// </summary>
 public interface IObjectFieldDescriptor
-    : IDescriptor<ObjectFieldDefinition>
+    : IDescriptor<ObjectFieldConfiguration>
     , IFluent
 {
     /// <summary>
@@ -184,7 +180,7 @@ public interface IObjectFieldDescriptor
     /// private sealed class Resolvers
     /// {
     ///    public ValueTask<string> GetFoo(
-    ///        [Service] IFooService service,
+    ///        IFooService service,
     ///        CancellationToken cancellationToken) =>
     ///        service.GetFooAsync(cancellationToken);
     /// }
@@ -217,13 +213,13 @@ public interface IObjectFieldDescriptor
     /// private sealed class Resolvers
     /// {
     ///    public ValueTask<string> GetFoo(
-    ///        [Service] IFooService service,
+    ///        IFooService service,
     ///        CancellationToken cancellationToken) =>
     ///        service.GetFooAsync(cancellationToken);
     /// }
     /// ]]>
     /// </code>
-    /// The GetFoo method cann be mapped like:
+    /// The GetFoo method can be mapped like:
     /// <code>
     /// <![CDATA[
     /// descriptor
@@ -321,4 +317,37 @@ public interface IObjectFieldDescriptor
     /// <param name="arguments">The arguments of the directive</param>
     /// <returns>The descriptor</returns>
     IObjectFieldDescriptor Directive(string name, params ArgumentNode[] arguments);
+
+    /// <summary>
+    /// Specifies the requirements for the parent object.
+    /// </summary>
+    /// <param name="selector">
+    /// The requirements for the parent object.
+    /// </param>
+    /// <returns>
+    /// Returns the descriptor to chain further configuration.
+    /// </returns>
+    IObjectFieldDescriptor ParentRequires<TParent>(Expression<Func<TParent, object>> selector);
+
+    /// <summary>
+    /// Specifies the requirements for the parent object.
+    /// </summary>
+    /// <param name="requires">
+    /// The requirements for the parent object.
+    /// </param>
+    /// <returns>
+    /// Returns the descriptor to chain further configuration.
+    /// </returns>
+    IObjectFieldDescriptor ParentRequires<TParent>(string? requires);
+
+    /// <summary>
+    /// Specifies the requirements for the parent object.
+    /// </summary>
+    /// <param name="requires">
+    /// The requirements for the parent object.
+    /// </param>
+    /// <returns>
+    /// Returns the descriptor to chain further configuration.
+    /// </returns>
+    IObjectFieldDescriptor ParentRequires(string? requires);
 }

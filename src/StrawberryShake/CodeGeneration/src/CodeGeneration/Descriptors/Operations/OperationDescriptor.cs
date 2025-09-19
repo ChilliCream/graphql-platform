@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.Tools.Configuration;
 

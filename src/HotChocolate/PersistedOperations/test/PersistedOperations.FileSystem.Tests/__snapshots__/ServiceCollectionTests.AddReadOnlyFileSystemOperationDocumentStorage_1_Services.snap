@@ -1,0 +1,10 @@
+[
+  {
+    "Key": "HotChocolate.PersistedOperations.FileSystem.IOperationDocumentFileMap",
+    "Value": null
+  },
+  {
+    "Key": "HotChocolate.PersistedOperations.IOperationDocumentStorage",
+    "Value": "HotChocolate.PersistedOperations.FileSystem.FileSystemOperationDocumentStorage"
+  }
+]

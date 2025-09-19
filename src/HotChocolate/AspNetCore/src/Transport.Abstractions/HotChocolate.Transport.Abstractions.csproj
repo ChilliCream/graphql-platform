@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Transport.Abstractions</PackageId>
     <AssemblyName>HotChocolate.Transport.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate.Transport</RootNamespace>
     <Description>This package contains common abstractions and base classes for transport.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,26 +19,22 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language.Web\HotChocolate.Language.Web.csproj" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities.Buffers\HotChocolate.Utilities.Buffers.csproj" />
   </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Collections.Immutable" Version="6.0.0" />
-    <PackageReference Include="System.Text.Json" Version="6.0.7" />
-  </ItemGroup>
-
 
   <ItemGroup>
-    <EmbeddedResource Update="Properties\TransportAbstractionResoucrces.resx">
+    <EmbeddedResource Update="Properties\TransportAbstractionResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>TransportAbstractionResoucrces.Designer.cs</LastGenOutput>
+      <LastGenOutput>TransportAbstractionResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\TransportAbstractionResoucrces.Designer.cs">
+    <Compile Update="Properties\TransportAbstractionResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>TransportAbstractionResoucrces.resx</DependentUpon>
+      <DependentUpon>TransportAbstractionResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>

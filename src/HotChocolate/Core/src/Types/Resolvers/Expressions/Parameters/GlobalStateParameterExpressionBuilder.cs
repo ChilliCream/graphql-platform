@@ -1,29 +1,29 @@
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Utilities;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressionBuilder
+internal sealed class GlobalStateParameterExpressionBuilder
+    : IParameterExpressionBuilder
+    , IParameterBindingFactory
+    , IParameterBinding
 {
-    private static readonly PropertyInfo _contextData =
+    private static readonly PropertyInfo s_contextData =
         typeof(IHasContextData).GetProperty(
             nameof(IHasContextData.ContextData))!;
-    private static readonly MethodInfo _getGlobalState =
+    private static readonly MethodInfo s_getGlobalState =
         typeof(ExpressionHelper).GetMethod(
             nameof(ExpressionHelper.GetGlobalState))!;
-    private static readonly MethodInfo _getGlobalStateWithDefault =
+    private static readonly MethodInfo s_getGlobalStateWithDefault =
         typeof(ExpressionHelper).GetMethod(
             nameof(ExpressionHelper.GetGlobalStateWithDefault))!;
-    private static readonly MethodInfo _setGlobalState =
+    private static readonly MethodInfo s_setGlobalState =
         typeof(ExpressionHelper)
             .GetMethod(nameof(ExpressionHelper.SetGlobalState))!;
-    private static readonly MethodInfo _setGlobalStateGeneric =
+    private static readonly MethodInfo s_setGlobalStateGeneric =
         typeof(ExpressionHelper)
             .GetMethod(nameof(ExpressionHelper.SetGlobalStateGeneric))!;
 
@@ -46,23 +46,23 @@ internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressi
                 ? Expression.Constant(parameter.Name, typeof(string))
                 : Expression.Constant(attribute.Key, typeof(string));
 
-        var contextData = Expression.Property(context.ResolverContext, _contextData);
+        var contextData = Expression.Property(context.ResolverContext, s_contextData);
 
         return IsStateSetter(parameter.ParameterType)
             ? BuildSetter(parameter, key, contextData)
             : BuildGetter(parameter, key, contextData);
     }
 
-    private Expression BuildSetter(
+    private static Expression BuildSetter(
         ParameterInfo parameter,
         ConstantExpression key,
         MemberExpression contextData)
     {
         var setGlobalState =
             parameter.ParameterType.IsGenericType
-                ? _setGlobalStateGeneric.MakeGenericMethod(
+                ? s_setGlobalStateGeneric.MakeGenericMethod(
                     parameter.ParameterType.GetGenericArguments()[0])
-                : _setGlobalState;
+                : s_setGlobalState;
 
         return Expression.Call(
             setGlobalState,
@@ -70,15 +70,15 @@ internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressi
             key);
     }
 
-    private Expression BuildGetter(
+    private static Expression BuildGetter(
         ParameterInfo parameter,
         ConstantExpression key,
         MemberExpression contextData)
     {
         var getGlobalState =
             parameter.HasDefaultValue
-                ? _getGlobalStateWithDefault.MakeGenericMethod(parameter.ParameterType)
-                : _getGlobalState.MakeGenericMethod(parameter.ParameterType);
+                ? s_getGlobalStateWithDefault.MakeGenericMethod(parameter.ParameterType)
+                : s_getGlobalState.MakeGenericMethod(parameter.ParameterType);
 
         return parameter.HasDefaultValue
             ? Expression.Call(
@@ -96,4 +96,10 @@ internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressi
                         .GetFlags(parameter).FirstOrDefault() ?? false,
                     typeof(bool)));
     }
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => throw new NotSupportedException();
 }

@@ -17,16 +17,54 @@
       }
     },
     {
-      "label": "Build entire repository (Debug)",
+      "type": "dotnet",
+      "task": "build",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "dotnet: build"
+    },
+    {
+      "label": "Build src/All.slnx",
       "command": "dotnet",
       "type": "shell",
       "args": [
         "build",
-        "src/All.sln",
-        // Ask dotnet build to generate full paths for file names.
+        "src/All.slnx",
         "/property:GenerateFullPaths=true",
-        // Do not generate summary otherwise it leads to duplicate errors in Problems panel
-        "/consoleloggerparameters:NoSummary",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "group": "build",
+      "presentation": {
+        "reveal": "silent"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Build src/HotChocolate/Core/HotChocolate.Core.sln",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "build",
+        "src/HotChocolate/Core/HotChocolate.Core.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "group": "build",
+      "presentation": {
+        "reveal": "silent"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Test src/All.slnx",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "test",
+        "src/All.slnx",
+        "--verbosity q",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
       ],
       "group": "build",
       "presentation": {

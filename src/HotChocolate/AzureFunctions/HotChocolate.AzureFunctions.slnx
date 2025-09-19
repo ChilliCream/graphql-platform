@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HotChocolate.AzureFunctions/HotChocolate.AzureFunctions.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/HotChocolate.AzureFunctions.Tests/HotChocolate.AzureFunctions.Tests.csproj" />
+  </Folder>
+</Solution>

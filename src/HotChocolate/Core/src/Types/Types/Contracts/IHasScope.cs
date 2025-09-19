@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -8,7 +6,7 @@ namespace HotChocolate.Types;
 public interface IHasScope
 {
     /// <summary>
-    /// Gets a scope name that was provided by an extension.
+    /// Gets a scope name provided by an extension.
     /// </summary>
     string? Scope { get; }
 }

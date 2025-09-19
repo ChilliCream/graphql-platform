@@ -1,7 +1,4 @@
-using System;
 using System.IO.Pipelines;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -25,11 +22,7 @@ internal static class MessageReceiver
         PipeWriter writer,
         ISocketClient client,
         CancellationToken cancellationToken)
-        => Task.Factory.StartNew(
-            () => ReceiveAsync(client, writer, cancellationToken),
-            cancellationToken,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
+        => ReceiveAsync(client, writer, cancellationToken);
 
     private static async Task ReceiveAsync(
         ISocketClient client,
@@ -62,7 +55,7 @@ internal static class MessageReceiver
         this PipeWriter writer,
         CancellationToken cancellationToken)
     {
-        Memory<byte> memory = writer.GetMemory(1);
+        var memory = writer.GetMemory(1);
         memory.Span[0] = MessageProcessor.Delimiter;
         writer.Advance(1);
 

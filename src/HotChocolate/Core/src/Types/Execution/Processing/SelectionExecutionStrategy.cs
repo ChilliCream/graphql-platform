@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
@@ -21,5 +19,5 @@ public enum SelectionExecutionStrategy
     /// <summary>
     /// Defines that the selection has a side-effect free pure resolver.
     /// </summary>
-    Pure,
+    Pure
 }

@@ -40,7 +40,7 @@ A query against the above schema could look like the following:
 
 The above request fetches two persons in one go without the need to call the backend twice. The problem with the GraphQL backend is that field resolvers are atomic and do not have any knowledge about the query as a whole. So, a field resolver does not know that it will be called multiple times in parallel to fetch similar or equal data from the same data source.
 
-The idea of a dataloader is to batch these two requests into one call to the database.
+The idea of a DataLoader is to batch these two requests into one call to the database.
 
 Let's look at some code to understand what data loaders are doing. First, let's have a look at how we would write our field resolver without data loaders:
 
@@ -88,7 +88,6 @@ public class PersonBatchDataLoader : BatchDataLoader<string, Person>
     }
 }
 
-
 public class Query
 {
     public async Task<Person> GetPerson(
@@ -114,13 +113,13 @@ It executes resolvers until the queue is empty and then triggers the data loader
 
 # Data Consistency
 
-Dataloader do not only batch calls to the database, they also cache the database response.
+DataLoader do not only batch calls to the database, they also cache the database response.
 A data loader guarantees data consistency in a single request.
 If you load an entity with a data loader in your request more than once, it is given that these two entities are equivalent.
 
 Data loaders do not fetch an entity if there is already an entity with the requested key in the cache.
 
-# Types of Data loaders
+# Types of DataLoader
 
 In Hot Chocolate you can declare data loaders in two different ways.
 You can separate the data loading concern into separate classes or you can use a delegate in the resolver to define data loaders on the fly.
@@ -159,7 +158,6 @@ public class PersonBatchDataLoader : BatchDataLoader<string, Person>
         return persons.ToDictionary(x => x.Id);
     }
 }
-
 
 public class Query
 {
@@ -214,7 +212,6 @@ public class PersonsByLastNameDataloader
     {
         _repository = repository;
     }
-
 
     protected override async Task<ILookup<string, Person>> LoadGroupedBatchAsync(
         IReadOnlyList<string> names,

@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Data.Sorting.Expressions;

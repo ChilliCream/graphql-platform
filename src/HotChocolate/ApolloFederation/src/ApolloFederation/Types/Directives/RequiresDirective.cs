@@ -8,7 +8,7 @@ namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// <code>
-/// directive @requires(fields: _FieldSet!) on FIELD_DEFINITON
+/// directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
 /// </code>
 ///
 /// The @requires directive is used to specify external (provided by other subgraphs)
@@ -36,13 +36,13 @@ public sealed class RequiresDirective
         ArgumentException.ThrowIfNullOrEmpty(fields);
         Fields = FieldSetType.ParseSelectionSet(fields);
     }
-    
+
     public RequiresDirective(SelectionSetNode fields)
     {
         ArgumentNullException.ThrowIfNull(fields);
         Fields = fields;
     }
-    
+
     [FieldSet]
     public SelectionSetNode Fields { get; }
 }

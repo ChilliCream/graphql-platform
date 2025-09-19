@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;
 using static HotChocolate.Utilities.Introspection.CapabilityInspector;
@@ -18,13 +13,13 @@ namespace HotChocolate.Utilities.Introspection;
 /// </summary>
 public static class IntrospectionClient
 {
-    private static readonly JsonSerializerOptions _serializerOptions = new()
+    private static readonly JsonSerializerOptions s_serializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        Converters = { new JsonStringEnumConverter(), },
+        Converters = { new JsonStringEnumConverter() }
     };
 
-    internal static JsonSerializerOptions SerializerOptions => _serializerOptions;
+    internal static JsonSerializerOptions SerializerOptions => s_serializerOptions;
 
     /// <summary>
     /// Downloads the schema information from a GraphQL server
@@ -61,10 +56,7 @@ public static class IntrospectionClient
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
-        if (client is null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
 
         return IntrospectServerInternalAsync(client, options, cancellationToken);
     }
@@ -113,10 +105,7 @@ public static class IntrospectionClient
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
-        if (client is null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
 
         return IntrospectServerInternalAsync(client, options, cancellationToken);
     }
@@ -149,7 +138,6 @@ public static class IntrospectionClient
         CancellationToken cancellationToken = default)
         => InspectServerAsync(client, default, cancellationToken);
 
-
     /// <summary>
     /// Gets the supported GraphQL server capabilities from the server by doing an introspection query.
     /// </summary>
@@ -168,10 +156,7 @@ public static class IntrospectionClient
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
-        if (client is null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
 
         return InspectServerInternalAsync(client, options, cancellationToken);
     }
@@ -218,10 +203,7 @@ public static class IntrospectionClient
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
-        if (client is null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
 
         return InspectAsync(client, options, cancellationToken);
     }
@@ -263,12 +245,12 @@ public static class IntrospectionClient
 
         if (result.Data.ValueKind is JsonValueKind.Object)
         {
-            data = result.Data.Deserialize<IntrospectionData>(_serializerOptions);
+            data = result.Data.Deserialize<IntrospectionData>(s_serializerOptions);
         }
 
         if (result.Errors.ValueKind is JsonValueKind.Array)
         {
-            errors = result.Errors.Deserialize<IntrospectionError[]>(_serializerOptions);
+            errors = result.Errors.Deserialize<IntrospectionError[]>(s_serializerOptions);
         }
 
         return new IntrospectionResult(data, errors);

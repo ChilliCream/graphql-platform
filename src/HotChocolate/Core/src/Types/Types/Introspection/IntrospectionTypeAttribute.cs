@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -10,6 +8,4 @@ namespace HotChocolate.Types;
     Inherited = false,
     AllowMultiple = false)]
 internal sealed class IntrospectionAttribute
-    : Attribute
-{
-}
+    : Attribute;

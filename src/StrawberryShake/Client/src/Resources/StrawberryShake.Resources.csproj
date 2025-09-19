@@ -4,9 +4,17 @@
     <PackageId>StrawberryShake.Resources</PackageId>
     <AssemblyName>StrawberryShake.Resources</AssemblyName>
     <RootNamespace>StrawberryShake</RootNamespace>
-    <Nullable>enable</Nullable>
     <Description>Resources for StrawberryShake GraphQL clients.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration.CSharp" />
+    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
+    <InternalsVisibleTo Include="StrawberryShake.Core" />
+    <InternalsVisibleTo Include="StrawberryShake.Transport.Http" />
+    <InternalsVisibleTo Include="StrawberryShake.Transport.InMemory" />
+    <InternalsVisibleTo Include="StrawberryShake.Transport.WebSockets" />
+  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">

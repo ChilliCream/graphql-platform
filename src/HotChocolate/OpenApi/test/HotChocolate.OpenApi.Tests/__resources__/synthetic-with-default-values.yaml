@@ -1,0 +1,55 @@
+openapi: 3.0.0
+
+info:
+  title: Synthetic with default values
+  version: 1.0.0
+
+paths:
+  /:
+    get:
+      parameters:
+        - name: boolean
+          in: query
+          schema:
+            type: boolean
+            default: true
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+            default: 1970-01-01
+        - name: dateTime
+          in: query
+          schema:
+            type: string
+            format: date-time
+            default: 1970-01-01T00:00:00.000Z
+        - name: int
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: long
+          in: query
+          schema:
+            type: integer
+            format: int64
+            default: 1
+        - name: float
+          in: query
+          schema:
+            type: number
+            default: 1.5
+        - name: string
+          in: query
+          schema:
+            type: string
+            default: example
+      responses:
+        200:
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: boolean

@@ -1,0 +1,63 @@
+atest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+atest SQL:
+---------------
+from 'Foos' where (Bar != $p0 and endsWith(Bar, $p1))
+---------------
+
+btest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+btest SQL:
+---------------
+from 'Foos' where (Bar != $p0 and endsWith(Bar, $p1))
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `endsWith` of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 34
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

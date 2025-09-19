@@ -1,8 +1,6 @@
-using Xunit;
-
 namespace HotChocolate.Language;
 
-public class ValueNodeExtensionsTests
+public static class ValueNodeExtensionsTests
 {
     [Fact]
     public static void IsNull_Null_True()

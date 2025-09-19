@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -65,7 +64,7 @@ public sealed class _AnyType : ScalarType<Representation, ObjectValueNode>
     protected override Representation ParseLiteral(ObjectValueNode valueSyntax)
     {
         if (valueSyntax.Fields.FirstOrDefault(
-            field => field.Name.Value.EqualsOrdinal("__typename")) is { Value: StringValueNode s, })
+            field => field.Name.Value.EqualsOrdinal("__typename")) is { Value: StringValueNode s })
         {
             return new Representation(s.Value, valueSyntax);
         }

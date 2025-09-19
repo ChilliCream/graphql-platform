@@ -1,15 +1,16 @@
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Features;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
-/// Provides global configuration methods for mutation conventions to the
+/// Provides global configuration methods for query conventions to the
 /// <see cref="IRequestExecutorBuilder"/>.
 /// </summary>
 public static class QueryRequestExecutorBuilderExtensions
 {
     /// <summary>
-    /// Enables mutation conventions which will simplify creating GraphQL mutations.
+    /// Enables query conventions which will simplify creating GraphQL queries.
     /// </summary>
     /// <param name="builder">
     /// The request executor builder
@@ -23,17 +24,10 @@ public static class QueryRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddQueryConventions(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder
-            .ConfigureSchema(
-                c =>
-                {
-                    c.ContextData[ErrorContextDataKeys.ErrorConventionEnabled] = true;
-                })
+            .ConfigureSchema(c => c.Features.GetOrSet<ErrorSchemaFeature>())
             .AddFieldResultTypeDiscovery()
             .TryAddTypeInterceptor<QueryConventionTypeInterceptor>();
 

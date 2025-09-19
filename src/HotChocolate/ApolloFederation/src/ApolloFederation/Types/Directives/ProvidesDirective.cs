@@ -43,13 +43,13 @@ public sealed class ProvidesDirective
         ArgumentException.ThrowIfNullOrEmpty(fields);
         Fields = FieldSetType.ParseSelectionSet(fields);
     }
-    
+
     public ProvidesDirective(SelectionSetNode fields)
     {
         ArgumentNullException.ThrowIfNull(fields);
         Fields = fields;
     }
-    
+
     [FieldSet]
     public SelectionSetNode Fields { get; }
 }

@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.PersistedOperations.AzureBlobStorage.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.PersistedOperations.AzureBlobStorage</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\src\PersistedOperations.AzureBlobStorage\HotChocolate.PersistedOperations.AzureBlobStorage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Squadron.AzureStorage" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="__snapshots__\" />
+  </ItemGroup>
+
+</Project>

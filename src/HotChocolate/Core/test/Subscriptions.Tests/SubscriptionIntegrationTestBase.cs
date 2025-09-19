@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Tests;
@@ -11,7 +10,7 @@ namespace HotChocolate.Subscriptions;
 
 public abstract class SubscriptionIntegrationTestBase
 {
-    private static readonly int _timeout = Debugger.IsAttached ? 1000000 : 5000;
+    protected static readonly int Timeout = Debugger.IsAttached ? 1000000 : 5000;
     private readonly ITestOutputHelper _output;
 
     protected SubscriptionIntegrationTestBase(ITestOutputHelper output)
@@ -23,23 +22,22 @@ public abstract class SubscriptionIntegrationTestBase
     public virtual async Task Subscribe_Infer_Topic()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
         // act
         var result = await services.ExecuteRequestAsync(
             "subscription { onMessage }",
-            cancellationToken: cts.Token)
-            .ConfigureAwait(false);
+            cancellationToken: cts.Token);
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
         var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
 
         // assert
-        await sender.SendAsync("OnMessage", "bar", cts.Token).ConfigureAwait(false);
-        await sender.CompleteAsync("OnMessage").ConfigureAwait(false);
+        await sender.SendAsync("OnMessage", "bar", cts.Token);
+        await sender.CompleteAsync("OnMessage");
 
         var snapshot = new Snapshot();
 
@@ -49,35 +47,35 @@ public abstract class SubscriptionIntegrationTestBase
         }
 
         snapshot.MatchInline(
-            @"{
-              ""data"": {
-                ""onMessage"": ""bar""
+            """
+            {
+              "data": {
+                "onMessage": "bar"
               }
-            }");
+            }
+            """);
     }
 
     [Fact]
     public virtual async Task Subscribe_Static_Topic()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription2>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
         // act
         var result = await services.ExecuteRequestAsync(
             "subscription { onMessage { bar } }",
-            cancellationToken: cts.Token)
-            .ConfigureAwait(false);
+            cancellationToken: cts.Token);
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
         var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
 
         // assert
-        await sender.SendAsync("OnMessage", new Foo { Bar = "Hello", }, cts.Token)
-            .ConfigureAwait(false);
-        await sender.CompleteAsync("OnMessage").ConfigureAwait(false);
+        await sender.SendAsync("OnMessage", new Foo { Bar = "Hello" }, cts.Token);
+        await sender.CompleteAsync("OnMessage");
 
         var snapshot = new Snapshot();
 
@@ -87,36 +85,37 @@ public abstract class SubscriptionIntegrationTestBase
         }
 
         snapshot.MatchInline(
-            @"{
-              ""data"": {
-                ""onMessage"": {
-                  ""bar"": ""Hello""
+            """
+            {
+              "data": {
+                "onMessage": {
+                  "bar": "Hello"
                 }
               }
-            }");
+            }
+            """);
     }
 
     [Fact]
     public virtual async Task Subscribe_Topic_With_Arguments()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription3>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
         // act
         var result = await services.ExecuteRequestAsync(
             "subscription { onMessage(arg: \"a\") }",
-            cancellationToken: cts.Token)
-            .ConfigureAwait(false);
+            cancellationToken: cts.Token);
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
         var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
 
         // assert
-        await sender.SendAsync("OnMessage_a", "abc", cts.Token).ConfigureAwait(false);
-        await sender.CompleteAsync("OnMessage_a").ConfigureAwait(false);
+        await sender.SendAsync("OnMessage_a", "abc", cts.Token);
+        await sender.CompleteAsync("OnMessage_a");
 
         var snapshot = new Snapshot();
 
@@ -126,31 +125,31 @@ public abstract class SubscriptionIntegrationTestBase
         }
 
         snapshot.MatchInline(
-            @"{
-              ""data"": {
-                ""onMessage"": ""abc""
+            """
+            {
+              "data": {
+                "onMessage": "abc"
               }
-            }");
+            }
+            """);
     }
 
     [Fact]
     public virtual async Task Subscribe_Topic_With_Arguments_2_Subscriber()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription3>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
         // act
         var result1 = await services.ExecuteRequestAsync(
             "subscription { onMessage(arg: \"a\") }",
-            cancellationToken: cts.Token)
-            .ConfigureAwait(false);
+            cancellationToken: cts.Token);
 
         var result2 = await services.ExecuteRequestAsync(
             "subscription { onMessage(arg: \"a\") }",
-            cancellationToken: cts.Token)
-            .ConfigureAwait(false);
+            cancellationToken: cts.Token);
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream1 = result1.ExpectResponseStream();
@@ -160,8 +159,8 @@ public abstract class SubscriptionIntegrationTestBase
         var results2 = responseStream2.ReadResultsAsync().ConfigureAwait(false);
 
         // assert
-        await sender.SendAsync("OnMessage_a", "abc", cts.Token).ConfigureAwait(false);
-        await sender.CompleteAsync("OnMessage_a").ConfigureAwait(false);
+        await sender.SendAsync("OnMessage_a", "abc", cts.Token);
+        await sender.CompleteAsync("OnMessage_a");
 
         var snapshot = new Snapshot();
 
@@ -176,11 +175,12 @@ public abstract class SubscriptionIntegrationTestBase
         }
 
         snapshot.MatchInline(
-            @"From Stream 1
+            """
+            From Stream 1
             ---------------
             {
-            ""data"": {
-                ""onMessage"": ""abc""
+            "data": {
+                "onMessage": "abc"
             }
             }
             ---------------
@@ -188,32 +188,31 @@ public abstract class SubscriptionIntegrationTestBase
             From Stream 2
             ---------------
             {
-            ""data"": {
-                ""onMessage"": ""abc""
+            "data": {
+                "onMessage": "abc"
             }
             }
             ---------------
-            ");
+
+            """);
     }
 
     [Fact]
     public virtual async Task Subscribe_Topic_With_Arguments_2_Topics()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription3>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
         // act
         var result1 = await services.ExecuteRequestAsync(
             "subscription { onMessage(arg: \"a\") }",
-            cancellationToken: cts.Token)
-            .ConfigureAwait(false);
+            cancellationToken: cts.Token);
 
         var result2 = await services.ExecuteRequestAsync(
             "subscription { onMessage(arg: \"b\") }",
-            cancellationToken: cts.Token)
-            .ConfigureAwait(false);
+            cancellationToken: cts.Token);
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream1 = result1.ExpectResponseStream();
@@ -223,11 +222,11 @@ public abstract class SubscriptionIntegrationTestBase
         var results2 = responseStream2.ReadResultsAsync().ConfigureAwait(false);
 
         // assert
-        await sender.SendAsync("OnMessage_a", "abc", cts.Token).ConfigureAwait(false);
-        await sender.CompleteAsync("OnMessage_a").ConfigureAwait(false);
+        await sender.SendAsync("OnMessage_a", "abc", cts.Token);
+        await sender.CompleteAsync("OnMessage_a");
 
-        await sender.SendAsync("OnMessage_b", "def", cts.Token).ConfigureAwait(false);
-        await sender.CompleteAsync("OnMessage_b").ConfigureAwait(false);
+        await sender.SendAsync("OnMessage_b", "def", cts.Token);
+        await sender.CompleteAsync("OnMessage_b");
 
         var snapshot = new Snapshot();
 
@@ -242,11 +241,12 @@ public abstract class SubscriptionIntegrationTestBase
         }
 
         snapshot.MatchInline(
-            @"From Stream 1
+            """
+            From Stream 1
             ---------------
             {
-            ""data"": {
-                ""onMessage"": ""abc""
+            "data": {
+                "onMessage": "abc"
             }
             }
             ---------------
@@ -254,35 +254,35 @@ public abstract class SubscriptionIntegrationTestBase
             From Stream 2
             ---------------
             {
-            ""data"": {
-                ""onMessage"": ""def""
+            "data": {
+                "onMessage": "def"
             }
             }
             ---------------
-            ");
+
+            """);
     }
 
     [Fact]
     public virtual async Task Subscribe_Topic_With_2_Arguments()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription3>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
         // act
         var result = await services.ExecuteRequestAsync(
-                "subscription { onMessage2(arg1: \"a\", arg2: \"b\") }",
-                cancellationToken: cts.Token)
-            .ConfigureAwait(false);
+            "subscription { onMessage2(arg1: \"a\", arg2: \"b\") }",
+            cancellationToken: cts.Token);
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
         var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
 
         // assert
-        await sender.SendAsync("OnMessage2_a_b", "abc", cts.Token).ConfigureAwait(false);
-        await sender.CompleteAsync("OnMessage2_a_b").ConfigureAwait(false);
+        await sender.SendAsync("OnMessage2_a_b", "abc", cts.Token);
+        await sender.CompleteAsync("OnMessage2_a_b");
 
         var snapshot = new Snapshot();
 
@@ -292,38 +292,39 @@ public abstract class SubscriptionIntegrationTestBase
         }
 
         snapshot.MatchInline(
-            @"{
-              ""data"": {
-                ""onMessage2"": ""abc""
+            """
+            {
+              "data": {
+                "onMessage2": "abc"
               }
-            }");
+            }
+            """);
     }
 
     [Fact]
     public virtual async Task Subscribe_And_Complete_Topic()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription2>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
         // act
         var result = await services.ExecuteRequestAsync(
-                "subscription { onMessage { bar } }",
-                cancellationToken: cts.Token)
-            .ConfigureAwait(false);
+            "subscription { onMessage { bar } }",
+            cancellationToken: cts.Token);
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
         var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
 
         // assert
-        await Task.Delay(2000, cts.Token).ConfigureAwait(false);
-        await sender.CompleteAsync("OnMessage").ConfigureAwait(false);
+        await Task.Delay(2000, cts.Token);
+        await sender.CompleteAsync("OnMessage");
 
-        await foreach (var unused in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var _ in results.WithCancellation(cts.Token).ConfigureAwait(false))
         {
-            Assert.False(true, "Should not have any messages.");
+            Assert.Fail("Should not have any messages.");
         }
     }
 
@@ -331,27 +332,26 @@ public abstract class SubscriptionIntegrationTestBase
     public virtual async Task Subscribe_And_Complete_Topic_With_ValueTypeMessage()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription3>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
         // act
         var result = await services.ExecuteRequestAsync(
-                "subscription { onMessage3 }",
-                cancellationToken: cts.Token)
-            .ConfigureAwait(false);
+            "subscription { onMessage3 }",
+            cancellationToken: cts.Token);
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
         var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
 
         // assert
-        await Task.Delay(2000, cts.Token).ConfigureAwait(false);
-        await sender.CompleteAsync("OnMessage3").ConfigureAwait(false);
+        await Task.Delay(2000, cts.Token);
+        await sender.CompleteAsync("OnMessage3");
 
-        await foreach (var unused in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var _ in results.WithCancellation(cts.Token).ConfigureAwait(false))
         {
-            Assert.False(true, "Should not have any messages.");
+            Assert.Fail("Should not have any messages.");
         }
     }
 
@@ -416,6 +416,6 @@ public abstract class SubscriptionIntegrationTestBase
 
     public enum FooEnum
     {
-        Bar,
+        Bar
     }
 }

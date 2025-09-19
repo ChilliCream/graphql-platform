@@ -1,8 +1,4 @@
-using System;
 using System.Buffers.Text;
-using HotChocolate.Execution;
-
-#nullable enable
 
 namespace HotChocolate.Types.Pagination;
 
@@ -21,7 +17,7 @@ public sealed class IndexEdge<T> : Edge<T>
         Span<byte> buffer = stackalloc byte[27 / 3 * 4];
         Utf8Formatter.TryFormat(index, buffer, out var written);
         Base64.EncodeToUtf8InPlace(buffer, written, out written);
-        var cursor = IndexCursor.Format(buffer.Slice(0, written));
+        var cursor = IndexCursor.Format(buffer[..written]);
         return new IndexEdge<T>(node, cursor, index);
     }
 }

@@ -7,7 +7,7 @@ type Query {
 }
 
 input FooChildInput {
-  bar: String
+  bar: String!
 }
 
-directive @Foo(bar: String child: FooChildInput) on QUERY
+directive @Foo(bar: String! child: FooChildInput!) on QUERY

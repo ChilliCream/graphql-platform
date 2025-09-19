@@ -1,22 +1,20 @@
-using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = null, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = null },
+        new() { Bar = false }
     ];
 
     private readonly SchemaCache _cache;
@@ -30,18 +28,18 @@ public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -55,18 +53,18 @@ public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
     public async Task Create_BooleanNotEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -81,24 +79,24 @@ public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: null}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: null}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -114,23 +112,23 @@ public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: null}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.New()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: null}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -155,11 +153,7 @@ public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
         public bool? Bar { get; set; }
     }
 
-    public class FooFilterInput : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterInput : FilterInputType<Foo>;
 
-    public class FooNullableFilterInput : FilterInputType<FooNullable>
-    {
-    }
+    public class FooNullableFilterInput : FilterInputType<FooNullable>;
 }

@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Data/HotChocolate.Data.Raven.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Data.Raven.Filters.Tests/Data.Raven.Filters.Tests.csproj" />
+    <Project Path="test/Data.Raven.Paging.Tests/HotChocolate.Data.Raven.Paging.Tests.csproj" />
+    <Project Path="test/Data.Raven.Sorting.Tests/Data.Raven.Sorting.Tests.csproj" />
+  </Folder>
+</Solution>

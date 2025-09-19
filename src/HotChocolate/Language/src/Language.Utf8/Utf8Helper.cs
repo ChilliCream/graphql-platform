@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
@@ -67,9 +66,9 @@ internal static class Utf8Helper
                                 {
                                     throw new Utf8EncodingException("Unexpected low surrogate.");
                                 }
-                                var fullUnicode = ((highSurrogate.Value - 0xD800) << 10) +
-                                    (unicodeDecimal - 0xDC00) +
-                                    0x10000;
+                                var fullUnicode = ((highSurrogate.Value - 0xD800) << 10)
+                                    + (unicodeDecimal - 0xDC00)
+                                    + 0x10000;
                                 UnescapeUtf8Hex(fullUnicode, ref writePosition, unescapedString);
                                 highSurrogate = null;
                             }
@@ -92,7 +91,7 @@ internal static class Utf8Helper
                         throw new Utf8EncodingException(
                             string.Format(
                                 Utf8Helper_InvalidEscapeChar,
-                                (char) code));
+                                (char)code));
                     }
                 }
                 else
@@ -108,9 +107,11 @@ internal static class Utf8Helper
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int UnescapeUtf8Hex(byte a, byte b, byte c, byte d)
         => (HexToDecimal(a) << 12) | (HexToDecimal(b) << 8) | (HexToDecimal(c) << 4) | HexToDecimal(d);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void UnescapeUtf8Hex(
         int unicodeDecimal,
         ref int writePosition,
@@ -118,28 +119,27 @@ internal static class Utf8Helper
     {
         if (unicodeDecimal < 0x80)
         {
-            unescapedString[writePosition++] = (byte) unicodeDecimal;
+            unescapedString[writePosition++] = (byte)unicodeDecimal;
         }
         else if (unicodeDecimal < 0x800)
         {
-            unescapedString[writePosition++] = (byte) (0xC0 | (unicodeDecimal >> 6));
-            unescapedString[writePosition++] = (byte) (0x80 | (unicodeDecimal & 0x3F));
+            unescapedString[writePosition++] = (byte)(0xC0 | (unicodeDecimal >> 6));
+            unescapedString[writePosition++] = (byte)(0x80 | (unicodeDecimal & 0x3F));
         }
         else if (unicodeDecimal < 0x10000)
         {
-            unescapedString[writePosition++] = (byte) (0xE0 | (unicodeDecimal >> 12));
-            unescapedString[writePosition++] = (byte) (0x80 | ((unicodeDecimal >> 6) & 0x3F));
-            unescapedString[writePosition++] = (byte) (0x80 | (unicodeDecimal & 0x3F));
+            unescapedString[writePosition++] = (byte)(0xE0 | (unicodeDecimal >> 12));
+            unescapedString[writePosition++] = (byte)(0x80 | ((unicodeDecimal >> 6) & 0x3F));
+            unescapedString[writePosition++] = (byte)(0x80 | (unicodeDecimal & 0x3F));
         }
         else
         {
-            unescapedString[writePosition++] = (byte) (0xF0 | (unicodeDecimal >> 18));
-            unescapedString[writePosition++] = (byte) (0x80 | ((unicodeDecimal >> 12) & 0x3F));
-            unescapedString[writePosition++] = (byte) (0x80 | ((unicodeDecimal >> 6) & 0x3F));
-            unescapedString[writePosition++] = (byte) (0x80 | (unicodeDecimal & 0x3F));
+            unescapedString[writePosition++] = (byte)(0xF0 | (unicodeDecimal >> 18));
+            unescapedString[writePosition++] = (byte)(0x80 | ((unicodeDecimal >> 12) & 0x3F));
+            unescapedString[writePosition++] = (byte)(0x80 | ((unicodeDecimal >> 6) & 0x3F));
+            unescapedString[writePosition++] = (byte)(0x80 | (unicodeDecimal & 0x3F));
         }
     }
-
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int HexToDecimal(int a)
@@ -149,7 +149,7 @@ internal static class Utf8Helper
             >= 48 and <= 57 => a - 48,
             >= 65 and <= 70 => a - 55,
             >= 97 and <= 102 => a - 87,
-            _ => -1,
+            _ => -1
         };
     }
 }

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.Descriptors;
 
 /// <summary>
@@ -22,7 +20,7 @@ public sealed class EntityIdDescriptor
     public EntityIdDescriptor(
         string name,
         string typeName,
-        IReadOnlyList<ScalarEntityIdDescriptor> fields )
+        IReadOnlyList<ScalarEntityIdDescriptor> fields)
     {
         Name = name;
         TypeName = typeName;

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Snapshooter.Xunit;
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class SelectionSetNodeTests
@@ -24,19 +19,18 @@ public class SelectionSetNodeTests
                 new FieldNode(TestLocations.Location1,
                     new NameNode("bb"),
                     new NameNode("bb"),
-                    default,
                     new List<DirectiveNode>(0),
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
                         TestLocations.Location1,
-                        new List<ISelectionNode>(0))),
+                        new List<ISelectionNode>(0)))
             });
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -62,19 +56,18 @@ public class SelectionSetNodeTests
                 new FieldNode(TestLocations.Location1,
                     new NameNode("bb"),
                     new NameNode("bb"),
-                    default,
                     new List<DirectiveNode>(0),
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
                         TestLocations.Location1,
-                        new List<ISelectionNode>(0))),
+                        new List<ISelectionNode>(0)))
             });
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -94,12 +87,11 @@ public class SelectionSetNodeTests
                 new FieldNode(TestLocations.Location1,
                     new NameNode("aa"),
                     new NameNode("aa"),
-                    default,
                     new List<DirectiveNode>(0),
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
                         TestLocations.Location1,
-                        new List<ISelectionNode>(0))),
+                        new List<ISelectionNode>(0)))
             });
         var b = new SelectionSetNode(
             new Location(2, 2, 2, 2),
@@ -108,12 +100,11 @@ public class SelectionSetNodeTests
                 new FieldNode(TestLocations.Location1,
                     new NameNode("aa"),
                     new NameNode("aa"),
-                    default,
                     new List<DirectiveNode>(0),
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
                         TestLocations.Location1,
-                        new List<ISelectionNode>(0))),
+                        new List<ISelectionNode>(0)))
             });
         var c = new SelectionSetNode(
             new Location(1, 1, 1, 1),
@@ -122,12 +113,11 @@ public class SelectionSetNodeTests
                 new FieldNode(TestLocations.Location1,
                     new NameNode("bb"),
                     new NameNode("bb"),
-                    default,
                     new List<DirectiveNode>(0),
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
                         TestLocations.Location1,
-                        new List<ISelectionNode>(0))),
+                        new List<ISelectionNode>(0)))
             });
         var d = new SelectionSetNode(
             new Location(2, 2, 2, 2),
@@ -136,12 +126,11 @@ public class SelectionSetNodeTests
                 new FieldNode(TestLocations.Location1,
                     new NameNode("bb"),
                     new NameNode("bb"),
-                    default,
                     new List<DirectiveNode>(0),
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
                         TestLocations.Location1,
-                        new List<ISelectionNode>(0))),
+                        new List<ISelectionNode>(0)))
             });
 
         // act
@@ -161,7 +150,7 @@ public class SelectionSetNodeTests
     public void CreateSelectionSet()
     {
         // arrange
-        Location location = AstTestHelper.CreateDummyLocation();
+        var location = AstTestHelper.CreateDummyLocation();
         var selections = new List<ISelectionNode>
             {
                 new FieldNode
@@ -169,11 +158,10 @@ public class SelectionSetNodeTests
                     null,
                     new NameNode("bar"),
                     null,
-                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
-                ),
+                )
             };
 
         // act
@@ -191,7 +179,7 @@ public class SelectionSetNodeTests
     public void WithLocation()
     {
         // arrange
-        Location location = AstTestHelper.CreateDummyLocation();
+        var location = AstTestHelper.CreateDummyLocation();
         var selections = new List<ISelectionNode>
             {
                 new FieldNode
@@ -199,11 +187,10 @@ public class SelectionSetNodeTests
                     null,
                     new NameNode("bar"),
                     null,
-                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
-                ),
+                )
             };
 
         var selectionSet = new SelectionSetNode
@@ -223,7 +210,7 @@ public class SelectionSetNodeTests
     public void WithSelections()
     {
         // arrange
-        Location location = AstTestHelper.CreateDummyLocation();
+        var location = AstTestHelper.CreateDummyLocation();
         var selections = new List<ISelectionNode>
             {
                 new FieldNode
@@ -231,11 +218,10 @@ public class SelectionSetNodeTests
                     null,
                     new NameNode("bar"),
                     null,
-                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
-                ),
+                )
             };
 
         var selectionSet = new SelectionSetNode
@@ -253,11 +239,10 @@ public class SelectionSetNodeTests
                         null,
                         new NameNode("baz"),
                         null,
-                        null,
                         Array.Empty<DirectiveNode>(),
                         Array.Empty<ArgumentNode>(),
                         null
-                    ),
+                    )
             });
 
         // assert

@@ -1,11 +1,8 @@
-using System;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.FieldBindingFlags;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -17,16 +14,14 @@ public sealed class ExtendObjectTypeAttribute
     : ObjectTypeDescriptorAttribute
     , ITypeAttribute
 {
-    private string? _name;
-
     public ExtendObjectTypeAttribute(string? name = null)
     {
-        _name = name;
+        Name = name;
     }
 
     public ExtendObjectTypeAttribute(OperationType operationType)
     {
-        _name = operationType.ToString();
+        Name = operationType.ToString();
     }
 
     public ExtendObjectTypeAttribute(Type extendsType)
@@ -37,12 +32,7 @@ public sealed class ExtendObjectTypeAttribute
     /// <summary>
     /// Gets the GraphQL type name to which this extension is bound to.
     /// </summary>
-    public string? Name
-    {
-        get => _name;
-        [Obsolete("Use the new constructor.")]
-        set => _name = value;
-    }
+    public string? Name { get; }
 
     /// <summary>
     /// Defines if this attribute is inherited. The default is <c>false</c>.
@@ -102,7 +92,7 @@ public sealed class ExtendObjectTypeAttribute
             descriptor.Name(Name);
         }
 
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
         definition.Fields.BindingBehavior = BindingBehavior.Implicit;
 
         if (IncludeStaticMembers)
@@ -138,7 +128,6 @@ public sealed class ExtendObjectTypeAttribute
     }
 }
 
-#if NET6_0_OR_GREATER
 /// <summary>
 /// Annotate classes which represent extensions to other object types.
 /// </summary>
@@ -205,9 +194,12 @@ public sealed class ExtendObjectTypeAttribute<T>
             descriptor.ExtendsType(ExtendsType);
         }
 
+        var definition = descriptor.Extend().Configuration;
+        definition.Fields.BindingBehavior = BindingBehavior.Implicit;
+
         if (IncludeStaticMembers)
         {
-            descriptor.Extend().Definition.FieldBindingFlags = Instance | Static;
+            descriptor.Extend().Configuration.FieldBindingFlags = Instance | Static;
         }
 
         if (IgnoreFields is not null)
@@ -237,4 +229,3 @@ public sealed class ExtendObjectTypeAttribute<T>
         }
     }
 }
-#endif

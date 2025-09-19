@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types.Relay;
@@ -36,8 +35,8 @@ public class Product(string id, string sku, string package, string variation)
         string package,
         Data repository)
         => repository.Products.FirstOrDefault(
-            t => (t.Sku?.Equals(sku) ?? false) &&
-                (t.Package?.Equals(package) ?? false));
+            t => (t.Sku?.Equals(sku) ?? false)
+                && (t.Package?.Equals(package) ?? false));
 
     [ReferenceResolver]
     public static Product? GetProductByVariation(
@@ -45,6 +44,6 @@ public class Product(string id, string sku, string package, string variation)
         [Map("variation.id")] string variationId,
         Data repository)
         => repository.Products.FirstOrDefault(
-            t => (t.Sku?.Equals(sku) ?? false) &&
-                (t.Variation?.Id.Equals(variationId) ?? false));
+            t => (t.Sku?.Equals(sku) ?? false)
+                && (t.Variation?.Id.Equals(variationId) ?? false));
 }

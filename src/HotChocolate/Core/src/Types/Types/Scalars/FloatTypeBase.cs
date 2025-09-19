@@ -1,8 +1,5 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -27,10 +24,7 @@ public abstract class FloatTypeBase<TRuntimeType>
 
     public override bool IsInstanceOfType(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is NullValueNode)
         {
@@ -86,10 +80,7 @@ public abstract class FloatTypeBase<TRuntimeType>
 
     public override object? ParseLiteral(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is NullValueNode)
         {
@@ -199,7 +190,7 @@ public abstract class FloatTypeBase<TRuntimeType>
 
     /// <summary>
     /// Creates the exception that will be thrown when <see cref="ParseValue(object?)"/>
-    /// encountered a invalid runtime value.
+    /// encountered an invalid runtime value.
     /// </summary>
     /// <param name="runtimeValue">
     /// The runtime value.

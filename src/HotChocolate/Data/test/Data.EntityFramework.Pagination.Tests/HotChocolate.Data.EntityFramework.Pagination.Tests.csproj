@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>HotChocolate.Data</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\EntityFramework\HotChocolate.Data.EntityFramework.csproj" />
+    <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Squadron.PostgreSql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\EfResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>EfResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

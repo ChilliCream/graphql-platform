@@ -1,5 +1,3 @@
-using System;
-using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
@@ -9,7 +7,7 @@ internal sealed class DeferredWorkStateOwner : IDisposable
     private readonly ObjectPool<DeferredWorkState> _pool;
     private int _disposed;
 
-    public DeferredWorkStateOwner( ObjectPool<DeferredWorkState> pool)
+    public DeferredWorkStateOwner(ObjectPool<DeferredWorkState> pool)
     {
         _pool = pool ?? throw new ArgumentNullException(nameof(pool));
         State = pool.Get();

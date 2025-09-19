@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Resolvers;
 
 internal sealed class DirectiveDelegateMiddleware : IDirectiveMiddleware
@@ -8,15 +6,8 @@ internal sealed class DirectiveDelegateMiddleware : IDirectiveMiddleware
         string directiveName,
         DirectiveMiddleware middleware)
     {
-        if (string.IsNullOrEmpty(directiveName))
-        {
-            throw new ArgumentNullException(nameof(directiveName));
-        }
-
-        if (middleware is null)
-        {
-            throw new ArgumentNullException(nameof(middleware));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(directiveName);
+        ArgumentNullException.ThrowIfNull(middleware);
 
         DirectiveName = directiveName;
         Middleware = middleware;

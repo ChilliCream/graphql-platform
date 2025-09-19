@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types;
 using HotChocolate.Types.Helpers;
 
@@ -8,11 +7,11 @@ internal sealed class SortInputTypeNameDependencyDescriptor<T>
     : ISortInputTypeNameDependencyDescriptor<T>
 {
     private readonly ISortInputTypeDescriptor<T> _descriptor;
-    private readonly Func<INamedType, string> _createName;
+    private readonly Func<ITypeDefinition, string> _createName;
 
     public SortInputTypeNameDependencyDescriptor(
         ISortInputTypeDescriptor<T> descriptor,
-        Func<INamedType, string> createName)
+        Func<ITypeDefinition, string> createName)
     {
         _descriptor = descriptor ??
             throw new ArgumentNullException(nameof(descriptor));

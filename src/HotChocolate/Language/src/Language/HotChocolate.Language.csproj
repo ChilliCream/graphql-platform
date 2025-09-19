@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -10,6 +10,14 @@
     <RootNamespace>HotChocolate.Language</RootNamespace>
     <Description>Contains the Hot Chocolate GraphQL parser and lexer. Also included are syntax visitor and syntax rewriter base classes.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Core" />
+    <InternalsVisibleTo Include="HotChocolate.Language.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Subscriptions" />
+    <InternalsVisibleTo Include="HotChocolate.Types" />
+    <InternalsVisibleTo Include="HotChocolate.Utilities.Introspection" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />

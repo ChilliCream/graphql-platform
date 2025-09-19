@@ -1,4 +1,3 @@
-using System;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Http;
 using static HotChocolate.AzureFunctions.Tests.Helpers.TestHttpContextHelper;
@@ -7,7 +6,7 @@ using IO = System.IO;
 
 namespace HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 
-public class TestHttpRequestDataHelper
+public static class TestHttpRequestDataHelper
 {
     public static HttpRequestData NewGraphQLHttpRequestData(
         IServiceProvider serviceProvider,
@@ -25,7 +24,7 @@ public class TestHttpRequestDataHelper
         return httpRequestData;
     }
 
-    public static HttpRequestData NewBcpHttpRequestData(
+    public static HttpRequestData NewNitroHttpRequestData(
         IServiceProvider serviceProvider,
         string path)
     {
@@ -34,8 +33,8 @@ public class TestHttpRequestDataHelper
             HttpMethods.Get,
             new Uri(IO.Path.Combine(DefaultAzFuncGraphQLUri.ToString(), path)));
 
-        //Ensure we accept Text/Html for BCP requests...
-        httpRequestData.Headers.Add(Accept, TestConstants.DefaultBcpContentType);
+        //Ensure we accept Text/Html for Nitro requests...
+        httpRequestData.Headers.Add(Accept, TestConstants.DefaultNitroContentType);
 
         return httpRequestData;
     }

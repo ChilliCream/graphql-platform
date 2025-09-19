@@ -17,6 +17,36 @@ public class TestGeneration
             }");
 
     [Fact]
+    public void StarWarsGetHeroWithFragmentIncludeAndSkipDirective() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(),
+            @"query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) {
+                hero(episode: NEW_HOPE) {
+                    ...HeroFragment
+                }
+            }
+
+            fragment HeroFragment on Character {
+                id
+                friends {
+                    ...FriendsFragment
+                }
+            }
+
+            fragment FriendsFragment on FriendsConnection {
+                includedPageInfo: pageInfo @include(if: $includePageInfo) {
+                    ...PageInfoFragment
+                }
+                skippedPageInfo: pageInfo @skip(if: $skipPageInfo) {
+                    ...PageInfoFragment
+                }
+            }
+
+            fragment PageInfoFragment on PageInfo {
+                hasNextPage
+            }");
+
+    [Fact]
     public void StarWarsGetFriendsNoStore() =>
         AssertStarWarsResult(
             CreateIntegrationTest(noStore: true),
@@ -52,7 +82,7 @@ public class TestGeneration
             CreateIntegrationTest(profiles:
             [
                 new TransportProfile("InMemory", TransportType.InMemory),
-                TransportProfile.Default,
+                TransportProfile.Default
             ]),
             @"query GetHero {
                 hero(episode: NEW_HOPE) {
@@ -105,18 +135,21 @@ public class TestGeneration
     public void StarWarsTypeNameOnUnions() =>
         AssertStarWarsResult(
             CreateIntegrationTest(),
-            @"query SearchHero {
-                    search(text: ""l"") {
-                        __typename
-                    }
-                }");
+            """
+            query SearchHero {
+                search(text: "l") {
+                    __typename
+                }
+            }
+            """);
 
     [Fact]
     public void StarWarsUnionList() =>
         AssertStarWarsResult(
             CreateIntegrationTest(),
-            @"query SearchHero {
-                search(text: ""l"") {
+            """
+            query SearchHero {
+                search(text: "l") {
                     ... on Human {
                         name
                         friends {
@@ -129,8 +162,9 @@ public class TestGeneration
                         name
                     }
                 }
-            }");
-    
+            }
+            """);
+
     [Fact]
     public void StarWarsGetHeroTraits() =>
         AssertStarWarsResult(
@@ -147,7 +181,7 @@ public class TestGeneration
         AssertResult(
             CreateIntegrationTest(profiles:
             [
-                new TransportProfile("Default", TransportType.InMemory),
+                new TransportProfile("Default", TransportType.InMemory)
             ]),
             skipWarnings: true,
             @"
@@ -203,10 +237,11 @@ public class TestGeneration
     public void StarWarsGetFriendsDeferred() =>
         AssertStarWarsResult(
             CreateIntegrationTest(),
-            @"query GetHero {
+            """
+            query GetHero {
                 hero(episode: NEW_HOPE) {
                     name
-                    ... FriendsList @defer(label: ""FriendsListLabel"")
+                    ... FriendsList @defer(label: "FriendsListLabel")
                 }
             }
 
@@ -216,17 +251,19 @@ public class TestGeneration
                         name
                     }
                 }
-            }");
+            }
+            """);
 
     [Fact]
     public void StarWarsGetFriendsDeferInList() =>
         AssertStarWarsResult(
             CreateIntegrationTest(),
-            @"query GetHero {
+            """
+            query GetHero {
                 hero(episode: NEW_HOPE) {
                     friends {
                         nodes {
-                            ... CharacterName @defer(label: ""CharacterName"")
+                            ... CharacterName @defer(label: "CharacterName")
                         }
                     }
                 }
@@ -234,7 +271,8 @@ public class TestGeneration
 
             fragment CharacterName on Character {
                 name
-            }");
+            }
+            """);
 
     [Fact]
     public void StarWarsOnReviewSubCompletion() =>
@@ -242,7 +280,7 @@ public class TestGeneration
             CreateIntegrationTest(profiles:
             [
                 new TransportProfile("InMemory", TransportType.InMemory),
-                TransportProfile.Default,
+                TransportProfile.Default
             ]),
             @"subscription OnReviewSub {
                 onReview(episode: NEW_HOPE) {
@@ -269,7 +307,7 @@ public class TestGeneration
         AssertStarWarsResult(
             CreateIntegrationTest(profiles:
             [
-                new TransportProfile("default", TransportType.Http),
+                new TransportProfile("default", TransportType.Http)
             ]),
             @"subscription OnReviewSub {
                 onReview(episode: NEW_HOPE) {
@@ -349,7 +387,7 @@ public class TestGeneration
         AssertResult(
             CreateIntegrationTest(profiles:
             [
-                new TransportProfile("Default", TransportType.Http),
+                new TransportProfile("Default", TransportType.Http)
             ]),
             skipWarnings: true,
             UploadQueries,
@@ -361,10 +399,34 @@ public class TestGeneration
         AssertResult(
             CreateIntegrationTest(profiles:
             [
-                new TransportProfile("Default", TransportType.InMemory),
+                new TransportProfile("Default", TransportType.InMemory)
             ]),
             skipWarnings: true,
             UploadQueries,
             UploadSchema,
             "extend schema @key(fields: \"id\")");
+
+    [Fact]
+    public void LocalTypes() =>
+        AssertResult(
+            CreateIntegrationTest(),
+            skipWarnings: true,
+            """
+            query LocalTypes {
+                localDate(input: "2021-10-10")
+                localDateTime(input: "2021-10-10T10:10:10")
+                localTime(input: "10:10:10")
+            }
+            """,
+            """
+            type Query {
+                localDate(input: LocalDate!): LocalDate!
+                localDateTime(input: LocalDateTime!): LocalDateTime!
+                localTime(input: LocalTime!): LocalTime!
+            }
+
+            scalar LocalDate
+            scalar LocalDateTime
+            scalar LocalTime
+            """);
 }

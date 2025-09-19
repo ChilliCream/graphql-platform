@@ -1,4 +1,4 @@
-using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 using static HotChocolate.Language.TokenPrinter;
@@ -8,9 +8,7 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser
 {
-    // note: this is internal for legacy stitching
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal NameNode ParseName()
+    private NameNode ParseName()
     {
         var start = Start();
         var name = ExpectName();
@@ -23,9 +21,8 @@ public ref partial struct Utf8GraphQLParser
         );
     }
 
-    // note: this is internal for legacy stitching
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal bool MoveNext() => _reader.MoveNext();
+    private bool MoveNext() => _reader.MoveNext();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private TokenInfo Start()
@@ -58,7 +55,6 @@ public ref partial struct Utf8GraphQLParser
                 start.Column)
             : null;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private string ExpectName()
     {
         if (_reader.Kind == TokenKind.Name)
@@ -71,13 +67,11 @@ public ref partial struct Utf8GraphQLParser
         throw new SyntaxException(_reader, Parser_InvalidToken, TokenKind.Name, _reader.Kind);
     }
 
-    // note: this is internal for legacy stitching
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void ExpectColon() => Expect(TokenKind.Colon);
+    private void ExpectColon() => Expect(TokenKind.Colon);
 
-    // note: this is internal for the stitching legacy layer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void ExpectDollar() => Expect(TokenKind.Dollar);
+    private void ExpectDollar() => Expect(TokenKind.Dollar);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectAt() => Expect(TokenKind.At);
@@ -85,14 +79,13 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectRightBracket() => Expect(TokenKind.RightBracket);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private string ExpectString()
+    private int ExpectRawString(IBufferWriter<byte> writer)
     {
-        if (TokenHelper.IsString(in _reader))
+        if (TokenHelper.IsString(ref _reader))
         {
-            var value = _reader.GetString();
+            var written = _reader.GetRawString(writer);
             MoveNext();
-            return value;
+            return written;
         }
 
         throw new SyntaxException(_reader, Parser_InvalidToken, TokenKind.String, _reader.Kind);
@@ -101,9 +94,8 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectSpread() => Expect(TokenKind.Spread);
 
-    // note: this is internal for legacy stitching
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void ExpectRightParenthesis() => Expect(TokenKind.RightParenthesis);
+    private void ExpectRightParenthesis() => Expect(TokenKind.RightParenthesis);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectRightBrace() => Expect(TokenKind.RightBrace);
@@ -168,8 +160,8 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool SkipKeyword(ReadOnlySpan<byte> keyword)
     {
-        if (_reader.Kind == TokenKind.Name &&
-            _reader.Value.SequenceEqual(keyword))
+        if (_reader.Kind == TokenKind.Name
+            && _reader.Value.SequenceEqual(keyword))
         {
             MoveNext();
             return true;

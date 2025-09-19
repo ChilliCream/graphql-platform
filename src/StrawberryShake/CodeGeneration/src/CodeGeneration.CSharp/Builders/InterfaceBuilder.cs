@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class InterfaceBuilder : AbstractTypeBuilder
@@ -58,10 +55,7 @@ public class InterfaceBuilder : AbstractTypeBuilder
 
     public InterfaceBuilder AddMethod(MethodBuilder method)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
+        ArgumentNullException.ThrowIfNull(method);
 
         _methods.Add(method);
         return this;
@@ -69,10 +63,7 @@ public class InterfaceBuilder : AbstractTypeBuilder
 
     public override void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         _xmlComment?.Build(writer);
 

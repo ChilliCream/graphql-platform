@@ -1,6 +1,4 @@
 using System.Text;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Language;
 
@@ -13,7 +11,7 @@ public class NumberTokenReaderTests
     [InlineData("1e50", true)]
     [InlineData("6.0221413e23", true)]
     [Theory]
-    private void ReadToken(string sourceBody, bool isFloat)
+    public void ReadToken(string sourceBody, bool isFloat)
     {
         // arrange
         var source = Encoding.UTF8.GetBytes(sourceBody);
@@ -37,7 +35,7 @@ public class NumberTokenReaderTests
     public void InvalidNumberToken()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes(".1");
+        var source = ".1"u8.ToArray();
 
         // act
         void Fail() => new Utf8GraphQLReader(source).Read();

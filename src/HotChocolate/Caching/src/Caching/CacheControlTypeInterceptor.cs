@@ -1,35 +1,31 @@
-using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Caching;
 
-internal sealed class CacheControlTypeInterceptor : TypeInterceptor
+internal sealed class CacheControlTypeInterceptor(
+    ICacheControlOptionsAccessor accessor)
+    : TypeInterceptor
 {
-    private readonly List<(RegisteredType Type, ObjectTypeDefinition TypeDef)> _types = [];
-    private readonly ICacheControlOptions _cacheControlOptions;
+    private readonly List<(RegisteredType Type, ObjectTypeConfiguration TypeDef)> _types = [];
+    private readonly ICacheControlOptions _cacheControlOptions = accessor.CacheControl;
     private TypeDependency? _cacheControlDependency;
-
-    public CacheControlTypeInterceptor(ICacheControlOptionsAccessor accessor)
-    {
-        _cacheControlOptions = accessor.CacheControl;
-    }
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         if (!_cacheControlOptions.Enable || !_cacheControlOptions.ApplyDefaults)
         {
             return;
         }
 
-        if (completionContext.Type is ObjectType && definition is ObjectTypeDefinition typeDef)
+        if (completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
         {
             _types.Add(((RegisteredType)completionContext, typeDef));
         }
@@ -43,16 +39,16 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         }
     }
 
-    private void TryApplyDefaults(RegisteredType type, ObjectTypeDefinition objectDef)
+    private void TryApplyDefaults(RegisteredType type, ObjectTypeConfiguration objectDef)
     {
         if (!_cacheControlOptions.Enable || !_cacheControlOptions.ApplyDefaults)
         {
             return;
         }
 
-        if (type.IsIntrospectionType ||
-            type.IsSubscriptionType == true ||
-            type.IsMutationType == true)
+        if (type.IsIntrospectionType
+            || type.IsSubscriptionType == true
+            || type.IsMutationType == true)
         {
             return;
         }
@@ -66,11 +62,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         var length = objectDef.Fields.Count;
         var appliedDefaults = false;
 
-#if NET6_0_OR_GREATER
-        var fields = ((BindableList<ObjectFieldDefinition>)objectDef.Fields).AsSpan();
-#else
-        var fields = (BindableList<ObjectFieldDefinition>)objectDef.Fields;
-#endif
+        var fields = ((BindableList<ObjectFieldConfiguration>)objectDef.Fields).AsSpan();
 
         for (var i = 0; i < length; i++)
         {
@@ -78,7 +70,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 
             if (field.IsIntrospectionField)
             {
-                // Introspection fields do not need to be declared as cachable.
+                // Introspection fields do not need to be declared as cacheable.
                 continue;
             }
 
@@ -89,12 +81,11 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
                 continue;
             }
 
-            if (type.IsQueryType == true ||
-                CostTypeInterceptor.IsDataResolver(field))
+            if (type.IsQueryType == true || IsDataResolver(field))
             {
                 // Each field on the query type or data resolver fields
                 // are treated as fields that need to be explicitly cached.
-                ApplyCacheControlWithDefaultMaxAge(field);
+                ApplyCacheControlWithDefaults(field);
                 appliedDefaults = true;
             }
         }
@@ -105,33 +96,81 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         }
     }
 
-    private void ApplyCacheControlWithDefaultMaxAge(
-        OutputFieldDefinitionBase field)
+    private void ApplyCacheControlWithDefaults(
+        OutputFieldConfiguration field)
     {
+        var isNotDefaultScope = _cacheControlOptions.DefaultScope != CacheControlDefaults.Scope;
+
+        var arguments = new ArgumentNode[isNotDefaultScope ? 2 : 1];
+        arguments[0] = new ArgumentNode(
+            CacheControlDirectiveType.Names.MaxAgeArgName,
+            _cacheControlOptions.DefaultMaxAge);
+
+        if (isNotDefaultScope)
+        {
+            arguments[1] = new ArgumentNode(
+                CacheControlDirectiveType.Names.ScopeArgName,
+                new EnumValueNode(_cacheControlOptions.DefaultScope));
+        }
+
         field.Directives.Add(
-            new DirectiveDefinition(
+            new DirectiveConfiguration(
                 new DirectiveNode(
                     CacheControlDirectiveType.Names.DirectiveName,
-                    new ArgumentNode(
-                        CacheControlDirectiveType.Names.MaxAgeArgName,
-                        _cacheControlOptions.DefaultMaxAge))));
+                    arguments)));
     }
 
-    private static bool HasCacheControlDirective(ObjectFieldDefinition field)
+    private static bool HasCacheControlDirective(ObjectFieldConfiguration field)
         => field.Directives.Any(static d => IsCacheControlDirective(d));
 
-    private static bool IsCacheControlDirective(DirectiveDefinition directive)
+    private static bool IsCacheControlDirective(DirectiveConfiguration directive)
     {
-        if (directive.Type is NameDirectiveReference directiveReference &&
-            directiveReference.Name.EqualsOrdinal(CacheControlDirectiveType.Names.DirectiveName))
+        if (directive.Type is NameDirectiveReference directiveReference
+            && directiveReference.Name.EqualsOrdinal(CacheControlDirectiveType.Names.DirectiveName))
         {
             return true;
         }
 
-        if (directive.Type is ExtendedTypeDirectiveReference { Type.Type: { } type, } &&
-            type == typeof(CacheControlDirective))
+        if (directive.Type is ExtendedTypeDirectiveReference { Type.Type: { } type }
+            && type == typeof(CacheControlDirective))
         {
             return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Defines if a resolver is possible fetching data and causing higher impact on the system.
+    /// </summary>
+    internal static bool IsDataResolver(ObjectFieldConfiguration field)
+    {
+        if (field.PureResolver is not null && field.MiddlewareConfigurations.Count == 0)
+        {
+            return false;
+        }
+
+        if (field.Resolver is not null)
+        {
+            return true;
+        }
+
+        var resolver = field.ResolverMember ?? field.Member;
+
+        if (resolver is MethodInfo method)
+        {
+            if (typeof(Task).IsAssignableFrom(method.ReturnType)
+                || typeof(IQueryable).IsAssignableFrom(method.ReturnType)
+                || typeof(IExecutable).IsAssignableFrom(method.ReturnType))
+            {
+                return true;
+            }
+
+            if (method.ReturnType.IsGenericType
+                && method.ReturnType.GetGenericTypeDefinition() == typeof(ValueTask<>))
+            {
+                return true;
+            }
         }
 
         return false;

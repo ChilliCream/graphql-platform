@@ -1,0 +1,7 @@
+schema {
+  query: Query
+}
+
+type Query {
+  get(boolean: Boolean = true date: Date = "1970-01-01" dateTime: DateTime = "1970-01-01T00:00:00.000+00:00" float: Float = 1.5 int: Int = 1 long: Long = 1 string: String = "example"): Boolean!
+}

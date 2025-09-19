@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using StrawberryShake.Properties;
 
 namespace StrawberryShake;
@@ -21,15 +18,8 @@ public abstract class StoreAccessor : IStoreAccessor
         IEnumerable<IOperationRequestFactory> operationRequestFactories,
         IEnumerable<IOperationResultDataFactory> operationResultDataFactories)
     {
-        if (operationRequestFactories is null)
-        {
-            throw new ArgumentNullException(nameof(operationRequestFactories));
-        }
-
-        if (operationResultDataFactories is null)
-        {
-            throw new ArgumentNullException(nameof(operationResultDataFactories));
-        }
+        ArgumentNullException.ThrowIfNull(operationRequestFactories);
+        ArgumentNullException.ThrowIfNull(operationResultDataFactories);
 
         OperationStore = operationStore ??
             throw new ArgumentNullException(nameof(operationStore));
@@ -67,10 +57,7 @@ public abstract class StoreAccessor : IStoreAccessor
     /// </returns>
     public IOperationRequestFactory GetOperationRequestFactory(Type resultType)
     {
-        if (resultType is null)
-        {
-            throw new ArgumentNullException(nameof(resultType));
-        }
+        ArgumentNullException.ThrowIfNull(resultType);
 
         if (_requestFactories.TryGetValue(resultType, out var requestFactory))
         {
@@ -92,10 +79,7 @@ public abstract class StoreAccessor : IStoreAccessor
     /// </returns>
     public IOperationResultDataFactory GetOperationResultDataFactory(Type resultType)
     {
-        if (resultType is null)
-        {
-            throw new ArgumentNullException(nameof(resultType));
-        }
+        ArgumentNullException.ThrowIfNull(resultType);
 
         if (_resultDataFactories.TryGetValue(resultType, out var resultDataFactory))
         {

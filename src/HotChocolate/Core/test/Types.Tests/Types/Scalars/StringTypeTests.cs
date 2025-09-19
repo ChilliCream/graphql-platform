@@ -1,4 +1,3 @@
-﻿using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -15,7 +14,7 @@ public class StringTypeTests
         var kind = type.Kind;
 
         // assert
-        Assert.Equal(TypeKind.Scalar, type.Kind);
+        Assert.Equal(TypeKind.Scalar, kind);
     }
 
     [Fact]
@@ -68,7 +67,7 @@ public class StringTypeTests
 
         // act
         // assert
-        Assert.Throws<ArgumentNullException>(() => type.IsInstanceOfType(null));
+        Assert.Throws<ArgumentNullException>(() => type.IsInstanceOfType(null!));
     }
 
     [Fact]
@@ -76,7 +75,7 @@ public class StringTypeTests
     {
         // arrange
         var type = new StringType();
-        var input = "123456";
+        const string input = "123456";
 
         // act
         var serializedValue = type.Serialize(input);
@@ -162,7 +161,7 @@ public class StringTypeTests
 
         // act
         // assert
-        Assert.Throws<ArgumentNullException>(() => type.ParseLiteral(null));
+        Assert.Throws<ArgumentNullException>(() => type.ParseLiteral(null!));
     }
 
     [Fact]
@@ -183,7 +182,7 @@ public class StringTypeTests
     {
         // arrange
         var type = new StringType();
-        object input = null;
+        object input = null!;
 
         // act
         object output = type.ParseValue(input);

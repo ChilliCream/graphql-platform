@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using static HotChocolate.Data.ThrowHelper;
@@ -21,8 +20,8 @@ public static class QueryableProjectionContextExtensions
         this QueryableProjectionContext ctx,
         [NotNullWhen(true)] out QueryableProjectionScope? scope)
     {
-        if (ctx.Scopes.Count > 0 &&
-            ctx.Scopes.Peek() is QueryableProjectionScope queryableScope)
+        if (ctx.Scopes.Count > 0
+            && ctx.Scopes.Peek() is QueryableProjectionScope queryableScope)
         {
             scope = queryableScope;
             return true;
