@@ -1,12 +1,14 @@
+using static HotChocolate.Fusion.Text.Json.CompositeResultDocument;
+
 namespace HotChocolate.Fusion.Text.Json;
 
 public class CompositeResultDocumentMetaDbTests : IDisposable
 {
-    private CompositeResultDocument.MetaDb _metaDb;
+    private MetaDb _metaDb;
 
     public CompositeResultDocumentMetaDbTests()
     {
-        _metaDb = CompositeResultDocument.MetaDb.CreateForEstimatedRows(100);
+        _metaDb = MetaDb.CreateForEstimatedRows(100);
     }
 
     public void Dispose()
@@ -18,7 +20,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void CreateForEstimatedRows_WithSmallEstimate_CreatesValidMetaDb()
     {
         // Arrange & Act
-        using var metaDb = CompositeResultDocument.MetaDb.CreateForEstimatedRows(10);
+        using var metaDb = MetaDb.CreateForEstimatedRows(10);
 
         // Assert
         Assert.Equal(0, metaDb.Length);
@@ -34,7 +36,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
             sizeOrLength: 10,
             sourceDocumentId: 1,
             parentRow: 0,
-            selectionSetId: 5,
+            operationReferenceId: 5,
             flags: ElementFlags.None);
 
         // Assert
@@ -67,7 +69,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
             sizeOrLength: 456,
             sourceDocumentId: 7,
             parentRow: 89,
-            selectionSetId: 12,
+            operationReferenceId: 12,
             flags: ElementFlags.IsNullable | ElementFlags.IsLeaf);
 
         // Act
@@ -79,7 +81,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(456, row.SizeOrLength);
         Assert.Equal(7, row.SourceDocumentId);
         Assert.Equal(89, row.ParentRow);
-        Assert.Equal(12, row.SelectionSetId);
+        Assert.Equal(12, row.OperationReferenceId);
         Assert.Equal(ElementFlags.IsNullable | ElementFlags.IsLeaf, row.Flags);
         Assert.False(row.HasComplexChildren);
     }
@@ -164,7 +166,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void Append_WithMaxValues_StoresCorrectly()
     {
         // Arrange - Test boundary values
-        const int maxLocation = 0x0FFFFFFF; // 28 bits
+        const int maxLocation = 0x07FFFFFF; // 27 bits
         const int maxSizeOrLength = int.MaxValue; // 31 bits
         const int maxSourceDocumentId = 0x7FFF; // 15 bits (reduced from 16)
         const int maxParentRow = 0x0FFFFFFF; // 28 bits
@@ -177,7 +179,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
             sizeOrLength: maxSizeOrLength,
             sourceDocumentId: maxSourceDocumentId,
             parentRow: maxParentRow,
-            selectionSetId: maxSelectionSetId,
+            operationReferenceId: maxSelectionSetId,
             flags: ElementFlags.IsRoot | ElementFlags.IsNullable | ElementFlags.IsLeaf);
 
         // Assert
@@ -187,7 +189,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(maxSizeOrLength, row.SizeOrLength);
         Assert.Equal(maxSourceDocumentId, row.SourceDocumentId);
         Assert.Equal(maxParentRow, row.ParentRow);
-        Assert.Equal(maxSelectionSetId, row.SelectionSetId);
+        Assert.Equal(maxSelectionSetId, row.OperationReferenceId);
     }
 
     [Fact]
@@ -228,7 +230,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Arrange
         var index = _metaDb.Append(
             ElementTokenType.String,
-            sizeOrLength: CompositeResultDocument.DbRow.UnknownSize);
+            sizeOrLength: DbRow.UnknownSize);
 
         // Act & Assert
         var row = _metaDb.Get(index);
@@ -258,7 +260,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void Dispose_WhenCalled_CleansUpResources()
     {
         // Arrange
-        var metaDb = CompositeResultDocument.MetaDb.CreateForEstimatedRows(10);
+        var metaDb = MetaDb.CreateForEstimatedRows(10);
         metaDb.Append(ElementTokenType.String);
 
         // Act & Assert - Should not throw
@@ -269,7 +271,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void MultipleDispose_DoesNotThrow()
     {
         // Arrange
-        var metaDb = CompositeResultDocument.MetaDb.CreateForEstimatedRows(10);
+        var metaDb = MetaDb.CreateForEstimatedRows(10);
 
         // Act & Assert - Should not throw
         metaDb.Dispose();
@@ -280,7 +282,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     public void Append_ExceedsInitialChunkCapacity_ExpandsChunkArray()
     {
         // Arrange - Start with minimal estimate to force expansion
-        using var metaDb = CompositeResultDocument.MetaDb.CreateForEstimatedRows(1);
+        using var metaDb = MetaDb.CreateForEstimatedRows(1);
 
         const int chunkSize = 128 * 1024; // 128KB
         const int rowsPerChunk = chunkSize / 20; // DbRow.Size = 20

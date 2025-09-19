@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
 
 namespace System.Text.Json
@@ -28,6 +29,10 @@ namespace System.Text.Json
         ///   This allocates a new string instance for each call.
         /// </summary>
         public string Name => Value.GetPropertyName();
+
+        public Selection? Selection => Value.Selection;
+
+        public Selection GetRequiredSelection() => Value.GetRequiredSelection();
 
         /// <summary>
         ///   Compares <paramref name="text" /> to the name of this property.
@@ -113,5 +118,11 @@ namespace System.Text.Json
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay
             => Value.ValueKind == JsonValueKind.Undefined ? "<Undefined>" : $"\"{ToString()}\"";
+
+        public void Deconstruct(out Selection selection, out CompositeResultElement value)
+        {
+            selection = GetRequiredSelection();
+            value = Value;
+        }
     }
 }

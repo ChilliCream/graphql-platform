@@ -104,6 +104,28 @@ public sealed class Operation : IOperation
     public IFeatureCollection Features => _features;
 
     /// <summary>
+    /// Gets the selection set for the specified <paramref name="selection"/>
+    /// if the selections named return type is an object type.
+    /// </summary>
+    /// <param name="selection">
+    /// The selection set for which the selection set shall be resolved.
+    /// </param>
+    /// <returns>
+    /// Returns the selection set for the specified <paramref name="selection"/> and
+    /// the named return type of the selection.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// - The specified <paramref name="selection"/> has no selection set.
+    /// - The specified <paramref name="selection"/> returns an abstract named type.
+    /// </exception>
+    public SelectionSet GetSelectionSet(Selection selection)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+        var typeContext = selection.Field.Type.NamedType<IObjectTypeDefinition>();
+        return GetSelectionSet(selection, typeContext);
+    }
+
+    /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/> and
     /// <paramref name="typeContext"/>.
     /// </summary>

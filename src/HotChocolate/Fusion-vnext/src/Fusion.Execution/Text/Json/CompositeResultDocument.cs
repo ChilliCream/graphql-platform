@@ -36,20 +36,32 @@ public sealed partial class CompositeResultDocument
     internal ElementTokenType GetElementTokenType(int index)
         => _metaDb.GetElementTokenType(index);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal Operation GetOperation()
+        => _operation;
+
     internal SelectionSet? GetSelectionSet(int index)
     {
         var row = _metaDb.Get(index);
-        if (row.TokenType is not ElementTokenType.StartObject)
+
+        if (row.OperationReferenceType is not OperationReferenceType.SelectionSet)
         {
             return null;
         }
 
-        if ((row.Flags & ElementFlags.IsLeaf) == ElementFlags.IsLeaf)
+        return _operation.GetSelectionSetById(row.OperationReferenceId);
+    }
+
+    internal Selection? GetSelection(int index)
+    {
+        var row = _metaDb.Get(index);
+
+        if (row.OperationReferenceType is not OperationReferenceType.Selection)
         {
             return null;
         }
 
-        return _operation.GetSelectionSetById(row.SelectionSetId);
+        return _operation.GetSelectionById(row.OperationReferenceId);
     }
 
     internal CompositeResultElement GetArrayIndexElement(int currentIndex, int arrayIndex)
@@ -96,7 +108,7 @@ public sealed partial class CompositeResultDocument
     {
         if (row.TokenType == ElementTokenType.PropertyName)
         {
-            return _operation.GetSelectionById(row.SelectionSetId).RawResponseName;
+            return _operation.GetSelectionById(row.OperationReferenceId).RawResponseName;
         }
 
         if (row.TokenType == ElementTokenType.Reference)
@@ -110,7 +122,7 @@ public sealed partial class CompositeResultDocument
     {
         if (row.TokenType == ElementTokenType.PropertyName)
         {
-            return _operation.GetSelectionById(row.SelectionSetId).RawResponseNameAsMemory;
+            return _operation.GetSelectionById(row.OperationReferenceId).RawResponseNameAsMemory;
         }
 
         if (row.TokenType == ElementTokenType.Reference)
@@ -120,9 +132,8 @@ public sealed partial class CompositeResultDocument
         throw new NotImplementedException();
     }
 
-    private CompositeResultElement CreateObject(int parentRow, SelectionSet selectionSet)
+    internal CompositeResultElement CreateObject(int parentRow, SelectionSet selectionSet)
     {
-        // change to int
         var index = WriteStartObject(
             parentRow,
             selectionSet.Id,
@@ -139,17 +150,29 @@ public sealed partial class CompositeResultDocument
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteLeaveValue(CompositeResultElement target, SourceResultElement source)
+    internal void AssignObjectValue(CompositeResultElement target, CompositeResultElement value)
+    {
+        var test = _metaDb.Get(target.Index);
+
+        _metaDb.Replace(
+            index: target.Index,
+            tokenType: ElementTokenType.Reference,
+            location: value.Index,
+            parentRow: _metaDb.GetParentRow(target.Index));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AssignLeaveValue(CompositeResultElement target, SourceResultElement source)
     {
         var value = source.GetValuePointer();
 
         _metaDb.Replace(
-            index: target.MetadataDbIndex,
+            index: target.Index,
             tokenType: source.TokenType.ToElementTokenType(),
             location: value.Location,
             sizeOrLength: value.Size,
             sourceDocumentId: source._parent.Id,
-            parentRow: _metaDb.GetParentRow(target.MetadataDbIndex));
+            parentRow: _metaDb.GetParentRow(target.Index));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -167,7 +190,8 @@ public sealed partial class CompositeResultDocument
             ElementTokenType.StartObject,
             sizeOrLength: length,
             parentRow: parentRow,
-            selectionSetId: selectionSetId,
+            operationReferenceId: selectionSetId,
+            operationReferenceType: OperationReferenceType.SelectionSet,
             numberOfRows: (length * 2) + 2,
             flags: flags );
     }
@@ -198,7 +222,8 @@ public sealed partial class CompositeResultDocument
         var index = _metaDb.Append(
             ElementTokenType.PropertyName,
             parentRow: parentRow,
-            selectionSetId: (int)selection.Id,
+            operationReferenceId: selection.Id,
+            operationReferenceType: OperationReferenceType.Selection,
             flags: flags);
 
         _metaDb.Append(

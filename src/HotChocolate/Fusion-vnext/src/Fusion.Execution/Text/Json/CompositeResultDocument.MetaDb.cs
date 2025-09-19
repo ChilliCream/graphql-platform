@@ -44,7 +44,8 @@ public sealed partial class CompositeResultDocument
             int sizeOrLength = 0,
             int sourceDocumentId = 0,
             int parentRow = 0,
-            int selectionSetId = 0,
+            int operationReferenceId = 0,
+            OperationReferenceType operationReferenceType = OperationReferenceType.None,
             int numberOfRows = 0,
             ElementFlags flags = ElementFlags.None)
         {
@@ -89,7 +90,8 @@ public sealed partial class CompositeResultDocument
                 sizeOrLength,
                 sourceDocumentId,
                 parentRow,
-                selectionSetId,
+                operationReferenceId,
+                operationReferenceType,
                 numberOfRows,
                 flags);
 
@@ -110,7 +112,8 @@ public sealed partial class CompositeResultDocument
             int sizeOrLength = 0,
             int sourceDocumentId = 0,
             int parentRow = 0,
-            int selectionSetId = 0,
+            int operationReferenceId = 0,
+            OperationReferenceType operationReferenceType = OperationReferenceType.None,
             int numberOfRows = 0,
             ElementFlags flags = ElementFlags.None)
         {
@@ -134,7 +137,8 @@ public sealed partial class CompositeResultDocument
                 sizeOrLength,
                 sourceDocumentId,
                 parentRow,
-                selectionSetId,
+                operationReferenceId,
+                operationReferenceType,
                 numberOfRows,
                 flags);
 
@@ -158,6 +162,26 @@ public sealed partial class CompositeResultDocument
             Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
 
             return MemoryMarshal.Read<DbRow>(_chunks[chunkIndex].AsSpan(localOffset));
+        }
+
+        internal int GetLocation(int index)
+        {
+            Debug.Assert(index >= 0);
+            Debug.Assert(index < Length / DbRow.Size, "Index out of bounds");
+
+            // Convert row index to byte offset
+            var byteOffset = index * DbRow.Size;
+            var chunkIndex = byteOffset / ChunkSize;
+            var localOffset = byteOffset % ChunkSize;
+
+            Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
+            Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
+
+            // Read the first field that contains the Location bits
+            var locationAndOpRefType = MemoryMarshal.Read<int>(_chunks[chunkIndex].AsSpan(localOffset));
+
+            // Extract Location from the low 27 bits
+            return locationAndOpRefType & 0x07FFFFFF;
         }
 
         internal int GetParentRow(int index)
@@ -184,15 +208,26 @@ public sealed partial class CompositeResultDocument
         internal ElementTokenType GetElementTokenType(int index)
         {
             // We convert the row index back into a byte offset that we can
-            // // in turn break up into the chunk where the row resides and the
-            // // local offset we have in that chunk.
+            // in turn break up into the chunk where the row resides and the
+            // local offset we have in that chunk.
             var byteOffset = index * DbRow.Size;
             var chunkIndex = byteOffset / ChunkSize;
             var localOffset = byteOffset % ChunkSize;
 
             var union = MemoryMarshal.Read<uint>(_chunks[chunkIndex].AsSpan(localOffset + TokenTypeOffset));
+            var tokenType = (ElementTokenType)(union >> 28);
 
-            return (ElementTokenType)(union >> 28);
+            if (tokenType is ElementTokenType.Reference)
+            {
+                index = GetLocation(index);
+                byteOffset = index * DbRow.Size;
+                chunkIndex = byteOffset / ChunkSize;
+                localOffset = byteOffset % ChunkSize;
+                union = MemoryMarshal.Read<uint>(_chunks[chunkIndex].AsSpan(localOffset + TokenTypeOffset));
+                tokenType = (ElementTokenType)(union >> 28);
+            }
+
+            return tokenType;
         }
 
         public void Dispose()

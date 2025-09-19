@@ -92,6 +92,7 @@ public sealed class OperationCompiler
     {
         var compilationContext = new CompilationContext(elementsById);
         var fields = _fieldsPool.Get();
+        fields.Clear();
 
         try
         {

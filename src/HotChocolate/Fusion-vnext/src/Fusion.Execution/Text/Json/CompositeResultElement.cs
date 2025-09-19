@@ -23,6 +23,11 @@ public partial struct CompositeResultElement
         _index = index;
     }
 
+    /// <summary>
+    /// Gets the internal metadb index.
+    /// </summary>
+    internal readonly int Index => _index;
+
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private ElementTokenType TokenType => _parent?.GetElementTokenType(_index) ?? ElementTokenType.None;
 
@@ -33,16 +38,6 @@ public partial struct CompositeResultElement
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
     public JsonValueKind ValueKind => TokenType.ToValueKind();
-
-    public SelectionSet? SelectionSet
-    {
-        get
-        {
-            CheckValidInstance();
-
-            return _parent.GetSelectionSet(_index);
-        }
-    }
 
     /// <summary>
     ///   Get the value at a specified index when the current value is a
@@ -67,15 +62,70 @@ public partial struct CompositeResultElement
         }
     }
 
+    public Operation Operation
+    {
+        get
+        {
+            CheckValidInstance();
+
+            return _parent.GetOperation();
+        }
+    }
+
+    public SelectionSet? SelectionSet
+    {
+        get
+        {
+            CheckValidInstance();
+
+            return _parent.GetSelectionSet(_index);
+        }
+    }
+
+    public Selection? Selection
+    {
+        get
+        {
+            CheckValidInstance();
+
+            // note: the selection is stored on the property not on the value.
+            return _parent.GetSelection(_index - 1);
+        }
+    }
+
+    public SelectionSet GetRequiredSelectionSet()
+    {
+        var selectionSet = SelectionSet;
+
+        if (selectionSet is null)
+        {
+            throw new InvalidOperationException("The selection set is null.") { Source = Rethrowable };
+        }
+
+        return selectionSet;
+    }
+
+    public Selection GetRequiredSelection()
+    {
+        var selection = Selection;
+
+        if (selection is null)
+        {
+            throw new InvalidOperationException("The selection set is null.") { Source = Rethrowable };
+        }
+
+        return selection;
+    }
+
     /// <summary>
-    ///   Get the number of values contained within the current array value.
+    /// Get the number of values contained within the current array value.
     /// </summary>
     /// <returns>The number of values contained within the current array value.</returns>
     /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>.
+    /// This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>.
     /// </exception>
     /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
+    /// The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
     public int GetArrayLength()
     {
@@ -1197,6 +1247,23 @@ public partial struct CompositeResultElement
         return new ObjectEnumerator(this);
     }
 
+    internal void SetValue(SelectionSet selectionSet)
+    {
+        CheckValidInstance();
+
+        ArgumentNullException.ThrowIfNull(selectionSet);
+
+        var obj = _parent.CreateObject(parentRow: _index, selectionSet: selectionSet);
+        _parent.AssignObjectValue(this, obj);
+    }
+
+    internal void SetValue(SourceResultElement source)
+    {
+        CheckValidInstance();
+
+        _parent.AssignLeaveValue(this, source);
+    }
+
     /*
     /// <summary>
     ///   Gets a string representation for the current value appropriate to the value type.
@@ -1297,8 +1364,6 @@ public partial struct CompositeResultElement
             throw new InvalidOperationException();
         }
     }
-
-    internal readonly int MetadataDbIndex => _index;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private string DebuggerDisplay => $"ValueKind = {ValueKind} : \"{ToString()}\"";

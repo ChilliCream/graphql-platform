@@ -61,15 +61,16 @@ public class CompositeResultDocumentTests : FusionTestBase
 
         // act
         var compositeResult = new CompositeResultDocument(plan.Operation);
-        var propertyValue = compositeResult.Data.GetProperty("productBySlug");
-        foreach (var property in propertyValue.EnumerateObject())
-        {
-            // property.Value.InitializeObject(selectionSet)
-            // property.Value.SetReference(sourceValue);
-        }
+        var operation = compositeResult.Data.Operation;
 
+        var productBySlug = compositeResult.Data.GetProperty("productBySlug");
+        var productBySlugSelection = productBySlug.GetRequiredSelection();
+        Assert.Equal("productBySlug", productBySlug.GetPropertyName());
+        Assert.Equal(JsonValueKind.Undefined, productBySlug.ValueKind);
+        Assert.False(productBySlugSelection.IsLeaf);
 
-        Assert.Equal("productBySlug", propertyValue.GetPropertyName());
-        Assert.Equal(JsonValueKind.Undefined, propertyValue.ValueKind);
+        var selectionSet = operation.GetSelectionSet(productBySlugSelection);
+        productBySlug.SetValue(selectionSet);
+        Assert.Equal(JsonValueKind.Object, productBySlug.ValueKind);
     }
 }
