@@ -39,8 +39,12 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_a239ceba_1 {\n  post {\n    __typename\n  }\n}"}
+          document: |
+            query testQuery_a239ceba_1 {
+              post {
+                __typename
+              }
+            }
         response:
           results:
             - |

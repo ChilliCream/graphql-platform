@@ -38,8 +38,12 @@ sourceSchemas:
     isTimingOut: true
     interactions:
       - request:
-          body: |
-            {"query":"query Op_512ba6dc_1 {\n  topProduct {\n    id\n  }\n}"}
+          document: |
+            query Op_512ba6dc_1 {
+              topProduct {
+                id
+              }
+            }
   - name: B
     schema: |
       schema {
@@ -55,8 +59,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_512ba6dc_2 {\n  reviews {\n    id\n  }\n}"}
+          document: |
+            query Op_512ba6dc_2 {
+              reviews {
+                id
+              }
+            }
         response:
           results:
             - |

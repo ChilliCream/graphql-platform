@@ -51,8 +51,18 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_7e81ce9e_1 {\n  posts {\n    __typename\n    ... on Photo {\n      id\n    }\n    ... on Discussion {\n      subgraph1\n    }\n  }\n}"}
+          document: |
+            query testQuery_7e81ce9e_1 {
+              posts {
+                __typename
+                ... on Photo {
+                  id
+                }
+                ... on Discussion {
+                  subgraph1
+                }
+              }
+            }
         response:
           results:
             - |
@@ -90,8 +100,23 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_7e81ce9e_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_1_id":"UGhvdG86MQ=="},{"__fusion_1_id":"UGhvdG86Mw=="}]}
+          document: |
+            query testQuery_7e81ce9e_2(
+              $__fusion_1_id: ID!
+            ) {
+              photoById(id: $__fusion_1_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UGhvdG86MQ=="
+              },
+              {
+                "__fusion_1_id": "UGhvdG86Mw=="
+              }
+            ]
         response:
           results:
             - |

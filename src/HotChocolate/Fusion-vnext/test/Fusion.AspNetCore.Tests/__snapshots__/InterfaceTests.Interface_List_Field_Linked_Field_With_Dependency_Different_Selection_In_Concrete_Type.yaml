@@ -70,8 +70,20 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_e4ba4706_1 {\n  authorables {\n    __typename\n    author {\n      id\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
+          document: |
+            query testQuery_e4ba4706_1 {
+              authorables {
+                __typename
+                author {
+                  id
+                }
+                ... on Discussion {
+                  author {
+                    id
+                  }
+                }
+              }
+            }
         response:
           results:
             - |
@@ -116,8 +128,23 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_e4ba4706_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    email\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjY="},{"__fusion_1_id":"QXV0aG9yOjQ="}]}
+          document: |
+            query testQuery_e4ba4706_2(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                email
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "QXV0aG9yOjY="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjQ="
+              }
+            ]
         response:
           results:
             - |
@@ -137,8 +164,26 @@ sourceSchemas:
                 }
               }
       - request:
-          body: |
-            {"query":"query testQuery_e4ba4706_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    displayName\n  }\n}","variables":[{"__fusion_2_id":"QXV0aG9yOjY="},{"__fusion_2_id":"QXV0aG9yOjU="},{"__fusion_2_id":"QXV0aG9yOjQ="}]}
+          document: |
+            query testQuery_e4ba4706_3(
+              $__fusion_2_id: ID!
+            ) {
+              authorById(id: $__fusion_2_id) {
+                displayName
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "QXV0aG9yOjY="
+              },
+              {
+                "__fusion_2_id": "QXV0aG9yOjU="
+              },
+              {
+                "__fusion_2_id": "QXV0aG9yOjQ="
+              }
+            ]
         response:
           results:
             - |

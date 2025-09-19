@@ -42,8 +42,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_14c79a43_1 {\n  nullableTopProduct {\n    price\n  }\n}"}
+          document: |
+            query Op_14c79a43_1 {
+              nullableTopProduct {
+                price
+              }
+            }
         response:
           statusCode: 500
 operationPlan:

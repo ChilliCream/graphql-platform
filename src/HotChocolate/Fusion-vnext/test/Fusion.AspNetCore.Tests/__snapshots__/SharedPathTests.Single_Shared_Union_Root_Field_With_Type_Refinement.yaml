@@ -72,8 +72,15 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: |
-            {"query":"query Op_55b9106f_1 {\n  union {\n    __typename\n    ... on Review {\n      schema1\n    }\n  }\n}"}
+          document: |
+            query Op_55b9106f_1 {
+              union {
+                __typename
+                ... on Review {
+                  schema1
+                }
+              }
+            }
         response:
           results:
             - |
@@ -136,8 +143,15 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: |
-            {"query":"query Op_55b9106f_2 {\n  union {\n    __typename\n    ... on Review {\n      schema2\n    }\n  }\n}"}
+          document: |
+            query Op_55b9106f_2 {
+              union {
+                __typename
+                ... on Review {
+                  schema2
+                }
+              }
+            }
         response:
           results:
             - |

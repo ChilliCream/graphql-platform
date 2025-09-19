@@ -65,8 +65,14 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"mutation Op_192dc5f8_1 {\n  a: createBook(input: { title: \u0022Book1\u0022 }) {\n    book {\n      id\n    }\n  }\n}"}
+          document: |
+            mutation Op_192dc5f8_1 {
+              a: createBook(input: { title: "Book1" }) {
+                book {
+                  id
+                }
+              }
+            }
         response:
           results:
             - |
@@ -80,8 +86,15 @@ sourceSchemas:
                 }
               }
       - request:
-          body: |
-            {"query":"mutation Op_192dc5f8_3 {\n  b: createBook(input: { title: \u0022Book2\u0022 }) {\n    book {\n      id\n      title\n    }\n  }\n}"}
+          document: |
+            mutation Op_192dc5f8_3 {
+              b: createBook(input: { title: "Book2" }) {
+                book {
+                  id
+                  title
+                }
+              }
+            }
         response:
           results:
             - |
@@ -111,8 +124,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_192dc5f8_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}","variables":{"__fusion_1_id":1}}
+          document: |
+            query Op_192dc5f8_2(
+              $__fusion_1_id: Int!
+            ) {
+              bookById(id: $__fusion_1_id) {
+                author
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
         response:
           results:
             - |
@@ -124,8 +147,18 @@ sourceSchemas:
                 }
               }
       - request:
-          body: |
-            {"query":"query Op_192dc5f8_4(\n  $__fusion_2_id: Int!\n) {\n  bookById(id: $__fusion_2_id) {\n    author\n  }\n}","variables":{"__fusion_2_id":2}}
+          document: |
+            query Op_192dc5f8_4(
+              $__fusion_2_id: Int!
+            ) {
+              bookById(id: $__fusion_2_id) {
+                author
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": 2
+            }
         response:
           results:
             - |

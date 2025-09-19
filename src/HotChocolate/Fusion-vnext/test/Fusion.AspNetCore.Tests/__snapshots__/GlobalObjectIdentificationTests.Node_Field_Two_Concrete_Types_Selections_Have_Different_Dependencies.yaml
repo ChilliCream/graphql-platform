@@ -59,8 +59,24 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_c0cdf5d7_5(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Discussion {\n      __typename\n      product {\n        id\n      }\n    }\n  }\n}","variables":{"id":"RGlzY3Vzc2lvbjox"}}
+          document: |
+            query testQuery_c0cdf5d7_5(
+              $id: ID!
+            ) {
+              node(id: $id) {
+                __typename
+                ... on Discussion {
+                  __typename
+                  product {
+                    id
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "id": "RGlzY3Vzc2lvbjox"
+            }
         response:
           results:
             - |
@@ -116,8 +132,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_c0cdf5d7_6(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":{"__fusion_2_id":"UHJvZHVjdDox"}}
+          document: |
+            query testQuery_c0cdf5d7_6(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "UHJvZHVjdDox"
+            }
         response:
           results:
             - |

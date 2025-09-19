@@ -86,8 +86,19 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_05500418_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}"}
+          document: |
+            query Op_05500418_1 {
+              abstractType {
+                __typename
+                id
+                ... on Discussion {
+                  title
+                }
+                ... on Author {
+                  name
+                }
+              }
+            }
         response:
           results:
             - |

@@ -84,8 +84,17 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_9ad18dbf_1 {\n  productsA {\n    id\n    name\n  }\n  productsB {\n    id\n    name\n  }\n}"}
+          document: |
+            query Op_9ad18dbf_1 {
+              productsA {
+                id
+                name
+              }
+              productsB {
+                id
+                name
+              }
+            }
         response:
           results:
             - |
@@ -143,8 +152,30 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_9ad18dbf_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Product {\n      price\n      reviewCount\n    }\n  }\n}","variables":[{"__fusion_1_id":"UHJvZHVjdDo0"},{"__fusion_1_id":"UHJvZHVjdDo1"},{"__fusion_1_id":"UHJvZHVjdDo2"}]}
+          document: |
+            query Op_9ad18dbf_2(
+              $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on Product {
+                  price
+                  reviewCount
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDo0"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo1"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo2"
+              }
+            ]
         response:
           results:
             - |
@@ -178,8 +209,30 @@ sourceSchemas:
                 }
               }
       - request:
-          body: |
-            {"query":"query Op_9ad18dbf_3(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      price\n      reviewCount\n    }\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDox"},{"__fusion_2_id":"UHJvZHVjdDoy"},{"__fusion_2_id":"UHJvZHVjdDoz"}]}
+          document: |
+            query Op_9ad18dbf_3(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  price
+                  reviewCount
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoz"
+              }
+            ]
         response:
           results:
             - |

@@ -42,8 +42,13 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_79461fa4_1 {\n  votable {\n    __typename\n    viewerCanVote\n  }\n}"}
+          document: |
+            query testQuery_79461fa4_1 {
+              votable {
+                __typename
+                viewerCanVote
+              }
+            }
         response:
           results:
             - |

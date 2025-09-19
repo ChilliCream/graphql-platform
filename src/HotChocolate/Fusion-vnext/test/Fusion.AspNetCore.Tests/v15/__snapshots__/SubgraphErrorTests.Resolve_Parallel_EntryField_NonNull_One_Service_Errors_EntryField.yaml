@@ -38,8 +38,12 @@ sourceSchemas:
     isTimingOut: true
     interactions:
       - request:
-          body: |
-            {"query":"query Op_6b55933b_1 {\n  viewer {\n    name\n  }\n}"}
+          document: |
+            query Op_6b55933b_1 {
+              viewer {
+                name
+              }
+            }
   - name: B
     schema: |
       schema {
@@ -55,8 +59,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_6b55933b_2 {\n  other {\n    userId\n  }\n}"}
+          document: |
+            query Op_6b55933b_2 {
+              other {
+                userId
+              }
+            }
         response:
           results:
             - |

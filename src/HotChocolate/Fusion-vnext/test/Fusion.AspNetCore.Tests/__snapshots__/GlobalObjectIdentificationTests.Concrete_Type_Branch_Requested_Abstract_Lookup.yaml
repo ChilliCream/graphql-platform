@@ -65,8 +65,17 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_f71a6d9f_3 {\n  node(id: \u0022UHJvZHVjdDox\u0022) {\n    __typename\n    ... on Product {\n      __typename\n      id\n      name\n    }\n  }\n}"}
+          document: |
+            query Op_f71a6d9f_3 {
+              node(id: "UHJvZHVjdDox") {
+                __typename
+                ... on Product {
+                  __typename
+                  id
+                  name
+                }
+              }
+            }
         response:
           results:
             - |

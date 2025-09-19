@@ -74,8 +74,14 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: |
-            {"query":"query Op_58df2c1b_1 {\n  viewer {\n    settings {\n      schema1\n    }\n  }\n}"}
+          document: |
+            query Op_58df2c1b_1 {
+              viewer {
+                settings {
+                  schema1
+                }
+              }
+            }
         response:
           results:
             - |
@@ -139,8 +145,14 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: |
-            {"query":"query Op_58df2c1b_2 {\n  viewer {\n    settings {\n      schema2\n    }\n  }\n}"}
+          document: |
+            query Op_58df2c1b_2 {
+              viewer {
+                settings {
+                  schema2
+                }
+              }
+            }
         response:
           results:
             - |

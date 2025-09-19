@@ -47,8 +47,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"subscription Op_1c7b790e_1 {\n  onReviewCreated {\n    id\n  }\n}"}
+          document: |
+            subscription Op_1c7b790e_1 {
+              onReviewCreated {
+                id
+              }
+            }
         response:
           results:
             - |

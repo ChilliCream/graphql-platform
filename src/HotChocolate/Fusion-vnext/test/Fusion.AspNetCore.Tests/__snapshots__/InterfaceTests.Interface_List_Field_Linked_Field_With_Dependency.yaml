@@ -63,8 +63,15 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_171db7a7_1 {\n  authorables {\n    __typename\n    author {\n      id\n    }\n  }\n}"}
+          document: |
+            query testQuery_171db7a7_1 {
+              authorables {
+                __typename
+                author {
+                  id
+                }
+              }
+            }
         response:
           results:
             - |
@@ -108,8 +115,26 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_171db7a7_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjY="},{"__fusion_1_id":"QXV0aG9yOjU="},{"__fusion_1_id":"QXV0aG9yOjQ="}]}
+          document: |
+            query testQuery_171db7a7_2(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                displayName
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "QXV0aG9yOjY="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjU="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjQ="
+              }
+            ]
         response:
           results:
             - |

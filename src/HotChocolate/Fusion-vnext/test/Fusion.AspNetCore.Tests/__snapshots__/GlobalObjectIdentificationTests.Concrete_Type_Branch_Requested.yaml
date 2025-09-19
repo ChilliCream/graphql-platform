@@ -41,8 +41,14 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_e567807e_3 {\n  node: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n    title\n    id\n  }\n}"}
+          document: |
+            query Op_e567807e_3 {
+              node: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
+                __typename
+                title
+                id
+              }
+            }
         response:
           results:
             - |
@@ -81,8 +87,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_e567807e_4(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    commentCount\n  }\n}","variables":{"__fusion_1_id":"RGlzY3Vzc2lvbjox"}}
+          document: |
+            query Op_e567807e_4(
+              $__fusion_1_id: ID!
+            ) {
+              discussionById(id: $__fusion_1_id) {
+                commentCount
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+            }
         response:
           results:
             - |

@@ -72,8 +72,15 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: |
-            {"query":"query Op_d8c31e9a_1 {\n  interface {\n    __typename\n    ... on Review {\n      schema1\n    }\n  }\n}"}
+          document: |
+            query Op_d8c31e9a_1 {
+              interface {
+                __typename
+                ... on Review {
+                  schema1
+                }
+              }
+            }
         response:
           results:
             - |
@@ -136,8 +143,15 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: |
-            {"query":"query Op_d8c31e9a_2 {\n  interface {\n    __typename\n    ... on Review {\n      schema2\n    }\n  }\n}"}
+          document: |
+            query Op_d8c31e9a_2 {
+              interface {
+                __typename
+                ... on Review {
+                  schema2
+                }
+              }
+            }
         response:
           results:
             - |

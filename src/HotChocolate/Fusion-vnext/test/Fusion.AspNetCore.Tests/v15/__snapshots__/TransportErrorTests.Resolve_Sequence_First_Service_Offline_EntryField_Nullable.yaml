@@ -46,8 +46,15 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_e358ecef_1 {\n  product {\n    id\n    brand {\n      id\n    }\n  }\n}"}
+          document: |
+            query Op_e358ecef_1 {
+              product {
+                id
+                brand {
+                  id
+                }
+              }
+            }
         response:
           statusCode: 500
   - name: B

@@ -43,8 +43,18 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_3d3597da_1 {\n  post {\n    __typename\n    ... on Photo {\n      id\n    }\n    ... on Discussion {\n      subgraph1\n    }\n  }\n}"}
+          document: |
+            query testQuery_3d3597da_1 {
+              post {
+                __typename
+                ... on Photo {
+                  id
+                }
+                ... on Discussion {
+                  subgraph1
+                }
+              }
+            }
         response:
           results:
             - |
@@ -72,8 +82,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_3d3597da_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":{"__fusion_1_id":"UGhvdG86MQ=="}}
+          document: |
+            query testQuery_3d3597da_2(
+              $__fusion_1_id: ID!
+            ) {
+              photoById(id: $__fusion_1_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "UGhvdG86MQ=="
+            }
         response:
           results:
             - |

@@ -46,8 +46,13 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_12015865_1 {\n  nullableTopProduct {\n    price\n    id\n  }\n}"}
+          document: |
+            query Op_12015865_1 {
+              nullableTopProduct {
+                price
+                id
+              }
+            }
         response:
           results:
             - |
@@ -75,8 +80,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_12015865_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":1}}
+          document: |
+            query Op_12015865_2(
+              $__fusion_1_id: Int!
+            ) {
+              productById(id: $__fusion_1_id) {
+                name
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
         response:
           statusCode: 500
 operationPlan:

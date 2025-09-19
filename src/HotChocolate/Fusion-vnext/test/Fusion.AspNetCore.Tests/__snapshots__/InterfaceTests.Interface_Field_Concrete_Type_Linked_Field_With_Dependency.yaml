@@ -54,8 +54,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_b4cd91a7_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
+          document: |
+            query testQuery_b4cd91a7_1 {
+              votable {
+                __typename
+                viewerCanVote
+                ... on Discussion {
+                  author {
+                    id
+                  }
+                }
+              }
+            }
         response:
           results:
             - |
@@ -86,8 +96,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_b4cd91a7_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjI="}}
+          document: |
+            query testQuery_b4cd91a7_2(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                displayName
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "QXV0aG9yOjI="
+            }
         response:
           results:
             - |

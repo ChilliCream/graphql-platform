@@ -86,8 +86,19 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: |
-            {"query":"query Op_b3a5d887_1 {\n  productById(id: 1) {\n    schema1\n    shared {\n      schema1\n      shared2 {\n        schema1\n      }\n    }\n    id\n  }\n}"}
+          document: |
+            query Op_b3a5d887_1 {
+              productById(id: 1) {
+                schema1
+                shared {
+                  schema1
+                  shared2 {
+                    schema1
+                  }
+                }
+                id
+              }
+            }
         response:
           results:
             - |
@@ -156,8 +167,18 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: |
-            {"query":"query Op_b3a5d887_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    schema2\n  }\n}","variables":{"__fusion_1_id":1}}
+          document: |
+            query Op_b3a5d887_2(
+              $__fusion_1_id: Int!
+            ) {
+              product(id: $__fusion_1_id) {
+                schema2
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
         response:
           results:
             - |
@@ -169,8 +190,20 @@ sourceSchemas:
                 }
               }
       - request:
-          body: |
-            {"query":"query Op_b3a5d887_3(\n  $__fusion_2_id: Int!\n) {\n  product(id: $__fusion_2_id) {\n    shared {\n      schema2\n    }\n  }\n}","variables":{"__fusion_2_id":1}}
+          document: |
+            query Op_b3a5d887_3(
+              $__fusion_2_id: Int!
+            ) {
+              product(id: $__fusion_2_id) {
+                shared {
+                  schema2
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": 1
+            }
         response:
           results:
             - |
@@ -184,8 +217,22 @@ sourceSchemas:
                 }
               }
       - request:
-          body: |
-            {"query":"query Op_b3a5d887_4(\n  $__fusion_3_id: Int!\n) {\n  product(id: $__fusion_3_id) {\n    shared {\n      shared2 {\n        schema2\n      }\n    }\n  }\n}","variables":{"__fusion_3_id":1}}
+          document: |
+            query Op_b3a5d887_4(
+              $__fusion_3_id: Int!
+            ) {
+              product(id: $__fusion_3_id) {
+                shared {
+                  shared2 {
+                    schema2
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_3_id": 1
+            }
         response:
           results:
             - |

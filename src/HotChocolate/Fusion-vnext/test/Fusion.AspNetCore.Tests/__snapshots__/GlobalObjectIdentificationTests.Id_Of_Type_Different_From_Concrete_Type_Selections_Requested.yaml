@@ -64,8 +64,13 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_83aee782_2 {\n  node(id: \u0022UHJvZHVjdDox\u0022) {\n    __typename\n    id\n  }\n}"}
+          document: |
+            query Op_83aee782_2 {
+              node(id: "UHJvZHVjdDox") {
+                __typename
+                id
+              }
+            }
         response:
           results:
             - |

@@ -70,8 +70,22 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_c164a236_1 {\n  posts {\n    __typename\n    ... on Photo {\n      product {\n        id\n      }\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
+          document: |
+            query testQuery_c164a236_1 {
+              posts {
+                __typename
+                ... on Photo {
+                  product {
+                    id
+                  }
+                }
+                ... on Discussion {
+                  author {
+                    id
+                  }
+                }
+              }
+            }
         response:
           results:
             - |
@@ -115,8 +129,23 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_c164a236_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDo2"},{"__fusion_2_id":"UHJvZHVjdDo0"}]}
+          document: |
+            query testQuery_c164a236_3(
+              $__fusion_2_id: ID!
+            ) {
+              productById(id: $__fusion_2_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDo2"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDo0"
+              }
+            ]
         response:
           results:
             - |
@@ -151,8 +180,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_c164a236_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    subgraph3\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjU="}}
+          document: |
+            query testQuery_c164a236_2(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                subgraph3
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "QXV0aG9yOjU="
+            }
         response:
           results:
             - |

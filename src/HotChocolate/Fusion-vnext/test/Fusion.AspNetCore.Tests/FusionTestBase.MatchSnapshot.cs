@@ -73,7 +73,7 @@ public abstract partial class FusionTestBase
         await snapshot.MatchAsync();
     }
 
-    private async Task TryWriteOperationPlanAsync(
+    private static async Task TryWriteOperationPlanAsync(
         CodeWriter writer,
         Gateway gateway,
         List<OperationResult> results)
@@ -227,10 +227,24 @@ public abstract partial class FusionTestBase
                 writer.WriteLine("- request:");
                 writer.Indent();
                 writer.Indent();
-                writer.WriteLine("body: |");
+                writer.WriteLine("document: |");
                 writer.Indent();
-                WriteMultilineString(writer, interaction.Request!);
+
+                var query = interaction.Request!.Query.GetString()!;
+                // Ensure consistent formatting
+                var document = Utf8GraphQLParser.Parse(query).ToString(indented: true);
+
+                WriteMultilineString(writer, document);
                 writer.Unindent();
+
+                if (interaction.Request!.Variables.ValueKind != JsonValueKind.Undefined)
+                {
+                    writer.WriteLine("variables: |");
+                    writer.Indent();
+                    WriteFormattedJson(writer, interaction.Request.Variables);
+                    writer.Unindent();
+                }
+
                 writer.Unindent();
 
                 if (interaction.StatusCode.HasValue)
@@ -345,6 +359,25 @@ public abstract partial class FusionTestBase
             WriteMultilineString(writer, jsonVariables);
 
             writer.Unindent();
+        }
+    }
+
+    private static void WriteFormattedJson(CodeWriter writer, JsonElement json)
+    {
+        var memoryStream = new MemoryStream();
+        var jsonWriter = new Utf8JsonWriter(memoryStream, new JsonWriterOptions { Indented = true });
+
+        json.WriteTo(jsonWriter);
+        jsonWriter.Flush();
+
+        memoryStream.Position = 0;
+
+        var reader = new StreamReader(memoryStream);
+        var line = reader.ReadLine();
+        while (line != null)
+        {
+            writer.WriteLine(line);
+            line = reader.ReadLine();
         }
     }
 

@@ -39,8 +39,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_1c1cf024_1 {\n  topProduct {\n    price\n  }\n}"}
+          document: |
+            query Op_1c1cf024_1 {
+              topProduct {
+                price
+              }
+            }
         response:
           statusCode: 500
 operationPlan:

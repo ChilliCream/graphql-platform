@@ -87,8 +87,20 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_e46e034a_1 {\n  users {\n    posts {\n      __typename\n      ... on Photo {\n        id\n      }\n      ... on Discussion {\n        subgraph1\n      }\n    }\n  }\n}"}
+          document: |
+            query testQuery_e46e034a_1 {
+              users {
+                posts {
+                  __typename
+                  ... on Photo {
+                    id
+                  }
+                  ... on Discussion {
+                    subgraph1
+                  }
+                }
+              }
+            }
         response:
           results:
             - |
@@ -162,8 +174,35 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_e46e034a_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_1_id":"UGhvdG86MTA="},{"__fusion_1_id":"UGhvdG86MTI="},{"__fusion_1_id":"UGhvdG86Nw=="},{"__fusion_1_id":"UGhvdG86OQ=="},{"__fusion_1_id":"UGhvdG86NA=="},{"__fusion_1_id":"UGhvdG86Ng=="}]}
+          document: |
+            query testQuery_e46e034a_2(
+              $__fusion_1_id: ID!
+            ) {
+              photoById(id: $__fusion_1_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UGhvdG86MTA="
+              },
+              {
+                "__fusion_1_id": "UGhvdG86MTI="
+              },
+              {
+                "__fusion_1_id": "UGhvdG86Nw=="
+              },
+              {
+                "__fusion_1_id": "UGhvdG86OQ=="
+              },
+              {
+                "__fusion_1_id": "UGhvdG86NA=="
+              },
+              {
+                "__fusion_1_id": "UGhvdG86Ng=="
+              }
+            ]
         response:
           results:
             - |

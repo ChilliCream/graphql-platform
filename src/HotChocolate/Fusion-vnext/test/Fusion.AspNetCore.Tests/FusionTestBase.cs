@@ -55,7 +55,6 @@ public abstract partial class FusionTestBase : IDisposable
                 gatewayBuilder.AddHttpClientConfiguration(
                     name,
                     new Uri("http://localhost:5000/graphql"),
-                    // TODO: Do without httpclient interaction
                     onBeforeSend: (context, node, request) =>
                     {
                         if (request.Content == null)
@@ -65,23 +64,22 @@ public abstract partial class FusionTestBase : IDisposable
 
                         var originalStream = request.Content.ReadAsStream();
 
-                        using var memoryStream = new MemoryStream();
-                        originalStream.CopyTo(memoryStream);
+                        var document = JsonDocument.Parse(originalStream);
+
+                        document.RootElement.TryGetProperty("query", out var queryProperty);
+                        document.RootElement.TryGetProperty("variables", out var variablesProperty);
 
                         if (originalStream.CanSeek)
                         {
                             originalStream.Position = 0;
                         }
-                        else
-                        {
-                            throw new InvalidOperationException();
-                        }
 
-                        memoryStream.Position = 0;
-                        using var reader = new StreamReader(memoryStream, leaveOpen: true);
-                        var content = reader.ReadToEnd();
-
-                        GetSourceSchemaInteraction(context, node).Request = content;
+                        GetSourceSchemaInteraction(context, node).Request =
+                            new SourceSchemaInteraction.SourceSchemaRequest
+                            {
+                                Query = queryProperty,
+                                Variables = variablesProperty
+                            };
                     },
                     onAfterReceive: (context, node, response)
                         => GetSourceSchemaInteraction(context, node).StatusCode = response.StatusCode,
@@ -204,11 +202,18 @@ public abstract partial class FusionTestBase : IDisposable
 
     protected class SourceSchemaInteraction
     {
-        public string? Request { get; set; }
+        public SourceSchemaRequest? Request { get; set; }
 
         public List<string> Results { get; } = [];
 
         public HttpStatusCode? StatusCode { get; set; }
+
+        public sealed class SourceSchemaRequest
+        {
+            public JsonElement Query { get; init; }
+
+            public JsonElement Variables { get; init; }
+        }
     }
 
     private sealed class SourceSchemaOptions

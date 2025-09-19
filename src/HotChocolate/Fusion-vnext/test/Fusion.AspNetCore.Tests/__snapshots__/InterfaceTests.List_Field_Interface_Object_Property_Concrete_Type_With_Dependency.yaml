@@ -68,8 +68,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_7a8e1f91_1 {\n  wrappers {\n    votable {\n      __typename\n      viewerCanVote\n      ... on Discussion {\n        id\n      }\n    }\n  }\n}"}
+          document: |
+            query testQuery_7a8e1f91_1 {
+              wrappers {
+                votable {
+                  __typename
+                  viewerCanVote
+                  ... on Discussion {
+                    id
+                  }
+                }
+              }
+            }
         response:
           results:
             - |
@@ -116,8 +126,26 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_7a8e1f91_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    viewerRating\n  }\n}","variables":[{"__fusion_1_id":"RGlzY3Vzc2lvbjo2"},{"__fusion_1_id":"RGlzY3Vzc2lvbjo1"},{"__fusion_1_id":"RGlzY3Vzc2lvbjo0"}]}
+          document: |
+            query testQuery_7a8e1f91_2(
+              $__fusion_1_id: ID!
+            ) {
+              discussionById(id: $__fusion_1_id) {
+                viewerRating
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "RGlzY3Vzc2lvbjo2"
+              },
+              {
+                "__fusion_1_id": "RGlzY3Vzc2lvbjo1"
+              },
+              {
+                "__fusion_1_id": "RGlzY3Vzc2lvbjo0"
+              }
+            ]
         response:
           results:
             - |

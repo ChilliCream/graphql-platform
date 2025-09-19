@@ -76,8 +76,18 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: |
-            {"query":"query Op_c8e1a8bf_1 {\n  unsharedInterface {\n    __typename\n    ... on Product {\n      shared {\n        schema1\n      }\n      id\n    }\n  }\n}"}
+          document: |
+            query Op_c8e1a8bf_1 {
+              unsharedInterface {
+                __typename
+                ... on Product {
+                  shared {
+                    schema1
+                  }
+                  id
+                }
+              }
+            }
         response:
           results:
             - |
@@ -143,8 +153,20 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: |
-            {"query":"query Op_c8e1a8bf_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    shared {\n      schema2\n    }\n  }\n}","variables":{"__fusion_1_id":2}}
+          document: |
+            query Op_c8e1a8bf_2(
+              $__fusion_1_id: Int!
+            ) {
+              product(id: $__fusion_1_id) {
+                shared {
+                  schema2
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 2
+            }
         response:
           results:
             - |

@@ -39,8 +39,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_72167d7d_3 {\n  node: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n  }\n}"}
+          document: |
+            query Op_72167d7d_3 {
+              node: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
+                __typename
+              }
+            }
         response:
           results:
             - |

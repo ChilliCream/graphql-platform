@@ -84,8 +84,15 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_1f7d6449_1 {\n  books {\n    nodes {\n      title\n      id\n    }\n  }\n}"}
+          document: |
+            query Op_1f7d6449_1 {
+              books {
+                nodes {
+                  title
+                  id
+                }
+              }
+            }
         response:
           results:
             - |
@@ -130,8 +137,29 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_1f7d6449_4(\n  $__fusion_4_id: Int!\n) {\n  book(id: $__fusion_4_id) {\n    dimension {\n      width\n      height\n    }\n  }\n}","variables":[{"__fusion_4_id":1},{"__fusion_4_id":2},{"__fusion_4_id":3}]}
+          document: |
+            query Op_1f7d6449_4(
+              $__fusion_4_id: Int!
+            ) {
+              book(id: $__fusion_4_id) {
+                dimension {
+                  width
+                  height
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_4_id": 1
+              },
+              {
+                "__fusion_4_id": 2
+              },
+              {
+                "__fusion_4_id": 3
+              }
+            ]
         response:
           results:
             - |
@@ -189,8 +217,42 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_1f7d6449_3(\n  $__fusion_2_dimension: BookDimensionInput!\n  $__fusion_3_id: Int!\n) {\n  book(id: $__fusion_3_id) {\n    estimatedDelivery(dimension: $__fusion_2_dimension)\n  }\n}","variables":[{"__fusion_2_dimension":{"title":"The Great Gatsby","width":100,"height":200},"__fusion_3_id":1},{"__fusion_2_dimension":{"title":"1984","width":150,"height":300},"__fusion_3_id":2},{"__fusion_2_dimension":{"title":"The Catcher in the Rye","width":200,"height":400},"__fusion_3_id":3}]}
+          document: |
+            query Op_1f7d6449_3(
+              $__fusion_2_dimension: BookDimensionInput!
+              $__fusion_3_id: Int!
+            ) {
+              book(id: $__fusion_3_id) {
+                estimatedDelivery(dimension: $__fusion_2_dimension)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_dimension": {
+                  "title": "The Great Gatsby",
+                  "width": 100,
+                  "height": 200
+                },
+                "__fusion_3_id": 1
+              },
+              {
+                "__fusion_2_dimension": {
+                  "title": "1984",
+                  "width": 150,
+                  "height": 300
+                },
+                "__fusion_3_id": 2
+              },
+              {
+                "__fusion_2_dimension": {
+                  "title": "The Catcher in the Rye",
+                  "width": 200,
+                  "height": 400
+                },
+                "__fusion_3_id": 3
+              }
+            ]
         response:
           results:
             - |

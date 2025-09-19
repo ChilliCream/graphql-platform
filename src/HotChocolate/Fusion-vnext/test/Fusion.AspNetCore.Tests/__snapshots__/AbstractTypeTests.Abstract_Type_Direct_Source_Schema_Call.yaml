@@ -91,8 +91,20 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_45eb4c09_1 {\n  interfaceConnection(first: 2) {\n    edges {\n      node {\n        __typename\n        id\n      }\n    }\n    pageInfo {\n      hasNextPage\n    }\n  }\n}"}
+          document: |
+            query Op_45eb4c09_1 {
+              interfaceConnection(first: 2) {
+                edges {
+                  node {
+                    __typename
+                    id
+                  }
+                }
+                pageInfo {
+                  hasNextPage
+                }
+              }
+            }
         response:
           results:
             - |

@@ -50,8 +50,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_f3bb7334_2 {\n  exclusiveSubgraphA {\n    __typename\n  }\n}"}
+          document: |
+            query testQuery_f3bb7334_2 {
+              exclusiveSubgraphA {
+                __typename
+              }
+            }
         response:
           results:
             - |
@@ -81,8 +85,14 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_f3bb7334_1 {\n  viewer {\n    subType {\n      subgraphB\n    }\n  }\n}"}
+          document: |
+            query testQuery_f3bb7334_1 {
+              viewer {
+                subType {
+                  subgraphB
+                }
+              }
+            }
         response:
           results:
             - |

@@ -73,8 +73,25 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_70eb1308_5(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Item1 {\n      __typename\n      id\n      products {\n        id\n      }\n    }\n  }\n}","variables":{"id":"SXRlbTE6MQ=="}}
+          document: |
+            query testQuery_70eb1308_5(
+              $id: ID!
+            ) {
+              node(id: $id) {
+                __typename
+                ... on Item1 {
+                  __typename
+                  id
+                  products {
+                    id
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "id": "SXRlbTE6MQ=="
+            }
         response:
           results:
             - |
@@ -117,8 +134,29 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_70eb1308_6(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDox"},{"__fusion_2_id":"UHJvZHVjdDoy"},{"__fusion_2_id":"UHJvZHVjdDoz"}]}
+          document: |
+            query testQuery_70eb1308_6(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoz"
+              }
+            ]
         response:
           results:
             - |

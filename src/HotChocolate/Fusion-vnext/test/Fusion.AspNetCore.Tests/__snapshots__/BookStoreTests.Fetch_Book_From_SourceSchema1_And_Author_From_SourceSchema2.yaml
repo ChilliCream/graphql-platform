@@ -75,8 +75,15 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_b15d3abc_1 {\n  bookById(id: 1) {\n    title\n    author {\n      id\n    }\n  }\n}"}
+          document: |
+            query Op_b15d3abc_1 {
+              bookById(id: 1) {
+                title
+                author {
+                  id
+                }
+              }
+            }
         response:
           results:
             - |
@@ -145,8 +152,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_b15d3abc_2(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":1}}
+          document: |
+            query Op_b15d3abc_2(
+              $__fusion_1_id: Int!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                name
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
         response:
           results:
             - |

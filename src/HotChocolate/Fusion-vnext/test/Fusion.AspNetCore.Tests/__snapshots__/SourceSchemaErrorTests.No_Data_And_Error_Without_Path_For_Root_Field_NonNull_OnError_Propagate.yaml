@@ -38,8 +38,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_97fd38fc_1 {\n  productById(id: 1) {\n    name\n  }\n}"}
+          document: |
+            query Op_97fd38fc_1 {
+              productById(id: 1) {
+                name
+              }
+            }
         response:
           statusCode: 400
           results:

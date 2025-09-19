@@ -71,8 +71,17 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_bdd3c6f6_1 {\n  wrappers {\n    authorable {\n      __typename\n      author {\n        id\n      }\n    }\n  }\n}"}
+          document: |
+            query testQuery_bdd3c6f6_1 {
+              wrappers {
+                authorable {
+                  __typename
+                  author {
+                    id
+                  }
+                }
+              }
+            }
         response:
           results:
             - |
@@ -122,8 +131,26 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_bdd3c6f6_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjc="},{"__fusion_1_id":"QXV0aG9yOjg="},{"__fusion_1_id":"QXV0aG9yOjk="}]}
+          document: |
+            query testQuery_bdd3c6f6_2(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                displayName
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "QXV0aG9yOjc="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjg="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjk="
+              }
+            ]
         response:
           results:
             - |

@@ -35,5 +35,9 @@ sourceSchemas:
     isTimingOut: true
     interactions:
       - request:
-          body: |
-            {"query":"query Op_486d07e5_1 {\n  topProduct {\n    id\n  }\n}"}
+          document: |
+            query Op_486d07e5_1 {
+              topProduct {
+                id
+              }
+            }

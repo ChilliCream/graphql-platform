@@ -55,8 +55,16 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_00fdde4e_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      title\n    }\n  }\n}"}
+          document: |
+            query testQuery_00fdde4e_1 {
+              votables {
+                __typename
+                viewerCanVote
+                ... on Discussion {
+                  title
+                }
+              }
+            }
         response:
           results:
             - |

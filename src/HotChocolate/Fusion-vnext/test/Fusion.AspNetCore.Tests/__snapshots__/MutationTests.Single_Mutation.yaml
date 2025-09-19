@@ -51,8 +51,14 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"mutation Op_8adeedac_1 {\n  a: createBook(input: { title: \u0022Book1\u0022 }) {\n    book {\n      id\n    }\n  }\n}"}
+          document: |
+            mutation Op_8adeedac_1 {
+              a: createBook(input: { title: "Book1" }) {
+                book {
+                  id
+                }
+              }
+            }
         response:
           results:
             - |
@@ -81,8 +87,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_8adeedac_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}","variables":{"__fusion_1_id":1}}
+          document: |
+            query Op_8adeedac_2(
+              $__fusion_1_id: Int!
+            ) {
+              bookById(id: $__fusion_1_id) {
+                author
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
         response:
           results:
             - |

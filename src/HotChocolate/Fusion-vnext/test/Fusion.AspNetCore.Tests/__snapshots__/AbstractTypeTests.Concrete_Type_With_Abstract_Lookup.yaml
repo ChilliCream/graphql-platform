@@ -81,8 +81,13 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_94874bbd_1 {\n  authorById(id: 1) {\n    name\n    id\n  }\n}"}
+          document: |
+            query Op_94874bbd_1 {
+              authorById(id: 1) {
+                name
+                id
+              }
+            }
         response:
           results:
             - |
@@ -120,8 +125,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_94874bbd_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
+          document: |
+            query Op_94874bbd_2(
+              $__fusion_1_id: Int!
+            ) {
+              otherInterface(id: $__fusion_1_id) {
+                __typename
+                ... on Author {
+                  age
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
         response:
           results:
             - |

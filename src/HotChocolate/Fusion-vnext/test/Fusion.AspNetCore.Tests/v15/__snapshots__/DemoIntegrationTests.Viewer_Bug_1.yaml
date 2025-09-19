@@ -42,8 +42,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_65ad0daf_2 {\n  exclusiveSubgraphA {\n    __typename\n  }\n}"}
+          document: |
+            query testQuery_65ad0daf_2 {
+              exclusiveSubgraphA {
+                __typename
+              }
+            }
         response:
           results:
             - |
@@ -69,8 +73,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_65ad0daf_1 {\n  viewer {\n    exclusiveSubgraphB\n  }\n}"}
+          document: |
+            query testQuery_65ad0daf_1 {
+              viewer {
+                exclusiveSubgraphB
+              }
+            }
         response:
           results:
             - |

@@ -35,8 +35,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_97b6c9a3_1 {\n  viewer {\n    name\n  }\n}"}
+          document: |
+            query Op_97b6c9a3_1 {
+              viewer {
+                name
+              }
+            }
         response:
           statusCode: 500
   - name: B
@@ -54,8 +58,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_97b6c9a3_2 {\n  viewer {\n    userId\n  }\n}"}
+          document: |
+            query Op_97b6c9a3_2 {
+              viewer {
+                userId
+              }
+            }
         response:
           statusCode: 500
 operationPlan:

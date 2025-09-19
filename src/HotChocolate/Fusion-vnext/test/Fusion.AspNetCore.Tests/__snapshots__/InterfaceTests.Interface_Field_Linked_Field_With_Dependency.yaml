@@ -49,8 +49,15 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_d44063d8_1 {\n  authorable {\n    __typename\n    author {\n      id\n    }\n  }\n}"}
+          document: |
+            query testQuery_d44063d8_1 {
+              authorable {
+                __typename
+                author {
+                  id
+                }
+              }
+            }
         response:
           results:
             - |
@@ -80,8 +87,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_d44063d8_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjI="}}
+          document: |
+            query testQuery_d44063d8_2(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                displayName
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "QXV0aG9yOjI="
+            }
         response:
           results:
             - |

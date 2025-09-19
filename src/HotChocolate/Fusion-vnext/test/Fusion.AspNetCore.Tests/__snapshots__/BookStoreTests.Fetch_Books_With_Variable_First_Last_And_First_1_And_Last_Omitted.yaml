@@ -90,8 +90,25 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query GetBooks_938ff9c0_1(\n  $first: Int\n  $last: Int\n) {\n  books(first: $first, last: $last) {\n    nodes {\n      id\n      title\n      author {\n        id\n      }\n    }\n  }\n}","variables":{"first":1}}
+          document: |
+            query GetBooks_938ff9c0_1(
+              $first: Int
+              $last: Int
+            ) {
+              books(first: $first, last: $last) {
+                nodes {
+                  id
+                  title
+                  author {
+                    id
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "first": 1
+            }
         response:
           results:
             - |
@@ -165,8 +182,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query GetBooks_938ff9c0_2(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":1}}
+          document: |
+            query GetBooks_938ff9c0_2(
+              $__fusion_1_id: Int!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                name
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
         response:
           results:
             - |

@@ -35,8 +35,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_7c1d9f5d_4(\n  $__fusion_1_title: String!\n) {\n  discussionByName(title: $__fusion_1_title) {\n    commentCount\n  }\n}","variables":{"__fusion_1_title":"Discussion: RGlzY3Vzc2lvbjox"}}
+          document: |
+            query Op_7c1d9f5d_4(
+              $__fusion_1_title: String!
+            ) {
+              discussionByName(title: $__fusion_1_title) {
+                commentCount
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_title": "Discussion: RGlzY3Vzc2lvbjox"
+            }
         response:
           results:
             - |
@@ -68,8 +78,13 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_7c1d9f5d_3 {\n  node: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n    title\n  }\n}"}
+          document: |
+            query Op_7c1d9f5d_3 {
+              node: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
+                __typename
+                title
+              }
+            }
         response:
           results:
             - |

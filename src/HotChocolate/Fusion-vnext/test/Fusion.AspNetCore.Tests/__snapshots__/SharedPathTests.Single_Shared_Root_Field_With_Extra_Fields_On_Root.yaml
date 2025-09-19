@@ -74,8 +74,13 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: |
-            {"query":"query Op_4a75abf3_1 {\n  viewer {\n    schema1\n  }\n  schema1\n}"}
+          document: |
+            query Op_4a75abf3_1 {
+              viewer {
+                schema1
+              }
+              schema1
+            }
         response:
           results:
             - |
@@ -138,8 +143,10 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
-          body: |
-            {"query":"query Op_4a75abf3_2 {\n  schema2\n}"}
+          document: |
+            query Op_4a75abf3_2 {
+              schema2
+            }
         response:
           results:
             - |
@@ -149,8 +156,12 @@ sourceSchemas:
                 }
               }
       - request:
-          body: |
-            {"query":"query Op_4a75abf3_3 {\n  viewer {\n    schema2\n  }\n}"}
+          document: |
+            query Op_4a75abf3_3 {
+              viewer {
+                schema2
+              }
+            }
         response:
           results:
             - |

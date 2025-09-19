@@ -89,8 +89,33 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_b1ca18eb_4(\n  $arg2: String\n  $__fusion_3_id: ID!\n) {\n  node(id: $__fusion_3_id) {\n    __typename\n    ... on User {\n      displayName(arg: $arg2)\n    }\n  }\n}","variables":[{"arg2":"def","__fusion_3_id":"VXNlcjoxMw=="},{"arg2":"def","__fusion_3_id":"VXNlcjoxMg=="},{"arg2":"def","__fusion_3_id":"VXNlcjoxMQ=="}]}
+          document: |
+            query Op_b1ca18eb_4(
+              $arg2: String
+              $__fusion_3_id: ID!
+            ) {
+              node(id: $__fusion_3_id) {
+                __typename
+                ... on User {
+                  displayName(arg: $arg2)
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "arg2": "def",
+                "__fusion_3_id": "VXNlcjoxMw=="
+              },
+              {
+                "arg2": "def",
+                "__fusion_3_id": "VXNlcjoxMg=="
+              },
+              {
+                "arg2": "def",
+                "__fusion_3_id": "VXNlcjoxMQ=="
+              }
+            ]
         response:
           results:
             - |
@@ -142,8 +167,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_b1ca18eb_1 {\n  userBySlug(slug: \u0022me\u0022) {\n    id\n  }\n}"}
+          document: |
+            query Op_b1ca18eb_1 {
+              userBySlug(slug: "me") {
+                id
+              }
+            }
         response:
           results:
             - |
@@ -155,8 +184,33 @@ sourceSchemas:
                 }
               }
       - request:
-          body: |
-            {"query":"query Op_b1ca18eb_3(\n  $arg1: String\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on User {\n      relativeUrl(arg: $arg1)\n    }\n  }\n}","variables":[{"arg1":"abc","__fusion_2_id":"VXNlcjoxMw=="},{"arg1":"abc","__fusion_2_id":"VXNlcjoxMg=="},{"arg1":"abc","__fusion_2_id":"VXNlcjoxMQ=="}]}
+          document: |
+            query Op_b1ca18eb_3(
+              $arg1: String
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on User {
+                  relativeUrl(arg: $arg1)
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "arg1": "abc",
+                "__fusion_2_id": "VXNlcjoxMw=="
+              },
+              {
+                "arg1": "abc",
+                "__fusion_2_id": "VXNlcjoxMg=="
+              },
+              {
+                "arg1": "abc",
+                "__fusion_2_id": "VXNlcjoxMQ=="
+              }
+            ]
         response:
           results:
             - |
@@ -224,8 +278,31 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_b1ca18eb_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on User {\n      feedbacks {\n        edges {\n          node {\n            feedback {\n              buyer {\n                id\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}","variables":{"__fusion_1_id":"VXNlcjox"}}
+          document: |
+            query Op_b1ca18eb_2(
+              $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on User {
+                  feedbacks {
+                    edges {
+                      node {
+                        feedback {
+                          buyer {
+                            id
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjox"
+            }
         response:
           results:
             - |

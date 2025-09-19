@@ -79,8 +79,22 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_a7ffad65_1 {\n  wrappers {\n    authorable {\n      __typename\n      author {\n        id\n      }\n      ... on Discussion {\n        author {\n          id\n        }\n      }\n    }\n  }\n}"}
+          document: |
+            query testQuery_a7ffad65_1 {
+              wrappers {
+                authorable {
+                  __typename
+                  author {
+                    id
+                  }
+                  ... on Discussion {
+                    author {
+                      id
+                    }
+                  }
+                }
+              }
+            }
         response:
           results:
             - |
@@ -131,8 +145,26 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_a7ffad65_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    email\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjc="},{"__fusion_1_id":"QXV0aG9yOjg="},{"__fusion_1_id":"QXV0aG9yOjk="}]}
+          document: |
+            query testQuery_a7ffad65_2(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                email
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "QXV0aG9yOjc="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjg="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjk="
+              }
+            ]
         response:
           results:
             - |
@@ -160,8 +192,26 @@ sourceSchemas:
                 }
               }
       - request:
-          body: |
-            {"query":"query testQuery_a7ffad65_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    displayName\n  }\n}","variables":[{"__fusion_2_id":"QXV0aG9yOjc="},{"__fusion_2_id":"QXV0aG9yOjg="},{"__fusion_2_id":"QXV0aG9yOjk="}]}
+          document: |
+            query testQuery_a7ffad65_3(
+              $__fusion_2_id: ID!
+            ) {
+              authorById(id: $__fusion_2_id) {
+                displayName
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "QXV0aG9yOjc="
+              },
+              {
+                "__fusion_2_id": "QXV0aG9yOjg="
+              },
+              {
+                "__fusion_2_id": "QXV0aG9yOjk="
+              }
+            ]
         response:
           results:
             - |

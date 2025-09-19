@@ -71,8 +71,16 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_577373a9_1(\n  $s: String!\n) {\n  formatTitle(title: $s)\n}","variables":{"s":""}}
+          document: |
+            query Op_577373a9_1(
+              $s: String!
+            ) {
+              formatTitle(title: $s)
+            }
+          variables: |
+            {
+              "s": ""
+            }
         response:
           results:
             - |

@@ -83,8 +83,14 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_710e4ed3_1 {\n  books {\n    nodes {\n      __typename\n    }\n  }\n}"}
+          document: |
+            query Op_710e4ed3_1 {
+              books {
+                nodes {
+                  __typename
+                }
+              }
+            }
         response:
           results:
             - |

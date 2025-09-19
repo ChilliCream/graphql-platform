@@ -41,8 +41,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_dc7df637_3 {\n  viewer {\n    subgraphA\n  }\n}"}
+          document: |
+            query Op_dc7df637_3 {
+              viewer {
+                subgraphA
+              }
+            }
         response:
           results:
             - |
@@ -68,8 +72,12 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_dc7df637_2 {\n  viewer {\n    subgraphB\n  }\n}"}
+          document: |
+            query Op_dc7df637_2 {
+              viewer {
+                subgraphB
+              }
+            }
         response:
           results:
             - |
@@ -96,8 +104,13 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_dc7df637_1 {\n  subgraphC {\n    someField\n    anotherField\n  }\n}"}
+          document: |
+            query Op_dc7df637_1 {
+              subgraphC {
+                someField
+                anotherField
+              }
+            }
         response:
           results:
             - |

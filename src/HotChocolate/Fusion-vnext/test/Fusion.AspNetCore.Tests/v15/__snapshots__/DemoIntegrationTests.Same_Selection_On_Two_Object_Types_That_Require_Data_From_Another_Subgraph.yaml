@@ -62,8 +62,19 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_e2224f1b_1 {\n  item1 {\n    product {\n      id\n    }\n  }\n  item2 {\n    product {\n      id\n    }\n  }\n}"}
+          document: |
+            query Op_e2224f1b_1 {
+              item1 {
+                product {
+                  id
+                }
+              }
+              item2 {
+                product {
+                  id
+                }
+              }
+            }
         response:
           results:
             - |
@@ -102,8 +113,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_e2224f1b_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":{"__fusion_1_id":"UHJvZHVjdDoz"}}
+          document: |
+            query Op_e2224f1b_2(
+              $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "UHJvZHVjdDoz"
+            }
         response:
           results:
             - |
@@ -116,8 +140,21 @@ sourceSchemas:
                 }
               }
       - request:
-          body: |
-            {"query":"query Op_e2224f1b_3(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":{"__fusion_2_id":"UHJvZHVjdDo0"}}
+          document: |
+            query Op_e2224f1b_3(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "UHJvZHVjdDo0"
+            }
         response:
           results:
             - |

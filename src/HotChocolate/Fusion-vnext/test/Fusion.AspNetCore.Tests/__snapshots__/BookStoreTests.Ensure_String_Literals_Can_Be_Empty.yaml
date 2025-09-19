@@ -65,8 +65,10 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_db37b9bf_1 {\n  formatTitle(title: \u0022\u0022)\n}"}
+          document: |
+            query Op_db37b9bf_1 {
+              formatTitle(title: "")
+            }
         response:
           results:
             - |

@@ -83,8 +83,25 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_f7a0a31d_6(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Item1 {\n      __typename\n      id\n      products {\n        id\n      }\n    }\n  }\n}","variables":{"id":"SXRlbTE6MQ=="}}
+          document: |
+            query testQuery_f7a0a31d_6(
+              $id: ID!
+            ) {
+              node(id: $id) {
+                __typename
+                ... on Item1 {
+                  __typename
+                  id
+                  products {
+                    id
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "id": "SXRlbTE6MQ=="
+            }
         response:
           results:
             - |
@@ -127,8 +144,29 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_f7a0a31d_7(\n  $__fusion_3_id: ID!\n) {\n  node(id: $__fusion_3_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":[{"__fusion_3_id":"UHJvZHVjdDox"},{"__fusion_3_id":"UHJvZHVjdDoy"},{"__fusion_3_id":"UHJvZHVjdDoz"}]}
+          document: |
+            query testQuery_f7a0a31d_7(
+              $__fusion_3_id: ID!
+            ) {
+              node(id: $__fusion_3_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_3_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_3_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_3_id": "UHJvZHVjdDoz"
+              }
+            ]
         response:
           results:
             - |

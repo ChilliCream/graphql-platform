@@ -54,8 +54,15 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_e358ecef_1 {\n  product {\n    id\n    brand {\n      id\n    }\n  }\n}"}
+          document: |
+            query Op_e358ecef_1 {
+              product {
+                id
+                brand {
+                  id
+                }
+              }
+            }
         response:
           results:
             - |
@@ -85,8 +92,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_e358ecef_2(\n  $__fusion_1_id: ID!\n) {\n  brandById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":"QnJhbmQ6Mg=="}}
+          document: |
+            query Op_e358ecef_2(
+              $__fusion_1_id: ID!
+            ) {
+              brandById(id: $__fusion_1_id) {
+                name
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "QnJhbmQ6Mg=="
+            }
         response:
           results:
             - |

@@ -58,8 +58,22 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_9f626641_1 {\n  post {\n    __typename\n    ... on Photo {\n      product {\n        id\n      }\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
+          document: |
+            query testQuery_9f626641_1 {
+              post {
+                __typename
+                ... on Photo {
+                  product {
+                    id
+                  }
+                }
+                ... on Discussion {
+                  author {
+                    id
+                  }
+                }
+              }
+            }
         response:
           results:
             - |
@@ -89,8 +103,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_9f626641_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":{"__fusion_2_id":"UHJvZHVjdDoy"}}
+          document: |
+            query testQuery_9f626641_3(
+              $__fusion_2_id: ID!
+            ) {
+              productById(id: $__fusion_2_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "UHJvZHVjdDoy"
+            }
         response:
           results:
             - |

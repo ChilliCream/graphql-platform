@@ -84,8 +84,15 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_6721fc4f_1 {\n  books {\n    nodes {\n      id\n      title\n    }\n  }\n}"}
+          document: |
+            query Op_6721fc4f_1 {
+              books {
+                nodes {
+                  id
+                  title
+                }
+              }
+            }
         response:
           results:
             - |
@@ -168,8 +175,34 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query Op_6721fc4f_2(\n  $__fusion_1_id: Int!\n  $__fusion_2_title: String!\n) {\n  bookById(id: $__fusion_1_id) {\n    idAndTitle(title: $__fusion_2_title)\n  }\n}","variables":[{"__fusion_1_id":1,"__fusion_2_title":"C# in Depth"},{"__fusion_1_id":2,"__fusion_2_title":"The Lord of the Rings"},{"__fusion_1_id":3,"__fusion_2_title":"The Hobbit"},{"__fusion_1_id":4,"__fusion_2_title":"The Silmarillion"}]}
+          document: |
+            query Op_6721fc4f_2(
+              $__fusion_1_id: Int!
+              $__fusion_2_title: String!
+            ) {
+              bookById(id: $__fusion_1_id) {
+                idAndTitle(title: $__fusion_2_title)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": 1,
+                "__fusion_2_title": "C# in Depth"
+              },
+              {
+                "__fusion_1_id": 2,
+                "__fusion_2_title": "The Lord of the Rings"
+              },
+              {
+                "__fusion_1_id": 3,
+                "__fusion_2_title": "The Hobbit"
+              },
+              {
+                "__fusion_1_id": 4,
+                "__fusion_2_title": "The Silmarillion"
+              }
+            ]
         response:
           results:
             - |

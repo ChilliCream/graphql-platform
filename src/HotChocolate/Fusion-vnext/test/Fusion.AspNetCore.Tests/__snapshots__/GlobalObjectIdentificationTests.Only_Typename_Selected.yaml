@@ -42,8 +42,18 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            {"query":"query testQuery_539ebaa0_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}","variables":{"id":"RGlzY3Vzc2lvbjox"}}
+          document: |
+            query testQuery_539ebaa0_2(
+              $id: ID!
+            ) {
+              node(id: $id) {
+                __typename
+              }
+            }
+          variables: |
+            {
+              "id": "RGlzY3Vzc2lvbjox"
+            }
         response:
           results:
             - |
