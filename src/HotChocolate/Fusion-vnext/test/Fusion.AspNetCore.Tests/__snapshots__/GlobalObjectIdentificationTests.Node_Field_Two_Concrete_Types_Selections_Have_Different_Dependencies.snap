@@ -1,0 +1,150 @@
+{
+  "data": {
+    "node": {
+      "product": {
+        "id": "UHJvZHVjdDox",
+        "name": "Product: UHJvZHVjdDox"
+      }
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "9a206f1fc3a181a27c41623d974af12c0752d521a080a11390b46982d41dfc6d",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename @fusion__requirement\n    ... on Discussion {\n      product {\n        id\n        id @fusion__requirement\n        name\n      }\n    }\n    ... on Review {\n      product {\n        name\n        id @fusion__requirement\n      }\n    }\n  }\n}",
+          "id": "c0cdf5d72861e2b024c2d1ea2305cc18",
+          "hash": "c0cdf5d72861e2b024c2d1ea2305cc18",
+          "shortHash": "c0cdf5d7"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Node",
+            "idValue": "$id",
+            "responseName": "node",
+            "branches": {
+              "Discussion": 5,
+              "Review": 3
+            },
+            "fallback": 2
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "operation": {
+              "name": "testQuery_c0cdf5d7_2",
+              "kind": "Query",
+              "document": "query testQuery_c0cdf5d7_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}",
+              "hash": "5e360ecaf8cb161758322a797d42bca77d09ca5791c9538853c6fbd7b342d62b",
+              "shortHash": "5e360eca"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_c0cdf5d7_3",
+              "kind": "Query",
+              "document": "query testQuery_c0cdf5d7_3(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Review {\n      __typename\n      product {\n        id\n      }\n    }\n  }\n}",
+              "hash": "0788fdb6a62811c061ca350ec15047eeda653cf630c21cd8f0b1f341fd2fb6e8",
+              "shortHash": "0788fdb6"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "type": "Operation",
+            "schema": "C",
+            "operation": {
+              "name": "testQuery_c0cdf5d7_4",
+              "kind": "Query",
+              "document": "query testQuery_c0cdf5d7_4(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}",
+              "hash": "51cd71307af0db564d4aa65dc534a0aa90360b90037307aeee2b4196fdf4e7d7",
+              "shortHash": "51cd7130"
+            },
+            "responseNames": [
+              "name"
+            ],
+            "source": "$.node<Product>",
+            "target": "$.node<Review>.product",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.node<Review>.product",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              3
+            ]
+          },
+          {
+            "id": 5,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_c0cdf5d7_5",
+              "kind": "Query",
+              "document": "query testQuery_c0cdf5d7_5(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Discussion {\n      __typename\n      product {\n        id\n      }\n    }\n  }\n}",
+              "hash": "b55a8c54785cbeab70eebba9a3ce941593af5f813cc5d036bedfc87ce491beab",
+              "shortHash": "b55a8c54"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 6,
+            "type": "Operation",
+            "schema": "C",
+            "operation": {
+              "name": "testQuery_c0cdf5d7_6",
+              "kind": "Query",
+              "document": "query testQuery_c0cdf5d7_6(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}",
+              "hash": "7c054be827cc7a3df439e1af4599320733940443cfdda49ae3b6e4d862467179",
+              "shortHash": "7c054be8"
+            },
+            "responseNames": [
+              "name"
+            ],
+            "source": "$.node<Product>",
+            "target": "$.node<Discussion>.product",
+            "requirements": [
+              {
+                "name": "__fusion_2_id",
+                "type": "ID!",
+                "path": "$.node<Discussion>.product",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              5
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

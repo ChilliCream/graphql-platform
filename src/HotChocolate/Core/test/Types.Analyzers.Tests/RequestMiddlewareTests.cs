@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace HotChocolate.Types;
 
 public class RequestMiddlewareTests

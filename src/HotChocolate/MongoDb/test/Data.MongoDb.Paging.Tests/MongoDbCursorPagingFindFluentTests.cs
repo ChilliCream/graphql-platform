@@ -106,8 +106,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
-                foos(first: 2 after: ""MQ=="") {
+            """
+            {
+                foos(first: 2, after: "MQ==") {
                     edges {
                         node {
                             bar
@@ -124,7 +125,8 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                         endCursor
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         await Snapshot
@@ -141,8 +143,9 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
-                foos(last: 1 before: ""NA=="") {
+            """
+            {
+                foos(last: 1, before: "NA==") {
                     edges {
                         node {
                             bar
@@ -159,7 +162,8 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                         endCursor
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         await Snapshot

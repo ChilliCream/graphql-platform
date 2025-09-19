@@ -7,7 +7,7 @@ type Foo {
 }
 
 type QueryDateTime1 {
-  foo: Foo
+  foo: Foo!
 }
 
 "The `LocalDateTime` scalar type is a local date\/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`."

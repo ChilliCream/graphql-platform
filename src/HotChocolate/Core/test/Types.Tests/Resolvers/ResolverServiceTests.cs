@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;

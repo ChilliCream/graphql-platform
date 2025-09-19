@@ -1,0 +1,40 @@
+{
+  "data": {
+    "post": {
+      "__typename": "Photo"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "6be23472c6b04db4222a44da96f7b3a18b7c785574127024752f757c2859f0db",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  post {\n    __typename\n  }\n}",
+          "id": "a239ceba1052d3ed2dc1551c0438c0c4",
+          "hash": "a239ceba1052d3ed2dc1551c0438c0c4",
+          "shortHash": "a239ceba"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_a239ceba_1",
+              "kind": "Query",
+              "document": "query testQuery_a239ceba_1 {\n  post {\n    __typename\n  }\n}",
+              "hash": "95e11d40c2ca85ef527a33c929c03aa4989f3fc98800cf1274c69edc13ee32d5",
+              "shortHash": "95e11d40"
+            },
+            "responseNames": [
+              "post"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

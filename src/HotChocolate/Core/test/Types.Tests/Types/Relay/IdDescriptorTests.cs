@@ -29,7 +29,7 @@ public class IdDescriptorTests
                                     guidId(id: $guidId)
                                 }")
                         .SetVariableValues(
-                            new Dictionary<string, object>
+                            new Dictionary<string, object?>
                             {
                                 { "intId", intId },
                                 { "stringId", stringId },
@@ -66,7 +66,7 @@ public class IdDescriptorTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object>
+                        .SetVariableValues(new Dictionary<string, object?>
                         {
                             { "someId", someId },
                             { "anotherId", anotherId }
@@ -235,7 +235,7 @@ public class IdDescriptorTests
                 .Argument("id", a => a.ID());
 
             descriptor
-                .Field(t => t.StringId(null))
+                .Field(t => t.StringId(null!))
                 .Argument("id", a => a.ID());
 
             descriptor
@@ -243,7 +243,7 @@ public class IdDescriptorTests
                 .Argument("id", a => a.ID<Another>());
 
             descriptor
-                .Field(t => t.Foo(null))
+                .Field(t => t.Foo(null!))
                 .Argument("input", a => a.Type<FooInputType>())
                 .Type<FooPayloadInterfaceType>();
         }
@@ -304,14 +304,14 @@ public class IdDescriptorTests
 
     public class FooInput
     {
-        public string SomeId { get; set; }
-        public string AnotherId { get; set; }
+        public required string SomeId { get; set; }
+        public required string AnotherId { get; set; }
     }
 
     public class FooPayload : IFooPayload
     {
-        public string SomeId { get; set; }
-        public string AnotherId { get; set; }
+        public required string SomeId { get; set; }
+        public required string AnotherId { get; set; }
     }
 
     public interface IFooPayload

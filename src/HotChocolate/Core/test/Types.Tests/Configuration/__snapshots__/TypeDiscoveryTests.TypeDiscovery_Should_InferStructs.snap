@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: QueryTypeWithStruct
 }
 
@@ -10,10 +10,10 @@ type InferStruct {
 type QueryTypeWithStruct {
   struct: InferStruct!
   nullableStruct: InferStruct
-  structArray: [InferStruct!]
-  nullableStructArray: [InferStruct]
-  structNestedArray: [[InferStruct!]]
-  nullableStructNestedArray: [[InferStruct]]
+  structArray: [InferStruct!]!
+  nullableStructArray: [InferStruct]!
+  structNestedArray: [[InferStruct!]!]!
+  nullableStructNestedArray: [[InferStruct]!]!
   scalarGuid: UUID!
   scalarDateTime: DateTime!
 }

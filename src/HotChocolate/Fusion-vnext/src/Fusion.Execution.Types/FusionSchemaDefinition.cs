@@ -396,7 +396,9 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 
             var context = new KeyTransitionVisitor.Context
             {
-                CompositeSchema = this, SourceSchema = fromSchema, Types = [type]
+                CompositeSchema = this,
+                SourceSchema = fromSchema,
+                Types = [type]
             };
 
             Lookup? bestLookup = null;

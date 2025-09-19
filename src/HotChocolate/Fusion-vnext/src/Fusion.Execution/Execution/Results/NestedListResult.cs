@@ -2,7 +2,7 @@ using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
 /// Represents the result of a nested list field in a GraphQL operation.

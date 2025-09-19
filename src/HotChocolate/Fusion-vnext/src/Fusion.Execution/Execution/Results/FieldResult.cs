@@ -1,6 +1,6 @@
 using HotChocolate.Fusion.Execution.Nodes;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 public abstract class FieldResult : ResultData
 {

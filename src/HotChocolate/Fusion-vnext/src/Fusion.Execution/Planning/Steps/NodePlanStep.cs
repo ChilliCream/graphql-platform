@@ -12,5 +12,9 @@ public record NodePlanStep : PlanStep
     public required OperationPlanStep FallbackQuery { get; init; }
 
     public ImmutableDictionary<string, OperationPlanStep> Branches { get; set; }
+#if NET10_0_OR_GREATER
+        = [];
+#else
         = ImmutableDictionary<string, OperationPlanStep>.Empty;
+#endif
 }

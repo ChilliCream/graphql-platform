@@ -214,6 +214,47 @@ public sealed class IntegrationTests
     }
 
     [Fact]
+    public async Task ListTools_SetTitle_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new TestOperationToolStorage();
+        await storage.AddOrUpdateToolAsync(
+            Utf8GraphQLParser.Parse("""query GetBooks @mcpTool(title: "Custom Title") { books { title } }"""));
+        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync();
+
+        // assert
+        Assert.Equal("Custom Title", tools[0].Title);
+    }
+
+    [Fact]
+    public async Task ListTools_SetAnnotations_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new TestOperationToolStorage();
+        await storage.AddOrUpdateToolAsync(
+            Utf8GraphQLParser.Parse(
+                """
+                mutation AddBook @mcpTool(destructiveHint: false, idempotentHint: true, openWorldHint: false) {
+                    addBook { title }
+                }
+                """));
+        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync();
+
+        // assert
+        Assert.Equal(false, tools[0].ProtocolTool.Annotations?.DestructiveHint);
+        Assert.Equal(true, tools[0].ProtocolTool.Annotations?.IdempotentHint);
+        Assert.Equal(false, tools[0].ProtocolTool.Annotations?.OpenWorldHint);
+    }
+
+    [Fact]
     public async Task CallTool_GetWithNullableVariables_ReturnsExpectedResult()
     {
         // arrange
@@ -522,6 +563,7 @@ public sealed class IntegrationTests
                             .AddAuthorization()
                             .AddMcp(configureMcpServerOptions, configureMcpServer)
                             .AddQueryType<TestSchema.Query>()
+                            .AddMutationType<TestSchema.Mutation>()
                             .AddInterfaceType<TestSchema.IPet>()
                             .AddUnionType<TestSchema.IPet>()
                             .AddObjectType<TestSchema.Cat>()

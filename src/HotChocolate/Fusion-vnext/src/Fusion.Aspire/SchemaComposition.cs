@@ -477,7 +477,6 @@ internal sealed class SchemaComposition(
             if (await CompositionHelper.TryComposeAsync(
                 tempArchivePath,
                 [.. sourceSchemas],
-                "Development", // Environment name
                 settings.Settings,
                 logger,
                 cancellationToken))

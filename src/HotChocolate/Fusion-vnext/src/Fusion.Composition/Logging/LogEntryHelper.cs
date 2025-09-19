@@ -583,13 +583,14 @@ internal static class LogEntryHelper
         ImmutableArray<string> errors)
     {
         return new LogEntry(
-            string.Format(LogEntryHelper_KeyInvalidFields, typeName, schema.Name),
+            string.Format(LogEntryHelper_KeyInvalidFields, typeName, schema.Name)
+                + $"{Environment.NewLine}- "
+                + string.Join($"{Environment.NewLine}- ", errors),
             LogEntryCodes.KeyInvalidFields,
             LogSeverity.Error,
             new SchemaCoordinate(typeName),
             keyDirective,
-            schema,
-            errors);
+            schema);
     }
 
     public static LogEntry KeyInvalidFieldsType(

@@ -21,7 +21,7 @@ public class UploadScalarTest : ServerTestBase
         var ct = new CancellationTokenSource(20_000).Token;
         using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
-        using var data = CreateStream("a");
+        await using var data = CreateStream("a");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -47,8 +47,8 @@ public class UploadScalarTest : ServerTestBase
         var ct = new CancellationTokenSource(20_000).Token;
         using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -74,8 +74,8 @@ public class UploadScalarTest : ServerTestBase
         var ct = new CancellationTokenSource(20_000).Token;
         using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -101,7 +101,7 @@ public class UploadScalarTest : ServerTestBase
         var ct = new CancellationTokenSource(20_000).Token;
         using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
-        using var data = CreateStream("a");
+        await using var data = CreateStream("a");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -133,8 +133,8 @@ public class UploadScalarTest : ServerTestBase
         var ct = new CancellationTokenSource(20_000).Token;
         using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
         // act
         var result = await client.TestUpload.ExecuteAsync(
             "foo",
@@ -175,8 +175,8 @@ public class UploadScalarTest : ServerTestBase
         var ct = new CancellationTokenSource(20_000).Token;
         using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -239,8 +239,8 @@ public class UploadScalarTest : ServerTestBase
         var ct = new CancellationTokenSource(20_000).Token;
         using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(

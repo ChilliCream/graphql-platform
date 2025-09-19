@@ -1,5 +1,4 @@
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Processing;

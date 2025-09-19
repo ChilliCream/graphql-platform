@@ -17,7 +17,7 @@ public class NodeFieldSupportTests
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
                     .IdField(t => t.Id)
-                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null)))
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null!)))
                 .BuildRequestExecutorAsync();
 
         // act
@@ -40,7 +40,7 @@ public class NodeFieldSupportTests
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
                     .IdField(t => t.Id)
-                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null)))
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null!)))
                 .BuildRequestExecutorAsync();
 
         // act
@@ -63,7 +63,7 @@ public class NodeFieldSupportTests
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
                     .IdField(t => t.Id)
-                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null)))
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null!)))
                 .BuildRequestExecutorAsync();
 
         // act
@@ -86,7 +86,7 @@ public class NodeFieldSupportTests
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
                     .IdField(t => t.Id)
-                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null)))
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null!)))
                 .BuildRequestExecutorAsync();
 
         // act
@@ -112,7 +112,7 @@ public class NodeFieldSupportTests
                 .AddObjectType<Child>(d => d
                     .ImplementsNode()
                     .IdField(t => t.Id)
-                    .ResolveNode((_, id) => Task.FromResult(new Child { Id = id })))
+                    .ResolveNode((_, id) => Task.FromResult<Child?>(new Child { Id = id })))
                 .BuildRequestExecutorAsync();
 
         // act
@@ -133,7 +133,7 @@ public class NodeFieldSupportTests
                 .AddQueryType<Foo>()
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
-                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null)))
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null!)))
                 .BuildRequestExecutorAsync();
 
         // act
@@ -323,7 +323,7 @@ public class NodeFieldSupportTests
 
     public class Bar
     {
-        public string Id { get; set; }
+        public required string Id { get; set; }
     }
 
     public class BarResolver
@@ -340,7 +340,7 @@ public class NodeFieldSupportTests
     [Node]
     public class Bar1
     {
-        public string Id { get; set; }
+        public required string Id { get; set; }
 
         public static Bar1 GetBar1(string id) => new() { Id = id };
     }
@@ -354,7 +354,7 @@ public class NodeFieldSupportTests
     [Node(NodeResolver = nameof(GetFoo))]
     public class Bar2
     {
-        public string Id { get; set; }
+        public required string Id { get; set; }
 
         public static Bar2 GetFoo(string id) => new() { Id = id };
     }
@@ -368,7 +368,7 @@ public class NodeFieldSupportTests
     [Node(NodeResolverType = typeof(Bar3Resolver))]
     public class Bar3
     {
-        public string Id { get; set; }
+        public required string Id { get; set; }
     }
 
     public static class Bar3Resolver
@@ -387,7 +387,7 @@ public class NodeFieldSupportTests
         NodeResolver = nameof(GetFoo))]
     public class Bar4
     {
-        public string Id1 { get; set; }
+        public required string Id1 { get; set; }
 
         public static Bar2 GetFoo(string id) => new() { Id = id };
     }
@@ -396,7 +396,7 @@ public class NodeFieldSupportTests
     [Node]
     public class Bar5
     {
-        public string Id { get; set; }
+        public required string Id { get; set; }
 
         public static Bar5 Get(string id) => new() { Id = id };
     }
@@ -408,7 +408,7 @@ public class NodeFieldSupportTests
 
     public abstract class Bar6Base<T> where T : Bar6Base<T>, new()
     {
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         public static T Get(string id) => new() { Id = id };
     }
@@ -426,7 +426,7 @@ public class NodeFieldSupportTests
     [Node(NodeResolverType = typeof(Bar7Resolver))]
     public class Bar7
     {
-        public string Id { get; set; }
+        public required string Id { get; set; }
     }
 
     public abstract class Bar7ResolverBase
@@ -445,7 +445,7 @@ public class NodeFieldSupportTests
     [Node(NodeResolverType = typeof(Bar8Resolver))]
     public class Bar8
     {
-        public string Id { get; set; }
+        public required string Id { get; set; }
     }
 
     public class Bar8ResolverBase
@@ -464,7 +464,7 @@ public class NodeFieldSupportTests
     [Node(NodeResolverType = typeof(IBar9Resolver))]
     public class Bar9
     {
-        public string Id { get; set; }
+        public required string Id { get; set; }
     }
 
     public interface IBar9Resolver
@@ -479,7 +479,7 @@ public class NodeFieldSupportTests
 
     public class Parent
     {
-        public string Id { get; set; }
+        public required string Id { get; set; }
     }
 
     public class Child : Parent;

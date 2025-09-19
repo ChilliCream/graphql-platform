@@ -32,15 +32,16 @@ public class FromJsonDirectiveTests
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddDocumentFromString(@"
+            .AddDocumentFromString(
+                """
                 type Query {
                     foo: Foo
                 }
 
                 type Foo {
-                    baz: String @fromJson(name: ""bar"")
+                    baz: String @fromJson(name: "bar")
                 }
-                ")
+                """)
             .BindRuntimeType<Query>()
             .AddJsonSupport()
             .ExecuteRequestAsync("{ foo { baz } }")
@@ -75,22 +76,24 @@ public class FromJsonDirectiveTests
                 }
                 ")
             .AddResolver("Query", "foo", _ => JsonDocument.Parse(
-                @"{
-                    ""string"": ""string"",
-                    ""id"": ""id"",
-                    ""boolean"": true,
-                    ""short"": 1,
-                    ""int"": 2,
-                    ""long"": 3,
-                    ""float"": 1.2,
-                    ""decimal"": 3.4,
-                    ""url"": ""http://abc"",
-                    ""uuid"":""2d25e877-aecc-4a9e-a191-cf75def49e42"",
-                    ""byte"": 1,
-                    ""byteArray"": ""Zm9v"",
-                    ""date"": ""1979-12-20"",
-                    ""dateTime"": ""1979-12-20T15:00Z""
-                }").RootElement)
+                """
+                {
+                    "string": "string",
+                    "id": "id",
+                    "boolean": true,
+                    "short": 1,
+                    "int": 2,
+                    "long": 3,
+                    "float": 1.2,
+                    "decimal": 3.4,
+                    "url": "http://abc",
+                    "uuid":"2d25e877-aecc-4a9e-a191-cf75def49e42",
+                    "byte": 1,
+                    "byteArray": "Zm9v",
+                    "date": "1979-12-20",
+                    "dateTime": "1979-12-20T15:00Z"
+                }
+                """).RootElement)
             .AddJsonSupport()
             .ExecuteRequestAsync(
                 @"{
