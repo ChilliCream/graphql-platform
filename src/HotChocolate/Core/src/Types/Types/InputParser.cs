@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Buffers;
 using System.Collections;
 using HotChocolate.Language;

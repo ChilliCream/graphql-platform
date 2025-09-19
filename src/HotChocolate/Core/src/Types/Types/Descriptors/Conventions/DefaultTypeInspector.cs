@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -30,7 +28,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     private const string CloneMethodName = "<Clone>$";
 
     private readonly TypeCache _typeCache = new();
-    private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods = [];
+    private readonly ConcurrentDictionary<MethodInfo, ExtendedMethodInfo> _methods = [];
     private readonly ConcurrentDictionary<(Type, bool, bool), MemberInfo[]> _memberCache = new();
 
     /// <summary>
@@ -164,11 +162,9 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     {
         var method = (MethodInfo)parameter.Member;
 
-        if (!_methods.TryGetValue(method, out var info))
-        {
-            info = ExtendedType.FromMethod(method, _typeCache);
-            _methods[method] = info;
-        }
+        var info = _methods.GetOrAdd(
+            method,
+            static (m, c) => ExtendedType.FromMethod(m, c), _typeCache);
 
         return info.ParameterTypes[parameter];
     }

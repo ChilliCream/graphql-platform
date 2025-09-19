@@ -700,16 +700,16 @@ Type: `{0}`</value>
     <value>The fieldName cannot be null or empty.</value>
   </data>
   <data name="OneOfDirectiveType_Description" xml:space="preserve">
-    <value>The `@oneOf` directive is used within the type system definition language to indicate that an input object is a oneof input object.</value>
+    <value>The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object.</value>
   </data>
   <data name="ThrowHelper_OneOfNoFieldSet" xml:space="preserve">
-    <value>The Oneof Input Objects `{0}` require that exactly one field must be supplied and that field must not be `null`. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>
+    <value>The OneOf Input Objects `{0}` require that exactly one field must be supplied and that field must not be `null`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>
   </data>
   <data name="ThrowHelper_OneOfMoreThanOneFieldSet" xml:space="preserve">
-    <value>More than one field of the Oneof Input Object `{0}` is set. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>
+    <value>More than one field of the OneOf Input Object `{0}` is set. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>
   </data>
   <data name="ThrowHelper_OneOfFieldIsNull" xml:space="preserve">
-    <value>`null` was set to the field `{0}`of the Oneof Input Object `{1}`. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>
+    <value>`null` was set to the field `{0}`of the OneOf Input Object `{1}`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>
   </data>
   <data name="ReflectionUtils_ExtractMethod_MethodExpected" xml:space="preserve">
     <value>Member is not a method!</value>
@@ -876,8 +876,8 @@ Type: `{0}`</value>
   <data name="ErrorHelper_ArgumentNotImplemented" xml:space="preserve">
     <value>The argument `{0}` of the implemented field `{1}` must be defined. The field `{2}` must include an argument of the same name for every argument defined on the implemented field of the interface type `{3}`.</value>
   </data>
-  <data name="ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults" xml:space="preserve">
-    <value>Oneof Input Object `{0}` must only have nullable fields without default values. Edit your type and make the field{1} `{2}` nullable and remove any defaults.</value>
+  <data name="ErrorHelper_OneOfInputObjectMustHaveNullableFieldsWithoutDefaults" xml:space="preserve">
+    <value>OneOf Input Object `{0}` must only have nullable fields without default values. Edit your type and make the field{1} `{2}` nullable and remove any defaults.</value>
   </data>
   <data name="ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf" xml:space="preserve">
     <value>Cannot reference Input Object `{0}` within itself through a series of non-null fields `{1}`.</value>

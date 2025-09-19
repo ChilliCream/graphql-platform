@@ -1,7 +1,5 @@
 using System.Linq.Expressions;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 /// <summary>

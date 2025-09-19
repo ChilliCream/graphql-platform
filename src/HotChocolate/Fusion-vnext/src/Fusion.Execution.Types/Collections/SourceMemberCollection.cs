@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Types.Metadata;
 
 namespace HotChocolate.Fusion.Types.Collections;
 
@@ -11,7 +12,7 @@ public class SourceMemberCollection<TMember>
 {
     private readonly FrozenDictionary<string, TMember> _members;
 
-    protected SourceMemberCollection(IEnumerable<TMember> members)
+    public SourceMemberCollection(IEnumerable<TMember> members)
     {
         _members = members.ToFrozenDictionary(t => t.SchemaName);
     }

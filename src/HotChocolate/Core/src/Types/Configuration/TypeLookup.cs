@@ -3,8 +3,6 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
-#nullable  enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class TypeLookup

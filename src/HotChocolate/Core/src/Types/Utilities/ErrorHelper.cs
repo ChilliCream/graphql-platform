@@ -5,8 +5,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
 
-#nullable enable
-
 namespace HotChocolate.Utilities;
 
 internal static class ErrorHelper
@@ -183,7 +181,7 @@ internal static class ErrorHelper
         string[] fieldNames)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults,
+                ErrorHelper_OneOfInputObjectMustHaveNullableFieldsWithoutDefaults,
                 type.Name,
                 fieldNames.Length is 1 ? string.Empty : "s",
                 string.Join(", ", fieldNames))

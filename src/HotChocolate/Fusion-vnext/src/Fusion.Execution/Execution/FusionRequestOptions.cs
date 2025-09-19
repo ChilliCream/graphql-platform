@@ -1,4 +1,7 @@
 using HotChocolate.Caching.Memory;
+using HotChocolate.Execution.Relay;
+using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -9,8 +12,12 @@ public sealed class FusionRequestOptions : ICloneable
     private int _operationExecutionPlanCacheSize = 256;
     private CacheDiagnostics? _operationExecutionPlanCacheDiagnostics;
     private int _operationDocumentCacheSize = 256;
-    private int _sourceSchemaOperationCacheSize = 256;
+    private bool _collectOperationPlanTelemetry;
+    private ErrorHandlingMode _defaultErrorHandlingMode = ErrorHandlingMode.Propagate;
+    private bool _allowErrorHandlingModeOverride;
+    private PersistedOperationOptions _persistedOperationOptions = new();
     private bool _isReadOnly;
+    private bool _includeExceptionDetails;
 
     /// <summary>
     /// Gets or sets the execution timeout.
@@ -85,9 +92,14 @@ public sealed class FusionRequestOptions : ICloneable
         }
     }
 
-    public int SourceSchemaOperationCacheSize
+    /// <summary>
+    /// Gets or sets whether telemetry data like status and duration
+    /// of operation plan nodes should be collected.
+    /// <c>false</c> by default.
+    /// </summary>
+    public bool CollectOperationPlanTelemetry
     {
-        get => _sourceSchemaOperationCacheSize;
+        get => _collectOperationPlanTelemetry;
         set
         {
             if (_isReadOnly)
@@ -95,9 +107,104 @@ public sealed class FusionRequestOptions : ICloneable
                 throw new InvalidOperationException("The request options are read-only.");
             }
 
-            _sourceSchemaOperationCacheSize = value;
+            _collectOperationPlanTelemetry = value;
         }
     }
+
+    /// <summary>
+    /// Gets or sets the default error handling mode.
+    /// <see cref="ErrorHandlingMode.Propagate"/> by default.
+    /// </summary>
+    public ErrorHandlingMode DefaultErrorHandlingMode
+    {
+        get => _defaultErrorHandlingMode;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new InvalidOperationException("The request options are read-only.");
+            }
+
+            _defaultErrorHandlingMode = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets whether the <see cref="DefaultErrorHandlingMode"/> can be overriden
+    /// on a per-request basis.
+    /// <c>false</c> by default.
+    /// </summary>
+    public bool AllowErrorHandlingModeOverride
+    {
+        get => _allowErrorHandlingModeOverride;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new InvalidOperationException("The request options are read-only.");
+            }
+
+            _allowErrorHandlingModeOverride = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the persisted operation options.
+    /// </summary>
+    /// <exception cref="InvalidOperationException"></exception>
+    public PersistedOperationOptions PersistedOperations
+    {
+        get => _persistedOperationOptions;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new InvalidOperationException("The request options are read-only.");
+            }
+
+            ArgumentNullException.ThrowIfNull(value);
+
+            _persistedOperationOptions = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets whether exception details should be included for GraphQL
+    /// errors in the GraphQL response.
+    /// This should only be enabled for development purposes
+    /// and not in production environments.
+    /// <c>false</c> by default.
+    /// </summary>
+    public bool IncludeExceptionDetails
+    {
+        get => _includeExceptionDetails;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new InvalidOperationException("The request options are read-only.");
+            }
+
+            _includeExceptionDetails = value;
+        }
+    }
+
+    /// <summary>
+    /// Specifies the format for Global Object Identifiers.
+    /// </summary>
+    public NodeIdSerializerFormat NodeIdSerializerFormat
+    {
+        get;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new InvalidOperationException("The request options are read-only.");
+            }
+
+            field = value;
+        }
+    } = NodeIdSerializerFormat.Base64;
 
     /// <summary>
     /// Clones the request options into a new mutable instance.
@@ -111,6 +218,11 @@ public sealed class FusionRequestOptions : ICloneable
         clone._executionTimeout = _executionTimeout;
         clone._operationExecutionPlanCacheSize = _operationExecutionPlanCacheSize;
         clone._operationExecutionPlanCacheDiagnostics = _operationExecutionPlanCacheDiagnostics;
+        clone._operationDocumentCacheSize = _operationDocumentCacheSize;
+        clone._collectOperationPlanTelemetry = _collectOperationPlanTelemetry;
+        clone._defaultErrorHandlingMode = _defaultErrorHandlingMode;
+        clone._allowErrorHandlingModeOverride = _allowErrorHandlingModeOverride;
+        clone.NodeIdSerializerFormat = NodeIdSerializerFormat;
         return clone;
     }
 

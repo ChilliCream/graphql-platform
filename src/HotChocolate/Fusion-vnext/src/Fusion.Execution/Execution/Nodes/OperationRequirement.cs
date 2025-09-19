@@ -1,5 +1,4 @@
 using HotChocolate.Fusion.Language;
-using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;

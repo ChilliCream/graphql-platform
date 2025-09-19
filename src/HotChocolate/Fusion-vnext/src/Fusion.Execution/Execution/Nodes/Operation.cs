@@ -1,11 +1,12 @@
 using System.Collections.Concurrent;
 using HotChocolate.Execution;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public sealed class Operation
+public sealed class Operation : IOperation
 {
 #if NET9_0_OR_GREATER
     private readonly Lock _sync = new();
@@ -15,10 +16,12 @@ public sealed class Operation
     private readonly ConcurrentDictionary<(ulong, string), SelectionSet> _selectionSets = [];
     private readonly OperationCompiler _compiler;
     private readonly IncludeConditionCollection _includeConditions;
+    private readonly OperationFeatureCollection _features;
     private uint _lastId;
 
     internal Operation(
         string id,
+        string hash,
         OperationDefinitionNode definition,
         IObjectTypeDefinition rootType,
         ISchemaDefinition schema,
@@ -35,6 +38,7 @@ public sealed class Operation
         ArgumentNullException.ThrowIfNull(includeConditions);
 
         Id = id;
+        Hash = hash;
         Definition = definition;
         RootType = rootType;
         Schema = schema;
@@ -43,6 +47,7 @@ public sealed class Operation
         _includeConditions = includeConditions;
         _lastId = lastId;
 
+        _features = new OperationFeatureCollection();
         rootSelectionSet.Seal(this);
     }
 
@@ -50,6 +55,11 @@ public sealed class Operation
     /// Gets the internal unique identifier for this operation.
     /// </summary>
     public string Id { get; }
+
+    /// <summary>
+    /// Gets the hash of the original operation document.
+    /// </summary>
+    public string Hash { get; }
 
     /// <summary>
     /// Gets the name of the operation.
@@ -79,6 +89,12 @@ public sealed class Operation
     /// </returns>
     public SelectionSet RootSelectionSet { get; }
 
+    ISelectionSet IOperation.RootSelectionSet
+        => RootSelectionSet;
+
+    /// <inheritdoc cref="IFeatureProvider"/>
+    public IFeatureCollection Features => _features;
+
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/> and
     /// <paramref name="typeContext"/>.
@@ -98,6 +114,9 @@ public sealed class Operation
     /// </exception>
     public SelectionSet GetSelectionSet(Selection selection, IObjectTypeDefinition typeContext)
     {
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(typeContext);
+
         var key = (selection.Id, typeContext.Name);
 
         if (!_selectionSets.TryGetValue(key, out var selectionSet))
@@ -113,11 +132,26 @@ public sealed class Operation
                             _includeConditions,
                             ref _lastId);
                     selectionSet.Seal(this);
+                    _selectionSets.TryAdd(key, selectionSet);
                 }
             }
         }
 
         return selectionSet;
+    }
+
+    ISelectionSet IOperation.GetSelectionSet(ISelection selection, IObjectTypeDefinition typeContext)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(typeContext);
+
+        if (selection is not Selection internalSelection)
+        {
+            throw new InvalidOperationException(
+                $"Only selections of the type {typeof(Selection).FullName} are supported.");
+        }
+
+        return GetSelectionSet(internalSelection, typeContext);
     }
 
     /// <summary>
@@ -138,6 +172,9 @@ public sealed class Operation
 
         return Schema.GetPossibleTypes(selection.Field.Type.NamedType());
     }
+
+    IEnumerable<IObjectTypeDefinition> IOperation.GetPossibleTypes(ISelection selection)
+        => Schema.GetPossibleTypes(selection.Field.Type.NamedType());
 
     /// <summary>
     /// Creates the include flags for the specified variable values.

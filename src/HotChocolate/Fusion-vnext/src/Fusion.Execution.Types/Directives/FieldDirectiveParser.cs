@@ -11,7 +11,7 @@ internal static class FieldDirectiveParser
 
     public static FieldDirective Parse(DirectiveNode directive)
     {
-        string? schemaName = null;
+        string? schemaKey = null;
         string? sourceName = null;
         ITypeNode? sourceType = null;
         SelectionSetNode? provides = null;
@@ -22,7 +22,7 @@ internal static class FieldDirectiveParser
             switch (argument.Name.Value)
             {
                 case "schema":
-                    schemaName = ((EnumValueNode)argument.Value).Value;
+                    schemaKey = ((EnumValueNode)argument.Value).Value;
                     break;
 
                 case "sourceName":
@@ -47,13 +47,13 @@ internal static class FieldDirectiveParser
             }
         }
 
-        if (string.IsNullOrEmpty(schemaName))
+        if (string.IsNullOrEmpty(schemaKey))
         {
             throw new DirectiveParserException(
                 "The `schema` argument is required on the @field directive.");
         }
 
-        return new FieldDirective(schemaName, sourceName, sourceType, provides, isExternal);
+        return new FieldDirective(new SchemaKey(schemaKey), sourceName, sourceType, provides, isExternal);
     }
 
     public static ImmutableArray<FieldDirective> Parse(

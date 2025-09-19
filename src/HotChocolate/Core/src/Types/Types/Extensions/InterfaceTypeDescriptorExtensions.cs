@@ -7,7 +7,7 @@ public static class InterfaceTypeDescriptorExtensions
 {
     public static IInterfaceTypeDescriptor<T> Ignore<T>(
         this IInterfaceTypeDescriptor<T> descriptor,
-        Expression<Func<T, object>> propertyOrMethod)
+        Expression<Func<T, object?>> propertyOrMethod)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(propertyOrMethod);

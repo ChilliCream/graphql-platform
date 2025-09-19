@@ -2,8 +2,10 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.IO.Hashing;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Channels;
 using HotChocolate.Caching.Memory;
+using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
@@ -23,6 +25,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
+using static System.Runtime.InteropServices.JsonMarshal;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -113,29 +116,29 @@ internal sealed class FusionRequestExecutorManager
     {
         var setup = _optionsMonitor.Get(schemaName);
 
-        var (document, documentProvider) =
+        var (configuration, documentProvider) =
             await GetSchemaDocumentAsync(setup.DocumentProvider, cancellationToken).ConfigureAwait(false);
 
         return new RequestExecutorRegistration(
             this,
             documentProvider,
-            CreateRequestExecutor(schemaName, document),
-            document);
+            CreateRequestExecutor(schemaName, configuration),
+            configuration);
     }
 
     private FusionRequestExecutor CreateRequestExecutor(
         string schemaName,
-        DocumentNode document)
+        FusionConfiguration configuration)
     {
         var setup = _optionsMonitor.Get(schemaName);
 
         var requestOptions = CreateRequestOptions(setup);
         var parserOptions = CreateParserOptions(setup);
-        var clientConfigurations = CreateClientConfigurations(setup);
+        var clientConfigurations = CreateClientConfigurations(setup, configuration.Settings.Document);
         var features = CreateSchemaFeatures(setup, requestOptions, parserOptions, clientConfigurations);
-        var schemaServices = CreateSchemaServices(setup);
+        var schemaServices = CreateSchemaServices(setup, requestOptions);
 
-        var schema = CreateSchema(schemaName, document, schemaServices, features);
+        var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
         var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
 
         var contextPool = schemaServices.GetRequiredService<ObjectPool<PooledRequestContext>>();
@@ -146,8 +149,8 @@ internal sealed class FusionRequestExecutorManager
         return executor;
     }
 
-    private async ValueTask<(DocumentNode, IFusionSchemaDocumentProvider)> GetSchemaDocumentAsync(
-        Func<IServiceProvider, IFusionSchemaDocumentProvider>? documentProviderFactory,
+    private async ValueTask<(FusionConfiguration, IFusionConfigurationProvider)> GetSchemaDocumentAsync(
+        Func<IServiceProvider, IFusionConfigurationProvider>? documentProviderFactory,
         CancellationToken cancellationToken)
     {
         if (documentProviderFactory is null)
@@ -156,8 +159,8 @@ internal sealed class FusionRequestExecutorManager
         }
 
         var documentProvider = documentProviderFactory.Invoke(_applicationServices);
-        var documentPromise = new TaskCompletionSource<DocumentNode>();
-        using var subscription = documentProvider.Subscribe(documentPromise.SetResult);
+        var documentPromise = new TaskCompletionSource<FusionConfiguration>();
+        using var subscription = documentProvider.Subscribe(s => documentPromise.TrySetResult(s));
         await using var cancellation = cancellationToken.Register(() => documentPromise.TrySetCanceled());
         return (await documentPromise.Task.ConfigureAwait(false), documentProvider);
     }
@@ -201,9 +204,32 @@ internal sealed class FusionRequestExecutorManager
             maxAllowedFields: options.MaxAllowedFields);
     }
 
-    private SourceSchemaClientConfigurations CreateClientConfigurations(FusionGatewaySetup setup)
+    private SourceSchemaClientConfigurations CreateClientConfigurations(
+        FusionGatewaySetup setup,
+        JsonDocument settings)
     {
         var configurations = new List<ISourceSchemaClientConfiguration>();
+
+        if (settings.RootElement.TryGetProperty("sourceSchemas", out var sourceSchemas))
+        {
+            foreach (var sourceSchema in sourceSchemas.EnumerateObject())
+            {
+                if (sourceSchema.Value.TryGetProperty("transports", out var transports))
+                {
+                    if (transports.TryGetProperty("http", out var http))
+                    {
+                        var hasClientName = http.TryGetProperty("clientName", out var clientName);
+
+                        var httpClient = new SourceSchemaHttpClientConfiguration(
+                            sourceSchema.Name,
+                            httpClientName: hasClientName ? clientName.GetString()! : "fusion",
+                            new Uri(http.GetProperty("url").GetString()!));
+
+                        configurations.Add(httpClient);
+                    }
+                }
+            }
+        }
 
         foreach (var configure in setup.ClientConfigurationModifiers)
         {
@@ -222,6 +248,7 @@ internal sealed class FusionRequestExecutorManager
         var features = new FeatureCollection();
 
         features.Set(requestOptions);
+        features.Set(requestOptions.PersistedOperations);
         features.Set(parserOptions);
         features.Set(clientConfigurations);
         features.Set(CreateTypeResolverInterceptors());
@@ -247,16 +274,16 @@ internal sealed class FusionRequestExecutorManager
         };
 
     private ServiceProvider CreateSchemaServices(
-        FusionGatewaySetup setup)
+        FusionGatewaySetup setup,
+        FusionRequestOptions requestOptions)
     {
         var schemaServices = new ServiceCollection();
 
-        AddCoreServices(schemaServices);
+        AddCoreServices(schemaServices, requestOptions);
         AddOperationPlanner(schemaServices);
         AddParserServices(schemaServices);
         AddDocumentValidator(setup, schemaServices);
         AddDiagnosticEvents(schemaServices);
-        AddSourceSchemaClients(schemaServices);
 
         foreach (var configure in setup.SchemaServiceModifiers)
         {
@@ -266,7 +293,7 @@ internal sealed class FusionRequestExecutorManager
         return schemaServices.BuildServiceProvider();
     }
 
-    private void AddCoreServices(IServiceCollection services)
+    private void AddCoreServices(IServiceCollection services, FusionRequestOptions requestOptions)
     {
         services.AddSingleton<IRootServiceProviderAccessor>(
             new RootServiceProviderAccessor(_applicationServices));
@@ -275,11 +302,22 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton(static sp => sp.GetRequiredService<RequestExecutorAccessor>().RequestExecutor);
         services.AddSingleton<IRequestExecutor>(sp => sp.GetRequiredService<FusionRequestExecutor>());
         services.AddSingleton(static sp => sp.GetRequiredService<ISchemaDefinition>().GetRequestOptions());
+        services.TryAddSingleton<INodeIdParser>(
+            static sp => new DefaultNodeIdParser(
+                sp.GetRequiredService<FusionRequestOptions>().NodeIdSerializerFormat));
         services.AddSingleton<IErrorHandler>(static sp => new DefaultErrorHandler(sp.GetServices<IErrorFilter>()));
+
+        if (requestOptions.IncludeExceptionDetails)
+        {
+            services.AddSingleton<IErrorFilter>(static _ => new AddDebugInformationErrorFilter());
+        }
 
         services.AddSingleton(static _ => new SchemaDefinitionAccessor());
         services.AddSingleton(static sp => sp.GetRequiredService<SchemaDefinitionAccessor>().Schema);
         services.AddSingleton<ISchemaDefinition>(static sp => sp.GetRequiredService<FusionSchemaDefinition>());
+
+        services.AddSingleton(requestOptions);
+        services.AddSingleton(requestOptions.PersistedOperations);
 
         services.AddSingleton<ObjectPool<PooledRequestContext>>(
             static _ => new DefaultObjectPool<PooledRequestContext>(
@@ -300,7 +338,7 @@ internal sealed class FusionRequestExecutorManager
             static sp =>
             {
                 var options = sp.GetRequiredService<ISchemaDefinition>().GetRequestOptions();
-                return new Cache<OperationExecutionPlan>(
+                return new Cache<OperationPlan>(
                     options.OperationExecutionPlanCacheSize,
                     options.OperationExecutionPlanCacheDiagnostics);
             });
@@ -355,7 +393,7 @@ internal sealed class FusionRequestExecutorManager
 
                 return listeners.Length switch
                 {
-                    0 => new NoopFusionExecutionDiagnosticEvents(),
+                    0 => NoopFusionExecutionDiagnosticEvents.Instance,
                     1 => listeners[0],
                     _ => new AggregateFusionExecutionDiagnosticEvents(listeners)
                 };
@@ -363,17 +401,6 @@ internal sealed class FusionRequestExecutorManager
 
         services.AddSingleton<ICoreExecutionDiagnosticEvents>(
             static sp => sp.GetRequiredService<IFusionExecutionDiagnosticEvents>());
-    }
-
-    private static void AddSourceSchemaClients(
-        IServiceCollection services)
-    {
-        services.AddSingleton(
-            static sp =>
-            {
-                var options = sp.GetRequiredService<ISchemaDefinition>().GetRequestOptions();
-                return new Cache<string>(options.SourceSchemaOperationCacheSize);
-            });
     }
 
     private static FusionSchemaDefinition CreateSchema(
@@ -479,28 +506,31 @@ internal sealed class FusionRequestExecutorManager
     {
         private readonly CancellationTokenSource _cancellationTokenSource = new();
         private readonly CancellationToken _cancellationToken;
-        private readonly Channel<DocumentNode> _channel = Channel.CreateBounded<DocumentNode>(
+        private readonly Channel<FusionConfiguration> _channel = Channel.CreateBounded<FusionConfiguration>(
             new BoundedChannelOptions(1)
             {
-                FullMode = BoundedChannelFullMode.DropOldest,
+                FullMode = BoundedChannelFullMode.Wait,
                 SingleReader = true,
                 SingleWriter = false
             });
         private readonly FusionRequestExecutorManager _manager;
         private readonly IDisposable _documentProviderSubscription;
 
-        private ulong _hash;
+        private ulong _documentHash;
+        private ulong _settingsHash;
         private bool _disposed;
 
         public RequestExecutorRegistration(
             FusionRequestExecutorManager manager,
-            IFusionSchemaDocumentProvider documentProvider,
+            IFusionConfigurationProvider documentProvider,
             FusionRequestExecutor executor,
-            DocumentNode document)
+            FusionConfiguration configuration)
         {
             _manager = manager;
             _cancellationToken = _cancellationTokenSource.Token;
-            _hash = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(document.ToString()));
+            _documentHash = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(configuration.Schema.ToString()));
+            _settingsHash = XxHash64.HashToUInt64(GetRawUtf8Value(configuration.Settings.Document.RootElement));
+
             _documentProviderSubscription = documentProvider.Subscribe(
                 OnDocumentChanged,
                 () => _channel.Writer.TryComplete());
@@ -511,32 +541,38 @@ internal sealed class FusionRequestExecutorManager
             WaitForUpdatesAsync().FireAndForget();
         }
 
-        public IFusionSchemaDocumentProvider DocumentProvider { get; }
+        public IFusionConfigurationProvider DocumentProvider { get; }
 
         public FusionRequestExecutor Executor { get; private set; }
 
         private async Task WaitForUpdatesAsync()
         {
-            await foreach (var document in _channel.Reader.ReadAllAsync(_cancellationToken).ConfigureAwait(false))
+            await foreach (var configuration in _channel.Reader.ReadAllAsync(_cancellationToken).ConfigureAwait(false))
             {
                 if (_cancellationToken.IsCancellationRequested)
                 {
                     break;
                 }
 
-                var hash = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(document.ToString()));
-                if (hash == _hash)
+                var documentHash = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(configuration.ToString()));
+                var settingsHash = XxHash64.HashToUInt64(GetRawUtf8Value(configuration.Settings.Document.RootElement));
+
+                if (documentHash == _documentHash && settingsHash == _settingsHash)
                 {
                     continue;
                 }
 
-                _hash = hash;
-                Executor = _manager.CreateRequestExecutor(Executor.Schema.Name, document);
+                _documentHash = documentHash;
+                _settingsHash = settingsHash;
+
+                Executor = _manager.CreateRequestExecutor(Executor.Schema.Name, configuration);
+
+                configuration.Dispose();
             }
         }
 
-        private void OnDocumentChanged(DocumentNode document)
-            => _channel.Writer.TryWrite(document);
+        private void OnDocumentChanged(FusionConfiguration configuration)
+            => _channel.Writer.TryWrite(configuration);
 
         public async ValueTask DisposeAsync()
         {
@@ -553,6 +589,11 @@ internal sealed class FusionRequestExecutorManager
             _channel.Writer.TryComplete();
             await _cancellationTokenSource.CancelAsync().ConfigureAwait(false);
             _cancellationTokenSource.Dispose();
+
+            while (_channel.Reader.TryRead(out var configuration))
+            {
+                configuration.Dispose();
+            }
         }
     }
 
@@ -608,6 +649,51 @@ internal sealed class FusionRequestExecutorManager
             }
 
             _disposed = true;
+        }
+    }
+
+    private sealed class AddDebugInformationErrorFilter : IErrorFilter
+    {
+        private const string ExceptionProperty = "exception";
+        private const string MessageProperty = "message";
+        private const string StackTraceProperty = "stackTrace";
+
+        public IError OnError(IError error)
+        {
+            if (error.Exception is not null)
+            {
+                switch (error.Extensions)
+                {
+                    case ImmutableOrderedDictionary<string, object?> d when !d.ContainsKey(ExceptionProperty):
+                    {
+                        var extensions = d.Add(ExceptionProperty, CreateExceptionInfo(error.Exception));
+                        return error.WithExtensions(extensions);
+                    }
+
+                    case { } d when !d.ContainsKey("exception"):
+                        var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
+                        builder.AddRange(d);
+                        builder.Add(ExceptionProperty, CreateExceptionInfo(error.Exception));
+                        return error.WithExtensions(builder.ToImmutable());
+
+                    default:
+                    {
+                        var extensions =
+                            ImmutableOrderedDictionary<string, object?>.Empty
+                                .Add(ExceptionProperty, CreateExceptionInfo(error.Exception));
+                        return error.WithExtensions(extensions);
+                    }
+                }
+            }
+
+            return error;
+
+            static ImmutableOrderedDictionary<string, object?> CreateExceptionInfo(Exception exception)
+            {
+                return ImmutableOrderedDictionary<string, object?>.Empty
+                    .Add(MessageProperty, exception.Message)
+                    .Add(StackTraceProperty, exception.StackTrace);
+            }
         }
     }
 }

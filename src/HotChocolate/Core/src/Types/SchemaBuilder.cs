@@ -10,8 +10,6 @@ using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate;
 
 /// <summary>

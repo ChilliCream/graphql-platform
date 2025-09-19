@@ -1,0 +1,43 @@
+{
+  "type": "object",
+  "properties": {
+    "byte": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "decimal": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "float": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "int": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "long": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "short": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    }
+  },
+  "required": [
+    "byte",
+    "decimal",
+    "float",
+    "int",
+    "long",
+    "short"
+  ]
+}

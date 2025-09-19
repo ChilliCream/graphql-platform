@@ -179,8 +179,8 @@ public sealed class FeatureCollection : IFeatureCollection
 
     private sealed class KeyComparer : IEqualityComparer<KeyValuePair<Type, object>>
     {
-        public bool Equals(KeyValuePair<Type, object> x, KeyValuePair<Type, object> y) =>
-            x.Key.Equals(y.Key);
+        public bool Equals(KeyValuePair<Type, object> x, KeyValuePair<Type, object> y)
+            => x.Key.Equals(y.Key);
 
         public int GetHashCode(KeyValuePair<Type, object> obj) =>
             obj.Key.GetHashCode();

@@ -47,6 +47,19 @@ internal static class ThrowHelper
                 .SetFieldCoordinate(field.Coordinate)
                 .Build());
 
+    public static GraphQLException PagingHandler_FirstValueNotSet(
+        IOutputFieldDefinition field,
+        Path path)
+        => new GraphQLException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_PagingHandler_FirstValueNotSet,
+                    field.Type.TypeName())
+                .SetCode(ErrorCodes.Paging.FirstValueNotSet)
+                .SetPath(path)
+                .SetFieldCoordinate(field.Coordinate)
+                .Build());
+
     public static SchemaException PagingObjectFieldDescriptorExtensions_InvalidType()
         => new SchemaException(
             SchemaErrorBuilder.New()

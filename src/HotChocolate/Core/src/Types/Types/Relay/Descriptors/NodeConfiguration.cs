@@ -1,8 +1,6 @@
 using System.Reflection;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Types.Relay.Descriptors;
 
 /// <summary>

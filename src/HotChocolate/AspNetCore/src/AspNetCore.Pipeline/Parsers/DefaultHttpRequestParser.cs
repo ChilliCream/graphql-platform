@@ -16,6 +16,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     private const int MinRequestSize = 256;
     internal const string QueryIdKey = "id";
     private const string OperationNameKey = "operationName";
+    private const string OnErrorKey = "onError";
     internal const string QueryKey = "query";
     private const string VariablesKey = "variables";
     internal const string ExtensionsKey = "extensions";
@@ -100,6 +101,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         string? query = parameters[QueryKey];
         string? queryId = parameters[QueryIdKey];
         string? operationName = parameters[OperationNameKey];
+        string? onError = parameters[OnErrorKey];
         IReadOnlyDictionary<string, object?>? extensions = null;
 
         // if we have no query or query id, we cannot execute anything.
@@ -155,11 +157,18 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 extensions = ParseJsonObject(se);
             }
 
+            ErrorHandlingMode? errorHandlingMode = null;
+            if (!string.IsNullOrEmpty(onError))
+            {
+                errorHandlingMode = ParseErrorHandlingMode(onError);
+            }
+
             return new GraphQLRequest(
                 document,
                 queryId,
                 documentHash,
                 operationName,
+                errorHandlingMode,
                 variableSet,
                 extensions);
         }
@@ -196,11 +205,20 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 extensions = ParseJsonObject(se);
             }
 
+            string? onError = parameters[OnErrorKey];
+
+            ErrorHandlingMode? errorHandlingMode = null;
+            if (!string.IsNullOrEmpty(onError))
+            {
+                errorHandlingMode = ParseErrorHandlingMode(onError);
+            }
+
             return new GraphQLRequest(
                 null,
                 operationId,
                 null,
                 operationName,
+                errorHandlingMode,
                 variableSet,
                 extensions);
         }
@@ -236,6 +254,26 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         }
 
         return (documentHash, document);
+    }
+
+    private ErrorHandlingMode? ParseErrorHandlingMode(string onError)
+    {
+        if (onError.Equals("PROPAGATE", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErrorHandlingMode.Propagate;
+        }
+
+        if (onError.Equals("NULL", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErrorHandlingMode.Null;
+        }
+
+        if (onError.Equals("HALT", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErrorHandlingMode.Halt;
+        }
+
+        return null;
     }
 
     public IReadOnlyList<GraphQLRequest> ParseRequest(

@@ -8,8 +8,6 @@ using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>

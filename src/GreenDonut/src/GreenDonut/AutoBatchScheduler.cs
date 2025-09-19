@@ -1,25 +1,30 @@
 namespace GreenDonut;
 
 /// <summary>
-/// Defines a batch dispatcher that immediately dispatches batch jobs.
+/// A simple batch scheduler implementation that immediately dispatches batches
+/// without coordination or batching optimization. This scheduler prioritizes
+/// low latency over batching efficiency by executing each batch as soon as
+/// it is scheduled.
 /// </summary>
 public class AutoBatchScheduler : IBatchScheduler
 {
     /// <summary>
-    /// Schedules a new job to the dispatcher that is immediately executed.
+    /// Schedules a batch for immediate execution. The batch is dispatched
+    /// asynchronously on a background thread without waiting for additional
+    /// keys or coordination with other batches.
     /// </summary>
-    /// <param name="dispatch">
-    /// The job that is being scheduled.
+    /// <param name="batch">
+    /// The batch to be immediately dispatched for execution.
     /// </param>
-    public void Schedule(Func<ValueTask> dispatch)
-        => BeginDispatch(dispatch);
+    public void Schedule(Batch batch)
+        => BeginDispatch(batch);
 
-    private static void BeginDispatch(Func<ValueTask> dispatch)
+    private static void BeginDispatch(Batch batch)
         => Task.Run(async () =>
         {
             try
             {
-                await dispatch().ConfigureAwait(false);
+                await batch.DispatchAsync().ConfigureAwait(false);
             }
             catch
             {
@@ -28,7 +33,7 @@ public class AutoBatchScheduler : IBatchScheduler
         });
 
     /// <summary>
-    /// Gets the default instance if the <see cref="AutoBatchScheduler"/>.
+    /// Gets the default shared instance of the <see cref="AutoBatchScheduler"/>.
     /// </summary>
     public static AutoBatchScheduler Default { get; } = new();
 }

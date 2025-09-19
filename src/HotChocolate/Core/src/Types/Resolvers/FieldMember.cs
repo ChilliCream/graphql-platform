@@ -1,8 +1,6 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers;
 
 public sealed class FieldMember

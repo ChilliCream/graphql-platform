@@ -4,8 +4,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using ExtendedType = HotChocolate.Internal.ExtendedType;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector) : ITypeRegistrarHandler

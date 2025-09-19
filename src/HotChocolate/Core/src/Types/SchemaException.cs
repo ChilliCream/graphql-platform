@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -65,7 +63,7 @@ public sealed partial class SchemaException : Exception
 
     private static partial class StackTraceHelper
     {
-        [GeneratedRegex(@" in ([^:]+):line (\d+)", RegexOptions.Compiled)]
+        [GeneratedRegex(@" in (.+):line (\d+)", RegexOptions.Compiled)]
         private static partial Regex StackTracePathRegex();
 
         public static string? Normalize(string stackTrace)

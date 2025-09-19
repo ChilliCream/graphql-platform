@@ -1,7 +1,8 @@
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
 /// Represents the result of a nested list field in a GraphQL operation.
@@ -28,6 +29,14 @@ public sealed class NestedListResult : ListResult
     public override void SetNextValueNull()
     {
         Items.Add(null);
+    }
+
+    /// <inheritdoc />
+    public override bool TrySetValueNull(int index)
+    {
+        Items[index] = null;
+
+        return !ElementType.IsNonNullType();
     }
 
     /// <summary>

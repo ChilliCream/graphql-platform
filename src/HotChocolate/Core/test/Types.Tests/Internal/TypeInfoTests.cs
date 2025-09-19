@@ -403,7 +403,7 @@ public class TypeInfoTests
 
         // assert
         Assert.True(success);
-
+        Assert.NotNull(typeInfo);
         Assert.Collection(typeInfo.Components.Select(t => t.Kind),
             t => Assert.Equal(TypeComponentKind.List, t),
             t => Assert.Equal(TypeComponentKind.NonNull, t),
@@ -564,8 +564,6 @@ public class TypeInfoTests
     private sealed class CustomStringList : CustomStringListBase;
 
     private class CustomStringListBase : List<string>;
-
-#nullable enable
 
     public class Nullability
     {

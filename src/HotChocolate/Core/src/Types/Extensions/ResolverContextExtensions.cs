@@ -4,8 +4,6 @@ using HotChocolate.Types;
 using static HotChocolate.Utilities.ThrowHelper;
 using static HotChocolate.Properties.TypeResources;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public static class ResolverContextExtensions

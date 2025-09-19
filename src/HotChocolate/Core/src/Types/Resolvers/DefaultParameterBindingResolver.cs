@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;

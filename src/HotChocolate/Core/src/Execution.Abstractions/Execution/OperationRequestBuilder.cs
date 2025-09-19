@@ -13,6 +13,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     private OperationDocumentId? _documentId;
     private OperationDocumentHash? _documentHash;
     private string? _operationName;
+    private ErrorHandlingMode? _errorHandlingMode;
     private IReadOnlyList<IReadOnlyDictionary<string, object?>>? _readOnlyVariableValues;
     private List<IReadOnlyDictionary<string, object?>>? _variableValues;
     private IReadOnlyDictionary<string, object?>? _readOnlyExtensions;
@@ -84,8 +85,12 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// <summary>
     /// Sets the hash of the GraphQL operation document.
     /// </summary>
-    /// <param name="documentHash"></param>
-    /// <returns></returns>
+    /// <param name="documentHash">
+    /// The hash of the GraphQL operation document.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
     public OperationRequestBuilder SetDocumentHash(OperationDocumentHash? documentHash)
     {
         _documentHash = documentHash;
@@ -104,6 +109,21 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     public OperationRequestBuilder SetOperationName(string? operationName)
     {
         _operationName = operationName;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the requested error handling mode.
+    /// </summary>
+    /// <param name="errorHandlingMode">
+    /// The requested error handling mode.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
+    public OperationRequestBuilder SetErrorHandlingMode(ErrorHandlingMode? errorHandlingMode)
+    {
+        _errorHandlingMode = errorHandlingMode;
         return this;
     }
 
@@ -370,6 +390,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         _documentId = null;
         _documentHash = null;
         _operationName = null;
+        _errorHandlingMode = null;
         _readOnlyVariableValues = null;
         _variableValues = null;
         _readOnlyExtensions = null;
@@ -406,6 +427,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
                 documentId: _documentId,
                 documentHash: _documentHash,
                 operationName: _operationName,
+                errorHandlingMode: _errorHandlingMode,
                 variableValues: variableSet,
                 extensions: _readOnlyExtensions,
                 contextData: _readOnlyContextData ?? _contextData,
@@ -421,6 +443,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             documentId: _documentId,
             documentHash: _documentHash,
             operationName: _operationName,
+            errorHandlingMode: _errorHandlingMode,
             variableValues: variableSet is { Count: 1 }
                 ? variableSet[0]
                 : null,
@@ -463,6 +486,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
                     _documentId = batch.DocumentId,
                     _documentHash = batch.DocumentHash,
                     _operationName = batch.OperationName,
+                    _errorHandlingMode = batch.ErrorHandlingMode,
                     _readOnlyVariableValues = batch.VariableValues,
                     _readOnlyContextData = batch.ContextData,
                     _readOnlyExtensions = batch.Extensions,
@@ -476,6 +500,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
                     _documentId = operation.DocumentId,
                     _documentHash = operation.DocumentHash,
                     _operationName = operation.OperationName,
+                    _errorHandlingMode = operation.ErrorHandlingMode,
                     _readOnlyVariableValues = operation.VariableValues is not null
                         ? new List<IReadOnlyDictionary<string, object?>>(1) { operation.VariableValues }
                         : null,
@@ -504,6 +529,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             .SetDocumentId(request.DocumentId)
             .SetDocumentHash(request.DocumentHash)
             .SetOperationName(request.OperationName)
+            .SetErrorHandlingMode(request.ErrorHandlingMode)
             .SetVariableValuesSet(request.Variables)
             .SetExtensions(request.Extensions);
 

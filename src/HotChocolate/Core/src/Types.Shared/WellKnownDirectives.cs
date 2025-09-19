@@ -9,4 +9,5 @@ internal static class WellKnownDirectives
     public const string Deprecated = "deprecated";
     public const string SpecifiedBy = "specifiedBy";
     public const string DeprecationReasonArgument = "reason";
+    public const string OneOf = "oneOf";
 }

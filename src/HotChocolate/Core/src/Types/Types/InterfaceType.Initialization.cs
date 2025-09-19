@@ -6,8 +6,6 @@ using HotChocolate.Types.Helpers;
 using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Types.Helpers.CompleteInterfacesHelper;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public partial class InterfaceType

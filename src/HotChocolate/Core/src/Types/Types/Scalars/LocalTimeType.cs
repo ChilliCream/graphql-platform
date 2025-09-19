@@ -3,8 +3,6 @@ using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -14,6 +12,7 @@ namespace HotChocolate.Types;
 public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
 {
     private const string LocalFormat = "HH:mm:ss";
+    private readonly bool _enforceSpecFormat;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
@@ -21,10 +20,24 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
     public LocalTimeType(
         string name,
         string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
+        BindingBehavior bind = BindingBehavior.Explicit,
+        bool disableFormatCheck = false)
         : base(name, bind)
     {
         Description = description;
+        _enforceSpecFormat = !disableFormatCheck;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
+    /// </summary>
+    public LocalTimeType(bool disableFormatCheck)
+        : this(
+            ScalarNames.LocalTime,
+            TypeResources.LocalTimeType_Description,
+            BindingBehavior.Implicit,
+            disableFormatCheck: disableFormatCheck)
+    {
     }
 
     /// <summary>
@@ -121,17 +134,27 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
         return value.ToString(LocalFormat, CultureInfo.InvariantCulture);
     }
 
-    private static bool TryDeserializeFromString(
+    private bool TryDeserializeFromString(
         string? serialized,
         [NotNullWhen(true)] out TimeOnly? value)
     {
-        if (serialized is not null
-            && TimeOnly.TryParseExact(
+        if (_enforceSpecFormat)
+        {
+            if (TimeOnly.TryParseExact(
                 serialized,
                 LocalFormat,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.None,
                 out var time))
+            {
+                value = time;
+                return true;
+            }
+        }
+        else if (TimeOnly.TryParse(
+            serialized,
+            CultureInfo.InvariantCulture,
+            out var time))
         {
             value = time;
             return true;

@@ -1,0 +1,154 @@
+{
+  "data": {
+    "users": [
+      {
+        "posts": [
+          {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDoxNQ=="
+            }
+          },
+          {
+            "author": {
+              "subgraph3": "Author: QXV0aG9yOjE0"
+            }
+          },
+          {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDoxMw=="
+            }
+          }
+        ]
+      },
+      {
+        "posts": [
+          {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDoxOA=="
+            }
+          },
+          {
+            "author": {
+              "subgraph3": "Author: QXV0aG9yOjE3"
+            }
+          },
+          {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDoxNg=="
+            }
+          }
+        ]
+      },
+      {
+        "posts": [
+          {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+            }
+          },
+          {
+            "author": {
+              "subgraph3": "Author: QXV0aG9yOjIw"
+            }
+          },
+          {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDoxOQ=="
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "5a9a1584c2ebb431af21faf719f4278662253a7868c160d3da217b2ed2f111d1",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  users {\n    posts {\n      __typename @fusion__requirement\n      ... on Photo {\n        product {\n          subgraph2\n          id @fusion__requirement\n        }\n      }\n      ... on Discussion {\n        author {\n          subgraph3\n          id @fusion__requirement\n        }\n      }\n    }\n  }\n}",
+          "id": "eb2214e50d2491349ef9bd204249bb8e",
+          "hash": "eb2214e50d2491349ef9bd204249bb8e",
+          "shortHash": "eb2214e5"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_eb2214e5_1",
+              "kind": "Query",
+              "document": "query testQuery_eb2214e5_1 {\n  users {\n    posts {\n      __typename\n      ... on Photo {\n        product {\n          id\n        }\n      }\n      ... on Discussion {\n        author {\n          id\n        }\n      }\n    }\n  }\n}",
+              "hash": "4c6b2eb56ac5414900509d206744d65d43c3b9599154232e984466afadf9bc1a",
+              "shortHash": "4c6b2eb5"
+            },
+            "responseNames": [
+              "users"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "C",
+            "operation": {
+              "name": "testQuery_eb2214e5_2",
+              "kind": "Query",
+              "document": "query testQuery_eb2214e5_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    subgraph3\n  }\n}",
+              "hash": "9194b614a535d83e654da365aa3f7cd48cba3e3755ba8648dd02a0255d3df86a",
+              "shortHash": "9194b614"
+            },
+            "responseNames": [
+              "subgraph3"
+            ],
+            "source": "$.authorById",
+            "target": "$.users.posts<Discussion>.author",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.users.posts<Discussion>.author",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_eb2214e5_3",
+              "kind": "Query",
+              "document": "query testQuery_eb2214e5_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}",
+              "hash": "70e73d9da5e0faa2c278e54014f2d221fa9c85dde42580f59dbc9d12cbc0209a",
+              "shortHash": "70e73d9d"
+            },
+            "responseNames": [
+              "subgraph2"
+            ],
+            "source": "$.productById",
+            "target": "$.users.posts<Photo>.product",
+            "requirements": [
+              {
+                "name": "__fusion_2_id",
+                "type": "ID!",
+                "path": "$.users.posts<Photo>.product",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

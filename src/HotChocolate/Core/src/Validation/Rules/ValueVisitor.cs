@@ -40,7 +40,7 @@ namespace HotChocolate.Validation.Rules;
 ///
 /// AND
 ///
-/// Oneof Input Objects require that exactly one field must be supplied and that
+/// OneOf Input Objects require that exactly one field must be supplied and that
 /// field must not be {null}.
 ///
 /// DRAFT: https://github.com/graphql/graphql-spec/pull/825
@@ -103,7 +103,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             node.Type.NamedType().Name.Value,
             out var variableType))
         {
-            context.Types.Push(variableType);
+            context.Types.Push(node.Type.RewriteToType(variableType));
             return base.Enter(node, context);
         }
 

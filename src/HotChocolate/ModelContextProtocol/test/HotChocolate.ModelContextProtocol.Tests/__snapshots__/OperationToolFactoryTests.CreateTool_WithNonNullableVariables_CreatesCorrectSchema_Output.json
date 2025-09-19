@@ -1,0 +1,239 @@
+{
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "withNonNullableVariables": {
+          "type": "object",
+          "properties": {
+            "any": {
+              "type": [
+                "object",
+                "array",
+                "boolean",
+                "string",
+                "number",
+                "integer"
+              ]
+            },
+            "boolean": {
+              "type": "boolean"
+            },
+            "byte": {
+              "type": "integer"
+            },
+            "byteArray": {
+              "type": "string",
+              "pattern": "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=)?$"
+            },
+            "date": {
+              "type": "string",
+              "format": "date"
+            },
+            "dateTime": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,7})?(?:[Zz]|[+-]\\d{2}:\\d{2})$"
+            },
+            "decimal": {
+              "type": "number"
+            },
+            "enum": {
+              "type": "string",
+              "enum": [
+                "VALUE1",
+                "VALUE2"
+              ]
+            },
+            "float": {
+              "type": "number"
+            },
+            "id": {
+              "type": "string"
+            },
+            "int": {
+              "type": "integer"
+            },
+            "json": {
+              "type": [
+                "object",
+                "array",
+                "boolean",
+                "string",
+                "number",
+                "integer"
+              ]
+            },
+            "list": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "localDate": {
+              "type": "string",
+              "format": "date"
+            },
+            "localDateTime": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$"
+            },
+            "localTime": {
+              "type": "string",
+              "format": "time",
+              "pattern": "^\\d{2}:\\d{2}:\\d{2}$"
+            },
+            "long": {
+              "type": "integer"
+            },
+            "object": {
+              "type": "object",
+              "properties": {
+                "field1A": {
+                  "type": "object",
+                  "properties": {
+                    "field1B": {
+                      "type": "object",
+                      "properties": {
+                        "field1C": {
+                          "type": "string",
+                          "format": "time",
+                          "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                          "description": "field1C description"
+                        }
+                      },
+                      "required": [
+                        "field1C"
+                      ],
+                      "additionalProperties": false,
+                      "description": "field1B description"
+                    }
+                  },
+                  "required": [
+                    "field1B"
+                  ],
+                  "additionalProperties": false,
+                  "description": "field1A description"
+                }
+              },
+              "required": [
+                "field1A"
+              ],
+              "additionalProperties": false
+            },
+            "short": {
+              "type": "integer"
+            },
+            "string": {
+              "type": "string"
+            },
+            "timeSpan": {
+              "type": "string",
+              "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$"
+            },
+            "unknown": {
+              "type": "string"
+            },
+            "url": {
+              "type": "string",
+              "format": "uri-reference"
+            },
+            "uuid": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "any",
+            "boolean",
+            "byte",
+            "byteArray",
+            "date",
+            "dateTime",
+            "decimal",
+            "enum",
+            "float",
+            "id",
+            "int",
+            "json",
+            "list",
+            "localDate",
+            "localDateTime",
+            "localTime",
+            "long",
+            "object",
+            "short",
+            "string",
+            "timeSpan",
+            "unknown",
+            "url",
+            "uuid"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "withNonNullableVariables"
+      ]
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "locations": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "line": {
+                  "type": "integer"
+                },
+                "column": {
+                  "type": "integer"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "path": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": [
+                "string",
+                "integer"
+              ]
+            }
+          },
+          "extensions": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

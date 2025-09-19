@@ -1,0 +1,105 @@
+{
+  "data": {
+    "productById": {
+      "subgraph1Only": {
+        "subgraph2Only": true,
+        "subgraph1Only": true,
+        "sharedLinked": {
+          "subgraph2Only": true,
+          "sharedScalar": "ProductAvailabilityMail: UHJvZHVjdEF2YWlsYWJpbGl0eU1haWw6Mg==",
+          "subgraph1Only": "ProductAvailabilityMail: UHJvZHVjdEF2YWlsYWJpbGl0eU1haWw6Mg=="
+        }
+      }
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "ce0baf71cf604e0184feb00eb2d3d5789a0611ea235c817fc40cef626361046e",
+        "operation": {
+          "kind": "Query",
+          "document": "query(\n  $productId: ID!\n) {\n  productById(id: $productId) {\n    subgraph1Only {\n      subgraph2Only\n      subgraph1Only\n      sharedLinked {\n        subgraph2Only\n        sharedScalar\n        subgraph1Only\n      }\n      id @fusion__requirement\n    }\n  }\n}",
+          "id": "b7bd95cc656e48080c29c23922f3b879",
+          "hash": "b7bd95cc656e48080c29c23922f3b879",
+          "shortHash": "b7bd95cc"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_b7bd95cc_1",
+              "kind": "Query",
+              "document": "query Op_b7bd95cc_1(\n  $productId: ID!\n) {\n  productById(id: $productId) {\n    subgraph1Only {\n      subgraph1Only\n      sharedLinked {\n        sharedScalar\n        subgraph1Only\n      }\n      id\n    }\n  }\n}",
+              "hash": "297b453609754c07f4bae1c0b3ef179d1e402b54569edbfd786db46ac70ff714",
+              "shortHash": "297b4536"
+            },
+            "responseNames": [
+              "productById"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_b7bd95cc_2",
+              "kind": "Query",
+              "document": "query Op_b7bd95cc_2(\n  $__fusion_1_id: ID!\n) {\n  productAvailabilityById(id: $__fusion_1_id) {\n    subgraph2Only\n  }\n}",
+              "hash": "a992a65a985f7cc3025d94917319c810c10b80e6194c2996f48521d12cfdbbbb",
+              "shortHash": "a992a65a"
+            },
+            "responseNames": [
+              "subgraph2Only"
+            ],
+            "source": "$.productAvailabilityById",
+            "target": "$.productById.subgraph1Only",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.productById.subgraph1Only",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_b7bd95cc_3",
+              "kind": "Query",
+              "document": "query Op_b7bd95cc_3(\n  $__fusion_2_id: ID!\n) {\n  productAvailabilityById(id: $__fusion_2_id) {\n    sharedLinked {\n      subgraph2Only\n    }\n  }\n}",
+              "hash": "67a0c8876b1e170a48c4dd4222bcc865b1d524cd1ff1c2d66aff78b45b2c1dbe",
+              "shortHash": "67a0c887"
+            },
+            "responseNames": [
+              "sharedLinked"
+            ],
+            "source": "$.productAvailabilityById",
+            "target": "$.productById.subgraph1Only",
+            "requirements": [
+              {
+                "name": "__fusion_2_id",
+                "type": "ID!",
+                "path": "$.productById.subgraph1Only",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

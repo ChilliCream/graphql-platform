@@ -28,14 +28,14 @@ public class RequestExecutorResolverTests
         }));
 
         // act
-        var firstExecutor = await manager.GetExecutorAsync();
+        var firstExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
         var firstOperationCache = firstExecutor.Schema.Services.GetCombinedServices()
             .GetRequiredService<IPreparedOperationCache>();
 
-        manager.EvictRequestExecutor();
+        manager.EvictExecutor();
         executorEvictedResetEvent.Wait(cts.Token);
 
-        var secondExecutor = await manager.GetExecutorAsync();
+        var secondExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
         var secondOperationCache = secondExecutor.Schema.Services.GetCombinedServices()
             .GetRequiredService<IPreparedOperationCache>();
 
@@ -78,7 +78,7 @@ public class RequestExecutorResolverTests
         var initialExecutor = await manager.GetExecutorAsync();
         warmupResetEvent.Reset();
 
-        manager.EvictRequestExecutor();
+        manager.EvictExecutor();
 
         var executorAfterEviction = await manager.GetExecutorAsync();
 
@@ -127,12 +127,12 @@ public class RequestExecutorResolverTests
 
         // act
         // assert
-        var initialExecutor = await manager.GetExecutorAsync();
+        var initialExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
 
-        manager.EvictRequestExecutor();
+        manager.EvictExecutor();
         executorEvictedResetEvent.Wait(cts.Token);
 
-        var executorAfterEviction = await manager.GetExecutorAsync();
+        var executorAfterEviction = await manager.GetExecutorAsync(cancellationToken: cts.Token);
 
         Assert.NotSame(initialExecutor, executorAfterEviction);
         Assert.Equal(expectedWarmups, warmups);

@@ -6,6 +6,11 @@ namespace HotChocolate.Execution;
 public interface IExecutionTask
 {
     /// <summary>
+    /// Gets or sets the internal execution identifier.
+    /// </summary>
+    uint Id { get; set; }
+
+    /// <summary>
     /// Defines the kind of task.
     /// The task kind is used to apply the correct execution strategy.
     /// </summary>
@@ -51,12 +56,4 @@ public interface IExecutionTask
     /// The cancellation token.
     /// </param>
     void BeginExecute(CancellationToken cancellationToken);
-
-    /// <summary>
-    /// The running task can be awaited to track completion of this particular task.
-    /// </summary>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
-    /// </param>
-    Task WaitForCompletionAsync(CancellationToken cancellationToken);
 }

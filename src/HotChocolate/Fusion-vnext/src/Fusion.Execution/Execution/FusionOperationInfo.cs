@@ -7,7 +7,7 @@ internal sealed class FusionOperationInfo : RequestFeature
 {
     public string? OperationId { get; set; }
 
-    public OperationExecutionPlan? OperationPlan { get; set; }
+    public OperationPlan? OperationPlan { get; set; }
 
     protected override void Reset()
     {

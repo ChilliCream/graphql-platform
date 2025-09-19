@@ -1,0 +1,85 @@
+"GetWithNonNullableVariables description"
+query GetWithNonNullableVariables(
+  "Any description" $any: Any!
+  "Boolean description" $boolean: Boolean!
+  "Byte description" $byte: Byte!
+  "ByteArray description" $byteArray: ByteArray!
+  "Date description" $date: Date!
+  "DateTime description" $dateTime: DateTime!
+  "Decimal description" $decimal: Decimal!
+  "Enum description" $enum: TestEnum!
+  "Float description" $float: Float!
+  "ID description" $id: ID!
+  "Int description" $int: Int!
+  "JSON description" $json: JSON!
+  "List description" $list: [String!]!
+  "LocalDate description" $localDate: LocalDate!
+  "LocalDateTime description" $localDateTime: LocalDateTime!
+  "LocalTime description" $localTime: LocalTime!
+  "Long description" $long: Long!
+  "Object description" $object: Object1NonNullableInput!
+  "Short description" $short: Short!
+  "String description" $string: String!
+  "TimeSpan description" $timeSpan: TimeSpan!
+  "Unknown description" $unknown: Unknown!
+  "URL description" $url: URL!
+  "UUID description" $uuid: UUID!
+) {
+  withNonNullableVariables(
+    any: $any
+    boolean: $boolean
+    byte: $byte
+    byteArray: $byteArray
+    date: $date
+    dateTime: $dateTime
+    decimal: $decimal
+    enum: $enum
+    float: $float
+    id: $id
+    int: $int
+    json: $json
+    list: $list
+    localDate: $localDate
+    localDateTime: $localDateTime
+    localTime: $localTime
+    long: $long
+    object: $object
+    short: $short
+    string: $string
+    timeSpan: $timeSpan
+    unknown: $unknown
+    url: $url
+    uuid: $uuid
+  ) {
+    any
+    boolean
+    byte
+    byteArray
+    date
+    dateTime
+    decimal
+    enum
+    float
+    id
+    int
+    json
+    list
+    localDate
+    localDateTime
+    localTime
+    long
+    object {
+      field1A {
+        field1B {
+          field1C
+        }
+      }
+    }
+    short
+    string
+    timeSpan
+    unknown
+    url
+    uuid
+  }
+}

@@ -12,7 +12,7 @@
     "Extensions": {
       "variable": "a",
       "variableType": "[String]",
-      "locationType": "String",
+      "locationType": "[String]",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
     "Exception": null

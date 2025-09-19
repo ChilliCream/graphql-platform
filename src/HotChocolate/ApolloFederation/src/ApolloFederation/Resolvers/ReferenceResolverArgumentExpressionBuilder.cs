@@ -14,6 +14,14 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder :
             nameof(ArgumentParser.GetValue),
             BindingFlags.Static | BindingFlags.Public)!;
 
+    private readonly Type _targetType;
+
+    public ReferenceResolverArgumentExpressionBuilder(Type targetType)
+    {
+        ArgumentNullException.ThrowIfNull(targetType);
+        _targetType = targetType;
+    }
+
     public override Expression Build(ParameterExpressionBuilderContext context)
     {
         var param = context.Parameter;
@@ -35,7 +43,7 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder :
             param,
             typeKey,
             context.ResolverContext,
-            typeof(ObjectType));
+            _targetType);
         var getValueMethod = _getValue.MakeGenericMethod(param.ParameterType);
         var getValue = Expression.Call(
             getValueMethod,

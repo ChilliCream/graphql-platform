@@ -2,6 +2,7 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -43,7 +44,7 @@ public class ResultDataMapperTests : FusionTestBase
                 """)
                 .Definitions.OfType<OperationDefinitionNode>().First();
         var operationCompiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = operationCompiler.Compile("1", operationDefinition);
+        var operation = operationCompiler.Compile("1", "1", operationDefinition);
 
         var jsonDocument = JsonDocument.Parse(
             """
@@ -107,7 +108,7 @@ public class ResultDataMapperTests : FusionTestBase
                 """)
                 .Definitions.OfType<OperationDefinitionNode>().First();
         var operationCompiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = operationCompiler.Compile("1", operationDefinition);
+        var operation = operationCompiler.Compile("1", "1", operationDefinition);
 
         var jsonDocument = JsonDocument.Parse(
             """

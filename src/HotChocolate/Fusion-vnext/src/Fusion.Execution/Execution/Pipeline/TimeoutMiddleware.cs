@@ -1,9 +1,9 @@
 using System.Diagnostics;
-using HotChocolate.Fusion.Execution;
+using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using static System.Threading.CancellationTokenSource;
 
-namespace HotChocolate.Execution.Pipeline;
+namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal sealed class TimeoutMiddleware
 {
@@ -32,9 +32,8 @@ internal sealed class TimeoutMiddleware
         using var timeout = new CancellationTokenSource(_timeout);
 
         // We do not dispose the combined token in this middleware at all times.
-        // The dispose is handled in the finally block.
-        var combined = CreateLinkedTokenSource(
-            context.RequestAborted, timeout.Token);
+        // The `Dispose` is handled in the finally block.
+        var combined = CreateLinkedTokenSource(context.RequestAborted, timeout.Token);
 
         try
         {

@@ -31,7 +31,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         void Action()
-            => SchemaBuilder.New().AddRootType(((Type)null)!, OperationType.Query);
+            => SchemaBuilder.New().AddRootType(((Type?)null)!, OperationType.Query);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -139,7 +139,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         void Action()
-            => SchemaBuilder.New().AddRootType(((ObjectType)null)!, OperationType.Query);
+            => SchemaBuilder.New().AddRootType(((ObjectType?)null)!, OperationType.Query);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -418,7 +418,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .AddDocument((Func<IServiceProvider, DocumentNode>)null);
+            .AddDocument((Func<IServiceProvider, DocumentNode>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -451,7 +451,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .AddType((Type)null);
+            .AddType((Type)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -463,7 +463,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .AddType((ITypeDefinition)null);
+            .AddType((ITypeDefinition)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -495,7 +495,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .AddType((ITypeDefinitionExtension)null);
+            .AddType((ITypeDefinitionExtension)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -532,7 +532,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .AddDirectiveType(null);
+            .AddDirectiveType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -568,7 +568,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .SetSchema((Type)null);
+            .SetSchema((Type)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -682,7 +682,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .SetSchema((Schema)null);
+            .SetSchema((Schema)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -694,7 +694,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .SetSchema(((Action<ISchemaTypeDescriptor>)null)!);
+            .SetSchema(((Action<ISchemaTypeDescriptor>?)null)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -725,7 +725,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .ModifyOptions(null);
+            .ModifyOptions(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -756,7 +756,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .AddRootResolver((FieldResolver)null);
+            .AddRootResolver<FieldResolver>(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -771,7 +771,7 @@ public class SchemaBuilderTests
             .Field("foo")
             .Type<StringType>());
 
-        ValueTask<object> ResolverDelegate(IResolverContext c) => new("test");
+        ValueTask<object?> ResolverDelegate(IResolverContext c) => new("test");
 
         // act
         var schema = SchemaBuilder.New()
@@ -806,7 +806,7 @@ public class SchemaBuilderTests
     {
         // arrange
         // act
-        void Action() => SchemaBuilderExtensions.BindRuntimeType<int, StringType>(null);
+        void Action() => SchemaBuilderExtensions.BindRuntimeType<int, StringType>(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -817,7 +817,7 @@ public class SchemaBuilderTests
     {
         // arrange
         // act
-        void Action() => SchemaBuilder.New().BindRuntimeType(null, typeof(StringType));
+        void Action() => SchemaBuilder.New().BindRuntimeType(null!, typeof(StringType));
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -828,7 +828,7 @@ public class SchemaBuilderTests
     {
         // arrange
         // act
-        void Action() => SchemaBuilder.New().BindRuntimeType(typeof(string), (Type)null);
+        void Action() => SchemaBuilder.New().BindRuntimeType(typeof(string), (Type)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -1032,7 +1032,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .TryAddTypeInterceptor(null);
+            .TryAddTypeInterceptor(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1044,7 +1044,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .TryAddTypeInterceptor(((TypeInterceptor)null)!);
+            .TryAddTypeInterceptor(((TypeInterceptor?)null)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1273,7 +1273,7 @@ public class SchemaBuilderTests
         var services = new ServiceCollection();
         var provider = services.AddSingleton<MyInterceptor, MyInterceptor>()
             .BuildServiceProvider();
-        var dependencyOfConvention = provider.GetService<MyInterceptor>();
+        var dependencyOfConvention = provider.GetRequiredService<MyInterceptor>();
 
         // act
         var schema = SchemaBuilder.New()
@@ -1940,7 +1940,7 @@ public class SchemaBuilderTests
     public class MockConvention : Convention<MockConventionDefinition>, IMockConvention
     {
         public bool IsExtended { get; set; }
-        public new MockConventionDefinition Configuration => base.Configuration;
+        public new MockConventionDefinition? Configuration => base.Configuration;
         protected override MockConventionDefinition CreateConfiguration(IConventionContext context)
         {
             return new MockConventionDefinition();
@@ -1948,7 +1948,11 @@ public class SchemaBuilderTests
 
         protected internal override void Complete(IConventionContext context)
         {
-            IsExtended = Configuration.IsExtended;
+            if (Configuration is not null)
+            {
+                IsExtended = Configuration.IsExtended;
+            }
+
             base.Complete(context);
         }
     }
@@ -1964,7 +1968,7 @@ public class SchemaBuilderTests
         {
             if (convention is MockConvention mockConvention)
             {
-                mockConvention.Configuration.IsExtended = true;
+                mockConvention.Configuration?.IsExtended = true;
             }
         }
     }
@@ -2005,7 +2009,7 @@ public class SchemaBuilderTests
 
     public class ConventionTestType : ObjectType<Foo>
     {
-        public IDescriptorContext Context { get; private set; }
+        public IDescriptorContext Context { get; private set; } = null!;
 
         protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
         {
@@ -2062,14 +2066,14 @@ public class SchemaBuilderTests
 
     public class BarType : ObjectType<Bar>;
 
-    public class Foo
+    public class Foo(Bar bar)
     {
-        public Bar Bar { get; }
+        public Bar Bar { get; } = bar;
     }
 
-    public class Bar
+    public class Bar(string baz)
     {
-        public string Baz { get; }
+        public string Baz { get; } = baz;
     }
 
     public class MySchema : Schema
@@ -2089,14 +2093,14 @@ public class SchemaBuilderTests
 
     public abstract class AbstractQuery
     {
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
 
-        public AbstractChild Object { get; set; }
+        public required AbstractChild Object { get; set; }
     }
 
     public abstract class AbstractChild
     {
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
     }
 
     public class MyInterceptor : TypeInterceptor

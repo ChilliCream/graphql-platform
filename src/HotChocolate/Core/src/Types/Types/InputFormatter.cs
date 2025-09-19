@@ -3,8 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public sealed class InputFormatter(ITypeConverter converter)

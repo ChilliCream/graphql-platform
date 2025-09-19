@@ -1,7 +1,0 @@
-schema @schemaName(value: "Schema1") {
-  query: Query
-}
-
-type Query {
-  schema1Field: Int!
-}

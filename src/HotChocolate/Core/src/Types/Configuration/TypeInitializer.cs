@@ -12,8 +12,6 @@ using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class TypeInitializer

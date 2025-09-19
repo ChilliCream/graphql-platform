@@ -17,7 +17,7 @@ public class LocalDateTypeTests
         const string expectedValue = "2018-06-11";
 
         // act
-        var serializedValue = (string)localDateType.Serialize(dateOnly);
+        var serializedValue = (string?)localDateType.Serialize(dateOnly);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
@@ -32,7 +32,7 @@ public class LocalDateTypeTests
         const string expectedValue = "2018-06-11";
 
         // act
-        var serializedValue = (string)localDateType.Serialize(dateTime);
+        var serializedValue = (string?)localDateType.Serialize(dateTime);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
@@ -49,7 +49,7 @@ public class LocalDateTypeTests
         const string expectedValue = "2018-06-11";
 
         // act
-        var serializedValue = (string)localDateType.Serialize(dateTime);
+        var serializedValue = (string?)localDateType.Serialize(dateTime);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
@@ -505,6 +505,20 @@ public class LocalDateTypeTests
                 }
                 """)
             .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public void LocalDate_Relaxed_Format_Check()
+    {
+        // arrange
+        const string s = "2011-08-30T08:46:14.116";
+
+        // act
+        var localDateType = new LocalDateType(disableFormatCheck: true);
+        var result = localDateType.Deserialize(s);
+
+        // assert
+        Assert.IsType<DateOnly>(result);
     }
 
     public class Query

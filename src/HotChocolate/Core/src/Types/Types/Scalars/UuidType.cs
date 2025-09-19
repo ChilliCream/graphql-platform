@@ -3,8 +3,6 @@ using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class UuidType : ScalarType<Guid, StringValueNode>

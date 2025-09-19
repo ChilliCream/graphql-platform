@@ -1,0 +1,5 @@
+fragment WorkspaceDetailPrompt_Workspace on Workspace {
+  id
+  name
+  personal
+}

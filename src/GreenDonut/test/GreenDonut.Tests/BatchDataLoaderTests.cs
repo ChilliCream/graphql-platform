@@ -116,7 +116,7 @@ public class BatchDataLoaderTests
 
     public sealed class InstantDispatcher : IBatchScheduler
     {
-        public void Schedule(Func<ValueTask> dispatch)
-            => dispatch();
+        public void Schedule(Batch batch)
+            => batch.DispatchAsync();
     }
 }

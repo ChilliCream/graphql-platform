@@ -1,4 +1,3 @@
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.ErrorHelper;
@@ -33,7 +32,7 @@ internal sealed partial class ResultBuilder
 
             var error = NonNullOutputFieldViolation(violation.Path, violation.Selection.SyntaxNode);
             error = errorHandler.Handle(error);
-            _diagnosticEvents.ExecutionError(_context, ErrorKind.FieldError, [error], null);
+            _diagnosticEvents.ResolverError(_context, violation.Selection, error);
             errors.Add(error);
         }
     }

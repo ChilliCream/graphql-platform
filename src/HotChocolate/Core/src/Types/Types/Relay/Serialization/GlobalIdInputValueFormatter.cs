@@ -1,7 +1,5 @@
 using System.Buffers;
 
-#nullable enable
-
 namespace HotChocolate.Types.Relay;
 
 internal class GlobalIdInputValueFormatter(

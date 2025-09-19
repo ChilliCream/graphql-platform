@@ -135,6 +135,11 @@ internal sealed class OperationSession : IOperationSession
             requestBuilder.SetOperationName(request.OperationName);
         }
 
+        if (request.ErrorHandlingMode is { } errorHandlingMode)
+        {
+            requestBuilder.SetErrorHandlingMode(errorHandlingMode);
+        }
+
         if (request.DocumentId is not null)
         {
             requestBuilder.SetDocumentId(request.DocumentId);
