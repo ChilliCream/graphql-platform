@@ -1,4 +1,4 @@
-name: Fetch_Book_From_SourceSchema1
+title: Fetch_Book_From_SourceSchema1
 request:
   document: >-
     {
@@ -7,15 +7,16 @@ request:
         title
       }
     }
-response: >-
-  {
-    "data": {
-      "bookById": {
-        "id": 1,
-        "title": "C# in Depth"
+response:
+  body: >-
+    {
+      "data": {
+        "bookById": {
+          "id": 1,
+          "title": "C# in Depth"
+        }
       }
     }
-  }
 sourceSchemas:
   - name: a
     schema: >-
@@ -69,8 +70,12 @@ sourceSchemas:
         formatTitle(title: String!): String!
       }
     interactions:
-      - request: {"query":"query Op_da31ef9b_1 {\n  bookById(id: 1) {\n    id\n    title\n  }\n}"}
-        response: {"data":{"bookById":{"id":1,"title":"C# in Depth"}}}
+      - request:
+          body: >-
+            {"query":"query Op_da31ef9b_1 {\n  bookById(id: 1) {\n    id\n    title\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"bookById":{"id":1,"title":"C# in Depth"}}}
   - name: b
     schema: >-
       schema {
@@ -124,3 +129,25 @@ sourceSchemas:
         authorById(id: Int!): Author! @internal @lookup
         authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
       }
+operationPlan:
+  operation:
+    - document: >-
+        {
+          bookById(id: 1) {
+            id
+            title
+          }
+        }
+      hash: da31ef9bfb0a7c42de9b1578b454d0af
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: >-
+        query Op_da31ef9b_1 {
+          bookById(id: 1) {
+            id
+            title
+          }
+        }

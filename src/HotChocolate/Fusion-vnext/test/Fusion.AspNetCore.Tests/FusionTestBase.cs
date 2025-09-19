@@ -6,18 +6,12 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
-using HotChocolate.Configuration;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
-using HotChocolate.Language;
 using HotChocolate.Transport.Http;
-using HotChocolate.Types.Composite;
-using HotChocolate.Types.Descriptors;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
@@ -28,78 +22,12 @@ using Xunit.Sdk;
 
 namespace HotChocolate.Fusion;
 
-public abstract class FusionTestBase : IDisposable
+public abstract partial class FusionTestBase : IDisposable
 {
     private readonly TestServerSession _testServerSession = new();
     private bool _disposed;
 
-    public TestServer CreateSourceSchema(
-        string schemaName,
-        Action<IRequestExecutorBuilder> configureBuilder,
-        Action<IServiceCollection>? configureServices = null,
-        Action<IApplicationBuilder>? configureApplication = null,
-        Action<HttpClient>? configureHttpClient = null,
-        bool isOffline = false,
-        bool isTimingOut = false)
-    {
-        configureApplication ??=
-            app =>
-            {
-                app.UseWebSockets();
-                app.UseRouting();
-                app.UseEndpoints(endpoint => endpoint.MapGraphQL(schemaName: schemaName));
-            };
-
-        return _testServerSession.CreateServer(
-            services =>
-            {
-                services.AddRouting();
-                var builder = services.AddGraphQLServer(schemaName, disableDefaultSecurity: true);
-                configureBuilder(builder);
-                configureServices?.Invoke(services);
-
-                services.Configure<SourceSchemaOptions>(opt =>
-                {
-                    opt.IsOffline = isOffline;
-                    opt.IsTimingOut = isTimingOut;
-                    opt.ConfigureHttpClient = configureHttpClient;
-                });
-            },
-            configureApplication);
-    }
-
-    public TestServer CreateSourceSchema(
-        string schemaName,
-        string schemaText,
-        bool isOffline = false,
-        bool isTimingOut = false)
-    {
-        return _testServerSession.CreateServer(services =>
-        {
-            services.AddRouting();
-
-            services.AddGraphQLServer(schemaName, disableDefaultSecurity: true)
-                .AddType<FieldSelectionSetType>()
-                .AddType<FieldSelectionMapType>()
-                .TryAddTypeInterceptor<RegisterFusionDirectivesTypeInterceptor>()
-                .AddDocumentFromString(schemaText)
-                .AddResolverMocking()
-                .AddTestDirectives();
-
-            services.Configure<SourceSchemaOptions>(opt =>
-            {
-                opt.IsOffline = isOffline;
-                opt.IsTimingOut = isTimingOut;
-            });
-        },
-        app =>
-        {
-            app.UseRouting();
-            app.UseEndpoints(endpoint => endpoint.MapGraphQL(schemaName: schemaName));
-        });
-    }
-
-    public async Task<Gateway> CreateCompositeSchemaAsync(
+    protected async Task<Gateway> CreateCompositeSchemaAsync(
         (string SchemaName, TestServer Server)[] sourceSchemaServers,
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
@@ -117,17 +45,15 @@ public abstract class FusionTestBase : IDisposable
             sourceSchemas.Add(new SourceSchemaText(name, schemaDocument.ToString()));
 
             var sourceSchemaOptions = server.Services.GetRequiredService<IOptions<SourceSchemaOptions>>().Value;
-            AddHttpClient(
-                gatewayServices,
-                name,
-                server,
-                sourceSchemaOptions);
+            gatewayServices.TryAddSingleton<IHttpClientFactory, Factory>();
+            gatewayServices.AddSingleton(new TestServerRegistration(name, server, sourceSchemaOptions));
 
             if (schemaSettings is null)
             {
                 gatewayBuilder.AddHttpClientConfiguration(
                     name,
                     new Uri("http://localhost:5000/graphql"),
+                    // TODO: Pull this out
                     onBeforeSend: (context, node, request) =>
                     {
                         if (request.Content == null)
@@ -177,6 +103,7 @@ public abstract class FusionTestBase : IDisposable
                         var pair = schemaInteractions.GetOrAdd(node.Id, _ => new RequestResponsePair());
 
                         pair.Response = content;
+                        pair.StatusCode = response.StatusCode;
                     });
             }
         }
@@ -241,194 +168,6 @@ public abstract class FusionTestBase : IDisposable
         return new Gateway(gatewayTestServer, sourceSchemas, interactions);
     }
 
-    // TODO: Properly print interactions and offline, etc status for source schema
-    protected void MatchSnapshot(
-        Gateway gateway,
-        HotChocolate.Transport.OperationRequest request,
-        HotChocolate.Transport.OperationResult response,
-        string? postFix = null)
-    {
-        var snapshot = new Snapshot(postFix, ".yaml");
-
-        var sb = new StringBuilder();
-        var writer = new CodeWriter(sb);
-
-        writer.WriteLine("name: {0}", snapshot.Title);
-
-        writer.WriteLine("request:");
-        writer.Indent();
-        WriteOperationRequest(writer, request);
-        writer.Unindent();
-
-        writer.WriteLine("response: >-");
-        writer.Indent();
-        WriteOperationResult(writer, response);
-        writer.Unindent();
-
-        writer.WriteLine("sourceSchemas:");
-        writer.Indent();
-
-        foreach (var sourceSchema in gateway.SourceSchemas)
-        {
-            writer.WriteLine("- name: {0}", sourceSchema.Name);
-            writer.Indent();
-            writer.WriteLine("schema: >-");
-            writer.Indent();
-            WriteSourceSchema(writer, sourceSchema.SourceText);
-            writer.Unindent();
-
-            var interactions = gateway.Interactions.GetValueOrDefault(sourceSchema.Name);
-
-            if (interactions is not null)
-            {
-                writer.WriteLine("interactions:");
-                writer.Indent();
-
-                foreach (var (id, requestResponse) in interactions.OrderBy(x => x.Key))
-                {
-                    writer.WriteLine("- request: {0}", requestResponse.Request!);
-                    writer.Indent();
-                    writer.WriteLine("response: {0}", requestResponse.Response!);
-                    writer.Unindent();
-                }
-
-                writer.Unindent();
-            }
-
-            writer.Unindent();
-        }
-
-        writer.Unindent();
-
-        snapshot.Add(sb.ToString());
-
-        snapshot.Match();
-    }
-
-    private static void WriteSourceSchema(CodeWriter writer, string schemaText)
-    {
-        var document = Utf8GraphQLParser.Parse(schemaText);
-
-        document = document.WithDefinitions(
-            document.Definitions.Where(IsNotFusionDefinition).ToArray());
-
-        var cleanedSchema = document.ToString(indented: true);
-
-        WriteMultilineString(writer, cleanedSchema);
-    }
-
-    private static bool IsNotFusionDefinition(IDefinitionNode node)
-    {
-        if (node is DirectiveDefinitionNode directive)
-        {
-            return !FusionBuiltIns.SourceSchemaDirectives.ContainsKey(directive.Name.Value);
-        }
-
-        if (node is ScalarTypeDefinitionNode scalar)
-        {
-            return !FusionBuiltIns.SourceSchemaScalars.ContainsKey(scalar.Name.Value);
-        }
-
-        return true;
-    }
-
-    private static void WriteOperationRequest(CodeWriter writer, HotChocolate.Transport.OperationRequest request)
-    {
-        if (request.OnError is not null && request.OnError != ErrorHandlingMode.Propagate)
-        {
-            writer.WriteLine("onError: {0}", request.OnError);
-        }
-
-        writer.WriteLine("document: >-");
-        writer.Indent();
-
-        // Ensure consistent formatting
-        var document = Utf8GraphQLParser.Parse(request.Query!).ToString(indented: true);
-
-        WriteMultilineString(writer, document);
-        writer.Unindent();
-
-        if (request.Variables is not null)
-        {
-            writer.WriteLine("variables: >-");
-            writer.Indent();
-
-            var jsonVariables = JsonSerializer.Serialize(
-                request.Variables,
-                new JsonSerializerOptions { WriteIndented = true });
-
-            var reader = new StringReader(jsonVariables);
-            var line = reader.ReadLine();
-            while (line != null)
-            {
-                writer.WriteLine(line);
-                line = reader.ReadLine();
-            }
-
-            writer.Unindent();
-        }
-    }
-
-    private static void WriteOperationResult(CodeWriter writer, HotChocolate.Transport.OperationResult result)
-    {
-        var memoryStream = new MemoryStream();
-        using var jsonWriter = new Utf8JsonWriter(memoryStream, new JsonWriterOptions { Indented = true });
-
-        jsonWriter.WriteStartObject();
-
-        if (result.RequestIndex.HasValue)
-        {
-            jsonWriter.WriteNumber("requestIndex", result.RequestIndex.Value);
-        }
-
-        if (result.VariableIndex.HasValue)
-        {
-            jsonWriter.WriteNumber("variableIndex", result.VariableIndex.Value);
-        }
-
-        if (result.Data.ValueKind is JsonValueKind.Object)
-        {
-            jsonWriter.WritePropertyName("data");
-            result.Data.WriteTo(jsonWriter);
-        }
-
-        if (result.Errors.ValueKind is JsonValueKind.Array)
-        {
-            jsonWriter.WritePropertyName("errors");
-            result.Errors.WriteTo(jsonWriter);
-        }
-
-        // if (result.Extensions.ValueKind is JsonValueKind.Object)
-        // {
-        //     jsonWriter.WritePropertyName("extensions");
-        //     result.Extensions.WriteTo(jsonWriter);
-        // }
-
-        jsonWriter.WriteEndObject();
-        jsonWriter.Flush();
-
-        memoryStream.Position = 0;
-
-        var reader = new StreamReader(memoryStream);
-        var line = reader.ReadLine();
-        while (line != null)
-        {
-            writer.WriteLine(line);
-            line = reader.ReadLine();
-        }
-    }
-
-    private static void WriteMultilineString(CodeWriter writer, string multilineString)
-    {
-        var reader = new StringReader(multilineString);
-        var line = reader.ReadLine();
-        while (line != null)
-        {
-            writer.WriteLine(line);
-            line = reader.ReadLine();
-        }
-    }
-
     public void Dispose()
     {
         if (_disposed)
@@ -449,22 +188,14 @@ public abstract class FusionTestBase : IDisposable
         }
     }
 
-    private static IServiceCollection AddHttpClient(
-        IServiceCollection services,
-        string name,
-        TestServer server,
-        SourceSchemaOptions options)
-    {
-        services.TryAddSingleton<IHttpClientFactory, Factory>();
-        return services.AddSingleton(new TestServerRegistration(name, server, options));
-    }
-
-    public class Gateway(
+    protected class Gateway(
         TestServer testServer,
         List<SourceSchemaText> sourceSchemas,
         ConcurrentDictionary<string, ConcurrentDictionary<int, RequestResponsePair>> interactions) : IDisposable
     {
         public HttpClient CreateClient() => testServer.CreateClient();
+
+        public IServiceProvider Services => testServer.Services;
 
         public List<SourceSchemaText> SourceSchemas => sourceSchemas;
 
@@ -476,56 +207,13 @@ public abstract class FusionTestBase : IDisposable
         }
     }
 
-    public class RequestResponsePair
+    protected class RequestResponsePair
     {
-        public string? Request
-        {
-            get;
-            set
-            {
-                if (field is not null)
-                {
-                    throw new InvalidOperationException();
-                }
+        public string? Request { get; set; }
 
-                field = value;
-            }
-        }
+        public string? Response { get; set; }
 
-        public string? Response
-        {
-            get;
-            set
-            {
-                if (field is not null)
-                {
-                    throw new InvalidOperationException();
-                }
-
-                field = value;
-            }
-        }
-    }
-
-    private sealed class RegisterFusionDirectivesTypeInterceptor : TypeInterceptor
-    {
-        private bool _registeredTypes;
-
-        public override IEnumerable<TypeReference> RegisterMoreTypes(
-            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
-        {
-            if (!_registeredTypes)
-            {
-                var typeInspector = discoveryContexts.First().DescriptorContext.TypeInspector;
-
-                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Lookup));
-                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Internal));
-                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.EntityKey));
-                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Is));
-
-                _registeredTypes = true;
-            }
-        }
+        public HttpStatusCode? StatusCode { get; set; }
     }
 
     private sealed class SourceSchemaOptions

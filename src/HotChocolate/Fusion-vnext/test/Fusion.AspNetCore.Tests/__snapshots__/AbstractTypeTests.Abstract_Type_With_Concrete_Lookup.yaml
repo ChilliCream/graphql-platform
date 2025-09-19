@@ -1,4 +1,4 @@
-name: Abstract_Type_With_Concrete_Lookup
+title: Abstract_Type_With_Concrete_Lookup
 request:
   document: >-
     {
@@ -10,16 +10,17 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "abstractType": {
-        "id": 1,
-        "title": "Discussion 1",
-        "commentCount": 3
+response:
+  body: >-
+    {
+      "data": {
+        "abstractType": {
+          "id": 1,
+          "title": "Discussion 1",
+          "commentCount": 3
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -83,8 +84,12 @@ sourceSchemas:
         authorById(id: Int!): Author! @lookup
       }
     interactions:
-      - request: {"query":"query Op_bf0deff6_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n      id\n    }\n  }\n}"}
-        response: {"data":{"abstractType":{"__typename":"Discussion","id":1,"title":"Discussion 1"}}}
+      - request:
+          body: >-
+            {"query":"query Op_bf0deff6_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n      id\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"abstractType":{"__typename":"Discussion","id":1,"title":"Discussion 1"}}}
   - name: B
     schema: >-
       schema {
@@ -110,5 +115,59 @@ sourceSchemas:
         discussionById(id: ID!): Discussion @lookup @internal
       }
     interactions:
-      - request: {"query":"query Op_bf0deff6_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    commentCount\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: {"data":{"discussionById":{"commentCount":3}}}
+      - request:
+          body: >-
+            {"query":"query Op_bf0deff6_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    commentCount\n  }\n}","variables":{"__fusion_1_id":1}}
+        response:
+          body: >-
+            {"data":{"discussionById":{"commentCount":3}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          abstractType {
+            __typename @fusion__requirement
+            id
+            ... on Discussion {
+              title
+              commentCount
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: bf0deff65ebc6098ea48ca77515a25c9
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_bf0deff6_1 {
+          abstractType {
+            __typename
+            id
+            ... on Discussion {
+              title
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_bf0deff6_2(
+          $__fusion_1_id: ID!
+        ) {
+          discussionById(id: $__fusion_1_id) {
+            commentCount
+          }
+        }
+      source: $.discussionById
+      target: $.abstractType<Discussion>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

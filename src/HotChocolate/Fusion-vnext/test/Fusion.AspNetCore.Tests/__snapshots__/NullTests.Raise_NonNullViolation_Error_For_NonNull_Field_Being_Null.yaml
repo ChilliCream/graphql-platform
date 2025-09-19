@@ -1,23 +1,24 @@
-name: Raise_NonNullViolation_Error_For_NonNull_Field_Being_Null
+title: Raise_NonNullViolation_Error_For_NonNull_Field_Being_Null
 request:
   document: >-
     {
       nonNullString
     }
-response: >-
-  {
-    "errors": [
-      {
-        "message": "Cannot return null for non-nullable field.",
-        "path": [
-          "nonNullString"
-        ],
-        "extensions": {
-          "code": "HC0018"
+response:
+  body: >-
+    {
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "nonNullString"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
         }
-      }
-    ]
-  }
+      ]
+    }
 sourceSchemas:
   - name: A
     schema: >-
@@ -29,5 +30,25 @@ sourceSchemas:
         nonNullString: String!
       }
     interactions:
-      - request: {"query":"query Op_ca4a0945_1 {\n  nonNullString\n}"}
-        response: {"data":{"nonNullString":null}}
+      - request:
+          body: >-
+            {"query":"query Op_ca4a0945_1 {\n  nonNullString\n}"}
+        response:
+          body: >-
+            {"data":{"nonNullString":null}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          nonNullString
+        }
+      hash: ca4a09458484ec06221f9c74efd683d1
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_ca4a0945_1 {
+          nonNullString
+        }

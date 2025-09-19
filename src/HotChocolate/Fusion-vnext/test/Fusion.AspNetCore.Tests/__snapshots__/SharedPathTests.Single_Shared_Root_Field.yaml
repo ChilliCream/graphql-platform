@@ -1,4 +1,4 @@
-name: Single_Shared_Root_Field
+title: Single_Shared_Root_Field
 request:
   document: >-
     {
@@ -7,15 +7,16 @@ request:
         schema2
       }
     }
-response: >-
-  {
-    "data": {
-      "viewer": {
-        "schema1": "schema1",
-        "schema2": "schema2"
+response:
+  body: >-
+    {
+      "data": {
+        "viewer": {
+          "schema1": "schema1",
+          "schema2": "schema2"
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -68,8 +69,12 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_c6e3b357_1 {\n  viewer {\n    schema1\n  }\n}"}
-        response: {"data":{"viewer":{"schema1":"schema1"}}}
+      - request:
+          body: >-
+            {"query":"query Op_c6e3b357_1 {\n  viewer {\n    schema1\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"viewer":{"schema1":"schema1"}}}
   - name: B
     schema: >-
       schema {
@@ -120,5 +125,39 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_c6e3b357_2 {\n  viewer {\n    schema2\n  }\n}"}
-        response: {"data":{"viewer":{"schema2":"schema2"}}}
+      - request:
+          body: >-
+            {"query":"query Op_c6e3b357_2 {\n  viewer {\n    schema2\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"viewer":{"schema2":"schema2"}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          viewer {
+            schema1
+            schema2
+          }
+        }
+      hash: c6e3b3570561284c71c82b7c60272002
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_c6e3b357_1 {
+          viewer {
+            schema1
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_c6e3b357_2 {
+          viewer {
+            schema2
+          }
+        }

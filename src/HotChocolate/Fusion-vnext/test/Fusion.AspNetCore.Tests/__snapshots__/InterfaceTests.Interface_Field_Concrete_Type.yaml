@@ -1,4 +1,4 @@
-name: Interface_Field_Concrete_Type
+title: Interface_Field_Concrete_Type
 request:
   document: >-
     query testQuery {
@@ -9,15 +9,16 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "votable": {
-        "viewerCanVote": true,
-        "title": "Discussion: RGlzY3Vzc2lvbjox"
+response:
+  body: >-
+    {
+      "data": {
+        "votable": {
+          "viewerCanVote": true,
+          "title": "Discussion: RGlzY3Vzc2lvbjox"
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -44,5 +45,38 @@ sourceSchemas:
         votable: Votable
       }
     interactions:
-      - request: {"query":"query testQuery_f4fa964e_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      title\n    }\n  }\n}"}
-        response: {"data":{"votable":{"__typename":"Discussion","viewerCanVote":true,"title":"Discussion: RGlzY3Vzc2lvbjox"}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_f4fa964e_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      title\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"votable":{"__typename":"Discussion","viewerCanVote":true,"title":"Discussion: RGlzY3Vzc2lvbjox"}}}
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery {
+          votable {
+            __typename @fusion__requirement
+            viewerCanVote
+            ... on Discussion {
+              title
+            }
+          }
+        }
+      name: testQuery
+      hash: f4fa964e3e634b9d478c346b9237723e
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_f4fa964e_1 {
+          votable {
+            __typename
+            viewerCanVote
+            ... on Discussion {
+              title
+            }
+          }
+        }

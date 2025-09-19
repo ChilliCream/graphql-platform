@@ -1,4 +1,4 @@
-name: Node_Field_Selections_On_Interface_And_Concrete_Type_Both_Have_Different_Dependencies
+title: Node_Field_Selections_On_Interface_And_Concrete_Type_Both_Have_Different_Dependencies
 request:
   document: >-
     query testQuery(
@@ -24,29 +24,30 @@ request:
     {
       "id": "SXRlbTE6MQ=="
     }
-response: >-
-  {
-    "data": {
-      "node": {
-        "__typename": "Item1",
-        "id": "SXRlbTE6MQ==",
-        "products": [
-          {
-            "id": "UHJvZHVjdDox",
-            "name": "Product: UHJvZHVjdDox"
-          },
-          {
-            "id": "UHJvZHVjdDoy",
-            "name": "Product: UHJvZHVjdDoy"
-          },
-          {
-            "id": "UHJvZHVjdDoz",
-            "name": "Product: UHJvZHVjdDoz"
-          }
-        ]
+response:
+  body: >-
+    {
+      "data": {
+        "node": {
+          "__typename": "Item1",
+          "id": "SXRlbTE6MQ==",
+          "products": [
+            {
+              "id": "UHJvZHVjdDox",
+              "name": "Product: UHJvZHVjdDox"
+            },
+            {
+              "id": "UHJvZHVjdDoy",
+              "name": "Product: UHJvZHVjdDoy"
+            },
+            {
+              "id": "UHJvZHVjdDoz",
+              "name": "Product: UHJvZHVjdDoz"
+            }
+          ]
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -81,8 +82,12 @@ sourceSchemas:
         node(id: ID!): Node @lookup
       }
     interactions:
-      - request: {"query":"query testQuery_f7a0a31d_6(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Item1 {\n      __typename\n      id\n      products {\n        id\n      }\n    }\n  }\n}","variables":{"id":"SXRlbTE6MQ=="}}
-        response: {"data":{"node":{"__typename":"Item1","id":"SXRlbTE6MQ==","products":[{"id":"UHJvZHVjdDox"},{"id":"UHJvZHVjdDoy"},{"id":"UHJvZHVjdDoz"}]}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_f7a0a31d_6(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Item1 {\n      __typename\n      id\n      products {\n        id\n      }\n    }\n  }\n}","variables":{"id":"SXRlbTE6MQ=="}}
+        response:
+          body: >-
+            {"data":{"node":{"__typename":"Item1","id":"SXRlbTE6MQ==","products":[{"id":"UHJvZHVjdDox"},{"id":"UHJvZHVjdDoy"},{"id":"UHJvZHVjdDoz"}]}}}
   - name: B
     schema: >-
       schema {
@@ -102,8 +107,169 @@ sourceSchemas:
         node(id: ID!): Node @lookup
       }
     interactions:
-      - request: {"query":"query testQuery_f7a0a31d_7(\n  $__fusion_3_id: ID!\n) {\n  node(id: $__fusion_3_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":[{"__fusion_3_id":"UHJvZHVjdDox"},{"__fusion_3_id":"UHJvZHVjdDoy"},{"__fusion_3_id":"UHJvZHVjdDoz"}]}
-        response: {"variableIndex":0,"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDox"}}}
-{"variableIndex":1,"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDoy"}}}
-{"variableIndex":2,"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDoz"}}}
-
+      - request:
+          body: >-
+            {"query":"query testQuery_f7a0a31d_7(\n  $__fusion_3_id: ID!\n) {\n  node(id: $__fusion_3_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}","variables":[{"__fusion_3_id":"UHJvZHVjdDox"},{"__fusion_3_id":"UHJvZHVjdDoy"},{"__fusion_3_id":"UHJvZHVjdDoz"}]}
+        response:
+          body: >-
+            {"variableIndex":0,"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDox"}}}
+            {"variableIndex":1,"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDoy"}}}
+            {"variableIndex":2,"data":{"node":{"__typename":"Product","name":"Product: UHJvZHVjdDoz"}}}
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            id
+            ... on ProductList {
+              products {
+                id
+                id @fusion__requirement
+                name
+              }
+            }
+            ... on Item2 {
+              singularProduct {
+                name
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: f7a0a31d1db29f17823b689486c82f42
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: $id
+      responseName: node
+      branches:
+        - Item1: 6
+        - Item2: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: >-
+        query testQuery_f7a0a31d_2(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            id
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_f7a0a31d_3(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            ... on Item2 {
+              __typename
+              id
+              products {
+                id
+              }
+              singularProduct {
+                id
+              }
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_f7a0a31d_4(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.node<Item2>.singularProduct
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+    - id: 5
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_f7a0a31d_5(
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.node<Item2>.products
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+    - id: 6
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_f7a0a31d_6(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            ... on Item1 {
+              __typename
+              id
+              products {
+                id
+              }
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 7
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_f7a0a31d_7(
+          $__fusion_3_id: ID!
+        ) {
+          node(id: $__fusion_3_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.node<Item1>.products
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 6

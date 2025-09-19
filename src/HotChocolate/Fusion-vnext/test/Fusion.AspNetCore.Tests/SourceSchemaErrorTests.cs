@@ -46,8 +46,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -84,8 +83,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -122,8 +120,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -175,8 +172,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -228,8 +224,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -267,8 +262,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -306,8 +300,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     #endregion
@@ -354,8 +347,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -398,8 +390,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -442,8 +433,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -486,8 +476,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -530,8 +519,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -574,8 +562,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -618,8 +605,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -662,8 +648,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -721,8 +706,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -766,8 +750,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -811,8 +794,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -856,8 +838,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -901,8 +882,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response, postFix: "OnError_" + onError);
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     #endregion

@@ -1,4 +1,4 @@
-name: SourceSchema_Request_Fails_For_Lookup
+title: SourceSchema_Request_Fails_For_Lookup
 request:
   document: >-
     {
@@ -7,24 +7,25 @@ request:
         name
       }
     }
-response: >-
-  {
-    "data": {
-      "nullableTopProduct": {
-        "price": 13.99,
-        "name": null
-      }
-    },
-    "errors": [
-      {
-        "message": "Unexpected Execution Error",
-        "path": [
-          "nullableTopProduct",
-          "name"
-        ]
-      }
-    ]
-  }
+response:
+  body: >-
+    {
+      "data": {
+        "nullableTopProduct": {
+          "price": 13.99,
+          "name": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "nullableTopProduct",
+            "name"
+          ]
+        }
+      ]
+    }
 sourceSchemas:
   - name: A
     schema: >-
@@ -44,8 +45,12 @@ sourceSchemas:
         productById(id: Int!): Product @lookup @internal
       }
     interactions:
-      - request: {"query":"query Op_12015865_1 {\n  nullableTopProduct {\n    price\n    id\n  }\n}"}
-        response: {"data":{"nullableTopProduct":{"price":13.99,"id":1}}}
+      - request:
+          body: >-
+            {"query":"query Op_12015865_1 {\n  nullableTopProduct {\n    price\n    id\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"nullableTopProduct":{"price":13.99,"id":1}}}
   - name: B
     schema: >-
       schema {
@@ -61,5 +66,50 @@ sourceSchemas:
         productById(id: Int!): Product @lookup
       }
     interactions:
-      - request: {"query":"query Op_12015865_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: 
+      - request:
+          body: >-
+            {"query":"query Op_12015865_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":1}}
+        response:
+          statusCode: 500
+operationPlan:
+  operation:
+    - document: >-
+        {
+          nullableTopProduct {
+            price
+            name
+            id @fusion__requirement
+          }
+        }
+      hash: 12015865a78f4ab2330778c5486a4026
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_12015865_1 {
+          nullableTopProduct {
+            price
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_12015865_2(
+          $__fusion_1_id: Int!
+        ) {
+          productById(id: $__fusion_1_id) {
+            name
+          }
+        }
+      source: $.productById
+      target: $.nullableTopProduct
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

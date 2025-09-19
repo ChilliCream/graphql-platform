@@ -44,8 +44,7 @@ public class BookStoreTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -107,8 +106,7 @@ public class BookStoreTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -147,20 +145,14 @@ public class BookStoreTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using (var response = await result1.ReadAsResultAsync())
-        {
-            MatchSnapshot(gateway, request, response);
-        }
+        await MatchSnapshotAsync(gateway, request, result1);
 
         using var result2 = await client.PostAsync(
             request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using (var response = await result2.ReadAsResultAsync())
-        {
-            MatchSnapshot(gateway, request, response);
-        }
+        await MatchSnapshotAsync(gateway, request, result2);
     }
 
     [Fact]
@@ -201,8 +193,7 @@ public class BookStoreTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -258,8 +249,7 @@ public class BookStoreTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -304,8 +294,7 @@ public class BookStoreTests : FusionTestBase
             uri: new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -350,8 +339,7 @@ public class BookStoreTests : FusionTestBase
             uri: new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -396,8 +384,7 @@ public class BookStoreTests : FusionTestBase
             uri: new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -437,8 +424,7 @@ public class BookStoreTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -478,8 +464,7 @@ public class BookStoreTests : FusionTestBase
                 new Uri("http://localhost:5000/graphql"));
 
             // assert 1
-            using var response = await result.ReadAsResultAsync();
-            MatchSnapshot(gateway, request, response);
+            await MatchSnapshotAsync(gateway, request, result);
         }
 
         // act 2
@@ -490,8 +475,7 @@ public class BookStoreTests : FusionTestBase
                 new Uri("http://localhost:5000/graphql"));
 
             // assert 2
-            using var response = await result.ReadAsResultAsync();
-            MatchSnapshot(gateway, request, response);
+            await MatchSnapshotAsync(gateway, request, result);
         }
 
         // act 3
@@ -502,8 +486,7 @@ public class BookStoreTests : FusionTestBase
                 new Uri("http://localhost:5000/graphql"));
 
             // assert 3
-            using var response = await result.ReadAsResultAsync();
-            MatchSnapshot(gateway, request, response);
+            await MatchSnapshotAsync(gateway, request, result);
         }
     }
 
@@ -550,8 +533,7 @@ public class BookStoreTests : FusionTestBase
                 new Uri("http://localhost:5000/graphql"));
 
             // assert
-            using var response = await result.ReadAsResultAsync();
-            MatchSnapshot(gateway, request, response);
+            await MatchSnapshotAsync(gateway, request, result);
         }
     }
 
@@ -588,8 +570,7 @@ public class BookStoreTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -626,8 +607,7 @@ public class BookStoreTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     public static class SourceSchema1

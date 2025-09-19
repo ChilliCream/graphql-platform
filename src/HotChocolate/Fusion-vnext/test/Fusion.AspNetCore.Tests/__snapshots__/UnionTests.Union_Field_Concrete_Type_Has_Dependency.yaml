@@ -1,4 +1,4 @@
-name: Union_Field_Concrete_Type_Has_Dependency
+title: Union_Field_Concrete_Type_Has_Dependency
 request:
   document: >-
     query testQuery {
@@ -11,14 +11,15 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "post": {
-        "subgraph2": "Photo: UGhvdG86MQ=="
+response:
+  body: >-
+    {
+      "data": {
+        "post": {
+          "subgraph2": "Photo: UGhvdG86MQ=="
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -41,8 +42,12 @@ sourceSchemas:
       
       union Post = Photo | Discussion
     interactions:
-      - request: {"query":"query testQuery_3d3597da_1 {\n  post {\n    __typename\n    ... on Photo {\n      id\n    }\n    ... on Discussion {\n      subgraph1\n    }\n  }\n}"}
-        response: {"data":{"post":{"__typename":"Photo","id":"UGhvdG86MQ=="}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_3d3597da_1 {\n  post {\n    __typename\n    ... on Photo {\n      id\n    }\n    ... on Discussion {\n      subgraph1\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"post":{"__typename":"Photo","id":"UGhvdG86MQ=="}}}
   - name: B
     schema: >-
       schema {
@@ -58,5 +63,62 @@ sourceSchemas:
         photoById(id: ID!): Photo @lookup
       }
     interactions:
-      - request: {"query":"query testQuery_3d3597da_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":{"__fusion_1_id":"UGhvdG86MQ=="}}
-        response: {"data":{"photoById":{"subgraph2":"Photo: UGhvdG86MQ=="}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_3d3597da_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":{"__fusion_1_id":"UGhvdG86MQ=="}}
+        response:
+          body: >-
+            {"data":{"photoById":{"subgraph2":"Photo: UGhvdG86MQ=="}}}
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery {
+          post {
+            __typename @fusion__requirement
+            ... on Photo {
+              subgraph2
+              id @fusion__requirement
+            }
+            ... on Discussion {
+              subgraph1
+            }
+          }
+        }
+      name: testQuery
+      hash: 3d3597da3d13ce32520baa0509869b36
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_3d3597da_1 {
+          post {
+            __typename
+            ... on Photo {
+              id
+            }
+            ... on Discussion {
+              subgraph1
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_3d3597da_2(
+          $__fusion_1_id: ID!
+        ) {
+          photoById(id: $__fusion_1_id) {
+            subgraph2
+          }
+        }
+      source: $.photoById
+      target: $.post<Photo>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

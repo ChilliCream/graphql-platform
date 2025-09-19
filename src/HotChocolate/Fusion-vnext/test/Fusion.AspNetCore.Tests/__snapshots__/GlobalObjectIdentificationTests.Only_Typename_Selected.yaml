@@ -1,4 +1,4 @@
-name: Only_Typename_Selected
+title: Only_Typename_Selected
 request:
   document: >-
     query testQuery(
@@ -12,14 +12,15 @@ request:
     {
       "id": "RGlzY3Vzc2lvbjox"
     }
-response: >-
-  {
-    "data": {
-      "node": {
-        "__typename": "Discussion"
+response:
+  body: >-
+    {
+      "data": {
+        "node": {
+          "__typename": "Discussion"
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -40,8 +41,12 @@ sourceSchemas:
         node(id: ID!): Node @lookup
       }
     interactions:
-      - request: {"query":"query testQuery_539ebaa0_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}","variables":{"id":"RGlzY3Vzc2lvbjox"}}
-        response: {"data":{"node":{"__typename":"Discussion"}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_539ebaa0_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}","variables":{"id":"RGlzY3Vzc2lvbjox"}}
+        response:
+          body: >-
+            {"data":{"node":{"__typename":"Discussion"}}}
   - name: B
     schema: >-
       schema {
@@ -61,3 +66,35 @@ sourceSchemas:
         authorById(id: ID!): Author @lookup
         node(id: ID!): Node @lookup
       }
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+          }
+        }
+      name: testQuery
+      hash: 539ebaa030bba518e0df8205ab40b139
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: $id
+      responseName: node
+      branches:
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: >-
+        query testQuery_539ebaa0_2(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1

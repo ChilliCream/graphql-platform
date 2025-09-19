@@ -1,4 +1,4 @@
-name: Hierarchy_Of_Shared_Parent_Fields_Below_Type_With_Lookup
+title: Hierarchy_Of_Shared_Parent_Fields_Below_Type_With_Lookup
 request:
   document: >-
     {
@@ -11,19 +11,20 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "productById": {
-        "shared": {
-          "shared2": {
-            "schema2": "schema2",
-            "schema1": "schema1"
+response:
+  body: >-
+    {
+      "data": {
+        "productById": {
+          "shared": {
+            "shared2": {
+              "schema2": "schema2",
+              "schema1": "schema1"
+            }
           }
         }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -76,8 +77,12 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_43e07475_1 {\n  productById(id: 1) {\n    shared {\n      shared2 {\n        schema1\n      }\n    }\n    id\n  }\n}"}
-        response: {"data":{"productById":{"shared":{"shared2":{"schema1":"schema1"}},"id":1}}}
+      - request:
+          body: >-
+            {"query":"query Op_43e07475_1 {\n  productById(id: 1) {\n    shared {\n      shared2 {\n        schema1\n      }\n    }\n    id\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"productById":{"shared":{"shared2":{"schema1":"schema1"}},"id":1}}}
   - name: B
     schema: >-
       schema {
@@ -128,5 +133,63 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_43e07475_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    shared {\n      shared2 {\n        schema2\n      }\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: {"data":{"product":{"shared":{"shared2":{"schema2":"schema2"}}}}}
+      - request:
+          body: >-
+            {"query":"query Op_43e07475_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    shared {\n      shared2 {\n        schema2\n      }\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
+        response:
+          body: >-
+            {"data":{"product":{"shared":{"shared2":{"schema2":"schema2"}}}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          productById(id: 1) {
+            shared {
+              shared2 {
+                schema2
+                schema1
+              }
+            }
+            id @fusion__requirement
+          }
+        }
+      hash: 43e07475ff5b123d9d3b06bd5d8fd13f
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_43e07475_1 {
+          productById(id: 1) {
+            shared {
+              shared2 {
+                schema1
+              }
+            }
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_43e07475_2(
+          $__fusion_1_id: Int!
+        ) {
+          product(id: $__fusion_1_id) {
+            shared {
+              shared2 {
+                schema2
+              }
+            }
+          }
+        }
+      source: $.product
+      target: $.productById
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

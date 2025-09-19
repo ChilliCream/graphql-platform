@@ -1,15 +1,16 @@
-name: Typename_On_Query
+title: Typename_On_Query
 request:
   document: >-
     {
       __typename
     }
-response: >-
-  {
-    "data": {
-      "__typename": "Query"
+response:
+  body: >-
+    {
+      "data": {
+        "__typename": "Query"
+      }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -112,3 +113,18 @@ sourceSchemas:
         authorById(id: Int!): Author! @internal @lookup
         authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
       }
+operationPlan:
+  operation:
+    - document: >-
+        {
+          __typename
+        }
+      hash: ef5c9e7b1e24de261642083d4e294322
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 1
+          responseName: __typename
+          fieldName: __typename

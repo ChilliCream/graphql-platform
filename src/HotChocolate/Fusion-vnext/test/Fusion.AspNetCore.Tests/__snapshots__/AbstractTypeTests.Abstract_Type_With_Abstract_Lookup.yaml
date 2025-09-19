@@ -1,4 +1,4 @@
-name: Abstract_Type_With_Abstract_Lookup
+title: Abstract_Type_With_Abstract_Lookup
 request:
   document: >-
     {
@@ -10,16 +10,17 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "otherAbstractType": {
-        "id": 1,
-        "name": "Author 1",
-        "age": 5
+response:
+  body: >-
+    {
+      "data": {
+        "otherAbstractType": {
+          "id": 1,
+          "name": "Author 1",
+          "age": 5
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -83,8 +84,12 @@ sourceSchemas:
         authorById(id: Int!): Author! @lookup
       }
     interactions:
-      - request: {"query":"query Op_ddf05407_1 {\n  otherAbstractType {\n    __typename\n    id\n    ... on Author {\n      name\n      id\n    }\n  }\n}"}
-        response: {"data":{"otherAbstractType":{"__typename":"Author","id":1,"name":"Author 1"}}}
+      - request:
+          body: >-
+            {"query":"query Op_ddf05407_1 {\n  otherAbstractType {\n    __typename\n    id\n    ... on Author {\n      name\n      id\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"otherAbstractType":{"__typename":"Author","id":1,"name":"Author 1"}}}
   - name: B
     schema: >-
       schema {
@@ -110,5 +115,62 @@ sourceSchemas:
         discussionById(id: ID!): Discussion @lookup @internal
       }
     interactions:
-      - request: {"query":"query Op_ddf05407_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: {"data":{"otherInterface":{"__typename":"Author","age":5}}}
+      - request:
+          body: >-
+            {"query":"query Op_ddf05407_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
+        response:
+          body: >-
+            {"data":{"otherInterface":{"__typename":"Author","age":5}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          otherAbstractType {
+            __typename @fusion__requirement
+            id
+            ... on Author {
+              name
+              age
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: ddf05407ab47b77c0b9110265d513627
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_ddf05407_1 {
+          otherAbstractType {
+            __typename
+            id
+            ... on Author {
+              name
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_ddf05407_2(
+          $__fusion_1_id: Int!
+        ) {
+          otherInterface(id: $__fusion_1_id) {
+            __typename
+            ... on Author {
+              age
+            }
+          }
+        }
+      source: $.otherInterface<Author>
+      target: $.otherAbstractType<Author>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

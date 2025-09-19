@@ -1,4 +1,4 @@
-name: Single_Shared_Union_Root_Field_With_Type_Refinement
+title: Single_Shared_Union_Root_Field_With_Type_Refinement
 request:
   document: >-
     {
@@ -9,15 +9,16 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "union": {
-        "schema1": "schema1",
-        "schema2": "schema2"
+response:
+  body: >-
+    {
+      "data": {
+        "union": {
+          "schema1": "schema1",
+          "schema2": "schema2"
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -70,8 +71,12 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_55b9106f_1 {\n  union {\n    __typename\n    ... on Review {\n      schema1\n    }\n  }\n}"}
-        response: {"data":{"union":{"__typename":"Review","schema1":"schema1"}}}
+      - request:
+          body: >-
+            {"query":"query Op_55b9106f_1 {\n  union {\n    __typename\n    ... on Review {\n      schema1\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"union":{"__typename":"Review","schema1":"schema1"}}}
   - name: B
     schema: >-
       schema {
@@ -122,5 +127,48 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_55b9106f_2 {\n  union {\n    __typename\n    ... on Review {\n      schema2\n    }\n  }\n}"}
-        response: {"data":{"union":{"__typename":"Review","schema2":"schema2"}}}
+      - request:
+          body: >-
+            {"query":"query Op_55b9106f_2 {\n  union {\n    __typename\n    ... on Review {\n      schema2\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"union":{"__typename":"Review","schema2":"schema2"}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          union {
+            __typename @fusion__requirement
+            ... on Review {
+              schema1
+              schema2
+            }
+          }
+        }
+      hash: 55b9106f0dc9ff30e58f924088ee5f0d
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_55b9106f_1 {
+          union {
+            __typename
+            ... on Review {
+              schema1
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_55b9106f_2 {
+          union {
+            __typename
+            ... on Review {
+              schema2
+            }
+          }
+        }

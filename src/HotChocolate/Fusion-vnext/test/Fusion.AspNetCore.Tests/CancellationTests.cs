@@ -43,8 +43,7 @@ public class CancellationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -90,8 +89,7 @@ public class CancellationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -128,14 +126,7 @@ public class CancellationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        var snapshot = new Snapshot();
-
-        await foreach (var response in result.ReadAsResultStreamAsync())
-        {
-            snapshot.Add(response);
-        }
-
-        await snapshot.MatchAsync();
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -171,8 +162,7 @@ public class CancellationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -207,8 +197,7 @@ public class CancellationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     public sealed class SourceSchema1

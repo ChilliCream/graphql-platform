@@ -1,4 +1,4 @@
-name: Resolve_Parallel_SubField_NonNull_EntryField_Nullable_One_Service_Errors_SubField
+title: Resolve_Parallel_SubField_NonNull_EntryField_Nullable_One_Service_Errors_SubField
 request:
   document: >-
     {
@@ -9,23 +9,24 @@ request:
         userId
       }
     }
-response: >-
-  {
-    "data": {
-      "viewer": {
-        "name": "Viewer"
+response:
+  body: >-
+    {
+      "data": {
+        "viewer": {
+          "name": "Viewer"
+        },
+        "other": null
       },
-      "other": null
-    },
-    "errors": [
-      {
-        "message": "Unexpected Execution Error",
-        "path": [
-          "other"
-        ]
-      }
-    ]
-  }
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "other"
+          ]
+        }
+      ]
+    }
 sourceSchemas:
   - name: A
     schema: >-
@@ -41,8 +42,12 @@ sourceSchemas:
         name: String!
       }
     interactions:
-      - request: {"query":"query Op_6b55933b_1 {\n  viewer {\n    name\n  }\n}"}
-        response: {"data":{"viewer":{"name":"Viewer"}}}
+      - request:
+          body: >-
+            {"query":"query Op_6b55933b_1 {\n  viewer {\n    name\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"viewer":{"name":"Viewer"}}}
   - name: B
     schema: >-
       schema {
@@ -59,5 +64,41 @@ sourceSchemas:
       
       directive @error(atIndex: Int) on FIELD_DEFINITION
     interactions:
-      - request: {"query":"query Op_6b55933b_2 {\n  other {\n    userId\n  }\n}"}
-        response: {"errors":[{"message":"Unexpected Execution Error","locations":[{"line":3,"column":5}],"path":["other","userId"]}],"data":{"other":null}}
+      - request:
+          body: >-
+            {"query":"query Op_6b55933b_2 {\n  other {\n    userId\n  }\n}"}
+        response:
+          body: >-
+            {"errors":[{"message":"Unexpected Execution Error","locations":[{"line":3,"column":5}],"path":["other","userId"]}],"data":{"other":null}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          viewer {
+            name
+          }
+          other {
+            userId
+          }
+        }
+      hash: 6b55933be7e98bbac39be61645618631
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_6b55933b_1 {
+          viewer {
+            name
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_6b55933b_2 {
+          other {
+            userId
+          }
+        }

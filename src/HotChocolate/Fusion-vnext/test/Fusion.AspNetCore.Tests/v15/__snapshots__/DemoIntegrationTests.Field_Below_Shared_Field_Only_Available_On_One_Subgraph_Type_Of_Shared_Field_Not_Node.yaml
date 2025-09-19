@@ -1,4 +1,4 @@
-name: Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node
+title: Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node
 request:
   document: >-
     query(
@@ -16,18 +16,19 @@ request:
     {
       "productId": "UHJvZHVjdAppMzg2MzE4NTk="
     }
-response: >-
-  {
-    "data": {
-      "productById": {
-        "subgraph1Only": {
-          "sharedLinked": {
-            "subgraph2Only": true
+response:
+  body: >-
+    {
+      "data": {
+        "productById": {
+          "subgraph1Only": {
+            "sharedLinked": {
+              "subgraph2Only": true
+            }
           }
         }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -59,8 +60,12 @@ sourceSchemas:
         productAvailabilityById(id: ID!): ProductAvailability @lookup
       }
     interactions:
-      - request: {"query":"query Op_8e568844_1(\n  $productId: ID!\n) {\n  productById(id: $productId) {\n    subgraph1Only {\n      sharedLinked {\n        __typename\n      }\n      id\n    }\n  }\n}","variables":{"productId":"UHJvZHVjdAppMzg2MzE4NTk="}}
-        response: {"data":{"productById":{"subgraph1Only":{"sharedLinked":{"__typename":"ProductAvailabilityMail"},"id":"UHJvZHVjdEF2YWlsYWJpbGl0eTox"}}}}
+      - request:
+          body: >-
+            {"query":"query Op_8e568844_1(\n  $productId: ID!\n) {\n  productById(id: $productId) {\n    subgraph1Only {\n      sharedLinked {\n        __typename\n      }\n      id\n    }\n  }\n}","variables":{"productId":"UHJvZHVjdAppMzg2MzE4NTk="}}
+        response:
+          body: >-
+            {"data":{"productById":{"subgraph1Only":{"sharedLinked":{"__typename":"ProductAvailabilityMail"},"id":"UHJvZHVjdEF2YWlsYWJpbGl0eTox"}}}}
   - name: B
     schema: >-
       schema {
@@ -85,5 +90,64 @@ sourceSchemas:
         productAvailabilityById(id: ID!): ProductAvailability @lookup
       }
     interactions:
-      - request: {"query":"query Op_8e568844_2(\n  $__fusion_1_id: ID!\n) {\n  productAvailabilityById(id: $__fusion_1_id) {\n    sharedLinked {\n      subgraph2Only\n    }\n  }\n}","variables":{"__fusion_1_id":"UHJvZHVjdEF2YWlsYWJpbGl0eTox"}}
-        response: {"data":{"productAvailabilityById":{"sharedLinked":{"subgraph2Only":true}}}}
+      - request:
+          body: >-
+            {"query":"query Op_8e568844_2(\n  $__fusion_1_id: ID!\n) {\n  productAvailabilityById(id: $__fusion_1_id) {\n    sharedLinked {\n      subgraph2Only\n    }\n  }\n}","variables":{"__fusion_1_id":"UHJvZHVjdEF2YWlsYWJpbGl0eTox"}}
+        response:
+          body: >-
+            {"data":{"productAvailabilityById":{"sharedLinked":{"subgraph2Only":true}}}}
+operationPlan:
+  operation:
+    - document: >-
+        query(
+          $productId: ID!
+        ) {
+          productById(id: $productId) {
+            subgraph1Only {
+              sharedLinked {
+                subgraph2Only
+              }
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: 8e568844d197d7ba0b19ab92d5456732
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_8e568844_1(
+          $productId: ID!
+        ) {
+          productById(id: $productId) {
+            subgraph1Only {
+              sharedLinked {
+                __typename
+              }
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_8e568844_2(
+          $__fusion_1_id: ID!
+        ) {
+          productAvailabilityById(id: $__fusion_1_id) {
+            sharedLinked {
+              subgraph2Only
+            }
+          }
+        }
+      source: $.productAvailabilityById
+      target: $.productById.subgraph1Only
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

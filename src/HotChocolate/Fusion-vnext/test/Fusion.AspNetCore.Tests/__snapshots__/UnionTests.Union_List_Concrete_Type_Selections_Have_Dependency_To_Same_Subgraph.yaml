@@ -1,4 +1,4 @@
-name: Union_List_Concrete_Type_Selections_Have_Dependency_To_Same_Subgraph
+title: Union_List_Concrete_Type_Selections_Have_Dependency_To_Same_Subgraph
 request:
   document: >-
     query testQuery {
@@ -15,28 +15,29 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "posts": [
-        {
-          "product": {
-            "subgraph2": "Product: UHJvZHVjdDo2"
+response:
+  body: >-
+    {
+      "data": {
+        "posts": [
+          {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDo2"
+            }
+          },
+          {
+            "author": {
+              "subgraph2": "Author: QXV0aG9yOjU="
+            }
+          },
+          {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDo0"
+            }
           }
-        },
-        {
-          "author": {
-            "subgraph2": "Author: QXV0aG9yOjU="
-          }
-        },
-        {
-          "product": {
-            "subgraph2": "Product: UHJvZHVjdDo0"
-          }
-        }
-      ]
+        ]
+      }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -68,8 +69,12 @@ sourceSchemas:
       
       union Post = Photo | Discussion
     interactions:
-      - request: {"query":"query testQuery_5f4670e8_1 {\n  posts {\n    __typename\n    ... on Photo {\n      product {\n        id\n      }\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
-        response: {"data":{"posts":[{"__typename":"Photo","product":{"id":"UHJvZHVjdDo2"}},{"__typename":"Discussion","author":{"id":"QXV0aG9yOjU="}},{"__typename":"Photo","product":{"id":"UHJvZHVjdDo0"}}]}}
+      - request:
+          body: >-
+            {"query":"query testQuery_5f4670e8_1 {\n  posts {\n    __typename\n    ... on Photo {\n      product {\n        id\n      }\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"posts":[{"__typename":"Photo","product":{"id":"UHJvZHVjdDo2"}},{"__typename":"Discussion","author":{"id":"QXV0aG9yOjU="}},{"__typename":"Photo","product":{"id":"UHJvZHVjdDo0"}}]}}
   - name: B
     schema: >-
       schema {
@@ -91,9 +96,97 @@ sourceSchemas:
         authorById(id: ID!): Author @lookup
       }
     interactions:
-      - request: {"query":"query testQuery_5f4670e8_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjU="}}
-        response: {"data":{"authorById":{"subgraph2":"Author: QXV0aG9yOjU="}}}
-      - request: {"query":"query testQuery_5f4670e8_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDo2"},{"__fusion_2_id":"UHJvZHVjdDo0"}]}
-        response: {"variableIndex":0,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDo2"}}}
-{"variableIndex":1,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDo0"}}}
-
+      - request:
+          body: >-
+            {"query":"query testQuery_5f4670e8_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjU="}}
+        response:
+          body: >-
+            {"data":{"authorById":{"subgraph2":"Author: QXV0aG9yOjU="}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_5f4670e8_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":[{"__fusion_2_id":"UHJvZHVjdDo2"},{"__fusion_2_id":"UHJvZHVjdDo0"}]}
+        response:
+          body: >-
+            {"variableIndex":0,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDo2"}}}
+            {"variableIndex":1,"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDo0"}}}
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery {
+          posts {
+            __typename @fusion__requirement
+            ... on Photo {
+              product {
+                subgraph2
+                id @fusion__requirement
+              }
+            }
+            ... on Discussion {
+              author {
+                subgraph2
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 5f4670e8910662aebec5f35dcb7ea523
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_5f4670e8_1 {
+          posts {
+            __typename
+            ... on Photo {
+              product {
+                id
+              }
+            }
+            ... on Discussion {
+              author {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_5f4670e8_2(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            subgraph2
+          }
+        }
+      source: $.authorById
+      target: $.posts<Discussion>.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_5f4670e8_3(
+          $__fusion_2_id: ID!
+        ) {
+          productById(id: $__fusion_2_id) {
+            subgraph2
+          }
+        }
+      source: $.productById
+      target: $.posts<Photo>.product
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

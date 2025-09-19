@@ -1,4 +1,4 @@
-name: Multiple_Mutation
+title: Multiple_Mutation
 request:
   document: >-
     mutation {
@@ -16,24 +16,25 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "a": {
-        "book": {
-          "id": 1,
-          "author": "Abc"
-        }
-      },
-      "b": {
-        "book": {
-          "id": 2,
-          "title": "Book2",
-          "author": "Abc"
+response:
+  body: >-
+    {
+      "data": {
+        "a": {
+          "book": {
+            "id": 1,
+            "author": "Abc"
+          }
+        },
+        "b": {
+          "book": {
+            "id": 2,
+            "title": "Book2",
+            "author": "Abc"
+          }
         }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -63,10 +64,18 @@ sourceSchemas:
         title: String!
       }
     interactions:
-      - request: {"query":"mutation Op_192dc5f8_1 {\n  a: createBook(input: { title: \u0022Book1\u0022 }) {\n    book {\n      id\n    }\n  }\n}"}
-        response: {"data":{"a":{"book":{"id":1}}}}
-      - request: {"query":"mutation Op_192dc5f8_3 {\n  b: createBook(input: { title: \u0022Book2\u0022 }) {\n    book {\n      id\n      title\n    }\n  }\n}"}
-        response: {"data":{"b":{"book":{"id":2,"title":"Book2"}}}}
+      - request:
+          body: >-
+            {"query":"mutation Op_192dc5f8_1 {\n  a: createBook(input: { title: \u0022Book1\u0022 }) {\n    book {\n      id\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"a":{"book":{"id":1}}}}
+      - request:
+          body: >-
+            {"query":"mutation Op_192dc5f8_3 {\n  b: createBook(input: { title: \u0022Book2\u0022 }) {\n    book {\n      id\n      title\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"b":{"book":{"id":2,"title":"Book2"}}}}
   - name: B
     schema: >-
       schema {
@@ -82,7 +91,99 @@ sourceSchemas:
         bookById(id: Int!): Book! @internal @lookup
       }
     interactions:
-      - request: {"query":"query Op_192dc5f8_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: {"data":{"bookById":{"author":"Abc"}}}
-      - request: {"query":"query Op_192dc5f8_4(\n  $__fusion_2_id: Int!\n) {\n  bookById(id: $__fusion_2_id) {\n    author\n  }\n}","variables":{"__fusion_2_id":2}}
-        response: {"data":{"bookById":{"author":"Abc"}}}
+      - request:
+          body: >-
+            {"query":"query Op_192dc5f8_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}","variables":{"__fusion_1_id":1}}
+        response:
+          body: >-
+            {"data":{"bookById":{"author":"Abc"}}}
+      - request:
+          body: >-
+            {"query":"query Op_192dc5f8_4(\n  $__fusion_2_id: Int!\n) {\n  bookById(id: $__fusion_2_id) {\n    author\n  }\n}","variables":{"__fusion_2_id":2}}
+        response:
+          body: >-
+            {"data":{"bookById":{"author":"Abc"}}}
+operationPlan:
+  operation:
+    - document: >-
+        mutation {
+          a: createBook(input: { title: "Book1" }) {
+            book {
+              id
+              id @fusion__requirement
+              author
+            }
+          }
+          b: createBook(input: { title: "Book2" }) {
+            book {
+              id
+              id @fusion__requirement
+              title
+              author
+            }
+          }
+        }
+      hash: 192dc5f8a8f00336bac2094122ae7902
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        mutation Op_192dc5f8_1 {
+          a: createBook(input: { title: "Book1" }) {
+            book {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_192dc5f8_2(
+          $__fusion_1_id: Int!
+        ) {
+          bookById(id: $__fusion_1_id) {
+            author
+          }
+        }
+      source: $.bookById
+      target: $.a.book
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: >-
+        mutation Op_192dc5f8_3 {
+          b: createBook(input: { title: "Book2" }) {
+            book {
+              id
+              title
+            }
+          }
+        }
+    - id: 4
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_192dc5f8_4(
+          $__fusion_2_id: Int!
+        ) {
+          bookById(id: $__fusion_2_id) {
+            author
+          }
+        }
+      source: $.bookById
+      target: $.b.book
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3

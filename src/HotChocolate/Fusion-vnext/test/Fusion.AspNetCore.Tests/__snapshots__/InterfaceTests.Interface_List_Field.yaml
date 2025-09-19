@@ -1,4 +1,4 @@
-name: Interface_List_Field
+title: Interface_List_Field
 request:
   document: >-
     query testQuery {
@@ -6,22 +6,23 @@ request:
         viewerCanVote
       }
     }
-response: >-
-  {
-    "data": {
-      "votables": [
-        {
-          "viewerCanVote": true
-        },
-        {
-          "viewerCanVote": true
-        },
-        {
-          "viewerCanVote": true
-        }
-      ]
+response:
+  body: >-
+    {
+      "data": {
+        "votables": [
+          {
+            "viewerCanVote": true
+          },
+          {
+            "viewerCanVote": true
+          },
+          {
+            "viewerCanVote": true
+          }
+        ]
+      }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -48,5 +49,32 @@ sourceSchemas:
         votables: [Votable]
       }
     interactions:
-      - request: {"query":"query testQuery_1284c0cb_1 {\n  votables {\n    __typename\n    viewerCanVote\n  }\n}"}
-        response: {"data":{"votables":[{"__typename":"Discussion","viewerCanVote":true},{"__typename":"Comment","viewerCanVote":true},{"__typename":"Discussion","viewerCanVote":true}]}}
+      - request:
+          body: >-
+            {"query":"query testQuery_1284c0cb_1 {\n  votables {\n    __typename\n    viewerCanVote\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"votables":[{"__typename":"Discussion","viewerCanVote":true},{"__typename":"Comment","viewerCanVote":true},{"__typename":"Discussion","viewerCanVote":true}]}}
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery {
+          votables {
+            __typename @fusion__requirement
+            viewerCanVote
+          }
+        }
+      name: testQuery
+      hash: 1284c0cbd89b5f15b05363016da3d317
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_1284c0cb_1 {
+          votables {
+            __typename
+            viewerCanVote
+          }
+        }

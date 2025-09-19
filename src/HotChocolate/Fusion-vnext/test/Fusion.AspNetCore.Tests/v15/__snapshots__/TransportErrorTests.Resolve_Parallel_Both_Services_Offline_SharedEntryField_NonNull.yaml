@@ -1,4 +1,4 @@
-name: Resolve_Parallel_Both_Services_Offline_SharedEntryField_NonNull
+title: Resolve_Parallel_Both_Services_Offline_SharedEntryField_NonNull
 request:
   document: >-
     {
@@ -7,17 +7,18 @@ request:
         name
       }
     }
-response: >-
-  {
-    "errors": [
-      {
-        "message": "Unexpected Execution Error",
-        "path": [
-          "viewer"
-        ]
-      }
-    ]
-  }
+response:
+  body: >-
+    {
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "viewer"
+          ]
+        }
+      ]
+    }
 sourceSchemas:
   - name: A
     schema: >-
@@ -33,8 +34,11 @@ sourceSchemas:
         name: String
       }
     interactions:
-      - request: {"query":"query Op_97b6c9a3_1 {\n  viewer {\n    name\n  }\n}"}
-        response: 
+      - request:
+          body: >-
+            {"query":"query Op_97b6c9a3_1 {\n  viewer {\n    name\n  }\n}"}
+        response:
+          statusCode: 500
   - name: B
     schema: >-
       schema {
@@ -49,5 +53,38 @@ sourceSchemas:
         userId: ID
       }
     interactions:
-      - request: {"query":"query Op_97b6c9a3_2 {\n  viewer {\n    userId\n  }\n}"}
-        response: 
+      - request:
+          body: >-
+            {"query":"query Op_97b6c9a3_2 {\n  viewer {\n    userId\n  }\n}"}
+        response:
+          statusCode: 500
+operationPlan:
+  operation:
+    - document: >-
+        {
+          viewer {
+            userId
+            name
+          }
+        }
+      hash: 97b6c9a38cb9e8fe9655a064c212a3ec
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_97b6c9a3_1 {
+          viewer {
+            name
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_97b6c9a3_2 {
+          viewer {
+            userId
+          }
+        }

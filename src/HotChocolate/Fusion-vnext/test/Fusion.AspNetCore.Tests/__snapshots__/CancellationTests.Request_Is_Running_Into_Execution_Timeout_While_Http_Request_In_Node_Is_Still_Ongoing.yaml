@@ -1,4 +1,4 @@
-name: Request_Is_Running_Into_Execution_Timeout_While_Http_Request_In_Node_Is_Still_Ongoing
+title: Request_Is_Running_Into_Execution_Timeout_While_Http_Request_In_Node_Is_Still_Ongoing
 request:
   document: >-
     {
@@ -6,17 +6,18 @@ request:
         id
       }
     }
-response: >-
-  {
-    "errors": [
-      {
-        "message": "The request exceeded the configured timeout of \u006000:00:00.2500000\u0060.",
-        "extensions": {
-          "code": "HC0045"
+response:
+  body: >-
+    {
+      "errors": [
+        {
+          "message": "The request exceeded the configured timeout of \u006000:00:00.2500000\u0060.",
+          "extensions": {
+            "code": "HC0045"
+          }
         }
-      }
-    ]
-  }
+      ]
+    }
 sourceSchemas:
   - name: A
     schema: >-
@@ -32,5 +33,7 @@ sourceSchemas:
         topProduct: Product
       }
     interactions:
-      - request: {"query":"query Op_486d07e5_1 {\n  topProduct {\n    id\n  }\n}"}
-        response: 
+      - request:
+          body: >-
+            {"query":"query Op_486d07e5_1 {\n  topProduct {\n    id\n  }\n}"}
+        response:

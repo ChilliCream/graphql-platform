@@ -1,4 +1,4 @@
-name: Union_Field_Just_Typename_Selected
+title: Union_Field_Just_Typename_Selected
 request:
   document: >-
     query testQuery {
@@ -6,14 +6,15 @@ request:
         __typename
       }
     }
-response: >-
-  {
-    "data": {
-      "post": {
-        "__typename": "Photo"
+response:
+  body: >-
+    {
+      "data": {
+        "post": {
+          "__typename": "Photo"
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -37,5 +38,30 @@ sourceSchemas:
       
       union Post = Photo | Discussion
     interactions:
-      - request: {"query":"query testQuery_a239ceba_1 {\n  post {\n    __typename\n  }\n}"}
-        response: {"data":{"post":{"__typename":"Photo"}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_a239ceba_1 {\n  post {\n    __typename\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"post":{"__typename":"Photo"}}}
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery {
+          post {
+            __typename
+          }
+        }
+      name: testQuery
+      hash: a239ceba1052d3ed2dc1551c0438c0c4
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_a239ceba_1 {
+          post {
+            __typename
+          }
+        }

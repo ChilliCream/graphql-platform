@@ -1,4 +1,4 @@
-name: Interface_Field_Concrete_Type_Linked_Field_With_Dependency
+title: Interface_Field_Concrete_Type_Linked_Field_With_Dependency
 request:
   document: >-
     query testQuery {
@@ -11,17 +11,18 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "votable": {
-        "viewerCanVote": true,
-        "author": {
-          "displayName": "Author: QXV0aG9yOjI="
+response:
+  body: >-
+    {
+      "data": {
+        "votable": {
+          "viewerCanVote": true,
+          "author": {
+            "displayName": "Author: QXV0aG9yOjI="
+          }
         }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -52,8 +53,12 @@ sourceSchemas:
         votable: Votable
       }
     interactions:
-      - request: {"query":"query testQuery_b4cd91a7_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
-        response: {"data":{"votable":{"__typename":"Discussion","viewerCanVote":true,"author":{"id":"QXV0aG9yOjI="}}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_b4cd91a7_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"votable":{"__typename":"Discussion","viewerCanVote":true,"author":{"id":"QXV0aG9yOjI="}}}}
   - name: B
     schema: >-
       schema {
@@ -69,5 +74,62 @@ sourceSchemas:
         authorById(id: ID!): Author @lookup
       }
     interactions:
-      - request: {"query":"query testQuery_b4cd91a7_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjI="}}
-        response: {"data":{"authorById":{"displayName":"Author: QXV0aG9yOjI="}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_b4cd91a7_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":{"__fusion_1_id":"QXV0aG9yOjI="}}
+        response:
+          body: >-
+            {"data":{"authorById":{"displayName":"Author: QXV0aG9yOjI="}}}
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery {
+          votable {
+            __typename @fusion__requirement
+            viewerCanVote
+            ... on Discussion {
+              author {
+                displayName
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: b4cd91a7bd7792cc9829f051b0968852
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_b4cd91a7_1 {
+          votable {
+            __typename
+            viewerCanVote
+            ... on Discussion {
+              author {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_b4cd91a7_2(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            displayName
+          }
+        }
+      source: $.authorById
+      target: $.votable<Discussion>.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

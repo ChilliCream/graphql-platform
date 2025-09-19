@@ -1,4 +1,4 @@
-name: List_Field_Interface_Object_Property_Linked_Field_With_Dependency_Same_Selection_In_Concrete_Type
+title: List_Field_Interface_Object_Property_Linked_Field_With_Dependency_Same_Selection_In_Concrete_Type
 request:
   document: >-
     query testQuery {
@@ -15,34 +15,35 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "wrappers": [
-        {
-          "authorable": {
-            "author": {
-              "displayName": "Author: QXV0aG9yOjc="
+response:
+  body: >-
+    {
+      "data": {
+        "wrappers": [
+          {
+            "authorable": {
+              "author": {
+                "displayName": "Author: QXV0aG9yOjc="
+              }
+            }
+          },
+          {
+            "authorable": {
+              "author": {
+                "displayName": "Author: QXV0aG9yOjg="
+              }
+            }
+          },
+          {
+            "authorable": {
+              "author": {
+                "displayName": "Author: QXV0aG9yOjk="
+              }
             }
           }
-        },
-        {
-          "authorable": {
-            "author": {
-              "displayName": "Author: QXV0aG9yOjg="
-            }
-          }
-        },
-        {
-          "authorable": {
-            "author": {
-              "displayName": "Author: QXV0aG9yOjk="
-            }
-          }
-        }
-      ]
+        ]
+      }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -74,8 +75,12 @@ sourceSchemas:
         authorable: Authorable
       }
     interactions:
-      - request: {"query":"query testQuery_4bfbec17_1 {\n  wrappers {\n    authorable {\n      __typename\n      author {\n        id\n      }\n      ... on Discussion {\n        author {\n          id\n        }\n      }\n    }\n  }\n}"}
-        response: {"data":{"wrappers":[{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjc="}}},{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjg="}}},{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjk="}}}]}}
+      - request:
+          body: >-
+            {"query":"query testQuery_4bfbec17_1 {\n  wrappers {\n    authorable {\n      __typename\n      author {\n        id\n      }\n      ... on Discussion {\n        author {\n          id\n        }\n      }\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"wrappers":[{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjc="}}},{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjg="}}},{"authorable":{"__typename":"Discussion","author":{"id":"QXV0aG9yOjk="}}}]}}
   - name: B
     schema: >-
       schema {
@@ -91,13 +96,100 @@ sourceSchemas:
         authorById(id: ID!): Author @lookup
       }
     interactions:
-      - request: {"query":"query testQuery_4bfbec17_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjc="},{"__fusion_1_id":"QXV0aG9yOjg="},{"__fusion_1_id":"QXV0aG9yOjk="}]}
-        response: {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjc="}}}
-{"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjg="}}}
-{"variableIndex":2,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjk="}}}
-
-      - request: {"query":"query testQuery_4bfbec17_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    displayName\n  }\n}","variables":[{"__fusion_2_id":"QXV0aG9yOjc="},{"__fusion_2_id":"QXV0aG9yOjg="},{"__fusion_2_id":"QXV0aG9yOjk="}]}
-        response: {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjc="}}}
-{"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjg="}}}
-{"variableIndex":2,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjk="}}}
-
+      - request:
+          body: >-
+            {"query":"query testQuery_4bfbec17_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjc="},{"__fusion_1_id":"QXV0aG9yOjg="},{"__fusion_1_id":"QXV0aG9yOjk="}]}
+        response:
+          body: >-
+            {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjc="}}}
+            {"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjg="}}}
+            {"variableIndex":2,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjk="}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_4bfbec17_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    displayName\n  }\n}","variables":[{"__fusion_2_id":"QXV0aG9yOjc="},{"__fusion_2_id":"QXV0aG9yOjg="},{"__fusion_2_id":"QXV0aG9yOjk="}]}
+        response:
+          body: >-
+            {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjc="}}}
+            {"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjg="}}}
+            {"variableIndex":2,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjk="}}}
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery {
+          wrappers {
+            authorable {
+              __typename @fusion__requirement
+              author {
+                displayName
+                id @fusion__requirement
+              }
+              ... on Discussion {
+                author {
+                  displayName
+                  id @fusion__requirement
+                }
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 4bfbec1791ee24b0287997f9c83b245b
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_4bfbec17_1 {
+          wrappers {
+            authorable {
+              __typename
+              author {
+                id
+              }
+              ... on Discussion {
+                author {
+                  id
+                }
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_4bfbec17_2(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            displayName
+          }
+        }
+      source: $.authorById
+      target: $.wrappers.authorable<Discussion>.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_4bfbec17_3(
+          $__fusion_2_id: ID!
+        ) {
+          authorById(id: $__fusion_2_id) {
+            displayName
+          }
+        }
+      source: $.authorById
+      target: $.wrappers.authorable.author
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

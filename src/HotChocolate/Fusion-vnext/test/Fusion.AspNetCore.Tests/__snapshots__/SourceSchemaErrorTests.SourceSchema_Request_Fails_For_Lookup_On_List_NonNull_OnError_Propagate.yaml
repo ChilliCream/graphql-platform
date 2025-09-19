@@ -1,4 +1,4 @@
-name: SourceSchema_Request_Fails_For_Lookup_On_List_NonNull
+title: SourceSchema_Request_Fails_For_Lookup_On_List_NonNull
 request:
   document: >-
     {
@@ -7,19 +7,20 @@ request:
         name
       }
     }
-response: >-
-  {
-    "errors": [
-      {
-        "message": "Unexpected Execution Error",
-        "path": [
-          "topProducts",
-          0,
-          "name"
-        ]
-      }
-    ]
-  }
+response:
+  body: >-
+    {
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "topProducts",
+            0,
+            "name"
+          ]
+        }
+      ]
+    }
 sourceSchemas:
   - name: A
     schema: >-
@@ -39,8 +40,12 @@ sourceSchemas:
         productById(id: Int!): Product @lookup @internal
       }
     interactions:
-      - request: {"query":"query Op_67b3f75a_1 {\n  topProducts {\n    price\n    id\n  }\n}"}
-        response: {"data":{"topProducts":[{"price":13.99,"id":1},{"price":13.99,"id":2},{"price":13.99,"id":3}]}}
+      - request:
+          body: >-
+            {"query":"query Op_67b3f75a_1 {\n  topProducts {\n    price\n    id\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"topProducts":[{"price":13.99,"id":1},{"price":13.99,"id":2},{"price":13.99,"id":3}]}}
   - name: B
     schema: >-
       schema {
@@ -56,5 +61,50 @@ sourceSchemas:
         productById(id: Int!): Product @lookup
       }
     interactions:
-      - request: {"query":"query Op_67b3f75a_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":[{"__fusion_1_id":1},{"__fusion_1_id":2},{"__fusion_1_id":3}]}
-        response: 
+      - request:
+          body: >-
+            {"query":"query Op_67b3f75a_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":[{"__fusion_1_id":1},{"__fusion_1_id":2},{"__fusion_1_id":3}]}
+        response:
+          statusCode: 500
+operationPlan:
+  operation:
+    - document: >-
+        {
+          topProducts {
+            price
+            name
+            id @fusion__requirement
+          }
+        }
+      hash: 67b3f75afa8d6eb979605a59d5462c1d
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_67b3f75a_1 {
+          topProducts {
+            price
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_67b3f75a_2(
+          $__fusion_1_id: Int!
+        ) {
+          productById(id: $__fusion_1_id) {
+            name
+          }
+        }
+      source: $.productById
+      target: $.topProducts
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

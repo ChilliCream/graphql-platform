@@ -1,4 +1,4 @@
-name: Shared_Parent_Field_Below_Type_With_Lookup
+title: Shared_Parent_Field_Below_Type_With_Lookup
 request:
   document: >-
     {
@@ -9,17 +9,18 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "productById": {
-        "shared": {
-          "schema2": "schema2",
-          "schema1": "schema1"
+response:
+  body: >-
+    {
+      "data": {
+        "productById": {
+          "shared": {
+            "schema2": "schema2",
+            "schema1": "schema1"
+          }
         }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -72,8 +73,12 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_b5a406bd_1 {\n  productById(id: 1) {\n    shared {\n      schema1\n    }\n    id\n  }\n}"}
-        response: {"data":{"productById":{"shared":{"schema1":"schema1"},"id":1}}}
+      - request:
+          body: >-
+            {"query":"query Op_b5a406bd_1 {\n  productById(id: 1) {\n    shared {\n      schema1\n    }\n    id\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"productById":{"shared":{"schema1":"schema1"},"id":1}}}
   - name: B
     schema: >-
       schema {
@@ -124,5 +129,57 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_b5a406bd_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    shared {\n      schema2\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: {"data":{"product":{"shared":{"schema2":"schema2"}}}}
+      - request:
+          body: >-
+            {"query":"query Op_b5a406bd_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    shared {\n      schema2\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
+        response:
+          body: >-
+            {"data":{"product":{"shared":{"schema2":"schema2"}}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          productById(id: 1) {
+            shared {
+              schema2
+              schema1
+            }
+            id @fusion__requirement
+          }
+        }
+      hash: b5a406bda2d9875764ec947b24529920
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_b5a406bd_1 {
+          productById(id: 1) {
+            shared {
+              schema1
+            }
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_b5a406bd_2(
+          $__fusion_1_id: Int!
+        ) {
+          product(id: $__fusion_1_id) {
+            shared {
+              schema2
+            }
+          }
+        }
+      source: $.product
+      target: $.productById
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

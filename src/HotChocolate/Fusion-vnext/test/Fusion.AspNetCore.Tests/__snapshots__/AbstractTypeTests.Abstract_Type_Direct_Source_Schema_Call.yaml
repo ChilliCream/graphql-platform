@@ -1,4 +1,4 @@
-name: Abstract_Type_Direct_Source_Schema_Call
+title: Abstract_Type_Direct_Source_Schema_Call
 request:
   document: >-
     {
@@ -13,23 +13,24 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "interfaceConnection": {
-        "edges": [
-          {
-            "node": {
-              "id": 1
+response:
+  body: >-
+    {
+      "data": {
+        "interfaceConnection": {
+          "edges": [
+            {
+              "node": {
+                "id": 1
+              }
             }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
           }
-        ],
-        "pageInfo": {
-          "hasNextPage": false
         }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -89,5 +90,45 @@ sourceSchemas:
         authorById(id: Int!): Author! @lookup
       }
     interactions:
-      - request: {"query":"query Op_45eb4c09_1 {\n  interfaceConnection(first: 2) {\n    edges {\n      node {\n        __typename\n        id\n      }\n    }\n    pageInfo {\n      hasNextPage\n    }\n  }\n}"}
-        response: {"data":{"interfaceConnection":{"edges":[{"node":{"__typename":"Discussion","id":1}}],"pageInfo":{"hasNextPage":false}}}}
+      - request:
+          body: >-
+            {"query":"query Op_45eb4c09_1 {\n  interfaceConnection(first: 2) {\n    edges {\n      node {\n        __typename\n        id\n      }\n    }\n    pageInfo {\n      hasNextPage\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"interfaceConnection":{"edges":[{"node":{"__typename":"Discussion","id":1}}],"pageInfo":{"hasNextPage":false}}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          interfaceConnection(first: 2) {
+            edges {
+              node {
+                __typename @fusion__requirement
+                id
+              }
+            }
+            pageInfo {
+              hasNextPage
+            }
+          }
+        }
+      hash: 45eb4c09cd33c661467dd26f8f97b5ad
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_45eb4c09_1 {
+          interfaceConnection(first: 2) {
+            edges {
+              node {
+                __typename
+                id
+              }
+            }
+            pageInfo {
+              hasNextPage
+            }
+          }
+        }

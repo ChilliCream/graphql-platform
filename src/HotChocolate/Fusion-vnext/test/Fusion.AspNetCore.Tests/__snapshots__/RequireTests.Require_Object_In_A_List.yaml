@@ -1,4 +1,4 @@
-name: Require_Object_In_A_List
+title: Require_Object_In_A_List
 request:
   document: >-
     {
@@ -9,27 +9,28 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "books": {
-        "nodes": [
-          {
-            "title": "The Great Gatsby",
-            "estimatedDelivery": 300
-          },
-          {
-            "title": "1984",
-            "estimatedDelivery": 450
-          },
-          {
-            "title": "The Catcher in the Rye",
-            "estimatedDelivery": 600
-          }
-        ]
+response:
+  body: >-
+    {
+      "data": {
+        "books": {
+          "nodes": [
+            {
+              "title": "The Great Gatsby",
+              "estimatedDelivery": 300
+            },
+            {
+              "title": "1984",
+              "estimatedDelivery": 450
+            },
+            {
+              "title": "The Catcher in the Rye",
+              "estimatedDelivery": 600
+            }
+          ]
+        }
       }
     }
-  }
 sourceSchemas:
   - name: a
     schema: >-
@@ -82,8 +83,12 @@ sourceSchemas:
         book(id: Int!): Book @lookup
       }
     interactions:
-      - request: {"query":"query Op_1f7d6449_1 {\n  books {\n    nodes {\n      title\n      id\n    }\n  }\n}"}
-        response: {"data":{"books":{"nodes":[{"title":"The Great Gatsby","id":1},{"title":"1984","id":2},{"title":"The Catcher in the Rye","id":3}]}}}
+      - request:
+          body: >-
+            {"query":"query Op_1f7d6449_1 {\n  books {\n    nodes {\n      title\n      id\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"books":{"nodes":[{"title":"The Great Gatsby","id":1},{"title":"1984","id":2},{"title":"The Catcher in the Rye","id":3}]}}}
   - name: b
     schema: >-
       schema {
@@ -104,11 +109,14 @@ sourceSchemas:
         book(id: Int!): Book @lookup
       }
     interactions:
-      - request: {"query":"query Op_1f7d6449_4(\n  $__fusion_4_id: Int!\n) {\n  book(id: $__fusion_4_id) {\n    dimension {\n      width\n      height\n    }\n  }\n}","variables":[{"__fusion_4_id":1},{"__fusion_4_id":2},{"__fusion_4_id":3}]}
-        response: {"variableIndex":0,"data":{"book":{"dimension":{"width":100,"height":200}}}}
-{"variableIndex":1,"data":{"book":{"dimension":{"width":150,"height":300}}}}
-{"variableIndex":2,"data":{"book":{"dimension":{"width":200,"height":400}}}}
-
+      - request:
+          body: >-
+            {"query":"query Op_1f7d6449_4(\n  $__fusion_4_id: Int!\n) {\n  book(id: $__fusion_4_id) {\n    dimension {\n      width\n      height\n    }\n  }\n}","variables":[{"__fusion_4_id":1},{"__fusion_4_id":2},{"__fusion_4_id":3}]}
+        response:
+          body: >-
+            {"variableIndex":0,"data":{"book":{"dimension":{"width":100,"height":200}}}}
+            {"variableIndex":1,"data":{"book":{"dimension":{"width":150,"height":300}}}}
+            {"variableIndex":2,"data":{"book":{"dimension":{"width":200,"height":400}}}}
   - name: c
     schema: >-
       schema {
@@ -130,8 +138,93 @@ sourceSchemas:
         height: Int!
       }
     interactions:
-      - request: {"query":"query Op_1f7d6449_3(\n  $__fusion_2_dimension: BookDimensionInput!\n  $__fusion_3_id: Int!\n) {\n  book(id: $__fusion_3_id) {\n    estimatedDelivery(dimension: $__fusion_2_dimension)\n  }\n}","variables":[{"__fusion_2_dimension":{"title":"The Great Gatsby","width":100,"height":200},"__fusion_3_id":1},{"__fusion_2_dimension":{"title":"1984","width":150,"height":300},"__fusion_3_id":2},{"__fusion_2_dimension":{"title":"The Catcher in the Rye","width":200,"height":400},"__fusion_3_id":3}]}
-        response: {"variableIndex":0,"data":{"book":{"estimatedDelivery":300}}}
-{"variableIndex":1,"data":{"book":{"estimatedDelivery":450}}}
-{"variableIndex":2,"data":{"book":{"estimatedDelivery":600}}}
-
+      - request:
+          body: >-
+            {"query":"query Op_1f7d6449_3(\n  $__fusion_2_dimension: BookDimensionInput!\n  $__fusion_3_id: Int!\n) {\n  book(id: $__fusion_3_id) {\n    estimatedDelivery(dimension: $__fusion_2_dimension)\n  }\n}","variables":[{"__fusion_2_dimension":{"title":"The Great Gatsby","width":100,"height":200},"__fusion_3_id":1},{"__fusion_2_dimension":{"title":"1984","width":150,"height":300},"__fusion_3_id":2},{"__fusion_2_dimension":{"title":"The Catcher in the Rye","width":200,"height":400},"__fusion_3_id":3}]}
+        response:
+          body: >-
+            {"variableIndex":0,"data":{"book":{"estimatedDelivery":300}}}
+            {"variableIndex":1,"data":{"book":{"estimatedDelivery":450}}}
+            {"variableIndex":2,"data":{"book":{"estimatedDelivery":600}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          books {
+            nodes {
+              title
+              title @fusion__requirement
+              estimatedDelivery
+              id @fusion__requirement
+              dimension @fusion__requirement {
+                width
+                height
+              }
+            }
+          }
+        }
+      hash: 1f7d64490a0ae4c811ddec3de271b2bd
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: >-
+        query Op_1f7d6449_1 {
+          books {
+            nodes {
+              title
+              id
+            }
+          }
+        }
+    - id: 3
+      type: Operation
+      schema: c
+      operation: >-
+        query Op_1f7d6449_3(
+          $__fusion_2_dimension: BookDimensionInput!
+          $__fusion_3_id: Int!
+        ) {
+          book(id: $__fusion_3_id) {
+            estimatedDelivery(dimension: $__fusion_2_dimension)
+          }
+        }
+      source: $.book
+      target: $.books.nodes
+      requirements:
+        - name: __fusion_2_dimension
+          selectionMap: >-
+            {
+              title
+              width: dimension.width
+              height: dimension.height
+            }
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+        - id: 4
+    - id: 4
+      type: Operation
+      schema: b
+      operation: >-
+        query Op_1f7d6449_4(
+          $__fusion_4_id: Int!
+        ) {
+          book(id: $__fusion_4_id) {
+            dimension {
+              width
+              height
+            }
+          }
+        }
+      source: $.book
+      target: $.books.nodes
+      requirements:
+        - name: __fusion_4_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

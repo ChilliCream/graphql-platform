@@ -1,4 +1,4 @@
-name: Resolve_Parallel_Single_Service_Offline_EntryField_Nullable
+title: Resolve_Parallel_Single_Service_Offline_EntryField_Nullable
 request:
   document: >-
     {
@@ -6,20 +6,21 @@ request:
         name
       }
     }
-response: >-
-  {
-    "data": {
-      "viewer": null
-    },
-    "errors": [
-      {
-        "message": "Unexpected Execution Error",
-        "path": [
-          "viewer"
-        ]
-      }
-    ]
-  }
+response:
+  body: >-
+    {
+      "data": {
+        "viewer": null
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "viewer"
+          ]
+        }
+      ]
+    }
 sourceSchemas:
   - name: A
     schema: >-
@@ -35,5 +36,28 @@ sourceSchemas:
         name: String!
       }
     interactions:
-      - request: {"query":"query Op_7a17934e_1 {\n  viewer {\n    name\n  }\n}"}
-        response: 
+      - request:
+          body: >-
+            {"query":"query Op_7a17934e_1 {\n  viewer {\n    name\n  }\n}"}
+        response:
+          statusCode: 500
+operationPlan:
+  operation:
+    - document: >-
+        {
+          viewer {
+            name
+          }
+        }
+      hash: 7a17934e8d91dcce72daf911b3f044f1
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_7a17934e_1 {
+          viewer {
+            name
+          }
+        }

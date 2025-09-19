@@ -55,8 +55,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     #endregion
@@ -116,8 +115,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact(Skip = "Error is not correctly shown")]
@@ -173,8 +171,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact(Skip = "Error is not correctly shown")]
@@ -230,8 +227,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact(Skip = "Only one error per field")]
@@ -288,8 +284,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -346,8 +341,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     #endregion
@@ -393,8 +387,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -436,8 +429,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -495,8 +487,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -554,8 +545,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     #endregion
@@ -605,8 +595,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -652,8 +641,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -714,8 +702,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -776,8 +763,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -838,8 +824,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -900,8 +885,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -962,8 +946,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1024,8 +1007,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1087,8 +1069,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact(Skip = "Ordering is not correct")]
@@ -1150,8 +1131,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     #endregion
@@ -1220,8 +1200,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1286,8 +1265,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1352,8 +1330,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1418,8 +1395,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1484,8 +1460,7 @@ public class TransportErrorTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     #endregion

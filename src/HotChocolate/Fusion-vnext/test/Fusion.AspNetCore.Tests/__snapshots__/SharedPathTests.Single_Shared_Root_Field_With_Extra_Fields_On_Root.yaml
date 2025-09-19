@@ -1,4 +1,4 @@
-name: Single_Shared_Root_Field_With_Extra_Fields_On_Root
+title: Single_Shared_Root_Field_With_Extra_Fields_On_Root
 request:
   document: >-
     {
@@ -9,17 +9,18 @@ request:
       schema1
       schema2
     }
-response: >-
-  {
-    "data": {
-      "viewer": {
+response:
+  body: >-
+    {
+      "data": {
+        "viewer": {
+          "schema1": "schema1",
+          "schema2": "schema2"
+        },
         "schema1": "schema1",
         "schema2": "schema2"
-      },
-      "schema1": "schema1",
-      "schema2": "schema2"
+      }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -72,8 +73,12 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_4a75abf3_1 {\n  viewer {\n    schema1\n  }\n  schema1\n}"}
-        response: {"data":{"viewer":{"schema1":"schema1"},"schema1":"schema1"}}
+      - request:
+          body: >-
+            {"query":"query Op_4a75abf3_1 {\n  viewer {\n    schema1\n  }\n  schema1\n}"}
+        response:
+          body: >-
+            {"data":{"viewer":{"schema1":"schema1"},"schema1":"schema1"}}
   - name: B
     schema: >-
       schema {
@@ -124,7 +129,55 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_4a75abf3_2 {\n  schema2\n}"}
-        response: {"data":{"schema2":"schema2"}}
-      - request: {"query":"query Op_4a75abf3_3 {\n  viewer {\n    schema2\n  }\n}"}
-        response: {"data":{"viewer":{"schema2":"schema2"}}}
+      - request:
+          body: >-
+            {"query":"query Op_4a75abf3_2 {\n  schema2\n}"}
+        response:
+          body: >-
+            {"data":{"schema2":"schema2"}}
+      - request:
+          body: >-
+            {"query":"query Op_4a75abf3_3 {\n  viewer {\n    schema2\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"viewer":{"schema2":"schema2"}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          viewer {
+            schema1
+            schema2
+          }
+          schema1
+          schema2
+        }
+      hash: 4a75abf382d52f602e2150a996e24010
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_4a75abf3_1 {
+          viewer {
+            schema1
+          }
+          schema1
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_4a75abf3_2 {
+          schema2
+        }
+    - id: 3
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_4a75abf3_3 {
+          viewer {
+            schema2
+          }
+        }

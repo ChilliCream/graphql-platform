@@ -1,4 +1,4 @@
-name: Error_On_Root_Field
+title: Error_On_Root_Field
 request:
   onError: Halt
   document: >-
@@ -7,17 +7,18 @@ request:
         name
       }
     }
-response: >-
-  {
-    "errors": [
-      {
-        "message": "Could not resolve Product",
-        "path": [
-          "productById"
-        ]
-      }
-    ]
-  }
+response:
+  body: >-
+    {
+      "errors": [
+        {
+          "message": "Could not resolve Product",
+          "path": [
+            "productById"
+          ]
+        }
+      ]
+    }
 sourceSchemas:
   - name: A
     schema: >-
@@ -34,5 +35,29 @@ sourceSchemas:
         productById(id: Int!): Product @lookup
       }
     interactions:
-      - request: {"query":"query Op_97fd38fc_1 {\n  productById(id: 1) {\n    name\n  }\n}"}
-        response: {"errors":[{"message":"Could not resolve Product","locations":[{"line":2,"column":3}],"path":["productById"]}],"data":{"productById":null}}
+      - request:
+          body: >-
+            {"query":"query Op_97fd38fc_1 {\n  productById(id: 1) {\n    name\n  }\n}"}
+        response:
+          body: >-
+            {"errors":[{"message":"Could not resolve Product","locations":[{"line":2,"column":3}],"path":["productById"]}],"data":{"productById":null}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          productById(id: 1) {
+            name
+          }
+        }
+      hash: 97fd38fcea394bc6badd7ea22c6de660
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_97fd38fc_1 {
+          productById(id: 1) {
+            name
+          }
+        }

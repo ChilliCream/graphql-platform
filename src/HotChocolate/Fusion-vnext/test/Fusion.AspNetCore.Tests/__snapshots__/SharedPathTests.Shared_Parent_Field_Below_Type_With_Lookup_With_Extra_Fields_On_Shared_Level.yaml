@@ -1,4 +1,4 @@
-name: Shared_Parent_Field_Below_Type_With_Lookup_With_Extra_Fields_On_Shared_Level
+title: Shared_Parent_Field_Below_Type_With_Lookup_With_Extra_Fields_On_Shared_Level
 request:
   document: >-
     {
@@ -11,19 +11,20 @@ request:
         schema2
       }
     }
-response: >-
-  {
-    "data": {
-      "productById": {
-        "schema1": "schema1",
-        "shared": {
-          "schema2": "schema2",
-          "schema1": "schema1"
-        },
-        "schema2": "schema2"
+response:
+  body: >-
+    {
+      "data": {
+        "productById": {
+          "schema1": "schema1",
+          "shared": {
+            "schema2": "schema2",
+            "schema1": "schema1"
+          },
+          "schema2": "schema2"
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -76,8 +77,12 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_49906eea_1 {\n  productById(id: 1) {\n    schema1\n    shared {\n      schema1\n    }\n    id\n  }\n}"}
-        response: {"data":{"productById":{"schema1":"schema1","shared":{"schema1":"schema1"},"id":1}}}
+      - request:
+          body: >-
+            {"query":"query Op_49906eea_1 {\n  productById(id: 1) {\n    schema1\n    shared {\n      schema1\n    }\n    id\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"productById":{"schema1":"schema1","shared":{"schema1":"schema1"},"id":1}}}
   - name: B
     schema: >-
       schema {
@@ -128,7 +133,85 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_49906eea_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    schema2\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: {"data":{"product":{"schema2":"schema2"}}}
-      - request: {"query":"query Op_49906eea_3(\n  $__fusion_2_id: Int!\n) {\n  product(id: $__fusion_2_id) {\n    shared {\n      schema2\n    }\n  }\n}","variables":{"__fusion_2_id":1}}
-        response: {"data":{"product":{"shared":{"schema2":"schema2"}}}}
+      - request:
+          body: >-
+            {"query":"query Op_49906eea_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    schema2\n  }\n}","variables":{"__fusion_1_id":1}}
+        response:
+          body: >-
+            {"data":{"product":{"schema2":"schema2"}}}
+      - request:
+          body: >-
+            {"query":"query Op_49906eea_3(\n  $__fusion_2_id: Int!\n) {\n  product(id: $__fusion_2_id) {\n    shared {\n      schema2\n    }\n  }\n}","variables":{"__fusion_2_id":1}}
+        response:
+          body: >-
+            {"data":{"product":{"shared":{"schema2":"schema2"}}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          productById(id: 1) {
+            schema1
+            shared {
+              schema2
+              schema1
+            }
+            schema2
+            id @fusion__requirement
+          }
+        }
+      hash: 49906eeaddb0e14de3cf10cc5494b47a
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_49906eea_1 {
+          productById(id: 1) {
+            schema1
+            shared {
+              schema1
+            }
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_49906eea_2(
+          $__fusion_1_id: Int!
+        ) {
+          product(id: $__fusion_1_id) {
+            schema2
+          }
+        }
+      source: $.product
+      target: $.productById
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_49906eea_3(
+          $__fusion_2_id: Int!
+        ) {
+          product(id: $__fusion_2_id) {
+            shared {
+              schema2
+            }
+          }
+        }
+      source: $.product
+      target: $.productById
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

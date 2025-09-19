@@ -1,4 +1,4 @@
-name: Viewer_Bug_1
+title: Viewer_Bug_1
 request:
   document: >-
     query testQuery {
@@ -9,17 +9,18 @@ request:
         exclusiveSubgraphB
       }
     }
-response: >-
-  {
-    "data": {
-      "exclusiveSubgraphA": {
-        "__typename": "ExclusiveSubgraphA"
-      },
-      "viewer": {
-        "exclusiveSubgraphB": "Viewer"
+response:
+  body: >-
+    {
+      "data": {
+        "exclusiveSubgraphA": {
+          "__typename": "ExclusiveSubgraphA"
+        },
+        "viewer": {
+          "exclusiveSubgraphB": "Viewer"
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -40,8 +41,12 @@ sourceSchemas:
         name: String
       }
     interactions:
-      - request: {"query":"query testQuery_65ad0daf_2 {\n  exclusiveSubgraphA {\n    __typename\n  }\n}"}
-        response: {"data":{"exclusiveSubgraphA":{"__typename":"ExclusiveSubgraphA"}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_65ad0daf_2 {\n  exclusiveSubgraphA {\n    __typename\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"exclusiveSubgraphA":{"__typename":"ExclusiveSubgraphA"}}}
   - name: B
     schema: >-
       schema {
@@ -56,5 +61,42 @@ sourceSchemas:
         exclusiveSubgraphB: String
       }
     interactions:
-      - request: {"query":"query testQuery_65ad0daf_1 {\n  viewer {\n    exclusiveSubgraphB\n  }\n}"}
-        response: {"data":{"viewer":{"exclusiveSubgraphB":"Viewer"}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_65ad0daf_1 {\n  viewer {\n    exclusiveSubgraphB\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"viewer":{"exclusiveSubgraphB":"Viewer"}}}
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery {
+          exclusiveSubgraphA {
+            __typename
+          }
+          viewer {
+            exclusiveSubgraphB
+          }
+        }
+      name: testQuery
+      hash: 65ad0daf293954c92e5d9329ad6f5bca
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_65ad0daf_1 {
+          viewer {
+            exclusiveSubgraphB
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_65ad0daf_2 {
+          exclusiveSubgraphA {
+            __typename
+          }
+        }

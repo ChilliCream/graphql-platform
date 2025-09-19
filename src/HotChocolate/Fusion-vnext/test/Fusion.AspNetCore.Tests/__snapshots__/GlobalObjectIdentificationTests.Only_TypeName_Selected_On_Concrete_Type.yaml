@@ -1,4 +1,4 @@
-name: Only_TypeName_Selected_On_Concrete_Type
+title: Only_TypeName_Selected_On_Concrete_Type
 request:
   document: >-
     {
@@ -8,14 +8,15 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "node": {
-        "__typename": "Discussion"
+response:
+  body: >-
+    {
+      "data": {
+        "node": {
+          "__typename": "Discussion"
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -37,8 +38,12 @@ sourceSchemas:
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
     interactions:
-      - request: {"query":"query Op_72167d7d_3 {\n  node: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n  }\n}"}
-        response: {"data":{"node":{"__typename":"Discussion"}}}
+      - request:
+          body: >-
+            {"query":"query Op_72167d7d_3 {\n  node: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"node":{"__typename":"Discussion"}}}
   - name: B
     schema: >-
       schema {
@@ -58,3 +63,45 @@ sourceSchemas:
         node(id: ID!): Node @lookup
         discussionById(id: ID!): Discussion @lookup @internal
       }
+operationPlan:
+  operation:
+    - document: >-
+        {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            __typename @fusion__requirement
+            ... on Discussion {
+              __typename
+            }
+          }
+        }
+      hash: 72167d7d7ed0d1df427c3f70d87aa054
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "RGlzY3Vzc2lvbjox"
+      responseName: node
+      branches:
+        - Discussion: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: >-
+        query Op_72167d7d_2 {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_72167d7d_3 {
+          node: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1

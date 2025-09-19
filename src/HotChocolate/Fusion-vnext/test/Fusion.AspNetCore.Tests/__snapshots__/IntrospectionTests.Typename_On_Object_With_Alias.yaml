@@ -1,4 +1,4 @@
-name: Typename_On_Object_With_Alias
+title: Typename_On_Object_With_Alias
 request:
   document: >-
     {
@@ -8,27 +8,28 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "books": {
-        "nodes": [
-          {
-            "a": "Book"
-          },
-          {
-            "a": "Book"
-          },
-          {
-            "a": "Book"
-          },
-          {
-            "a": "Book"
-          }
-        ]
+response:
+  body: >-
+    {
+      "data": {
+        "books": {
+          "nodes": [
+            {
+              "a": "Book"
+            },
+            {
+              "a": "Book"
+            },
+            {
+              "a": "Book"
+            },
+            {
+              "a": "Book"
+            }
+          ]
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -81,8 +82,12 @@ sourceSchemas:
         books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
       }
     interactions:
-      - request: {"query":"query Op_01be2e0f_1 {\n  books {\n    nodes {\n      a: __typename\n    }\n  }\n}"}
-        response: {"data":{"books":{"nodes":[{"a":"Book"},{"a":"Book"},{"a":"Book"},{"a":"Book"}]}}}
+      - request:
+          body: >-
+            {"query":"query Op_01be2e0f_1 {\n  books {\n    nodes {\n      a: __typename\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"books":{"nodes":[{"a":"Book"},{"a":"Book"},{"a":"Book"},{"a":"Book"}]}}}
   - name: B
     schema: >-
       schema {
@@ -134,3 +139,27 @@ sourceSchemas:
         authorById(id: Int!): Author! @internal @lookup
         authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
       }
+operationPlan:
+  operation:
+    - document: >-
+        {
+          books {
+            nodes {
+              a: __typename
+            }
+          }
+        }
+      hash: 01be2e0ffad76cbb91821c8ed1419f71
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_01be2e0f_1 {
+          books {
+            nodes {
+              a: __typename
+            }
+          }
+        }

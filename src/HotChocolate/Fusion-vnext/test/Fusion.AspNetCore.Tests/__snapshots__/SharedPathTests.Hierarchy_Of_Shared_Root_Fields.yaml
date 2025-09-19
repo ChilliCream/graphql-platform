@@ -1,4 +1,4 @@
-name: Hierarchy_Of_Shared_Root_Fields
+title: Hierarchy_Of_Shared_Root_Fields
 request:
   document: >-
     {
@@ -9,17 +9,18 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "viewer": {
-        "settings": {
-          "schema1": "schema1",
-          "schema2": "schema2"
+response:
+  body: >-
+    {
+      "data": {
+        "viewer": {
+          "settings": {
+            "schema1": "schema1",
+            "schema2": "schema2"
+          }
         }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -72,8 +73,12 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_58df2c1b_1 {\n  viewer {\n    settings {\n      schema1\n    }\n  }\n}"}
-        response: {"data":{"viewer":{"settings":{"schema1":"schema1"}}}}
+      - request:
+          body: >-
+            {"query":"query Op_58df2c1b_1 {\n  viewer {\n    settings {\n      schema1\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"viewer":{"settings":{"schema1":"schema1"}}}}
   - name: B
     schema: >-
       schema {
@@ -124,5 +129,45 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_58df2c1b_2 {\n  viewer {\n    settings {\n      schema2\n    }\n  }\n}"}
-        response: {"data":{"viewer":{"settings":{"schema2":"schema2"}}}}
+      - request:
+          body: >-
+            {"query":"query Op_58df2c1b_2 {\n  viewer {\n    settings {\n      schema2\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"viewer":{"settings":{"schema2":"schema2"}}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          viewer {
+            settings {
+              schema1
+              schema2
+            }
+          }
+        }
+      hash: 58df2c1b9e78bf9d35c918bda0af7f24
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_58df2c1b_1 {
+          viewer {
+            settings {
+              schema1
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_58df2c1b_2 {
+          viewer {
+            settings {
+              schema2
+            }
+          }
+        }

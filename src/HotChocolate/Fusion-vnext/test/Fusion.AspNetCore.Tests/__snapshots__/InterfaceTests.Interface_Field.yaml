@@ -1,4 +1,4 @@
-name: Interface_Field
+title: Interface_Field
 request:
   document: >-
     query testQuery {
@@ -6,14 +6,15 @@ request:
         viewerCanVote
       }
     }
-response: >-
-  {
-    "data": {
-      "votable": {
-        "viewerCanVote": true
+response:
+  body: >-
+    {
+      "data": {
+        "votable": {
+          "viewerCanVote": true
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -40,5 +41,32 @@ sourceSchemas:
         votable: Votable
       }
     interactions:
-      - request: {"query":"query testQuery_79461fa4_1 {\n  votable {\n    __typename\n    viewerCanVote\n  }\n}"}
-        response: {"data":{"votable":{"__typename":"Discussion","viewerCanVote":true}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_79461fa4_1 {\n  votable {\n    __typename\n    viewerCanVote\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"votable":{"__typename":"Discussion","viewerCanVote":true}}}
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery {
+          votable {
+            __typename @fusion__requirement
+            viewerCanVote
+          }
+        }
+      name: testQuery
+      hash: 79461fa435df77020b17d7e3f6c6e59f
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_79461fa4_1 {
+          votable {
+            __typename
+            viewerCanVote
+          }
+        }

@@ -55,8 +55,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -126,8 +125,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -203,8 +201,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -280,8 +277,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -336,8 +332,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -406,8 +401,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -482,8 +476,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     #endregion
@@ -539,8 +532,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -610,8 +602,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -687,8 +678,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -764,8 +754,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -820,8 +809,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -890,8 +878,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -966,8 +953,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     #endregion
@@ -1046,8 +1032,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1128,8 +1113,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1211,8 +1195,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1273,8 +1256,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1349,8 +1331,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1431,8 +1412,7 @@ public class InterfaceTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     #endregion

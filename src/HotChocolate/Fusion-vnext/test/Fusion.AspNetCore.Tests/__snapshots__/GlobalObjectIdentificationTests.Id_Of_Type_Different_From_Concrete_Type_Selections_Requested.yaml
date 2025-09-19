@@ -1,4 +1,4 @@
-name: Id_Of_Type_Different_From_Concrete_Type_Selections_Requested
+title: Id_Of_Type_Different_From_Concrete_Type_Selections_Requested
 request:
   document: >-
     {
@@ -9,14 +9,15 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "node": {
-        "id": "UHJvZHVjdDox"
+response:
+  body: >-
+    {
+      "data": {
+        "node": {
+          "id": "UHJvZHVjdDox"
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -62,5 +63,55 @@ sourceSchemas:
         discussionById(id: ID!): Discussion @lookup @internal
       }
     interactions:
-      - request: {"query":"query Op_83aee782_2 {\n  node(id: \u0022UHJvZHVjdDox\u0022) {\n    __typename\n    id\n  }\n}"}
-        response: {"data":{"node":{"__typename":"Product","id":"UHJvZHVjdDox"}}}
+      - request:
+          body: >-
+            {"query":"query Op_83aee782_2 {\n  node(id: \u0022UHJvZHVjdDox\u0022) {\n    __typename\n    id\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"node":{"__typename":"Product","id":"UHJvZHVjdDox"}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          node(id: "UHJvZHVjdDox") {
+            __typename @fusion__requirement
+            id
+            ... on Discussion {
+              title
+            }
+          }
+        }
+      hash: 83aee782bd7072025c2beece59972fee
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "UHJvZHVjdDox"
+      responseName: node
+      branches:
+        - Discussion: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: >-
+        query Op_83aee782_2 {
+          node(id: "UHJvZHVjdDox") {
+            __typename
+            id
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_83aee782_3 {
+          node: discussionById(discussionId: "UHJvZHVjdDox") {
+            __typename
+            id
+            title
+          }
+        }
+      dependencies:
+        - id: 1

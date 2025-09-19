@@ -1,4 +1,4 @@
-name: Typename_On_Query_Skip_True
+title: Typename_On_Query_Skip_True
 request:
   document: >-
     query(
@@ -6,10 +6,11 @@ request:
     ) {
       __typename @skip(if: $s)
     }
-response: >-
-  {
-    "data": {}
-  }
+response:
+  body: >-
+    {
+      "data": {}
+    }
 sourceSchemas:
   - name: A
     schema: >-
@@ -112,3 +113,20 @@ sourceSchemas:
         authorById(id: Int!): Author! @internal @lookup
         authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
       }
+operationPlan:
+  operation:
+    - document: >-
+        query(
+          $s: Boolean! = true
+        ) {
+          __typename @skip(if: $s)
+        }
+      hash: 6fe5ef6b2885d351015c1d64f6c1eda8
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 1
+          responseName: __typename
+          fieldName: __typename

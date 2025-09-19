@@ -1,4 +1,4 @@
-name: Interface_List_Field_Concrete_Type_Linked_Field_With_Dependency
+title: Interface_List_Field_Concrete_Type_Linked_Field_With_Dependency
 request:
   document: >-
     query testQuery {
@@ -11,28 +11,29 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "votables": [
-        {
-          "viewerCanVote": true,
-          "author": {
-            "displayName": "Author: QXV0aG9yOjU="
+response:
+  body: >-
+    {
+      "data": {
+        "votables": [
+          {
+            "viewerCanVote": true,
+            "author": {
+              "displayName": "Author: QXV0aG9yOjU="
+            }
+          },
+          {
+            "viewerCanVote": true
+          },
+          {
+            "viewerCanVote": true,
+            "author": {
+              "displayName": "Author: QXV0aG9yOjQ="
+            }
           }
-        },
-        {
-          "viewerCanVote": true
-        },
-        {
-          "viewerCanVote": true,
-          "author": {
-            "displayName": "Author: QXV0aG9yOjQ="
-          }
-        }
-      ]
+        ]
+      }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -63,8 +64,12 @@ sourceSchemas:
         votables: [Votable]
       }
     interactions:
-      - request: {"query":"query testQuery_e3932333_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
-        response: {"data":{"votables":[{"__typename":"Discussion","viewerCanVote":true,"author":{"id":"QXV0aG9yOjU="}},{"__typename":"Comment","viewerCanVote":true},{"__typename":"Discussion","viewerCanVote":true,"author":{"id":"QXV0aG9yOjQ="}}]}}
+      - request:
+          body: >-
+            {"query":"query testQuery_e3932333_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"votables":[{"__typename":"Discussion","viewerCanVote":true,"author":{"id":"QXV0aG9yOjU="}},{"__typename":"Comment","viewerCanVote":true},{"__typename":"Discussion","viewerCanVote":true,"author":{"id":"QXV0aG9yOjQ="}}]}}
   - name: B
     schema: >-
       schema {
@@ -80,7 +85,63 @@ sourceSchemas:
         authorById(id: ID!): Author @lookup
       }
     interactions:
-      - request: {"query":"query testQuery_e3932333_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjU="},{"__fusion_1_id":"QXV0aG9yOjQ="}]}
-        response: {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjU="}}}
-{"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjQ="}}}
-
+      - request:
+          body: >-
+            {"query":"query testQuery_e3932333_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}","variables":[{"__fusion_1_id":"QXV0aG9yOjU="},{"__fusion_1_id":"QXV0aG9yOjQ="}]}
+        response:
+          body: >-
+            {"variableIndex":0,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjU="}}}
+            {"variableIndex":1,"data":{"authorById":{"displayName":"Author: QXV0aG9yOjQ="}}}
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery {
+          votables {
+            __typename @fusion__requirement
+            viewerCanVote
+            ... on Discussion {
+              author {
+                displayName
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: e3932333e1e0b2847e2b27c44448e0b5
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_e3932333_1 {
+          votables {
+            __typename
+            viewerCanVote
+            ... on Discussion {
+              author {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_e3932333_2(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            displayName
+          }
+        }
+      source: $.authorById
+      target: $.votables<Discussion>.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -1,4 +1,4 @@
-name: Two_Node_Fields_With_Alias
+title: Two_Node_Fields_With_Alias
 request:
   document: >-
     {
@@ -14,18 +14,19 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "a": {
-        "title": "Discussion: RGlzY3Vzc2lvbjox"
-      },
-      "b": {
-        "title": "Discussion: RGlzY3Vzc2lvbjoy",
-        "commentCount": 123
+response:
+  body: >-
+    {
+      "data": {
+        "a": {
+          "title": "Discussion: RGlzY3Vzc2lvbjox"
+        },
+        "b": {
+          "title": "Discussion: RGlzY3Vzc2lvbjoy",
+          "commentCount": 123
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -47,10 +48,18 @@ sourceSchemas:
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
     interactions:
-      - request: {"query":"query Op_a361113f_3 {\n  b: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjoy\u0022) {\n    __typename\n    title\n    id\n  }\n}"}
-        response: {"data":{"b":{"__typename":"Discussion","title":"Discussion: RGlzY3Vzc2lvbjoy","id":"RGlzY3Vzc2lvbjoy"}}}
-      - request: {"query":"query Op_a361113f_7 {\n  a: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n    title\n  }\n}"}
-        response: {"data":{"a":{"__typename":"Discussion","title":"Discussion: RGlzY3Vzc2lvbjox"}}}
+      - request:
+          body: >-
+            {"query":"query Op_a361113f_3 {\n  b: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjoy\u0022) {\n    __typename\n    title\n    id\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"b":{"__typename":"Discussion","title":"Discussion: RGlzY3Vzc2lvbjoy","id":"RGlzY3Vzc2lvbjoy"}}}
+      - request:
+          body: >-
+            {"query":"query Op_a361113f_7 {\n  a: discussionById(discussionId: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    __typename\n    title\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"a":{"__typename":"Discussion","title":"Discussion: RGlzY3Vzc2lvbjox"}}}
   - name: B
     schema: >-
       schema {
@@ -71,5 +80,109 @@ sourceSchemas:
         discussion(id: ID!): Discussion @lookup
       }
     interactions:
-      - request: {"query":"query Op_a361113f_4(\n  $__fusion_1_id: ID!\n) {\n  discussion(id: $__fusion_1_id) {\n    commentCount\n  }\n}","variables":{"__fusion_1_id":"RGlzY3Vzc2lvbjoy"}}
-        response: {"data":{"discussion":{"commentCount":123}}}
+      - request:
+          body: >-
+            {"query":"query Op_a361113f_4(\n  $__fusion_1_id: ID!\n) {\n  discussion(id: $__fusion_1_id) {\n    commentCount\n  }\n}","variables":{"__fusion_1_id":"RGlzY3Vzc2lvbjoy"}}
+        response:
+          body: >-
+            {"data":{"discussion":{"commentCount":123}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          a: node(id: "RGlzY3Vzc2lvbjox") {
+            __typename @fusion__requirement
+            ... on Discussion {
+              title
+            }
+          }
+          b: node(id: "RGlzY3Vzc2lvbjoy") {
+            __typename @fusion__requirement
+            ... on Discussion {
+              title
+              commentCount
+            }
+            id @fusion__requirement
+          }
+        }
+      hash: a361113ff8d3c2a57d63e65e469e73a7
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "RGlzY3Vzc2lvbjoy"
+      responseName: b
+      branches:
+        - Discussion: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: >-
+        query Op_a361113f_2 {
+          b: node(id: "RGlzY3Vzc2lvbjoy") {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_a361113f_3 {
+          b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
+            __typename
+            title
+            id
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_a361113f_4(
+          $__fusion_1_id: ID!
+        ) {
+          discussion(id: $__fusion_1_id) {
+            commentCount
+          }
+        }
+      source: $.discussion
+      target: $.b<Discussion>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+    - id: 5
+      type: Node
+      idValue: "RGlzY3Vzc2lvbjox"
+      responseName: a
+      branches:
+        - Discussion: 7
+      fallback: 6
+    - id: 6
+      type: Operation
+      operation: >-
+        query Op_a361113f_6 {
+          a: node(id: "RGlzY3Vzc2lvbjox") {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 5
+    - id: 7
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_a361113f_7 {
+          a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
+            __typename
+            title
+          }
+        }
+      dependencies:
+        - id: 5

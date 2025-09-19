@@ -1,4 +1,4 @@
-name: SourceSchema_Request_Fails_For_Root_Field_NonNull
+title: SourceSchema_Request_Fails_For_Root_Field_NonNull
 request:
   onError: Halt
   document: >-
@@ -7,17 +7,18 @@ request:
         price
       }
     }
-response: >-
-  {
-    "errors": [
-      {
-        "message": "Unexpected Execution Error",
-        "path": [
-          "topProduct"
-        ]
-      }
-    ]
-  }
+response:
+  body: >-
+    {
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "topProduct"
+          ]
+        }
+      ]
+    }
 sourceSchemas:
   - name: A
     schema: >-
@@ -37,5 +38,28 @@ sourceSchemas:
         productById(id: Int!): Product @lookup @internal
       }
     interactions:
-      - request: {"query":"query Op_1c1cf024_1 {\n  topProduct {\n    price\n  }\n}"}
-        response: 
+      - request:
+          body: >-
+            {"query":"query Op_1c1cf024_1 {\n  topProduct {\n    price\n  }\n}"}
+        response:
+          statusCode: 500
+operationPlan:
+  operation:
+    - document: >-
+        {
+          topProduct {
+            price
+          }
+        }
+      hash: 1c1cf0244bcda9f7f91e7e0becca0616
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_1c1cf024_1 {
+          topProduct {
+            price
+          }
+        }

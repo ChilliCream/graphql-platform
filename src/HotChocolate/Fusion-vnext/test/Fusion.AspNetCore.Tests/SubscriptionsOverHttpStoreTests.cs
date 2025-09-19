@@ -46,14 +46,7 @@ public class SubscriptionsOverHttpStoreTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        var snapshot = new Snapshot();
-
-        await foreach (var response in result.ReadAsResultStreamAsync())
-        {
-            snapshot.Add(response);
-        }
-
-        await snapshot.MatchAsync();
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     public static class SourceSchema1

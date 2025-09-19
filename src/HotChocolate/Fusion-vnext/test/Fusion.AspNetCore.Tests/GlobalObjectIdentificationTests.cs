@@ -79,8 +79,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -154,8 +153,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -227,8 +225,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -301,8 +298,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -376,10 +372,8 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
-
     [Fact]
     public async Task Only_Typename_Selected()
     {
@@ -443,8 +437,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -492,8 +485,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -561,8 +553,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -626,8 +617,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -702,8 +692,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -761,8 +750,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -830,8 +818,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -908,8 +895,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1009,8 +995,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1111,8 +1096,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1171,8 +1155,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1234,8 +1217,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1326,8 +1308,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -1411,7 +1392,6 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        MatchSnapshot(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, result);
     }
 }

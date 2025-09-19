@@ -1,4 +1,4 @@
-name: Single_Shared_Interface_Root_Field_With_Type_Refinement
+title: Single_Shared_Interface_Root_Field_With_Type_Refinement
 request:
   document: >-
     {
@@ -9,15 +9,16 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "interface": {
-        "schema1": "schema1",
-        "schema2": "schema2"
+response:
+  body: >-
+    {
+      "data": {
+        "interface": {
+          "schema1": "schema1",
+          "schema2": "schema2"
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -70,8 +71,12 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_d8c31e9a_1 {\n  interface {\n    __typename\n    ... on Review {\n      schema1\n    }\n  }\n}"}
-        response: {"data":{"interface":{"__typename":"Review","schema1":"schema1"}}}
+      - request:
+          body: >-
+            {"query":"query Op_d8c31e9a_1 {\n  interface {\n    __typename\n    ... on Review {\n      schema1\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"interface":{"__typename":"Review","schema1":"schema1"}}}
   - name: B
     schema: >-
       schema {
@@ -122,5 +127,48 @@ sourceSchemas:
       
       union IUnion = Product | Review
     interactions:
-      - request: {"query":"query Op_d8c31e9a_2 {\n  interface {\n    __typename\n    ... on Review {\n      schema2\n    }\n  }\n}"}
-        response: {"data":{"interface":{"__typename":"Review","schema2":"schema2"}}}
+      - request:
+          body: >-
+            {"query":"query Op_d8c31e9a_2 {\n  interface {\n    __typename\n    ... on Review {\n      schema2\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"interface":{"__typename":"Review","schema2":"schema2"}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          interface {
+            __typename @fusion__requirement
+            ... on Review {
+              schema1
+              schema2
+            }
+          }
+        }
+      hash: d8c31e9a49eb72a79cc47298402807f5
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_d8c31e9a_1 {
+          interface {
+            __typename
+            ... on Review {
+              schema1
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_d8c31e9a_2 {
+          interface {
+            __typename
+            ... on Review {
+              schema2
+            }
+          }
+        }

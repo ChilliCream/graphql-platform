@@ -1,4 +1,4 @@
-name: Id_Of_Unknown_Type_Requested
+title: Id_Of_Unknown_Type_Requested
 request:
   document: >-
     {
@@ -8,23 +8,24 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "node": null
-    },
-    "errors": [
-      {
-        "message": "The node ID string has an invalid format.",
-        "path": [
-          "node"
-        ],
-        "extensions": {
-          "originalValue": "VXNlcjox"
+response:
+  body: >-
+    {
+      "data": {
+        "node": null
+      },
+      "errors": [
+        {
+          "message": "The node ID string has an invalid format.",
+          "path": [
+            "node"
+          ],
+          "extensions": {
+            "originalValue": "VXNlcjox"
+          }
         }
-      }
-    ]
-  }
+      ]
+    }
 sourceSchemas:
   - name: A
     schema: >-
@@ -69,3 +70,46 @@ sourceSchemas:
         node(id: ID!): Node @lookup
         discussionById(id: ID!): Discussion @lookup @internal
       }
+operationPlan:
+  operation:
+    - document: >-
+        {
+          node(id: "VXNlcjox") {
+            __typename @fusion__requirement
+            ... on Discussion {
+              title
+            }
+          }
+        }
+      hash: bcaa1f52d0d50c590e99abdf3c862694
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "VXNlcjox"
+      responseName: node
+      branches:
+        - Discussion: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: >-
+        query Op_bcaa1f52_2 {
+          node(id: "VXNlcjox") {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_bcaa1f52_3 {
+          node: discussionById(discussionId: "VXNlcjox") {
+            __typename
+            title
+          }
+        }
+      dependencies:
+        - id: 1

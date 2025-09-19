@@ -1,4 +1,4 @@
-name: BatchExecutionState_With_Multiple_Variable_Values_Some_Items_Null
+title: BatchExecutionState_With_Multiple_Variable_Values_Some_Items_Null
 request:
   document: >-
     {
@@ -17,47 +17,48 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "userBySlug": {
-        "feedbacks": {
-          "edges": [
-            {
-              "node": {
-                "feedback": {
-                  "buyer": {
-                    "relativeUrl": "User: VXNlcjoxMw==",
-                    "displayName": "User: VXNlcjoxMw=="
+response:
+  body: >-
+    {
+      "data": {
+        "userBySlug": {
+          "feedbacks": {
+            "edges": [
+              {
+                "node": {
+                  "feedback": {
+                    "buyer": {
+                      "relativeUrl": "User: VXNlcjoxMw==",
+                      "displayName": "User: VXNlcjoxMw=="
+                    }
+                  }
+                }
+              },
+              {
+                "node": {
+                  "feedback": {
+                    "buyer": {
+                      "relativeUrl": "User: VXNlcjoxMg==",
+                      "displayName": "User: VXNlcjoxMg=="
+                    }
+                  }
+                }
+              },
+              {
+                "node": {
+                  "feedback": {
+                    "buyer": {
+                      "relativeUrl": "User: VXNlcjoxMQ==",
+                      "displayName": "User: VXNlcjoxMQ=="
+                    }
                   }
                 }
               }
-            },
-            {
-              "node": {
-                "feedback": {
-                  "buyer": {
-                    "relativeUrl": "User: VXNlcjoxMg==",
-                    "displayName": "User: VXNlcjoxMg=="
-                  }
-                }
-              }
-            },
-            {
-              "node": {
-                "feedback": {
-                  "buyer": {
-                    "relativeUrl": "User: VXNlcjoxMQ==",
-                    "displayName": "User: VXNlcjoxMQ=="
-                  }
-                }
-              }
-            }
-          ]
+            ]
+          }
         }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -79,11 +80,14 @@ sourceSchemas:
         displayName: String!
       }
     interactions:
-      - request: {"query":"query Op_595ce2b9_4(\n  $__fusion_3_id: ID!\n) {\n  node(id: $__fusion_3_id) {\n    __typename\n    ... on User {\n      displayName\n    }\n  }\n}","variables":[{"__fusion_3_id":"VXNlcjoxMw=="},{"__fusion_3_id":"VXNlcjoxMg=="},{"__fusion_3_id":"VXNlcjoxMQ=="}]}
-        response: {"variableIndex":0,"data":{"node":{"__typename":"User","displayName":"User: VXNlcjoxMw=="}}}
-{"variableIndex":1,"data":{"node":{"__typename":"User","displayName":"User: VXNlcjoxMg=="}}}
-{"variableIndex":2,"data":{"node":{"__typename":"User","displayName":"User: VXNlcjoxMQ=="}}}
-
+      - request:
+          body: >-
+            {"query":"query Op_595ce2b9_4(\n  $__fusion_3_id: ID!\n) {\n  node(id: $__fusion_3_id) {\n    __typename\n    ... on User {\n      displayName\n    }\n  }\n}","variables":[{"__fusion_3_id":"VXNlcjoxMw=="},{"__fusion_3_id":"VXNlcjoxMg=="},{"__fusion_3_id":"VXNlcjoxMQ=="}]}
+        response:
+          body: >-
+            {"variableIndex":0,"data":{"node":{"__typename":"User","displayName":"User: VXNlcjoxMw=="}}}
+            {"variableIndex":1,"data":{"node":{"__typename":"User","displayName":"User: VXNlcjoxMg=="}}}
+            {"variableIndex":2,"data":{"node":{"__typename":"User","displayName":"User: VXNlcjoxMQ=="}}}
   - name: B
     schema: >-
       schema {
@@ -107,13 +111,20 @@ sourceSchemas:
       
       directive @null(atIndex: Int) on FIELD_DEFINITION
     interactions:
-      - request: {"query":"query Op_595ce2b9_1 {\n  userBySlug(slug: \u0022me\u0022) {\n    id\n  }\n}"}
-        response: {"data":{"userBySlug":{"id":"VXNlcjox"}}}
-      - request: {"query":"query Op_595ce2b9_3(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on User {\n      relativeUrl\n    }\n  }\n}","variables":[{"__fusion_2_id":"VXNlcjoxMw=="},{"__fusion_2_id":"VXNlcjoxMg=="},{"__fusion_2_id":"VXNlcjoxMQ=="}]}
-        response: {"variableIndex":0,"data":{"node":{"__typename":"User","relativeUrl":"User: VXNlcjoxMw=="}}}
-{"variableIndex":1,"data":{"node":{"__typename":"User","relativeUrl":"User: VXNlcjoxMg=="}}}
-{"variableIndex":2,"data":{"node":{"__typename":"User","relativeUrl":"User: VXNlcjoxMQ=="}}}
-
+      - request:
+          body: >-
+            {"query":"query Op_595ce2b9_1 {\n  userBySlug(slug: \u0022me\u0022) {\n    id\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"userBySlug":{"id":"VXNlcjox"}}}
+      - request:
+          body: >-
+            {"query":"query Op_595ce2b9_3(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on User {\n      relativeUrl\n    }\n  }\n}","variables":[{"__fusion_2_id":"VXNlcjoxMw=="},{"__fusion_2_id":"VXNlcjoxMg=="},{"__fusion_2_id":"VXNlcjoxMQ=="}]}
+        response:
+          body: >-
+            {"variableIndex":0,"data":{"node":{"__typename":"User","relativeUrl":"User: VXNlcjoxMw=="}}}
+            {"variableIndex":1,"data":{"node":{"__typename":"User","relativeUrl":"User: VXNlcjoxMg=="}}}
+            {"variableIndex":2,"data":{"node":{"__typename":"User","relativeUrl":"User: VXNlcjoxMQ=="}}}
   - name: C
     schema: >-
       schema {
@@ -151,5 +162,118 @@ sourceSchemas:
         feedbacks: FeedbacksConnection
       }
     interactions:
-      - request: {"query":"query Op_595ce2b9_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on User {\n      feedbacks {\n        edges {\n          node {\n            feedback {\n              buyer {\n                id\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}","variables":{"__fusion_1_id":"VXNlcjox"}}
-        response: {"data":{"node":{"__typename":"User","feedbacks":{"edges":[{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMw=="}}}},{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMg=="}}}},{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMQ=="}}}}]}}}}
+      - request:
+          body: >-
+            {"query":"query Op_595ce2b9_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on User {\n      feedbacks {\n        edges {\n          node {\n            feedback {\n              buyer {\n                id\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}","variables":{"__fusion_1_id":"VXNlcjox"}}
+        response:
+          body: >-
+            {"data":{"node":{"__typename":"User","feedbacks":{"edges":[{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMw=="}}}},{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMg=="}}}},{"node":{"feedback":{"buyer":{"id":"VXNlcjoxMQ=="}}}}]}}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          userBySlug(slug: "me") {
+            feedbacks {
+              edges {
+                node {
+                  feedback {
+                    buyer {
+                      relativeUrl
+                      displayName
+                      id @fusion__requirement
+                    }
+                  }
+                }
+              }
+            }
+            id @fusion__requirement
+          }
+        }
+      hash: 595ce2b9cc1d2b098614fb4f4733426b
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_595ce2b9_1 {
+          userBySlug(slug: "me") {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: C
+      operation: >-
+        query Op_595ce2b9_2(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on User {
+              feedbacks {
+                edges {
+                  node {
+                    feedback {
+                      buyer {
+                        id
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.userBySlug
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_595ce2b9_3(
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on User {
+              relativeUrl
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.userBySlug.feedbacks.edges.node.feedback.buyer
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2
+    - id: 4
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_595ce2b9_4(
+          $__fusion_3_id: ID!
+        ) {
+          node(id: $__fusion_3_id) {
+            __typename
+            ... on User {
+              displayName
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.userBySlug.feedbacks.edges.node.feedback.buyer
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2

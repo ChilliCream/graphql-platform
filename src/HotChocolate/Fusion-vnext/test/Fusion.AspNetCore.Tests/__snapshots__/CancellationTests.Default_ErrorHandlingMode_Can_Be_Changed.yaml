@@ -1,4 +1,4 @@
-name: Default_ErrorHandlingMode_Can_Be_Changed
+title: Default_ErrorHandlingMode_Can_Be_Changed
 request:
   document: >-
     {
@@ -6,17 +6,18 @@ request:
         id
       }
     }
-response: >-
-  {
-    "errors": [
-      {
-        "message": "Could not resolve reviews",
-        "path": [
-          "reviews"
-        ]
-      }
-    ]
-  }
+response:
+  body: >-
+    {
+      "errors": [
+        {
+          "message": "Could not resolve reviews",
+          "path": [
+            "reviews"
+          ]
+        }
+      ]
+    }
 sourceSchemas:
   - name: A
     schema: >-
@@ -32,5 +33,29 @@ sourceSchemas:
         id: Int!
       }
     interactions:
-      - request: {"query":"query Op_ef4ed803_1 {\n  reviews {\n    id\n  }\n}"}
-        response: {"errors":[{"message":"Could not resolve reviews","locations":[{"line":2,"column":3}],"path":["reviews"]}],"data":{"reviews":null}}
+      - request:
+          body: >-
+            {"query":"query Op_ef4ed803_1 {\n  reviews {\n    id\n  }\n}"}
+        response:
+          body: >-
+            {"errors":[{"message":"Could not resolve reviews","locations":[{"line":2,"column":3}],"path":["reviews"]}],"data":{"reviews":null}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          reviews {
+            id
+          }
+        }
+      hash: ef4ed8030ea8e8d1331adb3822f96a9c
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_ef4ed803_1 {
+          reviews {
+            id
+          }
+        }

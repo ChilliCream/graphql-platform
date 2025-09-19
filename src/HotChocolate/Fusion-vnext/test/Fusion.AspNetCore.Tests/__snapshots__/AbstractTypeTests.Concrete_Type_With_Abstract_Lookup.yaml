@@ -1,4 +1,4 @@
-name: Concrete_Type_With_Abstract_Lookup
+title: Concrete_Type_With_Abstract_Lookup
 request:
   document: >-
     {
@@ -7,15 +7,16 @@ request:
         age
       }
     }
-response: >-
-  {
-    "data": {
-      "authorById": {
-        "name": "Author 1",
-        "age": 5
+response:
+  body: >-
+    {
+      "data": {
+        "authorById": {
+          "name": "Author 1",
+          "age": 5
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -79,8 +80,12 @@ sourceSchemas:
         authorById(id: Int!): Author! @lookup
       }
     interactions:
-      - request: {"query":"query Op_94874bbd_1 {\n  authorById(id: 1) {\n    name\n    id\n  }\n}"}
-        response: {"data":{"authorById":{"name":"Author 1","id":1}}}
+      - request:
+          body: >-
+            {"query":"query Op_94874bbd_1 {\n  authorById(id: 1) {\n    name\n    id\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"authorById":{"name":"Author 1","id":1}}}
   - name: B
     schema: >-
       schema {
@@ -106,5 +111,54 @@ sourceSchemas:
         discussionById(id: ID!): Discussion @lookup @internal
       }
     interactions:
-      - request: {"query":"query Op_94874bbd_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
-        response: {"data":{"otherInterface":{"__typename":"Author","age":5}}}
+      - request:
+          body: >-
+            {"query":"query Op_94874bbd_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}","variables":{"__fusion_1_id":1}}
+        response:
+          body: >-
+            {"data":{"otherInterface":{"__typename":"Author","age":5}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          authorById(id: 1) {
+            name
+            age
+            id @fusion__requirement
+          }
+        }
+      hash: 94874bbd5fd74fc49ba59e51c4bad3fe
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_94874bbd_1 {
+          authorById(id: 1) {
+            name
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query Op_94874bbd_2(
+          $__fusion_1_id: Int!
+        ) {
+          otherInterface(id: $__fusion_1_id) {
+            __typename
+            ... on Author {
+              age
+            }
+          }
+        }
+      source: $.otherInterface<Author>
+      target: $.authorById
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

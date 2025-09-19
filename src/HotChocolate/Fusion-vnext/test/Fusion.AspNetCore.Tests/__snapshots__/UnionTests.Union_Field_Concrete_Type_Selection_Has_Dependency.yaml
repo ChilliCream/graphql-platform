@@ -1,4 +1,4 @@
-name: Union_Field_Concrete_Type_Selection_Has_Dependency
+title: Union_Field_Concrete_Type_Selection_Has_Dependency
 request:
   document: >-
     query testQuery {
@@ -15,16 +15,17 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "post": {
-        "product": {
-          "subgraph2": "Product: UHJvZHVjdDoy"
+response:
+  body: >-
+    {
+      "data": {
+        "post": {
+          "product": {
+            "subgraph2": "Product: UHJvZHVjdDoy"
+          }
         }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -56,8 +57,12 @@ sourceSchemas:
       
       union Post = Photo | Discussion
     interactions:
-      - request: {"query":"query testQuery_9f626641_1 {\n  post {\n    __typename\n    ... on Photo {\n      product {\n        id\n      }\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
-        response: {"data":{"post":{"__typename":"Photo","product":{"id":"UHJvZHVjdDoy"}}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_9f626641_1 {\n  post {\n    __typename\n    ... on Photo {\n      product {\n        id\n      }\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"post":{"__typename":"Photo","product":{"id":"UHJvZHVjdDoy"}}}}
   - name: B
     schema: >-
       schema {
@@ -73,8 +78,12 @@ sourceSchemas:
         productById(id: ID!): Product @lookup
       }
     interactions:
-      - request: {"query":"query testQuery_9f626641_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":{"__fusion_2_id":"UHJvZHVjdDoy"}}
-        response: {"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoy"}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_9f626641_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}","variables":{"__fusion_2_id":"UHJvZHVjdDoy"}}
+        response:
+          body: >-
+            {"data":{"productById":{"subgraph2":"Product: UHJvZHVjdDoy"}}}
   - name: C
     schema: >-
       schema {
@@ -89,3 +98,84 @@ sourceSchemas:
       type Query {
         authorById(id: ID!): Author @lookup
       }
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery {
+          post {
+            __typename @fusion__requirement
+            ... on Photo {
+              product {
+                subgraph2
+                id @fusion__requirement
+              }
+            }
+            ... on Discussion {
+              author {
+                subgraph3
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 9f626641f08c21990a3d8e457eb3732f
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_9f626641_1 {
+          post {
+            __typename
+            ... on Photo {
+              product {
+                id
+              }
+            }
+            ... on Discussion {
+              author {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: C
+      operation: >-
+        query testQuery_9f626641_2(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            subgraph3
+          }
+        }
+      source: $.authorById
+      target: $.post<Discussion>.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_9f626641_3(
+          $__fusion_2_id: ID!
+        ) {
+          productById(id: $__fusion_2_id) {
+            subgraph2
+          }
+        }
+      source: $.productById
+      target: $.post<Photo>.product
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

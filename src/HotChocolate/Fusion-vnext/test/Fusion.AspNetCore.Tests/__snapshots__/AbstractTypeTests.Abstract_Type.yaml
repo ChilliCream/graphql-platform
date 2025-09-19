@@ -1,4 +1,4 @@
-name: Abstract_Type
+title: Abstract_Type
 request:
   document: >-
     {
@@ -12,15 +12,16 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "abstractType": {
-        "id": 1,
-        "title": "Discussion 1"
+response:
+  body: >-
+    {
+      "data": {
+        "abstractType": {
+          "id": 1,
+          "title": "Discussion 1"
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -84,5 +85,43 @@ sourceSchemas:
         authorById(id: Int!): Author! @lookup
       }
     interactions:
-      - request: {"query":"query Op_05500418_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}"}
-        response: {"data":{"abstractType":{"__typename":"Discussion","id":1,"title":"Discussion 1"}}}
+      - request:
+          body: >-
+            {"query":"query Op_05500418_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"abstractType":{"__typename":"Discussion","id":1,"title":"Discussion 1"}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          abstractType {
+            __typename @fusion__requirement
+            id
+            ... on Discussion {
+              title
+            }
+            ... on Author {
+              name
+            }
+          }
+        }
+      hash: 05500418af4758851fab031f4cd75d38
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query Op_05500418_1 {
+          abstractType {
+            __typename
+            id
+            ... on Discussion {
+              title
+            }
+            ... on Author {
+              name
+            }
+          }
+        }

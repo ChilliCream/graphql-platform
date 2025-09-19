@@ -1,4 +1,4 @@
-name: Interface_Field_Concrete_Type_With_Dependency
+title: Interface_Field_Concrete_Type_With_Dependency
 request:
   document: >-
     query testQuery {
@@ -9,15 +9,16 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "votable": {
-        "viewerCanVote": true,
-        "viewerRating": 123.456
+response:
+  body: >-
+    {
+      "data": {
+        "votable": {
+          "viewerCanVote": true,
+          "viewerRating": 123.456
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -44,8 +45,12 @@ sourceSchemas:
         discussionById(id: ID!): Discussion @lookup
       }
     interactions:
-      - request: {"query":"query testQuery_4a61c641_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      id\n    }\n  }\n}"}
-        response: {"data":{"votable":{"__typename":"Discussion","viewerCanVote":true,"id":"RGlzY3Vzc2lvbjox"}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_4a61c641_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      id\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"votable":{"__typename":"Discussion","viewerCanVote":true,"id":"RGlzY3Vzc2lvbjox"}}}
   - name: B
     schema: >-
       schema {
@@ -61,5 +66,58 @@ sourceSchemas:
         discussionById(id: ID!): Discussion @lookup
       }
     interactions:
-      - request: {"query":"query testQuery_4a61c641_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    viewerRating\n  }\n}","variables":{"__fusion_1_id":"RGlzY3Vzc2lvbjox"}}
-        response: {"data":{"discussionById":{"viewerRating":123.456}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_4a61c641_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    viewerRating\n  }\n}","variables":{"__fusion_1_id":"RGlzY3Vzc2lvbjox"}}
+        response:
+          body: >-
+            {"data":{"discussionById":{"viewerRating":123.456}}}
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery {
+          votable {
+            __typename @fusion__requirement
+            viewerCanVote
+            ... on Discussion {
+              viewerRating
+              id @fusion__requirement
+            }
+          }
+        }
+      name: testQuery
+      hash: 4a61c641179c756fb55bfa3dd9de6101
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_4a61c641_1 {
+          votable {
+            __typename
+            viewerCanVote
+            ... on Discussion {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_4a61c641_2(
+          $__fusion_1_id: ID!
+        ) {
+          discussionById(id: $__fusion_1_id) {
+            viewerRating
+          }
+        }
+      source: $.discussionById
+      target: $.votable<Discussion>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

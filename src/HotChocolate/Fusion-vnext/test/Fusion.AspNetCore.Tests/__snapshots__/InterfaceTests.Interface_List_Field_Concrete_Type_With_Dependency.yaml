@@ -1,4 +1,4 @@
-name: Interface_List_Field_Concrete_Type_With_Dependency
+title: Interface_List_Field_Concrete_Type_With_Dependency
 request:
   document: >-
     query testQuery {
@@ -9,24 +9,25 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "votables": [
-        {
-          "viewerCanVote": true,
-          "viewerRating": 123.456
-        },
-        {
-          "viewerCanVote": true
-        },
-        {
-          "viewerCanVote": true,
-          "viewerRating": 123.456
-        }
-      ]
+response:
+  body: >-
+    {
+      "data": {
+        "votables": [
+          {
+            "viewerCanVote": true,
+            "viewerRating": 123.456
+          },
+          {
+            "viewerCanVote": true
+          },
+          {
+            "viewerCanVote": true,
+            "viewerRating": 123.456
+          }
+        ]
+      }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -53,8 +54,12 @@ sourceSchemas:
         discussionById(id: ID!): Discussion @lookup
       }
     interactions:
-      - request: {"query":"query testQuery_c8aa487a_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      id\n    }\n  }\n}"}
-        response: {"data":{"votables":[{"__typename":"Discussion","viewerCanVote":true,"id":"RGlzY3Vzc2lvbjox"},{"__typename":"Comment","viewerCanVote":true},{"__typename":"Discussion","viewerCanVote":true,"id":"RGlzY3Vzc2lvbjoz"}]}}
+      - request:
+          body: >-
+            {"query":"query testQuery_c8aa487a_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      id\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"votables":[{"__typename":"Discussion","viewerCanVote":true,"id":"RGlzY3Vzc2lvbjox"},{"__typename":"Comment","viewerCanVote":true},{"__typename":"Discussion","viewerCanVote":true,"id":"RGlzY3Vzc2lvbjoz"}]}}
   - name: B
     schema: >-
       schema {
@@ -70,7 +75,59 @@ sourceSchemas:
         discussionById(id: ID!): Discussion @lookup
       }
     interactions:
-      - request: {"query":"query testQuery_c8aa487a_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    viewerRating\n  }\n}","variables":[{"__fusion_1_id":"RGlzY3Vzc2lvbjox"},{"__fusion_1_id":"RGlzY3Vzc2lvbjoz"}]}
-        response: {"variableIndex":0,"data":{"discussionById":{"viewerRating":123.456}}}
-{"variableIndex":1,"data":{"discussionById":{"viewerRating":123.456}}}
-
+      - request:
+          body: >-
+            {"query":"query testQuery_c8aa487a_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    viewerRating\n  }\n}","variables":[{"__fusion_1_id":"RGlzY3Vzc2lvbjox"},{"__fusion_1_id":"RGlzY3Vzc2lvbjoz"}]}
+        response:
+          body: >-
+            {"variableIndex":0,"data":{"discussionById":{"viewerRating":123.456}}}
+            {"variableIndex":1,"data":{"discussionById":{"viewerRating":123.456}}}
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery {
+          votables {
+            __typename @fusion__requirement
+            viewerCanVote
+            ... on Discussion {
+              viewerRating
+              id @fusion__requirement
+            }
+          }
+        }
+      name: testQuery
+      hash: c8aa487a6cc92cc880c0ef61f2ea7166
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_c8aa487a_1 {
+          votables {
+            __typename
+            viewerCanVote
+            ... on Discussion {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_c8aa487a_2(
+          $__fusion_1_id: ID!
+        ) {
+          discussionById(id: $__fusion_1_id) {
+            viewerRating
+          }
+        }
+      source: $.discussionById
+      target: $.votables<Discussion>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

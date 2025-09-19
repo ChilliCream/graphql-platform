@@ -1,4 +1,4 @@
-name: Viewer_Bug_2
+title: Viewer_Bug_2
 request:
   document: >-
     query testQuery {
@@ -11,19 +11,20 @@ request:
         }
       }
     }
-response: >-
-  {
-    "data": {
-      "exclusiveSubgraphA": {
-        "__typename": "ExclusiveSubgraphA"
-      },
-      "viewer": {
-        "subType": {
-          "subgraphB": "SubType: U3ViVHlwZToy"
+response:
+  body: >-
+    {
+      "data": {
+        "exclusiveSubgraphA": {
+          "__typename": "ExclusiveSubgraphA"
+        },
+        "viewer": {
+          "subType": {
+            "subgraphB": "SubType: U3ViVHlwZToy"
+          }
         }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -48,8 +49,12 @@ sourceSchemas:
         subType: SubType
       }
     interactions:
-      - request: {"query":"query testQuery_f3bb7334_2 {\n  exclusiveSubgraphA {\n    __typename\n  }\n}"}
-        response: {"data":{"exclusiveSubgraphA":{"__typename":"ExclusiveSubgraphA"}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_f3bb7334_2 {\n  exclusiveSubgraphA {\n    __typename\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"exclusiveSubgraphA":{"__typename":"ExclusiveSubgraphA"}}}
   - name: B
     schema: >-
       schema {
@@ -68,5 +73,46 @@ sourceSchemas:
         subType: SubType
       }
     interactions:
-      - request: {"query":"query testQuery_f3bb7334_1 {\n  viewer {\n    subType {\n      subgraphB\n    }\n  }\n}"}
-        response: {"data":{"viewer":{"subType":{"subgraphB":"SubType: U3ViVHlwZToy"}}}}
+      - request:
+          body: >-
+            {"query":"query testQuery_f3bb7334_1 {\n  viewer {\n    subType {\n      subgraphB\n    }\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"viewer":{"subType":{"subgraphB":"SubType: U3ViVHlwZToy"}}}}
+operationPlan:
+  operation:
+    - document: >-
+        query testQuery {
+          exclusiveSubgraphA {
+            __typename
+          }
+          viewer {
+            subType {
+              subgraphB
+            }
+          }
+        }
+      name: testQuery
+      hash: f3bb7334daafefafae0b10d44f0d19bc
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: >-
+        query testQuery_f3bb7334_1 {
+          viewer {
+            subType {
+              subgraphB
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: >-
+        query testQuery_f3bb7334_2 {
+          exclusiveSubgraphA {
+            __typename
+          }
+        }

@@ -1,4 +1,4 @@
-name: Only_Id_And_Typename_Selected
+title: Only_Id_And_Typename_Selected
 request:
   document: >-
     {
@@ -7,15 +7,16 @@ request:
         __typename
       }
     }
-response: >-
-  {
-    "data": {
-      "node": {
-        "id": "RGlzY3Vzc2lvbjox",
-        "__typename": "Discussion"
+response:
+  body: >-
+    {
+      "data": {
+        "node": {
+          "id": "RGlzY3Vzc2lvbjox",
+          "__typename": "Discussion"
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -36,5 +37,38 @@ sourceSchemas:
         node(id: ID!): Node @lookup
       }
     interactions:
-      - request: {"query":"query Op_e41649ee_2 {\n  node(id: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    id\n    __typename\n  }\n}"}
-        response: {"data":{"node":{"id":"RGlzY3Vzc2lvbjox","__typename":"Discussion"}}}
+      - request:
+          body: >-
+            {"query":"query Op_e41649ee_2 {\n  node(id: \u0022RGlzY3Vzc2lvbjox\u0022) {\n    id\n    __typename\n  }\n}"}
+        response:
+          body: >-
+            {"data":{"node":{"id":"RGlzY3Vzc2lvbjox","__typename":"Discussion"}}}
+operationPlan:
+  operation:
+    - document: >-
+        {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            id
+            __typename
+          }
+        }
+      hash: e41649ee31cd981b466ba95313d9c143
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "RGlzY3Vzc2lvbjox"
+      responseName: node
+      branches:
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: >-
+        query Op_e41649ee_2 {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            id
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1

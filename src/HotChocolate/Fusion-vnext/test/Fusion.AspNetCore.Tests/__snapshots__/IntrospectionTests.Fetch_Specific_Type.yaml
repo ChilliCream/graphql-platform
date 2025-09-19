@@ -1,4 +1,4 @@
-name: Fetch_Specific_Type
+title: Fetch_Specific_Type
 request:
   document: >-
     {
@@ -6,14 +6,15 @@ request:
         name
       }
     }
-response: >-
-  {
-    "data": {
-      "__type": {
-        "name": "String"
+response:
+  body: >-
+    {
+      "data": {
+        "__type": {
+          "name": "String"
+        }
       }
     }
-  }
 sourceSchemas:
   - name: A
     schema: >-
@@ -116,3 +117,20 @@ sourceSchemas:
         authorById(id: Int!): Author! @internal @lookup
         authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
       }
+operationPlan:
+  operation:
+    - document: >-
+        {
+          __type(name: "String") {
+            name
+          }
+        }
+      hash: 5cddb45336fd254ecdaf2e7cb5e89de1
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 1
+          responseName: __type
+          fieldName: __type
