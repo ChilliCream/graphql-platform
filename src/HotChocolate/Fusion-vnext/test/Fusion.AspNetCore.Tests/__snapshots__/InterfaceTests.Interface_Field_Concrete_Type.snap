@@ -1,0 +1,41 @@
+{
+  "data": {
+    "votable": {
+      "viewerCanVote": true,
+      "title": "Discussion: RGlzY3Vzc2lvbjox"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "107362d6a0876760f7758026f8e86c5e164b14bfbe74c17f2d84a2347f298d3a",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  votable {\n    __typename @fusion__requirement\n    viewerCanVote\n    ... on Discussion {\n      title\n    }\n  }\n}",
+          "id": "f4fa964e3e634b9d478c346b9237723e",
+          "hash": "f4fa964e3e634b9d478c346b9237723e",
+          "shortHash": "f4fa964e"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_f4fa964e_1",
+              "kind": "Query",
+              "document": "query testQuery_f4fa964e_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      title\n    }\n  }\n}",
+              "hash": "793b13bed4b978f51588a8882786507eb8347bd0ed01c7de773fdc9ad174ed17",
+              "shortHash": "793b13be"
+            },
+            "responseNames": [
+              "votable"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

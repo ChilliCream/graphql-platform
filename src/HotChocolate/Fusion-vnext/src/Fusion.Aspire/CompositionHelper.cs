@@ -80,7 +80,7 @@ internal static class CompositionHelper
         {
             if (entry.Severity is LogSeverity.Error)
             {
-                output.AppendLine($"‼️ {entry.Message}");
+                output.AppendLine($"‼️ {FormatMultilineMessage(entry.Message)}");
             }
             else
             {
@@ -139,5 +139,21 @@ internal static class CompositionHelper
         await using var stream = await configuration.OpenReadSchemaAsync(cancellationToken);
         using var reader = new StreamReader(stream, Encoding.UTF8);
         return await reader.ReadToEndAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Since we're prefixing the message with an emoji and space before printing,
+    /// we need to also indent each line of a multiline message by three spaces to fix the alignment.
+    /// </summary>
+    private static string FormatMultilineMessage(string message)
+    {
+        var lines = message.Split(Environment.NewLine);
+
+        if (lines.Length <= 1)
+        {
+            return message;
+        }
+
+        return string.Join(Environment.NewLine + "   ", lines);
     }
 }

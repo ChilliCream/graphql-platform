@@ -459,13 +459,12 @@ public sealed partial class OperationPlanner
 
         index.Register(workItemSelectionSet.Id, selectionSet);
 
-        var internalOperation = InlineSelections(
+        var internalOperation = InlineSelectionsIntoOverallOperation(
             current.InternalOperationDefinition,
             index,
             workItemSelectionSet.Type,
             workItemSelectionSet.Id,
-            selectionSet,
-            inlineInternal: true);
+            selectionSet);
 
         foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItemSelectionSet.Id))
         {
@@ -1018,7 +1017,7 @@ public sealed partial class OperationPlanner
                 index.GetId(selectionSetNode),
                 selectionSetNode,
                 type,
-                selectionPath);
+                selectionPath.AppendFragment(type.Name));
 
             var newWorkItem = new NodeLookupWorkItem(
                 Lookup: null,
@@ -1134,13 +1133,12 @@ public sealed partial class OperationPlanner
             requirements);
 
         var internalOperation =
-            InlineSelections(
+            InlineSelectionsIntoOverallOperation(
                 current.InternalOperationDefinition,
                 index,
                 workItem.Selection.Field.DeclaringType,
                 workItem.Selection.SelectionSetId,
-                requirements,
-                inlineInternal: true);
+                requirements);
         current = current with { InternalOperationDefinition = internalOperation };
 
         foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
@@ -1241,6 +1239,32 @@ public sealed partial class OperationPlanner
         }
 
         return requirements;
+    }
+
+    private OperationDefinitionNode InlineSelectionsIntoOverallOperation(
+        OperationDefinitionNode operation,
+        SelectionSetIndexBuilder index,
+        ITypeDefinition selectionSetType,
+        uint targetSelectionSetId,
+        SelectionSetNode selectionsToInline)
+    {
+        // If we're looking for a selection set in the overall operation,
+        // we need to ensure that we're not looking for a cloned selection set
+        // and instead are looking for the original selection set.
+        // Cloned selections can happen for instance if we're expanding an interface
+        // selection set to multiple selection sets for each concrete type.
+        if (index.TryGetOriginalIdFromCloned(targetSelectionSetId, out var originalId))
+        {
+            targetSelectionSetId = originalId;
+        }
+
+        return InlineSelections(
+            operation,
+            index,
+            selectionSetType,
+            targetSelectionSetId,
+            selectionsToInline,
+            inlineInternal: true);
     }
 
     private OperationDefinitionNode InlineSelections(

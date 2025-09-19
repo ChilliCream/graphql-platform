@@ -1,0 +1,83 @@
+{
+  "data": {
+    "postEdges": [
+      {
+        "node": {
+          "subgraph2": "Photo: UGhvdG86Ng=="
+        }
+      },
+      {
+        "node": {
+          "subgraph2": "Photo: UGhvdG86NQ=="
+        }
+      },
+      {
+        "node": {
+          "subgraph2": "Photo: UGhvdG86NA=="
+        }
+      }
+    ]
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "3d596198f377becf0c05b31402cf07f453e3185acb7d966bf76e214e70778ef6",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  postEdges {\n    node {\n      __typename @fusion__requirement\n      ... on Photo {\n        subgraph2\n        id @fusion__requirement\n      }\n      ... on Discussion {\n        subgraph1\n      }\n    }\n  }\n}",
+          "id": "30e5fe2dd1fb5421622af65e08f7128d",
+          "hash": "30e5fe2dd1fb5421622af65e08f7128d",
+          "shortHash": "30e5fe2d"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_30e5fe2d_1",
+              "kind": "Query",
+              "document": "query testQuery_30e5fe2d_1 {\n  postEdges {\n    node {\n      __typename\n      ... on Photo {\n        id\n      }\n      ... on Discussion {\n        subgraph1\n      }\n    }\n  }\n}",
+              "hash": "d65b776450be881ccd9e1f98717a1bb29e134efe55e82fe1a44dbfe029a6168b",
+              "shortHash": "d65b7764"
+            },
+            "responseNames": [
+              "postEdges"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_30e5fe2d_2",
+              "kind": "Query",
+              "document": "query testQuery_30e5fe2d_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}",
+              "hash": "fd821b012b423d6774a3b62d9b1bddd03f9f003ad8b9acb17520f3dafc685113",
+              "shortHash": "fd821b01"
+            },
+            "responseNames": [
+              "subgraph2"
+            ],
+            "source": "$.photoById",
+            "target": "$.postEdges.node<Photo>",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.postEdges.node<Photo>",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

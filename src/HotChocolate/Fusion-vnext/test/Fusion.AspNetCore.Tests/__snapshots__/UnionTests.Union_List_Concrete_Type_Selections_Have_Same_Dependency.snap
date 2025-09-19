@@ -1,0 +1,112 @@
+{
+  "data": {
+    "posts": [
+      {
+        "product": {
+          "subgraph2": "Product: UHJvZHVjdDo2"
+        }
+      },
+      {
+        "product": {
+          "subgraph2": "Product: UHJvZHVjdDo1"
+        }
+      },
+      {
+        "product": {
+          "subgraph2": "Product: UHJvZHVjdDo0"
+        }
+      }
+    ]
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "ba1064b3ecb55bd21e204aa3e760af9260caf450309e0160e59b081bed11179a",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  posts {\n    __typename @fusion__requirement\n    ... on Photo {\n      product {\n        subgraph2\n        id @fusion__requirement\n      }\n    }\n    ... on Discussion {\n      product {\n        subgraph2\n        id @fusion__requirement\n      }\n    }\n  }\n}",
+          "id": "9b3b2942c1fefa10ff166b89f628b2b4",
+          "hash": "9b3b2942c1fefa10ff166b89f628b2b4",
+          "shortHash": "9b3b2942"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_9b3b2942_1",
+              "kind": "Query",
+              "document": "query testQuery_9b3b2942_1 {\n  posts {\n    __typename\n    ... on Photo {\n      product {\n        id\n      }\n    }\n    ... on Discussion {\n      product {\n        id\n      }\n    }\n  }\n}",
+              "hash": "13fd784ab4c503136cee9b58c40149c9ab1a8072d9843c8fd760ced590542fe3",
+              "shortHash": "13fd784a"
+            },
+            "responseNames": [
+              "posts"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_9b3b2942_2",
+              "kind": "Query",
+              "document": "query testQuery_9b3b2942_2(\n  $__fusion_1_id: ID!\n) {\n  productById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}",
+              "hash": "f37be63a340490dc627fafb27244cee3c9bb4bf7d65f88b926d92cd9fc9f5a38",
+              "shortHash": "f37be63a"
+            },
+            "responseNames": [
+              "subgraph2"
+            ],
+            "source": "$.productById",
+            "target": "$.posts<Discussion>.product",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.posts<Discussion>.product",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_9b3b2942_3",
+              "kind": "Query",
+              "document": "query testQuery_9b3b2942_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}",
+              "hash": "e73df2e0aec981ad46b9ded710b1502619877b454102c175aa0238aaf20006c7",
+              "shortHash": "e73df2e0"
+            },
+            "responseNames": [
+              "subgraph2"
+            ],
+            "source": "$.productById",
+            "target": "$.posts<Photo>.product",
+            "requirements": [
+              {
+                "name": "__fusion_2_id",
+                "type": "ID!",
+                "path": "$.posts<Photo>.product",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
