@@ -5,15 +5,15 @@
       "locations": [
         {
           "line": 1,
-          "column": 27
+          "column": 36
         }
       ],
       "path": [
-        "arg"
+        "fieldWithListOfScalarsInput"
       ],
       "extensions": {
         "code": "HC0001",
-        "fieldCoordinate": "SomeQuery.listOfScalarsInput(arg:)",
+        "fieldCoordinate": "SomeQuery.fieldWithListOfScalarsInput(arg:)",
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"
@@ -22,6 +22,6 @@
     }
   ],
   "data": {
-    "listOfScalarsInput": null
+    "fieldWithListOfScalarsInput": null
   }
 }

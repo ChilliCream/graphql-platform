@@ -5,16 +5,16 @@
       "locations": [
         {
           "line": 1,
-          "column": 22
+          "column": 31
         }
       ],
       "path": [
-        "arg"
+        "fieldWithNonNullScalarInput"
       ],
       "extensions": {
         "code": "HC0001",
-        "fieldCoordinate": "SomeQuery.nonNullScalarInput(arg:)",
-        "responseName": "nonNullScalarInput",
+        "fieldCoordinate": "SomeQuery.fieldWithNonNullScalarInput(arg:)",
+        "responseName": "fieldWithNonNullScalarInput",
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"
@@ -23,6 +23,6 @@
     }
   ],
   "data": {
-    "nonNullScalarInput": null
+    "fieldWithNonNullScalarInput": null
   }
 }

@@ -9,7 +9,7 @@
         }
       ],
       "path": [
-        "arg"
+        "echo"
       ],
       "extensions": {
         "code": "HC0001",

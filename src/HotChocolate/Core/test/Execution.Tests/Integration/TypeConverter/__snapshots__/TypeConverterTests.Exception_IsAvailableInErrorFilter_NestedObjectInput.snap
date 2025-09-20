@@ -5,13 +5,11 @@
       "locations": [
         {
           "line": 1,
-          "column": 26
+          "column": 35
         }
       ],
       "path": [
-        "arg",
-        "inner",
-        "id"
+        "fieldWithNestedObjectInput"
       ],
       "extensions": {
         "code": "HC0001",
@@ -24,6 +22,6 @@
     }
   ],
   "data": {
-    "nestedObjectInput": null
+    "fieldWithNestedObjectInput": null
   }
 }

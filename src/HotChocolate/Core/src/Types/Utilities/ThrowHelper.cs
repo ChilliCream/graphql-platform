@@ -593,17 +593,15 @@ internal static class ThrowHelper
 
     public static SerializationException InvalidTypeConversion(
         ITypeSystemMember type,
-        Path path,
         IInputValueInfo field,
         Exception conversionException)
     {
         var builder = ErrorBuilder.New()
             .SetMessage(ThrowHelper_InvalidTypeConversion, field.Name)
             .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-            .SetPath(path)
             .SetException(conversionException)
             .SetFieldCoordinate(field.Coordinate);
 
-        return new(builder.Build(), type, path);
+        return new(builder.Build(), type);
     }
 }

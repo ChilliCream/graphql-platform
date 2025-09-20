@@ -5,16 +5,16 @@
       "locations": [
         {
           "line": 1,
-          "column": 15
+          "column": 24
         }
       ],
       "path": [
-        "arg"
+        "fieldWithScalarInput"
       ],
       "extensions": {
         "code": "HC0001",
-        "fieldCoordinate": "SomeQuery.scalarInput(arg:)",
-        "responseName": "scalarInput",
+        "fieldCoordinate": "SomeQuery.fieldWithScalarInput(arg:)",
+        "responseName": "fieldWithScalarInput",
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"
@@ -23,6 +23,6 @@
     }
   ],
   "data": {
-    "scalarInput": null
+    "fieldWithScalarInput": null
   }
 }

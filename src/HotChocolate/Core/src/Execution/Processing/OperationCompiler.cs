@@ -50,6 +50,7 @@ public sealed partial class OperationCompiler
                     schema,
                     field,
                     selection,
+                    null,
                     _directiveNames,
                     _pipelineComponents);
     }
@@ -221,10 +222,11 @@ public sealed partial class OperationCompiler
     {
         ref var searchSpace = ref GetReference(AsSpan(_selections));
 
+        var path = Path.Root;
         for (var i = 0; i < _selections.Count; i++)
         {
             var selection = Unsafe.Add(ref searchSpace, i);
-
+            path = path.Append(selection.ResponseName);
             if (selection.ResolverPipeline is null && selection.PureResolver is null)
             {
                 var field = Unsafe.As<ObjectField>(selection.Field);
@@ -233,6 +235,7 @@ public sealed partial class OperationCompiler
                     schema,
                     field,
                     syntaxNode,
+                    path,
                     _directiveNames,
                     _pipelineComponents);
                 var pureResolver = TryCreatePureField(schema, field, syntaxNode);

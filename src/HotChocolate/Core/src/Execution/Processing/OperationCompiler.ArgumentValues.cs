@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -140,6 +141,7 @@ public sealed partial class OperationCompiler
         Schema schema,
         ObjectField field,
         FieldNode selection,
+        Path? path,
         HashSet<string> processed,
         List<FieldMiddleware> pipelineComponents)
     {
@@ -152,7 +154,7 @@ public sealed partial class OperationCompiler
 
         // if we have selection directives we will inspect them and try to build a
         // pipeline from them if they have middleware components.
-        BuildDirectivePipeline(schema, selection, processed, pipelineComponents);
+        BuildDirectivePipeline(schema, selection, path, processed, pipelineComponents);
 
         // if we found middleware components on the selection directives we will build a new
         // pipeline.
@@ -200,11 +202,17 @@ public sealed partial class OperationCompiler
     private static void BuildDirectivePipeline(
         Schema schema,
         FieldNode selection,
+        Path? path,
         HashSet<string> processed,
         List<FieldMiddleware> pipelineComponents)
     {
         for (var i = 0; i < selection.Directives.Count; i++)
         {
+            if (path is null)
+            {
+                throw new InvalidOperationException("Path is null");
+            }
+            Debug.Assert(path != null, "path should not be null.");
             var directiveNode = selection.Directives[i];
             if (schema.DirectiveTypes.TryGetDirective(directiveNode.Name.Value, out var directiveType)
                 && directiveType.Middleware is not null
@@ -222,9 +230,9 @@ public sealed partial class OperationCompiler
                 {
                     var location = directiveNode.Location;
                     throw new SerializationException(
-                        ErrorBuilder.FromError(ex.Errors[0]).AddLocation(location).Build(),
+                        ErrorBuilder.FromError(ex.Errors[0]).SetPath(path).AddLocation(location).Build(),
                         ex.Type,
-                        ex.Errors[0].Path);
+                        path);
                 }
 
                 var directiveMiddleware = directiveType.Middleware;

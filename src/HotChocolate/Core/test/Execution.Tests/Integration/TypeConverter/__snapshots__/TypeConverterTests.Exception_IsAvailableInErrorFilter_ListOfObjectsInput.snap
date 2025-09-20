@@ -5,14 +5,11 @@
       "locations": [
         {
           "line": 1,
-          "column": 27
+          "column": 36
         }
       ],
       "path": [
-        "arg",
-        "items",
-        0,
-        "id"
+        "fieldWithListOfObjectsInput"
       ],
       "extensions": {
         "code": "HC0001",
@@ -25,6 +22,6 @@
     }
   ],
   "data": {
-    "listOfObjectsInput": null
+    "fieldWithListOfObjectsInput": null
   }
 }
