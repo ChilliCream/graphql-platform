@@ -3,7 +3,7 @@ using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Configurations;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Tests;
 
@@ -249,16 +249,16 @@ public class SortInputTypeTest : SortTestBase
             .AddType(new SortInputType<User>()));
 
         // assert
-        Assert.False(((SortInputType)schema.Types["UserSortInput"]).Fields.ContainsField("id"));
+        Assert.False(schema.GetType<SortInputType>("UserSortInput").Fields.ContainsField("id"));
     }
 
     private sealed class IgnoreSortInputFieldTypeInterceptor(Type entityType, string fieldName) : TypeInterceptor
     {
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            TypeSystemConfiguration configuration)
+            DefinitionBase configuration)
         {
-            if (configuration is SortInputTypeConfiguration sortInputType
+            if (configuration is SortInputTypeDefinition sortInputType
                 && sortInputType.EntityType == entityType)
             {
                 sortInputType.Fields.Single(f => f.Name == fieldName).Ignore = true;
