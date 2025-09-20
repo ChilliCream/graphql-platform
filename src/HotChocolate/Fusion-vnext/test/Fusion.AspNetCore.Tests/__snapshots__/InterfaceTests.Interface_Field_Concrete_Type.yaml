@@ -30,12 +30,12 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
       
-      type Comment implements Votable @key(fields: "id") {
+      type Comment implements Votable {
         id: ID!
         viewerCanVote: Boolean!
       }
       
-      type Discussion implements Votable @key(fields: "id") {
+      type Discussion implements Votable {
         id: ID!
         viewerCanVote: Boolean!
         title: String!

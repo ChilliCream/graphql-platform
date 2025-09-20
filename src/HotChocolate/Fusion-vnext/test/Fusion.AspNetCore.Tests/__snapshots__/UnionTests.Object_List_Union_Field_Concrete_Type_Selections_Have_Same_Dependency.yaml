@@ -67,7 +67,7 @@ sourceSchemas:
         node: Post
       }
       
-      type Product @key(fields: "id") {
+      type Product {
         id: ID!
       }
       
@@ -135,7 +135,7 @@ sourceSchemas:
         query: Query
       }
       
-      type Product @key(fields: "id") {
+      type Product {
         id: ID!
         subgraph2: String!
       }
