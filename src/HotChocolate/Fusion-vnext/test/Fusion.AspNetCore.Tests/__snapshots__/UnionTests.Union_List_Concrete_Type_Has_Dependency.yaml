@@ -40,7 +40,7 @@ sourceSchemas:
         subgraph1: String
       }
       
-      type Photo @key(fields: "id") {
+      type Photo {
         id: ID!
       }
       
@@ -90,7 +90,7 @@ sourceSchemas:
         query: Query
       }
       
-      type Photo @key(fields: "id") {
+      type Photo {
         id: ID!
         subgraph2: String!
       }

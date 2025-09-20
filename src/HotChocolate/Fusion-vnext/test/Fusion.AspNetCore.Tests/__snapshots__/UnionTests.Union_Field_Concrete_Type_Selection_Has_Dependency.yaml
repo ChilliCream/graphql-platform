@@ -33,7 +33,7 @@ sourceSchemas:
         query: Query
       }
       
-      type Author @key(fields: "id") {
+      type Author {
         id: ID!
       }
       
@@ -47,7 +47,7 @@ sourceSchemas:
         product: Product
       }
       
-      type Product @key(fields: "id") {
+      type Product {
         id: ID!
       }
       
@@ -93,7 +93,7 @@ sourceSchemas:
         query: Query
       }
       
-      type Product @key(fields: "id") {
+      type Product {
         id: ID!
         subgraph2: String!
       }
@@ -131,7 +131,7 @@ sourceSchemas:
         query: Query
       }
       
-      type Author @key(fields: "id") {
+      type Author {
         id: ID!
         subgraph3: String!
       }

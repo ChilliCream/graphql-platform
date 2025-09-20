@@ -36,7 +36,7 @@ sourceSchemas:
         id: ID!
       }
       
-      type Discussion implements Node @key(fields: "id") {
+      type Discussion implements Node {
         id: ID!
         name: String
       }
@@ -85,7 +85,7 @@ sourceSchemas:
         id: ID!
       }
       
-      type Discussion implements Node @key(fields: "id") {
+      type Discussion implements Node {
         id: ID!
         commentCount: Int
       }
