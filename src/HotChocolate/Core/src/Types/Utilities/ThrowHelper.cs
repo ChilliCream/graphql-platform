@@ -590,4 +590,18 @@ internal static class ThrowHelper
                 .SetExtension("type", type.Print())
                 .Build());
     }
+
+    public static SerializationException InvalidTypeConversion(
+        ITypeSystemMember type,
+        IInputValueInfo field,
+        Exception conversionException)
+    {
+        var builder = ErrorBuilder.New()
+            .SetMessage(ThrowHelper_InvalidTypeConversion, field.Name)
+            .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+            .SetException(conversionException)
+            .SetFieldCoordinate(field.Coordinate);
+
+        return new(builder.Build(), type);
+    }
 }

@@ -136,7 +136,7 @@ public class AnyType : ScalarType
         var type = value.GetType();
 
         if (type.IsValueType && Converter.TryConvert(
-            type, typeof(string), value, out var converted)
+            type, typeof(string), value, out var converted, out _)
             && converted is string c)
         {
             return new StringValueNode(c);
@@ -214,7 +214,7 @@ public class AnyType : ScalarType
                 var type = runtimeValue.GetType();
 
                 if (type.IsValueType
-                    && Converter.TryConvert(type, typeof(string), runtimeValue, out var c)
+                    && Converter.TryConvert(type, typeof(string), runtimeValue, out var c, out _)
                     && c is string casted)
                 {
                     resultValue = casted;
