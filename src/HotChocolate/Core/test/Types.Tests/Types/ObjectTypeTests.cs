@@ -1914,11 +1914,11 @@ public class ObjectTypeTests : TypeTestBase
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(
-                @"
-                    type Query {
-                        foo(bar: String @deprecated(reason:""reason"")): Int!
-                    }
-                ")
+                """
+                type Query {
+                    foo(bar: String @deprecated(reason: "reason")): Int!
+                }
+                """)
             .AddResolver("Query", "foo", x => 1)
             .BuildRequestExecutorAsync();
 
@@ -1934,11 +1934,11 @@ public class ObjectTypeTests : TypeTestBase
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(
-                @"
-                    type Query {
-                        foo(bar: String! @deprecated(reason:""reason"")): Int!
-                    }
-                ")
+                """
+                type Query {
+                    foo(bar: String! @deprecated(reason: "reason")): Int!
+                }
+                """)
             .AddResolver("Query", "foo", x => 1)
             .BuildRequestExecutorAsync();
 

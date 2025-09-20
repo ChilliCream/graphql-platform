@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Features;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.WellKnownArgumentNames;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
@@ -23,5 +24,10 @@ internal static class OutputFieldDefinitionExtensions
         }
 
         return [.. schemaNames];
+    }
+
+    public static SourceFieldMetadata? GetSourceFieldMetadata(this IOutputFieldDefinition field)
+    {
+        return field.Features.Get<SourceFieldMetadata>();
     }
 }

@@ -115,8 +115,8 @@ internal static class CompletionTools
                 typeDef.Name.Value,
                 schemaName,
                 lookups,
-                implements ?? ImmutableHashSet<string>.Empty,
-                unionTypes ?? ImmutableHashSet<string>.Empty);
+                implements ?? [],
+                unionTypes ?? []);
         }
 
         return new SourceObjectTypeCollection(sourceObjectType);
@@ -144,7 +144,7 @@ internal static class CompletionTools
                 typeDef.Name.Value,
                 schemaName,
                 lookups,
-                implements ?? ImmutableHashSet<string>.Empty);
+                implements ?? []);
         }
 
         return new SourceInterfaceTypeCollection(sourceInterfaceType);

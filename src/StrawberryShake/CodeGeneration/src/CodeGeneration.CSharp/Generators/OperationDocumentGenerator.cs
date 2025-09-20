@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Properties;
@@ -70,7 +71,7 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             classBuilder
                 .AddProperty("Body")
                 .SetType(TypeNames.IReadOnlySpan.WithGeneric(TypeNames.Byte))
-                .AsLambda(GetByteArray(descriptor.Body));
+                .AsLambda(SymbolDisplay.FormatLiteral(Encoding.UTF8.GetString(descriptor.Body), quote: true) + "u8");
         }
 
         classBuilder
@@ -101,25 +102,5 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             .AddCode("#endif");
 
         classBuilder.Build(writer);
-    }
-
-    private static string GetByteArray(byte[] bytes)
-    {
-        var builder = new StringBuilder();
-        builder.Append($"new {TypeNames.Byte}[]{{ ");
-
-        for (var i = 0; i < bytes.Length; i++)
-        {
-            builder.Append("0x");
-            builder.Append(bytes[i].ToString("x2"));
-            if (i < bytes.Length - 1)
-            {
-                builder.Append(", ");
-            }
-        }
-
-        builder.Append(" }");
-
-        return builder.ToString();
     }
 }

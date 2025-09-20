@@ -9,7 +9,6 @@ using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
-using HotChocolate.Fusion.Properties;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
@@ -517,7 +516,7 @@ internal sealed class ComposeCommand : Command
         var metadata = new ArchiveMetadata
         {
             SupportedGatewayFormats = [new Version(2, 0, 0)],
-            SourceSchemas = [..sourceSchemas.Keys]
+            SourceSchemas = [.. sourceSchemas.Keys]
         };
 
         await archive.SetArchiveMetadataAsync(metadata, cancellationToken);

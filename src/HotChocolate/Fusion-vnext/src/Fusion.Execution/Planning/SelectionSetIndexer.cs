@@ -14,7 +14,10 @@ public sealed class SelectionSetIndexer : SyntaxWalker
     {
         var indexer = new SelectionSetIndexer();
         indexer.Visit(operation);
-        return new SelectionSetIndex(indexer._selectionSetIds.ToImmutableDictionary(), indexer._nextId);
+        return new SelectionSetIndex(
+            indexer._selectionSetIds.ToImmutableDictionary(),
+            ImmutableDictionary<uint, uint>.Empty,
+            indexer._nextId);
     }
 
     public static ImmutableHashSet<uint> CreateIdSet(SelectionSetNode selectionSet, ISelectionSetIndex index)

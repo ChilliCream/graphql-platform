@@ -272,20 +272,20 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             await server.PostRawAsync(
                 new ClientQueryRequest
                 {
-                    Query = @"
-                    {
-                        ... @defer {
-                            wait(m: 300)
-                        }
-                        hero(episode: NEW_HOPE)
+                    Query =
+                        """
                         {
-                            name
-                            ... on Droid @defer(label: ""my_id"")
-                            {
-                                id
+                            ... @defer {
+                                wait(m: 300)
+                            }
+                            hero(episode: NEW_HOPE) {
+                                name
+                                ... on Droid @defer(label: "my_id") {
+                                    id
+                                }
                             }
                         }
-                    }"
+                        """
                 });
 
         // assert
@@ -313,11 +313,9 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                         ... @defer {
                             wait(m: 300)
                         }
-                        hero(episode: NEW_HOPE)
-                        {
+                        hero(episode: NEW_HOPE) {
                             name
-                            ... on Droid @defer(label: "my_id")
-                            {
+                            ... on Droid @defer(label: "my_id") {
                                 id
                             }
                         }
@@ -346,20 +344,20 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         await server.PostRawAsync(
             new ClientQueryRequest
             {
-                Query = @"
-                {
-                    ... @defer {
-                        wait(m: 300)
-                    }
-                    hero(episode: NEW_HOPE)
+                Query =
+                    """
                     {
-                        name
-                        ... on Droid @defer(label: ""my_id"")
-                        {
-                            id
+                        ... @defer {
+                            wait(m: 300)
+                        }
+                        hero(episode: NEW_HOPE) {
+                            name
+                            ... on Droid @defer(label: "my_id") {
+                                id
+                            }
                         }
                     }
-                }"
+                    """
             });
 
         // assert
@@ -378,20 +376,20 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             await server.PostHttpAsync(
                 new ClientQueryRequest
                 {
-                    Query = @"
-                    {
-                        ... @defer {
-                            wait(m: 300)
-                        }
-                        hero(episode: NEW_HOPE)
+                    Query =
+                        """
                         {
-                            name
-                            ... on Droid @defer(label: ""my_id"")
-                            {
-                                id
+                            ... @defer {
+                                wait(m: 300)
+                            }
+                            hero(episode: NEW_HOPE) {
+                                name
+                                ... on Droid @defer(label: "my_id") {
+                                    id
+                                }
                             }
                         }
-                    }"
+                        """
                 });
 
         // assert
@@ -420,20 +418,20 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             await server.PostRawAsync(
                 new ClientQueryRequest
                 {
-                    Query = @"
-                    query ($if: Boolean!){
-                        ... @defer {
-                            wait(m: 300)
-                        }
-                        hero(episode: NEW_HOPE)
-                        {
-                            name
-                            ... on Droid @defer(label: ""my_id"", if: $if)
-                            {
-                                id
+                    Query =
+                        """
+                        query ($if: Boolean!) {
+                            ... @defer {
+                                wait(m: 300)
+                            }
+                            hero(episode: NEW_HOPE) {
+                                name
+                                ... on Droid @defer(label: "my_id", if: $if) {
+                                    id
+                                }
                             }
                         }
-                    }",
+                        """,
                     Variables = new Dictionary<string, object?> { ["if"] = true }
                 });
 
@@ -452,17 +450,17 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             await server.PostRawAsync(
                 new ClientQueryRequest
                 {
-                    Query = @"
-                    query ($if: Boolean!){
-                        hero(episode: NEW_HOPE)
-                        {
-                            name
-                            ... on Droid @defer(label: ""my_id"", if: $if)
-                            {
-                                id
+                    Query =
+                        """
+                        query ($if: Boolean!) {
+                            hero(episode: NEW_HOPE) {
+                                name
+                                ... on Droid @defer(label: "my_id", if: $if) {
+                                    id
+                                }
                             }
                         }
-                    }",
+                        """,
                     Variables = new Dictionary<string, object?> { ["if"] = false }
                 });
 
@@ -480,21 +478,22 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         var result = await server.PostHttpAsync(
             new ClientQueryRequest
             {
-                Query = @"
+                Query =
+                    """
                     {
                         ... @defer {
                             wait(m: 300)
                         }
-                        hero(episode: NEW_HOPE)
-                        {
+                        hero(episode: NEW_HOPE) {
                             name
                             friends(first: 10) {
-                                nodes @stream(initialCount: 1 label: ""foo"") {
+                                nodes @stream(initialCount: 1, label: "foo") {
                                     name
                                 }
                             }
                         }
-                    }"
+                    }
+                    """
             });
 
         // assert
@@ -1027,12 +1026,14 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-                {""data"":{""__schema"":{}}}");
+                {"data":{"__schema":{}}}
+                """);
     }
 
     [Fact]
@@ -1065,12 +1066,14 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-                {""data"":{""nullValues"":[""abc""]}}");
+                {"data":{"nullValues":["abc"]}}
+                """);
     }
 
     public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor

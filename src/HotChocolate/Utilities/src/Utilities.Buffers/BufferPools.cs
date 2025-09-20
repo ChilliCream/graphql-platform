@@ -19,7 +19,7 @@ internal static class BufferPools
             return s_standard.Rent(minimumSize);
         }
 
-        if(minimumSize <= 8 * 1024 * 1024)
+        if (minimumSize <= 8 * 1024 * 1024)
         {
             return s_large.Rent(minimumSize);
         }

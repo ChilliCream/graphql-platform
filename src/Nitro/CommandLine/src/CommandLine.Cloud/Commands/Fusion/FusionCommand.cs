@@ -8,6 +8,7 @@ internal sealed class FusionCommand : Command
 
         AddCommand(new FusionDownloadCommand());
         AddCommand(new FusionPublishCommand());
+        AddCommand(new FusionRunCommand());
         AddCommand(new FusionSettingsCommand());
         AddCommand(new FusionValidateCommand());
     }

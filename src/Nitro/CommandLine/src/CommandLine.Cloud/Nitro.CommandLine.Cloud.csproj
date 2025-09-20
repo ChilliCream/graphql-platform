@@ -23,6 +23,7 @@
     <PackageReference Include="System.Commandline" />
     <PackageReference Include="System.Linq.Async" />
     <PackageReference Include="System.Reactive" />
+    <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" />
   </ItemGroup>
 
   <ItemGroup>
@@ -146,5 +147,6 @@
     <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
     <ProjectReference Include="..\CommandLine.Fusion\Nitro.CommandLine.Fusion.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
   </ItemGroup>
 </Project>

@@ -64,13 +64,14 @@ public class StarWarsCodeFirstTests
     public async Task GraphQLOrgFieldArgumentExample1()
     {
         await ExpectValid(
-                @"
-                {
-                    human(id: ""1000"") {
-                        name
-                        height
-                    }
-                }")
+            """
+            {
+                human(id: "1000") {
+                    name
+                    height
+                }
+            }
+            """)
             .MatchSnapshotAsync();
     }
 
@@ -78,13 +79,14 @@ public class StarWarsCodeFirstTests
     public async Task GraphQLOrgFieldArgumentExample2()
     {
         await ExpectValid(
-                @"
-                {
-                    human(id: ""1000"") {
-                        name
-                        height(unit: FOOT)
-                    }
-                }")
+            """
+            {
+                human(id: "1000") {
+                    name
+                    height(unit: FOOT)
+                }
+            }
+            """)
             .MatchSnapshotAsync();
     }
 

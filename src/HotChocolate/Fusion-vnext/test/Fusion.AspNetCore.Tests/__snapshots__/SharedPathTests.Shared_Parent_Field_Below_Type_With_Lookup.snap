@@ -1,0 +1,71 @@
+{
+  "data": {
+    "productById": {
+      "shared": {
+        "schema2": "schema2",
+        "schema1": "schema1"
+      }
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "0c4bfcc83debde1d84ad90df77af34656304d2447183dd63746c3442e95d8396",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  productById(id: 1) {\n    shared {\n      schema2\n      schema1\n    }\n    id @fusion__requirement\n  }\n}",
+          "id": "b5a406bda2d9875764ec947b24529920",
+          "hash": "b5a406bda2d9875764ec947b24529920",
+          "shortHash": "b5a406bd"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_b5a406bd_1",
+              "kind": "Query",
+              "document": "query Op_b5a406bd_1 {\n  productById(id: 1) {\n    shared {\n      schema1\n    }\n    id\n  }\n}",
+              "hash": "6f6edbc9e0887dc07c957c02441d8e71cf3ebbcd0e933cb82364ca864c2a3be2",
+              "shortHash": "6f6edbc9"
+            },
+            "responseNames": [
+              "productById"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_b5a406bd_2",
+              "kind": "Query",
+              "document": "query Op_b5a406bd_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    shared {\n      schema2\n    }\n  }\n}",
+              "hash": "bf1329ab857e7859d275b893eb9d98365baa120b637b3cf9ecae4c326e2757c6",
+              "shortHash": "bf1329ab"
+            },
+            "responseNames": [
+              "shared"
+            ],
+            "source": "$.product",
+            "target": "$.productById",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "Int!",
+                "path": "$.productById",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

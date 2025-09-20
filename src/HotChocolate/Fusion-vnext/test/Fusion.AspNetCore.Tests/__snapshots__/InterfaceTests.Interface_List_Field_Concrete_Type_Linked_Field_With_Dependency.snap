@@ -1,0 +1,83 @@
+{
+  "data": {
+    "votables": [
+      {
+        "viewerCanVote": true,
+        "author": {
+          "displayName": "Author: QXV0aG9yOjU="
+        }
+      },
+      {
+        "viewerCanVote": true
+      },
+      {
+        "viewerCanVote": true,
+        "author": {
+          "displayName": "Author: QXV0aG9yOjQ="
+        }
+      }
+    ]
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "640fa57f8188b6dcdeb00ce496b4d6bc751ddccc894902e8a16f53956b5383c1",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  votables {\n    __typename @fusion__requirement\n    viewerCanVote\n    ... on Discussion {\n      author {\n        displayName\n        id @fusion__requirement\n      }\n    }\n  }\n}",
+          "id": "e3932333e1e0b2847e2b27c44448e0b5",
+          "hash": "e3932333e1e0b2847e2b27c44448e0b5",
+          "shortHash": "e3932333"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_e3932333_1",
+              "kind": "Query",
+              "document": "query testQuery_e3932333_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}",
+              "hash": "9b013da5c207809cc748e6f72d9213885925ddb5e55968c27131cc0e6a7685fe",
+              "shortHash": "9b013da5"
+            },
+            "responseNames": [
+              "votables"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_e3932333_2",
+              "kind": "Query",
+              "document": "query testQuery_e3932333_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}",
+              "hash": "7cf9f120eca22e8ca6f55052e593c1e3575c38c40ef643355f54bc073a92f39b",
+              "shortHash": "7cf9f120"
+            },
+            "responseNames": [
+              "displayName"
+            ],
+            "source": "$.authorById",
+            "target": "$.votables<Discussion>.author",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.votables<Discussion>.author",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

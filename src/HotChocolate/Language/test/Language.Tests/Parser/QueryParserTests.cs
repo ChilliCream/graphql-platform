@@ -18,7 +18,7 @@ public class QueryParserTests
     public void ParseSimpleShortHandFormQuery()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes("{ x { y } }");
+        var sourceText = "{ x { y } }"u8.ToArray();
 
         // act
         var parser = new Utf8GraphQLParser(
@@ -131,8 +131,7 @@ public class QueryParserTests
     public void ParseQueryWithFragment()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes(
-            "query a { x { ... y } } fragment y on Type { z } ");
+        var sourceText = "query a { x { ... y } } fragment y on Type { z } "u8.ToArray();
 
         // act
         var parser = new Utf8GraphQLParser(
@@ -194,15 +193,18 @@ public class QueryParserTests
     {
         // arrange
         var sourceText = Encoding.UTF8.GetBytes(
-            @"{
+            // lang=graphql
+            """
+            {
                 hero {
                     name
                     # Queries can have comments!
-                    friends(a:""foo"" b: 123456 c:null d:     true) {
+                    friends(a: "foo", b: 123456, c: null, d: true) {
                         name
                     }
                 }
-            }".NormalizeLineBreaks());
+            }
+            """.NormalizeLineBreaks());
 
         // act
         var parser = new Utf8GraphQLParser(
@@ -271,8 +273,7 @@ public class QueryParserTests
     public void StringArg()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes(
-            "{ a(b:\"Q3VzdG9tZXIteDE=\") }");
+        var sourceText = """{ a(b: "Q3VzdG9tZXIteDE=") }"""u8.ToArray();
 
         // act
         var parser = new Utf8GraphQLParser(
@@ -386,8 +387,7 @@ public class QueryParserTests
     public void NullArg()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes(
-            "{ a(b:null) }");
+        var sourceText = "{ a(b: null) }"u8.ToArray();
 
         // acts
         var parser = new Utf8GraphQLParser(
@@ -405,8 +405,7 @@ public class QueryParserTests
     public void ParseDirectiveOnVariableDefinition()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes(
-            "query queryName($foo: ComplexType @foo) { bar }");
+        var sourceText = "query queryName($foo: ComplexType @foo) { bar }"u8.ToArray();
 
         // act
         var parser = new Utf8GraphQLParser(
@@ -425,8 +424,7 @@ public class QueryParserTests
     public void StringArgumentIsEmpty()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes(
-            "{ foo(bar: \"\") }");
+        var sourceText = """{ foo(bar: "") }"""u8.ToArray();
 
         // act
         var parser = new Utf8GraphQLParser(
@@ -487,10 +485,7 @@ public class QueryParserTests
     public void ParseVariablesWithDirective()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes(
-            @"query ($a: String! @foo)
-                    a(a: $a)
-                ");
+        var sourceText = @"query ($a: String! @foo) a(a: $a)"u8.ToArray();
 
         // act
         var parser = new Utf8GraphQLParser(

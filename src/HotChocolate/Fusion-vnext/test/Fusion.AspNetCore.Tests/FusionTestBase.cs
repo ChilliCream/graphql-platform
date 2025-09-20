@@ -5,12 +5,15 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
+using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types.Composite;
+using HotChocolate.Types.Descriptors;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
@@ -59,6 +62,39 @@ public abstract class FusionTestBase : IDisposable
                 });
             },
             configureApplication);
+    }
+
+    public TestServer CreateSourceSchema(
+        string schemaName,
+        string schemaText,
+        bool isOffline = false,
+        bool isTimingOut = false)
+    {
+        return _testServerSession.CreateServer(services =>
+        {
+            services.AddRouting();
+
+            services.AddGraphQLServer(schemaName)
+                // .AddType<IdType>()
+                .AddType<FieldSelectionSetType>()
+                .AddType<FieldSelectionMapType>()
+                .TryAddTypeInterceptor<RegisterFusionDirectivesTypeInterceptor>()
+                .AddDocumentFromString(schemaText)
+                .AddResolverMocking()
+                .AddTestDirectives();
+
+            services.Configure<SourceSchemaOptions>(opt =>
+            {
+                opt.IsOffline = isOffline;
+                opt.IsTimingOut = isTimingOut;
+                // opt.ConfigureHttpClient = configureHttpClient;
+            });
+        },
+        app =>
+        {
+            app.UseRouting();
+            app.UseEndpoints(endpoint => endpoint.MapGraphQL(schemaName: schemaName));
+        });
     }
 
     public async Task<TestServer> CreateCompositeSchemaAsync(
@@ -164,6 +200,37 @@ public abstract class FusionTestBase : IDisposable
         }
     }
 
+    private static IServiceCollection AddHttpClient(
+        IServiceCollection services,
+        string name,
+        TestServer server,
+        SourceSchemaOptions options)
+    {
+        services.TryAddSingleton<IHttpClientFactory, Factory>();
+        return services.AddSingleton(new TestServerRegistration(name, server, options));
+    }
+
+    private sealed class RegisterFusionDirectivesTypeInterceptor : TypeInterceptor
+    {
+        private bool _registeredTypes;
+
+        public override IEnumerable<TypeReference> RegisterMoreTypes(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        {
+            if (!_registeredTypes)
+            {
+                var typeInspector = discoveryContexts.First().DescriptorContext.TypeInspector;
+
+                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Lookup));
+                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Internal));
+                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.EntityKey));
+                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Is));
+
+                _registeredTypes = true;
+            }
+        }
+    }
+
     private sealed class SourceSchemaOptions
     {
         public bool IsOffline { get; set; }
@@ -184,16 +251,6 @@ public abstract class FusionTestBase : IDisposable
             requestBuilder.TryAddGlobalState(ExecutionContextData.IncludeOperationPlan, true);
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
-    }
-
-     private static IServiceCollection AddHttpClient(
-        IServiceCollection services,
-        string name,
-        TestServer server,
-        SourceSchemaOptions options)
-    {
-        services.TryAddSingleton<IHttpClientFactory, Factory>();
-        return services.AddSingleton(new TestServerRegistration(name, server, options));
     }
 
     private class Factory : IHttpClientFactory
