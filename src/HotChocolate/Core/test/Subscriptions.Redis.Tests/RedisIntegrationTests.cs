@@ -63,15 +63,27 @@ public class RedisIntegrationTests : SubscriptionIntegrationTestBase, IClassFixt
 
         await result.DisposeAsync();
 
+        var activeChannelsAfterUnsubscribe =
+            WaitForChannelRemoval(cts, activeChannelsAfterSubscribe.Length, GetActiveChannelsAsync);
+        Assert.True(activeChannelsAfterSubscribe.Length > activeChannelsAfterUnsubscribe);
+    }
+
+    public static int WaitForChannelRemoval(
+        CancellationTokenSource cts,
+        int currentlyActiveChannels,
+        Func<Task<RedisResult[]>> getActiveChannelsAsync)
+    {
+        int activeChannelsAfterUnsubscribe = 0;
         var channelRemovedEvent = new ManualResetEventSlim(false);
 
         _ = Task.Run(async () =>
         {
             while (!cts.Token.IsCancellationRequested)
             {
-                var activeChannels = await GetActiveChannelsAsync();
-                if (activeChannels.Length < activeChannelsAfterSubscribe.Length)
+                var activeChannels = await getActiveChannelsAsync();
+                if (activeChannels.Length < currentlyActiveChannels)
                 {
+                    activeChannelsAfterUnsubscribe = activeChannels.Length;
                     channelRemovedEvent.Set();
                     break;
                 }
@@ -81,6 +93,7 @@ public class RedisIntegrationTests : SubscriptionIntegrationTestBase, IClassFixt
         }, cts.Token);
 
         channelRemovedEvent.Wait(cts.Token);
+        return activeChannelsAfterUnsubscribe;
     }
 
     private async Task<RedisResult[]> GetActiveChannelsAsync()
