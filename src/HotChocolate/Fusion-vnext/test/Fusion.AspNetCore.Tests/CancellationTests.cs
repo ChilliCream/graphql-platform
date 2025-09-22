@@ -28,20 +28,22 @@ public class CancellationTests : FusionTestBase
 
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        // act
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
                 topProduct {
                     id
                 }
             }
-            """,
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -69,8 +71,7 @@ public class CancellationTests : FusionTestBase
 
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        // act
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
                 topProduct {
@@ -80,12 +81,15 @@ public class CancellationTests : FusionTestBase
                     id
                 }
             }
-            """,
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -107,26 +111,22 @@ public class CancellationTests : FusionTestBase
 
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        // act
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             subscription {
                 onReviewCreated {
                     id
                 }
             }
-            """,
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        var snapshot = new Snapshot();
-
-        await foreach (var response in result.ReadAsResultStreamAsync())
-        {
-            snapshot.Add(response);
-        }
-
-        await snapshot.MatchAsync();
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -147,24 +147,26 @@ public class CancellationTests : FusionTestBase
 
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        // act
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
                 topProduct {
                     id
                 }
             }
-            """,
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
-    public async Task ErrorHandlingMode_Can_Be_Overridden()
+    public async Task Default_ErrorHandlingMode_Can_Be_Changed()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -176,26 +178,26 @@ public class CancellationTests : FusionTestBase
             ("A", server1)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.AllowErrorHandlingModeOverride = true));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Halt));
+
+        var request = new OperationRequest(
+            """
+            {
+                reviews {
+                    id
+                }
+            }
+            """);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         using var result = await client.PostAsync(
-            new OperationRequest(
-                """
-                {
-                    reviews {
-                        id
-                    }
-                }
-                """,
-                onError: ErrorHandlingMode.Halt),
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     public sealed class SourceSchema1

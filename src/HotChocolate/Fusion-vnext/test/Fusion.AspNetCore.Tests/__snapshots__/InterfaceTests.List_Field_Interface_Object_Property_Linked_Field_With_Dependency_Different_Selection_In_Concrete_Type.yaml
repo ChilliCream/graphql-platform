@@ -1,0 +1,321 @@
+title: List_Field_Interface_Object_Property_Linked_Field_With_Dependency_Different_Selection_In_Concrete_Type
+request:
+  document: |
+    query testQuery {
+      wrappers {
+        authorable {
+          author {
+            displayName
+          }
+          ... on Discussion {
+            author {
+              email
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "wrappers": [
+          {
+            "authorable": {
+              "author": {
+                "displayName": "Author: QXV0aG9yOjc=",
+                "email": "Author: QXV0aG9yOjc="
+              }
+            }
+          },
+          {
+            "authorable": {
+              "author": {
+                "displayName": "Author: QXV0aG9yOjg=",
+                "email": "Author: QXV0aG9yOjg="
+              }
+            }
+          },
+          {
+            "authorable": {
+              "author": {
+                "displayName": "Author: QXV0aG9yOjk=",
+                "email": "Author: QXV0aG9yOjk="
+              }
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Authorable {
+        author: Author
+      }
+      
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+      
+      type Comment implements Authorable {
+        author: Author
+      }
+      
+      type Discussion implements Authorable {
+        author: Author
+      }
+      
+      type Query {
+        wrappers: [Wrapper]
+      }
+      
+      type Wrapper {
+        authorable: Authorable
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_a7ffad65_1 {
+              wrappers {
+                authorable {
+                  __typename
+                  author {
+                    id
+                  }
+                  ... on Discussion {
+                    author {
+                      id
+                    }
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "wrappers": [
+                    {
+                      "authorable": {
+                        "__typename": "Discussion",
+                        "author": {
+                          "id": "QXV0aG9yOjc="
+                        }
+                      }
+                    },
+                    {
+                      "authorable": {
+                        "__typename": "Discussion",
+                        "author": {
+                          "id": "QXV0aG9yOjg="
+                        }
+                      }
+                    },
+                    {
+                      "authorable": {
+                        "__typename": "Discussion",
+                        "author": {
+                          "id": "QXV0aG9yOjk="
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Author @key(fields: "id") {
+        id: ID!
+        displayName: String!
+        email: String
+      }
+      
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_a7ffad65_2(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                email
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "QXV0aG9yOjc="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjg="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjk="
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "email": "Author: QXV0aG9yOjc="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "email": "Author: QXV0aG9yOjg="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "email": "Author: QXV0aG9yOjk="
+                  }
+                }
+              }
+      - request:
+          document: |
+            query testQuery_a7ffad65_3(
+              $__fusion_2_id: ID!
+            ) {
+              authorById(id: $__fusion_2_id) {
+                displayName
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "QXV0aG9yOjc="
+              },
+              {
+                "__fusion_2_id": "QXV0aG9yOjg="
+              },
+              {
+                "__fusion_2_id": "QXV0aG9yOjk="
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjc="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjg="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjk="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          wrappers {
+            authorable {
+              __typename @fusion__requirement
+              author {
+                displayName
+                id @fusion__requirement
+              }
+              ... on Discussion {
+                author {
+                  email
+                  id @fusion__requirement
+                }
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: a7ffad6524e32b71feed6541aa4acfb2
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_a7ffad65_1 {
+          wrappers {
+            authorable {
+              __typename
+              author {
+                id
+              }
+              ... on Discussion {
+                author {
+                  id
+                }
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_a7ffad65_2(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            email
+          }
+        }
+      source: $.authorById
+      target: $.wrappers.authorable<Discussion>.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_a7ffad65_3(
+          $__fusion_2_id: ID!
+        ) {
+          authorById(id: $__fusion_2_id) {
+            displayName
+          }
+        }
+      source: $.authorById
+      target: $.wrappers.authorable.author
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

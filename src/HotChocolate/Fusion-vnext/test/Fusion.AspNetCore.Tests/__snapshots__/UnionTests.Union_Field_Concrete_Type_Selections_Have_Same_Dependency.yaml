@@ -1,0 +1,204 @@
+title: Union_Field_Concrete_Type_Selections_Have_Same_Dependency
+request:
+  document: |
+    query testQuery {
+      post {
+        ... on Photo {
+          product {
+            subgraph2
+          }
+        }
+        ... on Discussion {
+          product {
+            subgraph2
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "post": {
+          "product": {
+            "subgraph2": "Product: UHJvZHVjdDoy"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Discussion {
+        id: ID!
+        product: Product
+      }
+      
+      type Photo {
+        id: ID!
+        product: Product
+      }
+      
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+      
+      type Query {
+        post: Post
+      }
+      
+      union Post = Photo | Discussion
+    interactions:
+      - request:
+          document: |
+            query testQuery_7d12de3b_1 {
+              post {
+                __typename
+                ... on Photo {
+                  product {
+                    id
+                  }
+                }
+                ... on Discussion {
+                  product {
+                    id
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "post": {
+                    "__typename": "Photo",
+                    "product": {
+                      "id": "UHJvZHVjdDoy"
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product @key(fields: "id") {
+        id: ID!
+        subgraph2: String!
+      }
+      
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_7d12de3b_3(
+              $__fusion_2_id: ID!
+            ) {
+              productById(id: $__fusion_2_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "UHJvZHVjdDoy"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoy"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          post {
+            __typename @fusion__requirement
+            ... on Photo {
+              product {
+                subgraph2
+                id @fusion__requirement
+              }
+            }
+            ... on Discussion {
+              product {
+                subgraph2
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 7d12de3b86fca2b5062c55ac7b8da6dc
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_7d12de3b_1 {
+          post {
+            __typename
+            ... on Photo {
+              product {
+                id
+              }
+            }
+            ... on Discussion {
+              product {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_7d12de3b_2(
+          $__fusion_1_id: ID!
+        ) {
+          productById(id: $__fusion_1_id) {
+            subgraph2
+          }
+        }
+      source: $.productById
+      target: $.post<Discussion>.product
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_7d12de3b_3(
+          $__fusion_2_id: ID!
+        ) {
+          productById(id: $__fusion_2_id) {
+            subgraph2
+          }
+        }
+      source: $.productById
+      target: $.post<Photo>.product
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
