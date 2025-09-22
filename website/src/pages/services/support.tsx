@@ -51,8 +51,8 @@ const SupportPage: FC = () => {
               description:
                 "For personal or non-commercial projects, to start hacking.",
               features: ["Public Slack Channel"],
-              ctaText: "Contact Us",
-              ctaLink: "/services/support/contact?plan=Community",
+              ctaText: "Join Slack",
+              ctaLink: "https://slack.chillicream.com/",
             },
             {
               title: "Startup",
