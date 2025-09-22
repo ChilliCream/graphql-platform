@@ -1,5 +1,5 @@
 operation:
-  - document: >-
+  - document: |
       query getReviews(
         $userId: ID!
       ) {
@@ -47,7 +47,7 @@ nodes:
     fallback: 2
   - id: 2
     type: Operation
-    operation: >-
+    operation: |
       query getReviews_123456789101112_2(
         $userId: ID!
       ) {
@@ -61,7 +61,7 @@ nodes:
   - id: 3
     type: Operation
     schema: a
-    operation: >-
+    operation: |
       query getReviews_123456789101112_3(
         $userId: ID!
       ) {
@@ -76,7 +76,7 @@ nodes:
   - id: 4
     type: Operation
     schema: a
-    operation: >-
+    operation: |
       query getReviews_123456789101112_4(
         $userId: ID!
       ) {
@@ -92,7 +92,7 @@ nodes:
   - id: 5
     type: Operation
     schema: f
-    operation: >-
+    operation: |
       query getReviews_123456789101112_5(
         $__fusion_1_id: ID!
       ) {
@@ -117,7 +117,7 @@ nodes:
   - id: 7
     type: Operation
     schema: g
-    operation: >-
+    operation: |
       query getReviews_123456789101112_7(
         $__fusion_3_dimension: ProductDimensionInput!
         $__fusion_4_id: ID!
@@ -146,7 +146,7 @@ nodes:
   - id: 8
     type: Operation
     schema: e
-    operation: >-
+    operation: |
       query getReviews_123456789101112_8(
         $__fusion_5_id: ID!
       ) {

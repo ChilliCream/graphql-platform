@@ -1,0 +1,139 @@
+title: Concrete_Type_Branch_Requested_Abstract_Lookup
+request:
+  document: |
+    {
+      node(id: "UHJvZHVjdDox") {
+        id
+        ... on Product {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "id": "UHJvZHVjdDox",
+          "name": "Product: UHJvZHVjdDox"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Discussion implements Node {
+        id: ID!
+        title: String!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+        discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Discussion implements Node {
+        id: ID!
+        commentCount: Int!
+      }
+      
+      type Product implements Node {
+        id: ID!
+        name: String!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+        discussionById(id: ID!): Discussion @lookup @internal
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_f71a6d9f_3 {
+              node(id: "UHJvZHVjdDox") {
+                __typename
+                ... on Product {
+                  __typename
+                  id
+                  name
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "id": "UHJvZHVjdDox",
+                    "name": "Product: UHJvZHVjdDox"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          node(id: "UHJvZHVjdDox") {
+            __typename @fusion__requirement
+            id
+            ... on Product {
+              name
+            }
+          }
+        }
+      hash: f71a6d9ff69b4939ee6e11a250bfa12d
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "UHJvZHVjdDox"
+      responseName: node
+      branches:
+        - Product: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query Op_f71a6d9f_2 {
+          node(id: "UHJvZHVjdDox") {
+            __typename
+            id
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_f71a6d9f_3 {
+          node(id: "UHJvZHVjdDox") {
+            __typename
+            ... on Product {
+              __typename
+              id
+              name
+            }
+          }
+        }
+      dependencies:
+        - id: 1

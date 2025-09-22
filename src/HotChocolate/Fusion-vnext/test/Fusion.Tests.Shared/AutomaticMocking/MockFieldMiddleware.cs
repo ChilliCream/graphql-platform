@@ -9,6 +9,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Fusion;
 
 // ReSharper disable once ClassNeverInstantiated.Local
+// TODO: The atIndex needs to support variable batch requests
 internal sealed class MockFieldMiddleware
 {
     private const int DefaultListSize = 3;

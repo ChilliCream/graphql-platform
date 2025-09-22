@@ -1,5 +1,5 @@
 operation:
-  - document: >-
+  - document: |
       {
         productBySlug(slug: "1") {
           id
@@ -18,7 +18,7 @@ nodes:
   - id: 1
     type: Operation
     schema: PRODUCTS
-    operation: >-
+    operation: |
       query Op_123456789101112_1 {
         productBySlug(slug: "1") {
           id
@@ -32,7 +32,7 @@ nodes:
   - id: 2
     type: Operation
     schema: SHIPPING
-    operation: >-
+    operation: |
       query Op_123456789101112_2(
         $__fusion_1_id: ID!
         $__fusion_2_height: Int!
