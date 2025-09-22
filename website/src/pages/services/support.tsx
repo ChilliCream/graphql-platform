@@ -51,8 +51,8 @@ const SupportPage: FC = () => {
               description:
                 "For personal or non-commercial projects, to start hacking.",
               features: ["Public Slack Channel"],
-              ctaText: "Join Slack",
-              ctaLink: "https://slack.chillicream.com/",
+              ctaText: "Contact Us",
+              ctaLink: "/services/support/contact?plan=Community",
             },
             {
               title: "Startup",
@@ -61,9 +61,8 @@ const SupportPage: FC = () => {
               description:
                 "For small teams with moderate bandwidth and projects of low to medium complexity.",
               features: ["Private Slack Channel", "2 critical incidents"],
-              ctaText: "Contact Sales",
-              ctaLink:
-                "mailto:contact@chillicream.com?subject=Startup Support Plan",
+              ctaText: "Contact Us",
+              ctaLink: "/services/support/contact?plan=Startup",
             },
             {
               title: "Business",
@@ -76,9 +75,8 @@ const SupportPage: FC = () => {
                 "2 non-critical incidents",
                 "Email support",
               ],
-              ctaText: "Contact Sales",
-              ctaLink:
-                "mailto:contact@chillicream.com?subject=Business Support Plan",
+              ctaText: "Contact Us",
+              ctaLink: "/services/support/contact?plan=Business",
             },
             {
               title: "Enterprise",
@@ -93,9 +91,8 @@ const SupportPage: FC = () => {
                 "Dedicated account manager",
                 "Status reviews",
               ],
-              ctaText: "Contact Sales",
-              ctaLink:
-                "mailto:contact@chillicream.com?subject=Enterprise Support Plan",
+              ctaText: "Contact Us",
+              ctaLink: "/services/support/contact?plan=Enterprise",
             },
           ]}
         />
