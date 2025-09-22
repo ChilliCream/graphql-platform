@@ -6,7 +6,10 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Internal;
 
-internal sealed partial class ExtendedType : IExtendedType
+/// <summary>
+/// The extended type provides addition type information about the underlying system type.
+/// </summary>
+public sealed partial class ExtendedType : IExtendedType
 {
     internal static ImmutableHashSet<Type> NonEssentialWrapperTypes { get; set; } =
         [typeof(ValueTask<>), typeof(Task<>), typeof(NativeType<>), typeof(Optional<>)];
@@ -40,7 +43,7 @@ internal sealed partial class ExtendedType : IExtendedType
         Id = Helper.CreateIdentifier(this);
     }
 
-    public ExtendedTypeId Id { get; }
+    internal ExtendedTypeId Id { get; }
 
     /// <inheritdoc />
     public Type Type { get; }
@@ -78,11 +81,17 @@ internal sealed partial class ExtendedType : IExtendedType
     /// <inheritdoc />
     public bool IsNullable { get; }
 
+    /// <summary>
+    /// Gets the generic type information.
+    /// </summary>
     public IReadOnlyList<ExtendedType> TypeArguments { get; }
 
     /// <inheritdoc />
     IReadOnlyList<IExtendedType> IExtendedType.TypeArguments => TypeArguments;
 
+    /// <summary>
+    /// Gets the element type if <see cref="IsArrayOrList"/> is <c>true</c>.
+    /// </summary>
     public ExtendedType? ElementType { get; }
 
     /// <inheritdoc />
@@ -142,6 +151,7 @@ internal sealed partial class ExtendedType : IExtendedType
         }
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         string typeName;
@@ -166,7 +176,7 @@ internal sealed partial class ExtendedType : IExtendedType
         return IsNullable ? typeName : typeName + "!";
     }
 
-    public static ExtendedType FromType(Type type, TypeCache cache)
+    internal static ExtendedType FromType(Type type, TypeCache cache)
     {
         if (type is null)
         {
@@ -191,7 +201,7 @@ internal sealed partial class ExtendedType : IExtendedType
             ? SchemaType.FromType(type, cache)
             : SystemType.FromType(type, cache);
 
-    public static ExtendedType FromMember(MemberInfo member, TypeCache cache)
+    internal static ExtendedType FromMember(MemberInfo member, TypeCache cache)
     {
         if (member is null)
         {
@@ -211,7 +221,7 @@ internal sealed partial class ExtendedType : IExtendedType
         return Members.FromMember(member, cache);
     }
 
-    public static ExtendedMethodInfo FromMethod(MethodInfo method, TypeCache cache)
+    internal static ExtendedMethodInfo FromMethod(MethodInfo method, TypeCache cache)
     {
         if (method is null)
         {
@@ -226,6 +236,16 @@ internal sealed partial class ExtendedType : IExtendedType
         return Members.FromMethod(method, cache);
     }
 
+    /// <summary>
+    /// Registers generic type definitions that represent types that must be removed
+    /// before a runtime type is translated to a GraphQL type.
+    /// </summary>
+    /// <param name="type">
+    /// The generic type definition.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    /// type is null.
+    /// </exception>
     public static void RegisterNonEssentialWrapperTypes(Type type)
     {
         ArgumentNullException.ThrowIfNull(type);

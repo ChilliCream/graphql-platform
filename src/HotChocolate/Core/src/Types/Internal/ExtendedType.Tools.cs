@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Internal;
 
-internal sealed partial class ExtendedType
+public sealed partial class ExtendedType
 {
     internal static class Tools
     {
