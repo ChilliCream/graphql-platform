@@ -277,7 +277,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             sb.Append(Uri.EscapeDataString(or.OperationName!));
         }
 
-        if (or.OnError is {} errorHandlingMode)
+        if (or.OnError is { } errorHandlingMode)
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("onError=");

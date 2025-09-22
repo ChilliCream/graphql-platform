@@ -160,7 +160,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static GraphQLHttpEndpointConventionBuilder MapGraphQLHttp(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern = GraphQLHttpPath,
+        [StringSyntax("Route")] string pattern = GraphQLHttpPath,
         string? schemaName = null)
         => MapGraphQLHttp(endpointRouteBuilder, Parse(pattern), schemaName);
 
@@ -239,7 +239,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static WebSocketEndpointConventionBuilder MapGraphQLWebSocket(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern = GraphQLWebSocketPath,
+        [StringSyntax("Route")] string pattern = GraphQLWebSocketPath,
         string? schemaName = null)
         => MapGraphQLWebSocket(endpointRouteBuilder, Parse(pattern), schemaName);
 
@@ -317,7 +317,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static IEndpointConventionBuilder MapGraphQLSchema(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern = GraphQLSchemaPath,
+        [StringSyntax("Route")] string pattern = GraphQLSchemaPath,
         string? schemaName = null)
         => MapGraphQLSchema(endpointRouteBuilder, Parse(pattern), schemaName);
 

@@ -1,0 +1,69 @@
+{
+  "data": {
+    "post": {
+      "subgraph2": "Photo: UGhvdG86MQ=="
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "a15abb9883699fb8318bb6b981094131592a517789c11d235709c196eea055c9",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  post {\n    __typename @fusion__requirement\n    ... on Photo {\n      subgraph2\n      id @fusion__requirement\n    }\n    ... on Discussion {\n      subgraph1\n    }\n  }\n}",
+          "id": "3d3597da3d13ce32520baa0509869b36",
+          "hash": "3d3597da3d13ce32520baa0509869b36",
+          "shortHash": "3d3597da"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_3d3597da_1",
+              "kind": "Query",
+              "document": "query testQuery_3d3597da_1 {\n  post {\n    __typename\n    ... on Photo {\n      id\n    }\n    ... on Discussion {\n      subgraph1\n    }\n  }\n}",
+              "hash": "cc4d201343184e029c796004fb016c6373a9ccc62941db4b780013269e6bf2ad",
+              "shortHash": "cc4d2013"
+            },
+            "responseNames": [
+              "post"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_3d3597da_2",
+              "kind": "Query",
+              "document": "query testQuery_3d3597da_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}",
+              "hash": "0faf7eddb68e0fa17946a8b2180d136d0cb5e9fd263d6af5b27badee6d00d745",
+              "shortHash": "0faf7edd"
+            },
+            "responseNames": [
+              "subgraph2"
+            ],
+            "source": "$.photoById",
+            "target": "$.post<Photo>",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.post<Photo>",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

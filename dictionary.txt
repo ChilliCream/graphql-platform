@@ -5,6 +5,8 @@ accessibilities
 agrc
 Alderaan
 Andi
+ASPDEPR004
+ASPDEPR008
 aspnetcore
 Astromech
 automagically

@@ -1,0 +1,58 @@
+{
+  "data": {
+    "exclusiveSubgraphA": {
+      "__typename": "ExclusiveSubgraphA"
+    },
+    "viewer": {
+      "exclusiveSubgraphB": "Viewer"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "e497a2183efd4b689fbfe5bf061beb959c87822acec4fe853809acb7971d9b52",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  exclusiveSubgraphA {\n    __typename\n  }\n  viewer {\n    exclusiveSubgraphB\n  }\n}",
+          "id": "65ad0daf293954c92e5d9329ad6f5bca",
+          "hash": "65ad0daf293954c92e5d9329ad6f5bca",
+          "shortHash": "65ad0daf"
+        },
+        "searchSpace": 2,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_65ad0daf_1",
+              "kind": "Query",
+              "document": "query testQuery_65ad0daf_1 {\n  viewer {\n    exclusiveSubgraphB\n  }\n}",
+              "hash": "f20f5272fe9a1ebaf72256dcc197e3f52bd495b8641739a23b00a2a49849a450",
+              "shortHash": "f20f5272"
+            },
+            "responseNames": [
+              "viewer"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_65ad0daf_2",
+              "kind": "Query",
+              "document": "query testQuery_65ad0daf_2 {\n  exclusiveSubgraphA {\n    __typename\n  }\n}",
+              "hash": "cd5f819c258e1f4469a26091f30070b42623a9418333690a8b428d63424ebadb",
+              "shortHash": "cd5f819c"
+            },
+            "responseNames": [
+              "exclusiveSubgraphA"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

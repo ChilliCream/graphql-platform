@@ -474,26 +474,30 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public void OneOf_Input_Objects_must_have_nullable_fields_with_one_field_has_default()
         => ExpectError(
-            @"type Query {
+            """
+            type Query {
                 foo(f: FooInput): String
             }
 
             input FooInput @oneOf {
-                a: String = ""a""
+                a: String = "a"
                 b: Int
-            }");
+            }
+            """);
 
     [Fact]
     public void OneOf_Input_Objects_must_have_nullable_fields_with_two_fields_that_have_default()
         => ExpectError(
-            @"type Query {
+            """
+            type Query {
                 foo(f: FooInput): String
             }
 
             input FooInput @oneOf {
-                a: String = ""a""
+                a: String = "a"
                 b: Int = 1
-            }");
+            }
+            """);
 
     [Fact]
     public void OneOf_generic_code_first_schema()
@@ -517,22 +521,24 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                     o.StrictValidation = true;
                 })
             .ExecuteRequestAsync(
-                @"{
-                    oneOf_input: __type(name: ""ExampleInput"") {
+                """
+                {
+                    oneOf_input: __type(name: "ExampleInput") {
                         # should be true
                         isOneOf
                     }
 
-                    input: __type(name: ""StandardInput"") {
+                    input: __type(name: "StandardInput") {
                         # should be false
                         isOneOf
                     }
 
-                    object: __type(name: ""Query"") {
+                    object: __type(name: "Query") {
                         # should be null
                         isOneOf
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 

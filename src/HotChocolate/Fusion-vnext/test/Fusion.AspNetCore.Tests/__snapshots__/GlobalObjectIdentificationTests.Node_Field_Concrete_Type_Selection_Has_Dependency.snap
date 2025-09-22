@@ -1,0 +1,103 @@
+{
+  "data": {
+    "node": {
+      "id": "RGlzY3Vzc2lvbjox",
+      "viewerRating": 123.456,
+      "product": {
+        "name": "Product: UHJvZHVjdDox"
+      }
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "34f876326e0005b37246173765998fc122b55dae0c35546b41286fa26cc677a9",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename @fusion__requirement\n    ... on Discussion {\n      id\n      viewerRating\n      product {\n        name\n        id @fusion__requirement\n      }\n    }\n  }\n}",
+          "id": "163be4ff29c153b6f235a2c4f2f1b2ad",
+          "hash": "163be4ff29c153b6f235a2c4f2f1b2ad",
+          "shortHash": "163be4ff"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Node",
+            "idValue": "$id",
+            "responseName": "node",
+            "branches": {
+              "Discussion": 3
+            },
+            "fallback": 2
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "operation": {
+              "name": "testQuery_163be4ff_2",
+              "kind": "Query",
+              "document": "query testQuery_163be4ff_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}",
+              "hash": "88b99617c9a9ea217cc9dc9e7150663146c8f1464820e7c9cd2f8e6183619434",
+              "shortHash": "88b99617"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_163be4ff_3",
+              "kind": "Query",
+              "document": "query testQuery_163be4ff_3(\n  $id: ID!\n) {\n  node: discussionById(id: $id) {\n    __typename\n    id\n    viewerRating\n    product {\n      id\n    }\n  }\n}",
+              "hash": "dd29e54d8198ae8a5ac33f16100b5ad6f328a8e8e39728826e8996aa6a7237e8",
+              "shortHash": "dd29e54d"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_163be4ff_4",
+              "kind": "Query",
+              "document": "query testQuery_163be4ff_4(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}",
+              "hash": "fc983678bf5d13cd2f8425b17e36d9ef20afb39dbae673fe1878a66f12298275",
+              "shortHash": "fc983678"
+            },
+            "responseNames": [
+              "name"
+            ],
+            "source": "$.node<Product>",
+            "target": "$.node<Discussion>.product",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.node<Discussion>.product",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              3
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

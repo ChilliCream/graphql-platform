@@ -1,0 +1,107 @@
+{
+  "data": {
+    "users": [
+      {
+        "posts": [
+          {
+            "subgraph2": "Photo: UGhvdG86MTA="
+          },
+          {
+            "subgraph1": "Discussion: RGlzY3Vzc2lvbjoxMQ=="
+          },
+          {
+            "subgraph2": "Photo: UGhvdG86MTI="
+          }
+        ]
+      },
+      {
+        "posts": [
+          {
+            "subgraph2": "Photo: UGhvdG86Nw=="
+          },
+          {
+            "subgraph1": "Discussion: RGlzY3Vzc2lvbjo4"
+          },
+          {
+            "subgraph2": "Photo: UGhvdG86OQ=="
+          }
+        ]
+      },
+      {
+        "posts": [
+          {
+            "subgraph2": "Photo: UGhvdG86NA=="
+          },
+          {
+            "subgraph1": "Discussion: RGlzY3Vzc2lvbjo1"
+          },
+          {
+            "subgraph2": "Photo: UGhvdG86Ng=="
+          }
+        ]
+      }
+    ]
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "505c881381684719373c8ee21122cd4914da2df3cd389d0007a96c45a4b786d6",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  users {\n    posts {\n      __typename @fusion__requirement\n      ... on Photo {\n        subgraph2\n        id @fusion__requirement\n      }\n      ... on Discussion {\n        subgraph1\n      }\n    }\n  }\n}",
+          "id": "e46e034a61084490859d3bc0946c71a4",
+          "hash": "e46e034a61084490859d3bc0946c71a4",
+          "shortHash": "e46e034a"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_e46e034a_1",
+              "kind": "Query",
+              "document": "query testQuery_e46e034a_1 {\n  users {\n    posts {\n      __typename\n      ... on Photo {\n        id\n      }\n      ... on Discussion {\n        subgraph1\n      }\n    }\n  }\n}",
+              "hash": "0cee6f3137371de7c09df29a7a679340a35b9a985487c5bd58ff63807b28301f",
+              "shortHash": "0cee6f31"
+            },
+            "responseNames": [
+              "users"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_e46e034a_2",
+              "kind": "Query",
+              "document": "query testQuery_e46e034a_2(\n  $__fusion_1_id: ID!\n) {\n  photoById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}",
+              "hash": "b00716208d21000f24bd3d2477f4f4039d0af03e165284f32e2bd74cf626ff88",
+              "shortHash": "b0071620"
+            },
+            "responseNames": [
+              "subgraph2"
+            ],
+            "source": "$.photoById",
+            "target": "$.users.posts<Photo>",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.users.posts<Photo>",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
