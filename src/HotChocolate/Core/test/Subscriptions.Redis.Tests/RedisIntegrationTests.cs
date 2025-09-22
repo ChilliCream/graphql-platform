@@ -73,7 +73,7 @@ public class RedisIntegrationTests : SubscriptionIntegrationTestBase, IClassFixt
         int currentlyActiveChannels,
         Func<Task<RedisResult[]>> getActiveChannelsAsync)
     {
-        int activeChannelsAfterUnsubscribe = 0;
+        var activeChannelsAfterUnsubscribe = 0;
         var channelRemovedEvent = new ManualResetEventSlim(false);
 
         _ = Task.Run(async () =>
