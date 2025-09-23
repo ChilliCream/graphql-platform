@@ -1,0 +1,102 @@
+title: Root_Selection_Twice_Only_Skipped_Once_Identical_Selection_Sets
+request:
+  document: |
+    query testQuery(
+      $slug: String!
+      $skip: Boolean!
+    ) {
+      productBySlug(slug: $slug) @skip(if: $skip) {
+        name
+      }
+      productBySlug(slug: $slug) {
+        name
+      }
+    }
+  variables: |
+    {
+      "slug": "product",
+      "skip": true
+    }
+response:
+  body: |
+    {
+      "data": {}
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: ID!
+        name: String!
+        price: Float!
+      }
+      
+      type Query {
+        productBySlug(slug: String!): Product
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_22bda9c9_1(
+              $slug: String!
+              $skip: Boolean!
+            ) {
+              productBySlug(slug: $slug) @skip(if: $skip) {
+                name
+              }
+              productBySlug(slug: $slug) {
+                name
+              }
+            }
+          variables: |
+            {
+              "slug": "product",
+              "skip": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productBySlug": {
+                    "name": "Product: UHJvZHVjdDox"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $slug: String!
+          $skip: Boolean!
+        ) {
+          productBySlug(slug: $slug) @skip(if: $skip) {
+            name
+          }
+          productBySlug(slug: $slug) {
+            name
+          }
+        }
+      name: testQuery
+      hash: 22bda9c9ccfb9cdfe54b6de91fefd80d
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_22bda9c9_1(
+          $slug: String!
+          $skip: Boolean!
+        ) {
+          productBySlug(slug: $slug) @skip(if: $skip) {
+            name
+          }
+          productBySlug(slug: $slug) {
+            name
+          }
+        }
