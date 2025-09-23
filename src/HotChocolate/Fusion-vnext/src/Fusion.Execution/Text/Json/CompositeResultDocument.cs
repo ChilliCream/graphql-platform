@@ -152,6 +152,20 @@ public sealed partial class CompositeResultDocument : IDisposable
         return new CompositeResultElement(this, index);
     }
 
+    internal CompositeResultElement CreateArray(int parentRow, int length)
+    {
+        var index = WriteStartArray(parentRow, length);
+
+        for (var i = 0; i < length; i++)
+        {
+            WriteEmptyValue(index);
+        }
+
+        WriteEndArray();
+
+        return new CompositeResultElement(this, index);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignObjectValue(CompositeResultElement target, CompositeResultElement value)
     {
@@ -216,6 +230,28 @@ public sealed partial class CompositeResultDocument : IDisposable
     private void WriteEndObject() => _metaDb.Append(ElementTokenType.EndObject);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int WriteStartArray(int parentRow = 0, int length = 0)
+    {
+        var flags = ElementFlags.None;
+
+        if (parentRow < 0)
+        {
+            parentRow = 0;
+            flags = ElementFlags.IsRoot;
+        }
+
+        return _metaDb.Append(
+            ElementTokenType.StartArray,
+            sizeOrLength: length,
+            parentRow: parentRow,
+            numberOfRows: (length * 2) + 2,
+            flags: flags );
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteEndArray() => _metaDb.Append(ElementTokenType.EndArray);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteEmptyProperty(int parentRow, Selection selection)
     {
         var flags = ElementFlags.None;
@@ -245,6 +281,14 @@ public sealed partial class CompositeResultDocument : IDisposable
         _metaDb.Append(
             ElementTokenType.None,
             parentRow: index);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteEmptyValue(int parentRow)
+    {
+        _metaDb.Append(
+            ElementTokenType.None,
+            parentRow: parentRow);
     }
 
     private static void CheckExpectedType(ElementTokenType expected, ElementTokenType actual)
