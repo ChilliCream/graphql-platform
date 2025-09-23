@@ -33,4 +33,8 @@ internal static class JsonMemory
     public static void Return(List<byte[]> chunk)
     {
     }
+
+    public static void Return(byte[][] chunk)
+    {
+    }
 }

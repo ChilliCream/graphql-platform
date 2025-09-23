@@ -6,18 +6,28 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class SourceResultDocument
 {
+    private static readonly byte[][] s_emptyObject = ["{}"u8.ToArray()];
+
+    internal static SourceResultDocument CreateEmptyObject()
+        => Parse(s_emptyObject, 2, default, pooledMemory: false);
+
     internal static SourceResultDocument Parse(
         byte[] data,
         int size,
         JsonReaderOptions options = default)
-    {
-        throw new NotImplementedException();
-    }
+        => Parse([data], size, options);
 
     internal static SourceResultDocument Parse(
         byte[][] dataChunks,
         int lastLength,
         JsonReaderOptions options = default)
+        => Parse(dataChunks, lastLength, options, pooledMemory: true);
+
+    internal static SourceResultDocument Parse(
+        byte[][] dataChunks,
+        int lastLength,
+        JsonReaderOptions options,
+        bool pooledMemory)
     {
         const int chunkSizeBytes = 128 * 1024;
 
@@ -106,7 +116,7 @@ public sealed partial class SourceResultDocument
         }
 
         Debug.Assert(containerStack.Count == 0, "Unclosed containers remain");
-        return new SourceResultDocument(metaDb, dataChunks);
+        return new SourceResultDocument(metaDb, dataChunks, true);
     }
 
     private static int CalculateTokenLength(Utf8JsonReader reader, JsonTokenType tokenType)

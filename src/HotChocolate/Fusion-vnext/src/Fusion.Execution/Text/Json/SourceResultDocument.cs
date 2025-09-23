@@ -10,12 +10,14 @@ public sealed partial class SourceResultDocument : IDisposable
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
     private MetaDb _parsedData;
     private readonly byte[][] _dataChunks;
+    private readonly bool _pooledMemory;
     private bool _disposed;
 
-    private SourceResultDocument(MetaDb parsedData, byte[][] dataChunks)
+    private SourceResultDocument(MetaDb parsedData, byte[][] dataChunks, bool pooledMemory)
     {
         _parsedData = parsedData;
         _dataChunks = dataChunks;
+        _pooledMemory = pooledMemory;
         Root = new SourceResultElement(this, 0);
     }
 
@@ -153,7 +155,10 @@ public sealed partial class SourceResultDocument : IDisposable
     {
         if (!_disposed)
         {
-            // TODO : implement
+            if (_pooledMemory)
+            {
+                JsonMemory.Return(_dataChunks);
+            }
 
             _disposed = true;
         }
