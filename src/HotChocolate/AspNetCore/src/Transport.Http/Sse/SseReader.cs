@@ -158,9 +158,10 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
         {
             await cts.CancelAsync().ConfigureAwait(false);
             await reader.CompleteAsync().ConfigureAwait(false);
-
+#if FUSION
             // we return whatever is in here.
             JsonMemory.Return(eventBuffers);
+#endif
         }
     }
 

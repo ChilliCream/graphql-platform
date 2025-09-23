@@ -16,7 +16,6 @@ namespace HotChocolate.Fusion.Transport.Http;
 namespace HotChocolate.Transport.Http;
 #endif
 
-
 /// <summary>
 /// The interface for GraphQL over HTTP client implementations.
 /// </summary>

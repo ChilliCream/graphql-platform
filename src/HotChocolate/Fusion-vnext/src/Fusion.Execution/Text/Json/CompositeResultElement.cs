@@ -24,7 +24,7 @@ public partial struct CompositeResultElement
     }
 
     /// <summary>
-    /// Gets the internal metadb index.
+    /// Gets the internal meta-db index.
     /// </summary>
     internal readonly int Index => _index;
 

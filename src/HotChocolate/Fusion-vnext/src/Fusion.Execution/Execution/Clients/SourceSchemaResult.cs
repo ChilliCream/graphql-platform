@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -9,9 +10,9 @@ public sealed class SourceSchemaResult : IDisposable
     public SourceSchemaResult(
         Path path,
         IDisposable resource,
-        JsonElement data,
-        JsonElement errors,
-        JsonElement extensions,
+        SourceResultElement data,
+        SourceResultElement errors,
+        SourceResultElement extensions,
         FinalMessage final = FinalMessage.Undefined)
     {
         ArgumentNullException.ThrowIfNull(path);
@@ -28,13 +29,13 @@ public sealed class SourceSchemaResult : IDisposable
 
     public Path Path { get; }
 
-    public JsonElement Data { get; }
+    public SourceResultElement Data { get; }
 
     public SourceSchemaErrors? Errors { get; }
 
-    public JsonElement RawErrors { get; }
+    public SourceResultElement RawErrors { get; }
 
-    public JsonElement Extensions { get; }
+    public SourceResultElement Extensions { get; }
 
     public FinalMessage Final { get; }
 

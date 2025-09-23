@@ -16,7 +16,6 @@ namespace HotChocolate.Fusion.Transport.Http;
 namespace HotChocolate.Transport.Http;
 #endif
 
-
 /// <summary>
 /// This class provides the default HTTP methods for GraphQL requests.
 /// </summary>

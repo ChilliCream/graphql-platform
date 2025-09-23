@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using static HotChocolate.Fusion.Text.Json.MetaDbConstants;
+using static HotChocolate.Fusion.Text.Json.MetaDbMemory;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -22,7 +22,7 @@ public sealed partial class CompositeResultDocument
             var chunksNeeded = Math.Max(4, (estimatedRows / RowsPerChunk) + 1);
             var chunks = new byte[chunksNeeded][];
 
-            chunks[0] = MetaDbMemoryPool.Rent();
+            chunks[0] = MetaDbMemory.Rent();
 
             for (var i = 1; i < chunks.Length; i++)
             {
@@ -77,7 +77,7 @@ public sealed partial class CompositeResultDocument
                 // just have filled up a block and must rent more memory.
                 if (_chunks[_currentChunk].Length == 0)
                 {
-                    _chunks[_currentChunk] = MetaDbMemoryPool.Rent();
+                    _chunks[_currentChunk] = MetaDbMemory.Rent();
                 }
             }
 
@@ -244,7 +244,7 @@ public sealed partial class CompositeResultDocument
                         break;
                     }
 
-                    MetaDbMemoryPool.Return(chunk);
+                    MetaDbMemory.Return(chunk);
                 }
 
                 _chunks = [];

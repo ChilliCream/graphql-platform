@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Language;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;

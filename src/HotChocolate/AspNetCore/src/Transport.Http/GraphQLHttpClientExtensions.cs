@@ -16,7 +16,6 @@ namespace HotChocolate.Fusion.Transport.Http;
 namespace HotChocolate.Transport.Http;
 #endif
 
-
 /// <summary>
 /// Provides extension methods for <see cref="GraphQLHttpClient"/>.
 /// </summary>

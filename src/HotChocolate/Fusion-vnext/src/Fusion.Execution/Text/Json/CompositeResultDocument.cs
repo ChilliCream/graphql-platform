@@ -1,8 +1,9 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Types;
-using static HotChocolate.Fusion.Text.Json.MetaDbConstants;
+using static HotChocolate.Fusion.Text.Json.MetaDbMemory;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -10,7 +11,6 @@ public sealed partial class CompositeResultDocument
 {
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
     private MetaDb _metaDb;
-    private byte[][] _dataChunks;
     private List<SourceResultDocument> _sources = [];
     private Operation _operation;
 #pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
@@ -20,10 +20,6 @@ public sealed partial class CompositeResultDocument
     public CompositeResultDocument(Operation operation)
     {
         _metaDb = MetaDb.CreateForEstimatedRows(RowsPerChunk * 8);
-
-        // we initialize the data chunks so that we can store local data on this document.
-        _dataChunks = new byte[16][];
-        _dataChunks[0] = JsonMemoryPool.Rent();
         _operation =  operation;
 
         // we create the root data object.
@@ -163,13 +159,28 @@ public sealed partial class CompositeResultDocument
     internal void AssignLeafValue(CompositeResultElement target, SourceResultElement source)
     {
         var value = source.GetValuePointer();
+        var parent = source._parent;
+
+        if (parent.Id == -1)
+        {
+            Debug.Assert(
+                !_sources.Contains(parent),
+                "The source document is marked as unbound but is already registered.");
+
+            parent.Id = _sources.Count;
+            _sources.Add(parent);
+        }
+
+        Debug.Assert(
+            _sources.Contains(parent),
+            "Expected the source document of the source element to be registered.");
 
         _metaDb.Replace(
             index: target.Index,
             tokenType: source.TokenType.ToElementTokenType(),
             location: value.Location,
             sizeOrLength: value.Size,
-            sourceDocumentId: source._parent.Id,
+            sourceDocumentId: parent.Id,
             parentRow: _metaDb.GetParentRow(target.Index));
     }
 
@@ -236,26 +247,4 @@ public sealed partial class CompositeResultDocument
             throw new ArgumentOutOfRangeException();
         }
     }
-}
-
-internal static class MetaDbMemoryPool
-{
-    public static byte[] Rent() => new byte[ChunkSize];
-
-    public static void Return(byte[] chunk)
-    {
-    }
-}
-
-internal static class MetaDbConstants
-{
-    // 6552 rows × 20 bytes
-    public const int ChunkSize = RowsPerChunk * CompositeResultDocument.DbRow.Size;
-    public const int RowsPerChunk = 6552;
-}
-
-internal readonly ref struct ValueRange(int location, int size)
-{
-    public int Location { get; } = location;
-    public int Size { get; } = size;
 }
