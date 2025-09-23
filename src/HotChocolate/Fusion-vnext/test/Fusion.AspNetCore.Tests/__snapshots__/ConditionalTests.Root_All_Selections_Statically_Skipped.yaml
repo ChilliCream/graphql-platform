@@ -1,0 +1,46 @@
+title: Root_All_Selections_Statically_Skipped
+request:
+  document: |
+    query testQuery {
+      productBySlug(slug: "product") @skip(if: true) {
+        name
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "__typename": "Query"
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: ID!
+        name: String!
+      }
+      
+      type Query {
+        productBySlug(slug: String!): Product
+      }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          __typename @fusion__empty
+        }
+      name: testQuery
+      hash: d2f996cbe8f8f0fa43055e90b91eefe5
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 1
+          responseName: __typename
+          fieldName: __typename
