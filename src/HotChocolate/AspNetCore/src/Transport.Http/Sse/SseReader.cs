@@ -108,6 +108,7 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
                                     reader.AdvanceTo(buffer.GetPosition(1, position.Value));
 #if FUSION
                                     JsonMemory.Return(eventBuffers);
+                                    eventBuffers.Clear();
 #endif
                                     yield break;
 
@@ -157,6 +158,9 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
         {
             await cts.CancelAsync().ConfigureAwait(false);
             await reader.CompleteAsync().ConfigureAwait(false);
+
+            // we return whatever is in here.
+            JsonMemory.Return(eventBuffers);
         }
     }
 
