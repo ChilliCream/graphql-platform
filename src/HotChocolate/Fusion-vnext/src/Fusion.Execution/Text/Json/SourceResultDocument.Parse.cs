@@ -7,6 +7,14 @@ namespace HotChocolate.Fusion.Text.Json;
 public sealed partial class SourceResultDocument
 {
     internal static SourceResultDocument Parse(
+        byte[] data,
+        int size,
+        JsonReaderOptions options = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal static SourceResultDocument Parse(
         byte[][] dataChunks,
         int lastLength,
         JsonReaderOptions options = default)

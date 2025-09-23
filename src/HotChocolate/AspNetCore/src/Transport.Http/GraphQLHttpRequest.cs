@@ -1,7 +1,11 @@
 using System.Collections.Immutable;
 using System.Net.Http.Headers;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
 /// <summary>
 /// Represents a GraphQL over HTTP request.

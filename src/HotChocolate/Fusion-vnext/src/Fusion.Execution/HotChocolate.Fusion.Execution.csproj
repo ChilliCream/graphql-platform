@@ -4,6 +4,7 @@
     <AssemblyName>HotChocolate.Fusion.Execution</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
     <LangVersion>preview</LangVersion>
+    <DefineConstants>$(DefineConstants);FUSION</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Caching\src\Caching.Memory\HotChocolate.Caching.Memory.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Operation.Abstractions\HotChocolate.Execution.Operation.Abstractions.csproj" />
@@ -34,11 +35,76 @@
     <ProjectReference Include="..\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
     <ProjectReference Include="..\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <EmbeddedResource Update="Properties\FusionExecutionResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>FusionExecutionResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\DefaultGraphQLHttpClient.cs">
+      <Link>Transport\Http\DefaultGraphQLHttpClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\GraphQLHttpClient.cs">
+      <Link>Transport\Http\GraphQLHttpClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\GraphQLHttpClientExtensions.cs">
+      <Link>Transport\Http\GraphQLHttpClientExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\GraphQLHttpMethod.cs">
+      <Link>Transport\Http\GraphQLHttpMethod.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\GraphQLHttpRequest.cs">
+      <Link>Transport\Http\GraphQLHttpRequest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\GraphQLHttpResponse.cs">
+      <Link>Transport\Http\GraphQLHttpResponse.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\GraphQLHttpSingleResultEnumerable.cs">
+      <Link>Transport\Http\GraphQLHttpSingleResultEnumerable.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\GraphQLHttpStreamException.cs">
+      <Link>Transport\Http\GraphQLHttpStreamException.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\HttpRequestHeadersExtensions.cs">
+      <Link>Transport\Http\HttpRequestHeadersExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\HttpTransportUtilities.cs">
+      <Link>Transport\Http\HttpTransportUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\OnHttpRequestMessageCreated.cs">
+      <Link>Transport\Http\OnHttpRequestMessageCreated.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\OnHttpResponseMessageReceived.cs">
+      <Link>Transport\Http\OnHttpResponseMessageReceived.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\JsonLines\JsonLinesReader.cs">
+      <Link>Transport\Http\JsonLines\JsonLinesReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseEventData.cs">
+      <Link>Transport\Http\Sse\SseEventData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseEventParser.cs">
+      <Link>Transport\Http\Sse\SseEventParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseEventType.cs">
+      <Link>Transport\Http\Sse\SseEventType.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseReader.cs">
+      <Link>Transport\Http\Sse\SseReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\HttpResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <Link>Transport\Http\HttpResources.Designer.cs</Link>
+      <DependentUpon>HttpResources.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="..\..\..\AspNetCore\src\Transport.Http\HttpResources.resx">
+      <Link>Transport\Http\HttpResources.resx</Link>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>HttpResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

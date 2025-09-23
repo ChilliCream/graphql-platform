@@ -9,7 +9,7 @@ public sealed partial class SourceResultDocument : IDisposable
 {
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
     private MetaDb _parsedData;
-    private byte[][] _dataChunks;
+    private readonly byte[][] _dataChunks;
     private bool _disposed;
 
     private SourceResultDocument(MetaDb parsedData, byte[][] dataChunks)

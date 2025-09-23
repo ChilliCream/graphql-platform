@@ -102,10 +102,10 @@ public sealed partial class SourceResultDocument
             var localOffset = (byteOffset % ChunkSize) + NumberOfRowsOffset;
 
             var dataPos = _chunks[chunkIndex].AsSpan(localOffset);
-            int current = MemoryMarshal.Read<int>(dataPos);
+            var current = MemoryMarshal.Read<int>(dataPos);
 
             // Persist the most significant nybble
-            int value = (current & unchecked((int)0xF0000000)) | numberOfRows;
+            var value = (current & unchecked((int)0xF0000000)) | numberOfRows;
             MemoryMarshal.Write(dataPos, value);
         }
 
@@ -118,9 +118,9 @@ public sealed partial class SourceResultDocument
             var localOffset = (byteOffset % ChunkSize) + SizeOrLengthOffset;
 
             var dataPos = _chunks[chunkIndex].AsSpan(localOffset);
-            int current = MemoryMarshal.Read<int>(dataPos);
+            var current = MemoryMarshal.Read<int>(dataPos);
 
-            int value = current | unchecked((int)0x80000000);
+            var value = current | unchecked((int)0x80000000);
             MemoryMarshal.Write(dataPos, value);
         }
 
@@ -128,9 +128,9 @@ public sealed partial class SourceResultDocument
         {
             Debug.Assert(lookupType == JsonTokenType.StartObject || lookupType == JsonTokenType.StartArray);
 
-            for (int i = Length - DbRow.Size; i >= 0; i -= DbRow.Size)
+            for (var i = Length - DbRow.Size; i >= 0; i -= DbRow.Size)
             {
-                DbRow row = Get(i);
+                var row = Get(i);
 
                 if (row.IsUnknownSize && row.TokenType == lookupType)
                 {
@@ -161,7 +161,7 @@ public sealed partial class SourceResultDocument
             var chunkIndex = byteOffset / ChunkSize;
             var localOffset = (byteOffset % ChunkSize) + NumberOfRowsOffset;
 
-            uint union = MemoryMarshal.Read<uint>(_chunks[chunkIndex].AsSpan(localOffset));
+            var union = MemoryMarshal.Read<uint>(_chunks[chunkIndex].AsSpan(localOffset));
             return (JsonTokenType)(union >> 28);
         }
 

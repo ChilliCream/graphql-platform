@@ -247,15 +247,6 @@ internal static class MetaDbMemoryPool
     }
 }
 
-internal static class JsonMemoryPool
-{
-    public static byte[] Rent() => new byte[ChunkSize];
-
-    public static void Return(byte[] chunk)
-    {
-    }
-}
-
 internal static class MetaDbConstants
 {
     // 6552 rows × 20 bytes

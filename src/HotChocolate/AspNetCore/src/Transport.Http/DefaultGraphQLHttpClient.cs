@@ -5,10 +5,14 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
+using HotChocolate.Transport;
+#if FUSION
+using HotChocolate.Transport.Http;
+#endif
 using HotChocolate.Transport.Serialization;
 using static System.Net.Http.HttpCompletionOption;
 
-#if Fusion
+#if FUSION
 namespace HotChocolate.Fusion.Transport.Http;
 #else
 namespace HotChocolate.Transport.Http;

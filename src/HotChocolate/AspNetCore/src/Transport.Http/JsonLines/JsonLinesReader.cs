@@ -4,7 +4,11 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
 internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<OperationResult>
 {
