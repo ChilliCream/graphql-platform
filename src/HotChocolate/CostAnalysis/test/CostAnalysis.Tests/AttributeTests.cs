@@ -1,4 +1,5 @@
 using HotChocolate.CostAnalysis.Types;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
 
 namespace HotChocolate.CostAnalysis;
@@ -112,6 +113,36 @@ public sealed class AttributeTests
         Assert.False(costDirective.RequireOneSlicingArgument);
     }
 
+    [Fact]
+    public void ListSize_ObjectFieldAttribute_AppliesRequireOneSlicingArgumentCorrectly()
+    {
+        // arrange & act
+        var query = CreateSchema().Types.GetType<ObjectType>(OperationTypeNames.Query);
+
+        var listSizeDirective1Sdl = query.Fields["examplesAssumedSizeOnly"]
+            .Directives
+            .Single(d => d.Type.Name == "listSize")
+            .ToSyntaxNode(removeDefaults: false)
+            .Print();
+
+        var listSizeDirective2Sdl = query.Fields["examplesRequireOneSlicingArgumentTrue"]
+            .Directives
+            .Single(d => d.Type.Name == "listSize")
+            .ToSyntaxNode(removeDefaults: false)
+            .Print();
+
+        var listSizeDirective3Sdl = query.Fields["examplesRequireOneSlicingArgumentFalse"]
+            .Directives
+            .Single(d => d.Type.Name == "listSize")
+            .ToSyntaxNode(removeDefaults: false)
+            .Print();
+
+        // assert
+        listSizeDirective1Sdl.MatchInlineSnapshot("@listSize(assumedSize: 10)");
+        listSizeDirective2Sdl.MatchInlineSnapshot("@listSize(requireOneSlicingArgument: true)");
+        listSizeDirective3Sdl.MatchInlineSnapshot("@listSize(requireOneSlicingArgument: false)");
+    }
+
     private static Schema CreateSchema()
     {
         return SchemaBuilder.New()
@@ -128,6 +159,8 @@ public sealed class AttributeTests
     [QueryType]
     private static class Queries
     {
+        private static readonly List<Example> s_list = [new Example(ExampleEnum.Member)];
+
         [ListSize(
             AssumedSize = 10,
             SlicingArguments = ["first", "last"],
@@ -137,7 +170,28 @@ public sealed class AttributeTests
         // ReSharper disable once UnusedMember.Local
         public static List<Example> GetExamples([Cost(8.0)] ExampleInput _)
         {
-            return [new Example(ExampleEnum.Member)];
+            return s_list;
+        }
+
+        [ListSize(AssumedSize = 10)]
+        // ReSharper disable once UnusedMember.Local
+        public static List<Example> GetExamplesAssumedSizeOnly()
+        {
+            return s_list;
+        }
+
+        [ListSize(RequireOneSlicingArgument = true)]
+        // ReSharper disable once UnusedMember.Local
+        public static List<Example> GetExamplesRequireOneSlicingArgumentTrue()
+        {
+            return s_list;
+        }
+
+        [ListSize(RequireOneSlicingArgument = false)]
+        // ReSharper disable once UnusedMember.Local
+        public static List<Example> GetExamplesRequireOneSlicingArgumentFalse()
+        {
+            return s_list;
         }
     }
 
