@@ -150,27 +150,31 @@ internal sealed class ValueCompletion
     /// <returns>
     /// <c>true</c>, if the null propagated up to the root.
     /// </returns>
-    private static bool PropagateNullValues(ResultData result)
+    private static bool PropagateNullValues(CompositeResultElement result)
     {
         if (result.IsInvalidated)
         {
-            return result.Parent is null;
+            return result.Parent.IsNullOrUndefined();
         }
 
-        result.IsInvalidated = true;
+        result.Invalidate();
 
-        while (result.Parent is not null)
+        while (!result.Parent.IsNullOrUndefined())
         {
-            var index = result.ParentIndex;
             var parent = result.Parent;
 
-            if (parent.IsInvalidated || parent.TrySetValueNull(index))
+            if (parent.IsInvalidated)
             {
                 return false;
             }
 
-            parent.IsInvalidated = true;
+            if (result.IsNullable)
+            {
+                result.SetNull();
+                return false;
+            }
 
+            parent.Invalidate();
             result = parent;
         }
 
@@ -265,7 +269,7 @@ internal sealed class ValueCompletion
 
         if (type.Kind is TypeKind.Scalar or TypeKind.Enum)
         {
-            target.SetNextValue(source);
+            target.SetValue(source);
             return true;
         }
 
@@ -368,15 +372,15 @@ internal sealed class ValueCompletion
     private bool TryCompleteObjectValue(
         Selection parentSelection,
         IType type,
-        JsonElement data,
+        SourceResultElement source,
         ErrorTrie? errorTrie,
         int depth,
-        ResultData parent)
+        CompositeResultElement target)
     {
         var namedType = type.NamedType();
         var objectType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
 
-        return TryCompleteObjectValue(parentSelection, objectType, data, errorTrie, depth, parent);
+        return TryCompleteObjectValue(parentSelection, objectType, source, errorTrie, depth, target);
     }
 
     private bool TryCompleteObjectValue(

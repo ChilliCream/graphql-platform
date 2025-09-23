@@ -99,6 +99,10 @@ public partial struct CompositeResultElement
 
     public Path Path => throw new NotImplementedException();
 
+    public CompositeResultElement Parent => throw new NotImplementedException();
+
+    public bool IsNullable => throw new NotImplementedException();
+
     /*
      * public Path Path
        {
@@ -1310,6 +1314,13 @@ public partial struct CompositeResultElement
         CheckValidInstance();
 
         _parent.AssignLeafValue(this, source);
+    }
+
+    internal void SetNull()
+    {
+        CheckValidInstance();
+
+        _parent.AssignNullValue(this);
     }
 
     /*

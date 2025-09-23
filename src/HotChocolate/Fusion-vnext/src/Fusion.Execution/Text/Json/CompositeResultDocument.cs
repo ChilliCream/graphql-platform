@@ -206,6 +206,15 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AssignNullValue(CompositeResultElement target)
+    {
+        _metaDb.Replace(
+            index: target.Index,
+            tokenType: ElementTokenType.Null,
+            parentRow: _metaDb.GetParentRow(target.Index));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private int WriteStartObject(int parentRow = 0, int selectionSetId = 0, int length = 0)
     {
         var flags = ElementFlags.None;
