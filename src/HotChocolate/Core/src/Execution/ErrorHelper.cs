@@ -10,7 +10,6 @@ internal static class ErrorHelper
 {
     public static IError ArgumentNonNullError(
         ArgumentNode argument,
-        string responseName,
         ArgumentNonNullValidator.ValidationResult validationResult)
     {
         return ErrorBuilder.New()
@@ -18,28 +17,16 @@ internal static class ErrorHelper
                 ErrorHelper_ArgumentNonNullError_Message,
                 argument.Name.Value)
             .TryAddLocation(argument)
-            .SetExtension("responseName", responseName)
             .SetExtension("errorPath", validationResult.Path)
             .Build();
     }
 
     public static IError ArgumentValueIsInvalid(
-        ArgumentNode argument,
-        string responseName,
+        ArgumentNode? argument,
         GraphQLException exception)
     {
         return ErrorBuilder.FromError(exception.Errors[0])
             .TryAddLocation(argument)
-            .SetExtension("responseName", responseName)
-            .Build();
-    }
-
-    public static IError ArgumentDefaultValueIsInvalid(
-        string responseName,
-        GraphQLException exception)
-    {
-        return ErrorBuilder.FromError(exception.Errors[0])
-            .SetExtension("responseName", responseName)
             .Build();
     }
 

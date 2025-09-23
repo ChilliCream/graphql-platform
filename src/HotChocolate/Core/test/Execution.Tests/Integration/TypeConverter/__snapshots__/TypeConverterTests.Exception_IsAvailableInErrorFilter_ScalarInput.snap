@@ -14,7 +14,6 @@
       "extensions": {
         "code": "HC0001",
         "coordinate": "SomeQuery.fieldWithScalarInput(arg:)",
-        "responseName": "fieldWithScalarInput",
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"

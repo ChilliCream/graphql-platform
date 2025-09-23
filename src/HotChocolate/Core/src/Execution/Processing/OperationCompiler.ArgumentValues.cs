@@ -10,8 +10,7 @@ public sealed partial class OperationCompiler
 {
     private ArgumentMap? CoerceArgumentValues(
         ObjectField field,
-        FieldNode selection,
-        string responseName)
+        FieldNode selection)
     {
         if (field.Arguments.Count == 0)
         {
@@ -28,9 +27,7 @@ public sealed partial class OperationCompiler
                 out var argument))
             {
                 arguments[argument.Name] =
-                    CreateArgumentValue(
-                        responseName,
-                        argument,
+                    CreateArgumentValue(argument,
                         argumentValue,
                         argumentValue.Value,
                         false);
@@ -43,9 +40,7 @@ public sealed partial class OperationCompiler
             if (!arguments.ContainsKey(argument.Name))
             {
                 arguments[argument.Name] =
-                    CreateArgumentValue(
-                        responseName,
-                        argument,
+                    CreateArgumentValue(argument,
                         null,
                         argument.DefaultValue ?? NullValueNode.Default,
                         true);
@@ -56,7 +51,6 @@ public sealed partial class OperationCompiler
     }
 
     private ArgumentValue CreateArgumentValue(
-        string responseName,
         Argument argument,
         ArgumentNode? argumentValue,
         IValueNode value,
@@ -74,7 +68,6 @@ public sealed partial class OperationCompiler
                 argument,
                 ErrorHelper.ArgumentNonNullError(
                     argumentValue,
-                    responseName,
                     validationResult));
         }
 
@@ -92,16 +85,9 @@ public sealed partial class OperationCompiler
             }
             catch (SerializationException ex)
             {
-                if (argumentValue is not null)
-                {
-                    return new ArgumentValue(
-                        argument,
-                        ErrorHelper.ArgumentValueIsInvalid(argumentValue, responseName, ex));
-                }
-
                 return new ArgumentValue(
                     argument,
-                    ErrorHelper.ArgumentDefaultValueIsInvalid(responseName, ex));
+                    ErrorHelper.ArgumentValueIsInvalid(argumentValue, ex));
             }
         }
 

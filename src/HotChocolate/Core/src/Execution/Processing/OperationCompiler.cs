@@ -449,7 +449,7 @@ public sealed partial class OperationCompiler
                                 selection.SelectionSet.Selections))
                         : selection,
                     responseName: responseName,
-                    arguments: CoerceArgumentValues(field, selection, responseName),
+                    arguments: CoerceArgumentValues(field, selection),
                     includeConditions: includeCondition == 0
                         ? null
                         : [includeCondition],

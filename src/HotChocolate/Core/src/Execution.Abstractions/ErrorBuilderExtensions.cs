@@ -88,11 +88,9 @@ public static class ErrorBuilderExtensions
     /// <param name="builder">The error builder.</param>
     /// <param name="node">The syntax node.</param>
     /// <returns>The error builder.</returns>
-    public static ErrorBuilder TryAddLocation(this ErrorBuilder builder, ISyntaxNode node)
+    public static ErrorBuilder TryAddLocation(this ErrorBuilder builder, ISyntaxNode? node)
     {
-        ArgumentNullException.ThrowIfNull(node);
-
-        if (node.Location is null)
+        if (node?.Location is null)
         {
             return builder;
         }
