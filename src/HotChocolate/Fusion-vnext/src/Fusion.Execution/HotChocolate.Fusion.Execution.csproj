@@ -110,6 +110,9 @@
     <Compile Update="Text\Json\SourceResultElement.ObjectEnumerator.cs">
       <DependentUpon>SourceResultElement.cs</DependentUpon>
     </Compile>
+    <Compile Update="Text\Json\SourceResultElement.ArrayEnumerator.cs">
+      <DependentUpon>SourceResultElement.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

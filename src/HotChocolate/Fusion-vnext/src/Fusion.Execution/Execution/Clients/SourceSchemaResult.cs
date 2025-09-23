@@ -1,4 +1,3 @@
-using System.Text.Json;
 using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Clients;

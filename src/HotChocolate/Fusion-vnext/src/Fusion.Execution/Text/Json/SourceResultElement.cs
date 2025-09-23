@@ -1123,7 +1123,6 @@ public readonly partial struct SourceResultElement
         return _parent.TextEquals(_index, text, isPropertyName);
     }
 
-    /*
     /// <summary>
     ///   Get an enumerator to enumerate the values in the JSON array represented by this JsonElement.
     /// </summary>
@@ -1136,7 +1135,7 @@ public readonly partial struct SourceResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public JsonElement.ArrayEnumerator EnumerateArray()
+    public ArrayEnumerator EnumerateArray()
     {
         CheckValidInstance();
 
@@ -1153,9 +1152,8 @@ public readonly partial struct SourceResultElement
             };
         }
 
-        return new JsonElement.ArrayEnumerator(this);
+        return new ArrayEnumerator(this);
     }
-    */
 
     /// <summary>
     ///   Get an enumerator to enumerate the properties in the JSON object represented by this JsonElement.
