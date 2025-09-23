@@ -32,14 +32,19 @@ public static class ErrorBuilderExtensions
         return builder.SetExtension(nameof(coordinate), coordinate.ToString());
     }
 
+    /// <summary>
+    /// Sets the input path of the error.
+    /// </summary>
+    /// <param name="builder">The error builder.</param>
+    /// <param name="inputPath">The input path.</param>
+    /// <returns>The error builder.</returns>
     public static ErrorBuilder SetInputPath(
         this ErrorBuilder builder,
         Path inputPath)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        var str = inputPath.ToString().TrimStart('/').Replace('/', '.');
-        return builder.SetExtension(nameof(inputPath), str);
+        return builder.SetExtension(nameof(inputPath), inputPath);
     }
 
     /// <summary>
@@ -78,7 +83,7 @@ public static class ErrorBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a location to the error.
+    /// Adds a location to the error if the error does not already have a location.
     /// </summary>
     /// <param name="builder">The error builder.</param>
     /// <param name="node">The syntax node.</param>

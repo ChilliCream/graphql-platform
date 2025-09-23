@@ -14,7 +14,10 @@
       "extensions": {
         "code": "HC0001",
         "coordinate": "ObjectWithListOfIdsInput.ids",
-        "inputPath": "arg.ids",
+        "inputPath": [
+          "arg",
+          "ids"
+        ],
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"
