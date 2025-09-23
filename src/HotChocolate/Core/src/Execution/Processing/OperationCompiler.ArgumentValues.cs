@@ -214,9 +214,8 @@ public sealed partial class OperationCompiler
                 }
                 catch (SerializationException ex)
                 {
-                    var location = directiveNode.Location;
                     throw new SerializationException(
-                        ErrorBuilder.FromError(ex.Errors[0]).SetPath(path).TryAddLocation(location).Build(),
+                        ErrorBuilder.FromError(ex.Errors[0]).SetPath(path).TryAddLocation(directiveNode).Build(),
                         ex.Type,
                         path);
                 }

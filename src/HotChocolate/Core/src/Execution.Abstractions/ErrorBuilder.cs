@@ -84,6 +84,12 @@ public sealed class ErrorBuilder
         _locations.Add(location);
         return this;
     }
+
+    /// <summary>
+    /// AAdds a GraphQL operation document location to the error, if the error does not already have a location.
+    /// </summary>
+    /// <param name="location">The location of the error.</param>
+    /// <returns>The error builder.</returns>
     public ErrorBuilder TryAddLocation(Location location)
     {
         if (_locations == null || _locations.Count == 0)

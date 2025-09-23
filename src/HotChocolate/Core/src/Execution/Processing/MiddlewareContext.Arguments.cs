@@ -26,9 +26,9 @@ internal partial class MiddlewareContext
         }
         catch (SerializationException ex)
         {
-            var location = Selection.Arguments[argument.Name].ValueLiteral?.Location;
+            var syntaxNode = Selection.Arguments[argument.Name].ValueLiteral;
             throw new SerializationException(
-                ErrorBuilder.FromError(ex.Errors[0]).SetPath(Path).TryAddLocation(location).Build(),
+                ErrorBuilder.FromError(ex.Errors[0]).SetPath(Path).TryAddLocation(syntaxNode).Build(),
                 ex.Type,
                 Path);
         }

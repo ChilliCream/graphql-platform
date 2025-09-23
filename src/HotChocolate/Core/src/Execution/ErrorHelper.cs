@@ -16,7 +16,7 @@ internal static class ErrorHelper
             .SetMessage(
                 ErrorHelper_ArgumentNonNullError_Message,
                 argument.Name.Value)
-            .TryAddLocation(argument)
+            .AddLocation(argument)
             .SetExtension("errorPath", validationResult.Path)
             .Build();
     }
@@ -49,7 +49,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder
             .FromException(exception)
-            .TryAddLocation(field)
+            .AddLocation(field)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
             .Build();
@@ -62,7 +62,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnableToResolveTheAbstractType_Message, typeName)
-            .TryAddLocation(field)
+            .AddLocation(field)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotResolveAbstractType)
             .Build();
