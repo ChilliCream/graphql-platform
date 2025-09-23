@@ -107,6 +107,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>HttpResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <Compile Update="Text\Json\SourceResultElement.ObjectEnumerator.cs">
+      <DependentUpon>SourceResultElement.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

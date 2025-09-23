@@ -6,7 +6,7 @@ using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Text.Json;
 
-public readonly struct SourceResultElement
+public readonly partial struct SourceResultElement
 {
     internal readonly SourceResultDocument _parent;
     internal readonly int _index;
@@ -479,7 +479,7 @@ public readonly struct SourceResultElement
     /// </exception>
     public byte GetByte()
     {
-        if (TryGetByte(out byte value))
+        if (TryGetByte(out var value))
         {
             return value;
         }
@@ -526,7 +526,7 @@ public readonly struct SourceResultElement
     /// </exception>
     public short GetInt16()
     {
-        if (TryGetInt16(out short value))
+        if (TryGetInt16(out var value))
         {
             return value;
         }
@@ -576,7 +576,7 @@ public readonly struct SourceResultElement
     /// </exception>
     public ushort GetUInt16()
     {
-        if (TryGetUInt16(out ushort value))
+        if (TryGetUInt16(out var value))
         {
             return value;
         }
@@ -623,7 +623,7 @@ public readonly struct SourceResultElement
     /// </exception>
     public int GetInt32()
     {
-        if (!TryGetInt32(out int value))
+        if (!TryGetInt32(out var value))
         {
             ThrowHelper.ThrowFormatException();
         }
@@ -673,7 +673,7 @@ public readonly struct SourceResultElement
     /// </exception>
     public uint GetUInt32()
     {
-        if (!TryGetUInt32(out uint value))
+        if (!TryGetUInt32(out var value))
         {
             ThrowHelper.ThrowFormatException();
         }
@@ -723,7 +723,7 @@ public readonly struct SourceResultElement
     /// </exception>
     public long GetInt64()
     {
-        if (!TryGetInt64(out long value))
+        if (!TryGetInt64(out var value))
         {
             ThrowHelper.ThrowFormatException();
         }
@@ -773,7 +773,7 @@ public readonly struct SourceResultElement
     /// </exception>
     public ulong GetUInt64()
     {
-        if (!TryGetUInt64(out ulong value))
+        if (!TryGetUInt64(out var value))
         {
             ThrowHelper.ThrowFormatException();
         }
@@ -840,7 +840,7 @@ public readonly struct SourceResultElement
     /// </exception>
     public double GetDouble()
     {
-        if (!TryGetDouble(out double value))
+        if (!TryGetDouble(out var value))
         {
             ThrowHelper.ThrowFormatException();
         }
@@ -907,7 +907,7 @@ public readonly struct SourceResultElement
     /// </exception>
     public float GetSingle()
     {
-        if (!TryGetSingle(out float value))
+        if (!TryGetSingle(out var value))
         {
             ThrowHelper.ThrowFormatException();
         }
@@ -959,7 +959,7 @@ public readonly struct SourceResultElement
     /// <seealso cref="GetRawText"/>
     public decimal GetDecimal()
     {
-        if (!TryGetDecimal(out decimal value))
+        if (!TryGetDecimal(out var value))
         {
             ThrowHelper.ThrowFormatException();
         }
@@ -995,6 +995,13 @@ public readonly struct SourceResultElement
         CheckValidInstance();
 
         return _parent.GetRawValueAsString(_index);
+    }
+
+    internal string GetPropertyRawText()
+    {
+        CheckValidInstance();
+
+        return _parent.GetPropertyRawValueAsString(_index);
     }
 
     internal ReadOnlySpan<byte> ValueSpan
@@ -1150,7 +1157,6 @@ public readonly struct SourceResultElement
     }
     */
 
-    /*
     /// <summary>
     ///   Get an enumerator to enumerate the properties in the JSON object represented by this JsonElement.
     /// </summary>
@@ -1163,20 +1169,21 @@ public readonly struct SourceResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public JsonElement.ObjectEnumerator EnumerateObject()
+    public ObjectEnumerator EnumerateObject()
     {
         CheckValidInstance();
 
-        JsonTokenType tokenType = TokenType;
+        var tokenType = TokenType;
 
         if (tokenType != JsonTokenType.StartObject)
         {
-            ThrowHelper.ThrowJsonElementWrongTypeException(JsonTokenType.StartObject, tokenType);
+            // TODO : rework exception
+            throw new InvalidOperationException();
+            // ThrowHelper.ThrowJsonElementWrongTypeException(JsonTokenType.StartObject, tokenType);
         }
 
-        return new JsonElement.ObjectEnumerator(this);
+        return new ObjectEnumerator(this);
     }
-    */
 
     /*
     /// <summary>
