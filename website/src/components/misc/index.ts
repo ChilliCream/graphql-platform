@@ -17,3 +17,4 @@ export * from "./seo";
 export * from "./spinner";
 export * from "./sr-only";
 export * from "./support-card";
+export * from "./support-form";

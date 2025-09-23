@@ -1,3 +1,4 @@
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using HotChocolate.Types.Composite;
@@ -23,7 +24,6 @@ public class RequireTests : FusionTestBase
             "c",
             b => b.AddQueryType<BookShipping.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("a", server1),
@@ -34,8 +34,7 @@ public class RequireTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        // assert
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
                 books {
@@ -45,12 +44,88 @@ public class RequireTests : FusionTestBase
                   }
                 }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact(Skip = "Not yet supported")]
+    public async Task Require_On_MutationPayload()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type User {
+                id: ID!
+                someField: String!
+            }
+
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+            """
+        );
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type User {
+                id: ID!
+                nestedField(someField: String! @require(field: "someField")): NestedType!
+            }
+
+            type NestedType {
+                otherField: Int!
+            }
+
+            type Mutation {
+                createUser: CreateUserPayload
+            }
+
+            type CreateUserPayload {
+                user: User!
+            }
+
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+            """
+        );
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
         // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            mutation {
+                createUser {
+                    user {
+                        nestedField {
+                            otherField
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     public static class BookCatalog
