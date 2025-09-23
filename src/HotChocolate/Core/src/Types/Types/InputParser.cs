@@ -304,7 +304,7 @@ public sealed class InputParser
 
             var error = ErrorBuilder.FromError(ex.Errors[0])
                 .SetPath(path)
-                .SetFieldCoordinate(field.Coordinate)
+                .SetCoordinate(field.Coordinate)
                 .SetExtension("fieldType", type.Name)
                 .Build();
 
@@ -596,7 +596,7 @@ public sealed class InputParser
 
             var error = ErrorBuilder.FromError(ex.Errors[0])
                 .SetPath(path)
-                .SetFieldCoordinate(field.Coordinate)
+                .SetCoordinate(field.Coordinate)
                 .SetExtension("fieldType", type.Name)
                 .Build();
 

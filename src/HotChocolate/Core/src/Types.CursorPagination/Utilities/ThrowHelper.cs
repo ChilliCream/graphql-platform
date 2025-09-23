@@ -15,7 +15,7 @@ internal static class ThrowHelper
                 .SetMessage(ThrowHelper_PagingHandler_MinPageSize)
                 .SetCode(ErrorCodes.Paging.MinPaginationItems)
                 .SetPath(path)
-                .SetFieldCoordinate(field.Coordinate)
+                .SetCoordinate(field.Coordinate)
                 .SetExtension(nameof(requestedItems), requestedItems)
                 .Build());
 
@@ -29,7 +29,7 @@ internal static class ThrowHelper
                 .SetMessage(ThrowHelper_PagingHandler_MaxPageSize)
                 .SetCode(ErrorCodes.Paging.MaxPaginationItems)
                 .SetPath(path)
-                .SetFieldCoordinate(field.Coordinate)
+                .SetCoordinate(field.Coordinate)
                 .SetExtension(nameof(requestedItems), requestedItems)
                 .SetExtension(nameof(maxAllowedItems), maxAllowedItems)
                 .Build());
@@ -44,7 +44,7 @@ internal static class ThrowHelper
                     field.Type.TypeName())
                 .SetCode(ErrorCodes.Paging.NoPagingBoundaries)
                 .SetPath(path)
-                .SetFieldCoordinate(field.Coordinate)
+                .SetCoordinate(field.Coordinate)
                 .Build());
 
     public static SchemaException PagingObjectFieldDescriptorExtensions_InvalidType()

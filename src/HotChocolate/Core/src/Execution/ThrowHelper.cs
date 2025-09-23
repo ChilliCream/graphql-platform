@@ -259,7 +259,7 @@ internal static class ThrowHelper
                 parentType,
                 requestType)
             .SetPath(path)
-            .SetFieldCoordinate(fieldCoordinate)
+            .SetCoordinate(fieldCoordinate)
             .SetCode(ErrorCodes.Execution.CannotCastParent)
             .Build());
 

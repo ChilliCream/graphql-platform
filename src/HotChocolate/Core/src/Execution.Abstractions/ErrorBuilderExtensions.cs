@@ -12,17 +12,8 @@ public static class ErrorBuilderExtensions
     /// Sets the field coordinate of the error.
     /// </summary>
     /// <param name="builder">The error builder.</param>
-    /// <param name="fieldCoordinate">The field coordinate.</param>
+    /// <param name="coordinate">The field coordinate.</param>
     /// <returns>The error builder.</returns>
-    public static ErrorBuilder SetFieldCoordinate(
-        this ErrorBuilder builder,
-        SchemaCoordinate fieldCoordinate)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        return builder.SetExtension(nameof(fieldCoordinate), fieldCoordinate.ToString());
-    }
-
     public static ErrorBuilder SetCoordinate(
         this ErrorBuilder builder,
         SchemaCoordinate coordinate)
