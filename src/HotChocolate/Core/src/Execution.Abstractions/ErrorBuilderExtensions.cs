@@ -23,6 +23,25 @@ public static class ErrorBuilderExtensions
         return builder.SetExtension(nameof(fieldCoordinate), fieldCoordinate.ToString());
     }
 
+    public static ErrorBuilder SetCoordinate(
+        this ErrorBuilder builder,
+        SchemaCoordinate coordinate)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.SetExtension(nameof(coordinate), coordinate.ToString());
+    }
+
+    public static ErrorBuilder SetInputPath(
+        this ErrorBuilder builder,
+        Path inputPath)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        var str = inputPath.ToString().TrimStart('/').Replace('/', '.');
+        return builder.SetExtension(nameof(inputPath), str);
+    }
+
     /// <summary>
     /// Sets the message of the error.
     /// </summary>
@@ -55,6 +74,25 @@ public static class ErrorBuilderExtensions
         }
 
         builder.AddLocation(new Location(node.Location.Line, node.Location.Column));
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a location to the error.
+    /// </summary>
+    /// <param name="builder">The error builder.</param>
+    /// <param name="node">The syntax node.</param>
+    /// <returns>The error builder.</returns>
+    public static ErrorBuilder TryAddLocation(this ErrorBuilder builder, ISyntaxNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+
+        if (node.Location is null)
+        {
+            return builder;
+        }
+
+        builder.TryAddLocation(new Location(node.Location.Line, node.Location.Column));
         return builder;
     }
 

@@ -45,7 +45,7 @@ public sealed class InputParser
             targetType = field.RuntimeType;
         }
 
-        return FormatAndConvertValue(field, runtimeValue, false, false, targetType);
+        return FormatAndConvertValue(field, path, value.Location, runtimeValue, false, false, targetType);
     }
 
     public object? ParseLiteral(IValueNode value, IType type, Path? path = null)
@@ -528,7 +528,7 @@ public sealed class InputParser
                     }
 
                     var value = Deserialize(fieldValue, field.Type, fieldPath, field);
-                    value = FormatAndConvertValue(field, value, field.IsOptional, true);
+                    value = FormatAndConvertValue(field, path, null, value, field.IsOptional, true);
 
                     fieldValues[i] = value;
                     consumed++;
@@ -676,11 +676,13 @@ public sealed class InputParser
             stack,
             defaults,
             field);
-        return FormatAndConvertValue(field, value, isOptional , optionalHasValue);
+        return FormatAndConvertValue(field, fieldPath, literal.Location, value, isOptional, optionalHasValue);
     }
 
     private object? FormatAndConvertValue(
         IInputValueInfo inputValueInfo,
+        Path fieldPath,
+        Language.Location? location,
         object? value,
         bool isOptional,
         bool optionalHasValue,
@@ -690,7 +692,7 @@ public sealed class InputParser
         value = ConvertValue(requestedType ?? inputValueInfo.RuntimeType, value, out var conversionException);
         if (conversionException != null)
         {
-            throw InvalidTypeConversion(inputValueInfo.Type, inputValueInfo, conversionException);
+            throw InvalidTypeConversion(inputValueInfo.Type, inputValueInfo, fieldPath, location, conversionException);
         }
 
         if (isOptional)

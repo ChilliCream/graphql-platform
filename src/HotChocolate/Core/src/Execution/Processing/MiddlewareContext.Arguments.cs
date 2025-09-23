@@ -28,7 +28,7 @@ internal partial class MiddlewareContext
         {
             var location = Selection.Arguments[argument.Name].ValueLiteral?.Location;
             throw new SerializationException(
-                ErrorBuilder.FromError(ex.Errors[0]).SetPath(Path).AddLocation(location).Build(),
+                ErrorBuilder.FromError(ex.Errors[0]).SetPath(Path).TryAddLocation(location).Build(),
                 ex.Type,
                 Path);
         }

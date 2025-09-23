@@ -1,19 +1,19 @@
-{
+﻿{
   "errors": [
     {
       "message": "The value provided for `arg` is not in a valid format.",
       "locations": [
         {
           "line": 1,
-          "column": 48
+          "column": 36
         }
       ],
       "path": [
-        "fieldWithScalarInput"
+        "fieldWithListOfScalarsInput"
       ],
       "extensions": {
         "code": "HC0001",
-        "coordinate": "SomeQuery.fieldWithScalarInput(arg:)",
+        "coordinate": "SomeQuery.fieldWithListOfScalarsInput(arg:)",
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"
@@ -22,6 +22,6 @@
     }
   ],
   "data": {
-    "fieldWithScalarInput": null
+    "fieldWithListOfScalarsInput": null
   }
 }

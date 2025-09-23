@@ -230,7 +230,7 @@ public sealed partial class OperationCompiler
                 {
                     var location = directiveNode.Location;
                     throw new SerializationException(
-                        ErrorBuilder.FromError(ex.Errors[0]).SetPath(path).AddLocation(location).Build(),
+                        ErrorBuilder.FromError(ex.Errors[0]).SetPath(path).TryAddLocation(location).Build(),
                         ex.Type,
                         path);
                 }

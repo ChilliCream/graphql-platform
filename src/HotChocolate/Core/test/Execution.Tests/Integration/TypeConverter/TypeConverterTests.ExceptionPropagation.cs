@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Integration.TypeConverter;
 
+#pragma warning disable
 public partial class TypeConverterTests
 {
     public record TestCase([StringSyntax("graphql")] string QueryString, string DisplayName)
@@ -14,12 +15,13 @@ public partial class TypeConverterTests
     public static readonly TheoryData<TestCase> TestCases =
     [
           new("""{ fieldWithScalarInput(arg: "foo") }""", "ScalarInput"),
-          new("""{ fieldWithObjectInput(arg: { id: "foo" }) }""", "ObjectInput"),
-          new("""{ fieldWithListOfScalarsInput(arg: ["foo"]) }""", "ListOfScalarsInput"),
-          new("""{ fieldWithObjectWithListOfScalarsInput(arg: { id: ["foo"] }) }""", "ObjectWithListOfScalarsInput"),
-          new("""{ fieldWithNestedObjectInput(arg: { inner: { id: "foo" } }) }""", "NestedObjectInput"),
-          new("""{ fieldWithListOfObjectsInput(arg: { items: [{ id: "foo" }] }) }""", "ListOfObjectsInput"),
           new("""{ fieldWithNonNullScalarInput(arg: "foo") }""", "NonNullScalarInput"),
+          new("""{ fieldWithObjectInput(arg: { id: "foo" }) }""", "ObjectInput"),
+          new("""{ fieldWithNestedObjectInput(arg: { inner: { id: "foo" } }) }""", "NestedObjectInput"),
+          new("""{ fieldWithListOfScalarsInput(arg: ["ok", "foo"]) }""", "ListOfScalarsInput"),
+          new("""{ fieldWithListOfScalarsInput(arg: ["ok", "foo"]) }""", "ListOfScalarsInputWithOkValue"),
+          new("""{ fieldWithObjectWithListOfScalarsInput(arg: { ids: ["foo"] }) }""", "ObjectWithListOfScalarsInput"),
+          new("""{ fieldWithListOfObjectsInput(arg: { items: [{ id: "foo" }] }) }""", "ListOfObjectsInput"),
           new("""query($v: String!) { fieldWithScalarInput(arg: $v) }""", "VariableInput"),
           new("""{ echo(arg: "foo") @boom(arg: "foo") }""", "DirectiveInput"),
           new("""{ nestedObjectOutput { inner { id @boom(arg: "foo") } } }""", "NestedDirectiveInput")
@@ -68,7 +70,7 @@ public partial class TypeConverterTests
             .AddGraphQLServer()
             .AddQueryType<SomeQuery>()
             .AddDirectiveType<BoomDirectiveType>()
-            .AddTypeConverter<string, BrokenType>(_ => throw new CustomIdSerializationException("Boom"))
+            .AddTypeConverter<string, BrokenType>(x => x == "ok" ? new BrokenType(1) : throw new CustomIdSerializationException("Boom"))
             .BindRuntimeType<BrokenType, StringType>()
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
             .AddErrorFilter(x =>
@@ -201,7 +203,7 @@ public partial class TypeConverterTests
     }
 
     public record ObjectWithId(BrokenType Id);
-    public record ObjectWithListOfIds(List<BrokenType> Id);
+    public record ObjectWithListOfIds(List<BrokenType> Ids);
     public record NestedObject(ObjectWithId Inner);
     public record ListOfObjectsInput(List<ObjectWithId> Items);
 

@@ -13,7 +13,7 @@
       ],
       "extensions": {
         "code": "HC0001",
-        "fieldCoordinate": "SomeQuery.fieldWithListOfScalarsInput(arg:)",
+        "coordinate": "SomeQuery.fieldWithListOfScalarsInput(arg:)",
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"

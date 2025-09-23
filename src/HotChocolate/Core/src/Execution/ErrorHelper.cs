@@ -17,7 +17,7 @@ internal static class ErrorHelper
             .SetMessage(
                 ErrorHelper_ArgumentNonNullError_Message,
                 argument.Name.Value)
-            .AddLocation(argument)
+            .TryAddLocation(argument)
             .SetExtension("responseName", responseName)
             .SetExtension("errorPath", validationResult.Path)
             .Build();
@@ -29,7 +29,7 @@ internal static class ErrorHelper
         GraphQLException exception)
     {
         return ErrorBuilder.FromError(exception.Errors[0])
-            .AddLocation(argument)
+            .TryAddLocation(argument)
             .SetExtension("responseName", responseName)
             .Build();
     }
@@ -49,7 +49,7 @@ internal static class ErrorHelper
         Path path)
     {
         return ErrorBuilder.FromError(exception.Errors[0])
-            .AddLocation(field)
+            .TryAddLocation(field)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
             .Build();
@@ -62,7 +62,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder
             .FromException(exception)
-            .AddLocation(field)
+            .TryAddLocation(field)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
             .Build();
@@ -75,7 +75,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnableToResolveTheAbstractType_Message, typeName)
-            .AddLocation(field)
+            .TryAddLocation(field)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotResolveAbstractType)
             .Build();

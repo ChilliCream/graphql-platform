@@ -5,7 +5,7 @@
       "locations": [
         {
           "line": 1,
-          "column": 24
+          "column": 29
         }
       ],
       "path": [
@@ -13,7 +13,7 @@
       ],
       "extensions": {
         "code": "HC0001",
-        "fieldCoordinate": "SomeQuery.fieldWithScalarInput(arg:)",
+        "coordinate": "SomeQuery.fieldWithScalarInput(arg:)",
         "responseName": "fieldWithScalarInput",
         "exception": {
           "message": "Boom",

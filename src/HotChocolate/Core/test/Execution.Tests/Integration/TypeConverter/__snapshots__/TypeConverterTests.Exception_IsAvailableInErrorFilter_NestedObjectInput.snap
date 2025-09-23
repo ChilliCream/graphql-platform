@@ -5,7 +5,7 @@
       "locations": [
         {
           "line": 1,
-          "column": 35
+          "column": 50
         }
       ],
       "path": [
@@ -13,7 +13,8 @@
       ],
       "extensions": {
         "code": "HC0001",
-        "fieldCoordinate": "ObjectWithIdInput.id",
+        "coordinate": "ObjectWithIdInput.id",
+        "inputPath": "arg.inner.id",
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"
