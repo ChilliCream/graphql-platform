@@ -428,20 +428,20 @@ internal sealed class ValueCompletion
     private bool TryCompleteAbstractValue(
         Selection selection,
         IType type,
-        JsonElement data,
+        SourceResultElement source,
         ErrorTrie? errorTrie,
         int depth,
-        ResultData parent)
+        CompositeResultElement target)
         => TryCompleteObjectValue(
             selection,
-            GetType(type, data),
-            data,
+            GetType(type, source),
+            source,
             errorTrie,
             depth,
-            parent);
+            target);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private IObjectTypeDefinition GetType(IType type, JsonElement data)
+    private IObjectTypeDefinition GetType(IType type, SourceResultElement data)
     {
         var namedType = type.NamedType();
 
@@ -450,7 +450,7 @@ internal sealed class ValueCompletion
             return objectType;
         }
 
-        var typeName = data.GetProperty(IntrospectionFieldNames.TypeNameSpan).GetString()!;
+        var typeName = data.GetProperty(IntrospectionFieldNames.TypeNameSpan).GetRequiredString();
         return _schema.Types.GetType<IObjectTypeDefinition>(typeName);
     }
 
