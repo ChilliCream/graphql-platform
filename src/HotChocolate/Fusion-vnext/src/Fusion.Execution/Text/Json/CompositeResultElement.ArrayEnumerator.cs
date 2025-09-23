@@ -1,6 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 using System.Collections;
 using System.Diagnostics;
 
@@ -16,9 +13,7 @@ public partial struct CompositeResultElement
     {
         private readonly CompositeResultElement _target;
         private int _curIdx;
-#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
         private readonly int _endIdxOrVersion;
-#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
 
         internal ArrayEnumerator(CompositeResultElement target, int currentIndex = -1)
         {
@@ -27,7 +22,7 @@ public partial struct CompositeResultElement
 
             Debug.Assert(target.TokenType == ElementTokenType.StartArray);
 
-            // _endIdxOrVersion = target._parent.GetEndIndex(_target._idx, includeEndElement: false);
+            _endIdxOrVersion = target._parent.GetEndIndex(_target._index);
         }
 
         /// <inheritdoc />
@@ -53,9 +48,9 @@ public partial struct CompositeResultElement
         /// </returns>
         public ArrayEnumerator GetEnumerator()
         {
-            ArrayEnumerator ator = this;
-            ator._curIdx = -1;
-            return ator;
+            var enumerator = this;
+            enumerator._curIdx = -1;
+            return enumerator;
         }
 
         /// <inheritdoc />
@@ -89,11 +84,11 @@ public partial struct CompositeResultElement
 
             if (_curIdx < 0)
             {
-                // _curIdx = _target._idx + JsonDocument.DbRow.Size;
+                _curIdx = _target._index + 1;
             }
             else
             {
-                // _curIdx = _target._parent.GetEndIndex(_curIdx, includeEndElement: true);
+                _curIdx = _target._parent.GetEndIndex(_curIdx);
             }
 
             return _curIdx < _endIdxOrVersion;

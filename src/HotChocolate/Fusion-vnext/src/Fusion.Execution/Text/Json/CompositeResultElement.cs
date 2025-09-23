@@ -97,6 +97,50 @@ public partial struct CompositeResultElement
 
     public bool IsNullOrInvalidated => throw new NotImplementedException();
 
+    public Path Path => throw new NotImplementedException();
+
+    /*
+     * public Path Path
+       {
+           get
+           {
+               if (_path is null)
+               {
+                   // todo : we should rent this.
+                   var stack = new Stack<ResultData>();
+                   var current = this;
+
+                   while (current is not null)
+                   {
+                       stack.Push(current);
+                       current = current.Parent;
+                   }
+
+                   var path = Path.Root;
+
+                   while (stack.TryPop(out var item))
+                   {
+                       if (item.Parent is null)
+                       {
+                           continue;
+                       }
+
+                       path = item.Parent switch
+                       {
+                           ObjectResult obj => path.Append(obj.Fields[item.ParentIndex].Selection.ResponseName),
+                           ListResult => path.Append(item.ParentIndex),
+                           _ => path
+                       };
+                   }
+
+                   _path = path;
+               }
+
+               return _path;
+           }
+       }
+     */
+
     public SelectionSet GetRequiredSelectionSet()
     {
         var selectionSet = SelectionSet;
@@ -1083,19 +1127,19 @@ public partial struct CompositeResultElement
     }
 
     /// <summary>
-    ///   Compares <paramref name="text" /> to the string value of this element.
+    /// Compares <paramref name="text" /> to the string value of this element.
     /// </summary>
     /// <param name="text">The text to compare against.</param>
     /// <returns>
-    ///   <see langword="true" /> if the string value of this element matches <paramref name="text"/>,
-    ///   <see langword="false" /> otherwise.
+    /// <see langword="true" /> if the string value of this element matches <paramref name="text"/>,
+    /// <see langword="false" /> otherwise.
     /// </returns>
     /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.String"/>.
+    /// This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.String"/>.
     /// </exception>
     /// <remarks>
-    ///   This method is functionally equal to doing an ordinal comparison of <paramref name="text" /> and
-    ///   the result of calling <see cref="GetString" />, but avoids creating the string instance.
+    /// This method is functionally equal to doing an ordinal comparison of <paramref name="text" /> and
+    /// the result of calling <see cref="GetString" />, but avoids creating the string instance.
     /// </remarks>
     public bool ValueEquals(string? text)
     {
@@ -1191,20 +1235,19 @@ public partial struct CompositeResultElement
         return _parent.GetPropertyRawValueAsString(_index);
     }
 
-    /*
     /// <summary>
-    ///   Get an enumerator to enumerate the values in the JSON array represented by this JsonElement.
+    /// Get an enumerator to enumerate the values in the JSON array represented by this JsonElement.
     /// </summary>
     /// <returns>
-    ///   An enumerator to enumerate the values in the JSON array represented by this JsonElement.
+    /// An enumerator to enumerate the values in the JSON array represented by this JsonElement.
     /// </returns>
     /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>.
+    /// This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>.
     /// </exception>
     /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
+    /// The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public JsonElement.ArrayEnumerator EnumerateArray()
+    public ArrayEnumerator EnumerateArray()
     {
         CheckValidInstance();
 
@@ -1221,9 +1264,8 @@ public partial struct CompositeResultElement
             };
         }
 
-        return new JsonElement.ArrayEnumerator(this);
+        return new ArrayEnumerator(this);
     }
-    */
 
     /// <summary>
     ///   Get an enumerator to enumerate the properties in the JSON object represented by this JsonElement.

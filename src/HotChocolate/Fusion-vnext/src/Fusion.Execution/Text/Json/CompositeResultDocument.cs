@@ -7,26 +7,30 @@ using static HotChocolate.Fusion.Text.Json.MetaDbMemory;
 
 namespace HotChocolate.Fusion.Text.Json;
 
-public sealed partial class CompositeResultDocument
+public sealed partial class CompositeResultDocument : IDisposable
 {
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
+    private readonly List<SourceResultDocument> _sources = [];
+    private readonly Operation _operation;
+    private readonly ulong _includeFlags;
     private MetaDb _metaDb;
-    private List<SourceResultDocument> _sources = [];
-    private Operation _operation;
-#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
     private bool _disposed;
-#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
 
-    public CompositeResultDocument(Operation operation)
+    public CompositeResultDocument(Operation operation, ulong includeFlags)
     {
         _metaDb = MetaDb.CreateForEstimatedRows(RowsPerChunk * 8);
         _operation =  operation;
+        _includeFlags = includeFlags;
 
         // we create the root data object.
         Data = CreateObject(0, operation.RootSelectionSet);
     }
 
     public CompositeResultElement Data { get; }
+
+    public CompositeResultElement Errors { get; } = default!;
+
+    public CompositeResultElement Extensions { get; } = default!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ElementTokenType GetElementTokenType(int index)
@@ -137,7 +141,10 @@ public sealed partial class CompositeResultDocument
 
         foreach (var selection in selectionSet.Selections)
         {
-            WriteEmptyProperty(index, selection);
+            if (selection.IsIncluded(_includeFlags))
+            {
+                WriteEmptyProperty(index, selection);
+            }
         }
 
         WriteEndObject();
@@ -245,6 +252,15 @@ public sealed partial class CompositeResultDocument
         if (expected != actual)
         {
             throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _metaDb.Dispose();
+            _disposed = true;
         }
     }
 }

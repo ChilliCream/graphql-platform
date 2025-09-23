@@ -244,7 +244,7 @@ public sealed partial class CompositeResultDocument
                         break;
                     }
 
-                    MetaDbMemory.Return(chunk);
+                    Return(chunk);
                 }
 
                 _chunks = [];

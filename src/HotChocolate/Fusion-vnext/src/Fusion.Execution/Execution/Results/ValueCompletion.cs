@@ -13,7 +13,6 @@ internal sealed class ValueCompletion
 {
     private readonly ISchemaDefinition _schema;
     private readonly IErrorHandler _errorHandler;
-    private readonly ResultPoolSession _resultPoolSession;
     private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly int _maxDepth;
     private readonly ulong _includeFlags;
@@ -22,19 +21,16 @@ internal sealed class ValueCompletion
     public ValueCompletion(
         ISchemaDefinition schema,
         IErrorHandler errorHandler,
-        ResultPoolSession resultPoolSession,
         ErrorHandlingMode errorHandlingMode,
         int maxDepth,
         ulong includeFlags,
         List<IError> errors)
     {
         ArgumentNullException.ThrowIfNull(schema);
-        ArgumentNullException.ThrowIfNull(resultPoolSession);
         ArgumentNullException.ThrowIfNull(errors);
 
         _schema = schema;
         _errorHandler = errorHandler;
-        _resultPoolSession = resultPoolSession;
         _errorHandlingMode = errorHandlingMode;
         _maxDepth = maxDepth;
         _includeFlags = includeFlags;
@@ -110,7 +106,7 @@ internal sealed class ValueCompletion
     /// <c>false</c>, if the execution needs to be halted.
     /// </returns>
     public bool BuildErrorResult(
-        ObjectResult objectResult,
+        CompositeResultElement element,
         ReadOnlySpan<string> responseNames,
         IError error,
         Path path)
