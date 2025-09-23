@@ -9,6 +9,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -24,7 +25,7 @@ internal sealed class FetchResultStore : IDisposable
     private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly ulong _includeFlags;
     private readonly ConcurrentStack<IDisposable> _memory = [];
-    private ObjectResult _root = null!;
+    private CompositeResultDocument _result;
     private ValueCompletion _valueCompletion = null!;
     private List<IError> _errors = null!;
     private bool _disposed;
@@ -46,6 +47,7 @@ internal sealed class FetchResultStore : IDisposable
         _operation = operation;
         _errorHandlingMode = errorHandlingMode;
         _includeFlags = includeFlags;
+        _result = new CompositeResultDocument(operation);
 
         Reset(resultPoolSession);
     }
@@ -53,8 +55,8 @@ internal sealed class FetchResultStore : IDisposable
     public void Reset(ResultPoolSession resultPoolSession)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        _root = resultPoolSession.RentObjectResult();
-        _root.Initialize(resultPoolSession, _operation.RootSelectionSet, _includeFlags);
+        _result = resultPoolSession.RentObjectResult();
+        _result.Initialize(resultPoolSession, _operation.RootSelectionSet, _includeFlags);
         _errors = [];
 
         _valueCompletion = new ValueCompletion(
@@ -67,7 +69,7 @@ internal sealed class FetchResultStore : IDisposable
             _errors);
     }
 
-    public ObjectResult Data => _root;
+    public ObjectResult Data => _result;
 
     public List<IError> Errors => _errors;
 
@@ -88,7 +90,7 @@ internal sealed class FetchResultStore : IDisposable
                 nameof(results));
         }
 
-        var dataElements = ArrayPool<JsonElement>.Shared.Rent(results.Length);
+        var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
         var errorTries = ArrayPool<ErrorTrie?>.Shared.Rent(results.Length);
         var dataElementsSpan = dataElements.AsSpan()[..results.Length];
         var errorTriesSpan = errorTries.AsSpan()[..results.Length];
@@ -150,12 +152,12 @@ internal sealed class FetchResultStore : IDisposable
                     continue;
                 }
 
-                if (_root.IsInvalidated)
+                if (_result.IsInvalidated)
                 {
                     return false;
                 }
 
-                result.MoveFieldTo(selection.ResponseName, _root);
+                result.MoveFieldTo(selection.ResponseName, _result);
             }
 
             return true;
@@ -177,26 +179,26 @@ internal sealed class FetchResultStore : IDisposable
 
             while (Unsafe.IsAddressLessThan(ref path, ref end))
             {
-                if (_root.IsInvalidated)
+                if (_result.Data.IsInvalidated)
                 {
                     return false;
                 }
 
-                var objectResult = path.IsRoot ? _root : GetStartObjectResult(path);
+                var element = path.IsRoot ? _result.Data : GetStartObjectResult(path);
 
 #pragma warning disable RCS1146
                 // disabled warning for readability of the condition.
-                if (objectResult is null || objectResult.IsInvalidated)
+                if (element is null || element.IsInvalidated)
                 {
                     goto AddErrors_Next;
                 }
 #pragma warning restore RCS1146
 
-                var canExecutionContinue = _valueCompletion.BuildErrorResult(objectResult, responseNames, error, path);
+                var canExecutionContinue = _valueCompletion.BuildErrorResult(element, responseNames, error, path);
 
                 if (!canExecutionContinue)
                 {
-                    _root.IsInvalidated = true;
+                    _result.IsInvalidated = true;
 
                     return false;
                 }
@@ -215,7 +217,7 @@ AddErrors_Next:
 
     private bool SaveSafe(
         ReadOnlySpan<SourceSchemaResult> results,
-        ReadOnlySpan<JsonElement> dataElements,
+        ReadOnlySpan<SourceResultElement> dataElements,
         ReadOnlySpan<ErrorTrie?> errorTries,
         ReadOnlySpan<string> responseNames)
     {
@@ -227,35 +229,30 @@ AddErrors_Next:
             ref var data = ref MemoryMarshal.GetReference(dataElements);
             ref var errorTrie = ref MemoryMarshal.GetReference(errorTries);
             ref var end = ref Unsafe.Add(ref result, results.Length);
+            var resultData = _result.Data;
 
             while (Unsafe.IsAddressLessThan(ref result, ref end))
             {
-                if (_root.IsInvalidated)
+                if (resultData.IsNullOrInvalidated)
                 {
                     return false;
                 }
 
-#pragma warning disable RCS1146
-                // disabled warning for readability of the condition
-                var objectResult = result.Path.IsRoot ? _root : GetStartObjectResult(result.Path);
-                if (objectResult is null || objectResult.IsInvalidated)
+                var element = result.Path.IsRoot ? resultData : GetStartObjectResult(result.Path);
+                if (element.IsNullOrInvalidated)
                 {
                     goto SaveSafe_Next;
                 }
-#pragma warning restore RCS1146
 
-                var selectionSet = result.Path.IsRoot ? _operation.RootSelectionSet : objectResult.SelectionSet;
                 var canExecutionContinue = _valueCompletion.BuildResult(
-                    selectionSet,
                     data,
                     errorTrie,
                     responseNames,
-                    objectResult);
+                    element);
 
                 if (!canExecutionContinue)
                 {
-                    _root.IsInvalidated = true;
-
+                    resultData.Invalidate();
                     return false;
                 }
 
@@ -293,7 +290,7 @@ SaveSafe_Next:
 
         try
         {
-            var current = new List<ObjectResult> { _root };
+            var current = new List<ObjectResult> { _result };
             var next = new List<ObjectResult>();
 
             for (var i = 0; i < selectionSet.Segments.Length; i++)
@@ -466,7 +463,7 @@ SaveSafe_Next:
         return buffer;
     }
 
-    private static JsonElement GetDataElement(SelectionPath sourcePath, JsonElement data)
+    private static SourceResultElement GetDataElement(SelectionPath sourcePath, SourceResultElement data)
     {
         if (sourcePath.IsRoot)
         {
@@ -540,74 +537,43 @@ SaveSafe_Next:
         return current;
     }
 
-    private ObjectResult? GetStartObjectResult(Path path)
+    private CompositeResultElement GetStartObjectResult(Path path)
     {
         var result = GetStartResult(path);
-
-        if (result is ObjectResult objectResult)
-        {
-            return objectResult;
-        }
-
-        return null;
+        return result.ValueKind is JsonValueKind.Object ? result : default;
     }
 
-    private ResultData? GetStartResult(Path path)
+    private CompositeResultElement GetStartResult(Path path)
     {
         if (path.IsRoot)
         {
-            return _root;
+            return _result.Data;
         }
 
         var parent = path.Parent;
-        var result = GetStartResult(parent);
+        var element = GetStartResult(parent);
+        var elementKind = element.ValueKind;
 
-        if (result is null)
+        if (elementKind is JsonValueKind.Null)
         {
-            return null;
+            return element;
         }
 
-        if (result is ObjectResult objectResult && path is NamePathSegment nameSegment)
+        if(elementKind is JsonValueKind.Object && path is NamePathSegment nameSegment)
         {
-            if (!objectResult.TryGetValue(nameSegment.Name, out var field))
-            {
-                return null;
-            }
-
-            return field switch
-            {
-                ObjectFieldResult objectFieldResult => objectFieldResult.Value,
-                ListFieldResult listFieldResult => listFieldResult.Value,
-                null => null,
-                _ => throw new InvalidOperationException($"The path segment '{parent}' does not exist in the data.")
-            };
+            return !element.TryGetProperty(nameSegment.Name, out var field) ? default : field;
         }
 
-        if (path is IndexerPathSegment indexSegment)
+        if (elementKind is JsonValueKind.Array && path is IndexerPathSegment indexSegment)
         {
-            switch (result)
+            // todo: we should introduce an optimized path with a single read of the metadb
+            if (element.GetArrayLength() <= indexSegment.Index)
             {
-                case NestedListResult listResult:
-                    if (listResult.Items.Count <= indexSegment.Index)
-                    {
-                        throw new InvalidOperationException(
-                            $"The path segment '{indexSegment}' does not exist in the data.");
-                    }
-
-                    return listResult.Items[indexSegment.Index];
-
-                case ObjectListResult listResult:
-                    if (listResult.Items.Count <= indexSegment.Index)
-                    {
-                        throw new InvalidOperationException(
-                            $"The path segment '{indexSegment}' does not exist in the data.");
-                    }
-
-                    return listResult.Items[indexSegment.Index];
-
-                case null:
-                    return null;
+                throw new InvalidOperationException(
+                    $"The path segment '{indexSegment}' does not exist in the data.");
             }
+
+            return element[indexSegment.Index];
         }
 
         throw new InvalidOperationException(

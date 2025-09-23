@@ -3,6 +3,7 @@ using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -49,12 +50,13 @@ internal sealed class ValueCompletion
     /// <c>false</c>, if the execution needs to be halted.
     /// </returns>
     public bool BuildResult(
-        SelectionSet selectionSet,
-        JsonElement data,
+        SourceResultElement data,
         ErrorTrie? errorTrie,
         ReadOnlySpan<string> responseNames,
-        ObjectResult objectResult)
+        CompositeResultElement result)
     {
+        var selectionSet = result.GetRequiredSelectionSet();
+
         if (data is not { ValueKind: JsonValueKind.Object })
         {
             var error = errorTrie?.FindFirstError() ??
@@ -62,7 +64,7 @@ internal sealed class ValueCompletion
                     .SetMessage("Unexpected Execution Error")
                     .Build();
 
-            return BuildErrorResult(objectResult, responseNames, error, objectResult.Path);
+            return BuildErrorResult(result, responseNames, error, result.Path);
         }
 
         foreach (var property in data.EnumerateObject())
@@ -77,7 +79,7 @@ internal sealed class ValueCompletion
                 continue;
             }
 
-            var fieldResult = objectResult[selection.ResponseName];
+            var fieldResult = result[selection.ResponseName];
 
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
@@ -87,7 +89,7 @@ internal sealed class ValueCompletion
                 switch (_errorHandlingMode)
                 {
                     case ErrorHandlingMode.Propagate:
-                        var didPropagateToRoot = PropagateNullValues(objectResult);
+                        var didPropagateToRoot = PropagateNullValues(result);
                         return !didPropagateToRoot;
 
                     case ErrorHandlingMode.Halt:

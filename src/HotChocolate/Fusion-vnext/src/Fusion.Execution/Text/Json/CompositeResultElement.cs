@@ -93,6 +93,10 @@ public partial struct CompositeResultElement
         }
     }
 
+    public bool IsInvalidated => throw new NotImplementedException();
+
+    public bool IsNullOrInvalidated => throw new NotImplementedException();
+
     public SelectionSet GetRequiredSelectionSet()
     {
         var selectionSet = SelectionSet;
@@ -116,6 +120,8 @@ public partial struct CompositeResultElement
 
         return selection;
     }
+
+    public void Invalidate() => throw new NotImplementedException();
 
     /// <summary>
     /// Get the number of values contained within the current array value.
