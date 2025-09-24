@@ -24,7 +24,7 @@ public interface ISelection
     /// its declaring operation. This ID is stable and can be used for caching
     /// and optimization purposes.
     /// </value>
-    uint Id { get; }
+    int Id { get; }
 
     /// <summary>
     /// Gets the response name for this selection.

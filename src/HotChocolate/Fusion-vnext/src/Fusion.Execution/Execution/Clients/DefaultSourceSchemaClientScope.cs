@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using HotChocolate.Features;
+using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;

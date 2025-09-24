@@ -1,14 +1,32 @@
+using System.Buffers;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
+#if FUSION
+using System.IO.Pipelines;
+using HotChocolate.Transport;
+using HotChocolate.Fusion.Text.Json;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
 /// <summary>
 /// Represents a GraphQL over HTTP response.
 /// </summary>
 public sealed class GraphQLHttpResponse : IDisposable
 {
+#if FUSION
+    private static readonly StreamPipeReaderOptions s_options = new(
+        pool: MemoryPool<byte>.Shared,
+        bufferSize: 4096,
+        minimumReadSize: 1,
+        leaveOpen: true,
+        useZeroByteReads: true);
+#endif
     private readonly HttpResponseMessage _message;
 
     /// <summary>
@@ -92,7 +110,11 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// A <see cref="ValueTask{TResult}"/> that represents the asynchronous read operation
     /// to read the <see cref="OperationResult"/> from the underlying <see cref="HttpResponseMessage"/>.
     /// </returns>
+#if FUSION
+    public ValueTask<SourceResultDocument> ReadAsResultAsync(CancellationToken cancellationToken = default)
+#else
     public ValueTask<OperationResult> ReadAsResultAsync(CancellationToken cancellationToken = default)
+#endif
     {
         var contentType = _message.Content.Headers.ContentType;
 
@@ -116,7 +138,11 @@ public sealed class GraphQLHttpResponse : IDisposable
         throw new InvalidOperationException("Received a successful response with an unexpected content type.");
     }
 
+#if FUSION
+    private async ValueTask<SourceResultDocument> ReadAsResultInternalAsync(string? charSet, CancellationToken ct)
+#else
     private async ValueTask<OperationResult> ReadAsResultInternalAsync(string? charSet, CancellationToken ct)
+#endif
     {
         await using var contentStream = await _message.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
 
@@ -128,6 +154,71 @@ public sealed class GraphQLHttpResponse : IDisposable
             stream = HttpTransportUtilities.GetTranscodingStream(contentStream, sourceEncoding);
         }
 
+#if FUSION
+        // we try and read the first chunk into a single chunk.
+        var reader = PipeReader.Create(stream, s_options);
+        var currentChunk = JsonMemory.Rent(); // 128KB chunk
+        var currentChunkPosition = 0;
+        List<byte[]>? chunks = null;
+
+        try
+        {
+            while (true)
+            {
+                var result = await reader.ReadAsync(ct);
+                var buffer = result.Buffer;
+
+                if (buffer.IsEmpty && result.IsCompleted)
+                {
+                    break;
+                }
+
+                // Process each segment in the buffer
+                foreach (var segment in buffer)
+                {
+                    var segmentSpan = segment.Span;
+                    var segmentOffset = 0;
+
+                    while (segmentOffset < segmentSpan.Length)
+                    {
+                        var spaceInCurrentChunk = JsonMemory.ChunkSize - currentChunkPosition;
+                        var bytesToCopy = Math.Min(spaceInCurrentChunk, segmentSpan.Length - segmentOffset);
+
+                        // we copy the data we have into the current chunk.
+                        var chunkSlice = currentChunk.AsSpan(currentChunkPosition);
+                        segmentSpan.Slice(segmentOffset, bytesToCopy).CopyTo(chunkSlice);
+                        currentChunkPosition += bytesToCopy;
+                        segmentOffset += bytesToCopy;
+
+                        // if the current chunk is full, we need to get a new one
+                        // and store the chunk in the chunk list
+                        if (currentChunkPosition == JsonMemory.ChunkSize)
+                        {
+                            chunks ??= new List<byte[]>();
+                            chunks.Add(currentChunk);
+                            currentChunk = JsonMemory.Rent();
+                            currentChunkPosition = 0;
+                        }
+                    }
+                }
+
+                reader.AdvanceTo(buffer.End);
+            }
+
+            // if we do not have a chunk list everything has fit into out initial chunk.
+            // this means we do not need to allocate any memory and can use the optimized parse.
+            if (chunks is null)
+            {
+                return SourceResultDocument.Parse(currentChunk, size: currentChunkPosition);
+            }
+
+            return SourceResultDocument.Parse(chunks.ToArray(), currentChunkPosition);
+        }
+        finally
+        {
+            await reader.CompleteAsync();
+        }
+#else
         var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
 
         try
@@ -139,6 +230,7 @@ public sealed class GraphQLHttpResponse : IDisposable
             document.Dispose();
             throw;
         }
+#endif
     }
 
     /// <summary>
@@ -149,7 +241,11 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// read operation to read the stream of <see cref="OperationResult"/>s from the underlying
     /// <see cref="HttpResponseMessage"/>.
     /// </returns>
+#if FUSION
+    public IAsyncEnumerable<SourceResultDocument> ReadAsResultStreamAsync()
+#else
     public IAsyncEnumerable<OperationResult> ReadAsResultStreamAsync()
+#endif
     {
         var contentType = _message.Content.Headers.ContentType;
 

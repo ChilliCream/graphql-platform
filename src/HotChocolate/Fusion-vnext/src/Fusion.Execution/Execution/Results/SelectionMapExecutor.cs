@@ -1,5 +1,7 @@
+using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -8,7 +10,7 @@ namespace HotChocolate.Fusion.Execution.Results;
 internal static class ResultDataMapper
 {
     public static IValueNode? Map(
-        ObjectResult result,
+        CompositeResultElement result,
         IValueSelectionNode valueSelection,
         ISchemaDefinition schema,
         ref PooledArrayWriter? writer)
@@ -61,24 +63,25 @@ internal static class ResultDataMapper
     private static IValueNode? Visit(PathNode node, Context context)
     {
         var result = ResolvePath(context.Schema, context.Result, node);
+        var resultValueKind = result.ValueKind;
 
-        if (result is null)
+        if (resultValueKind is JsonValueKind.Undefined)
         {
             return null;
         }
 
         // Note: to capture data from the introspection
         // system we would need to also cover raw field results.
-        if (result is LeafFieldResult field)
+        if (result.Selection is { IsLeaf: true })
         {
-            if (field.HasNullValue)
+            if (resultValueKind is JsonValueKind.Null)
             {
                 return NullValueNode.Default;
             }
 
             context.Writer ??= new PooledArrayWriter();
             var parser = new JsonValueParser(buffer: context.Writer);
-            return parser.Parse(field.Value);
+            return parser.Parse(result.GetRawValue().Span);
         }
 
         throw new InvalidSelectionMapPathException(node);
@@ -86,7 +89,10 @@ internal static class ResultDataMapper
 
     private static IValueNode? Visit(ObjectValueSelectionNode node, Context context)
     {
-        if (context.Result is not ObjectResult)
+        var result = context.Result;
+        var resultValueKind = result.ValueKind;
+
+        if (resultValueKind is not JsonValueKind.Object)
         {
             throw new InvalidOperationException("Only object results are supported.");
         }
@@ -114,104 +120,81 @@ internal static class ResultDataMapper
     private static IValueNode? Visit(PathObjectValueSelectionNode node, Context context)
     {
         var result = ResolvePath(context.Schema, context.Result, node.Path);
+        var resultValueKind = result.ValueKind;
 
-        if (result is null)
+        if (resultValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
         {
             return null;
         }
 
-        if (result is not ObjectFieldResult obj)
+        if (resultValueKind is not JsonValueKind.Object)
         {
             throw new InvalidOperationException("Only object results are supported.");
         }
 
-        return Visit(node.ObjectValueSelection, context.WithResult(obj));
+        return Visit(node.ObjectValueSelection, context.WithResult(result));
     }
 
     private static IValueNode? Visit(ListValueSelectionNode node, Context context)
     {
-        switch (context.Result)
+        var result = context.Result;
+        var resultValueKind = result.ValueKind;
+
+        if (resultValueKind is not JsonValueKind.Array)
         {
-            case ObjectListResult listResult:
+            return null;
+        }
+
+        var items = new List<IValueNode>();
+
+        foreach (var item in result.EnumerateArray())
+        {
+            if (item.ValueKind is JsonValueKind.Null)
             {
-                var items = new List<IValueNode>();
-
-                foreach (var item in listResult.Items)
-                {
-                    if (item is null)
-                    {
-                        items.Add(NullValueNode.Default);
-                        continue;
-                    }
-
-                    var value = Visit(node.ElementSelection, context.WithResult(item));
-
-                    if (value is null)
-                    {
-                        return null;
-                    }
-
-                    items.Add(value);
-                }
-
-                return new ListValueNode(items);
+                items.Add(NullValueNode.Default);
+                continue;
             }
 
-            case NestedListResult listResult:
+            var value = Visit(node.ElementSelection, context.WithResult(item));
+
+            if (value is null)
             {
-                var items = new List<IValueNode>();
-
-                foreach (var item in listResult.Items)
-                {
-                    if (item is null)
-                    {
-                        items.Add(NullValueNode.Default);
-                        continue;
-                    }
-
-                    var value = Visit(node.ElementSelection, context.WithResult(item));
-
-                    if (value is null)
-                    {
-                        return null;
-                    }
-
-                    items.Add(value);
-                }
-
-                return new ListValueNode(items);
+                return null;
             }
+
+            items.Add(value);
+        }
+
+        return new ListValueNode(items);
+    }
+
+    private static IValueNode? Visit(PathListValueSelectionNode node, Context context)
+    {
+        var result = ResolvePath(context.Schema, context.Result, node.Path);
+        var resultValueKind = result.ValueKind;
+
+        switch (resultValueKind)
+        {
+            case JsonValueKind.Undefined:
+                return null;
+
+            case JsonValueKind.Null:
+                return NullValueNode.Default;
+
+            case JsonValueKind.Array:
+                return Visit(node.ListValueSelection, context.WithResult(result));
 
             default:
                 return null;
         }
     }
 
-    private static IValueNode? Visit(PathListValueSelectionNode node, Context context)
-    {
-        var result = ResolvePath(context.Schema, context.Result, node.Path);
-
-        if (result is null)
-        {
-            return null;
-        }
-
-        if (result is ListFieldResult listField)
-        {
-            return listField.Value is null
-                ? NullValueNode.Default
-                : Visit(node.ListValueSelection, context.WithResult(listField.Value));
-        }
-
-        return null;
-    }
-
-    private static ResultData? ResolvePath(
+    private static CompositeResultElement ResolvePath(
         ISchemaDefinition schema,
-        ResultData result,
+        CompositeResultElement result,
         PathNode path)
     {
-        if (result is not ObjectResult obj)
+        if (result.ValueKind is JsonValueKind.Object)
         {
             throw new InvalidOperationException("Only object results are supported.");
         }
@@ -220,41 +203,44 @@ internal static class ResultDataMapper
         {
             var type = schema.Types.GetType<IOutputTypeDefinition>(path.TypeName.Value);
 
-            if (!type.IsAssignableFrom(obj.SelectionSet.Type))
+            if (!type.IsAssignableFrom(result.GetRequiredSelectionSet().Type))
             {
-                return null;
+                return default;
             }
         }
 
         var currentSegment = path.PathSegment;
-        var currentResult = obj;
+        var currentResult = result;
+        var currentValueKind = result.ValueKind;
 
-        while (currentSegment is not null && currentResult is not null)
+        while (currentSegment is not null && currentValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined)
         {
-            if (!currentResult.TryGetValue(currentSegment.FieldName.Value, out var fieldResult))
+            if (!currentResult.TryGetProperty(currentSegment.FieldName.Value, out var fieldResult))
             {
-                return null;
+                return default;
             }
 
-            if (fieldResult.HasNullValue)
+            var fieldResultValueKind = fieldResult.ValueKind;
+            if (fieldResultValueKind is JsonValueKind.Null)
             {
-                return null;
+                return default;
             }
 
             if (currentSegment.TypeName is not null)
             {
-                if (fieldResult is not ObjectFieldResult objectFieldResult)
+                if (fieldResultValueKind is not JsonValueKind.Object)
                 {
                     throw new InvalidSelectionMapPathException(path);
                 }
 
-                currentResult = objectFieldResult.Value;
+                currentResult = fieldResult;
+                currentValueKind = fieldResultValueKind;
 
                 var type = schema.Types.GetType<IOutputTypeDefinition>(currentSegment.TypeName.Value);
 
-                if (!type.IsAssignableFrom(objectFieldResult.Value!.SelectionSet.Type))
+                if (!type.IsAssignableFrom(currentResult.GetRequiredSelectionSet().Type))
                 {
-                    return null;
+                    return default;
                 }
 
                 currentSegment = currentSegment.PathSegment;
@@ -263,12 +249,12 @@ internal static class ResultDataMapper
 
             if (currentSegment.PathSegment is not null)
             {
-                if (fieldResult is not ObjectFieldResult objectFieldResult)
+                if (fieldResultValueKind is not JsonValueKind.Object)
                 {
                     throw new InvalidSelectionMapPathException(path);
                 }
 
-                currentResult = objectFieldResult.Value;
+                currentResult = fieldResult;
                 currentSegment = currentSegment.PathSegment;
                 continue;
             }
@@ -283,7 +269,7 @@ internal static class ResultDataMapper
     {
         private readonly ref PooledArrayWriter? _writer;
 
-        public Context(ISchemaDefinition schema, ResultData result, ref PooledArrayWriter? writer)
+        public Context(ISchemaDefinition schema, CompositeResultElement result, ref PooledArrayWriter? writer)
         {
             Schema = schema;
             Result = result;
@@ -292,11 +278,11 @@ internal static class ResultDataMapper
 
         public ISchemaDefinition Schema { get; }
 
-        public ResultData Result { get; }
+        public CompositeResultElement Result { get; }
 
         public ref PooledArrayWriter? Writer => ref _writer;
 
-        public Context WithResult(ResultData result)
+        public Context WithResult(CompositeResultElement result)
             => new(Schema, result, ref _writer);
     }
 }

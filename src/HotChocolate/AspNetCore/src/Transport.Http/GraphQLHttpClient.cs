@@ -1,4 +1,20 @@
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using HotChocolate.Buffers;
+using HotChocolate.Language;
+using HotChocolate.Transport;
+#if FUSION
+using HotChocolate.Transport.Http;
+#endif
+using HotChocolate.Transport.Serialization;
+using static System.Net.Http.HttpCompletionOption;
+
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
 /// <summary>
 /// The interface for GraphQL over HTTP client implementations.

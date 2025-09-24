@@ -53,18 +53,23 @@ internal sealed class __Field : ITypeResolverInterceptor
     {
         var field = context.Parent<IOutputFieldDefinition>();
         var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
-        var list = context.ResultPool.RentObjectListResult();
-        context.FieldResult.SetNextValue(list);
+        var count = includeDeprecated
+            ? field.Arguments.Count
+            : field.Arguments.Count(t => !t.IsDeprecated);
+        var list = context.FieldResult.SetListValue(count);
 
-        foreach (var value in field.Arguments)
+        var index = 0;
+        foreach (var element in list.EnumerateArray())
         {
-            if (!includeDeprecated && value.IsDeprecated)
+            var argument = field.Arguments[index++];
+
+            if (!includeDeprecated && argument.IsDeprecated)
             {
                 continue;
             }
 
-            context.AddRuntimeResult(value);
-            list.SetNextValue(context.RentInitializedObjectResult());
+            context.AddRuntimeResult(argument);
+            element.SetObjectValue();
         }
     }
 
@@ -72,7 +77,7 @@ internal sealed class __Field : ITypeResolverInterceptor
     {
         var field = context.Parent<IOutputFieldDefinition>();
         context.AddRuntimeResult(field.Type);
-        context.FieldResult.SetNextValue(context.RentInitializedObjectResult());
+        context.FieldResult.SetObjectValue();
     }
 
     public static void IsDeprecated(FieldContext context)

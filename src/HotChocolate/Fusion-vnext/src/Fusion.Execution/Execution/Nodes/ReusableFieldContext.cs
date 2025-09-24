@@ -1,6 +1,6 @@
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -10,7 +10,6 @@ internal sealed class ReusableFieldContext(
     ISchemaDefinition schema,
     IVariableValueCollection variableValues,
     ulong includeFlags,
-    ResultPoolSession resultPool,
     PooledArrayWriter memory)
     : FieldContext
 {
@@ -18,9 +17,7 @@ internal sealed class ReusableFieldContext(
     private readonly List<object?> _runtimeResults = [];
     private Selection _selection = null!;
     private object? _parent;
-    private FieldResult _result = null!;
-
-    public override ResultPoolSession ResultPool => resultPool;
+    private SourceResultElementBuilder _result = default!;
 
     public override PooledArrayWriter Memory => memory;
 
@@ -28,7 +25,7 @@ internal sealed class ReusableFieldContext(
 
     public override Selection Selection => _selection;
 
-    public override FieldResult FieldResult => _result;
+    public override SourceResultElementBuilder FieldResult => _result;
 
     public List<object?> RuntimeResults => _runtimeResults;
 
@@ -58,7 +55,7 @@ internal sealed class ReusableFieldContext(
         _runtimeResults.Add(result);
     }
 
-    public void Initialize(object? parent, Selection selection, FieldResult result)
+    public void Initialize(object? parent, Selection selection, SourceResultElementBuilder result)
     {
         _parent = parent;
         _result = result;

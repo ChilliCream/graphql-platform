@@ -1,16 +1,19 @@
 using System.Collections.Immutable;
 using System.Net.Http.Headers;
-using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Language;
 using HotChocolate.Transport;
-using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
 public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 {
+    private static ReadOnlySpan<byte> VariableIndex => "variableIndex"u8;
+
     private readonly GraphQLHttpClient _client;
     private readonly SourceSchemaHttpClientConfiguration _configuration;
     private bool _disposed;
@@ -155,12 +158,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             {
                 await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
                 {
-                    var sourceSchemaResult = new SourceSchemaResult(
-                        Path.Root,
-                        result,
-                        result.Data,
-                        result.Errors,
-                        result.Extensions);
+                    var sourceSchemaResult = new SourceSchemaResult(Path.Root, result);
 
                     configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
@@ -174,12 +172,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     case 0:
                     {
                         var result = await response.ReadAsResultAsync(cancellationToken);
-                        var sourceSchemaResult = new SourceSchemaResult(
-                            Path.Root,
-                            result,
-                            result.Data,
-                            result.Errors,
-                            result.Extensions);
+                        var sourceSchemaResult = new SourceSchemaResult(Path.Root, result);
 
                         configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
@@ -190,12 +183,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     case 1:
                     {
                         var result = await response.ReadAsResultAsync(cancellationToken);
-                        var sourceSchemaResult = new SourceSchemaResult(
-                            variables[0].Path,
-                            result,
-                            result.Data,
-                            result.Errors,
-                            result.Extensions);
+                        var sourceSchemaResult = new SourceSchemaResult(variables[0].Path, result);
 
                         configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
@@ -210,27 +198,17 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                         await foreach (var result in response.ReadAsResultStreamAsync()
                             .WithCancellation(cancellationToken))
                         {
-                            if (result.VariableIndex is null)
+                            if (!result.Root.TryGetProperty(VariableIndex, out var variableIndex)
+                                || variableIndex.ValueKind is not JsonValueKind.Number)
                             {
-                                errorResult = new SourceSchemaResult(
-                                    variables[0].Path,
-                                    result,
-                                    result.Data,
-                                    result.Errors,
-                                    result.Extensions);
-
+                                errorResult = new SourceSchemaResult(variables[0].Path, result);
                                 configuration.OnSourceSchemaResult?.Invoke(context, node, errorResult);
                                 break;
                             }
 
-                            var index = result.VariableIndex!.Value;
+                            var index = variableIndex.GetInt32();
                             var (path, _) = variables[index];
-                            var sourceSchemaResult = new SourceSchemaResult(
-                                path,
-                                result,
-                                result.Data,
-                                result.Errors,
-                                result.Extensions);
+                            var sourceSchemaResult = new SourceSchemaResult(path, result);
 
                             configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
@@ -244,12 +222,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                             for (var i = 1; i < variables.Length; i++)
                             {
                                 var (path, _) = variables[i];
-                                yield return new SourceSchemaResult(
-                                    path,
-                                    Disposable.Empty,
-                                    default,
-                                    default,
-                                    default);
+                                yield return new SourceSchemaResult(path, SourceResultDocument.CreateEmptyObject());
                             }
                         }
 
