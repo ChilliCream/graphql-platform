@@ -93,6 +93,7 @@ public abstract partial class FusionTestBase
                 yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.EntityKey));
                 yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Require));
                 yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Is));
+                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Shareable));
 
                 _registeredTypes = true;
             }

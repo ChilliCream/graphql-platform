@@ -717,6 +717,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; must be shareable..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidFieldSharing {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidFieldSharing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid GraphQL in source schema. Exception message: {0}..
         /// </summary>
         internal static string LogEntryHelper_InvalidGraphQL {
@@ -726,7 +735,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The interface field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as shareable..
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as shareable..
         /// </summary>
         internal static string LogEntryHelper_InvalidShareableUsage {
             get {

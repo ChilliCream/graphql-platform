@@ -41,7 +41,7 @@ public abstract class FusionTestBase : IDisposable
               id: ID!
             }
 
-            type PageInfo {
+            type PageInfo @shareable {
               hasNextPage: Boolean!
               hasPreviousPage: Boolean!
               startCursor: String
@@ -49,8 +49,8 @@ public abstract class FusionTestBase : IDisposable
             }
 
             type Query {
-              node("ID of the object." id: ID!): Node @lookup
-              nodes("The list of node IDs." ids: [ID!]!): [Node]!
+              node("ID of the object." id: ID!): Node @lookup @shareable
+              nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable
               userById(id: ID!): User @lookup
               userByUsername(username: String!): User @lookup
               users(first: Int after: String last: Int before: String): UsersConnection
@@ -58,7 +58,7 @@ public abstract class FusionTestBase : IDisposable
 
             type User implements Node {
               id: ID!
-              name: String!
+              name: String! @shareable
               birthdate: String!
               username: String!
             }
@@ -96,8 +96,8 @@ public abstract class FusionTestBase : IDisposable
             }
 
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
               inventoryItemById(id: ID!): InventoryItem @lookup
               productByIdAsync(id: ID!): Product @lookup @internal
             }
@@ -140,14 +140,14 @@ public abstract class FusionTestBase : IDisposable
               order: Order
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
 
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
-              orderById(id: ID!): Order @lookup
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+              orderById(id: ID!): Order @lookup @shareable
               userById(id: ID!): User! @lookup @internal
             }
 
@@ -195,10 +195,10 @@ public abstract class FusionTestBase : IDisposable
             }
 
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
               paymentById(id: ID!): Payment @lookup
-              orderById(id: ID!): Order! @lookup
+              orderById(id: ID!): Order! @lookup @shareable
             }
 
             input CreatePaymentInput {
@@ -225,7 +225,7 @@ public abstract class FusionTestBase : IDisposable
               uploadProductPicture(input: UploadProductPictureInput!): UploadProductPicturePayload!
             }
 
-            type PageInfo {
+            type PageInfo @shareable {
               hasNextPage: Boolean!
               hasPreviousPage: Boolean!
               startCursor: String
@@ -260,8 +260,8 @@ public abstract class FusionTestBase : IDisposable
             }
 
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
               productById(id: ID!): Product @lookup
               products(first: Int after: String last: Int before: String): ProductsConnection
             }
@@ -296,7 +296,7 @@ public abstract class FusionTestBase : IDisposable
               createReview(input: CreateReviewInput!): CreateReviewPayload!
             }
 
-            type PageInfo {
+            type PageInfo @shareable {
               hasNextPage: Boolean!
               hasPreviousPage: Boolean!
               startCursor: String
@@ -320,8 +320,8 @@ public abstract class FusionTestBase : IDisposable
             }
 
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
               productById(id: ID!): Product! @lookup @internal
               reviewById(id: ID!): Review @lookup
               userById(id: ID!): User @lookup @internal
@@ -343,7 +343,7 @@ public abstract class FusionTestBase : IDisposable
             type User {
               reviews(first: Int after: String last: Int before: String): UserReviewsConnection
               id: ID!
-              name: String!
+              name: String! @shareable
             }
 
             type UserReviewsConnection {

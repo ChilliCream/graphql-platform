@@ -1,9 +1,10 @@
-using System.Collections.Immutable;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
+using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 
 namespace HotChocolate.Fusion;
 
@@ -21,6 +22,11 @@ internal sealed class SourceSchemaPreprocessor(
         if (_options.ApplyInferredKeyDirectives)
         {
             ApplyInferredKeyDirectives();
+        }
+
+        if (_options.InheritInterfaceKeys)
+        {
+            InheritInterfaceKeys();
         }
 
         return CompositionResult.Success();
@@ -41,16 +47,43 @@ internal sealed class SourceSchemaPreprocessor(
             var fieldType = lookupFieldDefinition.Type.AsTypeDefinition();
             var possibleTypes = schema.GetPossibleTypes(fieldType);
             var lookupMap = lookupFieldDefinition.GetFusionLookupMap();
-            var keyFields = lookupFieldDefinition.GetKeyFields(lookupMap, schema);
 
-            foreach (var possibleType in possibleTypes)
+            try
             {
-                possibleType.ApplyKeyDirective(keyFields);
+                var keyFields = lookupFieldDefinition.GetKeyFields(lookupMap, schema);
+
+                foreach (var possibleType in possibleTypes)
+                {
+                    possibleType.ApplyKeyDirective(keyFields);
+                }
+
+                if (fieldType is MutableInterfaceTypeDefinition interfaceType)
+                {
+                    interfaceType.ApplyKeyDirective(keyFields);
+                }
             }
-
-            if (fieldType is MutableInterfaceTypeDefinition interfaceType)
+            catch (FieldSelectionMapSyntaxException)
             {
-                interfaceType.ApplyKeyDirective(keyFields);
+                // Validated later.
+            }
+        }
+    }
+
+    /// <summary>
+    /// Applies key directives to types based on the keys defined on the interfaces that they
+    /// implement.
+    /// </summary>
+    private void InheritInterfaceKeys()
+    {
+        foreach (var complexType in schema.Types.OfType<MutableComplexTypeDefinition>())
+        {
+            foreach (var interfaceType in complexType.Implements)
+            {
+                foreach (var keyDirective in interfaceType.GetKeyDirectives())
+                {
+                    var fieldsArgument = keyDirective.Arguments[ArgumentNames.Fields].Value!;
+                    complexType.ApplyKeyDirective((string)fieldsArgument);
+                }
             }
         }
     }

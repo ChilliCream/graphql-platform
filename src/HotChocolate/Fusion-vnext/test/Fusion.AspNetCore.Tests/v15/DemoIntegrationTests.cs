@@ -30,7 +30,7 @@ public class DemoIntegrationTests : FusionTestBase
               id: ID!
             }
 
-            interface Node {
+            interface Node @key(fields: "id") {
               id: ID!
             }
             """);
@@ -2127,8 +2127,8 @@ public class DemoIntegrationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
             }
 
             interface Node {
@@ -2144,8 +2144,8 @@ public class DemoIntegrationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
               userBySlug(slug: String!): User
             }
 
@@ -2162,8 +2162,8 @@ public class DemoIntegrationTests : FusionTestBase
             "C",
             """
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
             }
 
             interface Node {
@@ -2239,8 +2239,8 @@ public class DemoIntegrationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
             }
 
             interface Node {
@@ -2256,9 +2256,9 @@ public class DemoIntegrationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               # TODO: This will not work like this
-              nodes(ids: [ID!]!): [Node]! @null(atIndex: 1)
+              nodes(ids: [ID!]!): [Node]! @null(atIndex: 1) @shareable
               userBySlug(slug: String!): User
             }
 
@@ -2275,8 +2275,8 @@ public class DemoIntegrationTests : FusionTestBase
             "C",
             """
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
             }
 
             interface Node {
@@ -2352,8 +2352,8 @@ public class DemoIntegrationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
             }
 
             interface Node {
@@ -2369,8 +2369,8 @@ public class DemoIntegrationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
               userBySlug(slug: String!): User
             }
 
@@ -2387,8 +2387,8 @@ public class DemoIntegrationTests : FusionTestBase
             "C",
             """
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
             }
 
             interface Node {
@@ -2475,7 +2475,7 @@ public class DemoIntegrationTests : FusionTestBase
 
             type ProductAvailability implements Node {
               id: ID!
-              sharedLinked: ProductAvailabilityMail!
+              sharedLinked: ProductAvailabilityMail! @shareable
             }
 
             type ProductAvailabilityMail {
@@ -2483,9 +2483,9 @@ public class DemoIntegrationTests : FusionTestBase
             }
 
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               productById(id: ID!): Product @lookup
-              productAvailabilityById(id: ID!): ProductAvailability @lookup
+              productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
             }
             """);
 
@@ -2498,7 +2498,7 @@ public class DemoIntegrationTests : FusionTestBase
 
             type ProductAvailability implements Node {
               id: ID!
-              sharedLinked: ProductAvailabilityMail!
+              sharedLinked: ProductAvailabilityMail! @shareable
             }
 
             type ProductAvailabilityMail {
@@ -2506,8 +2506,8 @@ public class DemoIntegrationTests : FusionTestBase
             }
 
             type Query {
-              node("ID of the object." id: ID!): Node @lookup
-              productAvailabilityById(id: ID!): ProductAvailability @lookup
+              node("ID of the object." id: ID!): Node @lookup @shareable
+              productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
             }
             """);
 
@@ -2560,17 +2560,17 @@ public class DemoIntegrationTests : FusionTestBase
 
             type ProductAvailability implements Node {
               id: ID!
-              sharedLinked: ProductAvailabilityMail!
+              sharedLinked: ProductAvailabilityMail! @shareable
             }
 
             type ProductAvailabilityMail {
-              sharedScalar: String!
+              sharedScalar: String! @shareable
             }
 
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               productById(id: ID!): Product @lookup
-              productAvailabilityById(id: ID!): ProductAvailability @lookup
+              productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
             }
             """);
 
@@ -2582,19 +2582,19 @@ public class DemoIntegrationTests : FusionTestBase
             }
 
             type ProductAvailability implements Node {
-              sharedLinked: ProductAvailabilityMail!
+              sharedLinked: ProductAvailabilityMail! @shareable
               subgraph2Only: Boolean!
               id: ID!
             }
 
             type ProductAvailabilityMail {
               subgraph2Only: Boolean!
-              sharedScalar: String!
+              sharedScalar: String! @shareable
             }
 
             type Query {
-              node(id: ID!): Node @lookup
-              productAvailabilityById(id: ID!): ProductAvailability @lookup
+              node(id: ID!): Node @lookup @shareable
+              productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
             }
             """);
 
@@ -2649,19 +2649,19 @@ public class DemoIntegrationTests : FusionTestBase
 
             type ProductAvailability implements Node {
               id: ID!
-              sharedLinked: ProductAvailabilityMail!
+              sharedLinked: ProductAvailabilityMail! @shareable
               subgraph1Only: Boolean!
             }
 
             type ProductAvailabilityMail {
-              sharedScalar: String!
+              sharedScalar: String! @shareable
               subgraph1Only: String!
             }
 
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               productById(id: ID!): Product @lookup
-              productAvailabilityById(id: ID!): ProductAvailability @lookup
+              productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
             }
             """);
 
@@ -2673,19 +2673,19 @@ public class DemoIntegrationTests : FusionTestBase
             }
 
             type ProductAvailability implements Node {
-              sharedLinked: ProductAvailabilityMail!
+              sharedLinked: ProductAvailabilityMail! @shareable
               subgraph2Only: Boolean!
               id: ID!
             }
 
             type ProductAvailabilityMail {
               subgraph2Only: Boolean!
-              sharedScalar: String!
+              sharedScalar: String! @shareable
             }
 
             type Query {
-              node(id: ID!): Node @lookup
-              productAvailabilityById(id: ID!): ProductAvailability @lookup
+              node(id: ID!): Node @lookup @shareable
+              productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
             }
             """);
 
@@ -2733,7 +2733,7 @@ public class DemoIntegrationTests : FusionTestBase
             """
             type Query {
               exclusiveSubgraphA: ExclusiveSubgraphA
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type ExclusiveSubgraphA {
@@ -2749,7 +2749,7 @@ public class DemoIntegrationTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -2795,7 +2795,7 @@ public class DemoIntegrationTests : FusionTestBase
             """
             type Query {
               exclusiveSubgraphA: ExclusiveSubgraphA
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type ExclusiveSubgraphA {
@@ -2803,7 +2803,7 @@ public class DemoIntegrationTests : FusionTestBase
             }
 
             type Viewer {
-              subType: SubType
+              subType: SubType @shareable
             }
 
             type SubType {
@@ -2815,11 +2815,11 @@ public class DemoIntegrationTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
-              subType: SubType
+              subType: SubType @shareable
             }
 
             type SubType {
@@ -2866,7 +2866,7 @@ public class DemoIntegrationTests : FusionTestBase
             "A",
             """
             type Query {
-              viewer: Viewer!
+              viewer: Viewer! @shareable
             }
 
             type Viewer {
@@ -2878,7 +2878,7 @@ public class DemoIntegrationTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer!
+              viewer: Viewer! @shareable
             }
 
             type Viewer {

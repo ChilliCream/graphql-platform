@@ -54,22 +54,22 @@ sourceSchemas:
         products: [Product]
       }
       
-      type Item1 implements Node & ProductList @key(fields: "id") {
+      type Item1 implements Node & ProductList {
         id: ID!
         products: [Product]
       }
       
-      type Item2 implements Node & ProductList @key(fields: "id") {
+      type Item2 implements Node & ProductList {
         id: ID!
         products: [Product]
       }
       
-      type Product implements Node @key(fields: "id") {
+      type Product implements Node {
         id: ID!
       }
       
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
@@ -124,13 +124,13 @@ sourceSchemas:
         id: ID!
       }
       
-      type Product implements Node @key(fields: "id") {
+      type Product implements Node {
         id: ID!
         name: String
       }
       
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:

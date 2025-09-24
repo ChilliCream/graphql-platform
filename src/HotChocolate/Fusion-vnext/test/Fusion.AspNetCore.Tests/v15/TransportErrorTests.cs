@@ -295,7 +295,7 @@ public class TransportErrorTests : FusionTestBase
             "A",
             """
             type Query {
-              viewer: Viewer!
+              viewer: Viewer! @shareable
             }
 
             type Viewer {
@@ -308,7 +308,7 @@ public class TransportErrorTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer!
+              viewer: Viewer! @shareable
             }
 
             type Viewer {
@@ -1154,7 +1154,7 @@ public class TransportErrorTests : FusionTestBase
               brand: Brand!
             }
 
-            type Brand {
+            type Brand @key(fields: "id") {
               id: ID!
             }
             """,
@@ -1219,7 +1219,7 @@ public class TransportErrorTests : FusionTestBase
               brand: Brand!
             }
 
-            type Brand {
+            type Brand @key(fields: "id") {
               id: ID!
             }
             """,
@@ -1284,7 +1284,7 @@ public class TransportErrorTests : FusionTestBase
               brand: Brand
             }
 
-            type Brand {
+            type Brand @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1349,7 +1349,7 @@ public class TransportErrorTests : FusionTestBase
               brand: Brand
             }
 
-            type Brand {
+            type Brand @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1414,7 +1414,7 @@ public class TransportErrorTests : FusionTestBase
               brand: Brand!
             }
 
-            type Brand {
+            type Brand @key(fields: "id") {
               id: ID!
             }
             """);

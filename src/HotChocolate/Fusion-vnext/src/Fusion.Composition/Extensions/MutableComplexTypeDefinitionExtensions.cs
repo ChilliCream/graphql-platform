@@ -24,4 +24,9 @@ internal static class MutableComplexTypeDefinitionExtensions
                     new ArgumentAssignment(ArgumentNames.Fields, keyFields)));
         }
     }
+
+    public static IEnumerable<Directive> GetKeyDirectives(this MutableComplexTypeDefinition type)
+    {
+        return type.Directives.AsEnumerable().Where(d => d.Name == DirectiveNames.Key);
+    }
 }

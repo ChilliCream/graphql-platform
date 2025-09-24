@@ -50,6 +50,7 @@ internal sealed class PreMergeValidator(
             MultiValueDictionary<string, InputTypeInfo> inputTypeGroupByName = [];
             MultiValueDictionary<string, InputFieldInfo> inputFieldGroupByName = [];
             MultiValueDictionary<string, OutputFieldInfo> outputFieldGroupByName = [];
+            MultiValueDictionary<string, ObjectFieldInfo> objectFieldGroupByName = [];
             MultiValueDictionary<string, EnumTypeInfo> enumTypeGroupByName = [];
 
             foreach (var (type, schema) in typeGroup)
@@ -81,6 +82,13 @@ internal sealed class PreMergeValidator(
                             outputFieldGroupByName.Add(
                                 field.Name,
                                 new OutputFieldInfo(field, complexType, schema));
+
+                            if (complexType is MutableObjectTypeDefinition objectType)
+                            {
+                                objectFieldGroupByName.Add(
+                                    field.Name,
+                                    new ObjectFieldInfo(field, objectType, schema));
+                            }
                         }
 
                         break;
@@ -129,6 +137,12 @@ internal sealed class PreMergeValidator(
                             typeName),
                         context);
                 }
+            }
+
+            foreach (var (fieldName, fieldGroup) in objectFieldGroupByName)
+            {
+                PublishEvent(
+                    new ObjectFieldGroupEvent(fieldName, [.. fieldGroup], typeName), context);
             }
 
             foreach (var (enumName, enumGroup) in enumTypeGroupByName)

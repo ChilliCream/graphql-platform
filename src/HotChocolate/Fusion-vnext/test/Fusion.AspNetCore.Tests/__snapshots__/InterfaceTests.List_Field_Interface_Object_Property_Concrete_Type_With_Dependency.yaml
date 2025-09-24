@@ -60,7 +60,7 @@ sourceSchemas:
       
       type Query {
         wrappers: [Wrapper]
-        discussionById(id: ID!): Discussion @lookup
+        discussionById(id: ID!): Discussion @lookup @shareable
       }
       
       type Wrapper {
@@ -122,7 +122,7 @@ sourceSchemas:
       }
       
       type Query {
-        discussionById(id: ID!): Discussion @lookup
+        discussionById(id: ID!): Discussion @lookup @shareable
       }
     interactions:
       - request:

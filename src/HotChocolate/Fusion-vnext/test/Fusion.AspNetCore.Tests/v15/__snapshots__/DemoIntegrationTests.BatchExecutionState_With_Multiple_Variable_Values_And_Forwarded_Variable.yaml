@@ -79,8 +79,8 @@ sourceSchemas:
       }
       
       type Query {
-        node(id: ID!): Node @lookup
-        nodes(ids: [ID!]!): [Node]!
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
       }
       
       type User implements Node {
@@ -156,8 +156,8 @@ sourceSchemas:
       }
       
       type Query {
-        node(id: ID!): Node @lookup
-        nodes(ids: [ID!]!): [Node]!
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
         userBySlug(slug: String!): User
       }
       
@@ -259,8 +259,8 @@ sourceSchemas:
       }
       
       type Query {
-        node(id: ID!): Node @lookup
-        nodes(ids: [ID!]!): [Node]!
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
       }
       
       type ResaleFeedback implements Node {

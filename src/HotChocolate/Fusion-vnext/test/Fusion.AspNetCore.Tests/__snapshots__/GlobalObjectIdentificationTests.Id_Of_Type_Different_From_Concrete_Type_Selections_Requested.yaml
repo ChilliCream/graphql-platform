@@ -35,7 +35,7 @@ sourceSchemas:
       }
       
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
   - name: B
@@ -59,7 +59,7 @@ sourceSchemas:
       }
       
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
         discussionById(id: ID!): Discussion @lookup @internal
       }
     interactions:

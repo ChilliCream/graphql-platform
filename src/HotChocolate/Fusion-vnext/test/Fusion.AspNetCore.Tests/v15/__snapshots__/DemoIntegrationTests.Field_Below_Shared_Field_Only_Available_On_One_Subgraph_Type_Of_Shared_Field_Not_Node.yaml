@@ -47,7 +47,7 @@ sourceSchemas:
       
       type ProductAvailability implements Node {
         id: ID!
-        sharedLinked: ProductAvailabilityMail!
+        sharedLinked: ProductAvailabilityMail! @shareable
       }
       
       type ProductAvailabilityMail {
@@ -55,9 +55,9 @@ sourceSchemas:
       }
       
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
         productById(id: ID!): Product @lookup
-        productAvailabilityById(id: ID!): ProductAvailability @lookup
+        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
       }
     interactions:
       - request:
@@ -105,7 +105,7 @@ sourceSchemas:
       
       type ProductAvailability implements Node {
         id: ID!
-        sharedLinked: ProductAvailabilityMail!
+        sharedLinked: ProductAvailabilityMail! @shareable
       }
       
       type ProductAvailabilityMail {
@@ -113,8 +113,8 @@ sourceSchemas:
       }
       
       type Query {
-        node("ID of the object." id: ID!): Node @lookup
-        productAvailabilityById(id: ID!): ProductAvailability @lookup
+        node("ID of the object." id: ID!): Node @lookup @shareable
+        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
       }
     interactions:
       - request:

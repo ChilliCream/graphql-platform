@@ -144,6 +144,7 @@ public class RequireTests : FusionTestBase
                 => s_books.Values.ToArray();
 
             [Lookup]
+            [Shareable]
             public Book? GetBook(int id)
                 => s_books.TryGetValue(id, out var book) ? book : null;
         }
@@ -175,6 +176,7 @@ public class RequireTests : FusionTestBase
         public class Query
         {
             [Lookup]
+            [Shareable]
             public Book? GetBook(int id)
                 => s_books.TryGetValue(id, out var book) ? book : null;
         }
@@ -199,6 +201,7 @@ public class RequireTests : FusionTestBase
         public class Query
         {
             [Lookup]
+            [Shareable]
             public Book? GetBook(int id)
                 => new() { Id = id };
         }

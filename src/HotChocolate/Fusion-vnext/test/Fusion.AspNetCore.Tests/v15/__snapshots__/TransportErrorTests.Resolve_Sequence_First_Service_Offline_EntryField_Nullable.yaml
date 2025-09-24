@@ -32,7 +32,7 @@ sourceSchemas:
         query: Query
       }
       
-      type Brand {
+      type Brand @key(fields: "id") {
         id: ID!
       }
       
