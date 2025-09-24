@@ -26,11 +26,7 @@ public sealed partial class OperationCompiler
                 argumentValue.Name.Value,
                 out var argument))
             {
-                arguments[argument.Name] =
-                    CreateArgumentValue(argument,
-                        argumentValue,
-                        argumentValue.Value,
-                        false);
+                arguments[argument.Name] = CreateArgumentValue(argument, argumentValue, argumentValue.Value, false);
             }
         }
 
@@ -39,11 +35,8 @@ public sealed partial class OperationCompiler
             var argument = field.Arguments[i];
             if (!arguments.ContainsKey(argument.Name))
             {
-                arguments[argument.Name] =
-                    CreateArgumentValue(argument,
-                        null,
-                        argument.DefaultValue ?? NullValueNode.Default,
-                        true);
+                var value = argument.DefaultValue ?? NullValueNode.Default;
+                arguments[argument.Name] = CreateArgumentValue(argument, null, value, true);
             }
         }
 
@@ -194,16 +187,12 @@ public sealed partial class OperationCompiler
     {
         for (var i = 0; i < selection.Directives.Count; i++)
         {
-            if (path is null)
-            {
-                throw new InvalidOperationException("Path is null");
-            }
-            Debug.Assert(path != null, "path should not be null.");
             var directiveNode = selection.Directives[i];
             if (schema.DirectiveTypes.TryGetDirective(directiveNode.Name.Value, out var directiveType)
                 && directiveType.Middleware is not null
                 && (directiveType.IsRepeatable || processed.Add(directiveType.Name)))
             {
+                Debug.Assert(path != null, "path should not be null if a directive is present.");
                 Directive directive;
                 try
                 {

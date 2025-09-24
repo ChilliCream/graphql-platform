@@ -222,15 +222,21 @@ public sealed partial class OperationCompiler
     {
         ref var searchSpace = ref GetReference(AsSpan(_selections));
 
-        var path = Path.Root;
+        Path? path = null;
         for (var i = 0; i < _selections.Count; i++)
         {
             var selection = Unsafe.Add(ref searchSpace, i);
-            path = path.Append(selection.ResponseName);
+            path = path?.Append(selection.ResponseName);
             if (selection.ResolverPipeline is null && selection.PureResolver is null)
             {
-                var field = Unsafe.As<ObjectField>(selection.Field);
+                var field = selection.Field;
                 var syntaxNode = selection.SyntaxNode;
+                if (syntaxNode.Directives.Count > 0 && path == null)
+                {
+                    // create the path only on demand
+                    path = PathHelper.CreatePathFromSelection(_selections, i + 1);
+                }
+
                 var resolver = CreateFieldPipeline(
                     schema,
                     field,

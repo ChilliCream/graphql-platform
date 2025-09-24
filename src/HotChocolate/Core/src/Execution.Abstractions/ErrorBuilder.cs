@@ -86,7 +86,7 @@ public sealed class ErrorBuilder
     }
 
     /// <summary>
-    /// AAdds a GraphQL operation document location to the error, if the error does not already have a location.
+    /// Adds a GraphQL operation document location to the error, if the error does not already have a location.
     /// </summary>
     /// <param name="location">The location of the error.</param>
     /// <returns>The error builder.</returns>

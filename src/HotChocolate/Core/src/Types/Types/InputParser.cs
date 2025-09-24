@@ -606,8 +606,6 @@ public sealed class InputParser
 
     private object? CreateDefaultValue(InputField field, Path path, int stack)
     {
-        object? value;
-
         if (field.DefaultValue is null || field.DefaultValue.Kind == SyntaxKind.NullValue)
         {
             if (field.Type.Kind == TypeKind.NonNull)
@@ -615,7 +613,7 @@ public sealed class InputParser
                 throw RequiredInputFieldIsMissing(field, path);
             }
 
-            value = null;
+            object? value = null;
 
             // if the type is nullable but the runtime type is a non-nullable value
             // we will create a default instance and assign that instead.
@@ -634,8 +632,6 @@ public sealed class InputParser
 
     private object? CreateDefaultValue(DirectiveArgument field, Path path, int stack)
     {
-        object? value;
-
         if (field.DefaultValue is null || field.DefaultValue.Kind == SyntaxKind.NullValue)
         {
             if (field.Type.Kind == TypeKind.NonNull)
@@ -643,7 +639,7 @@ public sealed class InputParser
                 throw RequiredInputFieldIsMissing(field, path);
             }
 
-            value = null;
+            object? value = null;
 
             // if the type is nullable but the runtime type is a non-nullable value
             // we will create a default instance and assign that instead.
