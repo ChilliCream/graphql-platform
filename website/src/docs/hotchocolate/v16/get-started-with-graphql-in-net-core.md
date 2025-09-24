@@ -91,7 +91,7 @@ It also calls `app.MapGraphQL()` to expose your GraphQL server at an endpoint wi
 
 Finally, the template includes `app.RunWithGraphQLCommands(args)` to start the server.
 
-RunWithGraphQLCommands works like Run(), but adds useful developer commands.  For instance, to export your GraphQL schema as GraphQL SDL run the following command.
+`RunWithGraphQLCommands(args)` works like `Run()`, but also adds handy developer commands. For example, you can export your schema as SDL with:
 
 <InputChoiceTabs>
 <InputChoiceTabs.CLI>
