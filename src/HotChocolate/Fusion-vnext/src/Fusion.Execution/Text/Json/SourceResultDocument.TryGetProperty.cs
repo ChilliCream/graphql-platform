@@ -109,7 +109,10 @@ public sealed partial class SourceResultDocument
         return false;
     }
 
-    internal bool TryGetNamedPropertyValue(int index, ReadOnlySpan<byte> propertyName, out SourceResultElement value)
+    internal bool TryGetNamedPropertyValue(
+        int index,
+        ReadOnlySpan<byte> propertyName,
+        out SourceResultElement value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -124,7 +127,7 @@ public sealed partial class SourceResultDocument
             return false;
         }
 
-        var endIndex = checked(row.NumberOfRows * DbRow.Size + index);
+        var endIndex = checked((row.NumberOfRows * DbRow.Size) + index) - DbRow.Size;
 
         return TryGetNamedPropertyValue(
             index + DbRow.Size,
