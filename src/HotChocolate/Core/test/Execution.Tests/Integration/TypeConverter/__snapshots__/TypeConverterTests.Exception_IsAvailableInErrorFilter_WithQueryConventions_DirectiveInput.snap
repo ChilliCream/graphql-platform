@@ -5,15 +5,15 @@
       "locations": [
         {
           "line": 1,
-          "column": 20
+          "column": 31
         }
       ],
       "path": [
-        "arg"
+        "echo"
       ],
       "extensions": {
         "code": "HC0001",
-        "fieldCoordinate": "boom.arg",
+        "coordinate": "boom.arg",
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"

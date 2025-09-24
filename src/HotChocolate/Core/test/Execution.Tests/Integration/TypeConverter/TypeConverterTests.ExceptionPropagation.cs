@@ -28,39 +28,39 @@ public partial class TypeConverterTests
 
     public static readonly TheoryData<TestCase> TestCasesForMutationConventions =
     [
-        // new("""mutation{ fieldWithScalarInput(input: { arg: "foo" }) { string } }""", "ScalarInput"),
-        // new("""mutation{ fieldWithNonNullScalarInput(input: { arg: "foo" }) { string } }""", "NonNullScalarInput"),
-        // new("""mutation{ fieldWithObjectInput(input: { arg: { id: "foo" } }) { string } }""", "ObjectInput"),
-        // new("""mutation{ fieldWithNestedObjectInput(input: { arg: { inner: { id: "foo" } } }) { string } }""",
-        //     "NestedObjectInput"),
-        // new("""mutation{ fieldWithListOfScalarsInput(input: { arg: ["foo"] }) { string } }""", "ListOfScalarsInput"),
-        // new("""mutation{ fieldWithListOfScalarsInput(input: { arg: ["ok", "foo"] }) { string } }""",
-        //     "ListOfScalarsInputWithOkValue"),
-        // new("""mutation{ fieldWithObjectWithListOfScalarsInput(input: { arg: { ids: ["foo"] } }) { string } }""",
-        //     "ObjectWithListOfScalarsInput"),
-        // new("""mutation{ fieldWithListOfObjectsInput(input: { arg: { items: [{ id: "foo" }] } }) { string } }""",
-        //     "ListOfObjectsInput"),
-        new("""mutation($v: String!) { fieldWithScalarInput(input: { arg: $v }) { string } }""", "VariableInput")
-        // new("""mutation{ echo(input: { arg: "foo"}) @boom(arg: "foo") { string }  }""", "DirectiveInput"),
-        // new("""mutation { nestedObjectOutput { nestedObject { inner { id @boom(arg: "foo") } } } }""",
-        //    "NestedDirectiveInput")
+        new("""mutation{ fieldWithScalarInput(input: { arg: "foo" }) { string } }""", "ScalarInput"),
+        new("""mutation{ fieldWithNonNullScalarInput(input: { arg: "foo" }) { string } }""", "NonNullScalarInput"),
+        new("""mutation{ fieldWithObjectInput(input: { arg: { id: "foo" } }) { string } }""", "ObjectInput"),
+        new("""mutation{ fieldWithNestedObjectInput(input: { arg: { inner: { id: "foo" } } }) { string } }""",
+            "NestedObjectInput"),
+        new("""mutation{ fieldWithListOfScalarsInput(input: { arg: ["foo"] }) { string } }""", "ListOfScalarsInput"),
+        new("""mutation{ fieldWithListOfScalarsInput(input: { arg: ["ok", "foo"] }) { string } }""",
+            "ListOfScalarsInputWithOkValue"),
+        new("""mutation{ fieldWithObjectWithListOfScalarsInput(input: { arg: { ids: ["foo"] } }) { string } }""",
+            "ObjectWithListOfScalarsInput"),
+        new("""mutation{ fieldWithListOfObjectsInput(input: { arg: { items: [{ id: "foo" }] } }) { string } }""",
+            "ListOfObjectsInput"),
+        new("""mutation($v: String!) { fieldWithScalarInput(input: { arg: $v }) { string } }""", "VariableInput"),
+        new("""mutation{ echo(input: { arg: "foo"}) @boom(arg: "foo") { string }  }""", "DirectiveInput"),
+        new("""mutation { nestedObjectOutput { nestedObject { inner { id @boom(arg: "foo") } } } }""",
+           "NestedDirectiveInput")
     ];
 
     public static readonly TheoryData<TestCase> TestCasesForQueryConventions =
     [
-        // new("""{ fieldWithScalarInput(arg: "foo") { ... on ObjectWithId { id } } }""", "ScalarInput"),
-        // new("""{ fieldWithNonNullScalarInput(arg: "foo") { ... on ObjectWithId { id } } }""", "NonNullScalarInput"),
-        // new("""{ fieldWithObjectInput(arg: { id: "foo" }) { ... on ObjectWithId { id } } }""", "ObjectInput"),
-        // new("""{ fieldWithNestedObjectInput(arg: { inner: { id: "foo" } }) { ... on ObjectWithId { id } } }""",
-        //     "NestedObjectInput"),
-        // new("""{ fieldWithListOfScalarsInput(arg: ["foo"]) { ... on ObjectWithId { id } } }""", "ListOfScalarsInput"),
-        // new("""{ fieldWithListOfObjectsInput(arg: { items: [{ id: "foo" }] }) { ... on ObjectWithId { id } } }""",
-        //     "ListOfObjectsInput"),
-        // new("""{ fieldWithObjectWithListOfScalarsInput(arg: { id: ["foo"] }) { ... on ObjectWithId { id } } }""",
-        //     "ObjectWithListOfScalarsInput"),
-        // new("""query($v: String!) { scalarInput(arg: $v) { ... on ObjectWithId { id } } }""",
-        //     "VariableInput"),
-        // new("""{ echo(arg: "foo") @boom(arg: "foo") { ... on ObjectWithId { id } } }""", "DirectiveInput"),
+        new("""{ fieldWithScalarInput(arg: "foo") { ... on ObjectWithId { id } } }""", "ScalarInput"),
+        new("""{ fieldWithNonNullScalarInput(arg: "foo") { ... on ObjectWithId { id } } }""", "NonNullScalarInput"),
+        new("""{ fieldWithObjectInput(arg: { id: "foo" }) { ... on ObjectWithId { id } } }""", "ObjectInput"),
+        new("""{ fieldWithNestedObjectInput(arg: { inner: { id: "foo" } }) { ... on ObjectWithId { id } } }""",
+            "NestedObjectInput"),
+        new("""{ fieldWithListOfScalarsInput(arg: ["foo"]) { ... on ObjectWithId { id } } }""", "ListOfScalarsInput"),
+        new("""{ fieldWithListOfObjectsInput(arg: { items: [{ id: "foo" }] }) { ... on ObjectWithId { id } } }""",
+            "ListOfObjectsInput"),
+        new("""{ fieldWithObjectWithListOfScalarsInput(arg: { ids: ["foo"] }) { ... on ObjectWithId { id } } }""",
+            "ObjectWithListOfScalarsInput"),
+        new("""query($v: String!) { fieldWithScalarInput(arg: $v) { ... on ObjectWithId { id } } }""",
+            "VariableInput"),
+        new("""{ echo(arg: "foo") @boom(arg: "foo") { ... on ObjectWithId { id } } }""", "DirectiveInput"),
         new("""{ nestedObjectOutput { ... on NestedObject { inner { id @boom(arg: "foo") } } } }""", "NestedDirectiveInput")
     ];
 
@@ -166,7 +166,7 @@ public partial class TypeConverterTests
         result.MatchSnapshot(postFix: testCase.DisplayName);
     }
 
-    [Theory(Skip = "Need more info about desired location and path")]
+    [Theory]
     [MemberData(nameof(TestCasesForQueryConventions))]
     public async Task Exception_IsAvailableInErrorFilter_WithQueryConventions(TestCase testCase)
     {

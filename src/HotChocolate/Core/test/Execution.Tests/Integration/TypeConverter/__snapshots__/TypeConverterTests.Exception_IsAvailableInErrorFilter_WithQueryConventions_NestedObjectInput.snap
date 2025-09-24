@@ -5,17 +5,20 @@
       "locations": [
         {
           "line": 1,
-          "column": 26
+          "column": 50
         }
       ],
       "path": [
-        "arg",
-        "inner",
-        "id"
+        "fieldWithNestedObjectInput"
       ],
       "extensions": {
         "code": "HC0001",
-        "fieldCoordinate": "ObjectWithIdInput.id",
+        "coordinate": "ObjectWithIdInput.id",
+        "inputPath": [
+          "arg",
+          "inner",
+          "id"
+        ],
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"
