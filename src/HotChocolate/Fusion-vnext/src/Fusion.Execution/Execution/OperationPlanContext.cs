@@ -10,6 +10,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +28,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private readonly ExecutionState _executionState;
     private readonly INodeIdParser _nodeIdParser;
     private readonly bool _collectTelemetry;
-    private ResultPoolSessionHolder _resultPoolSessionHolder;
     private ISourceSchemaClientScope _clientScope;
     private string? _traceId;
     private long _start;
@@ -56,7 +56,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         OperationPlan = operationPlan;
         IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
 
-        _resultPoolSessionHolder = requestContext.CreateResultPoolSession();
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope = requestContext.CreateClientScope();
         _nodeIdParser = requestContext.Schema.Services.GetRequiredService<INodeIdParser>();
@@ -66,7 +65,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _resultStore = new FetchResultStore(
             requestContext.Schema,
             errorHandler,
-            _resultPoolSessionHolder,
             operationPlan.Operation,
             requestContext.ErrorHandlingMode(),
             IncludeFlags);
@@ -83,8 +81,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public RequestContext RequestContext { get; }
 
     public ISourceSchemaClientScope ClientScope => _clientScope;
-
-    public ResultPoolSession ResultPool => _resultPoolSessionHolder;
 
     internal ExecutionState ExecutionState => _executionState;
 
@@ -234,7 +230,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
+    internal void AddPartialResults(SourceResultDocument result, ReadOnlySpan<Selection> selections)
     {
         var canExecutionContinue = _resultStore.AddPartialResults(result, selections);
 
@@ -300,7 +296,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             .AddErrors(_resultStore.Errors)
             .SetData(_resultStore.Data.IsInvalidated ? null : _resultStore.Data)
             .RegisterForCleanup(_resultStore.MemoryOwners)
-            .RegisterForCleanup(_resultPoolSessionHolder)
             .Build();
 
         result.Features.Set(OperationPlan);
@@ -311,8 +306,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
 
         _clientScope = RequestContext.CreateClientScope();
-        _resultPoolSessionHolder = RequestContext.CreateResultPoolSession();
-        _resultStore.Reset(_resultPoolSessionHolder);
+        _resultStore.Reset();
 
         return result;
     }

@@ -120,18 +120,23 @@ internal sealed class __Directive : ITypeResolverInterceptor
     {
         var directiveDef = context.Parent<IDirectiveDefinition>();
         var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
-        var list = context.ResultPool.RentObjectListResult();
-        context.FieldResult.SetNextValue(list);
+        var count = includeDeprecated
+            ? directiveDef.Arguments.Count
+            : directiveDef.Arguments.Count(t => !t.IsDeprecated);
+        var list = context.FieldResult.SetListValue(count);
 
-        foreach (var argument in directiveDef.Arguments)
+        var index = 0;
+        foreach (var element in list.EnumerateArray())
         {
+            var argument = directiveDef.Arguments[index++];
+
             if (!includeDeprecated && argument.IsDeprecated)
             {
                 continue;
             }
 
             context.AddRuntimeResult(argument);
-            list.SetNextValue(context.RentInitializedObjectResult());
+            element.SetObjectValue();
         }
     }
 }
