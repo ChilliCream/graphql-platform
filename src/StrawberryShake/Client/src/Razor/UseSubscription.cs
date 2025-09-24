@@ -18,6 +18,7 @@ public abstract class UseSubscription<TResult> : ComponentBase, IDisposable wher
     [Parameter] public RenderFragment<IReadOnlyList<IClientError>>? ErrorContent { get; set; }
 
     [Parameter] public RenderFragment? LoadingContent { get; set; }
+
     [Parameter] public EventCallback<IOperationResult<TResult>> OnOperationResult { get; set; }
 
     protected void Subscribe(IObservable<IOperationResult<TResult>> observable)
