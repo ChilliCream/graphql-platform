@@ -1,5 +1,7 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -119,18 +121,22 @@ internal sealed class __Type : ITypeResolverInterceptor
         if (type is IComplexTypeDefinition ct)
         {
             var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
-            var list = context.ResultPool.RentObjectListResult();
-            context.FieldResult.SetNextValue(list);
+            var count = includeDeprecated
+                ? ct.Fields.Count
+                : ct.Fields.Count(t => !t.IsDeprecated);
+            var list = context.FieldResult.SetListValue(count);
 
-            foreach (var field in ct.Fields)
+            var i = 0;
+            foreach (var element in list.EnumerateArray())
             {
+                var field = ct.Fields[i++];
                 if (field.IsIntrospectionField || (!includeDeprecated && field.IsDeprecated))
                 {
                     continue;
                 }
 
                 context.AddRuntimeResult(field);
-                list.SetNextValue(context.RentInitializedObjectResult());
+                element.SetObjectValue();
             }
         }
     }
@@ -139,13 +145,15 @@ internal sealed class __Type : ITypeResolverInterceptor
     {
         if (context.Parent<IType>() is IComplexTypeDefinition complexType)
         {
-            var list = context.ResultPool.RentObjectListResult();
-            context.FieldResult.SetNextValue(list);
+            var implements = complexType.Implements;
+            var list = context.FieldResult.SetListValue(implements.Count);
 
-            foreach (var type in complexType.Implements)
+            var index = 0;
+            foreach (var element in list.EnumerateArray())
             {
+                var type = complexType.Implements[index++];
                 context.AddRuntimeResult(type);
-                list.SetNextValue(context.RentInitializedObjectResult());
+                element.SetObjectValue();
             }
         }
     }
@@ -154,13 +162,16 @@ internal sealed class __Type : ITypeResolverInterceptor
     {
         if (context.Parent<IType>() is ITypeDefinition nt && nt.IsAbstractType())
         {
-            var list = context.ResultPool.RentObjectListResult();
-            context.FieldResult.SetNextValue(list);
+            var schema = Unsafe.As<FusionSchemaDefinition>(context.Schema);
+            var possibleTypes = schema.GetPossibleTypes(nt);
+            var list = context.FieldResult.SetListValue(possibleTypes.Length);
 
-            foreach (var type in context.Schema.GetPossibleTypes(nt))
+            var index = 0;
+            foreach (var element in list.EnumerateArray())
             {
+                var type = possibleTypes[index++];
                 context.AddRuntimeResult(type);
-                list.SetNextValue(context.RentInitializedObjectResult());
+                element.SetObjectValue();
             }
         }
     }
@@ -170,18 +181,22 @@ internal sealed class __Type : ITypeResolverInterceptor
         if (context.Parent<IType>() is IEnumTypeDefinition et)
         {
             var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
-            var list = context.ResultPool.RentObjectListResult();
-            context.FieldResult.SetNextValue(list);
+            var count = includeDeprecated
+                ? et.Values.Count
+                : et.Values.Count(t => !t.IsDeprecated);
+            var list = context.FieldResult.SetListValue(count);
 
-            foreach (var value in et.Values)
+            var index = 0;
+            foreach (var element in list.EnumerateArray())
             {
+                var value = et.Values[index++];
                 if (!includeDeprecated && value.IsDeprecated)
                 {
                     continue;
                 }
 
                 context.AddRuntimeResult(value);
-                list.SetNextValue(context.RentInitializedObjectResult());
+                element.SetObjectValue();
             }
         }
     }
@@ -191,18 +206,23 @@ internal sealed class __Type : ITypeResolverInterceptor
         if (context.Parent<IType>() is IInputObjectTypeDefinition iot)
         {
             var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
-            var list = context.ResultPool.RentObjectListResult();
-            context.FieldResult.SetNextValue(list);
+            var count = includeDeprecated
+                ? iot.Fields.Count
+                : iot.Fields.Count(t => !t.IsDeprecated);
+            var list = context.FieldResult.SetListValue(count);
 
-            foreach (var value in iot.Fields)
+            var index = 0;
+            foreach (var element in list.EnumerateArray())
             {
+                var value = iot.Fields[index++];
+
                 if (!includeDeprecated && value.IsDeprecated)
                 {
                     continue;
                 }
 
                 context.AddRuntimeResult(value);
-                list.SetNextValue(context.RentInitializedObjectResult());
+                element.SetObjectValue();
             }
         }
     }
@@ -212,20 +232,14 @@ internal sealed class __Type : ITypeResolverInterceptor
         switch (context.Parent<IType>())
         {
             case ListType lt:
-            {
-                var obj = context.RentInitializedObjectResult();
-                context.FieldResult.SetNextValue(obj);
+                context.FieldResult.SetObjectValue();
                 context.AddRuntimeResult(lt.ElementType);
                 break;
-            }
 
             case NonNullType nnt:
-            {
-                var obj = context.ResultPool.RentObjectListResult();
-                context.FieldResult.SetNextValue(obj);
+                context.FieldResult.SetObjectValue();
                 context.AddRuntimeResult(nnt.NullableType);
                 break;
-            }
         }
     }
 

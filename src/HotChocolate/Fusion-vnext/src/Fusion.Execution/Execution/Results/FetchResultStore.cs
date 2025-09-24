@@ -150,9 +150,7 @@ internal sealed class FetchResultStore : IDisposable
 
             return _valueCompletion.BuildResult(
                 partial,
-                errorTrie: null,
-                responseNames,
-                data);
+                data, errorTrie: null, responseNames: responseNames);
         }
         finally
         {
@@ -233,9 +231,7 @@ internal sealed class FetchResultStore : IDisposable
 
                 var canExecutionContinue = _valueCompletion.BuildResult(
                     data,
-                    errorTrie,
-                    responseNames,
-                    element);
+                    element, errorTrie, responseNames);
 
                 if (!canExecutionContinue)
                 {

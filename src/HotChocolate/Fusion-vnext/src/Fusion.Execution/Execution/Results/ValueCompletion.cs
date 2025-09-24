@@ -39,38 +39,36 @@ internal sealed class ValueCompletion
 
     /// <summary>
     /// Tries to complete the <paramref name="selectionSet"/> from the
-    /// <paramref name="data"/>, checking for errors on the <paramref name="errorTrie"/>.
+    /// <paramref name="source"/>, checking for errors on the <paramref name="errorTrie"/>.
     /// </summary>
     /// <returns>
     /// <c>true</c>, if the execution can continue.
     /// <c>false</c>, if the execution needs to be halted.
     /// </returns>
     public bool BuildResult(
-        SourceResultElement data,
+        SourceResultElement source,
+        CompositeResultElement target,
         ErrorTrie? errorTrie,
-        ReadOnlySpan<string> responseNames,
-        CompositeResultElement result)
+        ReadOnlySpan<string> responseNames)
     {
-        var selectionSet = result.GetRequiredSelectionSet();
-
-        if (data is not { ValueKind: JsonValueKind.Object })
+        if (source is not { ValueKind: JsonValueKind.Object })
         {
             var error = errorTrie?.FindFirstError() ??
                 ErrorBuilder.New()
                     .SetMessage("Unexpected Execution Error")
                     .Build();
 
-            return BuildErrorResult(result, responseNames, error, result.Path);
+            return BuildErrorResult(target, responseNames, error, target.Path);
         }
 
-        foreach (var property in data.EnumerateObject())
+        foreach (var property in source.EnumerateObject())
         {
             // TODO : we need to optimize the lookup performance of the result object
             // at the moment its close to what the JSON Document would do,
             // but since the result object has a selection set and each property
             // is associated with a selection index we can get the lookup performance close
             // the the one of a frozen dictionary.
-            if (!result.TryGetProperty(property.NameSpan, out var resultField))
+            if (!target.TryGetProperty(property.NameSpan, out var resultField))
             {
                 continue;
             }
@@ -79,12 +77,12 @@ internal sealed class ValueCompletion
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
-            if (!TryCompleteValue(selection, selection.Type, property.Value, errorTrieForResponseName, 0, resultField))
+            if (!TryCompleteValue(property.Value, resultField, errorTrieForResponseName, selection, selection.Type, 0))
             {
                 switch (_errorHandlingMode)
                 {
                     case ErrorHandlingMode.Propagate:
-                        var didPropagateToRoot = PropagateNullValues(result);
+                        var didPropagateToRoot = PropagateNullValues(resultField);
                         return !didPropagateToRoot;
 
                     case ErrorHandlingMode.Halt:
@@ -152,31 +150,19 @@ internal sealed class ValueCompletion
     /// </returns>
     private static bool PropagateNullValues(CompositeResultElement result)
     {
-        if (result.IsInvalidated)
+        var current = result;
+
+        do
         {
-            return result.Parent.IsNullOrUndefined();
-        }
-
-        result.Invalidate();
-
-        while (!result.Parent.IsNullOrUndefined())
-        {
-            var parent = result.Parent;
-
-            if (parent.IsInvalidated)
+            if (current.IsNullable)
             {
+                current.SetNull();
                 return false;
             }
 
-            if (result.IsNullable)
-            {
-                result.SetNull();
-                return false;
-            }
-
-            parent.Invalidate();
-            result = parent;
-        }
+            current.Invalidate();
+            current = current.Parent;
+        } while (!current.IsNullOrInvalidated);
 
         return true;
     }
@@ -185,12 +171,12 @@ internal sealed class ValueCompletion
     //       we should try to use the path of the original error if it's
     //       part of what was selected.
     private bool TryCompleteValue(
+        SourceResultElement source,
+        CompositeResultElement target,
+        ErrorTrie? errorTrie,
         Selection selection,
         IType type,
-        SourceResultElement source,
-        ErrorTrie? errorTrie,
-        int depth,
-        CompositeResultElement target)
+        int depth)
     {
         if (type.Kind is TypeKind.NonNull)
         {
@@ -414,13 +400,8 @@ internal sealed class ValueCompletion
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
-            if (!TryCompleteValue(
-                selection,
-                selection.Type,
-                property.Value,
-                errorTrieForResponseName,
-                depth,
-                targetProperty))
+            if (!TryCompleteValue(property.Value,
+                targetProperty, errorTrieForResponseName, selection, selection.Type, depth))
             {
                 return false;
             }
