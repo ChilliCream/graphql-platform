@@ -12,7 +12,7 @@ public partial class TypeConverterTests
     }
 
     public static readonly TheoryData<TestCase> TestCases =
-    [
+     [
           new("""{ fieldWithScalarInput(arg: "foo") }""", "ScalarInput"),
           new("""{ fieldWithNonNullScalarInput(arg: "foo") }""", "NonNullScalarInput"),
           new("""{ fieldWithObjectInput(arg: { id: "foo" }) }""", "ObjectInput"),
@@ -22,6 +22,7 @@ public partial class TypeConverterTests
           new("""{ fieldWithObjectWithListOfScalarsInput(arg: { ids: ["foo"] }) }""", "ObjectWithListOfScalarsInput"),
           new("""{ fieldWithListOfObjectsInput(arg: { items: [{ id: "foo" }] }) }""", "ListOfObjectsInput"),
           new("""query($v: String!) { fieldWithScalarInput(arg: $v) }""", "VariableInput"),
+          new("""query($v: String!) { fieldWithNestedObjectInput(arg: { inner: { id: $v } }) }""", "NestedVariableInput"),
           new("""{ echo(arg: "foo") @boom(arg: "foo") }""", "DirectiveInput"),
           new("""{ nestedObjectOutput { inner { id @boom(arg: "foo") } } }""", "NestedDirectiveInput")
     ];
@@ -41,6 +42,7 @@ public partial class TypeConverterTests
         new("""mutation{ fieldWithListOfObjectsInput(input: { arg: { items: [{ id: "foo" }] } }) { string } }""",
             "ListOfObjectsInput"),
         new("""mutation($v: String!) { fieldWithScalarInput(input: { arg: $v }) { string } }""", "VariableInput"),
+        new("""mutation($v: String!) { fieldWithNestedObjectInput(input: { arg: { inner: { id: $v } } })  { string } }""", "NestedVariableInput"),
         new("""mutation{ echo(input: { arg: "foo"}) @boom(arg: "foo") { string }  }""", "DirectiveInput"),
         new("""mutation { nestedObjectOutput { nestedObject { inner { id @boom(arg: "foo") } } } }""",
            "NestedDirectiveInput")
@@ -86,7 +88,7 @@ public partial class TypeConverterTests
 
         // act
         var variableValues =
-            testCase.DisplayName == "VariableInput"
+            testCase.DisplayName.Contains("VariableInput")
                 ? new Dictionary<string, object?> { ["v"] = "foo" }
                 : [];
         var result = await executor.ExecuteAsync(testCase.QueryString, variableValues: variableValues);
@@ -106,7 +108,7 @@ public partial class TypeConverterTests
             .AddGraphQLServer()
             .AddMutationType<SomeQuery>()
             .AddDirectiveType<BoomDirectiveType>()
-            .AddTypeConverter<string, BrokenType>(_ => throw new CustomIdSerializationException("Boom"))
+            .AddTypeConverter<string, BrokenType>(x => x == "ok" ? new BrokenType(1) : throw new CustomIdSerializationException("Boom"))
             .BindRuntimeType<BrokenType, StringType>()
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
             .ModifyOptions(x => x.StrictValidation = false)
@@ -119,7 +121,7 @@ public partial class TypeConverterTests
 
         // act
         var variableValues =
-            testCase.DisplayName == "VariableInput"
+            testCase.DisplayName.Contains("VariableInput")
                 ? new Dictionary<string, object?> { ["v"] = "foo" }
                 : [];
 
@@ -155,7 +157,7 @@ public partial class TypeConverterTests
 
         // act
         var variableValues =
-            testCase.DisplayName == "VariableInput"
+            testCase.DisplayName.Contains("VariableInput")
                 ? new Dictionary<string, object?> { ["v"] = "foo" }
                 : [];
 
@@ -190,7 +192,7 @@ public partial class TypeConverterTests
 
         // act
         var variableValues =
-            testCase.DisplayName == "VariableInput"
+            testCase.DisplayName.Contains("VariableInput")
                 ? new Dictionary<string, object?> { ["v"] = "foo" }
                 : [];
 
