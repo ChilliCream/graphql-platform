@@ -180,6 +180,9 @@ internal sealed class ValueCompletion
         return true;
     }
 
+    // TODO: When extracting an error from a path below the current field,
+    //       we should try to use the path of the original error if it's
+    //       part of what was selected.
     private bool TryCompleteValue(
         Selection selection,
         IType type,
@@ -188,39 +191,37 @@ internal sealed class ValueCompletion
         int depth,
         ResultData parent)
     {
-        if (errorTrie?.Error is { } error)
-        {
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(parent.Path)
-                .AddLocation(selection.SyntaxNodes[0].Node)
-                .Build();
-            errorWithPath = _errorHandler.Handle(errorWithPath);
-            _errors.Add(errorWithPath);
-
-            if (_errorHandlingMode is ErrorHandlingMode.Halt)
-            {
-                return false;
-            }
-        }
-
         if (type.Kind is TypeKind.NonNull)
         {
             if (data.IsNullOrUndefined())
             {
-                var nonNullViolationError = ErrorBuilder.New()
-                    .SetMessage("Cannot return null for non-nullable field.")
-                    .SetCode(ErrorCodes.Execution.NonNullViolation)
-                    .SetPath(parent.Path)
-                    .AddLocation(selection.SyntaxNodes[0].Node)
-                    .Build();
-                nonNullViolationError = _errorHandler.Handle(nonNullViolationError);
+                IError error;
+                if (errorTrie?.FindFirstError() is { } errorFromPath)
+                {
+                    error = ErrorBuilder.FromError(errorFromPath)
+                        .SetPath(parent.Path)
+                        .AddLocation(selection.SyntaxNodes[0].Node)
+                        .Build();
+                }
+                else
+                {
+                    error = ErrorBuilder.New()
+                        .SetMessage("Cannot return null for non-nullable field.")
+                        .SetCode(ErrorCodes.Execution.NonNullViolation)
+                        .SetPath(parent.Path)
+                        .AddLocation(selection.SyntaxNodes[0].Node)
+                        .Build();
+                }
 
-                _errors.Add(nonNullViolationError);
+                error = _errorHandler.Handle(error);
+                _errors.Add(error);
 
                 if (_errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
                 {
                     return false;
                 }
+
+                return true;
             }
 
             type = type.InnerType();
@@ -228,6 +229,25 @@ internal sealed class ValueCompletion
 
         if (data.IsNullOrUndefined())
         {
+            // If the value is null, it might've been nulled due to a
+            // down-stream null propagation.
+            // So we try to get an error that is associated with this field
+            // or with a path below it.
+            if (errorTrie?.FindFirstError() is { } error)
+            {
+                var errorWithPath = ErrorBuilder.FromError(error)
+                    .SetPath(parent.Path)
+                    .AddLocation(selection.SyntaxNodes[0].Node)
+                    .Build();
+                errorWithPath = _errorHandler.Handle(errorWithPath);
+                _errors.Add(errorWithPath);
+
+                if (_errorHandlingMode is ErrorHandlingMode.Halt)
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 

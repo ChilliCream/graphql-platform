@@ -24,6 +24,7 @@ public sealed class RawFieldResult : FieldResult
         if (span.Length == 0)
         {
             writer.WriteNullValue();
+            return;
         }
 
         switch (span[0])

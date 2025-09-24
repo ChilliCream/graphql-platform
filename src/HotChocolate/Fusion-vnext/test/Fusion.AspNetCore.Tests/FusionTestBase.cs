@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
@@ -6,8 +7,10 @@ using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Transport.Http;
@@ -21,47 +24,12 @@ using Xunit.Sdk;
 
 namespace HotChocolate.Fusion;
 
-public abstract class FusionTestBase : IDisposable
+public abstract partial class FusionTestBase : IDisposable
 {
     private readonly TestServerSession _testServerSession = new();
     private bool _disposed;
 
-    public TestServer CreateSourceSchema(
-        string schemaName,
-        Action<IRequestExecutorBuilder> configureBuilder,
-        Action<IServiceCollection>? configureServices = null,
-        Action<IApplicationBuilder>? configureApplication = null,
-        Action<HttpClient>? configureHttpClient = null,
-        bool isOffline = false,
-        bool isTimingOut = false)
-    {
-        configureApplication ??=
-            app =>
-            {
-                app.UseWebSockets();
-                app.UseRouting();
-                app.UseEndpoints(endpoint => endpoint.MapGraphQL(schemaName: schemaName));
-            };
-
-        return _testServerSession.CreateServer(
-            services =>
-            {
-                services.AddRouting();
-                var builder = services.AddGraphQLServer(schemaName);
-                configureBuilder(builder);
-                configureServices?.Invoke(services);
-
-                services.Configure<SourceSchemaOptions>(opt =>
-                {
-                    opt.IsOffline = isOffline;
-                    opt.IsTimingOut = isTimingOut;
-                    opt.ConfigureHttpClient = configureHttpClient;
-                });
-            },
-            configureApplication);
-    }
-
-    public async Task<TestServer> CreateCompositeSchemaAsync(
+    protected async Task<Gateway> CreateCompositeSchemaAsync(
         (string SchemaName, TestServer Server)[] sourceSchemaServers,
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
@@ -71,6 +39,7 @@ public abstract class FusionTestBase : IDisposable
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
         var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer();
+        var interactions = new ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>>();
 
         foreach (var (name, server) in sourceSchemaServers)
         {
@@ -78,15 +47,46 @@ public abstract class FusionTestBase : IDisposable
             sourceSchemas.Add(new SourceSchemaText(name, schemaDocument.ToString()));
 
             var sourceSchemaOptions = server.Services.GetRequiredService<IOptions<SourceSchemaOptions>>().Value;
-            AddHttpClient(
-                gatewayServices,
-                name,
-                server,
-                sourceSchemaOptions);
+            gatewayServices.TryAddSingleton<IHttpClientFactory, Factory>();
+            gatewayServices.AddSingleton(new TestServerRegistration(name, server, sourceSchemaOptions));
 
             if (schemaSettings is null)
             {
-                gatewayBuilder.AddHttpClientConfiguration(name, new Uri("http://localhost:5000/graphql"));
+                gatewayBuilder.AddHttpClientConfiguration(
+                    name,
+                    new Uri("http://localhost:5000/graphql"),
+                    onBeforeSend: (context, node, request) =>
+                    {
+                        if (request.Content == null)
+                        {
+                            return;
+                        }
+
+                        var originalStream = request.Content.ReadAsStream();
+
+                        var document = JsonDocument.Parse(originalStream);
+
+                        document.RootElement.TryGetProperty("query", out var queryProperty);
+                        document.RootElement.TryGetProperty("variables", out var variablesProperty);
+
+                        if (originalStream.CanSeek)
+                        {
+                            originalStream.Position = 0;
+                        }
+
+                        GetSourceSchemaInteraction(context, node).Request =
+                            new SourceSchemaInteraction.SourceSchemaRequest
+                            {
+                                Query = queryProperty,
+                                Variables = variablesProperty
+                            };
+                    },
+                    onAfterReceive: (context, node, response)
+                        => GetSourceSchemaInteraction(context, node).StatusCode = response.StatusCode,
+                    onSourceSchemaResult: (context, node, result)
+                        => GetSourceSchemaInteraction(context, node)
+                            // We have to do this here, otherwise the result will have already been disposed
+                            .Results.Add(SerializeSourceSchemaResult(result)));
             }
         }
 
@@ -118,7 +118,11 @@ public abstract class FusionTestBase : IDisposable
 
         gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode(), settings);
         gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
-        gatewayBuilder.ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = false);
+        gatewayBuilder.ModifyRequestOptions(o =>
+        {
+            o.CollectOperationPlanTelemetry = false;
+            o.AllowErrorHandlingModeOverride = true;
+        });
         configureGatewayBuilder?.Invoke(gatewayBuilder);
 
         configureApplication ??=
@@ -129,7 +133,7 @@ public abstract class FusionTestBase : IDisposable
                 app.UseEndpoints(endpoint => endpoint.MapGraphQL());
             };
 
-        return _testServerSession.CreateServer(
+        var gatewayTestServer = _testServerSession.CreateServer(
             services =>
             {
                 services.AddRouting();
@@ -142,6 +146,18 @@ public abstract class FusionTestBase : IDisposable
                 configureServices?.Invoke(services);
             },
             configureApplication);
+
+        return new Gateway(gatewayTestServer, sourceSchemas, interactions);
+
+        SourceSchemaInteraction GetSourceSchemaInteraction(OperationPlanContext context, ExecutionNode node)
+        {
+            var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
+                ? staticSchemaName
+                : context.GetDynamicSchemaName(node);
+
+            var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
+            return schemaInteractions.GetOrAdd(node.Id, _ => new SourceSchemaInteraction());
+        }
     }
 
     public void Dispose()
@@ -161,6 +177,42 @@ public abstract class FusionTestBase : IDisposable
         if (disposing)
         {
             _testServerSession.Dispose();
+        }
+    }
+
+    protected class Gateway(
+        TestServer testServer,
+        List<SourceSchemaText> sourceSchemas,
+        ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> interactions) : IDisposable
+    {
+        public HttpClient CreateClient() => testServer.CreateClient();
+
+        public IServiceProvider Services => testServer.Services;
+
+        public List<SourceSchemaText> SourceSchemas => sourceSchemas;
+
+        public ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> Interactions =>
+            interactions;
+
+        public void Dispose()
+        {
+            testServer.Dispose();
+        }
+    }
+
+    protected class SourceSchemaInteraction
+    {
+        public SourceSchemaRequest? Request { get; set; }
+
+        public List<string> Results { get; } = [];
+
+        public HttpStatusCode? StatusCode { get; set; }
+
+        public sealed class SourceSchemaRequest
+        {
+            public JsonElement Query { get; init; }
+
+            public JsonElement Variables { get; init; }
         }
     }
 
@@ -184,16 +236,6 @@ public abstract class FusionTestBase : IDisposable
             requestBuilder.TryAddGlobalState(ExecutionContextData.IncludeOperationPlan, true);
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
-    }
-
-    private static IServiceCollection AddHttpClient(
-        IServiceCollection services,
-        string name,
-        TestServer server,
-        SourceSchemaOptions options)
-    {
-        services.TryAddSingleton<IHttpClientFactory, Factory>();
-        return services.AddSingleton(new TestServerRegistration(name, server, options));
     }
 
     private class Factory : IHttpClientFactory

@@ -104,10 +104,11 @@ public class EntityGeneratorTests
     public void Generate_StarWars_Client_With_Defer()
     {
         AssertStarWarsResult(
-            @"query GetHero {
+            """
+            query GetHero {
                 hero(episode: NEW_HOPE) {
                     ... HeroName
-                    ... HeroAppearsIn @defer(label: ""HeroAppearsInAbc"")
+                    ... HeroAppearsIn @defer(label: "HeroAppearsInAbc")
                 }
             }
 
@@ -116,7 +117,7 @@ public class EntityGeneratorTests
                 friends {
                     nodes {
                         name
-                        ... HeroAppearsIn2 @defer(label: ""HeroAppearsIn2"")
+                        ... HeroAppearsIn2 @defer(label: "HeroAppearsIn2")
                     }
                 }
             }
@@ -127,6 +128,7 @@ public class EntityGeneratorTests
 
             fragment HeroAppearsIn2 on Character {
                 appearsIn
-            }");
+            }
+            """);
     }
 }

@@ -14,23 +14,22 @@ public class FusionRunCommand : Command
     {
         base.Description = "Starts a Fusion gateway with the specified configuration";
 
-        var archiveOption = new Option<FileInfo>("--fusion-archive")
+        var archiveArgument = new Argument<FileInfo>("ARCHIVE_FILE")
         {
-            Description = "The path to the Fusion configuration file",
-            IsRequired = true
+            Description = "The path to the Fusion configuration file"
         };
-        archiveOption.AddAlias("--far");
-        archiveOption.AddAlias("-f");
-        archiveOption.LegalFilePathsOnly();
+        archiveArgument.LegalFilePathsOnly();
+
+        AddArgument(archiveArgument);
 
         var portOption = new Option<int>("--port");
+        portOption.AddAlias("-p");
 
-        AddOption(archiveOption);
         AddOption(portOption);
 
         this.SetHandler(async context =>
         {
-            var archiveFile = context.ParseResult.GetValueForOption(archiveOption)!;
+            var archiveFile = context.ParseResult.GetValueForArgument(archiveArgument)!;
 
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
 

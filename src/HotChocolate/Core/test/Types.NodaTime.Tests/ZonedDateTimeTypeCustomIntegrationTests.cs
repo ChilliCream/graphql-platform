@@ -84,10 +84,11 @@ public class ZonedDateTimeTypeCustomIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument(
-                    @"mutation
-                    {
-                        test(arg: ""2020-12-31T19:30:13 Asia/Kathmandu (+05:45)"")
-                    }")
+                    """
+                    mutation {
+                        test(arg: "2020-12-31T19:30:13 Asia/Kathmandu (+05:45)")
+                    }
+                    """)
                 .Build());
 
         Assert.Equal(

@@ -1,0 +1,101 @@
+using HotChocolate.Configuration;
+using HotChocolate.Execution.Configuration;
+using HotChocolate.Types.Composite;
+using HotChocolate.Types.Descriptors;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace HotChocolate.Fusion;
+
+public abstract partial class FusionTestBase
+{
+    protected TestServer CreateSourceSchema(
+        string schemaName,
+        Action<IRequestExecutorBuilder> configureBuilder,
+        Action<IServiceCollection>? configureServices = null,
+        Action<IApplicationBuilder>? configureApplication = null,
+        Action<HttpClient>? configureHttpClient = null,
+        bool isOffline = false,
+        bool isTimingOut = false)
+    {
+        configureApplication ??=
+            app =>
+            {
+                app.UseWebSockets();
+                app.UseRouting();
+                app.UseEndpoints(endpoint => endpoint.MapGraphQL(schemaName: schemaName));
+            };
+
+        return _testServerSession.CreateServer(
+            services =>
+            {
+                services.AddRouting();
+                var builder = services.AddGraphQLServer(schemaName, disableDefaultSecurity: true);
+                configureBuilder(builder);
+                configureServices?.Invoke(services);
+
+                services.Configure<SourceSchemaOptions>(opt =>
+                {
+                    opt.IsOffline = isOffline;
+                    opt.IsTimingOut = isTimingOut;
+                    opt.ConfigureHttpClient = configureHttpClient;
+                });
+            },
+            configureApplication);
+    }
+
+    protected TestServer CreateSourceSchema(
+        string schemaName,
+        string schemaText,
+        bool isOffline = false,
+        bool isTimingOut = false)
+    {
+        return _testServerSession.CreateServer(services =>
+        {
+            services.AddRouting();
+
+            services.AddGraphQLServer(schemaName, disableDefaultSecurity: true)
+                .AddType<FieldSelectionSetType>()
+                .AddType<FieldSelectionMapType>()
+                .TryAddTypeInterceptor<RegisterFusionDirectivesTypeInterceptor>()
+                .AddDocumentFromString(schemaText)
+                .AddResolverMocking()
+                .AddTestDirectives();
+
+            services.Configure<SourceSchemaOptions>(opt =>
+            {
+                opt.IsOffline = isOffline;
+                opt.IsTimingOut = isTimingOut;
+            });
+        },
+        app =>
+        {
+            app.UseRouting();
+            app.UseEndpoints(endpoint => endpoint.MapGraphQL(schemaName: schemaName));
+        });
+    }
+
+    // ReSharper disable once ClassNeverInstantiated.Local
+    private sealed class RegisterFusionDirectivesTypeInterceptor : TypeInterceptor
+    {
+        private bool _registeredTypes;
+
+        public override IEnumerable<TypeReference> RegisterMoreTypes(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        {
+            if (!_registeredTypes)
+            {
+                var typeInspector = discoveryContexts.First().DescriptorContext.TypeInspector;
+
+                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Lookup));
+                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Internal));
+                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.EntityKey));
+                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Require));
+                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Is));
+
+                _registeredTypes = true;
+            }
+        }
+    }
+}

@@ -1,5 +1,5 @@
 operation:
-  - document: >-
+  - document: |
       query findMe(
         $skip: Boolean = true
       ) {
@@ -65,7 +65,7 @@ nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: >-
+    operation: |
       query findMe_123456789101112_1 {
         users {
           nodes {
@@ -77,7 +77,7 @@ nodes:
   - id: 2
     type: Operation
     schema: f
-    operation: >-
+    operation: |
       query findMe_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
@@ -121,7 +121,7 @@ nodes:
   - id: 3
     type: Operation
     schema: e
-    operation: >-
+    operation: |
       query findMe_123456789101112_3(
         $__fusion_2_id: ID!
       ) {
@@ -147,7 +147,7 @@ nodes:
   - id: 4
     type: Operation
     schema: b
-    operation: >-
+    operation: |
       query findMe_123456789101112_4(
         $skip: Boolean = true
         $__fusion_3_id: ID!
@@ -167,7 +167,7 @@ nodes:
   - id: 5
     type: Operation
     schema: g
-    operation: >-
+    operation: |
       query findMe_123456789101112_5(
         $__fusion_4_id: ID!
         $__fusion_5_dimension: ProductDimensionInput!
@@ -196,7 +196,7 @@ nodes:
   - id: 6
     type: Operation
     schema: a
-    operation: >-
+    operation: |
       query findMe_123456789101112_6(
         $__fusion_6_id: ID!
       ) {
@@ -215,7 +215,7 @@ nodes:
   - id: 7
     type: Operation
     schema: b
-    operation: >-
+    operation: |
       query findMe_123456789101112_7(
         $__fusion_7_id: ID!
       ) {
@@ -239,7 +239,7 @@ nodes:
   - id: 8
     type: Operation
     schema: e
-    operation: >-
+    operation: |
       query findMe_123456789101112_8(
         $__fusion_8_id: ID!
       ) {
@@ -258,7 +258,7 @@ nodes:
   - id: 9
     type: Operation
     schema: e
-    operation: >-
+    operation: |
       query findMe_123456789101112_9(
         $__fusion_9_id: ID!
       ) {

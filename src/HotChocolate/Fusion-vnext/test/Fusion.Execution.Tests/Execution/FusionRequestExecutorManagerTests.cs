@@ -14,7 +14,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var schemaDocument =
             ComposeSchemaDocument(
                 """
-                schema @schemaName(value: "A") {
+                schema {
                     query: Query
                 }
 
@@ -46,7 +46,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var schemaDocument =
             ComposeSchemaDocument(
                 """
-                schema @schemaName(value: "A") {
+                schema {
                     query: Query
                 }
 

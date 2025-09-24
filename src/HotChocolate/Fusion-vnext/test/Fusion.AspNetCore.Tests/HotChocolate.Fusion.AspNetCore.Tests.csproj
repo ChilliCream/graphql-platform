@@ -12,6 +12,7 @@
     <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate\CookieCrumble.HotChocolate.csproj" />
+    <ProjectReference Include="..\Fusion.Tests.Shared\HotChocolate.Fusion.Tests.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,6 +26,13 @@
     <None Update="__resources__\fusion2.graphql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+
+    <Compile Update="FusionTestBase.MatchSnapshot.cs">
+      <DependentUpon>FusionTestBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="FusionTestBase.CreateSourceSchema.cs">
+      <DependentUpon>FusionTestBase.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

@@ -194,8 +194,9 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query ($if: Boolean!) {
-                human(id: ""1000"") {
+            """
+            query ($if: Boolean!) {
+                human(id: "1000") {
                     ... Human1 @include(if: $if)
                     ... Human2 @skip(if: $if)
                 }
@@ -231,10 +232,11 @@ public class OperationCompilerTests
             fragment Human3 on Human {
                 name
                 otherHuman {
-                  __typename
-                  name
+                    __typename
+                    name
                 }
-            }");
+            }
+            """);
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -528,8 +530,9 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query ($if: Boolean!) {
-                human(id: ""1000"") {
+            """
+            query ($if: Boolean!) {
+                human(id: "1000") {
                     ... Human1 @include(if: $if)
                     ... Human2 @skip(if: $if)
                 }
@@ -571,7 +574,8 @@ public class OperationCompilerTests
                     __typename
                     name
                 }
-            }");
+            }
+            """);
 
         var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
 
