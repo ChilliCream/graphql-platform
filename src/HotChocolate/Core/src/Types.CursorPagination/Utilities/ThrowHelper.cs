@@ -57,7 +57,7 @@ internal static class ThrowHelper
                     field.Type.TypeName())
                 .SetCode(ErrorCodes.Paging.FirstValueNotSet)
                 .SetPath(path)
-                .SetFieldCoordinate(field.Coordinate)
+                .SetCoordinate(field.Coordinate)
                 .Build());
 
     public static SchemaException PagingObjectFieldDescriptorExtensions_InvalidType()
