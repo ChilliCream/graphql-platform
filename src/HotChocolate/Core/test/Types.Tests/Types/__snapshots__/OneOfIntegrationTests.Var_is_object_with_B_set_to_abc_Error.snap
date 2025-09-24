@@ -7,7 +7,7 @@
         "b"
       ],
       "extensions": {
-        "fieldCoordinate": "ExampleInput.b",
+        "coordinate": "ExampleInput.b",
         "fieldType": "Int"
       }
     }

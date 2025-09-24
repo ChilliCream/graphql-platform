@@ -8,7 +8,7 @@
       ],
       "extensions": {
         "code": "HC0056",
-        "fieldCoordinate": "ExampleInput.a"
+        "coordinate": "ExampleInput.a"
       }
     }
   ]
