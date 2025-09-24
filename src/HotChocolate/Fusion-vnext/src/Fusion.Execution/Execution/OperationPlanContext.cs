@@ -230,9 +230,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddPartialResults(SourceResultDocument result, ReadOnlySpan<Selection> selections)
+    internal void AddPartialResults(SourceResultDocument result, ReadOnlySpan<string> responseNames)
     {
-        var canExecutionContinue = _resultStore.AddPartialResults(result, selections);
+        var canExecutionContinue = _resultStore.AddPartialResults(result, responseNames);
 
         if (!canExecutionContinue)
         {
@@ -360,7 +360,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         if (!_disposed)
         {
             _disposed = true;
-            _resultPoolSessionHolder.Dispose();
             _resultStore.Dispose();
             await _clientScope.DisposeAsync();
         }

@@ -65,10 +65,6 @@ internal sealed class FetchResultStore : IDisposable
 
     public CompositeResultDocument Result => _result;
 
-    public ObjectResult Data => _result;
-
-    public List<IError> Errors => _errors;
-
     public ConcurrentStack<IDisposable> MemoryOwners => _memory;
 
     public bool AddPartialResults(
@@ -125,38 +121,38 @@ internal sealed class FetchResultStore : IDisposable
         }
     }
 
-    public bool AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
+    /// <summary>
+    /// Adds partial root data to the result document.
+    /// </summary>
+    /// <param name="document">
+    /// The document that contains partial results that need to be merged into the `Data` segment of the result.
+    /// </param>
+    /// <param name="responseNames">
+    /// The names of the root fields the document provides data for.
+    /// </param>
+    /// <returns>
+    /// true if the result was integrated.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="document"/> is null.
+    /// </exception>
+    public bool AddPartialResults(SourceResultDocument document, ReadOnlySpan<string> responseNames)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        ArgumentNullException.ThrowIfNull(result);
-
-        if (selections.Length == 0)
-        {
-            throw new ArgumentException(
-                "The selections span must contain at least one selection.",
-                nameof(selections));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         _lock.EnterWriteLock();
 
         try
         {
-            foreach (var selection in selections)
-            {
-                if (!selection.IsIncluded(_includeFlags))
-                {
-                    continue;
-                }
+            var partial = document.Root;
+            var data = _result.Data;
 
-                if (_result.Data.IsInvalidated)
-                {
-                    return false;
-                }
-
-                result.MoveFieldTo(selection.ResponseName, _result);
-            }
-
-            return true;
+            return _valueCompletion.BuildResult(
+                partial,
+                errorTrie: null,
+                responseNames,
+                data);
         }
         finally
         {
