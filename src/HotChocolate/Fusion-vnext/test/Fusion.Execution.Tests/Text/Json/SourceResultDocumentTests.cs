@@ -107,4 +107,65 @@ public class SourceResultDocumentTests
         var user = result.Root.GetProperty("user"u8);
         Assert.Equal(JsonValueKind.Object, user.ValueKind);
     }
+
+    [Fact]
+    public void EnumerateProperty()
+    {
+        var json = """
+                   {
+                     "a": 1,
+                     "b": "abc",
+                     "c": [1, 2, 3]
+                   }
+                   """u8.ToArray();
+
+        var chunk = new byte[128 * 1024];
+        json.AsSpan().CopyTo(chunk);
+
+        var result = SourceResultDocument.Parse([chunk], json.Length);
+
+        using var enumerator = result.Root.EnumerateObject().GetEnumerator();
+
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("a", enumerator.Current.Name);
+        Assert.Equal(JsonValueKind.Number, enumerator.Current.Value.ValueKind);
+
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("b", enumerator.Current.Name);
+        Assert.Equal(JsonValueKind.String, enumerator.Current.Value.ValueKind);
+
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("c", enumerator.Current.Name);
+        Assert.Equal(JsonValueKind.Array, enumerator.Current.Value.ValueKind);
+
+        Assert.False(enumerator.MoveNext());
+    }
+
+    [Fact]
+    public void EnumerateArray()
+    {
+        var json = """
+                   {
+                     "a": [1, 2, 3]
+                   }
+                   """u8.ToArray();
+
+        var chunk = new byte[128 * 1024];
+        json.AsSpan().CopyTo(chunk);
+
+        var result = SourceResultDocument.Parse([chunk], json.Length);
+        var prop = result.Root.GetProperty("a");
+        using var enumerator = prop.EnumerateArray().GetEnumerator();
+
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal(1, enumerator.Current.GetInt32());
+
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal(2, enumerator.Current.GetInt32());
+
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal(3, enumerator.Current.GetInt32());
+
+        Assert.False(enumerator.MoveNext());
+    }
 }
