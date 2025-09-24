@@ -27,7 +27,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             """);
 
         // act
-        var compositeResult = new CompositeResultDocument(plan.Operation);
+        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
 
         // assert
         Assert.Equal(1, compositeResult.Data.GetPropertyCount());
@@ -60,19 +60,17 @@ public class CompositeResultDocumentTests : FusionTestBase
             """);
 
         // act
-        var compositeResult = new CompositeResultDocument(plan.Operation);
+        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
         var operation = compositeResult.Data.Operation;
 
         var productBySlug = compositeResult.Data.GetProperty("productBySlug");
-        var productBySlugSelection = productBySlug.GetRequiredSelection();
+        var productBySlugSelection = productBySlug.AssertSelection();
         Assert.Equal("productBySlug", productBySlug.GetPropertyName());
         Assert.Equal(JsonValueKind.Undefined, productBySlug.ValueKind);
         Assert.False(productBySlugSelection.IsLeaf);
 
-        productBySlug.TryGetByte()
-
         var selectionSet = operation.GetSelectionSet(productBySlugSelection);
-        productBySlug.SetValue(selectionSet);
+        productBySlug.SetObjectValue(selectionSet);
         Assert.Equal(JsonValueKind.Object, productBySlug.ValueKind);
     }
 }

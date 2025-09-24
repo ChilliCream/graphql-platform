@@ -58,8 +58,7 @@ internal sealed class FetchResultStore : IDisposable
             _schema,
             _errorHandler,
             _errorHandlingMode,
-            32,
-            _includeFlags,
+            maxDepth: 32,
             _errors);
     }
 

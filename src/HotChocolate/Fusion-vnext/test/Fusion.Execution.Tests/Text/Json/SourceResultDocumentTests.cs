@@ -28,7 +28,7 @@ public class SourceResultDocumentTests
 
             if (user.TryGetProperty("name", out var name))
             {
-                Assert.Equal("John",  name.GetRequiredString());
+                Assert.Equal("John",  name.AssertString());
                 return;
             }
         }

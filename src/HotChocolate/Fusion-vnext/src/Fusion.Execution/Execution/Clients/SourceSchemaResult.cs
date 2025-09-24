@@ -38,6 +38,15 @@ public sealed class SourceSchemaResult : IDisposable
             ? SourceSchemaErrors.From(errors)
             : null;
 
+    internal SourceResultElement RawErrors
+    {
+        get
+        {
+            _document.Root.TryGetProperty(ErrorsProperty, out var errors);
+            return errors;
+        }
+    }
+
     public bool HasErrors => _document.Root.TryGetProperty(ErrorsProperty, out _);
 
     public SourceResultElement Extensions

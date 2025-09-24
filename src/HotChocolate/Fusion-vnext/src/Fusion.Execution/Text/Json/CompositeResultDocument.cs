@@ -167,7 +167,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void AssignObjectValue(CompositeResultElement target, CompositeResultElement value)
+    internal void AssignCompositeValue(CompositeResultElement target, CompositeResultElement value)
     {
         _metaDb.Replace(
             index: target.Index,
@@ -177,7 +177,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void AssignLeafValue(CompositeResultElement target, SourceResultElement source)
+    internal void AssignSourceValue(CompositeResultElement target, SourceResultElement source)
     {
         var value = source.GetValuePointer();
         var parent = source._parent;

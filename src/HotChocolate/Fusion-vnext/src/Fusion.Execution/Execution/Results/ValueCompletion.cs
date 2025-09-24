@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Execution;
@@ -15,7 +16,6 @@ internal sealed class ValueCompletion
     private readonly IErrorHandler _errorHandler;
     private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly int _maxDepth;
-    private readonly ulong _includeFlags;
     private readonly List<IError> _errors;
 
     public ValueCompletion(
@@ -23,7 +23,6 @@ internal sealed class ValueCompletion
         IErrorHandler errorHandler,
         ErrorHandlingMode errorHandlingMode,
         int maxDepth,
-        ulong includeFlags,
         List<IError> errors)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -33,12 +32,11 @@ internal sealed class ValueCompletion
         _errorHandler = errorHandler;
         _errorHandlingMode = errorHandlingMode;
         _maxDepth = maxDepth;
-        _includeFlags = includeFlags;
         _errors = errors;
     }
 
     /// <summary>
-    /// Tries to complete the <paramref name="selectionSet"/> from the
+    /// Tries to complete the selection set data represented by <paramref name="target"/>.
     /// <paramref name="source"/>, checking for errors on the <paramref name="errorTrie"/>.
     /// </summary>
     /// <returns>
@@ -73,7 +71,7 @@ internal sealed class ValueCompletion
                 continue;
             }
 
-            var selection = resultField.GetRequiredSelection();
+            var selection = resultField.AssertSelection();
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
@@ -103,38 +101,36 @@ internal sealed class ValueCompletion
     /// <c>false</c>, if the execution needs to be halted.
     /// </returns>
     public bool BuildErrorResult(
-        CompositeResultElement element,
+        CompositeResultElement result,
         ReadOnlySpan<string> responseNames,
         IError error,
         Path path)
     {
         foreach (var responseName in responseNames)
         {
-            var fieldResult = objectResult[responseName];
-
-            if (fieldResult.Selection.IsInternal || !fieldResult.Selection.IsIncluded(_includeFlags))
+            if (!result.TryGetProperty(responseName, out var fieldResult)
+                || fieldResult.IsInternal)
             {
                 continue;
             }
 
+            var selection = fieldResult.AssertSelection();
             var errorWithPath = ErrorBuilder.FromError(error)
                 .SetPath(path.Append(responseName))
-                .AddLocation(fieldResult.Selection.SyntaxNodes[0].Node)
+                .AddLocation(selection.SyntaxNodes[0].Node)
                 .Build();
             errorWithPath = _errorHandler.Handle(errorWithPath);
 
             _errors.Add(errorWithPath);
 
-            if (_errorHandlingMode is ErrorHandlingMode.Halt)
+            switch (_errorHandlingMode)
             {
-                return false;
-            }
+                case ErrorHandlingMode.Halt:
+                    return false;
 
-            if (_errorHandlingMode is ErrorHandlingMode.Propagate && fieldResult.Selection.Type.IsNonNullType())
-            {
-                var didPropagateToRoot = PropagateNullValues(objectResult);
-
-                return !didPropagateToRoot;
+                case ErrorHandlingMode.Propagate when selection.Type.Kind is TypeKind.NonNull:
+                    var didPropagateToRoot = PropagateNullValues(fieldResult);
+                    return !didPropagateToRoot;
             }
         }
 
@@ -156,7 +152,7 @@ internal sealed class ValueCompletion
         {
             if (current.IsNullable)
             {
-                current.SetNull();
+                current.SetNullValue();
                 return false;
             }
 
@@ -238,37 +234,33 @@ internal sealed class ValueCompletion
             return true;
         }
 
-        if (type.Kind is TypeKind.List)
+        switch (type.Kind)
         {
-            return TryCompleteList(selection, type, source, errorTrie, depth, target);
-        }
+            case TypeKind.List:
+                return TryCompleteList(source, target, errorTrie, selection, type, depth);
 
-        if (type.Kind is TypeKind.Object)
-        {
-            return TryCompleteObjectValue(selection, type, source, errorTrie, depth, target);
-        }
+            case TypeKind.Object:
+                return TryCompleteObjectValue(selection, type, source, errorTrie, depth, target);
 
-        if (type.Kind is TypeKind.Interface or TypeKind.Union)
-        {
-            return TryCompleteAbstractValue(selection, type, source, errorTrie, depth, target);
-        }
+            case TypeKind.Interface or TypeKind.Union:
+                return TryCompleteAbstractValue(source, target, errorTrie, selection, type, depth);
 
-        if (type.Kind is TypeKind.Scalar or TypeKind.Enum)
-        {
-            target.SetValue(source);
-            return true;
-        }
+            case TypeKind.Scalar or TypeKind.Enum:
+                target.SetLeafValue(source);
+                return true;
 
-        throw new NotSupportedException($"The type {type} is not supported.");
+            default:
+                throw new NotSupportedException($"The type {type} is not supported.");
+        }
     }
 
     private bool TryCompleteList(
+        SourceResultElement source,
+        CompositeResultElement target,
+        ErrorTrie? errorTrie,
         Selection selection,
         IType type,
-        SourceResultElement source,
-        ErrorTrie? errorTrie,
-        int depth,
-        CompositeResultElement parent)
+        int depth)
     {
         AssertDepthAllowed(ref depth);
 
@@ -277,17 +269,14 @@ internal sealed class ValueCompletion
         var isLeaf = elementType.IsLeafType();
         var isNested = elementType.IsListType();
 
-        ListResult listResult = isNested
-            ? _resultPoolSession.RentNestedListResult()
-            : isLeaf
-                ? _resultPoolSession.RentLeafListResult()
-                : _resultPoolSession.RentObjectListResult();
-        listResult.Initialize(type);
+        target.SetArrayValue(source.GetArrayLength());
 
-        var i = -1;
-        foreach (var item in source.EnumerateArray())
+        var i = 0;
+        using var enumerator = target.EnumerateArray().GetEnumerator();
+        foreach (var element in source.EnumerateArray())
         {
-            i++;
+            var success = enumerator.MoveNext();
+            Debug.Assert(success, "The lists must have the same size.");
 
             ErrorTrie? errorTrieForIndex = null;
             errorTrie?.TryGetValue(i, out errorTrieForIndex);
@@ -295,7 +284,7 @@ internal sealed class ValueCompletion
             if (errorTrieForIndex?.Error is { } error)
             {
                 var errorWithPath = ErrorBuilder.FromError(error)
-                    .SetPath(parent.Path.Append(i))
+                    .SetPath(target.Path.Append(i))
                     .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
@@ -307,51 +296,69 @@ internal sealed class ValueCompletion
                 }
             }
 
-            if (item.IsNullOrUndefined())
+            if (element.IsNullOrUndefined())
             {
                 if (!isNullable && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
                 {
                     return false;
                 }
 
-                listResult.SetNextValueNull();
-
-                continue;
+                enumerator.Current.SetNullValue();
+                goto TryCompleteList_MoveNext;
             }
 
-            if (!HandleElement(item, errorTrieForIndex))
+            if (!HandleElement(element, enumerator.Current, errorTrieForIndex))
             {
                 if (!isNullable)
                 {
                     return false;
                 }
 
-                listResult.SetNextValueNull();
+                enumerator.Current.SetNullValue();
+                goto TryCompleteList_MoveNext;
             }
+
+            TryCompleteList_MoveNext:
+            i++;
         }
 
-        parent.SetNextValue(listResult);
         return true;
 
-        bool HandleElement(in JsonElement item, ErrorTrie? errorTrieForIndex)
+        bool HandleElement(
+            SourceResultElement sourceElement,
+            CompositeResultElement targetElement,
+            ErrorTrie? errorTrieForIndex)
         {
             if (isNested)
             {
-                return TryCompleteList(selection, elementType, item, errorTrieForIndex, depth, listResult);
+                return TryCompleteList(
+                    sourceElement,
+                    targetElement,
+                    errorTrieForIndex,
+                    selection,
+                    elementType,
+                    depth);
             }
-            else if (isLeaf)
+
+            if (isLeaf)
             {
-                listResult.SetNextValue(item);
+                targetElement.SetLeafValue(sourceElement);
                 return true;
             }
-            else if (elementType.IsAbstractType())
+
+            if (elementType.IsAbstractType())
             {
-                return TryCompleteAbstractValue(selection, elementType, item, errorTrieForIndex, depth, listResult);
+                return TryCompleteAbstractValue(sourceElement,
+                    targetElement, errorTrieForIndex, selection, elementType, depth);
             }
-            else
-            {
-                return TryCompleteObjectValue(selection, elementType, item, errorTrieForIndex, depth, listResult);
-            }
+
+            return TryCompleteObjectValue(
+                selection,
+                elementType,
+                sourceElement,
+                errorTrieForIndex,
+                depth,
+                targetElement);
         }
     }
 
@@ -366,16 +373,16 @@ internal sealed class ValueCompletion
         var namedType = type.NamedType();
         var objectType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
 
-        return TryCompleteObjectValue(parentSelection, objectType, source, errorTrie, depth, target);
+        return TryCompleteObjectValue(source, target, errorTrie, parentSelection, objectType, depth);
     }
 
     private bool TryCompleteObjectValue(
+        SourceResultElement source,
+        CompositeResultElement target,
+        ErrorTrie? errorTrie,
         Selection parentSelection,
         IObjectTypeDefinition objectType,
-        SourceResultElement source,
-        ErrorTrie? errorTrie,
-        int depth,
-        CompositeResultElement target)
+        int depth)
     {
         AssertDepthAllowed(ref depth);
 
@@ -385,7 +392,7 @@ internal sealed class ValueCompletion
         {
             var operation = parentSelection.DeclaringSelectionSet.DeclaringOperation;
             var selectionSet = operation.GetSelectionSet(parentSelection, objectType);
-            target.SetValue(selectionSet);
+            target.SetObjectValue(selectionSet);
         }
 
         foreach (var property in source.EnumerateObject())
@@ -395,7 +402,7 @@ internal sealed class ValueCompletion
                 continue;
             }
 
-            var selection =  targetProperty.GetRequiredSelection();
+            var selection =  targetProperty.AssertSelection();
 
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
@@ -411,19 +418,13 @@ internal sealed class ValueCompletion
     }
 
     private bool TryCompleteAbstractValue(
+        SourceResultElement source,
+        CompositeResultElement target,
+        ErrorTrie? errorTrie,
         Selection selection,
         IType type,
-        SourceResultElement source,
-        ErrorTrie? errorTrie,
-        int depth,
-        CompositeResultElement target)
-        => TryCompleteObjectValue(
-            selection,
-            GetType(type, source),
-            source,
-            errorTrie,
-            depth,
-            target);
+        int depth)
+        => TryCompleteObjectValue(source, target, errorTrie, selection, GetType(type, source), depth);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IObjectTypeDefinition GetType(IType type, SourceResultElement data)
@@ -435,7 +436,7 @@ internal sealed class ValueCompletion
             return objectType;
         }
 
-        var typeName = data.GetProperty(IntrospectionFieldNames.TypeNameSpan).GetRequiredString();
+        var typeName = data.GetProperty(IntrospectionFieldNames.TypeNameSpan).AssertString();
         return _schema.Types.GetType<IObjectTypeDefinition>(typeName);
     }
 

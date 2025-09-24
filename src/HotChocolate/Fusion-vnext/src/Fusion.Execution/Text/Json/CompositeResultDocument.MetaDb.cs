@@ -22,7 +22,7 @@ public sealed partial class CompositeResultDocument
             var chunksNeeded = Math.Max(4, (estimatedRows / RowsPerChunk) + 1);
             var chunks = new byte[chunksNeeded][];
 
-            chunks[0] = MetaDbMemory.Rent();
+            chunks[0] = Rent();
 
             for (var i = 1; i < chunks.Length; i++)
             {

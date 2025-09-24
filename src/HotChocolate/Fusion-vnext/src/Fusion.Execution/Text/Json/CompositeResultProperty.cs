@@ -31,7 +31,7 @@ public readonly struct CompositeResultProperty
 
     public Selection? Selection => Value.Selection;
 
-    public Selection GetRequiredSelection() => Value.GetRequiredSelection();
+    public Selection GetRequiredSelection() => Value.AssertSelection();
 
     /// <summary>
     ///   Compares <paramref name="text" /> to the name of this property.

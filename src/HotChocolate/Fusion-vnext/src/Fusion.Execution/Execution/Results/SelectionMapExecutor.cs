@@ -203,7 +203,7 @@ internal static class ResultDataMapper
         {
             var type = schema.Types.GetType<IOutputTypeDefinition>(path.TypeName.Value);
 
-            if (!type.IsAssignableFrom(result.GetRequiredSelectionSet().Type))
+            if (!type.IsAssignableFrom(result.AssertSelectionSet().Type))
             {
                 return default;
             }
@@ -238,7 +238,7 @@ internal static class ResultDataMapper
 
                 var type = schema.Types.GetType<IOutputTypeDefinition>(currentSegment.TypeName.Value);
 
-                if (!type.IsAssignableFrom(currentResult.GetRequiredSelectionSet().Type))
+                if (!type.IsAssignableFrom(currentResult.AssertSelectionSet().Type))
                 {
                     return default;
                 }

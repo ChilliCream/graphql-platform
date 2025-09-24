@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
@@ -288,27 +289,26 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             resultBuilder.RegisterForCleanup(writer);
         }
 
-        Debug.Assert(
-            !_resultStore.Data.IsInvalidated || _resultStore.Errors.Count > 0,
-            "Expected to either valid data or errors");
-
-        var result = resultBuilder
-            .AddErrors(_resultStore.Errors)
-            .SetData(_resultStore.Data.IsInvalidated ? null : _resultStore.Data)
-            .RegisterForCleanup(_resultStore.MemoryOwners)
-            .Build();
-
-        result.Features.Set(OperationPlan);
+        var result = _resultStore.Result;
+        var operationResult = new RawOperationResult(result, contextData: null);
+        operationResult.RegisterForCleanup(_resultStore.MemoryOwners);
+        operationResult.Features.Set(OperationPlan);
 
         if (trace is not null)
         {
-            result.Features.Set(trace);
+            operationResult.Features.Set(trace);
         }
+
+        Debug.Assert(
+            !result.Data.IsInvalidated
+                || (result.Errors.ValueKind is JsonValueKind.Array
+                    && result.Errors.GetArrayLength() > 0),
+            "Expected to either valid data or errors");
 
         _clientScope = RequestContext.CreateClientScope();
         _resultStore.Reset();
 
-        return result;
+        return operationResult;
     }
 
     private List<ObjectFieldNode> GetPathThroughVariables(
@@ -379,23 +379,13 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
 file static class OperationPlanContextExtensions
 {
-    public static OperationResultBuilder RegisterForCleanup(
-        this OperationResultBuilder builder,
+    public static void RegisterForCleanup(
+        this RawOperationResult result,
         ConcurrentStack<IDisposable> disposables)
     {
         while (disposables.TryPop(out var disposable))
         {
-            RegisterForCleanup(builder, disposable);
+            result.RegisterForCleanup(disposable.Dispose);
         }
-
-        return builder;
-    }
-
-    public static OperationResultBuilder RegisterForCleanup(
-        this OperationResultBuilder builder,
-        IDisposable disposable)
-    {
-        builder.RegisterForCleanup(disposable.Dispose);
-        return builder;
     }
 }

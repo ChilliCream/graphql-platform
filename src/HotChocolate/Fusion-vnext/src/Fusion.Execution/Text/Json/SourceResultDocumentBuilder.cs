@@ -30,4 +30,3 @@ internal readonly struct SourceResultElementBuilder
 
     public IEnumerable<SourceResultElementBuilder> EnumerateArray() => throw new NotImplementedException();
 }
-

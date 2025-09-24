@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Types;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 #pragma warning disable CS1574, CS1584, CS1581, CS1580
@@ -93,6 +94,45 @@ public partial struct CompositeResultElement
         }
     }
 
+    public IType? Type
+    {
+        get
+        {
+            var selection = Selection;
+
+            if (selection is not null)
+            {
+                return selection.Type;
+            }
+
+            var type = Parent.Type;
+
+            if (type is not null)
+            {
+                var valueKind = ValueKind;
+                if (valueKind == JsonValueKind.Array)
+                {
+                    if (type.Kind == TypeKind.List)
+                    {
+                        return ((ListType)type).ElementType;
+                    }
+
+                    if (type.Kind == TypeKind.NonNull)
+                    {
+                        var innerType = ((NonNullType)type).NullableType;
+
+                        if (innerType.Kind == TypeKind.List)
+                        {
+                            return ((ListType)innerType).ElementType;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+    }
+
     public bool IsInvalidated => throw new NotImplementedException();
 
     public bool IsNullOrInvalidated => throw new NotImplementedException();
@@ -102,6 +142,8 @@ public partial struct CompositeResultElement
     public CompositeResultElement Parent => throw new NotImplementedException();
 
     public bool IsNullable => throw new NotImplementedException();
+
+    public bool IsInternal => throw new NotImplementedException();
 
     /*
      * public Path Path
@@ -145,7 +187,7 @@ public partial struct CompositeResultElement
        }
      */
 
-    public SelectionSet GetRequiredSelectionSet()
+    public SelectionSet AssertSelectionSet()
     {
         var selectionSet = SelectionSet;
 
@@ -157,7 +199,7 @@ public partial struct CompositeResultElement
         return selectionSet;
     }
 
-    public Selection GetRequiredSelection()
+    public Selection AssertSelection()
     {
         var selection = Selection;
 
@@ -167,6 +209,18 @@ public partial struct CompositeResultElement
         }
 
         return selection;
+    }
+
+    public IType AssertType()
+    {
+        var type = Type;
+
+        if (type is null)
+        {
+            throw new InvalidOperationException("The type is null.") { Source = Rethrowable };
+        }
+
+        return type;
     }
 
     public void Invalidate() => throw new NotImplementedException();
@@ -465,10 +519,7 @@ public partial struct CompositeResultElement
             throw new InvalidOperationException(string.Format(
                 CompositeResultElement_GetBoolean_JsonElementHasWrongType,
                 nameof(Boolean),
-                actualType.ToValueKind()))
-            {
-                Source = Rethrowable
-            };
+                actualType.ToValueKind())) { Source = Rethrowable };
         }
     }
 
@@ -1262,10 +1313,7 @@ public partial struct CompositeResultElement
             throw new InvalidOperationException(string.Format(
                 "The requested operation requires an element of type '{0}', but the target element has type '{1}'.",
                 ElementTokenType.StartArray,
-                tokenType))
-            {
-                Source = Rethrowable
-            };
+                tokenType)) { Source = Rethrowable };
         }
 
         return new ArrayEnumerator(this);
@@ -1299,24 +1347,34 @@ public partial struct CompositeResultElement
         return new ObjectEnumerator(this);
     }
 
-    internal void SetValue(SelectionSet selectionSet)
+    internal void SetObjectValue(SelectionSet selectionSet)
     {
         CheckValidInstance();
 
         ArgumentNullException.ThrowIfNull(selectionSet);
 
         var obj = _parent.CreateObject(parentRow: _index, selectionSet: selectionSet);
-        _parent.AssignObjectValue(this, obj);
+        _parent.AssignCompositeValue(this, obj);
     }
 
-    internal void SetValue(SourceResultElement source)
+    internal void SetArrayValue(int length)
     {
         CheckValidInstance();
 
-        _parent.AssignLeafValue(this, source);
+        ArgumentOutOfRangeException.ThrowIfNegative(length);
+
+        var arr = _parent.CreateArray(parentRow: _index, length);
+        _parent.AssignCompositeValue(this, arr);
     }
 
-    internal void SetNull()
+    internal void SetLeafValue(SourceResultElement source)
+    {
+        CheckValidInstance();
+
+        _parent.AssignSourceValue(this, source);
+    }
+
+    internal void SetNullValue()
     {
         CheckValidInstance();
 

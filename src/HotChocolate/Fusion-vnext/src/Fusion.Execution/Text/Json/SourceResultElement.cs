@@ -395,7 +395,7 @@ public readonly partial struct SourceResultElement
     /// The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
     /// <seealso cref="ToString"/>
-    public string GetRequiredString()
+    public string AssertString()
         => GetString() ?? throw new InvalidOperationException("The element value is null.");
 
     /// <summary>
