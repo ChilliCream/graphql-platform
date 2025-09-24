@@ -5,17 +5,20 @@
       "locations": [
         {
           "line": 1,
-          "column": 30
+          "column": 52
         }
       ],
       "path": [
-        "input",
-        "arg",
-        "id"
+        "fieldWithObjectInput"
       ],
       "extensions": {
         "code": "HC0001",
-        "fieldCoordinate": "ObjectWithIdInput.id",
+        "coordinate": "ObjectWithIdInput.id",
+        "inputPath": [
+          "input",
+          "arg",
+          "id"
+        ],
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"

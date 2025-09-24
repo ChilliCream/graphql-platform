@@ -5,16 +5,19 @@
       "locations": [
         {
           "line": 1,
-          "column": 44
+          "column": 53
         }
       ],
       "path": [
-        "input",
-        "arg"
+        "fieldWithScalarInput"
       ],
       "extensions": {
         "code": "HC0001",
-        "fieldCoordinate": "ScalarInputInput.arg",
+        "coordinate": "FieldWithScalarInputInput.arg",
+        "inputPath": [
+          "input",
+          "arg"
+        ],
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"

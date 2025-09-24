@@ -5,16 +5,19 @@
       "locations": [
         {
           "line": 1,
-          "column": 37
+          "column": 53
         }
       ],
       "path": [
-        "input",
-        "arg"
+        "fieldWithNonNullScalarInput"
       ],
       "extensions": {
         "code": "HC0001",
-        "fieldCoordinate": "NonNullScalarInputInput.arg",
+        "coordinate": "FieldWithNonNullScalarInputInput.arg",
+        "inputPath": [
+          "input",
+          "arg"
+        ],
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"

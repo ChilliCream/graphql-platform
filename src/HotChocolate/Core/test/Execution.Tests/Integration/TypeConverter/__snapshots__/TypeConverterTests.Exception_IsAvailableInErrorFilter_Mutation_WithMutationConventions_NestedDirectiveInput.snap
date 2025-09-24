@@ -5,25 +5,23 @@
       "locations": [
         {
           "line": 1,
-          "column": 46
+          "column": 70
         }
       ],
       "path": [
-        "fieldWithScalarInput"
+        "nestedObjectOutput",
+        "nestedObject",
+        "inner",
+        "id"
       ],
       "extensions": {
         "code": "HC0001",
-        "coordinate": "FieldWithScalarInputInput.arg",
-        "inputPath": [
-          "input",
-          "arg"
-        ],
+        "coordinate": "boom.arg",
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"
         }
       }
     }
-  ],
-  "data": null
+  ]
 }
