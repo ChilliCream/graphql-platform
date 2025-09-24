@@ -4,8 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Integration.TypeConverter;
 
-//TODO
-#pragma warning disable
 public partial class TypeConverterTests
 {
     public record TestCase([StringSyntax("graphql")] string QueryString, string DisplayName)
@@ -19,7 +17,7 @@ public partial class TypeConverterTests
           new("""{ fieldWithNonNullScalarInput(arg: "foo") }""", "NonNullScalarInput"),
           new("""{ fieldWithObjectInput(arg: { id: "foo" }) }""", "ObjectInput"),
           new("""{ fieldWithNestedObjectInput(arg: { inner: { id: "foo" } }) }""", "NestedObjectInput"),
-          new("""{ fieldWithListOfScalarsInput(arg: ["ok", "foo"]) }""", "ListOfScalarsInput"),
+          new("""{ fieldWithListOfScalarsInput(arg: ["foo"]) }""", "ListOfScalarsInput"),
           new("""{ fieldWithListOfScalarsInput(arg: ["ok", "foo"]) }""", "ListOfScalarsInputWithOkValue"),
           new("""{ fieldWithObjectWithListOfScalarsInput(arg: { ids: ["foo"] }) }""", "ObjectWithListOfScalarsInput"),
           new("""{ fieldWithListOfObjectsInput(arg: { items: [{ id: "foo" }] }) }""", "ListOfObjectsInput"),
@@ -30,35 +28,39 @@ public partial class TypeConverterTests
 
     public static readonly TheoryData<TestCase> TestCasesForMutationConventions =
     [
-        new("""mutation{ scalarInput(input: { arg: "foo" }) { string } }""", "ScalarInput"),
-        new("""mutation{ objectInput(input: { arg: { id: "foo" } }) { string } }""", "ObjectInput"),
-        new("""mutation{ listOfScalarsInput(input: { arg: ["foo"] }) { string } }""", "ListOfScalarsInput"),
-        new("""mutation{ objectWithListOfScalarsInput(input: { arg: { id: ["foo"] } }) { string } }""",
-            "ObjectWithListOfScalarsInput"),
-        new("""mutation{ nestedObjectInput(input: { arg: { inner: { id: "foo" } } }) { string } }""",
+        new("""mutation{ fieldWithScalarInput(input: { arg: "foo" }) { string } }""", "ScalarInput"),
+        new("""mutation{ fieldWithNonNullScalarInput(input: { arg: "foo" }) { string } }""", "NonNullScalarInput"),
+        new("""mutation{ fieldWithObjectInput(input: { arg: { id: "foo" } }) { string } }""", "ObjectInput"),
+        new("""mutation{ fieldWithNestedObjectInput(input: { arg: { inner: { id: "foo" } } }) { string } }""",
             "NestedObjectInput"),
-        new("""mutation{ listOfObjectsInput(input: { arg: { items: [{ id: "foo" }] } }) { string } }""",
+        new("""mutation{ fieldWithListOfScalarsInput(input: { arg: ["foo"] }) { string } }""", "ListOfScalarsInput"),
+        new("""mutation{ fieldWithListOfScalarsInput(input: { arg: ["ok", "foo"] }) { string } }""",
+            "ListOfScalarsInputWithOkValue"),
+        new("""mutation{ fieldWithObjectWithListOfScalarsInput(input: { arg: { id: ["foo"] } }) { string } }""",
+            "ObjectWithListOfScalarsInput"),
+        new("""mutation{ fieldWithListOfObjectsInput(input: { arg: { items: [{ id: "foo" }] } }) { string } }""",
             "ListOfObjectsInput"),
-        new("""mutation{ nonNullScalarInput(input: { arg: "foo" }) { string } }""", "NonNullScalarInput"),
-        new("""mutation($v: String!) { scalarInput(input: { arg: $v }) { string } }""", "VariableInput"),
-        new("""mutation{ echo(input: { arg: "foo"}) @boom(arg: "foo") { string }  }""", "DirectiveInput")
+        new("""mutation($v: String!) { fieldWithScalarInput(input: { arg: $v }) { string } }""", "VariableInput"),
+        new("""mutation{ echo(input: { arg: "foo"}) @boom(arg: "foo") { string }  }""", "DirectiveInput"),
+        new("""mutation { nestedObjectOutput { inner { id @boom(arg: "foo") } } }""", "NestedDirectiveInput")
     ];
 
     public static readonly TheoryData<TestCase> TestCasesForQueryConventions =
     [
-        new("""{ scalarInput(arg: "foo") { ... on ObjectWithId { id } } }""", "ScalarInput"),
-        new("""{ objectInput(arg: { id: "foo" }) { ... on ObjectWithId { id } } }""", "ObjectInput"),
-        new("""{ listOfScalarsInput(arg: ["foo"]) { ... on ObjectWithId { id } } }""", "ListOfScalarsInput"),
-        new("""{ objectWithListOfScalarsInput(arg: { id: ["foo"] }) { ... on ObjectWithId { id } } }""",
-            "ObjectWithListOfScalarsInput"),
-        new("""{ nestedObjectInput(arg: { inner: { id: "foo" } }) { ... on ObjectWithId { id } } }""",
+        new("""{ fieldWithScalarInput(arg: "foo") { ... on ObjectWithId { id } } }""", "ScalarInput"),
+        new("""{ fieldWithNonNullScalarInput(arg: "foo") { ... on ObjectWithId { id } } }""", "NonNullScalarInput"),
+        new("""{ fieldWithObjectInput(arg: { id: "foo" }) { ... on ObjectWithId { id } } }""", "ObjectInput"),
+        new("""{ fieldWithNestedObjectInput(arg: { inner: { id: "foo" } }) { ... on ObjectWithId { id } } }""",
             "NestedObjectInput"),
-        new("""{ listOfObjectsInput(arg: { items: [{ id: "foo" }] }) { ... on ObjectWithId { id } } }""",
+        new("""{ fieldWithListOfScalarsInput(arg: ["foo"]) { ... on ObjectWithId { id } } }""", "ListOfScalarsInput"),
+        new("""{ fieldWithListOfObjectsInput(arg: { items: [{ id: "foo" }] }) { ... on ObjectWithId { id } } }""",
             "ListOfObjectsInput"),
-        new("""{ nonNullScalarInput(arg: "foo") { ... on ObjectWithId { id } } }""", "NonNullScalarInput"),
+        new("""{ fieldWithObjectWithListOfScalarsInput(arg: { id: ["foo"] }) { ... on ObjectWithId { id } } }""",
+            "ObjectWithListOfScalarsInput"),
         new("""query($v: String!) { scalarInput(arg: $v) { ... on ObjectWithId { id } } }""",
             "VariableInput"),
-        new("""{ echo(arg: "foo") @boom(arg: "foo") { ... on ObjectWithId { id } } }""", "DirectiveInput")
+        new("""{ echo(arg: "foo") @boom(arg: "foo") { ... on ObjectWithId { id } } }""", "DirectiveInput"),
+        new("""{ nestedObjectOutput { ... on NestedObject { inner { id @boom(arg: "foo") } } } }""", "NestedDirectiveInput")
     ];
 
     [Theory]
@@ -93,7 +95,7 @@ public partial class TypeConverterTests
         result.MatchSnapshot(postFix: testCase.DisplayName);
     }
 
-    [Theory(Skip = "Need more info about desired location and path")]
+    [Theory]
     [MemberData(nameof(TestCases))]
     public async Task Exception_IsAvailableInErrorFilter_Mutation(TestCase testCase)
     {
@@ -247,22 +249,24 @@ public partial class TypeConverterTests
     public class SomeQueryConventionFriendlyQueryType
     {
         [Error<CustomIdSerializationException>]
-        public ObjectWithId? ScalarInput(BrokenType arg) => null;
+        public ObjectWithId? FieldWithScalarInput(BrokenType arg) => null;
         [Error<CustomIdSerializationException>]
-        public ObjectWithId? ObjectInput(ObjectWithId arg) => null;
+        public ObjectWithId? FieldWithObjectInput(ObjectWithId arg) => null;
         [Error<CustomIdSerializationException>]
-        public ObjectWithId? ListOfScalarsInput(List<BrokenType> arg) => null;
+        public ObjectWithId? FieldWithListOfScalarsInput(List<BrokenType> arg) => null;
         [Error<CustomIdSerializationException>]
-        public ObjectWithId? ObjectWithListOfScalarsInput(ObjectWithListOfIds arg) => null;
+        public ObjectWithId? FieldWithObjectWithListOfScalarsInput(ObjectWithListOfIds arg) => null;
         [Error<CustomIdSerializationException>]
-        public ObjectWithId? NestedObjectInput(NestedObject arg) => null;
+        public ObjectWithId? FieldWithNestedObjectInput(NestedObject arg) => null;
         // ReSharper disable once MemberHidesStaticFromOuterClass
         [Error<CustomIdSerializationException>]
-        public ObjectWithId? ListOfObjectsInput(ListOfObjectsInput arg) => null;
+        public ObjectWithId? FieldWithListOfObjectsInput(ListOfObjectsInput arg) => null;
         [Error<CustomIdSerializationException>]
-        public ObjectWithId? NonNullScalarInput([GraphQLNonNullType] BrokenType arg) => null;
+        public ObjectWithId? FieldWithNonNullScalarInput([GraphQLNonNullType] BrokenType arg) => null;
         [Error<CustomIdSerializationException>]
         public ObjectWithId? Echo(string arg) => null;
+        [Error<CustomIdSerializationException>]
+        public NestedObject? NestedObjectOutput => null;
     }
 
     public class CustomIdSerializationException(string message) : Exception(message)

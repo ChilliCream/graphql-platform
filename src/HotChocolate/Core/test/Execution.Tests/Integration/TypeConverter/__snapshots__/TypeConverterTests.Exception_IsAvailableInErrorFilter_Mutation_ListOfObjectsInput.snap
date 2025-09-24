@@ -5,18 +5,21 @@
       "locations": [
         {
           "line": 1,
-          "column": 35
+          "column": 60
         }
       ],
       "path": [
-        "arg",
-        "items",
-        0,
-        "id"
+        "fieldWithListOfObjectsInput"
       ],
       "extensions": {
         "code": "HC0001",
-        "fieldCoordinate": "ObjectWithIdInput.id",
+        "coordinate": "ObjectWithIdInput.id",
+        "inputPath": [
+          "arg",
+          "items",
+          0,
+          "id"
+        ],
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"
@@ -25,6 +28,6 @@
     }
   ],
   "data": {
-    "listOfObjectsInput": null
+    "fieldWithListOfObjectsInput": null
   }
 }
