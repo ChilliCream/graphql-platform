@@ -5,9 +5,9 @@ using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
-public sealed class IsInvalidFieldRuleTests
+public sealed class IsInvalidFieldsRuleTests
 {
-    private static readonly object s_rule = new IsInvalidFieldRule();
+    private static readonly object s_rule = new IsInvalidFieldsRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
     private readonly CompositionLog _log = new();
 
@@ -49,7 +49,7 @@ public sealed class IsInvalidFieldRuleTests
         // assert
         Assert.True(result.IsFailure);
         Assert.Equal(errorMessages, _log.Select(e => e.Message).ToArray());
-        Assert.True(_log.All(e => e.Code == "IS_INVALID_FIELD"));
+        Assert.True(_log.All(e => e.Code == "IS_INVALID_FIELDS"));
         Assert.True(_log.All(e => e.Severity == LogSeverity.Error));
     }
 
@@ -103,7 +103,7 @@ public sealed class IsInvalidFieldRuleTests
         return new TheoryData<string[], string[]>
         {
             // In this example, the @is directive references a field ("unknownField") that does
-            // not exist on the return type ("Person"), causing an IS_INVALID_FIELD error.
+            // not exist on the return type ("Person"), causing an IS_INVALID_FIELDS error.
             {
                 [
                     """
