@@ -48,6 +48,37 @@ Deprecating a field now requires the implemented field in the interface to also 
 
 Previously, the global ID input value formatter was added to ID filter fields regardless of whether or not Global Object Identification was enabled. This is now conditional.
 
+## `fieldCoordinate` renamed to `coordinate` in error extensions
+
+Some GraphQL validation errors included an extension named `fieldCoordinate` that provided a schema coordinate pointing to the field or argument that caused the error. Since schema coordinates can reference various schema elements (not just fields), we've renamed this extension to `coordinate` for clarity.
+
+```diff
+{
+  "errors": [
+    {
+      "message": "Some error",
+      "locations": [
+        {
+          "line": 3,
+          "column": 21
+        }
+      ],
+      "path": [
+        "field"
+      ],
+      "extensions": {
+        "code": "HC0001",
+-       "fieldCoordinate": "Query.field"
++       "coordinate": "Query.field"
+      }
+    }
+  ],
+  "data": {
+    "field": null
+  }
+}
+```
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
