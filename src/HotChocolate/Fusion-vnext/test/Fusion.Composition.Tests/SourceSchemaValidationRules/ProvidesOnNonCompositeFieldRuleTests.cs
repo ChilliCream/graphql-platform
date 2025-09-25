@@ -79,7 +79,7 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests
         {
             // In this example, "email" has a scalar base type (String). Because scalars do not
             // expose sub-fields, attaching @provides to "email" triggers a
-            // PROVIDES_ON_NON_OBJECT_FIELD error.
+            // PROVIDES_ON_NON_COMPOSITE_FIELD error.
             {
                 [
                     """
