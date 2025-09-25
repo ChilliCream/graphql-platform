@@ -79,6 +79,39 @@ Some GraphQL validation errors included an extension named `fieldCoordinate` tha
 }
 ```
 
+## Errors from `TypeConverter`s are now accessible in the `ErrorFilter`
+
+Previously, exceptions thrown by a `TypeConverter` were not forwarded to the `ErrorFilter`. Such exceptions are now properly propagated and can therefore be intercepted.  
+
+In addition, the default output for such errors has been standardized: earlier, type conversion errors resulted in different responses depending on where in the document they occurred. 
+Now, all exceptions thrown by type converters are reported in a unified format:  
+
+```json
+{
+  "errors": [
+    {
+      "message": "The value provided for `[name of field or argument that caused the error]` is not in a valid format.",
+      "locations": [
+        {
+          "line": <lineNumber>,
+          "column": <columnNumber>
+        }
+      ],
+      "path": [ path to output field that caused the error],
+      "extensions": {
+        "code": "HC0001",
+        "coordinate": "schema coordinate pointing to the field or argument that caused the error",
+        "inputPath": [path to nested input field or argument (if any) that caused the error]
+        "...": "other extensions"
+      }
+    }
+  ],
+  "data": {
+    ...
+  }
+}
+```
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
