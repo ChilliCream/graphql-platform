@@ -100,7 +100,7 @@ Now, all exceptions thrown by type converters are reported in a unified format:
       "path": [ path to output field that caused the error],
       "extensions": {
         "code": "HC0001",
-        "coordinate": [coordinate pointing to the field or argument that caused the error],
+        "coordinate": "schema coordinate pointing to the field or argument that caused the error",
         "inputPath": [path to nested input field or argument (if any) that caused the error]
         "...": "other extensions"
       }
