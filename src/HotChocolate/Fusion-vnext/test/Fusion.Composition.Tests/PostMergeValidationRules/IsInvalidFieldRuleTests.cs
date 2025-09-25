@@ -101,6 +101,86 @@ public sealed class IsInvalidFieldRuleTests
                     "The @is directive on argument 'Query.personById(id:)' in schema 'A' "
                     + "specifies an invalid field selection against the composed schema."
                 ]
+            },
+            // Type of argument does not match field type.
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        personById(id: Int! @is(field: "id")): Person @lookup
+                    }
+
+                    type Person {
+                        id: ID!
+                        name: String
+                    }
+                    """
+                ],
+                [
+                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
+                ]
+            },
+            // List output type, Singular input type.
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        personsById(id: ID! @is(field: "id")): [Person!]! @lookup
+                    }
+
+                    type Person {
+                        id: ID!
+                        name: String
+                    }
+                    """
+                ],
+                [
+                    "The @is directive on argument 'Query.personsById(id:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
+                ]
+            },
+            // Singular output type, List input type.
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        personByIds(ids: [ID!]! @is(field: "id")): Person! @lookup
+                    }
+
+                    type Person {
+                        id: ID!
+                        name: String
+                    }
+                    """
+                ],
+                [
+                    "The @is directive on argument 'Query.personByIds(ids:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
+                ]
+            },
+            // List output type, List input type (valid for Fusion v1 batch lookups).
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        personsByIds(ids: [ID!]! @is(field: "id")): [Person!]! @lookup
+                    }
+
+                    type Person {
+                        id: ID!
+                        name: String
+                    }
+                    """
+                ],
+                [
+                    "The @is directive on argument 'Query.personsByIds(ids:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
+                ]
             }
         };
     }
