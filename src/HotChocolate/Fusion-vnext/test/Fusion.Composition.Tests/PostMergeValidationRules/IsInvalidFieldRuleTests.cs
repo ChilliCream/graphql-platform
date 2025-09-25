@@ -73,6 +73,27 @@ public sealed class IsInvalidFieldRuleTests
                     }
                     """
                 ]
+            },
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        personByName(name: String! @is(field: "name")): Person @lookup
+                    }
+
+                    type Person {
+                        id: ID!
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Person {
+                        id: ID!
+                        name: String!
+                    }
+                    """
+                ]
             }
         };
     }
