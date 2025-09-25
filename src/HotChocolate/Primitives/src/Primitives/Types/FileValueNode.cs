@@ -37,6 +37,9 @@ public class FileValueNode
 
     string IValueNode<string>.Value => Value.Name;
 
+    /// <inheritdoc />
+    IValueNode IValueNode.WithLocation(Location? location) => this;
+
     /// <summary>
     /// Determines whether the specified <see cref="FileValueNode"/>
     /// is equal to the current <see cref="FileValueNode"/>.

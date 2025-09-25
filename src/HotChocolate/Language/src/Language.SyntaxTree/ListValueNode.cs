@@ -138,6 +138,10 @@ public sealed class ListValueNode : IValueNode<IReadOnlyList<IValueNode>>
     /// </returns>
     public ListValueNode WithLocation(Location? location) => new(location, Items);
 
+    /// <inheritdoc />
+    IValueNode IValueNode.WithLocation(Location? location)
+        => WithLocation(location);
+
     /// <summary>
     /// Creates a new node from the current instance and replaces the
     /// <see cref="Items" /> with <paramref name="items" />.

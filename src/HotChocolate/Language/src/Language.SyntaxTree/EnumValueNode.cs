@@ -187,6 +187,10 @@ public sealed class EnumValueNode : IValueNode<string>
     public EnumValueNode WithLocation(Location? location)
         => new(location, Value);
 
+    /// <inheritdoc />
+    IValueNode IValueNode.WithLocation(Location? location)
+        => WithLocation(location);
+
     /// <summary>
     /// Creates a new node from the current instance and replaces the
     /// <see cref="Value" /> with <paramref name="value" />.
