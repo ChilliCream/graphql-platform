@@ -41,6 +41,16 @@ Use the `LocalDate` type if you do not want the date to be converted to universa
 
 Please ensure that your clients are sending date/time strings in the correct format to avoid errors.
 
+You can opt out of these format checks with the following code:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddType(new LocalDateType(disableFormatCheck: true))
+    .AddType(new LocalTimeType(disableFormatCheck: true))
+    .AddType(new DateType(disableFormatCheck: true));
+```
+
 ## LocalDate and LocalTime scalars moved
 
 `LocalDate` and `LocalTime` have been moved from `HotChocolate.Types.Scalars` to `HotChocolate.Types`, and are therefore available without installing the additional package.
