@@ -181,7 +181,7 @@ public sealed class SchemaComposer
         new EnumTypeDefaultValueInaccessibleRule(),
         new ImplementedByInaccessibleRule(),
         new InterfaceFieldNoImplementationRule(),
-        new IsInvalidFieldRule(),
+        new IsInvalidFieldsRule(),
         new KeyInvalidFieldsRule(),
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),

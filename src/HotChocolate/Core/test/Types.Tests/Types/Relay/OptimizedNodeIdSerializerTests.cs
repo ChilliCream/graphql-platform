@@ -678,7 +678,7 @@ public class OptimizedNodeIdSerializerTests
         var id = serializer.Format("Foo", internalId);
 
         // Verify it's valid Base36 and round-trips correctly
-        Assert.True(id.All(c => "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(c)));
+        Assert.True(id.All("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains));
         Assert.NotEmpty(id);
     }
 
@@ -689,7 +689,7 @@ public class OptimizedNodeIdSerializerTests
 
         var id = serializer.Format("Foo", new CompositeId("foo", 42, Guid.Empty, true));
 
-        Assert.True(id.All(c => "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(c)));
+        Assert.True(id.All("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains));
         Assert.NotEmpty(id);
     }
 
@@ -841,7 +841,7 @@ public class OptimizedNodeIdSerializerTests
         var id = serializer.Format("Foo", testString);
 
         // Verify it's valid Base36
-        Assert.True(id.All(c => "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(c)));
+        Assert.True(id.All("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains));
 
         // Verify round trip preserves the zeros
         var parsed = serializer.Parse(id, typeof(string));
@@ -861,7 +861,7 @@ public class OptimizedNodeIdSerializerTests
         var largeString = new string('x', 1000);
         var id = serializer.Format("LongTypeName", largeString);
 
-        Assert.True(id.All(c => "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(c)));
+        Assert.True(id.All("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains));
 
         // Verify round trip works
         var parsed = serializer.Parse(id, typeof(string));
@@ -1061,7 +1061,7 @@ public class OptimizedNodeIdSerializerTests
         var id = serializer.Format("Foo", internalId);
 
         // Should be valid hex and round-trip correctly
-        Assert.True(id.All(c => "0123456789ABCDEF".Contains(c)));
+        Assert.True(id.All("0123456789ABCDEF".Contains));
         Assert.StartsWith("466F6F3A", id); // "Foo:"
 
         // Verify round trip
@@ -1079,7 +1079,7 @@ public class OptimizedNodeIdSerializerTests
         var id = serializer.Format("Foo", internalId);
 
         // Should be valid lowercase hex
-        Assert.True(id.All(c => "0123456789abcdef".Contains(c)));
+        Assert.True(id.All("0123456789abcdef".Contains));
         Assert.StartsWith("466f6f3a", id); // "Foo:" in lowercase
 
         // Verify round trip
@@ -1247,7 +1247,7 @@ public class OptimizedNodeIdSerializerTests
         var id = serializer.Format("Foo", testString);
 
         // Should be valid hex
-        Assert.True(id.All(c => "0123456789ABCDEF".Contains(c)));
+        Assert.True(id.All("0123456789ABCDEF".Contains));
         Assert.EndsWith("000000", id); // Three null bytes as hex
 
         // Verify round trip preserves the zeros
@@ -1265,7 +1265,7 @@ public class OptimizedNodeIdSerializerTests
         var largeString = new string('x', 500);
         var id = serializer.Format("LongTypeName", largeString);
 
-        Assert.True(id.All(c => "0123456789ABCDEF".Contains(c)));
+        Assert.True(id.All("0123456789ABCDEF".Contains));
 
         // Verify round trip works
         var parsed = serializer.Parse(id, typeof(string));
@@ -1312,7 +1312,7 @@ public class OptimizedNodeIdSerializerTests
         var compositeId = new CompositeId("test", 42, Guid.Empty, true);
         var id = serializer.Format("Foo", compositeId);
 
-        Assert.True(id.All(c => "0123456789ABCDEF".Contains(c)));
+        Assert.True(id.All("0123456789ABCDEF".Contains));
         Assert.NotEmpty(id);
 
         // Verify round trip
@@ -1329,7 +1329,7 @@ public class OptimizedNodeIdSerializerTests
         var compositeId = new CompositeId("test", 42, Guid.Empty, true);
         var id = serializer.Format("Foo", compositeId);
 
-        Assert.True(id.All(c => "0123456789abcdef".Contains(c)));
+        Assert.True(id.All("0123456789abcdef".Contains));
         Assert.NotEmpty(id);
 
         // Verify round trip

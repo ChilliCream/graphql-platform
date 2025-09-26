@@ -683,7 +683,7 @@ internal static class ErrorHelper
                 fieldCoordinate.Name)
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
-            .SetFieldCoordinate(fieldCoordinate)
+            .SetCoordinate(fieldCoordinate)
             .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed", rfc: 825)
             .Build();
 

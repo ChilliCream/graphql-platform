@@ -1,10 +1,10 @@
 using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Composite = HotChocolate.Types.Composite;
 
 namespace HotChocolate.Fusion;
 
@@ -56,8 +56,8 @@ public abstract partial class FusionTestBase
             services.AddRouting();
 
             services.AddGraphQLServer(schemaName, disableDefaultSecurity: true)
-                .AddType<FieldSelectionSetType>()
-                .AddType<FieldSelectionMapType>()
+                .AddType<Composite.FieldSelectionSetType>()
+                .AddType<Composite.FieldSelectionMapType>()
                 .TryAddTypeInterceptor<RegisterFusionDirectivesTypeInterceptor>()
                 .AddDocumentFromString(schemaText)
                 .AddResolverMocking()
@@ -88,12 +88,12 @@ public abstract partial class FusionTestBase
             {
                 var typeInspector = discoveryContexts.First().DescriptorContext.TypeInspector;
 
-                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Lookup));
-                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Internal));
-                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.EntityKey));
-                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Require));
-                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Is));
-                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Shareable));
+                yield return typeInspector.GetTypeRef(typeof(Composite.Lookup));
+                yield return typeInspector.GetTypeRef(typeof(Composite.Internal));
+                yield return typeInspector.GetTypeRef(typeof(Composite.EntityKey));
+                yield return typeInspector.GetTypeRef(typeof(Composite.Require));
+                yield return typeInspector.GetTypeRef(typeof(Composite.Is));
+                yield return typeInspector.GetTypeRef(typeof(Composite.Shareable));
 
                 _registeredTypes = true;
             }

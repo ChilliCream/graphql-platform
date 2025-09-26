@@ -459,7 +459,7 @@ internal static class LogEntryHelper
             schema);
     }
 
-    public static LogEntry IsInvalidField(
+    public static LogEntry IsInvalidFields(
         Directive isDirective,
         string argumentName,
         string fieldName,
@@ -470,8 +470,8 @@ internal static class LogEntryHelper
         var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
 
         return new LogEntry(
-            string.Format(LogEntryHelper_IsInvalidField, coordinate, sourceSchema.Name),
-            LogEntryCodes.IsInvalidField,
+            string.Format(LogEntryHelper_IsInvalidFields, coordinate, sourceSchema.Name),
+            LogEntryCodes.IsInvalidFields,
             LogSeverity.Error,
             coordinate,
             isDirective,

@@ -1,0 +1,26 @@
+{
+  "errors": [
+    {
+      "message": "The value provided for `arg` is not in a valid format.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 46
+        }
+      ],
+      "path": [
+        "nestedObjectOutput",
+        "inner",
+        "id"
+      ],
+      "extensions": {
+        "code": "HC0001",
+        "coordinate": "boom.arg",
+        "exception": {
+          "message": "Boom",
+          "stackTrace": "Test"
+        }
+      }
+    }
+  ]
+}

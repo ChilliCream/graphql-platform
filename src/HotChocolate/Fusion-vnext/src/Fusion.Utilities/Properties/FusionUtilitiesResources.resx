@@ -69,4 +69,7 @@
   <data name="SelectionSetValidator_UnionFieldInvalidSelections" xml:space="preserve">
     <value>The field '{0}' returns a union type and must only include inline fragment selections.</value>
   </data>
+  <data name="FieldSelectionMapValidator_InvalidFieldParentType" xml:space="preserve">
+    <value>Expected the parent type of field '{0}' to be a complex type but received '{1}'.</value>
+  </data>
 </root>
