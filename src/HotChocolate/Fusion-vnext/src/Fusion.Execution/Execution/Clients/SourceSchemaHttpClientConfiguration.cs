@@ -116,7 +116,7 @@ public class SourceSchemaHttpClientConfiguration
     /// <summary>
     /// Called before the request is sent.
     /// </summary>
-   public Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? OnBeforeSend { get; }
+    public Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? OnBeforeSend { get; }
 
     /// <summary>
     /// Called after the response is received.
