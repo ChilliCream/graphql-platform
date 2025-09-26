@@ -16,7 +16,11 @@ public sealed class SelectionSetIndexer : SyntaxWalker
         indexer.Visit(operation);
         return new SelectionSetIndex(
             indexer._selectionSetIds.ToImmutableDictionary(),
+#if NET10_0_OR_GREATER
+            [],
+#else
             ImmutableDictionary<uint, uint>.Empty,
+#endif
             indexer._nextId);
     }
 

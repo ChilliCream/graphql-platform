@@ -3,7 +3,6 @@ using HotChocolate;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -18,7 +17,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return ConfigureValidation(builder, (_, b) => b.AddVisitor<T>(isCacheable: isCacheable));
     }
 
-    public static IFusionGatewayBuilder AddValidationVisitor<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]  T>(
+    public static IFusionGatewayBuilder AddValidationVisitor<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, ValidationOptions, T> factory,
         bool isCacheable = true)
