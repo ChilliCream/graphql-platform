@@ -54,7 +54,7 @@ public readonly partial struct SourceResultElement
         /// </remarks>
         public ObjectEnumerator GetEnumerator()
         {
-            ObjectEnumerator enumerator = this;
+            var enumerator = this;
             enumerator._curIdx = -1;
             return enumerator;
         }

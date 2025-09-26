@@ -232,7 +232,7 @@ public sealed partial class SourceResultDocument
             return index + DbRow.Size;
         }
 
-        var endIndex = index + DbRow.Size * row.NumberOfRows;
+        var endIndex = index + (DbRow.Size * row.NumberOfRows) - DbRow.Size;
 
         if (includeEndElement)
         {

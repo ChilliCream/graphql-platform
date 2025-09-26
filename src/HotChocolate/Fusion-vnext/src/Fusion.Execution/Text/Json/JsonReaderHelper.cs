@@ -109,7 +109,7 @@ internal static class JsonReaderHelper
         Unescape(utf8Source, utf8Unescaped, 0, out var written);
         Debug.Assert(written > 0);
 
-        utf8Unescaped = utf8Unescaped.Slice(0, written);
+        utf8Unescaped = utf8Unescaped[..written];
         Debug.Assert(!utf8Unescaped.IsEmpty);
 
         var result = other.SequenceEqual(utf8Unescaped);
@@ -137,7 +137,7 @@ internal static class JsonReaderHelper
         Unescape(utf8Source, utf8Unescaped, out var written);
         Debug.Assert(written > 0);
 
-        utf8Unescaped = utf8Unescaped.Slice(0, written);
+        utf8Unescaped = utf8Unescaped[..written];
         Debug.Assert(!utf8Unescaped.IsEmpty);
 
         var utf8String = TranscodeHelper(utf8Unescaped);
@@ -216,7 +216,7 @@ internal static class JsonReaderHelper
         Debug.Assert(idx >= 0 && idx < source.Length);
         Debug.Assert(source[idx] == JsonConstants.BackSlash);
 
-        if (!source.Slice(0, idx).TryCopyTo(destination))
+        if (!source[..idx].TryCopyTo(destination))
         {
             written = 0;
             goto DestinationTooShort;
@@ -314,7 +314,7 @@ internal static class JsonReaderHelper
                     }
 
                     var rune = new Rune(scalar);
-                    var success = rune.TryEncodeToUtf8(destination.Slice(written), out var bytesWritten);
+                    var success = rune.TryEncodeToUtf8(destination[written..], out var bytesWritten);
                     if (!success)
                     {
                         goto DestinationTooShort;
@@ -332,7 +332,7 @@ internal static class JsonReaderHelper
 
             if (source[idx] != JsonConstants.BackSlash)
             {
-                var remaining = source.Slice(idx);
+                var remaining = source[idx..];
                 var nextUnescapedSegmentLength = remaining.IndexOf(JsonConstants.BackSlash);
                 if (nextUnescapedSegmentLength < 0)
                 {
@@ -360,7 +360,7 @@ internal static class JsonReaderHelper
                         destination[written++] = source[idx++];
                         break;
                     default:
-                        remaining.Slice(0, nextUnescapedSegmentLength).CopyTo(destination.Slice(written));
+                        remaining[..nextUnescapedSegmentLength].CopyTo(destination[written..]);
                         written += nextUnescapedSegmentLength;
                         idx += nextUnescapedSegmentLength;
                         break;

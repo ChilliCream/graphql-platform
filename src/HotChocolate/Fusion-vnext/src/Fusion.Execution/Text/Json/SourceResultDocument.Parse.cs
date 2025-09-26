@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -141,8 +142,12 @@ public sealed partial class SourceResultDocument
         return metaDb.Length - DbRow.Size;
     }
 
-    private static void CloseContainer(ref MetaDb metaDb, Stack<int> containerStack, JsonTokenType expectedStartType,
-        int startLocation, int tokenLength)
+    private static void CloseContainer(
+        ref MetaDb metaDb,
+        Stack<int> containerStack,
+        JsonTokenType expectedStartType,
+        int startLocation,
+        int tokenLength)
     {
         if (containerStack.Count == 0)
         {
@@ -184,8 +189,12 @@ public sealed partial class SourceResultDocument
         }
     }
 
-    private static void AppendStringToken(ref MetaDb metaDb, JsonTokenType tokenType, int startLocation,
-        int tokenLength, Utf8JsonReader reader)
+    private static void AppendStringToken(
+        ref MetaDb metaDb,
+        JsonTokenType tokenType,
+        int startLocation,
+        int tokenLength,
+        Utf8JsonReader reader)
     {
         // For strings, skip the opening quote and reduce length to exclude both quotes
         var adjustedLocation = startLocation + 1;
@@ -193,14 +202,18 @@ public sealed partial class SourceResultDocument
 
         metaDb.Append(tokenType, adjustedLocation, adjustedLength);
 
-        if (reader.ValueSpan.Length != adjustedLength || ContainsEscapeSequences(reader.ValueSpan))
+        if (ContainsEscapeSequences(reader))
         {
             var currentIndex = metaDb.Length - DbRow.Size;
             metaDb.SetHasComplexChildren(currentIndex);
         }
     }
 
-    private static void AppendNumberToken(ref MetaDb metaDb, int startLocation, int tokenLength, Utf8JsonReader reader)
+    private static void AppendNumberToken(
+        ref MetaDb metaDb,
+        int startLocation,
+        int tokenLength,
+        Utf8JsonReader reader)
     {
         metaDb.Append(JsonTokenType.Number, startLocation, tokenLength);
 
@@ -214,6 +227,7 @@ public sealed partial class SourceResultDocument
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int CalculateElementCount(JsonTokenType containerType, int totalRows)
     {
         if (containerType == JsonTokenType.StartObject)
@@ -221,20 +235,19 @@ public sealed partial class SourceResultDocument
             // For objects: count property name + value pairs, minus start/end tokens
             return (totalRows - 2) / 2;
         }
-        else
-        {
-            // For arrays: count all non-container tokens, minus start/end tokens
-            return totalRows - 2;
-        }
+
+        // For arrays: count all non-container tokens, minus start/end tokens
+        return totalRows - 2;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool ContainsComplexChildren(ref MetaDb metaDb, int containerStart, int containerEnd)
     {
         // Scan through container contents looking for nested objects/arrays
         for (var i = containerStart + DbRow.Size; i < containerEnd - DbRow.Size; i += DbRow.Size)
         {
             var row = metaDb.Get(i);
-            if (row.TokenType == JsonTokenType.StartObject || row.TokenType == JsonTokenType.StartArray)
+            if (row.TokenType is JsonTokenType.StartObject or JsonTokenType.StartArray)
             {
                 return true;
             }
@@ -243,34 +256,30 @@ public sealed partial class SourceResultDocument
         return false;
     }
 
-    private static bool ContainsEscapeSequences(ReadOnlySpan<byte> value)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ContainsEscapeSequences(Utf8JsonReader reader)
     {
-        // Quick scan for backslash escape sequences
-        for (var i = 0; i < value.Length; i++)
+        if (reader.HasValueSequence)
         {
-            if (value[i] == (byte)'\\')
+            foreach (var segment in reader.ValueSequence)
             {
-                return true;
+                if (segment.Span.IndexOf((byte)'\\') >= 0)
+                {
+                    return true;
+                }
             }
+
+            return false;
         }
 
-        return false;
+        return reader.ValueSpan.IndexOf((byte)'\\') is not -1;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool ContainsScientificNotation(ReadOnlySpan<byte> value)
-    {
-        // Check for 'e' or 'E' in the number
-        for (var i = 0; i < value.Length; i++)
-        {
-            if (value[i] == (byte)'e' || value[i] == (byte)'E')
-            {
-                return true;
-            }
-        }
+        => value.IndexOfAny((byte)'e', (byte)'E') >= 0;
 
-        return false;
-    }
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int CalculateTotalBytes(byte[][] dataChunks, int lastLength)
     {
         if (dataChunks.Length == 0)
