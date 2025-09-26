@@ -1,26 +1,24 @@
-title: Node_Field_Selections_On_Interface
+title: NodeField_Skip_On_Interface_Type_Refinement
 request:
   document: |
     query testQuery(
-      $id: ID!
+      $skip: Boolean!
     ) {
-      node(id: $id) {
-        ... on Votable {
+      node(id: "RGlzY3Vzc2lvbjox") {
+        ... on Votable @skip(if: $skip) {
           viewerCanVote
         }
       }
     }
   variables: |
     {
-      "id": "RGlzY3Vzc2lvbjox"
+      "skip": true
     }
 response:
   body: |
     {
       "data": {
-        "node": {
-          "viewerCanVote": true
-        }
+        "node": {}
       }
     }
 sourceSchemas:
@@ -38,15 +36,15 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
       
-      type Comment implements Node & Votable {
+      type Author implements Node & Votable {
         id: ID!
         viewerCanVote: Boolean!
       }
       
       type Discussion implements Node & Votable {
         id: ID!
+        title: String
         viewerCanVote: Boolean!
-        viewerRating: Float!
       }
       
       type Query {
@@ -55,20 +53,22 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query testQuery_63ca3aaf_3(
-              $id: ID!
+            query testQuery_eaa5be75_3(
+              $skip: Boolean!
             ) {
-              node(id: $id) {
+              node(id: "RGlzY3Vzc2lvbjox") {
                 __typename
                 ... on Discussion {
                   __typename
-                  viewerCanVote
+                  ... @skip(if: $skip) {
+                    viewerCanVote
+                  }
                 }
               }
             }
           variables: |
             {
-              "id": "RGlzY3Vzc2lvbjox"
+              "skip": true
             }
         response:
           results:
@@ -76,8 +76,7 @@ sourceSchemas:
               {
                 "data": {
                   "node": {
-                    "__typename": "Discussion",
-                    "viewerCanVote": true
+                    "__typename": "Discussion"
                   }
                 }
               }
@@ -85,34 +84,32 @@ operationPlan:
   operation:
     - document: |
         query testQuery(
-          $id: ID!
+          $skip: Boolean!
         ) {
-          node(id: $id) {
+          node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
-            ... on Votable {
+            ... on Votable @skip(if: $skip) {
               viewerCanVote
             }
           }
         }
       name: testQuery
-      hash: 63ca3aafa7eb59911553fe11e060f57b
+      hash: eaa5be751070d348ed88da9a09cd512b
       searchSpace: 1
   nodes:
     - id: 1
       type: Node
-      idValue: $id
+      idValue: "RGlzY3Vzc2lvbjox"
       responseName: node
       branches:
-        - Comment: 4
+        - Author: 4
         - Discussion: 3
       fallback: 2
     - id: 2
       type: Operation
       operation: |
-        query testQuery_63ca3aaf_2(
-          $id: ID!
-        ) {
-          node(id: $id) {
+        query testQuery_eaa5be75_2 {
+          node(id: "RGlzY3Vzc2lvbjox") {
             __typename
           }
         }
@@ -122,14 +119,16 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_63ca3aaf_3(
-          $id: ID!
+        query testQuery_eaa5be75_3(
+          $skip: Boolean!
         ) {
-          node(id: $id) {
+          node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             ... on Discussion {
               __typename
-              viewerCanVote
+              ... @skip(if: $skip) {
+                viewerCanVote
+              }
             }
           }
         }
@@ -139,14 +138,16 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_63ca3aaf_4(
-          $id: ID!
+        query testQuery_eaa5be75_4(
+          $skip: Boolean!
         ) {
-          node(id: $id) {
+          node(id: "RGlzY3Vzc2lvbjox") {
             __typename
-            ... on Comment {
+            ... on Author {
               __typename
-              viewerCanVote
+              ... @skip(if: $skip) {
+                viewerCanVote
+              }
             }
           }
         }

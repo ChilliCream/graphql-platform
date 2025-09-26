@@ -1,28 +1,38 @@
-title: Interface_Field_Linked_Field_With_Dependency_Same_Selection_In_Concrete_Type
+title: Node_Field_Selections_On_Interface_And_Concrete_Type_Both_Have_Same_Dependency
 request:
   document: |
-    query testQuery {
-      authorable {
-        author {
-          id
-          displayName
+    query testQuery(
+      $id: ID!
+    ) {
+      node(id: $id) {
+        __typename
+        id
+        ... on Authorable {
+          author {
+            username
+          }
         }
         ... on Discussion {
           author {
-            id
-            displayName
+            rating
           }
         }
       }
+    }
+  variables: |
+    {
+      "id": "RGlzY3Vzc2lvbjox"
     }
 response:
   body: |
     {
       "data": {
-        "authorable": {
+        "node": {
+          "__typename": "Discussion",
+          "id": "RGlzY3Vzc2lvbjox",
           "author": {
-            "id": "QXV0aG9yOjI=",
-            "displayName": "Author: QXV0aG9yOjI="
+            "username": "Author: QXV0aG9yOjE=",
+            "rating": 123
           }
         }
       }
@@ -38,46 +48,57 @@ sourceSchemas:
         author: Author
       }
       
-      type Author {
+      interface Node {
         id: ID!
       }
       
-      type Comment implements Authorable {
-        author: Author
+      type Author implements Node {
+        id: ID!
       }
       
-      type Discussion implements Authorable {
+      type Discussion implements Node & Authorable {
+        id: ID!
         author: Author
+        title: String
       }
       
       type Query {
-        authorable: Authorable
+        node(id: ID!): Node @lookup
       }
     interactions:
       - request:
           document: |
-            query testQuery_77a61d25_1 {
-              authorable {
+            query testQuery_648537b2_3(
+              $id: ID!
+            ) {
+              node(id: $id) {
                 __typename
-                author {
-                  id
-                }
                 ... on Discussion {
+                  __typename
+                  id
+                  author {
+                    id
+                  }
                   author {
                     id
                   }
                 }
               }
             }
+          variables: |
+            {
+              "id": "RGlzY3Vzc2lvbjox"
+            }
         response:
           results:
             - |
               {
                 "data": {
-                  "authorable": {
+                  "node": {
                     "__typename": "Discussion",
+                    "id": "RGlzY3Vzc2lvbjox",
                     "author": {
-                      "id": "QXV0aG9yOjI="
+                      "id": "QXV0aG9yOjE="
                     }
                   }
                 }
@@ -90,7 +111,8 @@ sourceSchemas:
       
       type Author {
         id: ID!
-        displayName: String!
+        username: String
+        rating: Int
       }
       
       type Query {
@@ -99,16 +121,16 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query testQuery_77a61d25_2(
+            query testQuery_648537b2_4(
               $__fusion_1_id: ID!
             ) {
               authorById(id: $__fusion_1_id) {
-                displayName
+                rating
               }
             }
           variables: |
             {
-              "__fusion_1_id": "QXV0aG9yOjI="
+              "__fusion_1_id": "QXV0aG9yOjE="
             }
         response:
           results:
@@ -116,22 +138,22 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjI="
+                    "rating": 123
                   }
                 }
               }
       - request:
           document: |
-            query testQuery_77a61d25_3(
+            query testQuery_648537b2_5(
               $__fusion_2_id: ID!
             ) {
               authorById(id: $__fusion_2_id) {
-                displayName
+                username
               }
             }
           variables: |
             {
-              "__fusion_2_id": "QXV0aG9yOjI="
+              "__fusion_2_id": "QXV0aG9yOjE="
             }
         response:
           results:
@@ -139,86 +161,115 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjI="
+                    "username": "Author: QXV0aG9yOjE="
                   }
                 }
               }
 operationPlan:
   operation:
     - document: |
-        query testQuery {
-          authorable {
-            __typename @fusion__requirement
-            author {
-              id
-              id @fusion__requirement
-              displayName
+        query testQuery(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            id
+            ... on Authorable {
+              author {
+                username
+                id @fusion__requirement
+              }
             }
             ... on Discussion {
               author {
-                id
+                rating
                 id @fusion__requirement
-                displayName
               }
             }
           }
         }
       name: testQuery
-      hash: 77a61d25bcbf9ac9675e65103f6dc4ed
+      hash: 648537b21567841743ca179b6f2e0c14
       searchSpace: 1
   nodes:
     - id: 1
+      type: Node
+      idValue: $id
+      responseName: node
+      branches:
+        - Discussion: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query testQuery_648537b2_2(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            id
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
       type: Operation
       schema: A
       operation: |
-        query testQuery_77a61d25_1 {
-          authorable {
+        query testQuery_648537b2_3(
+          $id: ID!
+        ) {
+          node(id: $id) {
             __typename
-            author {
-              id
-            }
             ... on Discussion {
+              __typename
+              id
+              author {
+                id
+              }
               author {
                 id
               }
             }
           }
         }
-    - id: 2
+      dependencies:
+        - id: 1
+    - id: 4
       type: Operation
       schema: B
       operation: |
-        query testQuery_77a61d25_2(
+        query testQuery_648537b2_4(
           $__fusion_1_id: ID!
         ) {
           authorById(id: $__fusion_1_id) {
-            displayName
+            rating
           }
         }
       source: $.authorById
-      target: $.authorable<Discussion>.author
+      target: $.node<Discussion>.author
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
             id
       dependencies:
-        - id: 1
-    - id: 3
+        - id: 3
+    - id: 5
       type: Operation
       schema: B
       operation: |
-        query testQuery_77a61d25_3(
+        query testQuery_648537b2_5(
           $__fusion_2_id: ID!
         ) {
           authorById(id: $__fusion_2_id) {
-            displayName
+            username
           }
         }
       source: $.authorById
-      target: $.authorable.author
+      target: $.node<Discussion>.author
       requirements:
         - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:
-        - id: 1
+        - id: 3

@@ -81,7 +81,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -93,7 +93,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -151,7 +151,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -163,7 +163,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -227,7 +227,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -239,7 +239,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
               email: String
@@ -295,13 +295,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               title: String!
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -351,12 +351,12 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -369,7 +369,7 @@ public class InterfaceTests : FusionTestBase
               discussionById(id: ID!): Discussion @lookup
             }
 
-            type Discussion @key(fields: "id") {
+            type Discussion {
               id: ID!
               viewerRating: Float!
             }
@@ -419,18 +419,18 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               author: Author
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -442,7 +442,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -498,13 +498,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               viewerRating: Float!
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -558,7 +558,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -570,7 +570,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -628,7 +628,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -640,7 +640,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -704,7 +704,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -716,7 +716,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
               email: String
@@ -772,13 +772,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               title: String!
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -828,12 +828,12 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -846,7 +846,7 @@ public class InterfaceTests : FusionTestBase
               discussionById(id: ID!): Discussion @lookup
             }
 
-            type Discussion @key(fields: "id") {
+            type Discussion {
               id: ID!
               viewerRating: Float!
             }
@@ -896,18 +896,18 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               author: Author
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -919,7 +919,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -987,7 +987,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -999,7 +999,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -1063,7 +1063,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -1075,7 +1075,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -1144,7 +1144,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -1156,7 +1156,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
               email: String
@@ -1217,13 +1217,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               title: String!
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -1279,12 +1279,12 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -1297,7 +1297,7 @@ public class InterfaceTests : FusionTestBase
               discussionById(id: ID!): Discussion @lookup
             }
 
-            type Discussion @key(fields: "id") {
+            type Discussion {
               id: ID!
               viewerRating: Float!
             }
@@ -1353,18 +1353,18 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               author: Author
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -1376,7 +1376,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
