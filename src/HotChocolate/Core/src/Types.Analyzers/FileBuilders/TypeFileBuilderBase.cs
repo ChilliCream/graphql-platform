@@ -649,7 +649,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                 case ResolverParameterKind.ClaimsPrincipal:
                     Writer.WriteIndentedLine(
-                        "var args{0} = context.GetGlobalState<{1}>(\"ClaimsPrincipal\");",
+                        "var args{0} = context.GetGlobalState<global::{1}>(\"ClaimsPrincipal\");",
                         i,
                         WellKnownTypes.ClaimsPrincipal);
                     break;
