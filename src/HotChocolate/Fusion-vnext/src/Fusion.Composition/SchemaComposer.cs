@@ -42,9 +42,21 @@ public sealed class SchemaComposer
         }
 
         // Preprocess Source Schemas
-        var preprocessorOptions = _schemaComposerOptions.Preprocessor;
         var preprocessResult =
-            schemas.Select(schema => new SourceSchemaPreprocessor(schema, preprocessorOptions).Process()).Combine();
+            schemas.Select(schema =>
+            {
+                var optionsExist =
+                    _schemaComposerOptions.PreprocessorOptions.TryGetValue(
+                        schema.Name,
+                        out var preprocessorOptions);
+
+                if (!optionsExist)
+                {
+                    preprocessorOptions = new SourceSchemaPreprocessorOptions();
+                }
+
+                return new SourceSchemaPreprocessor(schema, preprocessorOptions).Process();
+            }).Combine();
 
         if (preprocessResult.IsFailure)
         {
@@ -52,7 +64,8 @@ public sealed class SchemaComposer
         }
 
         // Enrich Source Schemas
-        var enrichmentResult = schemas.Select(schema => new SourceSchemaEnricher(schema).Enrich()).Combine();
+        var enrichmentResult =
+            schemas.Select(schema => new SourceSchemaEnricher(schema, schemas).Enrich()).Combine();
 
         if (enrichmentResult.IsFailure)
         {
@@ -153,6 +166,7 @@ public sealed class SchemaComposer
         new InputFieldDefaultMismatchRule(),
         new InputFieldTypesMergeableRule(),
         new InputWithMissingRequiredFieldsRule(),
+        new InvalidFieldSharingRule(),
         new OutputFieldTypesMergeableRule(),
         new TypeKindMismatchRule()
     ];

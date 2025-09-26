@@ -32,13 +32,13 @@ sourceSchemas:
         id: ID!
       }
       
-      type Discussion implements Node @key(fields: "id") {
+      type Discussion implements Node {
         id: ID!
         title: String!
       }
       
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
@@ -74,14 +74,14 @@ sourceSchemas:
         id: ID!
       }
       
-      type Author implements Node @key(fields: "id") {
+      type Author implements Node {
         id: ID!
         username: String!
       }
       
       type Query {
         authorById(id: ID!): Author @lookup
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
 operationPlan:
   operation:

@@ -82,7 +82,36 @@ public sealed class InvalidShareableUsageRuleTests
                     """
                 ],
                 [
-                    "The interface field 'InventoryItem.sku' in schema 'A' must not be marked as "
+                    "The field 'InventoryItem.sku' in schema 'A' must not be marked as shareable."
+                ]
+            },
+            // By definition, root subscription fields cannot be shared across multiple schemas. In
+            // this example, both schemas define a subscription field "newOrderPlaced".
+            {
+                [
+                    """
+                    # Schema A
+                    type Subscription {
+                        newOrderPlaced: Order @shareable
+                    }
+
+                    type Order {
+                        id: ID!
+                        items: [String]
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Subscription {
+                        newOrderPlaced: Order @shareable
+                    }
+                    """
+                ],
+                [
+                    "The field 'Subscription.newOrderPlaced' in schema 'A' must not be marked as "
+                    + "shareable.",
+
+                    "The field 'Subscription.newOrderPlaced' in schema 'B' must not be marked as "
                     + "shareable."
                 ]
             }

@@ -568,16 +568,20 @@ public class SharedPathTests : FusionTestBase
     {
         public class Query
         {
+            [Shareable]
             public Viewer Viewer => new Viewer();
 
             public string Schema1 => "schema1";
 
+            [Shareable]
             public IInterface Interface => new Review(1);
 
             public IInterface UnsharedInterface => new Product(2);
 
+            [Shareable]
             public IUnion Union => new Review(2);
 
+            [Shareable]
             public Review TopReview => new Review(3);
 
             [Lookup]
@@ -588,6 +592,7 @@ public class SharedPathTests : FusionTestBase
         {
             public string Schema1 => "schema1";
 
+            [Shareable]
             public ViewerSettings Settings => new ViewerSettings();
         }
 
@@ -600,6 +605,7 @@ public class SharedPathTests : FusionTestBase
         {
             public string Schema1 => "schema1";
 
+            [Shareable]
             public SharedProduct? Shared => new SharedProduct();
         }
 
@@ -612,6 +618,7 @@ public class SharedPathTests : FusionTestBase
         {
             public string Schema1 => "schema1";
 
+            [Shareable]
             public SharedProduct2? Shared2 => new SharedProduct2();
         }
 
@@ -620,6 +627,7 @@ public class SharedPathTests : FusionTestBase
             public string Schema1 => "schema1";
         }
 
+        [EntityKey("id")]
         public interface IInterface
         {
             int Id { get; }
@@ -633,14 +641,18 @@ public class SharedPathTests : FusionTestBase
     {
         public class Query
         {
+            [Shareable]
             public Viewer Viewer => new Viewer();
 
             public string Schema2 => "schema2";
 
+            [Shareable]
             public IInterface Interface => new Review(1);
 
+            [Shareable]
             public IUnion Union => new Review(2);
 
+            [Shareable]
             public Review TopReview => new Review(3);
 
             [Lookup]
@@ -651,6 +663,7 @@ public class SharedPathTests : FusionTestBase
         {
             public string Schema2 => "schema2";
 
+            [Shareable]
             public ViewerSettings Settings => new ViewerSettings();
         }
 
@@ -663,6 +676,7 @@ public class SharedPathTests : FusionTestBase
         {
             public string Schema2 => "schema2";
 
+            [Shareable]
             public SharedProduct? Shared => new SharedProduct();
         }
 
@@ -675,6 +689,7 @@ public class SharedPathTests : FusionTestBase
         {
             public string Schema2 => "schema2";
 
+            [Shareable]
             public SharedProduct2? Shared2 => new SharedProduct2();
         }
 
@@ -683,6 +698,7 @@ public class SharedPathTests : FusionTestBase
             public string Schema2 => "schema2";
         }
 
+        [EntityKey("id")]
         public interface IInterface
         {
             int Id { get; }
@@ -696,6 +712,7 @@ public class SharedPathTests : FusionTestBase
     {
         public class Query
         {
+            [Shareable]
             public Viewer Viewer => new Viewer();
         }
 
