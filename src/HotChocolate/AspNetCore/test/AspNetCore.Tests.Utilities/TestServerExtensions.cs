@@ -189,17 +189,10 @@ public static class TestServerExtensions
         ClientQueryRequest request,
         string path = "/graphql")
     {
-        var requestBody = JsonConvert.SerializeObject(request);
-        if (OperatingSystem.IsWindows())
-        {
-            // Whether the query contains \n or \r\n is relevant for the operation hash.
-            requestBody = requestBody.ReplaceLineEndings("\n");
-        }
-
         var response =
             await SendPostRequestAsync(
                 testServer,
-                requestBody,
+                JsonConvert.SerializeObject(request),
                 path);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
