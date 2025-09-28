@@ -64,10 +64,8 @@ operationPlan:
         query testQuery(
           $skip: Boolean!
         ) {
-          ... @skip(if: $skip) {
-            node(id: "RGlzY3Vzc2lvbjox") {
-              __typename
-            }
+          node(id: "RGlzY3Vzc2lvbjox") @skip(if: $skip) {
+            __typename
           }
         }
       name: testQuery

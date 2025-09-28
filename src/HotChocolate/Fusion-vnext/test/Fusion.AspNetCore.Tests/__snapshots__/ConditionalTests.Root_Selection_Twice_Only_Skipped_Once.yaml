@@ -18,7 +18,11 @@ request:
 response:
   body: |
     {
-      "data": {}
+      "data": {
+        "productBySlug": {
+          "name": "Product: UHJvZHVjdDox"
+        }
+      }
     }
 sourceSchemas:
   - name: A
@@ -44,9 +48,7 @@ sourceSchemas:
             ) {
               productBySlug(slug: "product") {
                 name
-              }
-              productBySlug(slug: "product") @skip(if: $skip) {
-                price
+                price @skip(if: $skip)
               }
             }
           variables: |
@@ -71,9 +73,7 @@ operationPlan:
         ) {
           productBySlug(slug: "product") {
             name
-          }
-          productBySlug(slug: "product") @skip(if: $skip) {
-            price
+            price @skip(if: $skip)
           }
         }
       name: testQuery
@@ -89,8 +89,6 @@ operationPlan:
         ) {
           productBySlug(slug: "product") {
             name
-          }
-          productBySlug(slug: "product") @skip(if: $skip) {
-            price
+            price @skip(if: $skip)
           }
         }

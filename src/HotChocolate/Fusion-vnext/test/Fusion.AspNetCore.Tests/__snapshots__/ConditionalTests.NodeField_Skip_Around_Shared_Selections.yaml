@@ -55,9 +55,7 @@ sourceSchemas:
                 __typename
                 ... on Discussion {
                   __typename
-                  ... @skip(if: $skip) {
-                    id
-                  }
+                  id @skip(if: $skip)
                   title
                 }
               }
@@ -103,12 +101,10 @@ operationPlan:
         ) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
-            ... @skip(if: $skip) {
-              id
-            }
             ... on Discussion {
               title
             }
+            id @skip(if: $skip)
           }
         }
       name: testQuery
@@ -130,9 +126,7 @@ operationPlan:
         ) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
-            ... @skip(if: $skip) {
-              id
-            }
+            id @skip(if: $skip)
           }
         }
       dependencies:
@@ -148,9 +142,7 @@ operationPlan:
             __typename
             ... on Discussion {
               __typename
-              ... @skip(if: $skip) {
-                id
-              }
+              id @skip(if: $skip)
               title
             }
           }
