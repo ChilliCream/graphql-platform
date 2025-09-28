@@ -11,7 +11,7 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 internal sealed class OperationPlanMiddleware
 {
     private readonly OperationPlanner _planner;
-    private readonly InlineFragmentOperationRewriter _rewriter;
+    private readonly InlineFragmentOperationRewriterNew _rewriter;
     private readonly IOperationPlannerInterceptor[] _interceptors;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticsEvents;
 
@@ -21,7 +21,7 @@ internal sealed class OperationPlanMiddleware
         IEnumerable<IOperationPlannerInterceptor>? interceptors,
         IFusionExecutionDiagnosticEvents diagnosticsEvents)
     {
-        _rewriter = new InlineFragmentOperationRewriter(schema);
+        _rewriter = new InlineFragmentOperationRewriterNew(schema);
         _planner = planner;
         _interceptors = interceptors?.ToArray() ?? [];
         _diagnosticsEvents = diagnosticsEvents;

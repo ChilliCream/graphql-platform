@@ -20,7 +20,11 @@ request:
 response:
   body: |
     {
-      "data": {}
+      "data": {
+        "productBySlug": {
+          "name": "Product: UHJvZHVjdDox"
+        }
+      }
     }
 sourceSchemas:
   - name: A
@@ -43,19 +47,14 @@ sourceSchemas:
           document: |
             query testQuery_22bda9c9_1(
               $slug: String!
-              $skip: Boolean!
             ) {
-              productBySlug(slug: $slug) @skip(if: $skip) {
-                name
-              }
               productBySlug(slug: $slug) {
                 name
               }
             }
           variables: |
             {
-              "slug": "product",
-              "skip": true
+              "slug": "product"
             }
         response:
           results:
@@ -74,9 +73,6 @@ operationPlan:
           $slug: String!
           $skip: Boolean!
         ) {
-          productBySlug(slug: $slug) @skip(if: $skip) {
-            name
-          }
           productBySlug(slug: $slug) {
             name
           }
@@ -91,11 +87,7 @@ operationPlan:
       operation: |
         query testQuery_22bda9c9_1(
           $slug: String!
-          $skip: Boolean!
         ) {
-          productBySlug(slug: $slug) @skip(if: $skip) {
-            name
-          }
           productBySlug(slug: $slug) {
             name
           }
