@@ -545,7 +545,7 @@ internal sealed partial class RequestExecutorResolver
 
         public void Dispose()
         {
-            if (_disposed)
+            if (!_disposed)
             {
                 if (Services is IDisposable d)
                 {
