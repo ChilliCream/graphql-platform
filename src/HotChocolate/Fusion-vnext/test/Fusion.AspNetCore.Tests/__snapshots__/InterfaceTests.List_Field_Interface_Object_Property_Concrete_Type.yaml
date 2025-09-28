@@ -1,0 +1,145 @@
+title: List_Field_Interface_Object_Property_Concrete_Type
+request:
+  document: |
+    query testQuery {
+      wrappers {
+        votable {
+          viewerCanVote
+          ... on Discussion {
+            title
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "wrappers": [
+          {
+            "votable": {
+              "viewerCanVote": true,
+              "title": "Discussion: RGlzY3Vzc2lvbjo2"
+            }
+          },
+          {
+            "votable": {
+              "viewerCanVote": true,
+              "title": "Discussion: RGlzY3Vzc2lvbjo1"
+            }
+          },
+          {
+            "votable": {
+              "viewerCanVote": true,
+              "title": "Discussion: RGlzY3Vzc2lvbjo0"
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Votable {
+        viewerCanVote: Boolean!
+      }
+      
+      type Comment implements Votable @key(fields: "id") {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+      
+      type Discussion implements Votable @key(fields: "id") {
+        id: ID!
+        viewerCanVote: Boolean!
+        title: String!
+      }
+      
+      type Query {
+        wrappers: [Wrapper]
+      }
+      
+      type Wrapper {
+        votable: Votable
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_877cb4f8_1 {
+              wrappers {
+                votable {
+                  __typename
+                  viewerCanVote
+                  ... on Discussion {
+                    title
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "wrappers": [
+                    {
+                      "votable": {
+                        "__typename": "Discussion",
+                        "viewerCanVote": true,
+                        "title": "Discussion: RGlzY3Vzc2lvbjo2"
+                      }
+                    },
+                    {
+                      "votable": {
+                        "__typename": "Discussion",
+                        "viewerCanVote": true,
+                        "title": "Discussion: RGlzY3Vzc2lvbjo1"
+                      }
+                    },
+                    {
+                      "votable": {
+                        "__typename": "Discussion",
+                        "viewerCanVote": true,
+                        "title": "Discussion: RGlzY3Vzc2lvbjo0"
+                      }
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          wrappers {
+            votable {
+              __typename @fusion__requirement
+              viewerCanVote
+              ... on Discussion {
+                title
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 877cb4f8633906ccccbeccaa1d5ee865
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_877cb4f8_1 {
+          wrappers {
+            votable {
+              __typename
+              viewerCanVote
+              ... on Discussion {
+                title
+              }
+            }
+          }
+        }

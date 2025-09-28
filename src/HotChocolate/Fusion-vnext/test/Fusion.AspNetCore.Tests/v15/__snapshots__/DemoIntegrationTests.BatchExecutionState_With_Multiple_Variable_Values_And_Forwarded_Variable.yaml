@@ -1,0 +1,460 @@
+title: BatchExecutionState_With_Multiple_Variable_Values_And_Forwarded_Variable
+request:
+  document: |
+    query(
+      $arg1: String
+      $arg2: String
+    ) {
+      userBySlug(slug: "me") {
+        feedbacks {
+          edges {
+            node {
+              feedback {
+                buyer {
+                  relativeUrl(arg: $arg1)
+                  displayName(arg: $arg2)
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "arg1": "abc",
+      "arg2": "def"
+    }
+response:
+  body: |
+    {
+      "data": {
+        "userBySlug": {
+          "feedbacks": {
+            "edges": [
+              {
+                "node": {
+                  "feedback": {
+                    "buyer": {
+                      "relativeUrl": "User: VXNlcjoxMw==",
+                      "displayName": "User: VXNlcjoxMw=="
+                    }
+                  }
+                }
+              },
+              {
+                "node": {
+                  "feedback": {
+                    "buyer": {
+                      "relativeUrl": "User: VXNlcjoxMg==",
+                      "displayName": "User: VXNlcjoxMg=="
+                    }
+                  }
+                }
+              },
+              {
+                "node": {
+                  "feedback": {
+                    "buyer": {
+                      "relativeUrl": "User: VXNlcjoxMQ==",
+                      "displayName": "User: VXNlcjoxMQ=="
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+        nodes(ids: [ID!]!): [Node]!
+      }
+      
+      type User implements Node {
+        id: ID!
+        displayName(arg: String): String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_b1ca18eb_4(
+              $arg2: String
+              $__fusion_3_id: ID!
+            ) {
+              node(id: $__fusion_3_id) {
+                __typename
+                ... on User {
+                  displayName(arg: $arg2)
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "arg2": "def",
+                "__fusion_3_id": "VXNlcjoxMw=="
+              },
+              {
+                "arg2": "def",
+                "__fusion_3_id": "VXNlcjoxMg=="
+              },
+              {
+                "arg2": "def",
+                "__fusion_3_id": "VXNlcjoxMQ=="
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "displayName": "User: VXNlcjoxMw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "displayName": "User: VXNlcjoxMg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "displayName": "User: VXNlcjoxMQ=="
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+        nodes(ids: [ID!]!): [Node]!
+        userBySlug(slug: String!): User
+      }
+      
+      type User implements Node {
+        relativeUrl(arg: String): String!
+        id: ID!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_b1ca18eb_1 {
+              userBySlug(slug: "me") {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userBySlug": {
+                    "id": "VXNlcjox"
+                  }
+                }
+              }
+      - request:
+          document: |
+            query Op_b1ca18eb_3(
+              $arg1: String
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on User {
+                  relativeUrl(arg: $arg1)
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "arg1": "abc",
+                "__fusion_2_id": "VXNlcjoxMw=="
+              },
+              {
+                "arg1": "abc",
+                "__fusion_2_id": "VXNlcjoxMg=="
+              },
+              {
+                "arg1": "abc",
+                "__fusion_2_id": "VXNlcjoxMQ=="
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "relativeUrl": "User: VXNlcjoxMw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "relativeUrl": "User: VXNlcjoxMg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "relativeUrl": "User: VXNlcjoxMQ=="
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type FeedbacksConnection {
+        edges: [FeedbacksEdge!]
+      }
+      
+      type FeedbacksEdge {
+        node: ResaleFeedback!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+        nodes(ids: [ID!]!): [Node]!
+      }
+      
+      type ResaleFeedback implements Node {
+        feedback: ResaleSurveyFeedback
+        id: ID!
+      }
+      
+      type ResaleSurveyFeedback {
+        buyer: User
+      }
+      
+      type User implements Node {
+        id: ID!
+        feedbacks: FeedbacksConnection
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_b1ca18eb_2(
+              $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on User {
+                  feedbacks {
+                    edges {
+                      node {
+                        feedback {
+                          buyer {
+                            id
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "feedbacks": {
+                      "edges": [
+                        {
+                          "node": {
+                            "feedback": {
+                              "buyer": {
+                                "id": "VXNlcjoxMw=="
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "node": {
+                            "feedback": {
+                              "buyer": {
+                                "id": "VXNlcjoxMg=="
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "node": {
+                            "feedback": {
+                              "buyer": {
+                                "id": "VXNlcjoxMQ=="
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query(
+          $arg1: String
+          $arg2: String
+        ) {
+          userBySlug(slug: "me") {
+            feedbacks {
+              edges {
+                node {
+                  feedback {
+                    buyer {
+                      relativeUrl(arg: $arg1)
+                      displayName(arg: $arg2)
+                      id @fusion__requirement
+                    }
+                  }
+                }
+              }
+            }
+            id @fusion__requirement
+          }
+        }
+      hash: b1ca18ebff5564cc20147d0129664e5d
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query Op_b1ca18eb_1 {
+          userBySlug(slug: "me") {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: C
+      operation: |
+        query Op_b1ca18eb_2(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on User {
+              feedbacks {
+                edges {
+                  node {
+                    feedback {
+                      buyer {
+                        id
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.userBySlug
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_b1ca18eb_3(
+          $arg1: String
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on User {
+              relativeUrl(arg: $arg1)
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.userBySlug.feedbacks.edges.node.feedback.buyer
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2
+    - id: 4
+      type: Operation
+      schema: A
+      operation: |
+        query Op_b1ca18eb_4(
+          $arg2: String
+          $__fusion_3_id: ID!
+        ) {
+          node(id: $__fusion_3_id) {
+            __typename
+            ... on User {
+              displayName(arg: $arg2)
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.userBySlug.feedbacks.edges.node.feedback.buyer
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2

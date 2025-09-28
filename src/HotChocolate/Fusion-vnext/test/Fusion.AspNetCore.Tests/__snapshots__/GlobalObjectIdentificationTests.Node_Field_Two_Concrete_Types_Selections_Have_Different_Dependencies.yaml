@@ -1,0 +1,289 @@
+title: Node_Field_Two_Concrete_Types_Selections_Have_Different_Dependencies
+request:
+  document: |
+    query testQuery(
+      $id: ID!
+    ) {
+      node(id: $id) {
+        ... on Discussion {
+          product {
+            id
+            name
+          }
+        }
+        ... on Review {
+          product {
+            name
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "id": "RGlzY3Vzc2lvbjox"
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "product": {
+            "id": "UHJvZHVjdDox",
+            "name": "Product: UHJvZHVjdDox"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Discussion implements Node @key(fields: "id") {
+        id: ID!
+        product: Product
+      }
+      
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_c0cdf5d7_5(
+              $id: ID!
+            ) {
+              node(id: $id) {
+                __typename
+                ... on Discussion {
+                  __typename
+                  product {
+                    id
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "id": "RGlzY3Vzc2lvbjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Discussion",
+                    "product": {
+                      "id": "UHJvZHVjdDox"
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+      
+      type Review implements Node @key(fields: "id") {
+        id: ID!
+        product: Product
+      }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Product implements Node @key(fields: "id") {
+        id: ID!
+        name: String
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_c0cdf5d7_6(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "UHJvZHVjdDox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDox"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename @fusion__requirement
+            ... on Discussion {
+              product {
+                id
+                id @fusion__requirement
+                name
+              }
+            }
+            ... on Review {
+              product {
+                name
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: c0cdf5d72861e2b024c2d1ea2305cc18
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: $id
+      responseName: node
+      branches:
+        - Discussion: 5
+        - Review: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query testQuery_c0cdf5d7_2(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_c0cdf5d7_3(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            ... on Review {
+              __typename
+              product {
+                id
+              }
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: C
+      operation: |
+        query testQuery_c0cdf5d7_4(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.node<Review>.product
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+    - id: 5
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_c0cdf5d7_5(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            ... on Discussion {
+              __typename
+              product {
+                id
+              }
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 6
+      type: Operation
+      schema: C
+      operation: |
+        query testQuery_c0cdf5d7_6(
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.node<Discussion>.product
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 5
