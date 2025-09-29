@@ -321,7 +321,7 @@ public class InlineFragmentOperationRewriterNewTests
             """);
     }
 
-    [Fact(Skip = "too advanced")]
+    [Fact]
     public void Conditionals_Are_Removed_If_Already_In_A_Conditional_Scope()
     {
         // arrange
@@ -354,7 +354,7 @@ public class InlineFragmentOperationRewriterNewTests
             """);
     }
 
-    [Fact(Skip = "too advanced")]
+    [Fact]
     public void Conditionals_Are_Removed_If_Already_In_A_Conditional_Scope_In_Different_Parent_Selection()
     {
         // arrange
@@ -383,8 +383,53 @@ public class InlineFragmentOperationRewriterNewTests
             query(
               $skip: Boolean!
             ) {
-              productBySlug(slug: "a") @skip(if: $skip) {
-                name
+              productBySlug(slug: "a") {
+                name @skip(if: $skip)
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conditionals_Are_Removed_If_Already_In_A_Conditional_Scope_In_Different_Parent_Selection_2()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+              productBySlug(slug: "a") {
+                dimension @skip(if: $skip) {
+                  height
+                }
+              }
+              productBySlug(slug: "a") {
+                dimension {
+                  width @skip(if: $skip)
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query(
+              $skip: Boolean!
+            ) {
+              productBySlug(slug: "a") {
+                dimension {
+                  ... @skip(if: $skip) {
+                    height
+                    width
+                  }
+                }
               }
             }
             """);
@@ -676,6 +721,508 @@ public class InlineFragmentOperationRewriterNewTests
                  ... @skip(if: $skip) {
                    viewerCanVote
                    voteCount
+                 }
+               }
+             }
+             """);
+     }
+
+     [Fact]
+     public void Test6()
+     {
+         // arrange
+         var schemaDefinition = SchemaParser.Parse(
+             """
+             type Query {
+               votables: [Votable!]!
+             }
+
+             interface Votable {
+               viewerCanVote: Boolean!
+               voteCount: Int
+             }
+
+             type Product implements Votable {
+               id: ID!
+               viewerCanVote: Boolean!
+               voteCount: Int
+             }
+             """);
+
+         var doc = Utf8GraphQLParser.Parse(
+             """
+             query($skip: Boolean!) {
+               votables {
+                 ... on Product {
+                   voteCount
+                   ... on Votable {
+                     viewerCanVote
+                     voteCount @skip(if: $skip)
+                   }
+                 }
+               }
+             }
+             """);
+
+         // act
+         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewritten = rewriter.RewriteDocument(doc);
+
+         // assert
+         rewritten.MatchInlineSnapshot(
+             """
+             query(
+               $skip: Boolean!
+             ) {
+               votables {
+                 ... on Product {
+                   voteCount
+                   viewerCanVote
+                 }
+               }
+             }
+             """);
+     }
+
+     [Fact]
+     public void Test7()
+     {
+         // arrange
+         var schemaDefinition = SchemaParser.Parse(
+             """
+             type Query {
+               votables: [Votable!]!
+             }
+
+             interface Votable {
+               viewerCanVote: Boolean!
+               voteCount: Int
+             }
+
+             type Product implements Votable {
+               id: ID!
+               viewerCanVote: Boolean!
+               voteCount: Int
+             }
+             """);
+
+         var doc = Utf8GraphQLParser.Parse(
+             """
+             query($skip: Boolean!) {
+               votables {
+                 ... on Product {
+                   voteCount
+                   ... on Votable @skip(if: $skip) {
+                     viewerCanVote
+                     voteCount
+                   }
+                 }
+               }
+             }
+             """);
+
+         // act
+         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewritten = rewriter.RewriteDocument(doc);
+
+         // assert
+         rewritten.MatchInlineSnapshot(
+             """
+             query(
+               $skip: Boolean!
+             ) {
+               votables {
+                 ... on Product {
+                   voteCount
+                   viewerCanVote @skip(if: $skip)
+                 }
+               }
+             }
+             """);
+     }
+
+     [Fact]
+     public void Test8()
+     {
+         // arrange
+         var schemaDefinition = SchemaParser.Parse(
+             """
+             type Query {
+               productBySlug(slug: String!): Product
+             }
+
+             type Product {
+               id: ID!
+               name: String!
+               dimension: Dimension
+             }
+
+             type Dimension {
+               width: Int!
+               height: Int!
+             }
+             """);
+
+         var doc = Utf8GraphQLParser.Parse(
+             """
+             query($skip1: Boolean!, $skip2: Boolean!) {
+               productBySlug(slug: "a") {
+                 name
+                 ... @skip(if: $skip1) {
+                   dimension @skip(if: $skip2) {
+                     height
+                   }
+                 }
+               }
+             }
+             """);
+
+         // act
+         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewritten = rewriter.RewriteDocument(doc);
+
+         // assert
+         rewritten.MatchInlineSnapshot(
+             """
+             query(
+               $skip1: Boolean!
+               $skip2: Boolean!
+             ) {
+               productBySlug(slug: "a") {
+                 name
+                 ... @skip(if: $skip1) {
+                   dimension @skip(if: $skip2) {
+                     height
+                   }
+                 }
+               }
+             }
+             """);
+     }
+
+     [Fact]
+     public void Test9()
+     {
+         // arrange
+         var schemaDefinition = SchemaParser.Parse(
+             """
+             type Query {
+               productBySlug(slug: String!): Product
+             }
+
+             type Product {
+               id: ID!
+               name: String!
+               dimension: Dimension
+             }
+
+             type Dimension {
+               width: Int!
+               height: Int!
+             }
+             """);
+
+         var doc = Utf8GraphQLParser.Parse(
+             """
+             query(
+               $skip1: Boolean!
+               $skip2: Boolean!
+             ) {
+               productBySlug(slug: "a") {
+                 name
+                 ... @skip(if: $skip1) {
+                   ... @skip(if: $skip2) {
+                     name
+                     dimension {
+                       height
+                     }
+                   }
+                 }
+               }
+             }
+             """);
+
+         // act
+         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewritten = rewriter.RewriteDocument(doc);
+
+         // assert
+         rewritten.MatchInlineSnapshot(
+             """
+             query(
+               $skip1: Boolean!
+               $skip2: Boolean!
+             ) {
+               productBySlug(slug: "a") {
+                 name
+                 ... @skip(if: $skip1) {
+                   dimension @skip(if: $skip2) {
+                     height
+                   }
+                 }
+               }
+             }
+             """);
+     }
+
+     [Fact]
+     public void Test10()
+     {
+         // arrange
+         var schemaDefinition = SchemaParser.Parse(
+             """
+             type Query {
+               productBySlug(slug: String!): Product
+             }
+
+             type Product {
+               id: ID!
+               name: String!
+             }
+             """);
+
+         var doc = Utf8GraphQLParser.Parse(
+             """
+             query(
+               $skip1: Boolean!
+               $skip2: Boolean!
+             ) {
+               productBySlug(slug: "a") {
+                 name @skip(if: $skip1)
+                 name @skip(if: $skip2)
+               }
+             }
+             """);
+
+         // act
+         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewritten = rewriter.RewriteDocument(doc);
+
+         // assert
+         rewritten.MatchInlineSnapshot(
+             """
+             query(
+               $skip1: Boolean!
+               $skip2: Boolean!
+             ) {
+               productBySlug(slug: "a") {
+                 name @skip(if: $skip1)
+                 name @skip(if: $skip2)
+               }
+             }
+             """);
+     }
+
+     [Fact]
+     public void Test11()
+     {
+         // arrange
+         var schemaDefinition = SchemaParser.Parse(
+             """
+             type Query {
+               votables: [Votable!]!
+             }
+
+             interface Votable {
+               viewerCanVote: Boolean!
+               voteCount: Int
+             }
+
+             type Product implements Votable {
+               id: ID!
+               viewerCanVote: Boolean!
+               voteCount: Int
+             }
+             """);
+
+         var doc = Utf8GraphQLParser.Parse(
+             """
+             query(
+               $skip1: Boolean!,
+               $skip2: Boolean!
+             ) {
+               votables {
+                 ... on Product @skip(if: $skip1) {
+                   voteCount
+                 }
+                 ... on Product  @skip(if: $skip2) {
+                   voteCount
+                   viewerCanVote
+                 }
+               }
+             }
+             """);
+
+         // act
+         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewritten = rewriter.RewriteDocument(doc);
+
+         // assert
+         rewritten.MatchInlineSnapshot(
+             """
+             query(
+               $skip1: Boolean!,
+               $skip2: Boolean!
+             ) {
+               votables {
+                 ... on Product @skip(if: $skip1) {
+                   voteCount
+                 }
+                 ... on Product  @skip(if: $skip2) {
+                   voteCount
+                   viewerCanVote
+                 }
+               }
+             }
+             """);
+     }
+
+     [Fact]
+     public void Test12()
+     {
+         // arrange
+         var schemaDefinition = SchemaParser.Parse(
+             """
+             type Query {
+               votables: [Votable!]!
+             }
+
+             interface Votable {
+               viewerCanVote: Boolean!
+               voteCount: Int
+             }
+
+             type Product implements Votable {
+               id: ID!
+               viewerCanVote: Boolean!
+               voteCount: Int
+             }
+             """);
+
+         var doc = Utf8GraphQLParser.Parse(
+             """
+             query(
+               $skip1: Boolean!,
+               $skip2: Boolean!
+             ) {
+               votables {
+                 ... on Product @skip(if: $skip1) {
+                   voteCount
+                 }
+                 ... on Product  @skip(if: $skip2) {
+                   voteCount
+                   viewerCanVote
+                 }
+                 voteCount
+               }
+             }
+             """);
+
+         // act
+         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewritten = rewriter.RewriteDocument(doc);
+
+         // assert
+         rewritten.MatchInlineSnapshot(
+             """
+             query(
+               $skip1: Boolean!,
+               $skip2: Boolean!
+             ) {
+               votables {
+                 voteCount
+                 ... on Product  @skip(if: $skip2) {
+                   viewerCanVote
+                 }
+               }
+             }
+             """);
+     }
+
+     [Fact]
+     public void Test13()
+     {
+         // arrange
+         var sourceText = FileResource.Open("schema1.graphql");
+         var schemaDefinition = SchemaParser.Parse(sourceText);
+
+         var doc = Utf8GraphQLParser.Parse(
+             """
+             query($skip: Boolean!, $include: Boolean!) {
+               productBySlug(slug: "a") @skip(if: $skip) {
+                 dimension @include(if: $include) @skip(if: $skip) {
+                   width
+                   height
+                 }
+                 dimension @include(if: $include) {
+                   primaryWidth: width
+                 }
+               }
+             }
+             """);
+
+         // act
+         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewritten = rewriter.RewriteDocument(doc);
+
+         // assert
+         rewritten.MatchInlineSnapshot(
+             """
+             query(
+               $skip: Boolean!,
+               $include: Boolean!
+             ) {
+               productBySlug(slug: "a") @skip(if: $skip) {
+                 dimension @include(if: $include) {
+                   width
+                   height
+                   primaryWidth: width
+                 }
+               }
+             }
+             """);
+     }
+
+     [Fact]
+     public void Test14()
+     {
+         // arrange
+         var sourceText = FileResource.Open("schema1.graphql");
+         var schemaDefinition = SchemaParser.Parse(sourceText);
+
+         var doc = Utf8GraphQLParser.Parse(
+             """
+             query($skip: Boolean!, $include: Boolean!) {
+               productBySlug(slug: "a") {
+                 dimension @include(if: $include) @skip(if: $skip) {
+                   width
+                   height
+                 }
+                 dimension @include(if: $include) {
+                   primaryWidth: width
+                 }
+               }
+             }
+             """);
+
+         // act
+         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewritten = rewriter.RewriteDocument(doc);
+
+         // assert
+         rewritten.MatchInlineSnapshot(
+             """
+             query(
+               $skip: Boolean!,
+               $include: Boolean!
+             ) {
+               productBySlug(slug: "a") {
+                 dimension @include(if: $include) @skip(if: $skip) {
+                   width
+                   height
+                 }
+                 dimension @include(if: $include) {
+                   primaryWidth: width
                  }
                }
              }

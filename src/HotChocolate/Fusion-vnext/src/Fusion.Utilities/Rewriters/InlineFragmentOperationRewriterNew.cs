@@ -5,8 +5,21 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Rewriters;
 
-public sealed class InlineFragmentOperationRewriterNew(ISchemaDefinition schema)
+public sealed class InlineFragmentOperationRewriterNew(
+    ISchemaDefinition schema,
+#pragma warning disable CS9113 // Parameter is unread.
+    bool removeStaticallyExcludedSelections = false)
+#pragma warning restore CS9113 // Parameter is unread.
 {
+    private static readonly FieldNode s_typeNameField =
+        new FieldNode(
+            null,
+            new NameNode(IntrospectionFieldNames.TypeName),
+            null,
+            [new DirectiveNode("fusion__empty")],
+            ImmutableArray<ArgumentNode>.Empty,
+            null);
+
     public DocumentNode RewriteDocument(DocumentNode document, string? operationName = null)
     {
         var operation = document.GetOperation(operationName);
@@ -68,6 +81,11 @@ public sealed class InlineFragmentOperationRewriterNew(ISchemaDefinition schema)
                 {
                     var newInlineFragmentNode = RewriteInlineFragment(inlineFragmentNode, context);
 
+                    if (newInlineFragmentNode.SelectionSet.Selections.Count == 0)
+                    {
+                        continue;
+                    }
+
                     if (context.Conditionals.TryGetValue(newInlineFragmentNode, out var conditional))
                     {
                         conditionals ??=
@@ -114,6 +132,11 @@ public sealed class InlineFragmentOperationRewriterNew(ISchemaDefinition schema)
                     selections.Add(inlineFragmentNode);
                 }
             }
+        }
+
+        if (selections.Count == 0)
+        {
+            selections.Add(s_typeNameField);
         }
 
         return new SelectionSetNode(selections);
