@@ -1,12 +1,13 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Features;
+using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class FusionRequestExecutor : IRequestExecutor
+internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
 {
     private readonly IServiceProvider _applicationServices;
     private readonly RequestDelegate _requestDelegate;
@@ -14,7 +15,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor
     private List<Task>? _taskList;
 
     public FusionRequestExecutor(
-        ISchemaDefinition schema,
+        FusionSchemaDefinition schema,
         IServiceProvider applicationServices,
         RequestDelegate requestDelegate,
         ObjectPool<PooledRequestContext> requestContextPool,
@@ -35,7 +36,9 @@ internal sealed class FusionRequestExecutor : IRequestExecutor
     /// <summary>
     /// Gets the schema definition that this request executor is configured for.
     /// </summary>
-    public ISchemaDefinition Schema { get; }
+    public FusionSchemaDefinition Schema { get; }
+
+    ISchemaDefinition IRequestExecutor.Schema => Schema;
 
     /// <summary>
     /// Gets the version of the request executor.
@@ -333,6 +336,8 @@ internal sealed class FusionRequestExecutor : IRequestExecutor
                     "The request pipeline is expected to produce an execution result.");
         }
     }
+
+    public ValueTask DisposeAsync() => Schema.DisposeAsync();
 }
 
 file static class ListExtensions
