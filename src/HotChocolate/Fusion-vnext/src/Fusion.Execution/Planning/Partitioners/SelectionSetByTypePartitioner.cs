@@ -101,7 +101,10 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
             return;
         }
 
-        var selectionsWithPath = GetSelectionsWithPath(context.FragmentPath, selections);
+        var selectionsWithPath = GetSelectionsWithPath(
+            context.FragmentPath,
+            selections,
+            context.SelectionSetIndexBuilder);
 
         if (type == context.SharedType)
         {
@@ -180,13 +183,21 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
 
     private static List<ISelectionNode> GetSelectionsWithPath(
         Stack<InlineFragmentNode> fragmentPath,
-        List<ISelectionNode> selections)
+        List<ISelectionNode> selections,
+        SelectionSetIndexBuilder indexBuilder)
     {
         var start = selections;
 
         foreach (var fragment in fragmentPath)
         {
-            start = [fragment.WithSelectionSet(new SelectionSetNode(start))];
+            var newSelectionSet = new SelectionSetNode(start);
+
+            if (!indexBuilder.IsRegistered(newSelectionSet))
+            {
+                indexBuilder.Register(newSelectionSet);
+            }
+
+            start = [fragment.WithSelectionSet(newSelectionSet)];
         }
 
         return start;

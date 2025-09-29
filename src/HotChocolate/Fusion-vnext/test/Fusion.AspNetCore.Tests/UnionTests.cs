@@ -75,7 +75,7 @@ public class UnionTests : FusionTestBase
 
             union Post = Photo | Discussion
 
-            type Photo @key(fields: "id") {
+            type Photo {
               id: ID!
             }
 
@@ -92,7 +92,7 @@ public class UnionTests : FusionTestBase
               photoById(id: ID!): Photo @lookup
             }
 
-            type Photo @key(fields: "id") {
+            type Photo {
               id: ID!
               subgraph2: String!
             }
@@ -152,11 +152,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -168,7 +168,7 @@ public class UnionTests : FusionTestBase
               productById(id: ID!): Product @lookup
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
               subgraph2: String!
             }
@@ -181,7 +181,7 @@ public class UnionTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               subgraph3: String!
             }
@@ -246,11 +246,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -263,12 +263,12 @@ public class UnionTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
               subgraph2: String!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               subgraph2: String!
             }
@@ -332,7 +332,7 @@ public class UnionTests : FusionTestBase
               product: Product
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
             }
             """);
@@ -344,7 +344,7 @@ public class UnionTests : FusionTestBase
               productById(id: ID!): Product @lookup
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
               subgraph2: String!
             }
@@ -402,7 +402,7 @@ public class UnionTests : FusionTestBase
 
             union Post = Photo | Discussion
 
-            type Photo @key(fields: "id") {
+            type Photo {
               id: ID!
             }
 
@@ -419,7 +419,7 @@ public class UnionTests : FusionTestBase
               photoById(id: ID!): Photo @lookup
             }
 
-            type Photo @key(fields: "id") {
+            type Photo {
               id: ID!
               subgraph2: String!
             }
@@ -479,11 +479,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -495,7 +495,7 @@ public class UnionTests : FusionTestBase
               productById(id: ID!): Product @lookup
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
               subgraph2: String!
             }
@@ -508,7 +508,7 @@ public class UnionTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               subgraph3: String!
             }
@@ -573,11 +573,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -590,12 +590,12 @@ public class UnionTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
               subgraph2: String!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               subgraph2: String!
             }
@@ -659,7 +659,7 @@ public class UnionTests : FusionTestBase
               product: Product
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
             }
             """);
@@ -671,7 +671,7 @@ public class UnionTests : FusionTestBase
               productById(id: ID!): Product @lookup
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
               subgraph2: String!
             }
@@ -733,7 +733,7 @@ public class UnionTests : FusionTestBase
 
             union Post = Photo | Discussion
 
-            type Photo @key(fields: "id") {
+            type Photo {
               id: ID!
             }
 
@@ -750,7 +750,7 @@ public class UnionTests : FusionTestBase
               photoById(id: ID!): Photo @lookup
             }
 
-            type Photo @key(fields: "id") {
+            type Photo {
               id: ID!
               subgraph2: String!
             }
@@ -816,11 +816,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -832,7 +832,7 @@ public class UnionTests : FusionTestBase
               productById(id: ID!): Product @lookup
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
               subgraph2: String!
             }
@@ -845,7 +845,7 @@ public class UnionTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               subgraph3: String!
             }
@@ -916,11 +916,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -933,12 +933,12 @@ public class UnionTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
               subgraph2: String!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               subgraph2: String!
             }
@@ -1008,7 +1008,7 @@ public class UnionTests : FusionTestBase
               product: Product
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
             }
             """);
@@ -1020,7 +1020,7 @@ public class UnionTests : FusionTestBase
               productById(id: ID!): Product @lookup
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
               subgraph2: String!
             }
@@ -1084,7 +1084,7 @@ public class UnionTests : FusionTestBase
 
             union Post = Photo | Discussion
 
-            type Photo @key(fields: "id") {
+            type Photo {
               id: ID!
             }
 
@@ -1101,7 +1101,7 @@ public class UnionTests : FusionTestBase
               photoById(id: ID!): Photo @lookup
             }
 
-            type Photo @key(fields: "id") {
+            type Photo {
               id: ID!
               subgraph2: String!
             }
@@ -1167,11 +1167,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -1183,7 +1183,7 @@ public class UnionTests : FusionTestBase
               productById(id: ID!): Product @lookup
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
               subgraph2: String!
             }
@@ -1196,7 +1196,7 @@ public class UnionTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               subgraph3: String!
             }
@@ -1267,11 +1267,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
             }
             """);
@@ -1284,12 +1284,12 @@ public class UnionTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
               subgraph2: String!
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               subgraph2: String!
             }
@@ -1359,7 +1359,7 @@ public class UnionTests : FusionTestBase
               product: Product
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
             }
             """);
@@ -1371,7 +1371,7 @@ public class UnionTests : FusionTestBase
               productById(id: ID!): Product @lookup
             }
 
-            type Product @key(fields: "id") {
+            type Product {
               id: ID!
               subgraph2: String!
             }
