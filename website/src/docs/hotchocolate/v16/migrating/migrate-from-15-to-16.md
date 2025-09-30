@@ -81,10 +81,9 @@ Some GraphQL validation errors included an extension named `fieldCoordinate` tha
 
 ## Errors from `TypeConverter`s are now accessible in the `ErrorFilter`
 
-Previously, exceptions thrown by a `TypeConverter` were not forwarded to the `ErrorFilter`. Such exceptions are now properly propagated and can therefore be intercepted.  
+Previously, exceptions thrown by a `TypeConverter` were not forwarded to the `ErrorFilter`. Such exceptions are now properly propagated and can therefore be intercepted.
 
-In addition, the default output for such errors has been standardized: earlier, type conversion errors resulted in different responses depending on where in the document they occurred. 
-Now, all exceptions thrown by type converters are reported in a unified format:  
+In addition, the default output for such errors has been standardized: earlier, type conversion errors resulted in different responses depending on where in the document they occurred. Now, all exceptions thrown by type converters are reported in a unified format:
 
 ```json
 {

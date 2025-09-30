@@ -187,18 +187,18 @@ public class BsonTypeTests
 
     [Theory]
     [InlineData("int", "42", typeof(BsonInt64))]
-    [InlineData("long", long.MaxValue, typeof(BsonInt64))]
+    [InlineData("long", "9223372036854775807", typeof(BsonInt64))]
     [InlineData(
         "decimal",
         "\"42.1234\"",
         typeof(BsonString))] // we do not know that it should be a BsonDecimal
-    [InlineData("double", 43.23, typeof(BsonDouble))]
-    [InlineData("boolean", true, typeof(BsonBoolean))]
+    [InlineData("double", "43.23", typeof(BsonDouble))]
+    [InlineData("boolean", "true", typeof(BsonBoolean))]
     [InlineData("array", "[true, false]", typeof(BsonArray))]
     [InlineData("string", "\"string\"", typeof(BsonString))]
     public async Task Input_Should_MatchSnapshotAndType_When_Passed(
         string fieldName,
-        object value,
+        string value,
         Type type)
     {
         // arrange
@@ -220,7 +220,7 @@ public class BsonTypeTests
             .BuildRequestExecutorAsync();
 
         // act
-        await executor.ExecuteAsync($"{{ in(val:{value.ToString()!.ToLower()}) }}");
+        await executor.ExecuteAsync($"{{ in(val:{value}) }}");
 
         // assert
         Assert.NotEqual("INVALID", res);
