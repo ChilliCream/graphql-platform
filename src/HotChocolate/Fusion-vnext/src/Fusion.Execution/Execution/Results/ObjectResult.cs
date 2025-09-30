@@ -186,7 +186,7 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
             {
                 if (rawLeafFields)
                 {
-                    // TODO : shall we pool these as well?
+                    // TODO: shall we pool these as well?
                     field = new RawFieldResult();
                 }
                 else

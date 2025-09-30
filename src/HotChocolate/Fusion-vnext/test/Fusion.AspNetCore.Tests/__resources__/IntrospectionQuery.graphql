@@ -1,5 +1,6 @@
 query IntrospectionQuery {
   __schema {
+    description
     queryType {
       name
     }
@@ -20,9 +21,6 @@ query IntrospectionQuery {
         ...InputValue
       }
       locations
-      onOperation
-      onFragment
-      onField
     }
   }
 }

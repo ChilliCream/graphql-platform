@@ -221,7 +221,7 @@ internal sealed class __Type : ITypeResolverInterceptor
 
             case NonNullType nnt:
             {
-                var obj = context.ResultPool.RentObjectListResult();
+                var obj = context.RentInitializedObjectResult();
                 context.FieldResult.SetNextValue(obj);
                 context.AddRuntimeResult(nnt.NullableType);
                 break;
