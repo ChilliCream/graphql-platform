@@ -1927,43 +1927,6 @@ public class AutomaticMockingTests
     #region Scalars
 
     [Fact]
-    public async Task Test()
-    {
-        // arrange
-        const string schema =
-            """
-            type Query {
-              str: String
-            }
-
-            scalar CustomScalar
-            """;
-        const string request =
-            """
-            query {
-              __type(name: "CustomScalar") {
-                name
-              }
-            }
-            """;
-
-        // act
-        var result = await ExecuteRequestAgainstSchemaAsync(request, schema);
-
-        // assert
-        result.MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "__type": {
-                  "name": "CustomScalar"
-                }
-              }
-            }
-            """);
-    }
-
-    [Fact]
     public async Task Scalar()
     {
         // arrange

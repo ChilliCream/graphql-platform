@@ -3,6 +3,7 @@ request:
   document: |
     query IntrospectionQuery {
       __schema {
+        description
         queryType {
           name
         }
@@ -101,6 +102,7 @@ response:
     {
       "data": {
         "__schema": {
+          "description": null,
           "queryType": {
             "name": "Query"
           },
@@ -1049,7 +1051,7 @@ response:
             {
               "kind": "OBJECT",
               "name": "Query",
-              "description": null,
+              "description": "Object type description",
               "specifiedByURL": null,
               "fields": [
                 {
@@ -1112,11 +1114,11 @@ response:
                 },
                 {
                   "name": "posts",
-                  "description": null,
+                  "description": "Object field description",
                   "args": [
                     {
                       "name": "filter",
-                      "description": null,
+                      "description": "Argument description",
                       "type": {
                         "kind": "INPUT_OBJECT",
                         "name": "PostsFilter",
@@ -1410,12 +1412,12 @@ response:
             {
               "kind": "INTERFACE",
               "name": "Votable",
-              "description": null,
+              "description": "Interface description",
               "specifiedByURL": null,
               "fields": [
                 {
                   "name": "id",
-                  "description": null,
+                  "description": "Interface field description",
                   "args": [],
                   "type": {
                     "kind": "NON_NULL",
@@ -1455,7 +1457,7 @@ response:
             {
               "kind": "UNION",
               "name": "UserCreation",
-              "description": null,
+              "description": "Union description",
               "specifiedByURL": null,
               "fields": null,
               "inputFields": null,
@@ -1545,13 +1547,13 @@ response:
             {
               "kind": "INPUT_OBJECT",
               "name": "PostsFilter",
-              "description": null,
+              "description": "Input object type description",
               "specifiedByURL": null,
               "fields": null,
               "inputFields": [
                 {
                   "name": "scalar",
-                  "description": null,
+                  "description": "Input field description",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -1569,7 +1571,7 @@ response:
             {
               "kind": "ENUM",
               "name": "PostKind",
-              "description": null,
+              "description": "Enum description",
               "specifiedByURL": null,
               "fields": null,
               "inputFields": null,
@@ -1583,7 +1585,7 @@ response:
                 },
                 {
                   "name": "STORY",
-                  "description": null,
+                  "description": "Enum value description",
                   "isDeprecated": false,
                   "deprecationReason": null
                 }
@@ -1665,6 +1667,7 @@ response:
 sourceSchemas:
   - name: A
     schema: |
+      "Schema description"
       schema @test(arg: "value") {
         query: Query
         mutation: Mutation
@@ -1675,7 +1678,9 @@ sourceSchemas:
         id: ID!
       }
       
+      "Interface description"
       interface Votable implements Node {
+        "Interface field description"
         id: ID!
       }
       
@@ -1689,10 +1694,12 @@ sourceSchemas:
         location: String @inaccessible
       }
       
+      "Object type description"
       type Query @test(arg: "value") {
-        posts(filter: PostsFilter first: Int! = 5 @test(arg: "value") hidden: Boolean): [Post]
+        "Object field description"
+        posts("Argument description" filter: PostsFilter first: Int! = 5 @test(arg: "value") hidden: Boolean @deprecated(reason: "No longer supported")): [Post]
         userCreation: UserCreation
-        votables: [Votable]!
+        votables: [Votable]! @deprecated(reason: "No longer supported")
         postById(postId: ID! @is(field: "id")): Post @lookup
         node(id: ID!): Node @lookup
       }
@@ -1705,10 +1712,11 @@ sourceSchemas:
         onNewReview: Review
       }
       
+      "Union description"
       union UserCreation @test(arg: "value") = Post | Review
       
       input PostReviewInput @oneOf {
-        scalar: String
+        scalar: String @deprecated(reason: "No longer supported")
         pros: [PostReviewPro]
       }
       
@@ -1716,24 +1724,30 @@ sourceSchemas:
         scalar: Int!
       }
       
+      "Input object type description"
       input PostsFilter @test(arg: "value") {
+        "Input field description"
         scalar: String = "test" @test(arg: "value")
       }
       
+      "Enum description"
       enum PostKind @test(arg: "value") {
+        "Enum value description"
         STORY @test(arg: "value")
-        PHOTO
+        PHOTO @deprecated(reason: "No longer supported")
       }
       
       "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
       directive @oneOf on INPUT_OBJECT
       
-      directive @test(arg: String! = "default") repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD | FRAGMENT_DEFINITION | FRAGMENT_SPREAD | INLINE_FRAGMENT | VARIABLE_DEFINITION | SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+      "Directive description"
+      directive @test("Directive argument description" arg: String! = "default") repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD | FRAGMENT_DEFINITION | FRAGMENT_SPREAD | INLINE_FRAGMENT | VARIABLE_DEFINITION | SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
 operationPlan:
   operation:
     - document: |
         query IntrospectionQuery {
           __schema {
+            description
             queryType {
               name
             }
@@ -1935,7 +1949,7 @@ operationPlan:
           }
         }
       name: IntrospectionQuery
-      hash: 07ddc14537655b68eb425f6e329fdc40
+      hash: a1ed729bdd8eeff7c48797c59222c723
       searchSpace: 1
   nodes:
     - id: 1

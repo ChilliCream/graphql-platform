@@ -321,16 +321,19 @@ public class IntrospectionTests : FusionTestBase
         using var server1 = CreateSourceSchema(
             "A",
             """
+            "Schema description"
             schema @test(arg: "value") {
               query: Query
               mutation: Mutation
               subscription: Subscription
             }
 
+            "Object type description"
             type Query @test(arg: "value") {
-              posts(filter: PostsFilter, first: Int! = 5 @test(arg: "value"), hidden: Boolean): [Post]
+              "Object field description"
+              posts("Argument description" filter: PostsFilter, first: Int! = 5 @test(arg: "value"), hidden: Boolean @deprecated(reason: "No longer supported")): [Post]
               userCreation: UserCreation
-              votables: [Votable]!
+              votables: [Votable]! @deprecated(reason: "No longer supported")
               postById(postId: ID! @is(field: "id")): Post @lookup
               node(id: ID!): Node @lookup
             }
@@ -343,12 +346,14 @@ public class IntrospectionTests : FusionTestBase
               onNewReview: Review
             }
 
+            "Input object type description"
             input PostsFilter @test(arg: "value") {
+              "Input field description"
               scalar: String = "test" @test(arg: "value")
             }
 
             input PostReviewInput @oneOf {
-              scalar: String
+              scalar: String @deprecated(reason: "No longer supported")
               pros: [PostReviewPro]
             }
 
@@ -356,9 +361,12 @@ public class IntrospectionTests : FusionTestBase
               scalar: Int!
             }
 
+            "Union description"
             union UserCreation @test(arg: "value") = Post | Review
 
+            "Interface description"
             interface Votable implements Node {
+              "Interface field description"
               id: ID!
               # voteCount: StarRating!
             }
@@ -379,16 +387,20 @@ public class IntrospectionTests : FusionTestBase
               # voteCount: StarRating!
             }
 
+            "Enum description"
             enum PostKind @test(arg: "value") {
+              "Enum value description"
               STORY @test(arg: "value")
-              PHOTO
+              PHOTO @deprecated(reason: "No longer supported")
             }
 
+            # "Scalar description"
             # scalar StarRating @specifiedBy(url: "https://tools.ietf.org/html/rfc4122") @test(arg: "value")
 
             directive @oneOf on INPUT_OBJECT
 
-            directive @test(arg: String! = "default") repeatable on
+            "Directive description"
+            directive @test("Directive argument description" arg: String! = "default") repeatable on
               | QUERY
               | MUTATION
               | SUBSCRIPTION
