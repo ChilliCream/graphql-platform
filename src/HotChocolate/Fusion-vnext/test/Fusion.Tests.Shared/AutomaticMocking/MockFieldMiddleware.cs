@@ -1,5 +1,4 @@
 using System.Text;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -9,10 +8,11 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Fusion;
 
 // ReSharper disable once ClassNeverInstantiated.Local
+// TODO: The atIndex needs to support variable batch requests
 internal sealed class MockFieldMiddleware
 {
     private const int DefaultListSize = 3;
-    private static readonly INodeIdParser _nodeIdParser = new DefaultNodeIdParser();
+    private static readonly INodeIdParser s_nodeIdParser = new DefaultNodeIdParser();
 
     public ValueTask InvokeAsync(IMiddlewareContext context)
     {
@@ -224,7 +224,7 @@ internal sealed class MockFieldMiddleware
             var id = ids?.ElementAtOrDefault(i);
 
             if (id is string idString
-                && _nodeIdParser.TryParseTypeName(idString, out var typeName)
+                && s_nodeIdParser.TryParseTypeName(idString, out var typeName)
                 && possibleTypes.FirstOrDefault(t => t.Name == typeName) is { } requestedType)
             {
                 yield return requestedType;

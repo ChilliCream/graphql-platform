@@ -12,7 +12,7 @@
         "example"
       ],
       "extensions": {
-        "fieldCoordinate": "ExampleInput.b",
+        "coordinate": "ExampleInput.b",
         "specifiedBy": "https://spec.graphql.org/draft/#sec-All-Variable-Usages-Are-Allowed",
         "rfc": "https://github.com/graphql/graphql-spec/pull/825"
       }

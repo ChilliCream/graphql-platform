@@ -252,6 +252,7 @@ internal sealed class FusionRequestExecutorManager
         features.Set(parserOptions);
         features.Set(clientConfigurations);
         features.Set(CreateTypeResolverInterceptors());
+        features.Set(new SchemaCancellationFeature());
 
         foreach (var configure in setup.SchemaFeaturesModifiers)
         {
@@ -565,8 +566,15 @@ internal sealed class FusionRequestExecutorManager
                 _documentHash = documentHash;
                 _settingsHash = settingsHash;
 
-                Executor = _manager.CreateRequestExecutor(Executor.Schema.Name, configuration);
+                var previousExecutor = Executor;
+                var nextExecutor = _manager.CreateRequestExecutor(Executor.Schema.Name, configuration);
 
+                // TODO : should we have the warmup tasks here?
+
+                Executor = nextExecutor;
+
+                // we need to free the resources of the current schema as well as for the configuration object.
+                await previousExecutor.DisposeAsync().ConfigureAwait(false);
                 configuration.Dispose();
             }
         }
@@ -594,6 +602,8 @@ internal sealed class FusionRequestExecutorManager
             {
                 configuration.Dispose();
             }
+
+            await Executor.DisposeAsync();
         }
     }
 

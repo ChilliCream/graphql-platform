@@ -1,0 +1,32 @@
+{
+  "errors": [
+    {
+      "message": "The value provided for `id` is not in a valid format.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 58
+        }
+      ],
+      "path": [
+        "fieldWithNestedObjectInput"
+      ],
+      "extensions": {
+        "code": "HC0001",
+        "coordinate": "ObjectWithIdInput.id",
+        "inputPath": [
+          "arg",
+          "inner",
+          "id"
+        ],
+        "exception": {
+          "message": "Boom",
+          "stackTrace": "Test"
+        }
+      }
+    }
+  ],
+  "data": {
+    "fieldWithNestedObjectInput": null
+  }
+}

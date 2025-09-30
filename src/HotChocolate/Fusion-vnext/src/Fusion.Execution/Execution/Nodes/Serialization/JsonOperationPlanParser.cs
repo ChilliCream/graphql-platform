@@ -284,7 +284,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         if (idValue is VariableNode variableNode)
         {
-            if (!operation.Definition.VariableDefinitions.Any(v => v.Variable.Equals(variableNode)))
+            if (!operation.Definition.VariableDefinitions
+                .Any(v => v.Variable.Equals(variableNode, SyntaxComparison.Syntax)))
             {
                 throw new InvalidOperationException(
                     $"'idValue' references non-existent '{variableNode.Name}' variable.");
