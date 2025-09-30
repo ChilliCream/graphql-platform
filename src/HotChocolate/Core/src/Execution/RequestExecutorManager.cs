@@ -27,7 +27,7 @@ internal sealed partial class RequestExecutorManager
     : IRequestExecutorManager
     , IRequestExecutorEvents
     , IRequestExecutorWarmup
-    , IDisposable
+    , IAsyncDisposable
 {
     private readonly CancellationTokenSource _cts = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreBySchema = new();
@@ -183,7 +183,8 @@ internal sealed partial class RequestExecutorManager
             schemaServices,
             schemaServices.GetRequiredService<IExecutionDiagnosticEvents>(),
             setup,
-            typeModuleChangeMonitor);
+            typeModuleChangeMonitor,
+            setup.EvictionTimeout);
 
         var executor = registeredExecutor.Executor;
 
@@ -254,12 +255,12 @@ internal sealed partial class RequestExecutorManager
         {
             // we will give the request executor some grace period to finish all requests
             // in the pipeline.
-            await Task.Delay(TimeSpan.FromMinutes(5));
-            registeredExecutor.Dispose();
+            await Task.Delay(registeredExecutor.EvictionTimeout).ConfigureAwait(false);
+            await registeredExecutor.DisposeAsync().ConfigureAwait(false);
         }
     }
 
-    private async Task<IServiceProvider> CreateSchemaServicesAsync(
+    private async Task<ServiceProvider> CreateSchemaServicesAsync(
         ConfigurationContext context,
         RequestExecutorSetup setup,
         TypeModuleChangeMonitor typeModuleChangeMonitor,
@@ -518,16 +519,16 @@ internal sealed partial class RequestExecutorManager
         return next;
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (!_disposed)
         {
             // this will stop the eviction processor.
-            _cts.Cancel();
+            await _cts.CancelAsync();
 
             foreach (var executor in _executors.Values)
             {
-                executor.Dispose();
+                await executor.DisposeAsync();
             }
 
             foreach (var semaphore in _semaphoreBySchema.Values)
@@ -545,17 +546,18 @@ internal sealed partial class RequestExecutorManager
 
     private sealed class RegisteredExecutor(
         IRequestExecutor executor,
-        IServiceProvider services,
+        ServiceProvider services,
         IExecutionDiagnosticEvents diagnosticEvents,
         RequestExecutorSetup setup,
-        TypeModuleChangeMonitor typeModuleChangeMonitor)
-        : IDisposable
+        TypeModuleChangeMonitor typeModuleChangeMonitor,
+        TimeSpan evictionTimeout)
+        : IAsyncDisposable
     {
         private bool _disposed;
 
         public IRequestExecutor Executor { get; } = executor;
 
-        public IServiceProvider Services { get; } = services;
+        public ServiceProvider Services { get; } = services;
 
         public IExecutionDiagnosticEvents DiagnosticEvents { get; } = diagnosticEvents;
 
@@ -563,15 +565,13 @@ internal sealed partial class RequestExecutorManager
 
         public TypeModuleChangeMonitor TypeModuleChangeMonitor { get; } = typeModuleChangeMonitor;
 
-        public void Dispose()
-        {
-            if (_disposed)
-            {
-                if (Services is IDisposable d)
-                {
-                    d.Dispose();
-                }
+        public TimeSpan EvictionTimeout { get; } = evictionTimeout;
 
+        public async ValueTask DisposeAsync()
+        {
+            if (!_disposed)
+            {
+                await Services.DisposeAsync();
                 TypeModuleChangeMonitor.Dispose();
                 _disposed = true;
             }
