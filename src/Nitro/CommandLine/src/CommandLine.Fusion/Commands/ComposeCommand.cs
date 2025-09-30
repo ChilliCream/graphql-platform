@@ -496,7 +496,7 @@ internal sealed class ComposeCommand : Command
         }
 
         var schemaComposer = new SchemaComposer(
-            sourceSchemas.OrderBy(s => s.Key).Select(s => s.Value.Item1),
+            sourceSchemas.Select(s => s.Value.Item1),
             schemaComposerOptions,
             compositionLog);
 
@@ -510,7 +510,7 @@ internal sealed class ComposeCommand : Command
         using var bufferWriter = new PooledArrayWriter();
         new SettingsComposer().Compose(
             bufferWriter,
-            sourceSchemas.OrderBy(s => s.Key).Select(s => s.Value.Item2.RootElement).ToArray(),
+            sourceSchemas.Select(s => s.Value.Item2.RootElement).ToArray(),
             environment);
 
         var metadata = new ArchiveMetadata
