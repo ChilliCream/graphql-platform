@@ -83,10 +83,12 @@ public class TypeConverterTests
         // arrange
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
-            from, to, input, out var output);
+            from, to, input, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.NotNull(output);
         Assert.Equal(to, output.GetType());
         Assert.Equal(expectedOutput, output);
@@ -101,10 +103,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(int), typeof(long?),
-            source, out var output);
+            source, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<long>(output);
         Assert.Equal(55L, output);
     }
@@ -118,10 +122,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(int?), typeof(long?),
-            source, out var output);
+            source, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<long>(output);
         Assert.Equal(55L, output);
     }
@@ -133,10 +139,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(string), typeof(long?),
-            null, out var output);
+            null, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.Null(output);
     }
 
@@ -149,10 +157,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(long?), typeof(int),
-            source, out var output);
+            source, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<int>(output);
         Assert.Equal(55, output);
     }
@@ -167,10 +177,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(string), typeof(Guid),
-            input, out var output);
+            input, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<Guid>(output);
         Assert.Equal(Guid.Parse(input), output);
     }
@@ -185,10 +197,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(Guid), typeof(string),
-            input, out var output);
+            input, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<string>(output);
         Assert.Equal(expectedOutput, output);
     }
@@ -202,10 +216,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(string), typeof(Uri),
-            expectedOutput, out var output);
+            expectedOutput, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<Uri>(output);
         Assert.Equal(expectedOutput, output.ToString());
     }
@@ -220,10 +236,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(Uri), typeof(string),
-            input, out var output);
+            input, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<string>(output);
         Assert.Equal(expectedOutput, output);
     }
@@ -237,10 +255,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(string), typeof(string),
-            expectedOutput, out var output);
+            expectedOutput, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<string>(output);
         Assert.Equal(expectedOutput, output);
     }
@@ -256,10 +276,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(object), typeof(string),
-            input, out var output);
+            input, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.Equal(expectedOutput, output);
     }
 
@@ -272,10 +294,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(string[]), typeof(List<string>),
-            list, out var output);
+            list, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<List<string>>(output);
         Assert.Collection((List<string>)output,
             t => Assert.Equal("a", t),
@@ -292,10 +316,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(string[]), typeof(List<int>),
-            list, out var output);
+            list, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<List<int>>(output);
         Assert.Collection((List<int>)output,
             t => Assert.Equal(1, t),
@@ -312,10 +338,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(string[]), typeof(int[]),
-            list, out var output);
+            list, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<int[]>(output);
         Assert.Collection((int[])output,
             t => Assert.Equal(1, t),
@@ -332,10 +360,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(string[]), typeof(IList<int>),
-            list, out var output);
+            list, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<List<int>>(output);
         Assert.Collection((List<int>)output,
             t => Assert.Equal(1, t),
@@ -352,10 +382,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(string[]), typeof(ICollection<int>),
-            list, out var output);
+            list, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<List<int>>(output);
         Assert.Collection((List<int>)output,
             t => Assert.Equal(1, t),
@@ -372,10 +404,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(string[]), typeof(string),
-            list, out var output);
+            list, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<string>(output);
         Assert.Equal("1,2,3", output);
     }
@@ -389,10 +423,12 @@ public class TypeConverterTests
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
             typeof(string[]), typeof(List<FooOrBar?>),
-            list, out var output);
+            list, out var output,
+            out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<List<FooOrBar?>>(output);
         Assert.Collection((List<FooOrBar?>)output,
             t => Assert.Equal(FooOrBar.Foo, t),
@@ -409,10 +445,12 @@ public class TypeConverterTests
         var success =
             TypeConverterExtensions.TryConvert<string[], List<FooOrBar?>>(
                 DefaultTypeConverter.Default,
-                list, out var output);
+                list, out var output,
+                out var conversionException);
 
         // assert
         Assert.True(success);
+        Assert.Null(conversionException);
         Assert.IsType<List<FooOrBar?>>(output);
         Assert.Collection(output,
             t => Assert.Equal(FooOrBar.Foo, t),

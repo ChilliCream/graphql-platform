@@ -34,6 +34,11 @@ public sealed class RequestExecutorSetup
     public RequestExecutorOptions? RequestExecutorOptions { get; set; }
 
     /// <summary>
+    /// Gets or sets the time that the executor manager waits to dispose the schema services.
+    /// </summary>
+    public TimeSpan EvictionTimeout { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
     /// Gets the request executor options actions.
     /// This hook is invoke first in the schema creation process.
     /// </summary>
@@ -117,6 +122,7 @@ public sealed class RequestExecutorSetup
         options._onBuildDocumentValidatorHooks.AddRange(_onBuildDocumentValidatorHooks);
         options._pipelineModifiers.AddRange(_pipelineModifiers);
         options._typeModules.AddRange(_typeModules);
+        options.EvictionTimeout = EvictionTimeout;
 
         if (DefaultPipelineFactory is not null)
         {

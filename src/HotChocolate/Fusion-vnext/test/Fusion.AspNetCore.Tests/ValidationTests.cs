@@ -1,12 +1,9 @@
 using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion;
 
