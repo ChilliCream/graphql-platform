@@ -166,11 +166,17 @@ internal sealed class SourceSchemaMerger
         var type = MostRestrictiveType(typeA, typeB);
         var description = argumentA.Description ?? argumentB.Description;
         var defaultValue = argumentA.DefaultValue ?? argumentB.DefaultValue;
+        var isDeprecated = argumentA.IsDeprecated && argumentB.IsDeprecated;
+        var deprecationReason = isDeprecated
+            ? argumentA.DeprecationReason ?? argumentB.DeprecationReason
+            : null;
 
         return new MutableInputFieldDefinition(argumentA.Name, type.ExpectInputType())
         {
             DefaultValue = defaultValue,
-            Description = description
+            Description = description,
+            IsDeprecated = isDeprecated,
+            DeprecationReason = deprecationReason
         };
     }
 
@@ -270,13 +276,31 @@ internal sealed class SourceSchemaMerger
         var firstValue = enumValueGroup[0].EnumValue;
         var valueName = firstValue.Name;
         var description = firstValue.Description;
+        var isDeprecated = firstValue.IsDeprecated;
+        var deprecationReason = firstValue.DeprecationReason;
 
         for (var i = 1; i < enumValueGroup.Length; i++)
         {
-            description ??= enumValueGroup[i].EnumValue.Description;
+            var enumValueInfo = enumValueGroup[i];
+            description ??= enumValueInfo.EnumValue.Description;
+
+            if (!enumValueInfo.EnumValue.IsDeprecated)
+            {
+                isDeprecated = false;
+            }
+
+            if (isDeprecated && string.IsNullOrEmpty(deprecationReason))
+            {
+                deprecationReason = enumValueInfo.EnumValue.DeprecationReason;
+            }
         }
 
-        var enumValue = new MutableEnumValue(valueName) { Description = description };
+        var enumValue = new MutableEnumValue(valueName)
+        {
+            Description = description,
+            IsDeprecated = isDeprecated,
+            DeprecationReason = deprecationReason
+        };
 
         AddFusionEnumValueDirectives(enumValue, enumValueGroup);
 
@@ -356,6 +380,8 @@ internal sealed class SourceSchemaMerger
         var fieldType = firstField.Type;
         var description = firstField.Description;
         var defaultValue = firstField.DefaultValue;
+        var isDeprecated = firstField.IsDeprecated;
+        var deprecationReason = firstField.DeprecationReason;
 
         for (var i = 1; i < inputFieldGroup.Length; i++)
         {
@@ -363,12 +389,24 @@ internal sealed class SourceSchemaMerger
             fieldType = MostRestrictiveType(fieldType, inputFieldInfo.Field.Type).ExpectInputType();
             description ??= inputFieldInfo.Field.Description;
             defaultValue ??= inputFieldInfo.Field.DefaultValue;
+
+            if (!inputFieldInfo.Field.IsDeprecated)
+            {
+                isDeprecated = false;
+            }
+
+            if (isDeprecated && string.IsNullOrEmpty(deprecationReason))
+            {
+                deprecationReason = inputFieldInfo.Field.DeprecationReason;
+            }
         }
 
         var inputField = new MutableInputFieldDefinition(fieldName)
         {
             DefaultValue = defaultValue,
             Description = description,
+            IsDeprecated = isDeprecated,
+            DeprecationReason = deprecationReason,
             Type = fieldType
                 .ReplaceNamedType(_ => GetOrCreateType(mergedSchema, fieldType))
                 .ExpectInputType()
@@ -579,17 +617,31 @@ internal sealed class SourceSchemaMerger
         var fieldName = firstField.Name;
         var fieldType = firstField.Type;
         var description = firstField.Description;
+        var isDeprecated = firstField.IsDeprecated;
+        var deprecationReason = firstField.DeprecationReason;
 
         for (var i = 1; i < fieldGroup.Length; i++)
         {
             var fieldInfo = fieldGroup[i];
             fieldType = LeastRestrictiveType(fieldType, fieldInfo.Field.Type).ExpectOutputType();
             description ??= fieldInfo.Field.Description;
+
+            if (!fieldInfo.Field.IsDeprecated)
+            {
+                isDeprecated = false;
+            }
+
+            if (isDeprecated && string.IsNullOrEmpty(deprecationReason))
+            {
+                deprecationReason = fieldInfo.Field.DeprecationReason;
+            }
         }
 
         var outputField = new MutableOutputFieldDefinition(fieldName)
         {
             Description = description,
+            IsDeprecated = isDeprecated,
+            DeprecationReason = deprecationReason,
             Type = fieldType
                 .ReplaceNamedType(_ => GetOrCreateType(mergedSchema, fieldType))
                 .ExpectOutputType()

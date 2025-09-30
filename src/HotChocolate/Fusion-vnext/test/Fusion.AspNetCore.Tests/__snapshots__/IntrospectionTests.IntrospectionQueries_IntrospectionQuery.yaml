@@ -1153,8 +1153,8 @@ response:
                         "ofType": null
                       },
                       "defaultValue": null,
-                      "isDeprecated": false,
-                      "deprecationReason": null
+                      "isDeprecated": true,
+                      "deprecationReason": "No longer supported"
                     }
                   ],
                   "type": {
@@ -1198,8 +1198,8 @@ response:
                       }
                     }
                   },
-                  "isDeprecated": false,
-                  "deprecationReason": null
+                  "isDeprecated": true,
+                  "deprecationReason": "No longer supported"
                 }
               ],
               "inputFields": null,
@@ -1508,8 +1508,8 @@ response:
                     "ofType": null
                   },
                   "defaultValue": null,
-                  "isDeprecated": false,
-                  "deprecationReason": null
+                  "isDeprecated": true,
+                  "deprecationReason": "No longer supported"
                 }
               ],
               "interfaces": null,
@@ -1580,8 +1580,8 @@ response:
                 {
                   "name": "PHOTO",
                   "description": null,
-                  "isDeprecated": false,
-                  "deprecationReason": null
+                  "isDeprecated": true,
+                  "deprecationReason": "No longer supported"
                 },
                 {
                   "name": "STORY",
