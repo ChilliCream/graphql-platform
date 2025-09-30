@@ -50,6 +50,7 @@ public sealed partial class OperationCompiler
                     schema,
                     field,
                     selection,
+                    null,
                     _directiveNames,
                     _pipelineComponents);
     }
@@ -221,18 +222,26 @@ public sealed partial class OperationCompiler
     {
         ref var searchSpace = ref GetReference(AsSpan(_selections));
 
+        Path? path = null;
         for (var i = 0; i < _selections.Count; i++)
         {
             var selection = Unsafe.Add(ref searchSpace, i);
-
+            path = path?.Append(selection.ResponseName);
             if (selection.ResolverPipeline is null && selection.PureResolver is null)
             {
-                var field = Unsafe.As<ObjectField>(selection.Field);
+                var field = selection.Field;
                 var syntaxNode = selection.SyntaxNode;
+                if (syntaxNode.Directives.Count > 0 && path == null)
+                {
+                    // create the path only on demand
+                    path = PathHelper.CreatePathFromSelection(_selections, i + 1);
+                }
+
                 var resolver = CreateFieldPipeline(
                     schema,
                     field,
                     syntaxNode,
+                    path,
                     _directiveNames,
                     _pipelineComponents);
                 var pureResolver = TryCreatePureField(schema, field, syntaxNode);
@@ -446,7 +455,7 @@ public sealed partial class OperationCompiler
                                 selection.SelectionSet.Selections))
                         : selection,
                     responseName: responseName,
-                    arguments: CoerceArgumentValues(field, selection, responseName),
+                    arguments: CoerceArgumentValues(field, selection),
                     includeConditions: includeCondition == 0
                         ? null
                         : [includeCondition],

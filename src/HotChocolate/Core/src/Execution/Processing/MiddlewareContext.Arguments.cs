@@ -20,7 +20,18 @@ internal partial class MiddlewareContext
             throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
         }
 
-        return CoerceArgumentValue<T>(argument);
+        try
+        {
+            return CoerceArgumentValue<T>(argument);
+        }
+        catch (SerializationException ex)
+        {
+            var syntaxNode = Selection.Arguments[argument.Name].ValueLiteral;
+            throw new SerializationException(
+                ErrorBuilder.FromError(ex.Errors[0]).SetPath(Path).TryAddLocation(syntaxNode).Build(),
+                ex.Type,
+                Path);
+        }
     }
 
     public Optional<T> ArgumentOptional<T>(string name)
@@ -94,7 +105,7 @@ internal partial class MiddlewareContext
         }
 
         if (value is T castedValue
-            || _operationContext.Converter.TryConvert(value, out castedValue))
+            || _operationContext.Converter.TryConvert(value, out castedValue, out var conversionException))
         {
             return castedValue;
         }
@@ -114,7 +125,8 @@ internal partial class MiddlewareContext
             _selection.SyntaxNode,
             Path,
             argument.Name,
-            typeof(T));
+            typeof(T),
+            conversionException);
     }
 
     public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(

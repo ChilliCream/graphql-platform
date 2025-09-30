@@ -17,6 +17,8 @@ public interface ISelectionSetIndex
 
     bool TryGetId(SelectionSetNode selectionSet, out uint id);
 
+    bool TryGetOriginalIdFromCloned(uint clonedId, out uint originalId);
+
     bool IsRegistered(SelectionSetNode selectionSet);
 
     SelectionSetIndexBuilder ToBuilder();

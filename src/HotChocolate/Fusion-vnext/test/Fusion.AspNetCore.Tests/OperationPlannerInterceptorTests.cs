@@ -24,7 +24,6 @@ public class OperationPlannerInterceptorTests : FusionTestBase
 
         var interceptor1 = new MockInterceptor();
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
             [
                 ("a", server1),
@@ -33,10 +32,10 @@ public class OperationPlannerInterceptorTests : FusionTestBase
             configureGatewayBuilder: b => b
                 .AddOperationPlannerInterceptor(_ => interceptor1));
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new Transport.OperationRequest(
             """
             {
               bookById(id: 1) {
@@ -44,13 +43,15 @@ public class OperationPlannerInterceptorTests : FusionTestBase
                 title
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
 
-        // assert
         Assert.True(interceptor1.HasHitOnAfterPlanCompleted);
     }
 
@@ -69,7 +70,6 @@ public class OperationPlannerInterceptorTests : FusionTestBase
         var interceptor1 = new MockInterceptor();
         var interceptor2 = new MockInterceptor();
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
             [
                 ("a", server1),
@@ -79,10 +79,10 @@ public class OperationPlannerInterceptorTests : FusionTestBase
                 .AddOperationPlannerInterceptor(_ => interceptor1)
                 .AddOperationPlannerInterceptor(_ => interceptor2));
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new Transport.OperationRequest(
             """
             {
               bookById(id: 1) {
@@ -90,13 +90,15 @@ public class OperationPlannerInterceptorTests : FusionTestBase
                 title
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
 
-        // assert
         Assert.True(interceptor1.HasHitOnAfterPlanCompleted);
         Assert.True(interceptor2.HasHitOnAfterPlanCompleted);
     }

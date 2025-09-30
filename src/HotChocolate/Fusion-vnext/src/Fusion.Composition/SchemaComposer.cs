@@ -51,6 +51,14 @@ public sealed class SchemaComposer
             return preprocessResult;
         }
 
+        // Enrich Source Schemas
+        var enrichmentResult = schemas.Select(schema => new SourceSchemaEnricher(schema).Enrich()).Combine();
+
+        if (enrichmentResult.IsFailure)
+        {
+            return enrichmentResult;
+        }
+
         // Validate Source Schemas
         var validationResult =
             new SourceSchemaValidator(schemas, s_sourceSchemaRules, _log).Validate();
@@ -114,7 +122,6 @@ public sealed class SchemaComposer
         new KeyDirectiveInFieldsArgumentRule(),
         new KeyFieldsHasArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),
-        new KeyInvalidFieldsRule(),
         new KeyInvalidFieldsTypeRule(),
         new KeyInvalidSyntaxRule(),
         new LookupReturnsListRule(),
@@ -160,7 +167,8 @@ public sealed class SchemaComposer
         new EnumTypeDefaultValueInaccessibleRule(),
         new ImplementedByInaccessibleRule(),
         new InterfaceFieldNoImplementationRule(),
-        new IsInvalidFieldRule(),
+        new IsInvalidFieldsRule(),
+        new KeyInvalidFieldsRule(),
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),
         new RequireInvalidFieldsRule()

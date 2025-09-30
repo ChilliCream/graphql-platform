@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Execution.Nodes;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -27,6 +28,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="onAfterReceive">
     /// The action to call after the response is received.
     /// </param>
+    /// <param name="onSourceSchemaResult">
+    /// The action to call after a <see cref="SourceSchemaResult"/> was materialized.
+    /// </param>
     /// <returns>
     /// The fusion gateway builder.
     /// </returns>
@@ -35,8 +39,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
         string name,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        Action<OperationPlanContext, HttpRequestMessage>? onBeforeSend = null,
-        Action<OperationPlanContext, HttpResponseMessage>? onAfterReceive = null)
+        Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
+        Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null,
+        Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
         => AddHttpClientConfiguration(
             builder,
             name,
@@ -44,7 +49,8 @@ public static partial class CoreFusionGatewayBuilderExtensions
             baseAddress,
             supportedOperations,
             onBeforeSend,
-            onAfterReceive);
+            onAfterReceive,
+            onSourceSchemaResult);
 
     /// <summary>
     /// Adds an http client configuration to the fusion gateway.
@@ -70,6 +76,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="onAfterReceive">
     /// The action to call after the response is received.
     /// </param>
+    /// <param name="onSourceSchemaResult">
+    /// The action to call after a <see cref="SourceSchemaResult"/> was materialized.
+    /// </param>
     /// <returns>
     /// The fusion gateway builder.
     /// </returns>
@@ -79,8 +88,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
         string httpClientName,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        Action<OperationPlanContext, HttpRequestMessage>? onBeforeSend = null,
-        Action<OperationPlanContext, HttpResponseMessage>? onAfterReceive = null)
+        Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
+        Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null,
+        Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(name);
@@ -95,7 +105,8 @@ public static partial class CoreFusionGatewayBuilderExtensions
                 baseAddress,
                 supportedOperations,
                 onBeforeSend,
-                onAfterReceive));
+                onAfterReceive,
+                onSourceSchemaResult));
     }
 
     /// <summary>

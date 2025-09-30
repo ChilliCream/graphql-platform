@@ -19,7 +19,7 @@
       }
     ],
     "Extensions": {
-      "fieldCoordinate": "PetInput.dog",
+      "coordinate": "PetInput.dog",
       "specifiedBy": "https://spec.graphql.org/draft/#sec-All-Variable-Usages-Are-Allowed",
       "rfc": "https://github.com/graphql/graphql-spec/pull/825"
     },

@@ -59,7 +59,7 @@ internal class ObjectToDictionaryConverter
         var type = obj.GetType();
 
         if (type.IsValueType
-            && _converter.TryConvert(type, typeof(string), obj, out var converted)
+            && _converter.TryConvert(type, typeof(string), obj, out var converted, out _)
             && converted is string s)
         {
             setValue(s);
