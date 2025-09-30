@@ -19,7 +19,11 @@ public class InputParserTests
 
         var type = schema.Types.GetType<InputObjectType>("TestInput");
 
-        var fieldData = new Dictionary<string, object?> { { "field1", "abc" }, { "field2", 123 } };
+        var fieldData = new Dictionary<string, object?>
+        {
+            { "field1", "abc" },
+            { "field2", 123 }
+        };
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
@@ -63,7 +67,11 @@ public class InputParserTests
 
         var type = schema.Types.GetType<InputObjectType>("Test2Input");
 
-        var fieldData = new Dictionary<string, object?> { { "field1", "abc" }, { "field2", 123 } };
+        var fieldData = new Dictionary<string, object?>
+        {
+            { "field1", "abc" },
+            { "field2", 123 }
+        };
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
@@ -107,7 +115,10 @@ public class InputParserTests
 
         var type = schema.Types.GetType<InputObjectType>("Test2Input");
 
-        var fieldData = new Dictionary<string, object?> { { "field2", 123 } };
+        var fieldData = new Dictionary<string, object?>
+        {
+            { "field2", 123 }
+        };
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
@@ -150,7 +161,11 @@ public class InputParserTests
 
         var type = schema.Types.GetType<InputObjectType>("TestInput");
 
-        var fieldData = new Dictionary<string, object?> { { "field2", 123 }, { "field3", 123 } };
+        var fieldData = new Dictionary<string, object?>
+        {
+            { "field2", 123 },
+            { "field3", 123 }
+        };
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
@@ -198,7 +213,12 @@ public class InputParserTests
 
         var type = schema.Types.GetType<InputObjectType>("TestInput");
 
-        var fieldData = new Dictionary<string, object?> { { "field2", 123 }, { "field3", 123 }, { "field4", 123 } };
+        var fieldData = new Dictionary<string, object?>
+        {
+            { "field2", 123 },
+            { "field3", 123 },
+            { "field4", 123 }
+        };
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
@@ -255,7 +275,10 @@ public class InputParserTests
 
         var converter = new DefaultTypeConverter();
 
-        var options = new InputParserOptions { IgnoreAdditionalInputFields = true };
+        var options = new InputParserOptions
+        {
+            IgnoreAdditionalInputFields = true
+        };
 
         // act
         var parser = new InputParser(converter, options);
@@ -457,7 +480,10 @@ public class InputParserTests
 
         var type = schema.Types.GetType<InputObjectType>("Test4Input");
 
-        var fieldData = new Dictionary<string, object?> { { "field1", "abc" } };
+        var fieldData = new Dictionary<string, object?>
+        {
+            { "field1", "abc" }
+        };
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
@@ -542,7 +568,8 @@ public class InputParserTests
             Field1 = field1;
         }
 
-        [DefaultValue("DefaultAbc")] public string Field1 { get; }
+        [DefaultValue("DefaultAbc")]
+        public string Field1 { get; }
 
         public int? Field2 { get; set; }
     }
@@ -559,7 +586,8 @@ public class InputParserTests
 
     public class Test4
     {
-        [DefaultValue("DefaultAbc")] public string? Field1 { get; set; }
+        [DefaultValue("DefaultAbc")]
+        public string? Field1 { get; set; }
 
         public int? Field2 { get; set; }
     }
