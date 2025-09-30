@@ -104,8 +104,12 @@ response:
           "queryType": {
             "name": "Query"
           },
-          "mutationType": null,
-          "subscriptionType": null,
+          "mutationType": {
+            "name": "Mutation"
+          },
+          "subscriptionType": {
+            "name": "Mutation"
+          },
           "types": [
             {
               "kind": "OBJECT",
@@ -1049,68 +1053,7 @@ response:
               "specifiedByURL": null,
               "fields": [
                 {
-                  "name": "authors",
-                  "description": null,
-                  "args": [
-                    {
-                      "name": "after",
-                      "description": "Returns the elements in the list that come after the specified cursor.",
-                      "type": {
-                        "kind": "SCALAR",
-                        "name": "String",
-                        "ofType": null
-                      },
-                      "defaultValue": null,
-                      "isDeprecated": false,
-                      "deprecationReason": null
-                    },
-                    {
-                      "name": "before",
-                      "description": "Returns the elements in the list that come before the specified cursor.",
-                      "type": {
-                        "kind": "SCALAR",
-                        "name": "String",
-                        "ofType": null
-                      },
-                      "defaultValue": null,
-                      "isDeprecated": false,
-                      "deprecationReason": null
-                    },
-                    {
-                      "name": "first",
-                      "description": "Returns the first _n_ elements from the list.",
-                      "type": {
-                        "kind": "SCALAR",
-                        "name": "Int",
-                        "ofType": null
-                      },
-                      "defaultValue": null,
-                      "isDeprecated": false,
-                      "deprecationReason": null
-                    },
-                    {
-                      "name": "last",
-                      "description": "Returns the last _n_ elements from the list.",
-                      "type": {
-                        "kind": "SCALAR",
-                        "name": "Int",
-                        "ofType": null
-                      },
-                      "defaultValue": null,
-                      "isDeprecated": false,
-                      "deprecationReason": null
-                    }
-                  ],
-                  "type": {
-                    "kind": "OBJECT",
-                    "name": "AuthorsConnection",
-                    "ofType": null
-                  },
-                  "isDeprecated": false,
-                  "deprecationReason": null
-                },
-                {
-                  "name": "bookById",
+                  "name": "node",
                   "description": null,
                   "args": [
                     {
@@ -1121,7 +1064,7 @@ response:
                         "name": null,
                         "ofType": {
                           "kind": "SCALAR",
-                          "name": "Int",
+                          "name": "ID",
                           "ofType": null
                         }
                       },
@@ -1131,64 +1074,28 @@ response:
                     }
                   ],
                   "type": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "OBJECT",
-                      "name": "Book",
-                      "ofType": null
-                    }
+                    "kind": "INTERFACE",
+                    "name": "Node",
+                    "ofType": null
                   },
                   "isDeprecated": false,
                   "deprecationReason": null
                 },
                 {
-                  "name": "books",
+                  "name": "postById",
                   "description": null,
                   "args": [
                     {
-                      "name": "after",
-                      "description": "Returns the elements in the list that come after the specified cursor.",
+                      "name": "postId",
+                      "description": null,
                       "type": {
-                        "kind": "SCALAR",
-                        "name": "String",
-                        "ofType": null
-                      },
-                      "defaultValue": null,
-                      "isDeprecated": false,
-                      "deprecationReason": null
-                    },
-                    {
-                      "name": "before",
-                      "description": "Returns the elements in the list that come before the specified cursor.",
-                      "type": {
-                        "kind": "SCALAR",
-                        "name": "String",
-                        "ofType": null
-                      },
-                      "defaultValue": null,
-                      "isDeprecated": false,
-                      "deprecationReason": null
-                    },
-                    {
-                      "name": "first",
-                      "description": "Returns the first _n_ elements from the list.",
-                      "type": {
-                        "kind": "SCALAR",
-                        "name": "Int",
-                        "ofType": null
-                      },
-                      "defaultValue": null,
-                      "isDeprecated": false,
-                      "deprecationReason": null
-                    },
-                    {
-                      "name": "last",
-                      "description": "Returns the last _n_ elements from the list.",
-                      "type": {
-                        "kind": "SCALAR",
-                        "name": "Int",
-                        "ofType": null
+                        "kind": "NON_NULL",
+                        "name": null,
+                        "ofType": {
+                          "kind": "SCALAR",
+                          "name": "ID",
+                          "ofType": null
+                        }
                       },
                       "defaultValue": null,
                       "isDeprecated": false,
@@ -1197,26 +1104,83 @@ response:
                   ],
                   "type": {
                     "kind": "OBJECT",
-                    "name": "BooksConnection",
+                    "name": "Post",
                     "ofType": null
                   },
                   "isDeprecated": false,
                   "deprecationReason": null
-                }
-              ],
-              "inputFields": null,
-              "interfaces": [],
-              "enumValues": null,
-              "possibleTypes": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Author",
-              "description": null,
-              "specifiedByURL": null,
-              "fields": [
+                },
                 {
-                  "name": "books",
+                  "name": "posts",
+                  "description": null,
+                  "args": [
+                    {
+                      "name": "filter",
+                      "description": null,
+                      "type": {
+                        "kind": "INPUT_OBJECT",
+                        "name": "PostsFilter",
+                        "ofType": null
+                      },
+                      "defaultValue": null,
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    },
+                    {
+                      "name": "first",
+                      "description": null,
+                      "type": {
+                        "kind": "NON_NULL",
+                        "name": null,
+                        "ofType": {
+                          "kind": "SCALAR",
+                          "name": "Int",
+                          "ofType": null
+                        }
+                      },
+                      "defaultValue": "5",
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    },
+                    {
+                      "name": "hidden",
+                      "description": null,
+                      "type": {
+                        "kind": "SCALAR",
+                        "name": "Boolean",
+                        "ofType": null
+                      },
+                      "defaultValue": null,
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    }
+                  ],
+                  "type": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": {
+                      "kind": "OBJECT",
+                      "name": "Post",
+                      "ofType": null
+                    }
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "userCreation",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "UNION",
+                    "name": "UserCreation",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "votables",
                   "description": null,
                   "args": [],
                   "type": {
@@ -1226,118 +1190,14 @@ response:
                       "kind": "LIST",
                       "name": null,
                       "ofType": {
-                        "kind": "NON_NULL",
-                        "name": null,
-                        "ofType": {
-                          "kind": "OBJECT",
-                          "name": "Book",
-                          "ofType": null
-                        }
-                      }
-                    }
-                  },
-                  "isDeprecated": false,
-                  "deprecationReason": null
-                },
-                {
-                  "name": "id",
-                  "description": null,
-                  "args": [],
-                  "type": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "SCALAR",
-                      "name": "Int",
-                      "ofType": null
-                    }
-                  },
-                  "isDeprecated": false,
-                  "deprecationReason": null
-                },
-                {
-                  "name": "name",
-                  "description": null,
-                  "args": [],
-                  "type": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "SCALAR",
-                      "name": "String",
-                      "ofType": null
-                    }
-                  },
-                  "isDeprecated": false,
-                  "deprecationReason": null
-                }
-              ],
-              "inputFields": null,
-              "interfaces": [],
-              "enumValues": null,
-              "possibleTypes": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "AuthorsConnection",
-              "description": "A connection to a list of items.",
-              "specifiedByURL": null,
-              "fields": [
-                {
-                  "name": "edges",
-                  "description": "A list of edges.",
-                  "args": [],
-                  "type": {
-                    "kind": "LIST",
-                    "name": null,
-                    "ofType": {
-                      "kind": "NON_NULL",
-                      "name": null,
-                      "ofType": {
-                        "kind": "OBJECT",
-                        "name": "AuthorsEdge",
+                        "kind": "INTERFACE",
+                        "name": "Votable",
                         "ofType": null
                       }
                     }
                   },
                   "isDeprecated": false,
                   "deprecationReason": null
-                },
-                {
-                  "name": "nodes",
-                  "description": "A flattened list of the nodes.",
-                  "args": [],
-                  "type": {
-                    "kind": "LIST",
-                    "name": null,
-                    "ofType": {
-                      "kind": "NON_NULL",
-                      "name": null,
-                      "ofType": {
-                        "kind": "OBJECT",
-                        "name": "Author",
-                        "ofType": null
-                      }
-                    }
-                  },
-                  "isDeprecated": false,
-                  "deprecationReason": null
-                },
-                {
-                  "name": "pageInfo",
-                  "description": "Information to aid in pagination.",
-                  "args": [],
-                  "type": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "OBJECT",
-                      "name": "PageInfo",
-                      "ofType": null
-                    }
-                  },
-                  "isDeprecated": false,
-                  "deprecationReason": null
                 }
               ],
               "inputFields": null,
@@ -1347,70 +1207,71 @@ response:
             },
             {
               "kind": "OBJECT",
-              "name": "AuthorsEdge",
-              "description": "An edge in a connection.",
-              "specifiedByURL": null,
-              "fields": [
-                {
-                  "name": "cursor",
-                  "description": "A cursor for use in pagination.",
-                  "args": [],
-                  "type": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "SCALAR",
-                      "name": "String",
-                      "ofType": null
-                    }
-                  },
-                  "isDeprecated": false,
-                  "deprecationReason": null
-                },
-                {
-                  "name": "node",
-                  "description": "The item at the end of the edge.",
-                  "args": [],
-                  "type": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "OBJECT",
-                      "name": "Author",
-                      "ofType": null
-                    }
-                  },
-                  "isDeprecated": false,
-                  "deprecationReason": null
-                }
-              ],
-              "inputFields": null,
-              "interfaces": [],
-              "enumValues": null,
-              "possibleTypes": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "Book",
+              "name": "Mutation",
               "description": null,
               "specifiedByURL": null,
               "fields": [
                 {
-                  "name": "author",
+                  "name": "postReview",
                   "description": null,
-                  "args": [],
-                  "type": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "OBJECT",
-                      "name": "Author",
-                      "ofType": null
+                  "args": [
+                    {
+                      "name": "input",
+                      "description": null,
+                      "type": {
+                        "kind": "INPUT_OBJECT",
+                        "name": "PostReviewInput",
+                        "ofType": null
+                      },
+                      "defaultValue": null,
+                      "isDeprecated": false,
+                      "deprecationReason": null
                     }
+                  ],
+                  "type": {
+                    "kind": "OBJECT",
+                    "name": "Review",
+                    "ofType": null
                   },
                   "isDeprecated": false,
                   "deprecationReason": null
-                },
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Subscription",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "onNewReview",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "OBJECT",
+                    "name": "Review",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Post",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": [
                 {
                   "name": "id",
                   "description": null,
@@ -1420,7 +1281,7 @@ response:
                     "name": null,
                     "ofType": {
                       "kind": "SCALAR",
-                      "name": "Int",
+                      "name": "ID",
                       "ofType": null
                     }
                   },
@@ -1428,7 +1289,54 @@ response:
                   "deprecationReason": null
                 },
                 {
-                  "name": "title",
+                  "name": "location",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "postKind",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "ENUM",
+                    "name": "PostKind",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [
+                {
+                  "kind": "INTERFACE",
+                  "name": "Votable",
+                  "ofType": null
+                },
+                {
+                  "kind": "INTERFACE",
+                  "name": "Node",
+                  "ofType": null
+                }
+              ],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Review",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "id",
                   "description": null,
                   "args": [],
                   "type": {
@@ -1436,7 +1344,7 @@ response:
                     "name": null,
                     "ofType": {
                       "kind": "SCALAR",
-                      "name": "String",
+                      "name": "ID",
                       "ofType": null
                     }
                   },
@@ -1445,110 +1353,37 @@ response:
                 }
               ],
               "inputFields": null,
-              "interfaces": [],
-              "enumValues": null,
-              "possibleTypes": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "BooksConnection",
-              "description": "A connection to a list of items.",
-              "specifiedByURL": null,
-              "fields": [
+              "interfaces": [
                 {
-                  "name": "edges",
-                  "description": "A list of edges.",
-                  "args": [],
-                  "type": {
-                    "kind": "LIST",
-                    "name": null,
-                    "ofType": {
-                      "kind": "NON_NULL",
-                      "name": null,
-                      "ofType": {
-                        "kind": "OBJECT",
-                        "name": "BooksEdge",
-                        "ofType": null
-                      }
-                    }
-                  },
-                  "isDeprecated": false,
-                  "deprecationReason": null
+                  "kind": "INTERFACE",
+                  "name": "Votable",
+                  "ofType": null
                 },
                 {
-                  "name": "nodes",
-                  "description": "A flattened list of the nodes.",
-                  "args": [],
-                  "type": {
-                    "kind": "LIST",
-                    "name": null,
-                    "ofType": {
-                      "kind": "NON_NULL",
-                      "name": null,
-                      "ofType": {
-                        "kind": "OBJECT",
-                        "name": "Book",
-                        "ofType": null
-                      }
-                    }
-                  },
-                  "isDeprecated": false,
-                  "deprecationReason": null
-                },
-                {
-                  "name": "pageInfo",
-                  "description": "Information to aid in pagination.",
-                  "args": [],
-                  "type": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "OBJECT",
-                      "name": "PageInfo",
-                      "ofType": null
-                    }
-                  },
-                  "isDeprecated": false,
-                  "deprecationReason": null
+                  "kind": "INTERFACE",
+                  "name": "Node",
+                  "ofType": null
                 }
               ],
-              "inputFields": null,
-              "interfaces": [],
               "enumValues": null,
               "possibleTypes": null
             },
             {
-              "kind": "OBJECT",
-              "name": "BooksEdge",
-              "description": "An edge in a connection.",
+              "kind": "INTERFACE",
+              "name": "Node",
+              "description": null,
               "specifiedByURL": null,
               "fields": [
                 {
-                  "name": "cursor",
-                  "description": "A cursor for use in pagination.",
+                  "name": "id",
+                  "description": null,
                   "args": [],
                   "type": {
                     "kind": "NON_NULL",
                     "name": null,
                     "ofType": {
                       "kind": "SCALAR",
-                      "name": "String",
-                      "ofType": null
-                    }
-                  },
-                  "isDeprecated": false,
-                  "deprecationReason": null
-                },
-                {
-                  "name": "node",
-                  "description": "The item at the end of the edge.",
-                  "args": [],
-                  "type": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "OBJECT",
-                      "name": "Book",
+                      "name": "ID",
                       "ofType": null
                     }
                   },
@@ -1559,74 +1394,200 @@ response:
               "inputFields": null,
               "interfaces": [],
               "enumValues": null,
-              "possibleTypes": null
+              "possibleTypes": [
+                {
+                  "kind": "OBJECT",
+                  "name": "Post",
+                  "ofType": null
+                },
+                {
+                  "kind": "OBJECT",
+                  "name": "Review",
+                  "ofType": null
+                }
+              ]
             },
             {
-              "kind": "OBJECT",
-              "name": "PageInfo",
-              "description": "Information about pagination in a connection.",
+              "kind": "INTERFACE",
+              "name": "Votable",
+              "description": null,
               "specifiedByURL": null,
               "fields": [
                 {
-                  "name": "endCursor",
-                  "description": "When paginating forwards, the cursor to continue.",
+                  "name": "id",
+                  "description": null,
                   "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "ID",
+                      "ofType": null
+                    }
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [
+                {
+                  "kind": "INTERFACE",
+                  "name": "Node",
+                  "ofType": null
+                }
+              ],
+              "enumValues": null,
+              "possibleTypes": [
+                {
+                  "kind": "OBJECT",
+                  "name": "Post",
+                  "ofType": null
+                },
+                {
+                  "kind": "OBJECT",
+                  "name": "Review",
+                  "ofType": null
+                }
+              ]
+            },
+            {
+              "kind": "UNION",
+              "name": "UserCreation",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": null,
+              "inputFields": null,
+              "interfaces": null,
+              "enumValues": null,
+              "possibleTypes": [
+                {
+                  "kind": "OBJECT",
+                  "name": "Post",
+                  "ofType": null
+                },
+                {
+                  "kind": "OBJECT",
+                  "name": "Review",
+                  "ofType": null
+                }
+              ]
+            },
+            {
+              "kind": "INPUT_OBJECT",
+              "name": "PostReviewInput",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": null,
+              "inputFields": [
+                {
+                  "name": "pros",
+                  "description": null,
+                  "type": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": {
+                      "kind": "INPUT_OBJECT",
+                      "name": "PostReviewPro",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "scalar",
+                  "description": null,
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
                     "ofType": null
                   },
+                  "defaultValue": null,
                   "isDeprecated": false,
                   "deprecationReason": null
-                },
+                }
+              ],
+              "interfaces": null,
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "INPUT_OBJECT",
+              "name": "PostReviewPro",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": null,
+              "inputFields": [
                 {
-                  "name": "hasNextPage",
-                  "description": "Indicates whether more edges exist following the set defined by the clients arguments.",
-                  "args": [],
+                  "name": "scalar",
+                  "description": null,
                   "type": {
                     "kind": "NON_NULL",
                     "name": null,
                     "ofType": {
                       "kind": "SCALAR",
-                      "name": "Boolean",
+                      "name": "Int",
                       "ofType": null
                     }
                   },
+                  "defaultValue": null,
                   "isDeprecated": false,
                   "deprecationReason": null
-                },
+                }
+              ],
+              "interfaces": null,
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "INPUT_OBJECT",
+              "name": "PostsFilter",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": null,
+              "inputFields": [
                 {
-                  "name": "hasPreviousPage",
-                  "description": "Indicates whether more edges exist prior the set defined by the clients arguments.",
-                  "args": [],
-                  "type": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "SCALAR",
-                      "name": "Boolean",
-                      "ofType": null
-                    }
-                  },
-                  "isDeprecated": false,
-                  "deprecationReason": null
-                },
-                {
-                  "name": "startCursor",
-                  "description": "When paginating backwards, the cursor to continue.",
-                  "args": [],
+                  "name": "scalar",
+                  "description": null,
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
                     "ofType": null
                   },
+                  "defaultValue": "\u0022test\u0022",
                   "isDeprecated": false,
                   "deprecationReason": null
                 }
               ],
-              "inputFields": null,
-              "interfaces": [],
+              "interfaces": null,
               "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "ENUM",
+              "name": "PostKind",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": null,
+              "inputFields": null,
+              "interfaces": null,
+              "enumValues": [
+                {
+                  "name": "PHOTO",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "STORY",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
               "possibleTypes": null
             },
             {
@@ -1643,6 +1604,17 @@ response:
             {
               "kind": "SCALAR",
               "name": "Boolean",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": null,
+              "inputFields": null,
+              "interfaces": null,
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "SCALAR",
+              "name": "ID",
               "description": null,
               "specifiedByURL": null,
               "fields": null,
@@ -1693,105 +1665,70 @@ response:
 sourceSchemas:
   - name: A
     schema: |
-      schema {
+      schema @test(arg: "value") {
         query: Query
+        mutation: Mutation
+        subscription: Subscription
       }
       
-      type Author {
-        id: Int!
+      interface Node @test(arg: "value") {
+        id: ID!
       }
       
-      type Book {
-        id: Int!
-        title: String!
-        author: Author!
+      interface Votable implements Node {
+        id: ID!
       }
       
-      "A connection to a list of items."
-      type BooksConnection {
-        "Information to aid in pagination."
-        pageInfo: PageInfo!
-        "A list of edges."
-        edges: [BooksEdge!]
-        "A flattened list of the nodes."
-        nodes: [Book!]
+      type Mutation @test(arg: "value") {
+        postReview(input: PostReviewInput): Review @test(arg: "value")
       }
       
-      "An edge in a connection."
-      type BooksEdge {
-        "A cursor for use in pagination."
-        cursor: String!
-        "The item at the end of the edge."
-        node: Book!
+      type Post implements Votable & Node @key(fields: "id") {
+        id: ID!
+        postKind: PostKind @shareable
+        location: String @inaccessible
       }
       
-      "Information about pagination in a connection."
-      type PageInfo {
-        "Indicates whether more edges exist following the set defined by the clients arguments."
-        hasNextPage: Boolean!
-        "Indicates whether more edges exist prior the set defined by the clients arguments."
-        hasPreviousPage: Boolean!
-        "When paginating backwards, the cursor to continue."
-        startCursor: String
-        "When paginating forwards, the cursor to continue."
-        endCursor: String
+      type Query @test(arg: "value") {
+        posts(filter: PostsFilter first: Int! = 5 @test(arg: "value") hidden: Boolean): [Post]
+        userCreation: UserCreation
+        votables: [Votable]!
+        postById(postId: ID! @is(field: "id")): Post @lookup
+        node(id: ID!): Node @lookup
       }
       
-      type Query {
-        bookById(id: Int!): Book! @lookup
-        books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
-      }
-  - name: B
-    schema: |
-      schema {
-        query: Query
+      type Review implements Votable & Node @test(arg: "value") {
+        id: ID!
       }
       
-      type Author {
-        books: [Book!]!
-        id: Int!
-        name: String!
+      type Subscription @test(arg: "value") {
+        onNewReview: Review
       }
       
-      "A connection to a list of items."
-      type AuthorsConnection {
-        "Information to aid in pagination."
-        pageInfo: PageInfo!
-        "A list of edges."
-        edges: [AuthorsEdge!]
-        "A flattened list of the nodes."
-        nodes: [Author!]
+      union UserCreation @test(arg: "value") = Post | Review
+      
+      input PostReviewInput @oneOf {
+        scalar: String
+        pros: [PostReviewPro]
       }
       
-      "An edge in a connection."
-      type AuthorsEdge {
-        "A cursor for use in pagination."
-        cursor: String!
-        "The item at the end of the edge."
-        node: Author!
+      input PostReviewPro {
+        scalar: Int!
       }
       
-      type Book {
-        id: Int!
-        author: Author!
+      input PostsFilter @test(arg: "value") {
+        scalar: String = "test" @test(arg: "value")
       }
       
-      "Information about pagination in a connection."
-      type PageInfo {
-        "Indicates whether more edges exist following the set defined by the clients arguments."
-        hasNextPage: Boolean!
-        "Indicates whether more edges exist prior the set defined by the clients arguments."
-        hasPreviousPage: Boolean!
-        "When paginating backwards, the cursor to continue."
-        startCursor: String
-        "When paginating forwards, the cursor to continue."
-        endCursor: String
+      enum PostKind @test(arg: "value") {
+        STORY @test(arg: "value")
+        PHOTO
       }
       
-      type Query {
-        authorById(id: Int!): Author! @internal @lookup
-        authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
-      }
+      "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
+      directive @oneOf on INPUT_OBJECT
+      
+      directive @test(arg: String! = "default") repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD | FRAGMENT_DEFINITION | FRAGMENT_SPREAD | INLINE_FRAGMENT | VARIABLE_DEFINITION | SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
 operationPlan:
   operation:
     - document: |

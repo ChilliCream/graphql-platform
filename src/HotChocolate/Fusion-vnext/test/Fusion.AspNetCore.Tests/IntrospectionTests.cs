@@ -320,16 +320,99 @@ public class IntrospectionTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "A",
-            b => b.AddQueryType<SourceSchema1.Query>());
+            """
+            schema @test(arg: "value") {
+              query: Query
+              mutation: Mutation
+              subscription: Subscription
+            }
 
-        using var server2 = CreateSourceSchema(
-            "B",
-            b => b.AddQueryType<SourceSchema2.Query>());
+            type Query @test(arg: "value") {
+              posts(filter: PostsFilter, first: Int! = 5 @test(arg: "value"), hidden: Boolean): [Post]
+              userCreation: UserCreation
+              votables: [Votable]!
+              postById(postId: ID! @is(field: "id")): Post @lookup
+              node(id: ID!): Node @lookup
+            }
+
+            type Mutation @test(arg: "value") {
+              postReview(input: PostReviewInput): Review @test(arg: "value")
+            }
+
+            type Subscription @test(arg: "value") {
+              onNewReview: Review
+            }
+
+            input PostsFilter @test(arg: "value") {
+              scalar: String = "test" @test(arg: "value")
+            }
+
+            input PostReviewInput @oneOf {
+              scalar: String
+              pros: [PostReviewPro]
+            }
+
+            input PostReviewPro {
+              scalar: Int!
+            }
+
+            union UserCreation @test(arg: "value") = Post | Review
+
+            interface Votable implements Node {
+              id: ID!
+              # voteCount: StarRating!
+            }
+
+            interface Node @test(arg: "value") {
+              id: ID!
+            }
+
+            type Post implements Votable @key(fields: "id") {
+              id: ID!
+              # voteCount: StarRating!
+              postKind: PostKind @shareable
+              location: String @inaccessible
+            }
+
+            type Review implements Votable @test(arg: "value") {
+              id: ID!
+              # voteCount: StarRating!
+            }
+
+            enum PostKind @test(arg: "value") {
+              STORY @test(arg: "value")
+              PHOTO
+            }
+
+            # scalar StarRating @specifiedBy(url: "https://tools.ietf.org/html/rfc4122") @test(arg: "value")
+
+            directive @oneOf on INPUT_OBJECT
+
+            directive @test(arg: String! = "default") repeatable on
+              | QUERY
+              | MUTATION
+              | SUBSCRIPTION
+              | FIELD
+              | FRAGMENT_DEFINITION
+              | FRAGMENT_SPREAD
+              | INLINE_FRAGMENT
+              | VARIABLE_DEFINITION
+              | SCHEMA
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | INTERFACE
+              | UNION
+              | ENUM
+              | ENUM_VALUE
+              | INPUT_OBJECT
+              | INPUT_FIELD_DEFINITION
+            """);
 
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
-            ("B", server2)
+            ("A", server1)
         ]);
 
         // act
