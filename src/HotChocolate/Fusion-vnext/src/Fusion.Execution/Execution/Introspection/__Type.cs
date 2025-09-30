@@ -209,24 +209,24 @@ internal sealed class __Type : ITypeResolverInterceptor
 
     public static void OfType(FieldContext context)
     {
-        switch (context.Parent<IType>())
-        {
-            case ListType lt:
-            {
-                var obj = context.RentInitializedObjectResult();
-                context.FieldResult.SetNextValue(obj);
-                context.AddRuntimeResult(lt.ElementType);
-                break;
-            }
-
-            case NonNullType nnt:
-            {
-                var obj = context.ResultPool.RentObjectListResult();
-                context.FieldResult.SetNextValue(obj);
-                context.AddRuntimeResult(nnt.NullableType);
-                break;
-            }
-        }
+        // switch (context.Parent<IType>())
+        // {
+        //     case ListType lt:
+        //     {
+        //         var obj = context.RentInitializedObjectResult();
+        //         context.FieldResult.SetNextValue(obj);
+        //         context.AddRuntimeResult(lt.ElementType);
+        //         break;
+        //     }
+        //
+        //     case NonNullType nnt:
+        //     {
+        //         var obj = context.ResultPool.RentObjectListResult();
+        //         context.FieldResult.SetNextValue(obj);
+        //         context.AddRuntimeResult(nnt.NullableType);
+        //         break;
+        //     }
+        // }
     }
 
     public static void IsOneOf(FieldContext context)

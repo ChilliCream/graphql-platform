@@ -1,0 +1,1737 @@
+title: IntrospectionQueries
+request:
+  document: |
+    query IntrospectionQuery {
+      __schema {
+        queryType {
+          name
+        }
+        mutationType {
+          name
+        }
+        subscriptionType {
+          name
+        }
+        types {
+          ... FullType
+        }
+        directives {
+          name
+          description
+          isRepeatable
+          args(includeDeprecated: true) {
+            ... InputValue
+          }
+          locations
+        }
+      }
+    }
+    
+    fragment FullType on __Type {
+      kind
+      name
+      description
+      specifiedByURL
+      fields(includeDeprecated: true) {
+        name
+        description
+        args(includeDeprecated: true) {
+          ... InputValue
+        }
+        type {
+          ... TypeRef
+        }
+        isDeprecated
+        deprecationReason
+      }
+      inputFields(includeDeprecated: true) {
+        ... InputValue
+      }
+      interfaces {
+        ... TypeRef
+      }
+      enumValues(includeDeprecated: true) {
+        name
+        description
+        isDeprecated
+        deprecationReason
+      }
+      possibleTypes {
+        ... TypeRef
+      }
+    }
+    
+    fragment InputValue on __InputValue {
+      name
+      description
+      type {
+        ... TypeRef
+      }
+      defaultValue
+      isDeprecated
+      deprecationReason
+    }
+    
+    fragment TypeRef on __Type {
+      kind
+      name
+      ofType {
+        kind
+        name
+        ofType {
+          kind
+          name
+          ofType {
+            kind
+            name
+            ofType {
+              kind
+              name
+              ofType {
+                kind
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "__schema": {
+          "queryType": {
+            "name": "Query"
+          },
+          "mutationType": null,
+          "subscriptionType": null,
+          "types": [
+            {
+              "kind": "OBJECT",
+              "name": "__Schema",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "description",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "types",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "queryType",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "mutationType",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "OBJECT",
+                    "name": "__Type",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "subscriptionType",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "OBJECT",
+                    "name": "__Type",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "directives",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "__Type",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "kind",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "name",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "description",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "specifiedByURL",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "fields",
+                  "description": null,
+                  "args": [
+                    {
+                      "name": "includeDeprecated",
+                      "description": null,
+                      "type": {
+                        "kind": "NON_NULL",
+                        "name": null,
+                        "ofType": null
+                      },
+                      "defaultValue": "false",
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    }
+                  ],
+                  "type": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "interfaces",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "possibleTypes",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "enumValues",
+                  "description": null,
+                  "args": [
+                    {
+                      "name": "includeDeprecated",
+                      "description": null,
+                      "type": {
+                        "kind": "NON_NULL",
+                        "name": null,
+                        "ofType": null
+                      },
+                      "defaultValue": "false",
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    }
+                  ],
+                  "type": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "inputFields",
+                  "description": null,
+                  "args": [
+                    {
+                      "name": "includeDeprecated",
+                      "description": null,
+                      "type": {
+                        "kind": "NON_NULL",
+                        "name": null,
+                        "ofType": null
+                      },
+                      "defaultValue": "false",
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    }
+                  ],
+                  "type": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "ofType",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "OBJECT",
+                    "name": "__Type",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "ENUM",
+              "name": "__TypeKind",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": null,
+              "inputFields": null,
+              "interfaces": null,
+              "enumValues": [
+                {
+                  "name": "SCALAR",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "OBJECT",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "INTERFACE",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "UNION",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "ENUM",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "INPUT_OBJECT",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "LIST",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "NON_NULL",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "__Field",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "name",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "description",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "args",
+                  "description": null,
+                  "args": [
+                    {
+                      "name": "includeDeprecated",
+                      "description": null,
+                      "type": {
+                        "kind": "NON_NULL",
+                        "name": null,
+                        "ofType": null
+                      },
+                      "defaultValue": "false",
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    }
+                  ],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "type",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "isDeprecated",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "deprecationReason",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "__InputValue",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "name",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "description",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "type",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "defaultValue",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "isDeprecated",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "deprecationReason",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "__EnumValue",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "name",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "description",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "isDeprecated",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "deprecationReason",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "__Directive",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "name",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "description",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "isRepeatable",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "locations",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "args",
+                  "description": null,
+                  "args": [
+                    {
+                      "name": "includeDeprecated",
+                      "description": null,
+                      "type": {
+                        "kind": "NON_NULL",
+                        "name": null,
+                        "ofType": null
+                      },
+                      "defaultValue": "false",
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    }
+                  ],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "ENUM",
+              "name": "__DirectiveLocation",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": null,
+              "inputFields": null,
+              "interfaces": null,
+              "enumValues": [
+                {
+                  "name": "QUERY",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "MUTATION",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "SUBSCRIPTION",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "FIELD",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "FRAGMENT_DEFINITION",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "FRAGMENT_SPREAD",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "INLINE_FRAGMENT",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "VARIABLE_DEFINITION",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "SCHEMA",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "SCALAR",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "OBJECT",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "FIELD_DEFINITION",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "ARGUMENT_DEFINITION",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "INTERFACE",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "UNION",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "ENUM",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "ENUM_VALUE",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "INPUT_OBJECT",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "INPUT_FIELD_DEFINITION",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Query",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "authors",
+                  "description": null,
+                  "args": [
+                    {
+                      "name": "after",
+                      "description": "Returns the elements in the list that come after the specified cursor.",
+                      "type": {
+                        "kind": "SCALAR",
+                        "name": "String",
+                        "ofType": null
+                      },
+                      "defaultValue": null,
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    },
+                    {
+                      "name": "before",
+                      "description": "Returns the elements in the list that come before the specified cursor.",
+                      "type": {
+                        "kind": "SCALAR",
+                        "name": "String",
+                        "ofType": null
+                      },
+                      "defaultValue": null,
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    },
+                    {
+                      "name": "first",
+                      "description": "Returns the first _n_ elements from the list.",
+                      "type": {
+                        "kind": "SCALAR",
+                        "name": "Int",
+                        "ofType": null
+                      },
+                      "defaultValue": null,
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    },
+                    {
+                      "name": "last",
+                      "description": "Returns the last _n_ elements from the list.",
+                      "type": {
+                        "kind": "SCALAR",
+                        "name": "Int",
+                        "ofType": null
+                      },
+                      "defaultValue": null,
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    }
+                  ],
+                  "type": {
+                    "kind": "OBJECT",
+                    "name": "AuthorsConnection",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "bookById",
+                  "description": null,
+                  "args": [
+                    {
+                      "name": "id",
+                      "description": null,
+                      "type": {
+                        "kind": "NON_NULL",
+                        "name": null,
+                        "ofType": null
+                      },
+                      "defaultValue": null,
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    }
+                  ],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "books",
+                  "description": null,
+                  "args": [
+                    {
+                      "name": "after",
+                      "description": "Returns the elements in the list that come after the specified cursor.",
+                      "type": {
+                        "kind": "SCALAR",
+                        "name": "String",
+                        "ofType": null
+                      },
+                      "defaultValue": null,
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    },
+                    {
+                      "name": "before",
+                      "description": "Returns the elements in the list that come before the specified cursor.",
+                      "type": {
+                        "kind": "SCALAR",
+                        "name": "String",
+                        "ofType": null
+                      },
+                      "defaultValue": null,
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    },
+                    {
+                      "name": "first",
+                      "description": "Returns the first _n_ elements from the list.",
+                      "type": {
+                        "kind": "SCALAR",
+                        "name": "Int",
+                        "ofType": null
+                      },
+                      "defaultValue": null,
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    },
+                    {
+                      "name": "last",
+                      "description": "Returns the last _n_ elements from the list.",
+                      "type": {
+                        "kind": "SCALAR",
+                        "name": "Int",
+                        "ofType": null
+                      },
+                      "defaultValue": null,
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    }
+                  ],
+                  "type": {
+                    "kind": "OBJECT",
+                    "name": "BooksConnection",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Author",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "books",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "id",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "name",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "AuthorsConnection",
+              "description": "A connection to a list of items.",
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "edges",
+                  "description": "A list of edges.",
+                  "args": [],
+                  "type": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "nodes",
+                  "description": "A flattened list of the nodes.",
+                  "args": [],
+                  "type": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "pageInfo",
+                  "description": "Information to aid in pagination.",
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "AuthorsEdge",
+              "description": "An edge in a connection.",
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "cursor",
+                  "description": "A cursor for use in pagination.",
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "node",
+                  "description": "The item at the end of the edge.",
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "Book",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "author",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "id",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "title",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "BooksConnection",
+              "description": "A connection to a list of items.",
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "edges",
+                  "description": "A list of edges.",
+                  "args": [],
+                  "type": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "nodes",
+                  "description": "A flattened list of the nodes.",
+                  "args": [],
+                  "type": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "pageInfo",
+                  "description": "Information to aid in pagination.",
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "BooksEdge",
+              "description": "An edge in a connection.",
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "cursor",
+                  "description": "A cursor for use in pagination.",
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "node",
+                  "description": "The item at the end of the edge.",
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "PageInfo",
+              "description": "Information about pagination in a connection.",
+              "specifiedByURL": null,
+              "fields": [
+                {
+                  "name": "endCursor",
+                  "description": "When paginating forwards, the cursor to continue.",
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "hasNextPage",
+                  "description": "Indicates whether more edges exist following the set defined by the clients arguments.",
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "hasPreviousPage",
+                  "description": "Indicates whether more edges exist prior the set defined by the clients arguments.",
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "startCursor",
+                  "description": "When paginating backwards, the cursor to continue.",
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "SCALAR",
+              "name": "String",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": null,
+              "inputFields": null,
+              "interfaces": null,
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": null,
+              "inputFields": null,
+              "interfaces": null,
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "SCALAR",
+              "name": "Int",
+              "description": null,
+              "specifiedByURL": null,
+              "fields": null,
+              "inputFields": null,
+              "interfaces": null,
+              "enumValues": null,
+              "possibleTypes": null
+            }
+          ],
+          "directives": [
+            {
+              "name": "skip",
+              "description": "Directs the executor to skip this field or fragment when the \u0060if\u0060 argument is true.",
+              "isRepeatable": false,
+              "args": null,
+              "locations": [
+                "FIELD",
+                "FRAGMENT_SPREAD",
+                "INLINE_FRAGMENT"
+              ]
+            },
+            {
+              "name": "include",
+              "description": "Directs the executor to include this field or fragment when the \u0060if\u0060 argument is true.",
+              "isRepeatable": false,
+              "args": null,
+              "locations": [
+                "FIELD",
+                "FRAGMENT_SPREAD",
+                "INLINE_FRAGMENT"
+              ]
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        id: Int!
+      }
+      
+      type Book {
+        id: Int!
+        title: String!
+        author: Author!
+      }
+      
+      "A connection to a list of items."
+      type BooksConnection {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [BooksEdge!]
+        "A flattened list of the nodes."
+        nodes: [Book!]
+      }
+      
+      "An edge in a connection."
+      type BooksEdge {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: Book!
+      }
+      
+      "Information about pagination in a connection."
+      type PageInfo {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+      
+      type Query {
+        bookById(id: Int!): Book! @lookup
+        books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        books: [Book!]!
+        id: Int!
+        name: String!
+      }
+      
+      "A connection to a list of items."
+      type AuthorsConnection {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [AuthorsEdge!]
+        "A flattened list of the nodes."
+        nodes: [Author!]
+      }
+      
+      "An edge in a connection."
+      type AuthorsEdge {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: Author!
+      }
+      
+      type Book {
+        id: Int!
+        author: Author!
+      }
+      
+      "Information about pagination in a connection."
+      type PageInfo {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+      
+      type Query {
+        authorById(id: Int!): Author! @internal @lookup
+        authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
+      }
+operationPlan:
+  operation:
+    - document: |
+        query IntrospectionQuery {
+          __schema {
+            queryType {
+              name
+            }
+            mutationType {
+              name
+            }
+            subscriptionType {
+              name
+            }
+            types {
+              kind
+              name
+              description
+              specifiedByURL
+              fields(includeDeprecated: true) {
+                name
+                description
+                args(includeDeprecated: true) {
+                  name
+                  description
+                  type {
+                    kind
+                    name
+                    ofType {
+                      kind
+                      name
+                      ofType {
+                        kind
+                        name
+                        ofType {
+                          kind
+                          name
+                          ofType {
+                            kind
+                            name
+                            ofType {
+                              kind
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  defaultValue
+                  isDeprecated
+                  deprecationReason
+                }
+                type {
+                  kind
+                  name
+                  ofType {
+                    kind
+                    name
+                    ofType {
+                      kind
+                      name
+                      ofType {
+                        kind
+                        name
+                        ofType {
+                          kind
+                          name
+                          ofType {
+                            kind
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                isDeprecated
+                deprecationReason
+              }
+              inputFields(includeDeprecated: true) {
+                name
+                description
+                type {
+                  kind
+                  name
+                  ofType {
+                    kind
+                    name
+                    ofType {
+                      kind
+                      name
+                      ofType {
+                        kind
+                        name
+                        ofType {
+                          kind
+                          name
+                          ofType {
+                            kind
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                defaultValue
+                isDeprecated
+                deprecationReason
+              }
+              interfaces {
+                kind
+                name
+                ofType {
+                  kind
+                  name
+                  ofType {
+                    kind
+                    name
+                    ofType {
+                      kind
+                      name
+                      ofType {
+                        kind
+                        name
+                        ofType {
+                          kind
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              enumValues(includeDeprecated: true) {
+                name
+                description
+                isDeprecated
+                deprecationReason
+              }
+              possibleTypes {
+                kind
+                name
+                ofType {
+                  kind
+                  name
+                  ofType {
+                    kind
+                    name
+                    ofType {
+                      kind
+                      name
+                      ofType {
+                        kind
+                        name
+                        ofType {
+                          kind
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            directives {
+              name
+              description
+              isRepeatable
+              args(includeDeprecated: true) {
+                name
+                description
+                type {
+                  kind
+                  name
+                  ofType {
+                    kind
+                    name
+                    ofType {
+                      kind
+                      name
+                      ofType {
+                        kind
+                        name
+                        ofType {
+                          kind
+                          name
+                          ofType {
+                            kind
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                defaultValue
+                isDeprecated
+                deprecationReason
+              }
+              locations
+            }
+          }
+        }
+      name: IntrospectionQuery
+      hash: 07ddc14537655b68eb425f6e329fdc40
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 1
+          responseName: __schema
+          fieldName: __schema
