@@ -3,7 +3,7 @@ schema {
 }
 
 type Query {
-  userById(id: ID!): User! @lookup # Warning: LOOKUP_RETURNS_NON_NULLABLE_TYPE
+  userById(id: ID!): User! @lookup @shareable # Warning: LOOKUP_RETURNS_NON_NULLABLE_TYPE
 }
 
 type User {

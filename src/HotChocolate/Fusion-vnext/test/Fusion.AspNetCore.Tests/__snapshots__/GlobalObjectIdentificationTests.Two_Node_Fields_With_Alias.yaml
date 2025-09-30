@@ -44,7 +44,7 @@ sourceSchemas:
       }
       
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
     interactions:
@@ -104,7 +104,7 @@ sourceSchemas:
       }
       
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
         discussion(id: ID!): Discussion @lookup
       }
     interactions:

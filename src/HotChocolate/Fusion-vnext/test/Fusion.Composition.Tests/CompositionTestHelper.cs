@@ -14,6 +14,14 @@ internal static class CompositionTestHelper
                 sdl.Select((s, i) => new SourceSchemaText(((char)('A' + i)).ToString(), s)),
                 new CompositionLog());
 
-        return sourceSchemaParser.Parse().Value;
+        var schemas = sourceSchemaParser.Parse().Value;
+
+        foreach (var schema in schemas)
+        {
+            new SourceSchemaPreprocessor(schema).Process();
+            new SourceSchemaEnricher(schema, schemas).Enrich();
+        }
+
+        return schemas;
     }
 }

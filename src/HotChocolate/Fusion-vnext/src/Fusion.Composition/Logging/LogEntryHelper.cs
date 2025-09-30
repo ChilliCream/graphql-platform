@@ -419,6 +419,22 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry InvalidFieldSharing(
+        MutableOutputFieldDefinition field,
+        string typeName,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, field.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_InvalidFieldSharing, coordinate, schema.Name),
+            LogEntryCodes.InvalidFieldSharing,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schema);
+    }
+
     public static LogEntry InvalidGraphQL(string exceptionMessage)
     {
         return new LogEntry(

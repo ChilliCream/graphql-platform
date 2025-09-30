@@ -117,6 +117,7 @@ public class MutationTests : FusionTestBase
 
         public record CreateBookPayload(Book Book);
 
+        [EntityKey("id")]
         public record Book(int Id, string Title);
     }
 

@@ -24,7 +24,7 @@ sourceSchemas:
         query: Query
       }
       
-      interface SharedType {
+      interface SharedType @key(fields: "id") {
         id: Int!
       }
       

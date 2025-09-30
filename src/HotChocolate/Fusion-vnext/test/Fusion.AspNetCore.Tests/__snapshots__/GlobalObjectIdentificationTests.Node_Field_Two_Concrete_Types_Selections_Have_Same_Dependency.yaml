@@ -43,7 +43,7 @@ sourceSchemas:
         id: ID!
       }
       
-      type Discussion implements Node @key(fields: "id") {
+      type Discussion implements Node {
         id: ID!
         product: Product
       }
@@ -53,7 +53,7 @@ sourceSchemas:
       }
       
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
@@ -103,10 +103,10 @@ sourceSchemas:
       }
       
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
       
-      type Review implements Node @key(fields: "id") {
+      type Review implements Node {
         id: ID!
         product: Product
       }
@@ -120,13 +120,13 @@ sourceSchemas:
         id: ID!
       }
       
-      type Product implements Node @key(fields: "id") {
+      type Product implements Node {
         id: ID!
         name: String
       }
       
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
