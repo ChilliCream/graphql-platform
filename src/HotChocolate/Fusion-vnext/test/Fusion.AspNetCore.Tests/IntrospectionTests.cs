@@ -309,6 +309,42 @@ public class IntrospectionTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Theory]
+    [InlineData("SchemaCapabilitiesQuery")]
+    [InlineData("InputValueCapabilitiesQuery")]
+    [InlineData("DirectiveCapabilitiesQuery")]
+    [InlineData("TypeCapabilitiesQuery")]
+    [InlineData("IntrospectionQuery")]
+    public async Task IntrospectionQueries(string fileName)
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new Transport.OperationRequest(FileResource.Open(fileName + ".graphql"));
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: fileName);
+    }
+
     [Fact]
     public async Task Download_Schema()
     {
