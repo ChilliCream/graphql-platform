@@ -19,11 +19,7 @@ public class InputParserTests
 
         var type = schema.Types.GetType<InputObjectType>("TestInput");
 
-        var fieldData = new Dictionary<string, object?>
-        {
-            { "field1", "abc" },
-            { "field2", 123 }
-        };
+        var fieldData = new Dictionary<string, object?> { { "field1", "abc" }, { "field2", 123 } };
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
@@ -67,11 +63,7 @@ public class InputParserTests
 
         var type = schema.Types.GetType<InputObjectType>("Test2Input");
 
-        var fieldData = new Dictionary<string, object?>
-        {
-            { "field1", "abc" },
-            { "field2", 123 }
-        };
+        var fieldData = new Dictionary<string, object?> { { "field1", "abc" }, { "field2", 123 } };
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
@@ -115,10 +107,7 @@ public class InputParserTests
 
         var type = schema.Types.GetType<InputObjectType>("Test2Input");
 
-        var fieldData = new Dictionary<string, object?>
-        {
-            { "field2", 123 }
-        };
+        var fieldData = new Dictionary<string, object?> { { "field2", 123 } };
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
@@ -161,11 +150,7 @@ public class InputParserTests
 
         var type = schema.Types.GetType<InputObjectType>("TestInput");
 
-        var fieldData = new Dictionary<string, object?>
-        {
-            { "field2", 123 },
-            { "field3", 123 }
-        };
+        var fieldData = new Dictionary<string, object?> { { "field2", 123 }, { "field3", 123 } };
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
@@ -213,12 +198,7 @@ public class InputParserTests
 
         var type = schema.Types.GetType<InputObjectType>("TestInput");
 
-        var fieldData = new Dictionary<string, object?>
-        {
-            { "field2", 123 },
-            { "field3", 123 },
-            { "field4", 123 }
-        };
+        var fieldData = new Dictionary<string, object?> { { "field2", 123 }, { "field3", 123 }, { "field4", 123 } };
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
@@ -275,10 +255,7 @@ public class InputParserTests
 
         var converter = new DefaultTypeConverter();
 
-        var options = new InputParserOptions
-        {
-            IgnoreAdditionalInputFields = true
-        };
+        var options = new InputParserOptions { IgnoreAdditionalInputFields = true };
 
         // act
         var parser = new InputParser(converter, options);
@@ -480,10 +457,7 @@ public class InputParserTests
 
         var type = schema.Types.GetType<InputObjectType>("Test4Input");
 
-        var fieldData = new Dictionary<string, object?>
-        {
-            { "field1", "abc" }
-        };
+        var fieldData = new Dictionary<string, object?> { { "field1", "abc" } };
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
@@ -491,6 +465,55 @@ public class InputParserTests
 
         // assert
         Assert.IsType<Test4Input>(runtimeValue).MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Integration_CodeFirst_InputObjectNoDefaultValue_NoRuntimeTypeDefaultValueIsInitialized()
+    {
+        // arrange
+        var resolverArgumentsAccessor = new ResolverArgumentsAccessor();
+        var executor = await new ServiceCollection()
+            .AddSingleton(resolverArgumentsAccessor)
+            .AddGraphQL()
+            .AddQueryType(x => x.Field("foo")
+                                .Argument("args", a => a.Type<NonNullType<MyInputType>>())
+                                .Type<StringType>()
+                                .ResolveWith<ResolverArgumentsAccessor>(r => r.ResolveWith(default!)))
+            .BuildRequestExecutorAsync();
+
+        // act
+        var query =
+            OperationRequest.FromSourceText(
+                """
+                {
+                    a: foo(args: { string: "allSet" int: 1 bool: true })
+                    b: foo(args: { string: "noneSet" })
+                    c: foo(args: { string: "intExplicitlyNull" int: null })
+                    d: foo(args: { string: "boolExplicitlyNull" bool: null })
+                    e: foo(args: { string: "intSetBoolNull" int: 1 bool: null })
+                    f: foo(args: { string: "boolSetIntNull" int: null bool: true })
+                }
+                """);
+        await executor.ExecuteAsync(query, CancellationToken.None);
+
+        // assert
+        resolverArgumentsAccessor.Arguments.MatchSnapshot();
+    }
+
+    private class ResolverArgumentsAccessor
+    {
+        private readonly object _lock = new();
+        internal SortedDictionary<string, IDictionary<string, object?>?> Arguments { get; } = new();
+
+        internal string? ResolveWith(IDictionary<string, object?> args)
+        {
+            lock (_lock)
+            {
+                Arguments[args["string"]!.ToString()!] = args;
+            }
+
+            return "OK";
+        }
     }
 
     public class TestInput
@@ -519,8 +542,7 @@ public class InputParserTests
             Field1 = field1;
         }
 
-        [DefaultValue("DefaultAbc")]
-        public string Field1 { get; }
+        [DefaultValue("DefaultAbc")] public string Field1 { get; }
 
         public int? Field2 { get; set; }
     }
@@ -537,8 +559,7 @@ public class InputParserTests
 
     public class Test4
     {
-        [DefaultValue("DefaultAbc")]
-        public string? Field1 { get; set; }
+        [DefaultValue("DefaultAbc")] public string? Field1 { get; set; }
 
         public int? Field2 { get; set; }
     }
@@ -563,5 +584,16 @@ public class InputParserTests
         public string Field1 { get; set; } = null!;
 
         public int Field2 { get; set; }
+    }
+
+    public class MyInputType : InputObjectType
+    {
+        protected override void Configure(IInputObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("MyInput");
+            descriptor.Field("string").Type<StringType>();
+            descriptor.Field("int").Type<IntType>();
+            descriptor.Field("bool").Type<BooleanType>();
+        }
     }
 }
