@@ -11,6 +11,7 @@
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests.Shared" />
     <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>

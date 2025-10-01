@@ -156,11 +156,35 @@ public sealed class FusionRequestOptions : ICloneable
     /// <summary>
     /// Gets or sets whether exception details should be included for GraphQL
     /// errors in the GraphQL response.
-    /// This should only be enabled for development purposes
-    /// and not in production environments.
     /// <c>false</c> by default.
     /// </summary>
+    /// <remarks>
+    /// This should only be enabled for development purposes
+    /// and not in production environments.
+    /// </remarks>
     public bool IncludeExceptionDetails
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets whether the request executor should be initialized lazily.
+    /// <c>false</c> by default.
+    /// </summary>
+    /// <remarks>
+    /// When set to <c>false</c> the creation of the schema and request executor, as well as
+    /// the load of the Fusion configuration, is deferred until the request executor
+    /// is first requested.
+    /// This can significantly slow down and block initial requests.
+    /// Therefore it is recommended to not use this option for production environments.
+    /// </remarks>
+    public bool LazyInitialization
     {
         get;
         set
@@ -206,6 +230,7 @@ public sealed class FusionRequestOptions : ICloneable
             AllowErrorHandlingModeOverride = AllowErrorHandlingModeOverride,
             PersistedOperations = PersistedOperations,
             IncludeExceptionDetails = IncludeExceptionDetails,
+            LazyInitialization = LazyInitialization,
             NodeIdSerializerFormat = NodeIdSerializerFormat
         };
     }

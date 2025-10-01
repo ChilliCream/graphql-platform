@@ -197,7 +197,7 @@ internal sealed class FusionRequestExecutorManager
         return (await documentPromise.Task.ConfigureAwait(false), documentProvider);
     }
 
-    private static FusionRequestOptions CreateRequestOptions(FusionGatewaySetup setup)
+    internal static FusionRequestOptions CreateRequestOptions(FusionGatewaySetup setup)
     {
         var options = new FusionRequestOptions();
 
@@ -205,6 +205,8 @@ internal sealed class FusionRequestExecutorManager
         {
             configure.Invoke(options);
         }
+
+        options.MakeReadOnly();
 
         return options;
     }

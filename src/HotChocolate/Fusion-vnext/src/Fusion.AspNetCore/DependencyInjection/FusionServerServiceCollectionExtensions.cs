@@ -25,7 +25,8 @@ public static class FusionServerServiceCollectionExtensions
 
         return services
             .AddGraphQLGateway(name)
-            .AddGraphQLGatewayServerCore()
+            .AddGraphQLGatewayServerCore(maxAllowedRequestSize)
+            .AddStartupInitialization()
             .AddDefaultHttpRequestInterceptor()
             .AddSubscriptionServices();
     }
@@ -61,6 +62,14 @@ public static class FusionServerServiceCollectionExtensions
                 };
             });
         });
+
+        return builder;
+    }
+
+    private static IFusionGatewayBuilder AddStartupInitialization(
+        this IFusionGatewayBuilder builder)
+    {
+        builder.Services.AddHostedService<RequestExecutorWarmupService>();
 
         return builder;
     }
