@@ -1,7 +1,4 @@
-using System.Diagnostics;
 using System.IO.Pipelines;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Fusion.Text.Json;

@@ -104,7 +104,7 @@ public sealed partial class SourceResultDocument : IDisposable
     private ReadOnlySpan<byte> ReadRawValue(DbRow row)
         => ReadRawValue(row.Location, row.SizeOrLength);
 
-    private ReadOnlySpan<byte> ReadRawValue(int location, int size)
+    internal ReadOnlySpan<byte> ReadRawValue(int location, int size)
     {
         const int chunkSize = 128 * 1024;
 
@@ -135,6 +135,45 @@ public sealed partial class SourceResultDocument : IDisposable
 
             chunk.AsSpan(offsetInChunk, bytesToCopyFromThisChunk)
                 .CopyTo(tempArray.AsSpan(bytesRead));
+
+            bytesRead += bytesToCopyFromThisChunk;
+            currentLocation += bytesToCopyFromThisChunk;
+        }
+
+        return tempArray;
+    }
+
+    internal ReadOnlyMemory<byte> ReadRawValueAsMemory(int location, int size)
+    {
+        const int chunkSize = 128 * 1024;
+
+        // Calculate which chunk contains the start of our data
+        var startChunkIndex = location / chunkSize;
+        var offsetInStartChunk = location % chunkSize;
+
+        // Fast path: Value fits entirely within one chunk
+        if (offsetInStartChunk + size <= chunkSize)
+        {
+            return _dataChunks[startChunkIndex].AsMemory(offsetInStartChunk, size);
+        }
+
+        // TODO : we need to use pooled memory in this case.
+        // TODO : also we should measure how often we end up here
+        // Slow path: Value spans across multiple chunks - create temporary array
+        var tempArray = new byte[size];
+        var bytesRead = 0;
+        var currentLocation = location;
+
+        while (bytesRead < size)
+        {
+            var chunkIndex = currentLocation / chunkSize;
+            var offsetInChunk = currentLocation % chunkSize;
+            var chunk = _dataChunks[chunkIndex];
+
+            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, chunkSize - offsetInChunk);
+
+            var chunkSpan = chunk.AsSpan(offsetInChunk, bytesToCopyFromThisChunk);
+            chunkSpan.CopyTo(tempArray.AsSpan(bytesRead));
 
             bytesRead += bytesToCopyFromThisChunk;
             currentLocation += bytesToCopyFromThisChunk;

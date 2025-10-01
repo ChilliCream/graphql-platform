@@ -13,6 +13,7 @@ public sealed partial class CompositeResultDocument
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
+        startIndex = _metaDb.GetStartIndex(startIndex);
         var row = _metaDb.Get(startIndex);
 
         CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
@@ -201,6 +202,12 @@ public sealed partial class CompositeResultDocument
 
         value = default;
         return false;
+    }
+    
+    internal int GetStartIndex(int index)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        return _metaDb.GetStartIndex(index);
     }
 
     internal int GetEndIndex(int index)

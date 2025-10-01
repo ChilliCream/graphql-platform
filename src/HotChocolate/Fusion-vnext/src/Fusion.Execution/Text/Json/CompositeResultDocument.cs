@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Text.Json.MetaDbMemory;
 
@@ -19,7 +20,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     public CompositeResultDocument(Operation operation, ulong includeFlags)
     {
         _metaDb = MetaDb.CreateForEstimatedRows(RowsPerChunk * 8);
-        _operation =  operation;
+        _operation = operation;
         _includeFlags = includeFlags;
 
         // we create the root data object.
@@ -54,9 +55,15 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal Selection? GetSelection(int index)
     {
+        if (index < 0)
+        {
+            return null;
+        }
+
         var row = _metaDb.Get(index);
 
-        if (row.OperationReferenceType is not OperationReferenceType.Selection)
+        if (row.TokenType is not ElementTokenType.PropertyName
+            || row.OperationReferenceType is not OperationReferenceType.Selection)
         {
             return null;
         }
@@ -104,6 +111,173 @@ public sealed partial class CompositeResultDocument : IDisposable
         return row.SizeOrLength;
     }
 
+    internal Path CreatePath(int currentIndex)
+    {
+        if (currentIndex == 0)
+        {
+            return Path.Root;
+        }
+
+        Span<int> indexes = stackalloc int[2];
+        var index = currentIndex;
+        var written = 0;
+
+        do
+        {
+            indexes[written++] = index;
+            index = _metaDb.GetParentIndex(index);
+
+            if (written >= 64 && index > 0)
+            {
+                throw new InvalidOperationException("The path is to deep.");
+            }
+        } while (index > 0);
+
+        var path = Path.Root;
+        var parent = ElementTokenType.StartObject;
+
+        for (var i = indexes.Length - 1; i >= 0; i--)
+        {
+            index = indexes[i];
+
+            var elementType = GetElementTokenType(index);
+            if (elementType == ElementTokenType.Reference)
+            {
+                if (parent == ElementTokenType.StartObject)
+                {
+                    var nameSpan = GetPropertyNameRaw(index);
+                    var location = _metaDb.GetLocation(index);
+                    var name = s_utf8Encoding.GetString(nameSpan);
+                    parent = _metaDb.GetElementTokenType(location);
+                    path = path.Append(name);
+                    continue;
+                }
+                else if (parent == ElementTokenType.StartArray)
+                {
+                }
+            }
+
+            throw new InvalidOperationException("Unexpected element type.");
+        }
+
+        return path;
+    }
+
+    internal CompositeResultElement GetParent(int currentIndex)
+    {
+        var flags = _metaDb.GetFlags(currentIndex);
+
+        if ((flags & ElementFlags.IsRoot) == ElementFlags.IsRoot)
+        {
+            return default;
+        }
+
+        var parentIndex = _metaDb.GetParentIndex(currentIndex);
+        return new CompositeResultElement(this, parentIndex);
+    }
+
+    internal bool IsInvalidated(int currentIndex)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var elementFlags = _metaDb.GetElementTokenType(currentIndex);
+
+        if (elementFlags is ElementTokenType.StartObject)
+        {
+            var flags = _metaDb.GetFlags(currentIndex);
+            return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+        }
+
+        if (elementFlags is ElementTokenType.Reference)
+        {
+            currentIndex = _metaDb.GetLocation(currentIndex);
+            elementFlags = _metaDb.GetElementTokenType(currentIndex);
+
+            if (elementFlags is ElementTokenType.StartObject)
+            {
+                var flags = _metaDb.GetFlags(currentIndex);
+                return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+            }
+        }
+
+        return false;
+    }
+
+    internal bool IsNullOrInvalidated(int currentIndex)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var elementFlags = _metaDb.GetElementTokenType(currentIndex);
+
+        if (elementFlags is ElementTokenType.Null)
+        {
+            return true;
+        }
+
+        if (elementFlags is ElementTokenType.StartObject)
+        {
+            var flags = _metaDb.GetFlags(currentIndex);
+            return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+        }
+
+        if (elementFlags is ElementTokenType.Reference)
+        {
+            currentIndex = _metaDb.GetLocation(currentIndex);
+            elementFlags = _metaDb.GetElementTokenType(currentIndex);
+
+            if (elementFlags is ElementTokenType.StartObject)
+            {
+                var flags = _metaDb.GetFlags(currentIndex);
+                return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+            }
+        }
+
+        return false;
+    }
+
+    internal bool IsInternalProperty(int currentIndex)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (currentIndex == 0)
+        {
+            return false;
+        }
+
+        currentIndex--;
+        var flags = _metaDb.GetFlags(currentIndex);
+        return (flags & ElementFlags.IsInternal) == ElementFlags.IsInternal;
+    }
+
+    internal void Invalidate(int currentIndex)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var elementFlags = _metaDb.GetElementTokenType(currentIndex);
+
+        if (elementFlags is ElementTokenType.StartObject)
+        {
+            var flags = _metaDb.GetFlags(currentIndex);
+            _metaDb.SetFlags(currentIndex, flags | ElementFlags.Invalidated);
+            return;
+        }
+
+        if (elementFlags is ElementTokenType.Reference)
+        {
+            currentIndex = _metaDb.GetLocation(currentIndex);
+            elementFlags = _metaDb.GetElementTokenType(currentIndex);
+
+            if (elementFlags is ElementTokenType.StartObject)
+            {
+                var flags = _metaDb.GetFlags(currentIndex);
+                _metaDb.SetFlags(currentIndex, flags | ElementFlags.Invalidated);
+                return;
+            }
+        }
+
+        throw new InvalidOperationException("Only objects can be invalidated.");
+    }
+
     private ReadOnlySpan<byte> ReadRawValue(DbRow row)
     {
         if (row.TokenType == ElementTokenType.PropertyName)
@@ -111,8 +285,10 @@ public sealed partial class CompositeResultDocument : IDisposable
             return _operation.GetSelectionById(row.OperationReferenceId).RawResponseName;
         }
 
-        if (row.TokenType == ElementTokenType.Reference)
+        if ((row.Flags & ElementFlags.SourceResult) == ElementFlags.SourceResult)
         {
+            var document = _sources[row.SourceDocumentId];
+            return document.ReadRawValue(row.Location, row.SizeOrLength);
         }
 
         throw new NotImplementedException();
@@ -125,11 +301,13 @@ public sealed partial class CompositeResultDocument : IDisposable
             return _operation.GetSelectionById(row.OperationReferenceId).RawResponseNameAsMemory;
         }
 
-        if (row.TokenType == ElementTokenType.Reference)
+        if ((row.Flags & ElementFlags.SourceResult) == ElementFlags.SourceResult)
         {
+            var document = _sources[row.SourceDocumentId];
+            return document.ReadRawValueAsMemory(row.Location, row.SizeOrLength);
         }
 
-        throw new NotImplementedException();
+        throw new NotSupportedException();
     }
 
     internal CompositeResultElement CreateObject(int parentRow, SelectionSet selectionSet)
@@ -173,7 +351,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             index: target.Index,
             tokenType: ElementTokenType.Reference,
             location: value.Index,
-            parentRow: _metaDb.GetParentRow(target.Index));
+            parentRow: _metaDb.GetParentIndex(target.Index));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -202,7 +380,8 @@ public sealed partial class CompositeResultDocument : IDisposable
             location: value.Location,
             sizeOrLength: value.Size,
             sourceDocumentId: parent.Id,
-            parentRow: _metaDb.GetParentRow(target.Index));
+            parentRow: _metaDb.GetParentIndex(target.Index),
+            flags: ElementFlags.SourceResult);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -211,7 +390,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         _metaDb.Replace(
             index: target.Index,
             tokenType: ElementTokenType.Null,
-            parentRow: _metaDb.GetParentRow(target.Index));
+            parentRow: _metaDb.GetParentIndex(target.Index));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -232,7 +411,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             operationReferenceId: selectionSetId,
             operationReferenceType: OperationReferenceType.SelectionSet,
             numberOfRows: (length * 2) + 2,
-            flags: flags );
+            flags: flags);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -254,7 +433,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             sizeOrLength: length,
             parentRow: parentRow,
             numberOfRows: (length * 2) + 2,
-            flags: flags );
+            flags: flags);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -138,7 +138,7 @@ public sealed partial class CompositeResultDocument
     {
         None = 0,
         Invalidated = 1,
-        Local = 2,
+        SourceResult = 2,
         IsNullable = 4,
         IsRoot = 8,
         IsInternal = 16,

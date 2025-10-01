@@ -23,6 +23,11 @@ public sealed partial class CompositeResultDocument
 
         var segment = ReadRawValue(row);
 
+        if (tokenType is ElementTokenType.String)
+        {
+            segment = segment.Slice(1, segment.Length - 2);
+        }
+
         return row.HasComplexChildren
             ? JsonReaderHelper.GetUnescapedString(segment)
             : JsonReaderHelper.TranscodeHelper(segment);

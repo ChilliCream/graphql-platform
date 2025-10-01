@@ -133,59 +133,57 @@ public partial struct CompositeResultElement
         }
     }
 
-    public bool IsInvalidated => throw new NotImplementedException();
+    public bool IsInvalidated
+    {
+        get
+        {
+            CheckValidInstance();
 
-    public bool IsNullOrInvalidated => throw new NotImplementedException();
+            return _parent.IsInvalidated(_index);
+        }
+    }
 
-    public Path Path => throw new NotImplementedException();
+    public bool IsNullOrInvalidated
+    {
+        get
+        {
+            CheckValidInstance();
 
-    public CompositeResultElement Parent => throw new NotImplementedException();
+            return _parent.IsNullOrInvalidated(_index);
+        }
+    }
 
-    public bool IsNullable => throw new NotImplementedException();
+    public Path Path
+    {
+        get
+        {
+            CheckValidInstance();
 
-    public bool IsInternal => throw new NotImplementedException();
+            return _parent.CreatePath(_index);
+        }
+    }
 
-    /*
-     * public Path Path
-       {
-           get
-           {
-               if (_path is null)
-               {
-                   // todo : we should rent this.
-                   var stack = new Stack<ResultData>();
-                   var current = this;
+    public CompositeResultElement Parent
+    {
+        get
+        {
+            CheckValidInstance();
 
-                   while (current is not null)
-                   {
-                       stack.Push(current);
-                       current = current.Parent;
-                   }
+            return _parent.GetParent(_index);
+        }
+    }
 
-                   var path = Path.Root;
+    public bool IsNullable => Type?.IsNullableType() ?? true;
 
-                   while (stack.TryPop(out var item))
-                   {
-                       if (item.Parent is null)
-                       {
-                           continue;
-                       }
+    public bool IsInternal
+    {
+        get
+        {
+            CheckValidInstance();
 
-                       path = item.Parent switch
-                       {
-                           ObjectResult obj => path.Append(obj.Fields[item.ParentIndex].Selection.ResponseName),
-                           ListResult => path.Append(item.ParentIndex),
-                           _ => path
-                       };
-                   }
-
-                   _path = path;
-               }
-
-               return _path;
-           }
-       }
-     */
+            return _parent.IsInternalProperty(_index);
+        }
+    }
 
     public SelectionSet AssertSelectionSet()
     {
@@ -223,7 +221,12 @@ public partial struct CompositeResultElement
         return type;
     }
 
-    public void Invalidate() => throw new NotImplementedException();
+    public void Invalidate()
+    {
+        CheckValidInstance();
+
+        _parent.Invalidate(_index);
+    }
 
     /// <summary>
     /// Get the number of values contained within the current array value.
@@ -558,7 +561,7 @@ public partial struct CompositeResultElement
     /// The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
     /// <seealso cref="ToString"/>
-    public string GetRequiredString()
+    public string AssertString()
     {
         CheckValidInstance();
 
@@ -646,7 +649,7 @@ public partial struct CompositeResultElement
     /// </exception>
     public byte GetByte()
     {
-        if (TryGetByte(out byte value))
+        if (TryGetByte(out var value))
         {
             return value;
         }
@@ -693,7 +696,7 @@ public partial struct CompositeResultElement
     /// </exception>
     public short GetInt16()
     {
-        if (TryGetInt16(out short value))
+        if (TryGetInt16(out var value))
         {
             return value;
         }
@@ -743,7 +746,7 @@ public partial struct CompositeResultElement
     /// </exception>
     public ushort GetUInt16()
     {
-        if (TryGetUInt16(out ushort value))
+        if (TryGetUInt16(out var value))
         {
             return value;
         }
@@ -790,7 +793,7 @@ public partial struct CompositeResultElement
     /// </exception>
     public int GetInt32()
     {
-        if (!TryGetInt32(out int value))
+        if (!TryGetInt32(out var value))
         {
             ThrowHelper.ThrowFormatException();
         }
@@ -840,7 +843,7 @@ public partial struct CompositeResultElement
     /// </exception>
     public uint GetUInt32()
     {
-        if (!TryGetUInt32(out uint value))
+        if (!TryGetUInt32(out var value))
         {
             ThrowHelper.ThrowFormatException();
         }
@@ -890,7 +893,7 @@ public partial struct CompositeResultElement
     /// </exception>
     public long GetInt64()
     {
-        if (!TryGetInt64(out long value))
+        if (!TryGetInt64(out var value))
         {
             ThrowHelper.ThrowFormatException();
         }
@@ -940,7 +943,7 @@ public partial struct CompositeResultElement
     /// </exception>
     public ulong GetUInt64()
     {
-        if (!TryGetUInt64(out ulong value))
+        if (!TryGetUInt64(out var value))
         {
             ThrowHelper.ThrowFormatException();
         }
@@ -1007,7 +1010,7 @@ public partial struct CompositeResultElement
     /// </exception>
     public double GetDouble()
     {
-        if (!TryGetDouble(out double value))
+        if (!TryGetDouble(out var value))
         {
             ThrowHelper.ThrowFormatException();
         }
@@ -1074,7 +1077,7 @@ public partial struct CompositeResultElement
     /// </exception>
     public float GetSingle()
     {
-        if (!TryGetSingle(out float value))
+        if (!TryGetSingle(out var value))
         {
             ThrowHelper.ThrowFormatException();
         }
@@ -1126,7 +1129,7 @@ public partial struct CompositeResultElement
     /// <seealso cref="GetRawText"/>
     public decimal GetDecimal()
     {
-        if (!TryGetDecimal(out decimal value))
+        if (!TryGetDecimal(out var value))
         {
             ThrowHelper.ThrowFormatException();
         }

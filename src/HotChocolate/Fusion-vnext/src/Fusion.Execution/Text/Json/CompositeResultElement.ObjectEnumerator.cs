@@ -19,13 +19,11 @@ namespace HotChocolate.Fusion.Text.Json
             private int _index;
             private readonly int _endIndex;
 
-            internal ObjectEnumerator(CompositeResultElement target, int currentIndex = -1)
+            internal ObjectEnumerator(CompositeResultElement target)
             {
                 _target = target;
-                _index = currentIndex;
-
-                Debug.Assert(target.TokenType == ElementTokenType.StartObject);
-                _endIndex = target._parent.GetEndIndex(_target._index);
+                _index = target._parent.GetStartIndex(_target._index);
+                _endIndex = target._parent.GetEndIndex(_index);
             }
 
             /// <inheritdoc />
@@ -57,9 +55,9 @@ namespace HotChocolate.Fusion.Text.Json
             /// </remarks>
             public ObjectEnumerator GetEnumerator()
             {
-                ObjectEnumerator ator = this;
-                ator._index = -1;
-                return ator;
+                var enumerator = this;
+                enumerator._index = -1;
+                return enumerator;
             }
 
             /// <inheritdoc />
@@ -78,7 +76,7 @@ namespace HotChocolate.Fusion.Text.Json
             /// <inheritdoc />
             public void Reset()
             {
-                _index = -1;
+                _index = _target._parent.GetEndIndex(_target._index);
             }
 
             /// <inheritdoc />
@@ -92,18 +90,7 @@ namespace HotChocolate.Fusion.Text.Json
                     return false;
                 }
 
-                if (_index < 0)
-                {
-                    _index = _target._index + 1;
-                }
-                else
-                {
-                    _index = _target._parent.GetEndIndex(_index);
-                }
-
-                // _curIdx is now pointing at a property name, move one more to get the value
-                _index++;
-
+                _index += 2;
                 return _index < _endIndex;
             }
         }

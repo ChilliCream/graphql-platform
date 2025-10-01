@@ -164,6 +164,28 @@ public sealed partial class CompositeResultDocument
             return MemoryMarshal.Read<DbRow>(_chunks[chunkIndex].AsSpan(localOffset));
         }
 
+        // gets the actual start index... if element is a reference it gets an index
+        // to the referenced object.
+        internal int GetStartIndex(int index)
+        {
+            // We convert the row index back into a byte offset that we can
+            // in turn break up into the chunk where the row resides and the
+            // local offset we have in that chunk.
+            var byteOffset = index * DbRow.Size;
+            var chunkIndex = byteOffset / ChunkSize;
+            var localOffset = byteOffset % ChunkSize;
+
+            var union = MemoryMarshal.Read<uint>(_chunks[chunkIndex].AsSpan(localOffset + TokenTypeOffset));
+            var tokenType = (ElementTokenType)(union >> 28);
+
+            if (tokenType == ElementTokenType.Reference)
+            {
+                return GetLocation(index);
+            }
+
+            return index;
+        }
+
         internal int GetLocation(int index)
         {
             Debug.Assert(index >= 0);
@@ -184,7 +206,7 @@ public sealed partial class CompositeResultDocument
             return locationAndOpRefType & 0x07FFFFFF;
         }
 
-        internal int GetParentRow(int index)
+        internal int GetParentIndex(int index)
         {
             Debug.Assert(index >= 0);
             Debug.Assert(index < Length / DbRow.Size, "Index out of bounds");
@@ -206,6 +228,55 @@ public sealed partial class CompositeResultDocument
 
             // Reconstruct ParentRow from high and low bits (same logic as DbRow property)
             return ((int)((uint)sourceAndParentHigh >> 15) << 11) | ((selectionSetFlagsAndParentLow >> 21) & 0x7FF);
+        }
+
+        internal ElementFlags GetFlags(int index)
+        {
+            Debug.Assert(index >= 0);
+            Debug.Assert(index < Length / DbRow.Size, "Index out of bounds");
+
+            // Convert row index to byte offset
+            var byteOffset = index * DbRow.Size;
+            var chunkIndex = byteOffset / ChunkSize;
+            var localOffset = byteOffset % ChunkSize;
+
+            Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
+            Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
+
+            // Read the 5th field that contains the Flags bits
+            // Offset to 5th field (selectionSetFlagsAndParentLow)
+            var selectionSetFlagsAndParentLow = MemoryMarshal.Read<int>(_chunks[chunkIndex].AsSpan(localOffset + 16));
+
+            // Extract Flags from bits 15-20 (6 bits)
+            return (ElementFlags)((selectionSetFlagsAndParentLow >> 15) & 0x3F);
+        }
+
+        internal void SetFlags(int index, ElementFlags flags)
+        {
+            Debug.Assert(index >= 0);
+            Debug.Assert(index < Length / DbRow.Size, "Index out of bounds");
+            Debug.Assert((byte)flags <= 63, "Flags value exceeds 6-bit limit"); // 0x3F = 63
+
+            // Convert row index to byte offset
+            var byteOffset = index * DbRow.Size;
+            var chunkIndex = byteOffset / ChunkSize;
+            var localOffset = byteOffset % ChunkSize;
+
+            Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
+            Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
+
+            // Read the current 5th field value
+            // Offset to 5th field (selectionSetFlagsAndParentLow)
+            var fieldSpan = _chunks[chunkIndex].AsSpan(localOffset + 16);
+            var currentValue = MemoryMarshal.Read<int>(fieldSpan);
+
+            // Clear the flags bits (15-20) and set the new flags
+            // Mask: ~(0x3F << 15) = ~0x1F8000 = 0xFFE07FFF
+            var clearedValue = currentValue & 0xFFE07FFF;
+            var newValue = (int)(clearedValue | (uint)((int)flags << 15));
+
+            // Write back the modified field
+            MemoryMarshal.Write(fieldSpan, newValue);
         }
 
         internal ElementTokenType GetElementTokenType(int index)

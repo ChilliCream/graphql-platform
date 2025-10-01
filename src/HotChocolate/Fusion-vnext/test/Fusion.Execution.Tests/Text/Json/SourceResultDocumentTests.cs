@@ -760,7 +760,7 @@ public class SourceResultDocumentTests
             }
         }
 
-        Assert.Equal(new[] { "name", "age", "city" }, foundNames);
+        Assert.Equal(["name", "age", "city"], foundNames);
     }
 
     [Fact]
