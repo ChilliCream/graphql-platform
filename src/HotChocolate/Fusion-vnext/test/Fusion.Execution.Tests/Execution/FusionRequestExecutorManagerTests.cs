@@ -311,7 +311,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         Assert.Same(executor1, executor2);
     }
 
-    [Fact(Skip = "Not yet correct")]
+    [Fact]
     public async Task Executor_Resolution_Should_Be_Parallel()
     {
         // arrange

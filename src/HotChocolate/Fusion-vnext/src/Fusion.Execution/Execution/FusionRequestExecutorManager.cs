@@ -35,7 +35,7 @@ internal sealed class FusionRequestExecutorManager
     , IAsyncDisposable
 {
     private readonly object _lock = new();
-    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreBySchema = new();
     private readonly ConcurrentDictionary<string, RequestExecutorRegistration> _registry = [];
     private readonly IOptionsMonitor<FusionGatewaySetup> _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
@@ -90,7 +90,8 @@ internal sealed class FusionRequestExecutorManager
         string schemaName,
         CancellationToken cancellationToken)
     {
-        await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var semaphore = GetSemaphoreForSchema(schemaName);
+        await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -106,9 +107,12 @@ internal sealed class FusionRequestExecutorManager
         }
         finally
         {
-            _semaphore.Release();
+            semaphore.Release();
         }
     }
+
+    private SemaphoreSlim GetSemaphoreForSchema(string schemaName)
+        => _semaphoreBySchema.GetOrAdd(schemaName, _ => new SemaphoreSlim(1, 1));
 
     private async ValueTask EvictExecutorAsync(FusionRequestExecutor executor, CancellationToken cancellationToken)
     {
@@ -513,6 +517,13 @@ internal sealed class FusionRequestExecutorManager
         {
             session.OnCompleted();
         }
+
+        foreach (var semaphore in _semaphoreBySchema.Values)
+        {
+            semaphore.Dispose();
+        }
+
+        _semaphoreBySchema.Clear();
 
         _observers = [];
     }
