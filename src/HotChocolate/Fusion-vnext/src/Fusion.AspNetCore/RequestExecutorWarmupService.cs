@@ -18,7 +18,7 @@ internal sealed class RequestExecutorWarmupService(
         {
             var setup = optionsMonitor.Get(schemaName);
 
-            var requestOptions = FusionRequestExecutorManager.CreateRequestOptions(setup);
+            var requestOptions = FusionRequestExecutorManager.CreateOptions(setup);
 
             if (!requestOptions.LazyInitialization)
             {
