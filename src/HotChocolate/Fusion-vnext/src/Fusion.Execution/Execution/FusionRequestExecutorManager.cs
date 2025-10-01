@@ -35,7 +35,7 @@ internal sealed class FusionRequestExecutorManager
     , IAsyncDisposable
 {
     private readonly object _lock = new();
-    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreBySchema = new();
     private readonly ConcurrentDictionary<string, RequestExecutorRegistration> _registry = [];
     private readonly IOptionsMonitor<FusionGatewaySetup> _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
@@ -90,7 +90,8 @@ internal sealed class FusionRequestExecutorManager
         string schemaName,
         CancellationToken cancellationToken)
     {
-        await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var semaphore = GetSemaphoreForSchema(schemaName);
+        await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -106,8 +107,30 @@ internal sealed class FusionRequestExecutorManager
         }
         finally
         {
-            _semaphore.Release();
+            semaphore.Release();
         }
+    }
+
+    private SemaphoreSlim GetSemaphoreForSchema(string schemaName)
+        => _semaphoreBySchema.GetOrAdd(schemaName, _ => new SemaphoreSlim(1, 1));
+
+    private async ValueTask EvictExecutorAsync(FusionRequestExecutor executor, CancellationToken cancellationToken)
+    {
+        await _executorEvents.WriteEvictedAsync(executor, cancellationToken);
+
+        EvictRequestExecutorAsync(executor).FireAndForget();
+    }
+
+    private static async Task EvictRequestExecutorAsync(FusionRequestExecutor previousExecutor)
+    {
+        var evictionTimeout = previousExecutor.Schema.Features
+            .GetRequired<FusionRequestOptions>().EvictionTimeout;
+
+        // we will give the request executor some grace period to finish all requests
+        // in the pipeline.
+        await Task.Delay(evictionTimeout).ConfigureAwait(false);
+
+        await previousExecutor.DisposeAsync().ConfigureAwait(false);
     }
 
     private async ValueTask<RequestExecutorRegistration> CreateInitialRegistrationAsync(
@@ -119,10 +142,14 @@ internal sealed class FusionRequestExecutorManager
         var (configuration, documentProvider) =
             await GetSchemaDocumentAsync(setup.DocumentProvider, cancellationToken).ConfigureAwait(false);
 
+        var executor = CreateRequestExecutor(schemaName, configuration);
+
+        await WarmupExecutorAsync(executor, cancellationToken).ConfigureAwait(false);
+
         return new RequestExecutorRegistration(
             this,
             documentProvider,
-            CreateRequestExecutor(schemaName, configuration),
+            executor,
             configuration);
     }
 
@@ -149,6 +176,15 @@ internal sealed class FusionRequestExecutorManager
         return executor;
     }
 
+    private async Task WarmupExecutorAsync(IRequestExecutor executor, CancellationToken cancellationToken)
+    {
+        var warmupTasks = executor.Schema.Services.GetServices<IRequestExecutorWarmupTask>();
+        foreach (var warmupTask in warmupTasks)
+        {
+            await warmupTask.WarmupAsync(executor, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
     private async ValueTask<(FusionConfiguration, IFusionConfigurationProvider)> GetSchemaDocumentAsync(
         Func<IServiceProvider, IFusionConfigurationProvider>? documentProviderFactory,
         CancellationToken cancellationToken)
@@ -165,7 +201,7 @@ internal sealed class FusionRequestExecutorManager
         return (await documentPromise.Task.ConfigureAwait(false), documentProvider);
     }
 
-    private static FusionRequestOptions CreateRequestOptions(FusionGatewaySetup setup)
+    internal static FusionRequestOptions CreateRequestOptions(FusionGatewaySetup setup)
     {
         var options = new FusionRequestOptions();
 
@@ -174,15 +210,7 @@ internal sealed class FusionRequestExecutorManager
             configure.Invoke(options);
         }
 
-        if (options.OperationExecutionPlanCacheSize < 16)
-        {
-            options.OperationExecutionPlanCacheSize = 16;
-        }
-
-        if (options.OperationDocumentCacheSize < 16)
-        {
-            options.OperationDocumentCacheSize = 16;
-        }
+        options.MakeReadOnly();
 
         return options;
     }
@@ -490,6 +518,13 @@ internal sealed class FusionRequestExecutorManager
             session.OnCompleted();
         }
 
+        foreach (var semaphore in _semaphoreBySchema.Values)
+        {
+            semaphore.Dispose();
+        }
+
+        _semaphoreBySchema.Clear();
+
         _observers = [];
     }
 
@@ -555,7 +590,7 @@ internal sealed class FusionRequestExecutorManager
                     break;
                 }
 
-                var documentHash = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(configuration.ToString()));
+                var documentHash = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(configuration.Schema.ToString()));
                 var settingsHash = XxHash64.HashToUInt64(GetRawUtf8Value(configuration.Settings.Document.RootElement));
 
                 if (documentHash == _documentHash && settingsHash == _settingsHash)
@@ -569,12 +604,12 @@ internal sealed class FusionRequestExecutorManager
                 var previousExecutor = Executor;
                 var nextExecutor = _manager.CreateRequestExecutor(Executor.Schema.Name, configuration);
 
-                // TODO : should we have the warmup tasks here?
+                await _manager.WarmupExecutorAsync(nextExecutor, _cancellationToken).ConfigureAwait(false);
 
                 Executor = nextExecutor;
 
-                // we need to free the resources of the current schema as well as for the configuration object.
-                await previousExecutor.DisposeAsync().ConfigureAwait(false);
+                await _manager.EvictExecutorAsync(previousExecutor, _cancellationToken);
+
                 configuration.Dispose();
             }
         }
@@ -716,6 +751,15 @@ file static class Extensions
         CancellationToken cancellationToken)
     {
         var eventArgs = RequestExecutorEvent.Created(executor);
+        await executorEvents.Writer.WriteAsync(eventArgs, cancellationToken).ConfigureAwait(false);
+    }
+
+    public static async ValueTask WriteEvictedAsync(
+        this Channel<RequestExecutorEvent> executorEvents,
+        FusionRequestExecutor executor,
+        CancellationToken cancellationToken)
+    {
+        var eventArgs = RequestExecutorEvent.Evicted(executor);
         await executorEvents.Writer.WriteAsync(eventArgs, cancellationToken).ConfigureAwait(false);
     }
 }
