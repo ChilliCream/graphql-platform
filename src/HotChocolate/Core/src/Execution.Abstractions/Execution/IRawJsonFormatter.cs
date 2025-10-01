@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.IO.Pipelines;
 
 namespace HotChocolate.Execution;
@@ -7,7 +8,7 @@ namespace HotChocolate.Execution;
 /// standard JSON serialization to emit the JSON directly into the pipe writer
 /// of the transport layer.
 /// </summary>
-public interface IRawJsonSerializer
+public interface IRawJsonFormatter
 {
     /// <summary>
     /// Writes the JSON data into the <paramref name="writer"/>.
@@ -15,5 +16,5 @@ public interface IRawJsonSerializer
     /// <param name="writer">
     /// The pipe writer of the transport layer.
     /// </param>
-    void WriteTo(PipeWriter writer);
+    void WriteTo(IBufferWriter<byte> writer);
 }

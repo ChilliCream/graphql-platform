@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.IO.Pipelines;
 using System.Text.Json;
 using HotChocolate.Execution;
 using static HotChocolate.Execution.JsonValueFormatter;
@@ -53,17 +54,17 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync"/>
     public ValueTask FormatAsync(
         IExecutionResult result,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(outputStream);
+        ArgumentNullException.ThrowIfNull(writer);
 
         return result switch
         {
-            IOperationResult singleResult => FormatInternalAsync(singleResult, outputStream, cancellationToken),
-            OperationResultBatch resultBatch => FormatInternalAsync(resultBatch, outputStream, cancellationToken),
-            IResponseStream responseStream => FormatInternalAsync(responseStream, outputStream, cancellationToken),
+            IOperationResult singleResult => FormatInternalAsync(singleResult, writer, cancellationToken),
+            OperationResultBatch resultBatch => FormatInternalAsync(resultBatch, writer, cancellationToken),
+            IResponseStream responseStream => FormatInternalAsync(responseStream, writer, cancellationToken),
             _ => throw new NotSupportedException($"The result type '{result.GetType().FullName}' is not supported.")
         };
     }
@@ -156,6 +157,12 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
     private void FormatInternal(IOperationResult result, IBufferWriter<byte> writer)
     {
+        if (result is IRawJsonFormatter formatter)
+        {
+            formatter.WriteTo(writer);
+            return;
+        }
+
         var jsonWriter = CreateWriter(writer);
         WriteResult(jsonWriter, result);
         jsonWriter.Flush();
@@ -163,121 +170,77 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
     public ValueTask FormatAsync(
         IOperationResult result,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(outputStream);
+        ArgumentNullException.ThrowIfNull(writer);
 
-        return FormatInternalAsync(result, outputStream, cancellationToken);
+        return FormatInternalAsync(result, writer, cancellationToken);
     }
 
     private async ValueTask FormatInternalAsync(
         IOperationResult result,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken cancellationToken)
     {
-        Exception? exception = null;
-        var writer = outputStream.CreatePipeWriter();
-
-        try
-        {
-            FormatInternal(result, writer);
-            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            exception = ex;
-            throw;
-        }
-        finally
-        {
-            await writer.CompleteAsync(exception).ConfigureAwait(false);
-        }
+        FormatInternal(result, writer);
+        await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private async ValueTask FormatInternalAsync(
         OperationResultBatch resultBatch,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken cancellationToken = default)
     {
-        Exception? exception = null;
-        var writer = outputStream.CreatePipeWriter();
-
-        try
+        foreach (var result in resultBatch.Results)
         {
-            foreach (var result in resultBatch.Results)
+            switch (result)
             {
-                switch (result)
-                {
-                    case IOperationResult singleResult:
-                        FormatInternal(singleResult, writer);
-                        break;
+                case IOperationResult singleResult:
+                    FormatInternal(singleResult, writer);
+                    break;
 
-                    case IResponseStream batchResult:
-                        await foreach (var partialResult in batchResult.ReadResultsAsync()
-                            .WithCancellation(cancellationToken)
-                            .ConfigureAwait(false))
+                case IResponseStream batchResult:
+                    await foreach (var partialResult in batchResult.ReadResultsAsync()
+                        .WithCancellation(cancellationToken)
+                        .ConfigureAwait(false))
+                    {
+                        try
                         {
-                            try
-                            {
-                                FormatInternal(partialResult, writer);
-                                await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
-                            }
-                            finally
-                            {
-                                await partialResult.DisposeAsync().ConfigureAwait(false);
-                            }
+                            FormatInternal(partialResult, writer);
+                            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
                         }
-                        break;
-                }
-            }
+                        finally
+                        {
+                            await partialResult.DisposeAsync().ConfigureAwait(false);
+                        }
+                    }
 
-            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                    break;
+            }
         }
-        catch (Exception ex)
-        {
-            exception = ex;
-            throw;
-        }
-        finally
-        {
-            await writer.CompleteAsync(exception).ConfigureAwait(false);
-        }
+
+        await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private async ValueTask FormatInternalAsync(
         IResponseStream batchResult,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken cancellationToken = default)
     {
-        Exception? exception = null;
-        var writer = outputStream.CreatePipeWriter();
-
-        try
+        await foreach (var partialResult in batchResult.ReadResultsAsync()
+            .WithCancellation(cancellationToken)
+            .ConfigureAwait(false))
         {
-            await foreach (var partialResult in batchResult.ReadResultsAsync()
-                .WithCancellation(cancellationToken)
-                .ConfigureAwait(false))
+            try
             {
-                try
-                {
-                    FormatInternal(partialResult, writer);
-                }
-                finally
-                {
-                    await partialResult.DisposeAsync().ConfigureAwait(false);
-                }
+                FormatInternal(partialResult, writer);
             }
-        }
-        catch (Exception ex)
-        {
-            exception = ex;
-            throw;
-        }
-        finally
-        {
-            await writer.CompleteAsync(exception).ConfigureAwait(false);
+            finally
+            {
+                await partialResult.DisposeAsync().ConfigureAwait(false);
+            }
         }
     }
 
@@ -404,14 +367,14 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
     private Utf8JsonWriter CreateWriter(IBufferWriter<byte> buffer)
     {
-        if (_writer.Value is not { } jsonWriter)
+        if (_writer.Value is not { } writer)
         {
-            jsonWriter = new Utf8JsonWriter(buffer, _options);
-            _writer.Value = jsonWriter;
-            return jsonWriter;
+            writer = new Utf8JsonWriter(buffer, _options);
+            _writer.Value = writer;
+            return writer;
         }
 
-        jsonWriter.Reset(buffer);
-        return jsonWriter;
+        writer.Reset(buffer);
+        return writer;
     }
 }

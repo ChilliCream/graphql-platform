@@ -1,10 +1,12 @@
+using System.Buffers;
 using System.IO.Pipelines;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
-public sealed class RawOperationResult : ExecutionResult, IRawJsonSerializer, IOperationResult
+public sealed class RawOperationResult : ExecutionResult, IRawJsonFormatter, IOperationResult
 {
     private readonly CompositeResultDocument _result;
     private readonly IReadOnlyDictionary<string, object?>? _contextData;
@@ -24,6 +26,12 @@ public sealed class RawOperationResult : ExecutionResult, IRawJsonSerializer, IO
     public override IReadOnlyDictionary<string, object?>? ContextData => _contextData;
 
     public void WriteTo(PipeWriter writer)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+        _result.WriteTo(writer);
+    }
+
+    public void WriteTo(IBufferWriter<byte> writer)
     {
         ArgumentNullException.ThrowIfNull(writer);
         _result.WriteTo(writer);
@@ -51,7 +59,7 @@ public sealed class RawOperationResult : ExecutionResult, IRawJsonSerializer, IO
 
     bool? IOperationResult.HasNext => throw new NotSupportedException();
 
-    bool IOperationResult.IsDataSet => throw new NotSupportedException();
+    bool IOperationResult.IsDataSet => _result.Data.ValueKind is JsonValueKind.Object;
 
     #endregion
 }
