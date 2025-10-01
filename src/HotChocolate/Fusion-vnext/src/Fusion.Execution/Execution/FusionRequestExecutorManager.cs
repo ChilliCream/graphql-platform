@@ -114,15 +114,18 @@ internal sealed class FusionRequestExecutorManager
     {
         await _executorEvents.WriteEvictedAsync(executor, cancellationToken);
 
-        RunEvictionEvents(executor).FireAndForget();
+        EvictRequestExecutorAsync(executor).FireAndForget();
     }
 
-    private static async Task RunEvictionEvents(FusionRequestExecutor previousExecutor)
+    private static async Task EvictRequestExecutorAsync(FusionRequestExecutor previousExecutor)
     {
+        var evictionTimeout = previousExecutor.Schema.Features
+            .GetRequired<FusionRequestOptions>().EvictionTimeout;
+
         // we will give the request executor some grace period to finish all requests
         // in the pipeline.
-        // TODO: Add configuration option for this
-        // await Task.Delay(previousExecutor.EvictionTimeout).ConfigureAwait(false);
+        await Task.Delay(evictionTimeout).ConfigureAwait(false);
+
         await previousExecutor.DisposeAsync().ConfigureAwait(false);
     }
 
@@ -201,16 +204,6 @@ internal sealed class FusionRequestExecutorManager
         foreach (var configure in setup.RequestOptionsModifiers)
         {
             configure.Invoke(options);
-        }
-
-        if (options.OperationExecutionPlanCacheSize < 16)
-        {
-            options.OperationExecutionPlanCacheSize = 16;
-        }
-
-        if (options.OperationDocumentCacheSize < 16)
-        {
-            options.OperationDocumentCacheSize = 16;
         }
 
         return options;
