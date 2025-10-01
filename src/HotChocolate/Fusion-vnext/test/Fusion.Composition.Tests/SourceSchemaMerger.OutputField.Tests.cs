@@ -335,6 +335,90 @@ public sealed class SourceSchemaMergerOutputFieldTests
                         @fusion__field(schema: A)
                 }
                 """
+            },
+            // Even if an output field is only @deprecated in one source schema,
+            // the composite output field is marked as @deprecated.
+            {
+                [
+                    """
+                    # Schema A
+                    type Product {
+                        name: String @deprecated(reason: "Some reason")
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Product {
+                        name: String
+                    }
+                    """
+                ],
+                """
+                type Product
+                  @fusion__type(schema: A)
+                  @fusion__type(schema: B) {
+                  name: String
+                    @fusion__field(schema: A)
+                    @fusion__field(schema: B)
+                    @deprecated(reason: "Some reason")
+                }
+                """
+            },
+            // If the same output field is @deprecated in multiple source schemas,
+            // the first non-null deprecation message is chosen.
+            {
+                [
+                    """
+                    # Schema A
+                    type Product {
+                        name: String @deprecated(reason: "Some reason")
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Product {
+                        name: String @deprecated(reason: "Another reason")
+                    }
+                    """
+                ],
+                """
+                type Product
+                  @fusion__type(schema: A)
+                  @fusion__type(schema: B) {
+                  name: String
+                    @fusion__field(schema: A)
+                    @fusion__field(schema: B)
+                    @deprecated(reason: "Some reason")
+                }
+                """
+            },
+            // If the an output field is deprecated without a deprecation reason,
+            // a default reason is inserted to be compatible with the latest spec.
+            {
+                [
+                    """
+                    # Schema A
+                    type Product {
+                        name: String @deprecated
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Product {
+                        name: String @deprecated
+                    }
+                    """
+                ],
+                """
+                type Product
+                  @fusion__type(schema: A)
+                  @fusion__type(schema: B) {
+                  name: String
+                    @fusion__field(schema: A)
+                    @fusion__field(schema: B)
+                    @deprecated(reason: "No longer supported.")
+                }
+                """
             }
         };
     }

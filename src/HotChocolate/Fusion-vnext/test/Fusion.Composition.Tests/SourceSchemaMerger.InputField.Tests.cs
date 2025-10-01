@@ -117,6 +117,90 @@ public sealed class SourceSchemaMergerInputFieldTests
                         @fusion__inputField(schema: B)
                 }
                 """
+            },
+            // Even if an input field is only @deprecated in one source schema,
+            // the composite input field is marked as @deprecated.
+            {
+                [
+                    """
+                    # Schema A
+                    input OrderFilter {
+                        minTotal: Int @deprecated(reason: "Some reason")
+                    }
+                    """,
+                    """
+                    # Schema B
+                    input OrderFilter {
+                        minTotal: Int
+                    }
+                    """
+                ],
+                """
+                input OrderFilter
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B) {
+                    minTotal: Int
+                        @fusion__inputField(schema: A)
+                        @fusion__inputField(schema: B)
+                        @deprecated(reason: "Some reason")
+                }
+                """
+            },
+            // If the same input field is @deprecated in multiple source schemas,
+            // the first non-null deprecation message is chosen.
+            {
+                [
+                    """
+                    # Schema A
+                    input OrderFilter {
+                        minTotal: Int @deprecated(reason: "Some reason")
+                    }
+                    """,
+                    """
+                    # Schema B
+                    input OrderFilter {
+                        minTotal: Int @deprecated(reason: "Another reason")
+                    }
+                    """
+                ],
+                """
+                input OrderFilter
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B) {
+                    minTotal: Int
+                        @fusion__inputField(schema: A)
+                        @fusion__inputField(schema: B)
+                        @deprecated(reason: "Some reason")
+                }
+                """
+            },
+            // If the an input field is deprecated without a deprecation reason,
+            // a default reason is inserted to be compatible with the latest spec.
+            {
+                [
+                    """
+                    # Schema A
+                    input OrderFilter {
+                        minTotal: Int @deprecated
+                    }
+                    """,
+                    """
+                    # Schema B
+                    input OrderFilter {
+                        minTotal: Int @deprecated
+                    }
+                    """
+                ],
+                """
+                input OrderFilter
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B) {
+                    minTotal: Int
+                        @fusion__inputField(schema: A)
+                        @fusion__inputField(schema: B)
+                        @deprecated(reason: "No longer supported.")
+                }
+                """
             }
         };
     }

@@ -166,7 +166,7 @@ internal sealed class SourceSchemaMerger
         var type = MostRestrictiveType(typeA, typeB);
         var description = argumentA.Description ?? argumentB.Description;
         var defaultValue = argumentA.DefaultValue ?? argumentB.DefaultValue;
-        var isDeprecated = argumentA.IsDeprecated && argumentB.IsDeprecated;
+        var isDeprecated = argumentA.IsDeprecated || argumentB.IsDeprecated;
         var deprecationReason = isDeprecated
             ? argumentA.DeprecationReason ?? argumentB.DeprecationReason
             : null;
@@ -284,9 +284,9 @@ internal sealed class SourceSchemaMerger
             var enumValueInfo = enumValueGroup[i];
             description ??= enumValueInfo.EnumValue.Description;
 
-            if (!enumValueInfo.EnumValue.IsDeprecated)
+            if (enumValueInfo.EnumValue.IsDeprecated && !isDeprecated)
             {
-                isDeprecated = false;
+                isDeprecated = true;
             }
 
             if (isDeprecated && string.IsNullOrEmpty(deprecationReason))
@@ -390,9 +390,9 @@ internal sealed class SourceSchemaMerger
             description ??= inputFieldInfo.Field.Description;
             defaultValue ??= inputFieldInfo.Field.DefaultValue;
 
-            if (!inputFieldInfo.Field.IsDeprecated)
+            if (inputFieldInfo.Field.IsDeprecated && !isDeprecated)
             {
-                isDeprecated = false;
+                isDeprecated = true;
             }
 
             if (isDeprecated && string.IsNullOrEmpty(deprecationReason))
@@ -626,9 +626,9 @@ internal sealed class SourceSchemaMerger
             fieldType = LeastRestrictiveType(fieldType, fieldInfo.Field.Type).ExpectOutputType();
             description ??= fieldInfo.Field.Description;
 
-            if (!fieldInfo.Field.IsDeprecated)
+            if (fieldInfo.Field.IsDeprecated && !isDeprecated)
             {
-                isDeprecated = false;
+                isDeprecated = true;
             }
 
             if (isDeprecated && string.IsNullOrEmpty(deprecationReason))
