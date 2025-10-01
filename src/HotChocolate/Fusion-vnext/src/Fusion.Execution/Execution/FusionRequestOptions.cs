@@ -12,7 +12,7 @@ public sealed class FusionRequestOptions : ICloneable
 
     /// <summary>
     /// Gets or sets the execution timeout.
-    /// 30 seconds by default.
+    /// <c>30s</c> by default. <c>100ms</c> is the minimum.
     /// </summary>
     public TimeSpan ExecutionTimeout
     {
@@ -29,7 +29,7 @@ public sealed class FusionRequestOptions : ICloneable
 
     /// <summary>
     /// Gets or sets the time that the executor manager waits to dispose the schema services.
-    /// 30 seconds by default.
+    /// <c>30s</c> by default.
     /// </summary>
     public TimeSpan EvictionTimeout
     {

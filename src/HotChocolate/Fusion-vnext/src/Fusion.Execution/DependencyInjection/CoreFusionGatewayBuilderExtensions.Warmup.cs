@@ -6,6 +6,9 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class CoreFusionGatewayBuilderExtensions
 {
+    /// <summary>
+    /// Adds a warmup task that will be executed on each newly created request executor.
+    /// </summary>
     public static IFusionGatewayBuilder AddWarmupTask(
         this IFusionGatewayBuilder builder,
         Func<IRequestExecutor, CancellationToken, Task> warmupFunc)
@@ -16,6 +19,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder.AddWarmupTask(new DelegateWarmupTask(warmupFunc));
     }
 
+    /// <summary>
+    /// Adds a warmup task that will be executed on each newly created request executor.
+    /// </summary>
     public static IFusionGatewayBuilder AddWarmupTask(
         this IFusionGatewayBuilder builder,
         IRequestExecutorWarmupTask warmupTask)
@@ -28,6 +34,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder;
     }
 
+    /// <summary>
+    /// Adds a warmup task that will be executed on each newly created request executor.
+    /// </summary>
     public static IFusionGatewayBuilder AddWarmupTask<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder)
         where T : class, IRequestExecutorWarmupTask
