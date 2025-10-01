@@ -269,6 +269,72 @@ public class CompositeResultDocumentTests : FusionTestBase
     }
 
     [Fact]
+    public void Enumerate_Array()
+    {
+        // arrange
+        var schema = ComposeShoppingSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var users = compositeResult.Data.GetProperty("users");
+        var usersSelection = users.AssertSelection();
+        var usersSelectionSet = operation.GetSelectionSet(usersSelection);
+        users.SetObjectValue(usersSelectionSet);
+
+        var nodes = users.GetProperty("nodes");
+        var nodesSelection = nodes.AssertSelection();
+        var nodesSelectionSet = operation.GetSelectionSet(nodesSelection);
+        nodes.SetArrayValue(3);
+
+        var result =
+            """
+                {
+                  "name1": "Abc",
+                  "name2": "Def",
+                  "name3": "Ghi"
+                }
+                """u8.ToArray();
+
+        var sourceResult = SourceResultDocument.Parse(result, result.Length);
+        var i = 0;
+
+        // act
+        foreach (var element in nodes.EnumerateArray())
+        {
+            element.SetObjectValue(nodesSelectionSet);
+            var name = element.GetProperty("name");
+            name.SetLeafValue(sourceResult.Root.GetProperty("name" + ++i));
+        }
+
+        // assert
+        using var enumerator = nodes.EnumerateArray().GetEnumerator();
+
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("Abc", enumerator.Current.GetProperty("name").AssertString());
+
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("Def", enumerator.Current.GetProperty("name").AssertString());
+
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal("Ghi", enumerator.Current.GetProperty("name").AssertString());
+
+        Assert.False(enumerator.MoveNext());
+    }
+
+    [Fact]
     public void Path_Fields_Only()
     {
         // arrange
@@ -366,6 +432,6 @@ public class CompositeResultDocumentTests : FusionTestBase
         var path = name.Path;
 
         // assert
-        Assert.Equal("/productBySlug/name", path.ToString());
+        Assert.Equal("/users/nodes[0]/name", path.ToString());
     }
 }

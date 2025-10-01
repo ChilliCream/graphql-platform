@@ -26,7 +26,7 @@ public sealed partial class CompositeResultDocument
         }
 
         var maxBytes = s_utf8Encoding.GetMaxByteCount(propertyName.Length);
-        var endIndex = startIndex + row.NumberOfRows - 2;
+        var endIndex = startIndex + row.NumberOfRows - 1;
 
         if (maxBytes < JsonConstants.StackallocByteThreshold)
         {
@@ -116,7 +116,7 @@ public sealed partial class CompositeResultDocument
             return false;
         }
 
-        var endIndex = startIndex + row.NumberOfRows - 2;
+        var endIndex = startIndex + row.NumberOfRows - 1;
 
         return TryGetNamedPropertyValue(
             startIndex + 1,
@@ -203,7 +203,7 @@ public sealed partial class CompositeResultDocument
         value = default;
         return false;
     }
-    
+
     internal int GetStartIndex(int index)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);

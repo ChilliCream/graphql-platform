@@ -12,17 +12,15 @@ public partial struct CompositeResultElement
     public struct ArrayEnumerator : IEnumerable<CompositeResultElement>, IEnumerator<CompositeResultElement>
     {
         private readonly CompositeResultElement _target;
-        private int _curIdx;
-        private readonly int _endIdxOrVersion;
+        private int _index;
+        private readonly int _startIndex;
+        private readonly int _endIndex;
 
-        internal ArrayEnumerator(CompositeResultElement target, int currentIndex = -1)
+        internal ArrayEnumerator(CompositeResultElement target)
         {
             _target = target;
-            _curIdx = currentIndex;
-
-            Debug.Assert(target.TokenType == ElementTokenType.StartArray);
-
-            _endIdxOrVersion = target._parent.GetEndIndex(_target._index);
+            _index = _startIndex = target._parent.GetStartIndex(_target._index);
+            _endIndex = target._parent.GetEndIndex(_index);
         }
 
         /// <inheritdoc />
@@ -30,12 +28,12 @@ public partial struct CompositeResultElement
         {
             get
             {
-                if (_curIdx < 0)
+                if (_index == _startIndex || _index >= _endIndex)
                 {
                     return default;
                 }
 
-                return new CompositeResultElement(_target._parent, _curIdx);
+                return new CompositeResultElement(_target._parent, _index);
             }
         }
 
@@ -49,26 +47,28 @@ public partial struct CompositeResultElement
         public ArrayEnumerator GetEnumerator()
         {
             var enumerator = this;
-            enumerator._curIdx = -1;
+            enumerator._index = enumerator._startIndex;
             return enumerator;
         }
 
         /// <inheritdoc />
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
 
         /// <inheritdoc />
-        IEnumerator<CompositeResultElement> IEnumerable<CompositeResultElement>.GetEnumerator() => GetEnumerator();
+        IEnumerator<CompositeResultElement> IEnumerable<CompositeResultElement>.GetEnumerator()
+            => GetEnumerator();
 
         /// <inheritdoc />
         public void Dispose()
         {
-            _curIdx = _endIdxOrVersion;
+            _index = _endIndex;
         }
 
         /// <inheritdoc />
         public void Reset()
         {
-            _curIdx = -1;
+            _index = _startIndex;
         }
 
         /// <inheritdoc />
@@ -77,21 +77,13 @@ public partial struct CompositeResultElement
         /// <inheritdoc />
         public bool MoveNext()
         {
-            if (_curIdx >= _endIdxOrVersion)
+            if (_index >= _endIndex)
             {
                 return false;
             }
 
-            if (_curIdx < 0)
-            {
-                _curIdx = _target._index + 1;
-            }
-            else
-            {
-                _curIdx = _target._parent.GetEndIndex(_curIdx);
-            }
-
-            return _curIdx < _endIdxOrVersion;
+            _index++;
+            return _index < _endIndex;
         }
     }
 }

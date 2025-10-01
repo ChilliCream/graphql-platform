@@ -17,12 +17,13 @@ namespace HotChocolate.Fusion.Text.Json
         {
             private readonly CompositeResultElement _target;
             private int _index;
+            private readonly int _startIndex;
             private readonly int _endIndex;
 
             internal ObjectEnumerator(CompositeResultElement target)
             {
                 _target = target;
-                _index = target._parent.GetStartIndex(_target._index);
+                _index = _startIndex = target._parent.GetStartIndex(_target._index);
                 _endIndex = target._parent.GetEndIndex(_index);
             }
 
@@ -31,7 +32,7 @@ namespace HotChocolate.Fusion.Text.Json
             {
                 get
                 {
-                    if (_index < 0)
+                    if (_index == _startIndex || _index >= _endIndex)
                     {
                         return default;
                     }
@@ -56,12 +57,13 @@ namespace HotChocolate.Fusion.Text.Json
             public ObjectEnumerator GetEnumerator()
             {
                 var enumerator = this;
-                enumerator._index = -1;
+                enumerator._index = enumerator._startIndex;
                 return enumerator;
             }
 
             /// <inheritdoc />
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator()
+                => GetEnumerator();
 
             /// <inheritdoc />
             IEnumerator<CompositeResultProperty> IEnumerable<CompositeResultProperty>.GetEnumerator()
@@ -76,7 +78,7 @@ namespace HotChocolate.Fusion.Text.Json
             /// <inheritdoc />
             public void Reset()
             {
-                _index = _target._parent.GetEndIndex(_target._index);
+                _index = _startIndex;
             }
 
             /// <inheritdoc />

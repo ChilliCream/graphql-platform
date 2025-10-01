@@ -413,7 +413,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             parentRow: parentRow,
             operationReferenceId: selectionSetId,
             operationReferenceType: OperationReferenceType.SelectionSet,
-            numberOfRows: (length * 2) + 2,
+            numberOfRows: (length * 2) + 1,
             flags: flags);
     }
 
@@ -435,7 +435,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             ElementTokenType.StartArray,
             sizeOrLength: length,
             parentRow: parentRow,
-            numberOfRows: (length * 2) + 2,
+            numberOfRows: length + 1,
             flags: flags);
     }
 
