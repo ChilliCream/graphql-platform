@@ -53,7 +53,10 @@ public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionC
         QueryableProjectionContext context,
         QueryableProjectionScope scope)
     {
-        var requirements = context.ResolverContext.Schema.Features.GetRequired<FieldRequirementsMetadata>();
+        if (!context.ResolverContext.Schema.Features.TryGet<FieldRequirementsMetadata>(out var requirements))
+        {
+            return;
+        }
 
         foreach (var selection in selections)
         {
