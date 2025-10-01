@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Text.Json.MetaDbMemory;
 
@@ -75,7 +74,8 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(currentIndex);
+        var startIndex = _metaDb.GetStartIndex(currentIndex);
+        var row = _metaDb.Get(startIndex);
 
         CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
 
@@ -86,7 +86,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             throw new IndexOutOfRangeException();
         }
 
-        return new CompositeResultElement(this, currentIndex + arrayIndex + 1);
+        return new CompositeResultElement(this, startIndex + arrayIndex + 1);
     }
 
     internal int GetArrayLength(int currentIndex)
@@ -118,7 +118,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             return Path.Root;
         }
 
-        Span<int> indexes = stackalloc int[2];
+        Span<int> indexes = stackalloc int[64];
         var index = currentIndex;
         var written = 0;
 
@@ -134,30 +134,33 @@ public sealed partial class CompositeResultDocument : IDisposable
         } while (index > 0);
 
         var path = Path.Root;
-        var parent = ElementTokenType.StartObject;
+        var parentTokenType = ElementTokenType.StartObject;
 
-        for (var i = indexes.Length - 1; i >= 0; i--)
+        indexes = indexes[..written];
+
+        for (var i = indexes.Length - 1; i >= 1; i--)
         {
             index = indexes[i];
+            var tokenType = _metaDb.GetElementTokenType(index, resolveReferences: false);
 
-            var elementType = GetElementTokenType(index);
-            if (elementType == ElementTokenType.Reference)
+            if (tokenType == ElementTokenType.PropertyName)
             {
-                if (parent == ElementTokenType.StartObject)
+                path = path.Append(GetSelection(index)!.ResponseName);
+                // we jump over the actual value.
+                i--;
+            }
+            else if (indexes.Length - 1 > i)
+            {
+                var parentIndex = indexes[i + 1];
+                if (parentTokenType is ElementTokenType.StartArray)
                 {
-                    var nameSpan = GetPropertyNameRaw(index);
-                    var location = _metaDb.GetLocation(index);
-                    var name = s_utf8Encoding.GetString(nameSpan);
-                    parent = _metaDb.GetElementTokenType(location);
-                    path = path.Append(name);
-                    continue;
-                }
-                else if (parent == ElementTokenType.StartArray)
-                {
+                    var parentRow = _metaDb.Get(parentIndex);
+                    var arrayIndex = (parentIndex + parentRow.SizeOrLength) - index;
+                    path = path.Append(arrayIndex);
                 }
             }
 
-            throw new InvalidOperationException("Unexpected element type.");
+            parentTokenType = tokenType;
         }
 
         return path;

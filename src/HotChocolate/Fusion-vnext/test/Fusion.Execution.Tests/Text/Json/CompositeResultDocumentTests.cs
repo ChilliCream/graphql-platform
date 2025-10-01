@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Mono.Cecil;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -265,5 +266,106 @@ public class CompositeResultDocumentTests : FusionTestBase
         Assert.Equal("Abc", enumerator.Current.Value.AssertString());
 
         Assert.False(enumerator.MoveNext());
+    }
+
+    [Fact]
+    public void Path_Fields_Only()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    ... Product
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var productBySlug = compositeResult.Data.GetProperty("productBySlug");
+        var productBySlugSelection = productBySlug.AssertSelection();
+        var selectionSet = operation.GetSelectionSet(productBySlugSelection);
+        productBySlug.SetObjectValue(selectionSet);
+
+        var result =
+            """
+                {
+                  "id": 1,
+                  "name": "Abc"
+                }
+                """u8.ToArray();
+
+        var sourceResult = SourceResultDocument.Parse(result, result.Length);
+        productBySlug.GetProperty("id").SetLeafValue(sourceResult.Root.GetProperty("id"));
+        productBySlug.GetProperty("name").SetLeafValue(sourceResult.Root.GetProperty("name"));
+
+        // act
+        var path = productBySlug.GetProperty("name").Path;
+
+        // assert
+        Assert.Equal("/productBySlug/name", path.ToString());
+    }
+
+    [Fact]
+    public void Path_Array_Index()
+    {
+        // arrange
+        var schema = ComposeShoppingSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var users = compositeResult.Data.GetProperty("users");
+        var usersSelection = users.AssertSelection();
+        var usersSelectionSet = operation.GetSelectionSet(usersSelection);
+        users.SetObjectValue(usersSelectionSet);
+
+        var nodes = users.GetProperty("nodes");
+        var nodesSelection = nodes.AssertSelection();
+        var nodesSelectionSet = operation.GetSelectionSet(nodesSelection);
+        nodes.SetArrayValue(1);
+
+        var element = nodes[0];
+        element.SetObjectValue(nodesSelectionSet);
+
+        var name = element.GetProperty("name");
+
+        var result =
+            """
+                {
+                  "name": "Abc"
+                }
+                """u8.ToArray();
+
+        var sourceResult = SourceResultDocument.Parse(result, result.Length);
+        name.SetLeafValue(sourceResult.Root.GetProperty("name"));
+
+        // act
+        var path = name.Path;
+
+        // assert
+        Assert.Equal("/productBySlug/name", path.ToString());
     }
 }

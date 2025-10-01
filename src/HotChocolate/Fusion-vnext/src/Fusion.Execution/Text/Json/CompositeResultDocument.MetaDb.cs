@@ -279,7 +279,7 @@ public sealed partial class CompositeResultDocument
             MemoryMarshal.Write(fieldSpan, newValue);
         }
 
-        internal ElementTokenType GetElementTokenType(int index)
+        internal ElementTokenType GetElementTokenType(int index, bool resolveReferences = true)
         {
             // We convert the row index back into a byte offset that we can
             // in turn break up into the chunk where the row resides and the
@@ -291,7 +291,7 @@ public sealed partial class CompositeResultDocument
             var union = MemoryMarshal.Read<uint>(_chunks[chunkIndex].AsSpan(localOffset + TokenTypeOffset));
             var tokenType = (ElementTokenType)(union >> 28);
 
-            if (tokenType is ElementTokenType.Reference)
+            if (resolveReferences && tokenType is ElementTokenType.Reference)
             {
                 index = GetLocation(index);
                 byteOffset = index * DbRow.Size;
