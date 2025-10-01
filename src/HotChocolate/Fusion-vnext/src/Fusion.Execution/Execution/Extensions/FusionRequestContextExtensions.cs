@@ -125,7 +125,7 @@ public static class FusionRequestContextExtensions
             return errorHandlingMode;
         }
 
-        return requestOptions.DefaultErrorHandlingMode;
+        return context.Schema.GetOptions().DefaultErrorHandlingMode;
     }
 
     internal static bool AllowErrorHandlingModeOverride(
