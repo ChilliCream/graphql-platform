@@ -7,6 +7,12 @@ namespace HotChocolate.Execution;
 public interface IRequestExecutorWarmupTask
 {
     /// <summary>
+    /// Specifies whether the warmup task should be only applied on startup,
+    /// but not subsequent request executor creations.
+    /// </summary>
+    bool ApplyOnlyOnStartup { get; }
+
+    /// <summary>
     /// Warms up the <paramref name="executor"/>.
     /// </summary>
     Task WarmupAsync(IRequestExecutor executor, CancellationToken cancellationToken);

@@ -1,10 +1,12 @@
 using HotChocolate.Execution.Caching;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.Execution;
 
-public class RequestExecutorResolverTests
+public class RequestExecutorManagerTests
 {
     [Fact]
     public async Task Operation_Cache_Should_Be_Scoped_To_Executor()
@@ -53,14 +55,12 @@ public class RequestExecutorResolverTests
 
         var manager = new ServiceCollection()
             .AddGraphQL()
-            .InitializeOnStartup(
-                warmup: (_, _) =>
-                {
-                    warmupResetEvent.Wait(cts.Token);
+            .AddWarmupTask((_, _) =>
+            {
+                warmupResetEvent.Wait(cts.Token);
 
-                    return Task.CompletedTask;
-                },
-                keepWarm: true)
+                return Task.CompletedTask;
+            })
             .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
             .GetRequiredService<RequestExecutorManager>();
@@ -93,11 +93,8 @@ public class RequestExecutorResolverTests
         cts.Dispose();
     }
 
-    [Theory]
-    [InlineData(false, 1)]
-    [InlineData(true, 2)]
-    public async Task WarmupSchemaTasks_Are_Applied_Correct_Number_Of_Times(
-        bool keepWarm, int expectedWarmups)
+    [Fact]
+    public async Task WarmupTasks_Are_Applied_Correct_Number_Of_Times()
     {
         // arrange
         var warmups = 0;
@@ -106,13 +103,11 @@ public class RequestExecutorResolverTests
 
         var manager = new ServiceCollection()
             .AddGraphQL()
-            .InitializeOnStartup(
-                warmup: (_, _) =>
-                {
-                    warmups++;
-                    return Task.CompletedTask;
-                },
-                keepWarm: keepWarm)
+            .AddWarmupTask((_, _) =>
+            {
+                warmups++;
+                return Task.CompletedTask;
+            })
             .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
             .GetRequiredService<RequestExecutorManager>();
@@ -129,13 +124,15 @@ public class RequestExecutorResolverTests
         // assert
         var initialExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
 
+        Assert.Equal(1, warmups);
+
         manager.EvictExecutor();
         executorEvictedResetEvent.Wait(cts.Token);
 
         var executorAfterEviction = await manager.GetExecutorAsync(cancellationToken: cts.Token);
 
         Assert.NotSame(initialExecutor, executorAfterEviction);
-        Assert.Equal(expectedWarmups, warmups);
+        Assert.Equal(2, warmups);
     }
 
     [Fact]
@@ -192,5 +189,55 @@ public class RequestExecutorResolverTests
         await executor1Task;
 
         cts.Dispose();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Ensure_Executor_Is_Created_During_Startup(bool lazyInitialization)
+    {
+        // arrange
+        var typeModule = new TriggerableTypeModule();
+        var executorCreated = false;
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var createdResetEvent = new ManualResetEventSlim(false);
+
+        var services = new ServiceCollection();
+        services
+            .AddGraphQLServer()
+            .ModifyOptions(o => o.LazyInitialization = lazyInitialization)
+            .AddTypeModule(_ => typeModule)
+            .AddQueryType(d => d.Field("foo").Resolve(""));
+        var provider = services.BuildServiceProvider();
+        var executorManager = provider.GetRequiredService<RequestExecutorManager>();
+        var warmupService = provider.GetRequiredService<IHostedService>();
+
+        executorManager.Subscribe(new RequestExecutorEventObserver(@event =>
+        {
+            if (@event.Type == RequestExecutorEventType.Created)
+            {
+                executorCreated = true;
+                createdResetEvent.Set();
+            }
+        }));
+
+        // act
+        await warmupService.StartAsync(cts.Token);
+
+        // assert
+        if (lazyInitialization)
+        {
+            Assert.False(executorCreated);
+        }
+        else
+        {
+            createdResetEvent.Wait(cts.Token);
+            Assert.True(executorCreated);
+        }
+    }
+
+    private sealed class TriggerableTypeModule : TypeModule
+    {
+        public void TriggerChange() => OnTypesChanged();
     }
 }

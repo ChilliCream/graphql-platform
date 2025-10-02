@@ -69,7 +69,7 @@ public static class FusionServerServiceCollectionExtensions
     private static IFusionGatewayBuilder AddStartupInitialization(
         this IFusionGatewayBuilder builder)
     {
-        builder.Services.AddHostedService<RequestExecutorWarmupService>();
+        builder.Services.AddHostedService<FusionRequestExecutorWarmupService>();
 
         return builder;
     }

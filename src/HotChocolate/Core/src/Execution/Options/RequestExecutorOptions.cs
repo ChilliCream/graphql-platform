@@ -11,7 +11,6 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 {
     private static readonly TimeSpan s_minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private TimeSpan _executionTimeout;
-    private PersistedOperationOptions _persistedOperations = new();
 
     /// <summary>
     /// <para>Initializes a new instance of <see cref="RequestExecutorOptions"/>.</para>
@@ -44,12 +43,16 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     }
 
     /// <summary>
-    /// <para>
-    /// Gets or sets a value indicating whether the <c>GraphQL</c> errors
-    /// should be extended with exception details.
-    /// </para>
-    /// <para>The default value is <see cref="Debugger.IsAttached"/>.</para>
+    /// Gets or sets whether exception details should be included for GraphQL
+    /// errors in the GraphQL response.
+    /// <see cref="Debugger.IsAttached"/> by default.
     /// </summary>
+    /// <remarks>
+    /// When set to <c>true</c> includes the message and stack trace of exceptions
+    /// in the user-facing GraphQL error.
+    /// Since this could leak security-critical information, this option should only
+    /// be set to <c>true</c> for development purposes and not in production environments.
+    /// </remarks>
     public bool IncludeExceptionDetails { get; set; } = Debugger.IsAttached;
 
     /// <summary>
@@ -57,11 +60,11 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     /// </summary>
     public PersistedOperationOptions PersistedOperations
     {
-        get => _persistedOperations;
+        get;
         set
         {
             ArgumentNullException.ThrowIfNull(value, nameof(PersistedOperationOptions));
-            _persistedOperations = value;
+            field = value;
         }
-    }
+    } = new();
 }

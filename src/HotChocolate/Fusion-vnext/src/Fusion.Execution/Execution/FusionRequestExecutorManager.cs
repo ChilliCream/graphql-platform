@@ -143,7 +143,7 @@ internal sealed class FusionRequestExecutorManager
 
         var executor = CreateRequestExecutor(schemaName, configuration);
 
-        await WarmupExecutorAsync(executor, cancellationToken).ConfigureAwait(false);
+        await WarmupExecutorAsync(executor, true, cancellationToken).ConfigureAwait(false);
 
         return new RequestExecutorRegistration(
             this,
@@ -181,9 +181,18 @@ internal sealed class FusionRequestExecutorManager
         return executor;
     }
 
-    private async Task WarmupExecutorAsync(IRequestExecutor executor, CancellationToken cancellationToken)
+    private async Task WarmupExecutorAsync(
+        IRequestExecutor executor,
+        bool isInitialCreation,
+        CancellationToken cancellationToken)
     {
         var warmupTasks = executor.Schema.Services.GetServices<IRequestExecutorWarmupTask>();
+
+        if (!isInitialCreation)
+        {
+            warmupTasks = warmupTasks.Where(t => !t.ApplyOnlyOnStartup);
+        }
+
         foreach (var warmupTask in warmupTasks)
         {
             await warmupTask.WarmupAsync(executor, cancellationToken).ConfigureAwait(false);
@@ -630,7 +639,7 @@ internal sealed class FusionRequestExecutorManager
                 var previousExecutor = Executor;
                 var nextExecutor = _manager.CreateRequestExecutor(Executor.Schema.Name, configuration);
 
-                await _manager.WarmupExecutorAsync(nextExecutor, _cancellationToken).ConfigureAwait(false);
+                await _manager.WarmupExecutorAsync(nextExecutor, false, _cancellationToken).ConfigureAwait(false);
 
                 Executor = nextExecutor;
 
