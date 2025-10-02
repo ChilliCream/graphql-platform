@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -261,7 +262,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
     }
 
     [Fact]
-    public async Task WarmupSchemaTasks_Are_Applied_Correct_Number_Of_Times()
+    public async Task WarmupTasks_Are_Applied_Correct_Number_Of_Times()
     {
         // arrange
         var warmups = 0;

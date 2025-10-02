@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HotChocolate.Caching.Memory;
 using HotChocolate.Execution.Relay;
 using HotChocolate.Language;
@@ -78,11 +79,13 @@ public sealed class FusionRequestOptions : ICloneable
     /// <summary>
     /// Gets or sets whether exception details should be included for GraphQL
     /// errors in the GraphQL response.
-    /// <c>false</c> by default.
+    /// <see cref="Debugger.IsAttached"/> by default.
     /// </summary>
     /// <remarks>
-    /// This should only be enabled for development purposes
-    /// and not in production environments.
+    /// When set to <c>true</c> includes the message and stack trace of exceptions
+    /// in the user-facing GraphQL error.
+    /// Since this could leak security-critical information, this option should only
+    /// be set to <c>true</c> for development purposes and not in production environments.
     /// </remarks>
     public bool IncludeExceptionDetails
     {
@@ -93,7 +96,7 @@ public sealed class FusionRequestOptions : ICloneable
 
             field = value;
         }
-    }
+    } = Debugger.IsAttached;
 
     /// <summary>
     /// Clones the request options into a new mutable instance.
