@@ -12,6 +12,30 @@ Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
 
+## Eager initialization by default
+
+Previously, Hot Chocolate would only construct the schema and request executor upon the first request. This deferred initialization could create a performance penalty on initial requests and delayed the discovery of schema errors until runtime.
+
+To address this, we previously offered an `InitializeOnStartup` helper that would initialize the schema and request executor in a blocking hosted service during startup. This ensured everything GraphQL-related was ready before Kestrel began accepting requests.
+
+Since we believe eager initialization is the right default, it's now the standard behavior. This means your schema and request executor are constructed during application startup, before your server begins accepting traffic.
+As a bonus, this tightens your development loop, since schema errors surface immediately when you start debugging rather than only appearing when you send your first request.
+
+If you're currently using `InitializeOnStartup`, you can safely remove it. If you also provided the `warmup` argument to run a task during the initialization, you can migrate that task to the new `AddWarmupTask` API:
+
+```diff
+builder.Services.AddGraphQLServer()
+-   .InitializeOnStartup(warmup: (executor, ct) => { /* ... */ });
++   .AddWarmupTask((executor, ct) => { /* ... */ });
+```
+
+If you need to preserve lazy initialization for specific scenarios (though this is rarely recommended), you can opt out by setting the `LazyInitialization` option to `true`:
+
+```csharp
+builder.Services.AddGraphQLServer()
+    .ModifyOptions(options => options.LazyInitialization = true);
+```
+
 ## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
 
 **Before**
