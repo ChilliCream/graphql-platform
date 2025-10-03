@@ -22,13 +22,15 @@ public partial class SchemaBuilder : ISchemaBuilder
     private readonly List<CreateRef> _types = [];
     private readonly Dictionary<OperationType, CreateRef> _operations = [];
 
-    private readonly SchemaOptions _options = new();
+    private readonly SchemaOptions _options;
     private IsOfTypeFallback? _isOfType;
     private IServiceProvider? _services;
     private CreateRef? _schema;
 
-    private SchemaBuilder()
+    private SchemaBuilder(SchemaOptions options)
     {
+        _options = options;
+
         var typeInterceptors = new TypeInterceptorCollection();
 
         typeInterceptors.TryAdd(new IntrospectionTypeInterceptor());
@@ -238,5 +240,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <returns>
     /// Returns a new instance of <see cref="SchemaBuilder"/>.
     /// </returns>
-    public static SchemaBuilder New() => new();
+    public static SchemaBuilder New() => new(new SchemaOptions());
+
+    internal static SchemaBuilder New(SchemaOptions options) => new(options);
 }
