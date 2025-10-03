@@ -29,6 +29,8 @@ builder.Services.AddGraphQLServer()
 +   .AddWarmupTask((executor, ct) => { /* ... */ });
 ```
 
+Warmup tasks registered with `AddWarmupTask` run at startup **and** when the schema is updated at runtime by default. Checkout the [documentation](/docs/hotchocolate/v16/server/warmup), if you need your warmup task to only run at startup.
+
 If you need to preserve lazy initialization for specific scenarios (though this is rarely recommended), you can opt out by setting the `LazyInitialization` option to `true`:
 
 ```csharp
