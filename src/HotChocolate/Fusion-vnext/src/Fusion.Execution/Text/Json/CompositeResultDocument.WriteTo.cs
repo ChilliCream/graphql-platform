@@ -25,6 +25,10 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
         private const byte Space = (byte)' ';
         private const byte NewLine = (byte)'\n';
 
+        private ReadOnlySpan<byte> True => "true"u8;
+        private ReadOnlySpan<byte> False => "false"u8;
+        private ReadOnlySpan<byte> Null => "null"u8;
+
         private int _indentLevel = 0;
 
         public void WriteValue(int index)
@@ -35,7 +39,21 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
 
         private void WriteValue(int index, DbRow row)
         {
-            switch (row.TokenType)
+            var tokenType = row.TokenType;
+
+            // if the row is a reference we resolve the reference in place
+            if (tokenType is ElementTokenType.Reference)
+            {
+                index = row.Location;
+                row = document._metaDb.Get(index);
+                tokenType = row.TokenType;
+            }
+
+            Debug.Assert(tokenType is not ElementTokenType.Reference);
+            Debug.Assert(tokenType is not ElementTokenType.EndObject);
+            Debug.Assert(tokenType is not ElementTokenType.EndArray);
+
+            switch (tokenType)
             {
                 case ElementTokenType.StartObject:
                     WriteObject(index, row);
@@ -43,6 +61,18 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
 
                 case ElementTokenType.StartArray:
                     WriteArray(index, row);
+                    break;
+
+                case ElementTokenType.Null:
+                    writer.Write(Null);
+                    break;
+
+                case ElementTokenType.True:
+                    writer.Write(True);
+                    break;
+
+                case ElementTokenType.False:
+                    writer.Write(False);
                     break;
 
                 default:

@@ -159,7 +159,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     {
         if (result is IRawJsonFormatter formatter)
         {
-            formatter.WriteTo(writer);
+            formatter.WriteTo(writer, _options.Indented);
             return;
         }
 

@@ -1,6 +1,7 @@
+using System.IO.Pipelines;
 using System.Text;
 using System.Text.Json;
-using Mono.Cecil;
+using HotChocolate.Buffers;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -433,5 +434,127 @@ public class CompositeResultDocumentTests : FusionTestBase
 
         // assert
         Assert.Equal("/users/nodes[0]/name", path.ToString());
+    }
+
+    [Fact]
+    public void Write_Document_To_BufferWriter()
+    {
+        // arrange
+        using var buffer = new PooledArrayWriter();
+
+        var schema = ComposeShoppingSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var users = compositeResult.Data.GetProperty("users");
+        var usersSelection = users.AssertSelection();
+        var usersSelectionSet = operation.GetSelectionSet(usersSelection);
+        users.SetObjectValue(usersSelectionSet);
+
+        var nodes = users.GetProperty("nodes");
+        var nodesSelection = nodes.AssertSelection();
+        var nodesSelectionSet = operation.GetSelectionSet(nodesSelection);
+        nodes.SetArrayValue(3);
+
+        var result =
+            """
+                {
+                  "name1": "Abc",
+                  "name2": "Def",
+                  "name3": "Ghi"
+                }
+                """u8.ToArray();
+
+        var sourceResult = SourceResultDocument.Parse(result, result.Length);
+        var i = 0;
+
+        foreach (var element in nodes.EnumerateArray())
+        {
+            element.SetObjectValue(nodesSelectionSet);
+            var name = element.GetProperty("name");
+            name.SetLeafValue(sourceResult.Root.GetProperty("name" + ++i));
+        }
+
+        // act
+        compositeResult.WriteTo(buffer, indented: true);
+
+        // assert
+        var json = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        json.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Write_Document_To_PipeWriter()
+    {
+        // arrange
+        var schema = ComposeShoppingSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var users = compositeResult.Data.GetProperty("users");
+        var usersSelection = users.AssertSelection();
+        var usersSelectionSet = operation.GetSelectionSet(usersSelection);
+        users.SetObjectValue(usersSelectionSet);
+
+        var nodes = users.GetProperty("nodes");
+        var nodesSelection = nodes.AssertSelection();
+        var nodesSelectionSet = operation.GetSelectionSet(nodesSelection);
+        nodes.SetArrayValue(3);
+
+        var result =
+            """
+                {
+                  "name1": "Abc",
+                  "name2": "Def",
+                  "name3": "Ghi"
+                }
+                """u8.ToArray();
+
+        var sourceResult = SourceResultDocument.Parse(result, result.Length);
+        var i = 0;
+
+        foreach (var element in nodes.EnumerateArray())
+        {
+            element.SetObjectValue(nodesSelectionSet);
+            var name = element.GetProperty("name");
+            name.SetLeafValue(sourceResult.Root.GetProperty("name" + ++i));
+        }
+
+        // act
+        await using var memoryStream = new MemoryStream();
+        var writer = PipeWriter.Create(memoryStream);
+        compositeResult.WriteTo(writer, indented: true);
+        await writer.FlushAsync();
+        await writer.CompleteAsync();
+
+        // assert
+        var json = Encoding.UTF8.GetString(memoryStream.ToArray());
+        json.MatchSnapshot();
     }
 }

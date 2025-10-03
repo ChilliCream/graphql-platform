@@ -107,6 +107,12 @@ public sealed partial class CompositeResultDocument
 
         var row = _metaDb.Get(startIndex);
 
+        if (row.TokenType is ElementTokenType.Reference)
+        {
+            startIndex = row.Location;
+            row = _metaDb.Get(row.Location);
+        }
+
         CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
 
         // Only one row means it was EndObject.

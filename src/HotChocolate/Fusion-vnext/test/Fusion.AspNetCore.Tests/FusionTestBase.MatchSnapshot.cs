@@ -82,7 +82,8 @@ public abstract partial class FusionTestBase
         {
             try
             {
-                if (result.Extensions.TryGetProperty("fusion", out var fusionProperty)
+                if (result.Extensions.ValueKind is JsonValueKind.Object
+                    && result.Extensions.TryGetProperty("fusion", out var fusionProperty)
                     && fusionProperty.TryGetProperty("operationPlan", out var operationPlanProperty))
                 {
                     var manager = gateway.Services.GetRequiredService<FusionRequestExecutorManager>();
