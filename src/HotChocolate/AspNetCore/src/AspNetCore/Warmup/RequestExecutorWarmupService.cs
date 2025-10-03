@@ -13,17 +13,14 @@ internal sealed class RequestExecutorWarmupService(
 
         foreach (var schemaName in provider.SchemaNames)
         {
-            // TODO: Maybe this isn't the best approach...
-            var options = await executorOptionsMonitor.GetAsync(schemaName, cancellationToken);
-            // var setup = optionsMonitor.Get(schemaName);
-            //
-            // var requestOptions = FusionRequestExecutorManager.CreateRequestOptions(setup);
+            var setup = await executorOptionsMonitor.GetAsync(schemaName, cancellationToken);
+            var options = RequestExecutorManager.CreateSchemaOptions(setup);
 
-            // if (!requestOptions.LazyInitialization)
-            // {
-            //     var warmupTask = WarmupAsync(schemaName, cancellationToken);
-            //     warmupTasks.Add(warmupTask);
-            // }
+            if (!options.LazyInitialization)
+            {
+                var warmupTask = WarmupAsync(schemaName, cancellationToken);
+                warmupTasks.Add(warmupTask);
+            }
         }
 
         await Task.WhenAll(warmupTasks).ConfigureAwait(false);
