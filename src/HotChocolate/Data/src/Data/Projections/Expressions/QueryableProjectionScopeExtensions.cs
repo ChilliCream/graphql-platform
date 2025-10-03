@@ -35,12 +35,25 @@ public static class QueryableProjectionScopeExtensions
 
             foreach (var val in scope.GetAbstractTypes())
             {
-                var ctor = Expression.New(val.Key);
-                Expression memberInit = Expression.MemberInit(ctor, val.Value);
+                var instance = scope.Instance.Peek();
+                Expression baseExpression;
+                if (val.Value.Count == 0)
+                {
+                    // No field has been selected for this type
+                    // -> Since we need to select something, select all(!) fields
+                    baseExpression = instance;
+                }
+                else
+                {
+                    // One or more fields have been selected for this type
+                    // -> Select only the requested fields.
+                    var ctor = Expression.New(val.Key);
+                    baseExpression = Expression.MemberInit(ctor, val.Value);
+                }
 
                 lastValue = Expression.Condition(
-                    Expression.TypeIs(scope.Instance.Peek(), val.Key),
-                    Expression.Convert(memberInit, scope.RuntimeType),
+                    Expression.TypeIs(instance, val.Key),
+                    Expression.Convert(baseExpression, scope.RuntimeType),
                     lastValue);
             }
 
