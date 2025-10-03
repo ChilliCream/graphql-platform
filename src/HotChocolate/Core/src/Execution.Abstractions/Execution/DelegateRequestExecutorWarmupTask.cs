@@ -1,6 +1,6 @@
 namespace HotChocolate.Execution;
 
-public sealed class DelegateWarmupTask(Func<IRequestExecutor, CancellationToken, Task> warmupFunc)
+public sealed class DelegateRequestExecutorWarmupTask(Func<IRequestExecutor, CancellationToken, Task> warmupFunc)
     : IRequestExecutorWarmupTask
 {
     public bool ApplyOnlyOnStartup => false;

@@ -1,7 +1,7 @@
 using System.Collections;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Utilities;
+namespace HotChocolate;
 
 internal sealed class CombinedServiceProvider : IServiceProvider
 {
@@ -85,7 +85,11 @@ internal sealed class CombinedServiceProvider : IServiceProvider
                 }
             }
 
+            // This should be fine, as we ensure the constructor is included,
+            // when registering services with the service collection.
+#pragma warning disable IL3050
             var array = Array.CreateInstance(elementType, buffer.Count);
+#pragma warning restore IL3050
 
             for (var i = 0; i < buffer.Count; i++)
             {
@@ -93,6 +97,7 @@ internal sealed class CombinedServiceProvider : IServiceProvider
             }
 
             buffer.Clear();
+
             Interlocked.CompareExchange(ref buffer, buffer, null);
 
             return array;
