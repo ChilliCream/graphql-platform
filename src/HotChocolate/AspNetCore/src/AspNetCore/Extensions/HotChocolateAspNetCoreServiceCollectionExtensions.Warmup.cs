@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.AspNetCore.Warmup;
 using HotChocolate.Execution.Configuration;
 
 // ReSharper disable once CheckNamespace
@@ -9,25 +10,68 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <summary>
     /// Adds a warmup task that will be executed on each newly created request executor.
     /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="warmupFunc">
+    /// The warmup delegate to execute.
+    /// </param>
+    /// <param name="skipIf">
+    /// If <c>true</c>, the warmup task will not be registered.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="warmupFunc"/> is <c>null</c>.
+    /// </exception>
     public static IRequestExecutorBuilder AddWarmupTask(
         this IRequestExecutorBuilder builder,
-        Func<IRequestExecutor, CancellationToken, Task> warmupFunc)
+        Func<IRequestExecutor, CancellationToken, Task> warmupFunc,
+        bool skipIf = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(warmupFunc);
 
-        return builder.AddWarmupTask(new DelegateWarmupTask(warmupFunc));
+        return builder.AddWarmupTask(new DelegateWarmupTask(warmupFunc), skipIf);
     }
 
     /// <summary>
     /// Adds a warmup task that will be executed on each newly created request executor.
     /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="warmupTask">
+    /// The warmup task to execute.
+    /// </param>
+    /// <param name="skipIf">
+    /// If <c>true</c>, the warmup task will not be registered.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="warmupTask"/> is <c>null</c>.
+    /// </exception>
     public static IRequestExecutorBuilder AddWarmupTask(
         this IRequestExecutorBuilder builder,
-        IRequestExecutorWarmupTask warmupTask)
+        IRequestExecutorWarmupTask warmupTask,
+        bool skipIf = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(warmupTask);
+
+        if (skipIf)
+        {
+            return builder;
+        }
 
         builder.ConfigureSchemaServices((_, sc) => sc.AddSingleton(warmupTask));
 
@@ -35,13 +79,34 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds a warmup task that will be executed on each newly created request executor.
+    /// Adds a warmup task for the request executor.
     /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="skipIf">
+    /// If <c>true</c>, the warmup task will not be registered.
+    /// </param>
+    /// <typeparam name="T">
+    /// The warmup task to execute.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
     public static IRequestExecutorBuilder AddWarmupTask<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
-        this IRequestExecutorBuilder builder)
+        this IRequestExecutorBuilder builder,
+        bool skipIf = false)
         where T : class, IRequestExecutorWarmupTask
     {
         ArgumentNullException.ThrowIfNull(builder);
+
+        if (skipIf)
+        {
+            return builder;
+        }
 
         builder.ConfigureSchemaServices(
             static (_, sc) => sc.AddSingleton<IRequestExecutorWarmupTask, T>());
@@ -49,144 +114,33 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         return builder;
     }
 
-    private sealed class DelegateWarmupTask(Func<IRequestExecutor, CancellationToken, Task> warmupFunc)
-        : IRequestExecutorWarmupTask
+    /// <summary>
+    /// Exports the GraphQL schema to a file on startup or when the schema changes.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="schemaFileName">
+    /// The file name of the schema file.
+    /// </param>
+    /// <param name="skipIf">
+    /// If <c>true</c>, the schema file will not be exported.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    public static IRequestExecutorBuilder ExportSchemaOnStartup(
+        this IRequestExecutorBuilder builder,
+        string? schemaFileName = null,
+        bool skipIf = false)
     {
-        public bool ApplyOnlyOnStartup => false;
+        ArgumentNullException.ThrowIfNull(builder);
 
-        public Task WarmupAsync(IRequestExecutor requestExecutor, CancellationToken cancellationToken)
-        {
-            return warmupFunc.Invoke(requestExecutor, cancellationToken);
-        }
+        schemaFileName ??= System.IO.Path.Combine(Environment.CurrentDirectory, "schema.graphqls");
+
+        return builder.AddWarmupTask(new SchemaFileExporterWarmupTask(schemaFileName), skipIf);
     }
-
-    // /// <summary>
-    // /// Adds the current GraphQL configuration to the warmup background service.
-    // /// </summary>
-    // /// <param name="builder">
-    // /// The <see cref="IRequestExecutorBuilder"/>.
-    // /// </param>
-    // /// <param name="warmup">
-    // /// The warmup task that shall be executed on a new executor.
-    // /// </param>
-    // /// <param name="keepWarm">
-    // /// Apply warmup task after eviction and keep executor in-memory.
-    // /// </param>
-    // /// <param name="skipIf">
-    // /// Skips the warmup task if set to true.
-    // /// </param>
-    // /// <returns>
-    // /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
-    // /// </returns>
-    // /// <exception cref="ArgumentNullException">
-    // /// The <see cref="IRequestExecutorBuilder"/> is <c>null</c>.
-    // /// </exception>
-    // public static IRequestExecutorBuilder InitializeOnStartup(
-    //     this IRequestExecutorBuilder builder,
-    //     Func<IRequestExecutor, CancellationToken, Task>? warmup = null,
-    //     bool keepWarm = false,
-    //     bool skipIf = false)
-    // {
-    //     ArgumentNullException.ThrowIfNull(builder);
-    //
-    //     if (!skipIf)
-    //     {
-    //         builder.Services.AddHostedService<RequestExecutorWarmupService>();
-    //         builder.Services.AddSingleton(new WarmupSchemaTask(builder.Name, keepWarm, warmup));
-    //     }
-    //
-    //     return builder;
-    // }
-    //
-    // /// <summary>
-    // /// Adds the current GraphQL configuration to the warmup background service.
-    // /// </summary>
-    // /// <param name="builder">
-    // /// The <see cref="IRequestExecutorBuilder"/>.
-    // /// </param>
-    // /// <param name="options">
-    // /// The <see cref="RequestExecutorInitializationOptions"/>.
-    // /// </param>
-    // /// <param name="skipIf">
-    // /// Skips the warmup task if set to true.
-    // /// </param>
-    // /// <returns>
-    // /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
-    // /// </returns>
-    // /// <exception cref="ArgumentNullException">
-    // /// The <see cref="IRequestExecutorBuilder"/> is <c>null</c>.
-    // /// </exception>
-    // public static IRequestExecutorBuilder InitializeOnStartup(
-    //     this IRequestExecutorBuilder builder,
-    //     RequestExecutorInitializationOptions options,
-    //     bool skipIf = false)
-    // {
-    //     ArgumentNullException.ThrowIfNull(builder);
-    //
-    //     if (skipIf)
-    //     {
-    //         return builder;
-    //     }
-    //
-    //     Func<IRequestExecutor, CancellationToken, Task>? warmup;
-    //
-    //     if (options.WriteSchemaFile.Enable)
-    //     {
-    //         var schemaFileName =
-    //             options.WriteSchemaFile.FileName
-    //                 ?? System.IO.Path.Combine(Environment.CurrentDirectory, "schema.graphqls");
-    //
-    //         if (options.Warmup is null)
-    //         {
-    //             warmup = async (executor, cancellationToken)
-    //                 => await SchemaFileExporter.Export(schemaFileName, executor, cancellationToken);
-    //         }
-    //         else
-    //         {
-    //             warmup = async (executor, cancellationToken) =>
-    //             {
-    //                 await SchemaFileExporter.Export(schemaFileName, executor, cancellationToken);
-    //                 await options.Warmup(executor, cancellationToken);
-    //             };
-    //         }
-    //     }
-    //     else
-    //     {
-    //         warmup = options.Warmup;
-    //     }
-    //
-    //     return InitializeOnStartup(builder, warmup, options.KeepWarm);
-    // }
-    //
-    // /// <summary>
-    // /// Exports the GraphQL schema to a file on startup or when the schema changes.
-    // /// </summary>
-    // /// <param name="builder">
-    // /// The <see cref="IRequestExecutorBuilder"/>.
-    // /// </param>
-    // /// <param name="schemaFileName">
-    // /// The file name of the schema file.
-    // /// </param>
-    // /// <returns>
-    // /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
-    // /// </returns>
-    // /// <exception cref="ArgumentNullException">
-    // /// The <see cref="IRequestExecutorBuilder"/> is <c>null</c>.
-    // /// </exception>
-    // public static IRequestExecutorBuilder ExportSchemaOnStartup(
-    //     this IRequestExecutorBuilder builder,
-    //     string? schemaFileName = null)
-    // {
-    //     ArgumentNullException.ThrowIfNull(builder);
-    //
-    //     return InitializeOnStartup(builder, new RequestExecutorInitializationOptions
-    //     {
-    //         KeepWarm = true,
-    //         WriteSchemaFile = new SchemaFileInitializationOptions
-    //         {
-    //             Enable = true,
-    //             FileName = schemaFileName
-    //         }
-    //     });
-    // }
 }
