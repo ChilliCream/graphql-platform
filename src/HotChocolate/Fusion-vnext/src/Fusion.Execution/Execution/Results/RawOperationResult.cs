@@ -25,13 +25,7 @@ public sealed class RawOperationResult : ExecutionResult, IRawJsonFormatter, IOp
 
     public override IReadOnlyDictionary<string, object?>? ContextData => _contextData;
 
-    public void WriteTo(PipeWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        _result.WriteTo(writer);
-    }
-
-    public void WriteTo(IBufferWriter<byte> writer)
+    public void WriteTo(IBufferWriter<byte> writer, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(writer);
         _result.WriteTo(writer);

@@ -1004,6 +1004,13 @@ public readonly partial struct SourceResultElement
         return _parent.GetPropertyRawValueAsString(_index);
     }
 
+    internal ReadOnlySpan<byte> GetRawValue()
+    {
+        CheckValidInstance();
+
+        return _parent.GetRawValue(_index, includeQuotes: true);
+    }
+
     internal ReadOnlySpan<byte> ValueSpan
     {
         get

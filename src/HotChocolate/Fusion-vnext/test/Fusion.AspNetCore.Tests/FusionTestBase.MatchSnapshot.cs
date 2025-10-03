@@ -296,19 +296,19 @@ public abstract partial class FusionTestBase
         if (result.RawErrors.ValueKind != JsonValueKind.Undefined)
         {
             jsonWriter.WritePropertyName("errors");
-            // result.RawErrors.WriteTo(jsonWriter);
+            jsonWriter.WriteRawValue(result.RawErrors.GetRawValue());
         }
 
         if (result.Data.ValueKind != JsonValueKind.Undefined)
         {
             jsonWriter.WritePropertyName("data");
-            // result.Data.WriteTo(jsonWriter);
+            jsonWriter.WriteRawValue(result.Data.GetRawValue());
         }
 
         if (result.Extensions.ValueKind != JsonValueKind.Undefined)
         {
             jsonWriter.WritePropertyName("extensions");
-            // result.Extensions.WriteTo(jsonWriter);
+            jsonWriter.WriteRawValue(result.Extensions.GetRawValue());
         }
 
         jsonWriter.WriteEndObject();

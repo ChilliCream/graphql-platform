@@ -25,8 +25,8 @@ internal sealed class FetchResultStore : IDisposable
     private readonly ulong _includeFlags;
     private readonly ConcurrentStack<IDisposable> _memory = [];
     private CompositeResultDocument _result;
-    private ValueCompletion _valueCompletion = null!;
-    private List<IError> _errors = null!;
+    private ValueCompletion _valueCompletion;
+    private List<IError> _errors;
     private bool _disposed;
 
     public FetchResultStore(
@@ -44,7 +44,16 @@ internal sealed class FetchResultStore : IDisposable
         _operation = operation;
         _errorHandlingMode = errorHandlingMode;
         _includeFlags = includeFlags;
+
         _result = new CompositeResultDocument(operation, includeFlags);
+        _errors = [];
+
+        _valueCompletion = new ValueCompletion(
+            _schema,
+            _errorHandler,
+            _errorHandlingMode,
+            maxDepth: 32,
+            _errors);
     }
 
     public void Reset()
@@ -187,7 +196,7 @@ internal sealed class FetchResultStore : IDisposable
                     return false;
                 }
 
-                AddErrors_Next:
+AddErrors_Next:
                 path = ref Unsafe.Add(ref path, 1)!;
             }
         }
@@ -228,9 +237,12 @@ internal sealed class FetchResultStore : IDisposable
                     goto SaveSafe_Next;
                 }
 
-                var canExecutionContinue = _valueCompletion.BuildResult(
-                    data,
-                    element, errorTrie, responseNames);
+                var canExecutionContinue =
+                    _valueCompletion.BuildResult(
+                        data,
+                        element,
+                        errorTrie,
+                        responseNames);
 
                 if (!canExecutionContinue)
                 {
@@ -238,7 +250,7 @@ internal sealed class FetchResultStore : IDisposable
                     return false;
                 }
 
-                SaveSafe_Next:
+SaveSafe_Next:
                 result = ref Unsafe.Add(ref result, 1)!;
                 data = ref Unsafe.Add(ref data, 1);
                 errorTrie = ref Unsafe.Add(ref errorTrie, 1)!;
@@ -538,7 +550,7 @@ internal sealed class FetchResultStore : IDisposable
             return element;
         }
 
-        if(elementKind is JsonValueKind.Object && path is NamePathSegment nameSegment)
+        if (elementKind is JsonValueKind.Object && path is NamePathSegment nameSegment)
         {
             return !element.TryGetProperty(nameSegment.Name, out var field) ? default : field;
         }

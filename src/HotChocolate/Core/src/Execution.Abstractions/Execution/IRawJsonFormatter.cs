@@ -16,5 +16,8 @@ public interface IRawJsonFormatter
     /// <param name="writer">
     /// The pipe writer of the transport layer.
     /// </param>
-    void WriteTo(IBufferWriter<byte> writer);
+    /// <param name="indented">
+    /// Specifies if the JSON shall be indented.
+    /// </param>
+    void WriteTo(IBufferWriter<byte> writer, bool indented = false);
 }
