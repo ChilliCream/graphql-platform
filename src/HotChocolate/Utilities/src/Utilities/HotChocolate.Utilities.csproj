@@ -19,8 +19,6 @@
     <InternalsVisibleTo Include="HotChocolate.Core" />
     <InternalsVisibleTo Include="HotChocolate.Data" />
     <InternalsVisibleTo Include="HotChocolate.Execution" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion.Abstractions" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Language" />
     <InternalsVisibleTo Include="HotChocolate.OpenApi" />

@@ -12,6 +12,7 @@ public sealed class RequestExecutorSetup
     private readonly List<OnConfigureRequestExecutorOptionsAction> _onConfigureRequestExecutorOptionsHooks = [];
     private readonly List<RequestMiddlewareConfiguration> _pipeline = [];
     private readonly List<Action<IList<RequestMiddlewareConfiguration>>> _pipelineModifiers = [];
+    private readonly List<Action<SchemaOptions>> _schemaOptionModifiers = [];
     private readonly List<OnConfigureSchemaServices> _onConfigureSchemaServicesHooks = [];
     private readonly List<OnRequestExecutorCreatedAction> _onRequestExecutorCreatedHooks = [];
     private readonly List<OnRequestExecutorEvictedAction> _onRequestExecutorEvictedHooks = [];
@@ -22,11 +23,6 @@ public sealed class RequestExecutorSetup
     /// This allows specifying a schema and short-circuit the schema creation.
     /// </summary>
     public Schema? Schema { get; set; }
-
-    /// <summary>
-    /// Gets or sets the schema builder that is used to create the schema.
-    /// </summary>
-    public ISchemaBuilder? SchemaBuilder { get; set; }
 
     /// <summary>
     /// Gets or sets the request executor options.
@@ -97,6 +93,9 @@ public sealed class RequestExecutorSetup
     public IList<Action<IList<RequestMiddlewareConfiguration>>> PipelineModifiers
         => _pipelineModifiers;
 
+    public IList<Action<SchemaOptions>> SchemaOptionModifiers
+        => _schemaOptionModifiers;
+
     /// <summary>
     /// Gets or sets the default pipeline factory.
     /// </summary>
@@ -111,7 +110,6 @@ public sealed class RequestExecutorSetup
     public void CopyTo(RequestExecutorSetup options)
     {
         options.Schema = Schema;
-        options.SchemaBuilder = SchemaBuilder;
         options.RequestExecutorOptions = RequestExecutorOptions;
         options._onConfigureSchemaBuilderHooks.AddRange(_onConfigureSchemaBuilderHooks);
         options._onConfigureRequestExecutorOptionsHooks.AddRange(_onConfigureRequestExecutorOptionsHooks);
@@ -121,6 +119,7 @@ public sealed class RequestExecutorSetup
         options._onRequestExecutorEvictedHooks.AddRange(_onRequestExecutorEvictedHooks);
         options._onBuildDocumentValidatorHooks.AddRange(_onBuildDocumentValidatorHooks);
         options._pipelineModifiers.AddRange(_pipelineModifiers);
+        options._schemaOptionModifiers.AddRange(_schemaOptionModifiers);
         options._typeModules.AddRange(_typeModules);
         options.EvictionTimeout = EvictionTimeout;
 

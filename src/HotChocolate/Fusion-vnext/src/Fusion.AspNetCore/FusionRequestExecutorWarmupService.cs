@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-internal sealed class RequestExecutorWarmupService(
+internal sealed class FusionRequestExecutorWarmupService(
     IOptionsMonitor<FusionGatewaySetup> optionsMonitor,
     IRequestExecutorProvider provider) : IHostedService
 {
@@ -18,9 +18,9 @@ internal sealed class RequestExecutorWarmupService(
         {
             var setup = optionsMonitor.Get(schemaName);
 
-            var requestOptions = FusionRequestExecutorManager.CreateOptions(setup);
+            var options = FusionRequestExecutorManager.CreateOptions(setup);
 
-            if (!requestOptions.LazyInitialization)
+            if (!options.LazyInitialization)
             {
                 var warmupTask = WarmupAsync(schemaName, cancellationToken);
                 warmupTasks.Add(warmupTask);

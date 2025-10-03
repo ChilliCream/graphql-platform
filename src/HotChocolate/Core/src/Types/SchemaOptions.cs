@@ -127,6 +127,19 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool PublishRootFieldPagesToPromiseCache { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets whether the  should be initialized lazily.
+    /// <c>false</c> by default.
+    /// </summary>
+    /// <remarks>
+    /// When set to <c>true</c> the creation of the schema and request executor, as well as
+    /// the load of the Fusion configuration, is deferred until the request executor
+    /// is first requested.
+    /// This can significantly slow down and block initial requests.
+    /// Therefore it is recommended to not use this option for production environments.
+    /// </remarks>
+    public bool LazyInitialization { get; set; }
+
+    /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
     /// <param name="options">The read-only options object.</param>
@@ -161,7 +174,8 @@ public class SchemaOptions : IReadOnlySchemaOptions
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
-            DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope
+            DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
+            LazyInitialization = options.LazyInitialization
         };
     }
 }
