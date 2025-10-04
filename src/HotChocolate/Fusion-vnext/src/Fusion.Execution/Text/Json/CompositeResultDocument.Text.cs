@@ -64,10 +64,10 @@ public sealed partial class CompositeResultDocument
     internal string GetRawValueAsString(int index)
     {
         var segment = GetRawValue(index, includeQuotes: true);
-        return JsonReaderHelper.TranscodeHelper(segment.Span);
+        return JsonReaderHelper.TranscodeHelper(segment);
     }
 
-    internal ReadOnlyMemory<byte> GetRawValue(int index, bool includeQuotes)
+    internal ReadOnlySpan<byte> GetRawValue(int index, bool includeQuotes)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -75,15 +75,14 @@ public sealed partial class CompositeResultDocument
 
         if (row.IsSimpleValue)
         {
-            if (includeQuotes && row.TokenType == ElementTokenType.String)
+            if (!includeQuotes && row.TokenType == ElementTokenType.String)
             {
                 // Start one character earlier than the value (the open quote)
                 // End one character after the value (the close quote)
-                return ReadRawValueAsMemory(row);
+                return ReadRawValue(row)[1..^1];
             }
 
-            var rawValue = ReadRawValueAsMemory(row);
-            return rawValue[1..^1];
+            return ReadRawValue(row);
         }
 
         // TODO: this is more complex with the new design, we gonna tackle this later.
@@ -97,10 +96,10 @@ public sealed partial class CompositeResultDocument
     internal string GetPropertyRawValueAsString(int valueIndex)
     {
         var segment = GetPropertyRawValue(valueIndex);
-        return JsonReaderHelper.TranscodeHelper(segment.Span);
+        return JsonReaderHelper.TranscodeHelper(segment);
     }
 
-    private ReadOnlyMemory<byte> GetPropertyRawValue(int valueIndex)
+    private ReadOnlySpan<byte> GetPropertyRawValue(int valueIndex)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -116,7 +115,7 @@ public sealed partial class CompositeResultDocument
 
         if (row.IsSimpleValue)
         {
-            return ReadRawValueAsMemory(row);
+            return ReadRawValue(row);
         }
 
         // var endElementIdx = GetEndIndex(valueIndex, includeEndElement: false);
@@ -178,6 +177,11 @@ public sealed partial class CompositeResultDocument
             row.TokenType);
 
         var segment = ReadRawValue(row);
+
+        if (!isPropertyName)
+        {
+            segment = segment[1..^1];
+        }
 
         if (otherUtf8Text.Length > segment.Length || (!shouldUnescape && otherUtf8Text.Length != segment.Length))
         {

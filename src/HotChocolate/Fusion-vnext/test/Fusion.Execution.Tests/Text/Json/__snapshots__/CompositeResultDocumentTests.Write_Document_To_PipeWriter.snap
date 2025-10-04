@@ -1,15 +1,17 @@
 {
-  "users": {
-    "nodes": [
-      {
-        "name": "Abc"
-      },
-      {
-        "name": "Def"
-      },
-      {
-        "name": "Ghi"
-      }
-    ]
+  "data": {
+    "users": {
+      "nodes": [
+        {
+          "name": "Abc"
+        },
+        {
+          "name": "Def"
+        },
+        {
+          "name": "Ghi"
+        }
+      ]
+    }
   }
 }

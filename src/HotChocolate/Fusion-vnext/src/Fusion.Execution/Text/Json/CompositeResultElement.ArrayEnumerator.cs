@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace HotChocolate.Fusion.Text.Json;
 
-public partial struct CompositeResultElement
+public readonly partial struct CompositeResultElement
 {
     /// <summary>
     ///   An enumerable and enumerator for the contents of a JSON array.

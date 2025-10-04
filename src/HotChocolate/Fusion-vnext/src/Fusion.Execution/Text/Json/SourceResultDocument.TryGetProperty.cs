@@ -160,7 +160,7 @@ public sealed partial class SourceResultDocument
             else
             {
                 Debug.Assert(row.NumberOfRows > 0);
-                index -= DbRow.Size * (row.NumberOfRows + 1);
+                index -= DbRow.Size * (row.NumberOfRows);
             }
 
             row = _parsedData.Get(index);

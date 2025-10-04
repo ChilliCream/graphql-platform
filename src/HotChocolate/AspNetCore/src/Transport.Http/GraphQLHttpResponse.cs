@@ -194,7 +194,7 @@ public sealed class GraphQLHttpResponse : IDisposable
                         // and store the chunk in the chunk list
                         if (currentChunkPosition == JsonMemory.ChunkSize)
                         {
-                            chunks ??= new List<byte[]>();
+                            chunks ??= [];
                             chunks.Add(currentChunk);
                             currentChunk = JsonMemory.Rent();
                             currentChunkPosition = 0;
@@ -212,6 +212,8 @@ public sealed class GraphQLHttpResponse : IDisposable
                 return SourceResultDocument.Parse(currentChunk, size: currentChunkPosition);
             }
 
+            // add the final partial chunk to the list
+            chunks.Add(currentChunk);
             return SourceResultDocument.Parse(chunks.ToArray(), currentChunkPosition);
         }
         finally

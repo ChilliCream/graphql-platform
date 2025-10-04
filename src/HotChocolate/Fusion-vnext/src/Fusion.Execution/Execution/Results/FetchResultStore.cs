@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -533,7 +534,8 @@ SaveSafe_Next:
     private CompositeResultElement GetStartObjectResult(Path path)
     {
         var result = GetStartResult(path);
-        return result.ValueKind is JsonValueKind.Object ? result : default;
+        Debug.Assert(result.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
+        return result.ValueKind is JsonValueKind.Object or JsonValueKind.Null ? result : default;
     }
 
     private CompositeResultElement GetStartResult(Path path)
@@ -554,7 +556,7 @@ SaveSafe_Next:
 
         if (elementKind is JsonValueKind.Object && path is NamePathSegment nameSegment)
         {
-            return !element.TryGetProperty(nameSegment.Name, out var field) ? default : field;
+            return element.TryGetProperty(nameSegment.Name, out var field) ? field : default;
         }
 
         if (elementKind is JsonValueKind.Array && path is IndexerPathSegment indexSegment)

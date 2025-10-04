@@ -2,7 +2,6 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Xml.Linq;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -27,12 +26,12 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
         private const byte Space = (byte)' ';
         private const byte NewLine = (byte)'\n';
 
-        private ReadOnlySpan<byte> Data => "data"u8;
-        private ReadOnlySpan<byte> Errors => "errors"u8;
-        private ReadOnlySpan<byte> Extensions => "extensions"u8;
-        private ReadOnlySpan<byte> True => "true"u8;
-        private ReadOnlySpan<byte> False => "false"u8;
-        private ReadOnlySpan<byte> Null => "null"u8;
+        private static ReadOnlySpan<byte> Data => "data"u8;
+        private static ReadOnlySpan<byte> Errors => "errors"u8;
+        private static ReadOnlySpan<byte> Extensions => "extensions"u8;
+        private static ReadOnlySpan<byte> True => "true"u8;
+        private static ReadOnlySpan<byte> False => "false"u8;
+        private static ReadOnlySpan<byte> Null => "null"u8;
 
         private int _indentLevel = 0;
 
@@ -42,11 +41,17 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
 
             if (indented)
             {
+                WriteNewLine();
                 _indentLevel++;
             }
 
             if (document._errors?.Count > 0)
             {
+                if (indented)
+                {
+                    WriteIndent();
+                }
+
                 WriteByte(Quote);
                 writer.Write(Errors);
                 WriteByte(Quote);
@@ -68,6 +73,11 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             var row = document._metaDb.Get(0);
 
             // Write data property name with quotes
+            if (indented)
+            {
+                WriteIndent();
+            }
+
             WriteByte(Quote);
             writer.Write(Data);
             WriteByte(Quote);
@@ -90,6 +100,11 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             if (document._extensions?.Count > 0)
             {
                 WriteByte(Comma);
+
+                if (indented)
+                {
+                    WriteIndent();
+                }
 
                 WriteByte(Quote);
                 writer.Write(Extensions);

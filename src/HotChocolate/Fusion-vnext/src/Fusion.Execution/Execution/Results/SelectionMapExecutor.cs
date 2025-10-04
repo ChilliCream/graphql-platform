@@ -81,7 +81,7 @@ internal static class ResultDataMapper
 
             context.Writer ??= new PooledArrayWriter();
             var parser = new JsonValueParser(buffer: context.Writer);
-            return parser.Parse(result.GetRawValue().Span);
+            return parser.Parse(result.GetRawValue(includeQuotes: true));
         }
 
         throw new InvalidSelectionMapPathException(node);
@@ -194,7 +194,7 @@ internal static class ResultDataMapper
         CompositeResultElement result,
         PathNode path)
     {
-        if (result.ValueKind is JsonValueKind.Object)
+        if (result.ValueKind is not JsonValueKind.Object)
         {
             throw new InvalidOperationException("Only object results are supported.");
         }

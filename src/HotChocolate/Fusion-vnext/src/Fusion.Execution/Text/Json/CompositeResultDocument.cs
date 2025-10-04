@@ -109,6 +109,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
+        currentIndex = _metaDb.GetStartIndex(currentIndex);
         var row = _metaDb.Get(currentIndex);
 
         CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
@@ -154,7 +155,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         indexes = indexes[..written];
 
-        for (var i = indexes.Length - 1; i >= 1; i--)
+        for (var i = indexes.Length - 1; i >= 0; i--)
         {
             index = indexes[i];
             var tokenType = _metaDb.GetElementTokenType(index, resolveReferences: false);
@@ -171,7 +172,7 @@ public sealed partial class CompositeResultDocument : IDisposable
                 if (parentTokenType is ElementTokenType.StartArray)
                 {
                     var parentRow = _metaDb.Get(parentIndex);
-                    var arrayIndex = (parentIndex + parentRow.SizeOrLength) - index;
+                    var arrayIndex = index - (parentIndex + 1);
                     path = path.Append(arrayIndex);
                 }
             }
@@ -299,6 +300,21 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     private ReadOnlySpan<byte> ReadRawValue(DbRow row)
     {
+        if (row.TokenType == ElementTokenType.Null)
+        {
+            return "null"u8;
+        }
+
+        if (row.TokenType == ElementTokenType.True)
+        {
+            return "true"u8;
+        }
+
+        if (row.TokenType == ElementTokenType.False)
+        {
+            return "false"u8;
+        }
+
         if (row.TokenType == ElementTokenType.PropertyName)
         {
             return _operation.GetSelectionById(row.OperationReferenceId).RawResponseName;
@@ -308,22 +324,6 @@ public sealed partial class CompositeResultDocument : IDisposable
         {
             var document = _sources[row.SourceDocumentId];
             return document.ReadRawValue(row.Location, row.SizeOrLength);
-        }
-
-        throw new NotSupportedException();
-    }
-
-    private ReadOnlyMemory<byte> ReadRawValueAsMemory(DbRow row)
-    {
-        if (row.TokenType == ElementTokenType.PropertyName)
-        {
-            return _operation.GetSelectionById(row.OperationReferenceId).RawResponseNameAsMemory;
-        }
-
-        if ((row.Flags & ElementFlags.SourceResult) == ElementFlags.SourceResult)
-        {
-            var document = _sources[row.SourceDocumentId];
-            return document.ReadRawValueAsMemory(row.Location, row.SizeOrLength);
         }
 
         throw new NotSupportedException();

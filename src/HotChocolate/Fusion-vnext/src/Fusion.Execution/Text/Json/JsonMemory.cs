@@ -6,14 +6,14 @@ namespace HotChocolate.Fusion.Text.Json;
 /// <summary>
 /// Manages the memory for storing JSON data.
 /// </summary>
-internal static class JsonMemory
+public static class JsonMemory
 {
     /// <summary>
     /// The size of one JSON chunk.
     /// </summary>
     public const int ChunkSize = 128 * 1024;
 
-    private static readonly FixedSizeArrayPool s_pool = new(1, ChunkSize, 64, preAllocate: false);
+    private static readonly FixedSizeArrayPool s_pool = new(1, ChunkSize, 128, preAllocate: true);
 
     public static byte[] Rent()
         => s_pool.Rent();

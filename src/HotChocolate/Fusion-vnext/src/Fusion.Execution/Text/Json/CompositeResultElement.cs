@@ -8,7 +8,7 @@ using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Text.Json;
 
-public partial struct CompositeResultElement
+public readonly partial struct CompositeResultElement
 {
     private readonly CompositeResultDocument _parent;
     private readonly int _index;
@@ -147,7 +147,10 @@ public partial struct CompositeResultElement
     {
         get
         {
-            CheckValidInstance();
+            if (_parent is null)
+            {
+                return true;
+            }
 
             return _parent.IsNullOrInvalidated(_index);
         }
@@ -522,7 +525,10 @@ public partial struct CompositeResultElement
             throw new InvalidOperationException(string.Format(
                 CompositeResultElement_GetBoolean_JsonElementHasWrongType,
                 nameof(Boolean),
-                actualType.ToValueKind())) { Source = Rethrowable };
+                actualType.ToValueKind()))
+            {
+                Source = Rethrowable
+            };
         }
     }
 
@@ -1167,21 +1173,11 @@ public partial struct CompositeResultElement
         return _parent.GetRawValueAsString(_index);
     }
 
-    internal ReadOnlyMemory<byte> GetRawValue()
+    internal ReadOnlySpan<byte> GetRawValue(bool includeQuotes = true)
     {
         CheckValidInstance();
 
         return _parent.GetRawValue(_index, includeQuotes: true);
-    }
-
-    internal ReadOnlySpan<byte> ValueSpan
-    {
-        get
-        {
-            CheckValidInstance();
-
-            return _parent.GetRawValue(_index, includeQuotes: false).Span;
-        }
     }
 
     /// <summary>
@@ -1235,7 +1231,7 @@ public partial struct CompositeResultElement
         {
             // This is different from Length == 0, in that it tests true for null, but false for ""
 #pragma warning disable CA2265
-            return utf8Text.Slice(0, 0) == default;
+            return utf8Text[..0] == default;
 #pragma warning restore CA2265
         }
 
@@ -1265,7 +1261,7 @@ public partial struct CompositeResultElement
         {
             // This is different than Length == 0, in that it tests true for null, but false for ""
 #pragma warning disable CA2265
-            return text.Slice(0, 0) == default;
+            return text[..0] == default;
 #pragma warning restore CA2265
         }
 
@@ -1316,7 +1312,10 @@ public partial struct CompositeResultElement
             throw new InvalidOperationException(string.Format(
                 "The requested operation requires an element of type '{0}', but the target element has type '{1}'.",
                 ElementTokenType.StartArray,
-                tokenType)) { Source = Rethrowable };
+                tokenType))
+            {
+                Source = Rethrowable
+            };
         }
 
         return new ArrayEnumerator(this);
@@ -1384,7 +1383,6 @@ public partial struct CompositeResultElement
         _parent.AssignNullValue(this);
     }
 
-    /*
     /// <summary>
     ///   Gets a string representation for the current value appropriate to the value type.
     /// </summary>
@@ -1423,59 +1421,34 @@ public partial struct CompositeResultElement
     {
         switch (TokenType)
         {
-            case JsonTokenType.None:
-            case JsonTokenType.Null:
+            case ElementTokenType.None:
+            case ElementTokenType.Null:
                 return string.Empty;
-            case JsonTokenType.True:
+
+            case ElementTokenType.True:
                 return bool.TrueString;
-            case JsonTokenType.False:
+
+            case ElementTokenType.False:
                 return bool.FalseString;
-            case JsonTokenType.Number:
-            case JsonTokenType.StartArray:
-            case JsonTokenType.StartObject:
-            {
+
+            case ElementTokenType.Number:
+            case ElementTokenType.StartArray:
+            case ElementTokenType.StartObject:
                 // null parent should have hit the None case
                 Debug.Assert(_parent != null);
                 return _parent.GetRawValueAsString(_index);
-            }
-            case JsonTokenType.String:
+
+            case ElementTokenType.String:
                 return GetString()!;
-            case JsonTokenType.Comment:
-            case JsonTokenType.EndArray:
-            case JsonTokenType.EndObject:
+
+            case ElementTokenType.Comment:
+            case ElementTokenType.EndArray:
+            case ElementTokenType.EndObject:
             default:
                 Debug.Fail($"No handler for {nameof(JsonTokenType)}.{TokenType}");
                 return string.Empty;
         }
     }
-
-    /// <summary>
-    ///   Get a JsonElement which can be safely stored beyond the lifetime of the
-    ///   original <see cref="JsonDocument"/>.
-    /// </summary>
-    /// <returns>
-    ///   A JsonElement which can be safely stored beyond the lifetime of the
-    ///   original <see cref="JsonDocument"/>.
-    /// </returns>
-    /// <remarks>
-    ///   <para>
-    ///     If this JsonElement is itself the output of a previous call to Clone, or
-    ///     a value contained within another JsonElement which was the output of a previous
-    ///     call to Clone, this method results in no additional memory allocation.
-    ///   </para>
-    /// </remarks>
-    public JsonElement Clone()
-    {
-        CheckValidInstance();
-
-        if (!_parent.IsDisposable)
-        {
-            return this;
-        }
-
-        return _parent.CloneElement(_index);
-    }
-    */
 
     private void CheckValidInstance()
     {
@@ -1484,7 +1457,4 @@ public partial struct CompositeResultElement
             throw new InvalidOperationException();
         }
     }
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => $"ValueKind = {ValueKind} : \"{ToString()}\"";
 }

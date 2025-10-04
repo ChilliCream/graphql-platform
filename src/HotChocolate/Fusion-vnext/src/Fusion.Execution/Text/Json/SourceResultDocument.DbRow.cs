@@ -24,6 +24,19 @@ public sealed partial class SourceResultDocument
         // exceed that range.
         private readonly int _numberOfRowsAndTypeUnion;
 
+        internal DbRow(JsonTokenType jsonTokenType, int location, int sizeOrLength)
+        {
+            Debug.Assert(jsonTokenType is > JsonTokenType.None and <= JsonTokenType.Null);
+            Debug.Assert((byte)jsonTokenType < 1 << 4);
+            Debug.Assert(location >= 0);
+            Debug.Assert(sizeOrLength >= UnknownSize);
+            Debug.Assert(Unsafe.SizeOf<DbRow>() == Size);
+
+            _location = location;
+            _sizeOrLengthUnion = sizeOrLength;
+            _numberOfRowsAndTypeUnion = ((int)jsonTokenType << 28) | 1;
+        }
+
         /// <summary>
         /// Index into the payload
         /// </summary>
@@ -51,18 +64,7 @@ public sealed partial class SourceResultDocument
 
         internal const int UnknownSize = -1;
 
-        internal DbRow(JsonTokenType jsonTokenType, int location, int sizeOrLength)
-        {
-            Debug.Assert(jsonTokenType is > JsonTokenType.None and <= JsonTokenType.Null);
-            Debug.Assert((byte)jsonTokenType < 1 << 4);
-            Debug.Assert(location >= 0);
-            Debug.Assert(sizeOrLength >= UnknownSize);
-            Debug.Assert(Unsafe.SizeOf<DbRow>() == Size);
-
-            _location = location;
-            _sizeOrLengthUnion = sizeOrLength;
-            _numberOfRowsAndTypeUnion = (int)jsonTokenType << 28;
-        }
+        internal const int NoLocation = -1;
 
         internal bool IsSimpleValue => TokenType >= JsonTokenType.PropertyName;
     }

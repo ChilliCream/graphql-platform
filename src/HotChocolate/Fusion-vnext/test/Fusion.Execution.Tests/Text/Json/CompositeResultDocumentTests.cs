@@ -210,7 +210,7 @@ public class CompositeResultDocumentTests : FusionTestBase
         var typeName = compositeResult.Data.GetProperty("__typename");
 
         // act + assert
-        Assert.Throws<InvalidOperationException>(() => typeName.Invalidate());
+        Assert.Throws<InvalidOperationException>(typeName.Invalidate);
     }
 
     [Fact]

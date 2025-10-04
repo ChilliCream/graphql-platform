@@ -40,11 +40,11 @@ public sealed partial class SourceResultDocument
             };
         }
 
-        internal int Append(JsonTokenType tokenType, int startLocation, int length)
+        internal int Append(
+            JsonTokenType tokenType,
+            int startLocation = DbRow.NoLocation,
+            int length = DbRow.UnknownSize)
         {
-            Debug.Assert(tokenType is JsonTokenType.StartArray
-                or JsonTokenType.StartObject == (length == DbRow.UnknownSize));
-
             // Check if we need to allocate a new chunk
             if (_currentPosition + DbRow.Size > ChunkSize)
             {
