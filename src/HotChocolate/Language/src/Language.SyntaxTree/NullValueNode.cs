@@ -151,6 +151,10 @@ public sealed class NullValueNode
     /// </returns>
     public NullValueNode WithLocation(Location? location) => new(location);
 
+    /// <inheritdoc />
+    IValueNode IValueNode.WithLocation(Location? location)
+        => WithLocation(location);
+
     /// <summary>
     /// Gets the default null value instance.
     /// </summary>

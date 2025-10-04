@@ -66,6 +66,9 @@ public sealed class FileReferenceNode
 
     string IValueNode<string>.Value => Value.FileName;
 
+    /// <inheritdoc />
+    IValueNode IValueNode.WithLocation(Location? location) => this;
+
     /// <summary>
     /// Gets the children of this node.
     /// </summary>
