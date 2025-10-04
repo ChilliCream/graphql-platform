@@ -64,8 +64,14 @@ internal static class ArgumentParser
             case SyntaxKind.IntValue:
             case SyntaxKind.FloatValue:
             case SyntaxKind.BooleanValue:
-                if (type.NamedType() is not ScalarType scalarType)
+                var namedType = type.NamedType();
+                if (namedType is not ScalarType scalarType)
                 {
+                    if (namedType is EnumType)
+                    {
+                        goto case SyntaxKind.EnumValue;
+                    }
+
                     break;
                 }
 

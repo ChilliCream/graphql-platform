@@ -25,7 +25,8 @@ public class _AnyTypeTests
         var serialized = new ObjectValueNode(
             new ObjectFieldNode(AnyType.TypeNameField, "test"),
             new ObjectFieldNode("faa", "foo"),
-            new ObjectFieldNode("foo", "bar")
+            new ObjectFieldNode("foo", "bar"),
+            new ObjectFieldNode("fooEnum", new EnumValueNode("enum"))
         );
 
         // act
@@ -64,6 +65,16 @@ public class _AnyTypeTests
 
                 Assert.Equal(
                     "bar",
+                    node.Value.Value);
+            },
+            node =>
+            {
+                Assert.Equal(
+                    "fooEnum",
+                    node.Name.Value);
+
+                Assert.Equal(
+                    "enum",
                     node.Value.Value);
             }
         );
