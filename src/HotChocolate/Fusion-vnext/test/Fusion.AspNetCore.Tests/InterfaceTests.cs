@@ -479,6 +479,130 @@ public class InterfaceTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Interface_Field_Concrete_Types_Exclusive_To_Other_Schema()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              item: ProductCatalogItem
+            }
+
+            type ProductCatalogItem {
+              # IMPORTANT: interface return type is non-null and only exists here
+              price: Price!
+            }
+
+            # Shared interface name across subgraphs
+            interface Price {
+              currency: String
+              value: Float
+            }
+
+            # Concrete types ONLY EXIST in this subgraph
+            type ProductCatalogItemFullPrice implements Price {
+              currency: String
+              value: Float
+              extra: String
+            }
+
+            type ProductCatalogItemSalePrice implements Price {
+              currency: String
+              value: Float
+              discountPercentage: Float
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              product(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              variation: Variation
+            }
+
+            type Variation {
+              # Same interface name is composed across subgraphs,
+              # but no ProductCatalogItem* concrete types here
+              price: Price
+            }
+
+            # Same interface name (composed), but different implementations here
+            interface Price {
+              currency: String
+              value: Float
+            }
+
+            type FullPrice implements Price {
+              currency: String
+              value: Float
+              tags: [String!]!
+            }
+
+            type SalePrice implements Price {
+              currency: String
+              value: Float
+              discountPercentage: Float
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new Transport.OperationRequest(
+            """
+            {
+              item {
+                price {
+                  __typename
+                  value
+                  currency
+                  ... on ProductCatalogItemFullPrice {
+                    extra
+                  }
+                  ... on ProductCatalogItemSalePrice {
+                    discountPercentage
+                  }
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    // TODO: This currently breaks
+    // {
+    //   item {
+    //     price {
+    //       __typename
+    //       value
+    //       currency
+    //       # This type only exists on Subgraph B and there's no way to transition to it from Subgraph A
+    //       ... on SalePrice {
+    //         discountPercentage
+    //       }
+    //     }
+    //   }
+    // }
+
     #endregion
 
     # region interfaces { ... }

@@ -1,0 +1,171 @@
+title: Interface_Field_Concrete_Types_Exclusive_To_Other_Schema
+request:
+  document: |
+    {
+      item {
+        price {
+          __typename
+          value
+          currency
+          ... on ProductCatalogItemFullPrice {
+            extra
+          }
+          ... on ProductCatalogItemSalePrice {
+            discountPercentage
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item": {
+          "price": {
+            "__typename": "ProductCatalogItemFullPrice",
+            "value": 123.456,
+            "currency": "ProductCatalogItemFullPrice: UHJvZHVjdENhdGFsb2dJdGVtRnVsbFByaWNlOjI=",
+            "extra": "ProductCatalogItemFullPrice: UHJvZHVjdENhdGFsb2dJdGVtRnVsbFByaWNlOjI="
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Price {
+        currency: String
+        value: Float
+      }
+      
+      type ProductCatalogItem {
+        price: Price!
+      }
+      
+      type ProductCatalogItemFullPrice implements Price {
+        currency: String
+        value: Float
+        extra: String
+      }
+      
+      type ProductCatalogItemSalePrice implements Price {
+        currency: String
+        value: Float
+        discountPercentage: Float
+      }
+      
+      type Query {
+        item: ProductCatalogItem
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_db01eac6_1 {
+              item {
+                price {
+                  __typename
+                  value
+                  currency
+                  ... on ProductCatalogItemFullPrice {
+                    extra
+                  }
+                  ... on ProductCatalogItemSalePrice {
+                    discountPercentage
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "item": {
+                    "price": {
+                      "__typename": "ProductCatalogItemFullPrice",
+                      "value": 123.456,
+                      "currency": "ProductCatalogItemFullPrice: UHJvZHVjdENhdGFsb2dJdGVtRnVsbFByaWNlOjI=",
+                      "extra": "ProductCatalogItemFullPrice: UHJvZHVjdENhdGFsb2dJdGVtRnVsbFByaWNlOjI="
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Price {
+        currency: String
+        value: Float
+      }
+      
+      type FullPrice implements Price {
+        currency: String
+        value: Float
+        tags: [String!]!
+      }
+      
+      type Product {
+        id: ID!
+        variation: Variation
+      }
+      
+      type Query {
+        product(id: ID!): Product @lookup
+      }
+      
+      type SalePrice implements Price {
+        currency: String
+        value: Float
+        discountPercentage: Float
+      }
+      
+      type Variation {
+        price: Price
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          item {
+            price {
+              __typename
+              value
+              currency
+              ... on ProductCatalogItemFullPrice {
+                extra
+              }
+              ... on ProductCatalogItemSalePrice {
+                discountPercentage
+              }
+            }
+          }
+        }
+      hash: db01eac632760a4d74dbcea576a74486
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_db01eac6_1 {
+          item {
+            price {
+              __typename
+              value
+              currency
+              ... on ProductCatalogItemFullPrice {
+                extra
+              }
+              ... on ProductCatalogItemSalePrice {
+                discountPercentage
+              }
+            }
+          }
+        }
