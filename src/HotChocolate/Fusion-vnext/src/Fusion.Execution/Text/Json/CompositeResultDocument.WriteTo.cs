@@ -1,6 +1,8 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Xml.Linq;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -10,7 +12,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
     public void WriteTo(IBufferWriter<byte> writer, bool indented = false)
     {
         var formatter = new RawJsonFormatter(this, writer, indented);
-        formatter.WriteValue(0);
+        formatter.Write();
     }
 
     private ref struct RawJsonFormatter(CompositeResultDocument document, IBufferWriter<byte> writer, bool indented)
@@ -25,16 +27,94 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
         private const byte Space = (byte)' ';
         private const byte NewLine = (byte)'\n';
 
+        private ReadOnlySpan<byte> Data => "data"u8;
+        private ReadOnlySpan<byte> Errors => "errors"u8;
+        private ReadOnlySpan<byte> Extensions => "extensions"u8;
         private ReadOnlySpan<byte> True => "true"u8;
         private ReadOnlySpan<byte> False => "false"u8;
         private ReadOnlySpan<byte> Null => "null"u8;
 
         private int _indentLevel = 0;
 
-        public void WriteValue(int index)
+        public void Write()
         {
-            var row = document._metaDb.Get(index);
-            WriteValue(index, row);
+            WriteByte(StartObject);
+
+            if (indented)
+            {
+                _indentLevel++;
+            }
+
+            if (document._errors?.Count > 0)
+            {
+                WriteByte(Quote);
+                writer.Write(Errors);
+                WriteByte(Quote);
+                WriteByte(Colon);
+
+                if (indented)
+                {
+                    WriteByte(Space);
+                }
+
+                var options = new JsonWriterOptions { Indented = indented };
+                using var jsonWriter = new Utf8JsonWriter(writer, options);
+                JsonValueFormatter.WriteErrors(jsonWriter, document._errors, new JsonSerializerOptions(JsonSerializerDefaults.Web), default);
+                jsonWriter.Flush();
+
+                WriteByte(Comma);
+            }
+
+            var row = document._metaDb.Get(0);
+
+            // Write data property name with quotes
+            WriteByte(Quote);
+            writer.Write(Data);
+            WriteByte(Quote);
+            WriteByte(Colon);
+
+            if (indented)
+            {
+                WriteByte(Space);
+            }
+
+            if ((ElementFlags.Invalidated & row.Flags) == ElementFlags.Invalidated)
+            {
+                writer.Write(Null);
+            }
+            else
+            {
+                WriteObject(0, row);
+            }
+
+            if (document._extensions?.Count > 0)
+            {
+                WriteByte(Comma);
+
+                WriteByte(Quote);
+                writer.Write(Extensions);
+                WriteByte(Quote);
+                WriteByte(Colon);
+
+                if (indented)
+                {
+                    WriteByte(Space);
+                }
+
+                var options = new JsonWriterOptions { Indented = indented };
+                using var jsonWriter = new Utf8JsonWriter(writer, options);
+                JsonValueFormatter.WriteDictionary(jsonWriter, document._extensions, new JsonSerializerOptions(JsonSerializerDefaults.Web), default);
+                jsonWriter.Flush();
+            }
+
+            if (indented)
+            {
+                _indentLevel--;
+                WriteNewLine();
+                WriteIndent();
+            }
+
+            WriteByte(EndObject);
         }
 
         private void WriteValue(int index, DbRow row)
@@ -63,6 +143,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                     WriteArray(index, row);
                     break;
 
+                case ElementTokenType.None:
                 case ElementTokenType.Null:
                     writer.Write(Null);
                     break;
@@ -100,6 +181,12 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             {
                 row = document._metaDb.Get(currentIndex);
                 Debug.Assert(row.TokenType is ElementTokenType.PropertyName);
+
+                if ((ElementFlags.IsInternal & row.Flags) == ElementFlags.IsInternal)
+                {
+                    currentIndex += 2;
+                    continue;
+                }
 
                 if (!first)
                 {

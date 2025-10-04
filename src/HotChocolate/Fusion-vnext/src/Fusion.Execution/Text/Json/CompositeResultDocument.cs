@@ -13,6 +13,8 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly List<SourceResultDocument> _sources = [];
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
+    private List<IError>? _errors;
+    private Dictionary<string, object?>? _extensions;
     private MetaDb _metaDb;
     private bool _disposed;
 
@@ -28,9 +30,23 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     public CompositeResultElement Data { get; }
 
-    public CompositeResultElement Errors { get; } = default!;
+    public List<IError> Errors
+    {
+        get
+        {
+            _errors ??= [];
+            return _errors;
+        }
+    }
 
-    public CompositeResultElement Extensions { get; } = default!;
+    public Dictionary<string, object?> Extensions
+    {
+        get
+        {
+            _extensions ??= [];
+            return _extensions;
+        }
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ElementTokenType GetElementTokenType(int index)
@@ -294,7 +310,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             return document.ReadRawValue(row.Location, row.SizeOrLength);
         }
 
-        throw new NotImplementedException();
+        throw new NotSupportedException();
     }
 
     private ReadOnlyMemory<byte> ReadRawValueAsMemory(DbRow row)

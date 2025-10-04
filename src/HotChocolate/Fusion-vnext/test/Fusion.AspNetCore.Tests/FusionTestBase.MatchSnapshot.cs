@@ -286,7 +286,6 @@ public abstract partial class FusionTestBase
         writer.Unindent();
     }
 
-    // TODO : Fix the snapshot
     private static string SerializeSourceSchemaResult(SourceSchemaResult result)
     {
         var memoryStream = new MemoryStream();
@@ -317,8 +316,8 @@ public abstract partial class FusionTestBase
 
         memoryStream.Position = 0;
 
-        var reader = new StreamReader(memoryStream);
-        return reader.ReadToEnd();
+        using var document = JsonDocument.Parse(memoryStream);
+        return JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
     }
 
     private static void WriteSourceSchemaDocument(CodeWriter writer, string schemaText)

@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
@@ -278,21 +277,19 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             }
             : null;
 
-        var resultBuilder = OperationResultBuilder.New();
+        var result = _resultStore.Result;
+        var operationResult = new RawOperationResult(result, contextData: null);
+        operationResult.RegisterForCleanup(_resultStore.MemoryOwners);
+        operationResult.Features.Set(OperationPlan);
 
         if (RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeOperationPlan))
         {
             var writer = new PooledArrayWriter();
             s_planFormatter.Format(writer, OperationPlan, trace);
             var value = new RawJsonValue(writer.WrittenMemory);
-            resultBuilder.SetExtension("fusion", new Dictionary<string, object?> { { "operationPlan", value } });
-            resultBuilder.RegisterForCleanup(writer);
+            result.Extensions.Add("fusion", new Dictionary<string, object?> { { "operationPlan", value } });
+            operationResult.RegisterForCleanup(writer);
         }
-
-        var result = _resultStore.Result;
-        var operationResult = new RawOperationResult(result, contextData: null);
-        operationResult.RegisterForCleanup(_resultStore.MemoryOwners);
-        operationResult.Features.Set(OperationPlan);
 
         if (trace is not null)
         {
@@ -301,8 +298,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
         Debug.Assert(
             !result.Data.IsInvalidated
-                || (result.Errors.ValueKind is JsonValueKind.Array
-                    && result.Errors.GetArrayLength() > 0),
+                || (result.Errors.Count > 0),
             "Expected to either valid data or errors");
 
         _clientScope = RequestContext.CreateClientScope();

@@ -13,26 +13,25 @@ namespace HotChocolate.Fusion.Execution.Results;
 internal sealed class ValueCompletion
 {
     private readonly ISchemaDefinition _schema;
+    private readonly CompositeResultDocument _result;
     private readonly IErrorHandler _errorHandler;
     private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly int _maxDepth;
-    private readonly List<IError> _errors;
 
     public ValueCompletion(
         ISchemaDefinition schema,
+        CompositeResultDocument result,
         IErrorHandler errorHandler,
         ErrorHandlingMode errorHandlingMode,
-        int maxDepth,
-        List<IError> errors)
+        int maxDepth)
     {
         ArgumentNullException.ThrowIfNull(schema);
-        ArgumentNullException.ThrowIfNull(errors);
 
         _schema = schema;
+        _result = result;
         _errorHandler = errorHandler;
         _errorHandlingMode = errorHandlingMode;
         _maxDepth = maxDepth;
-        _errors = errors;
     }
 
     /// <summary>
@@ -101,14 +100,14 @@ internal sealed class ValueCompletion
     /// <c>false</c>, if the execution needs to be halted.
     /// </returns>
     public bool BuildErrorResult(
-        CompositeResultElement result,
+        CompositeResultElement target,
         ReadOnlySpan<string> responseNames,
         IError error,
         Path path)
     {
         foreach (var responseName in responseNames)
         {
-            if (!result.TryGetProperty(responseName, out var fieldResult)
+            if (!target.TryGetProperty(responseName, out var fieldResult)
                 || fieldResult.IsInternal)
             {
                 continue;
@@ -121,7 +120,7 @@ internal sealed class ValueCompletion
                 .Build();
             errorWithPath = _errorHandler.Handle(errorWithPath);
 
-            _errors.Add(errorWithPath);
+            _result.Errors.Add(errorWithPath);
 
             switch (_errorHandlingMode)
             {
@@ -197,7 +196,7 @@ internal sealed class ValueCompletion
                 }
 
                 error = _errorHandler.Handle(error);
-                _errors.Add(error);
+                _result.Errors.Add(error);
 
                 if (_errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
                 {
@@ -223,7 +222,7 @@ internal sealed class ValueCompletion
                     .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
-                _errors.Add(errorWithPath);
+                _result.Errors.Add(errorWithPath);
 
                 if (_errorHandlingMode is ErrorHandlingMode.Halt)
                 {
@@ -288,7 +287,7 @@ internal sealed class ValueCompletion
                     .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
-                _errors.Add(errorWithPath);
+                _result.Errors.Add(errorWithPath);
 
                 if (_errorHandlingMode is ErrorHandlingMode.Halt)
                 {
@@ -318,7 +317,7 @@ internal sealed class ValueCompletion
                 goto TryCompleteList_MoveNext;
             }
 
-            TryCompleteList_MoveNext:
+TryCompleteList_MoveNext:
             i++;
         }
 
@@ -402,7 +401,7 @@ internal sealed class ValueCompletion
                 continue;
             }
 
-            var selection =  targetProperty.AssertSelection();
+            var selection = targetProperty.AssertSelection();
 
             ErrorTrie? errorTrieForResponseName = null;
             errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);

@@ -26,7 +26,6 @@ internal sealed class FetchResultStore : IDisposable
     private readonly ConcurrentStack<IDisposable> _memory = [];
     private CompositeResultDocument _result;
     private ValueCompletion _valueCompletion;
-    private List<IError> _errors;
     private bool _disposed;
 
     public FetchResultStore(
@@ -46,14 +45,13 @@ internal sealed class FetchResultStore : IDisposable
         _includeFlags = includeFlags;
 
         _result = new CompositeResultDocument(operation, includeFlags);
-        _errors = [];
 
         _valueCompletion = new ValueCompletion(
             _schema,
+            _result,
             _errorHandler,
             _errorHandlingMode,
-            maxDepth: 32,
-            _errors);
+            maxDepth: 32);
     }
 
     public void Reset()
@@ -61,14 +59,13 @@ internal sealed class FetchResultStore : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         _result = new CompositeResultDocument(_operation, _includeFlags);
-        _errors = [];
 
         _valueCompletion = new ValueCompletion(
             _schema,
+            _result,
             _errorHandler,
             _errorHandlingMode,
-            maxDepth: 32,
-            _errors);
+            maxDepth: 32);
     }
 
     public CompositeResultDocument Result => _result;
@@ -109,7 +106,7 @@ internal sealed class FetchResultStore : IDisposable
 
                 if (result.Errors?.RootErrors is { Length: > 0 } rootErrors)
                 {
-                    _errors.AddRange(rootErrors);
+                    _result.Errors.AddRange(rootErrors);
                 }
 
                 dataElement = GetDataElement(sourcePath, result.Data);
@@ -189,7 +186,12 @@ internal sealed class FetchResultStore : IDisposable
                     goto AddErrors_Next;
                 }
 
-                var canExecutionContinue = _valueCompletion.BuildErrorResult(element, responseNames, error, path);
+                var canExecutionContinue =
+                    _valueCompletion.BuildErrorResult(
+                        element,
+                        responseNames,
+                        error,
+                        path);
                 if (!canExecutionContinue)
                 {
                     resultData.Invalidate();

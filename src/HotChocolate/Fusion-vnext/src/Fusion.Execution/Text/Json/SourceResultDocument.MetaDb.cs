@@ -40,7 +40,7 @@ public sealed partial class SourceResultDocument
             };
         }
 
-        internal void Append(JsonTokenType tokenType, int startLocation, int length)
+        internal int Append(JsonTokenType tokenType, int startLocation, int length)
         {
             Debug.Assert(tokenType is JsonTokenType.StartArray
                 or JsonTokenType.StartObject == (length == DbRow.UnknownSize));
@@ -51,7 +51,7 @@ public sealed partial class SourceResultDocument
                 _currentChunk++;
                 _currentPosition = 0;
 
-                // Ensure we have space in the chunks array
+                // Ensure we have space for another chunk.
                 if (_currentChunk >= _chunks.Length)
                 {
                     var newChunks = new byte[_chunks.Length * 2][];
@@ -75,8 +75,10 @@ public sealed partial class SourceResultDocument
             var row = new DbRow(tokenType, startLocation, length);
             MemoryMarshal.Write(_chunks[_currentChunk].AsSpan(_currentPosition), in row);
 
+            var id = Length;
             _currentPosition += DbRow.Size;
             Length += DbRow.Size;
+            return id;
         }
 
         internal void SetLength(int index, int length)
@@ -142,7 +144,7 @@ public sealed partial class SourceResultDocument
             return -1;
         }
 
-        internal DbRow Get(int index)
+        internal readonly DbRow Get(int index)
         {
             AssertValidIndex(index);
 
@@ -166,7 +168,7 @@ public sealed partial class SourceResultDocument
         }
 
         [Conditional("DEBUG")]
-        private void AssertValidIndex(int index)
+        private readonly void AssertValidIndex(int index)
         {
             Debug.Assert(index >= 0);
             Debug.Assert(index <= Length - DbRow.Size, $"index {index} is out of bounds");

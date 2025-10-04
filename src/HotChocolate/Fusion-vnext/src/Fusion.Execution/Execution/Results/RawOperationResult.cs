@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.IO.Pipelines;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Text.Json;

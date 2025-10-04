@@ -80,5 +80,11 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ThrowHelper_ReadIncompleteUTF16", resourceCulture);
             }
         }
+        
+        internal static string FixedSizeArrayPool_Return_InvalidArraySize {
+            get {
+                return ResourceManager.GetString("FixedSizeArrayPool_Return_InvalidArraySize", resourceCulture);
+            }
+        }
     }
 }

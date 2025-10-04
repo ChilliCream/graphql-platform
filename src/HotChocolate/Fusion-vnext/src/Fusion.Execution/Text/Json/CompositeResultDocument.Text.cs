@@ -25,7 +25,7 @@ public sealed partial class CompositeResultDocument
 
         if (tokenType is ElementTokenType.String)
         {
-            segment = segment.Slice(1, segment.Length - 2);
+            segment = segment[1..^1];
         }
 
         return row.HasComplexChildren
@@ -83,7 +83,7 @@ public sealed partial class CompositeResultDocument
             }
 
             var rawValue = ReadRawValueAsMemory(row);
-            return rawValue.Slice(1, rawValue.Length - 2);
+            return rawValue[1..^1];
         }
 
         // TODO: this is more complex with the new design, we gonna tackle this later.

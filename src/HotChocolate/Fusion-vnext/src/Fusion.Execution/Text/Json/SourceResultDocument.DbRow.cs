@@ -30,7 +30,7 @@ public sealed partial class SourceResultDocument
         internal int Location => _location;
 
         /// <summary>
-        /// length of text in JSON payload (or number of elements if its a JSON array)
+        /// length of text in JSON payload (or number of elements if it's a JSON array)
         /// </summary>
         internal int SizeOrLength => _sizeOrLengthUnion & int.MaxValue;
 
@@ -53,7 +53,7 @@ public sealed partial class SourceResultDocument
 
         internal DbRow(JsonTokenType jsonTokenType, int location, int sizeOrLength)
         {
-            Debug.Assert(jsonTokenType > JsonTokenType.None && jsonTokenType <= JsonTokenType.Null);
+            Debug.Assert(jsonTokenType is > JsonTokenType.None and <= JsonTokenType.Null);
             Debug.Assert((byte)jsonTokenType < 1 << 4);
             Debug.Assert(location >= 0);
             Debug.Assert(sizeOrLength >= UnknownSize);

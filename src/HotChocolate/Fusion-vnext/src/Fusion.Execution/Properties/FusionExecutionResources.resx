@@ -36,4 +36,7 @@
   <data name="ThrowHelper_ReadIncompleteUTF16" xml:space="preserve">
     <value>Cannot read incomplete UTF-16 JSON text as string with missing low surrogate.</value>
   </data>
+  <data name="FixedSizeArrayPool_Return_InvalidArraySize" xml:space="preserve">
+    <value>Buffer size {0} does not match expected chunk size {1}</value>
+  </data>
 </root>
