@@ -23,7 +23,7 @@ namespace HotChocolate.Execution;
 internal sealed partial class RequestExecutorResolver
     : IRequestExecutorResolver
     , IRequestExecutorWarmup
-    , IDisposable
+    , IAsyncDisposable
 {
     private readonly CancellationTokenSource _cts = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreBySchema = new();
@@ -253,7 +253,7 @@ internal sealed partial class RequestExecutorResolver
             // we will give the request executor some grace period to finish all request
             // in the pipeline.
             await Task.Delay(TimeSpan.FromMinutes(5));
-            registeredExecutor.Dispose();
+            await registeredExecutor.DisposeAsync();
         }
     }
 
@@ -498,16 +498,16 @@ internal sealed partial class RequestExecutorResolver
         return next;
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (!_disposed)
         {
             // this will stop the eviction processor.
-            _cts.Cancel();
+            await _cts.CancelAsync();
 
             foreach (var executor in _executors.Values)
             {
-                executor.Dispose();
+                await executor.DisposeAsync();
             }
 
             foreach (var semaphore in _semaphoreBySchema.Values)
@@ -529,7 +529,7 @@ internal sealed partial class RequestExecutorResolver
         IExecutionDiagnosticEvents diagnosticEvents,
         RequestExecutorSetup setup,
         TypeModuleChangeMonitor typeModuleChangeMonitor)
-        : IDisposable
+        : IAsyncDisposable
     {
         private bool _disposed;
 
@@ -543,13 +543,19 @@ internal sealed partial class RequestExecutorResolver
 
         public TypeModuleChangeMonitor TypeModuleChangeMonitor { get; } = typeModuleChangeMonitor;
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             if (!_disposed)
             {
-                if (Services is IDisposable d)
+                switch (Services)
                 {
-                    d.Dispose();
+                    case IAsyncDisposable asyncDisposable:
+                        await asyncDisposable.DisposeAsync();
+                        break;
+
+                    case IDisposable d:
+                        d.Dispose();
+                        break;
                 }
 
                 TypeModuleChangeMonitor.Dispose();
