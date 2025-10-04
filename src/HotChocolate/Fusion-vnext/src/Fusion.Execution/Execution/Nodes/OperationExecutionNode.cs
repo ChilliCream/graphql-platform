@@ -414,7 +414,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         public async ValueTask DisposeAsync()
         {
-            if (!_disposed)
+            if (_disposed)
             {
                 return;
             }
