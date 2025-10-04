@@ -125,6 +125,11 @@ jobs:
     needs: library-tests
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
       - name: Download all coverage artifacts
         uses: actions/download-artifact@v4
         with:
