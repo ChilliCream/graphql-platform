@@ -1639,6 +1639,46 @@ response:
           ],
           "directives": [
             {
+              "name": "test",
+              "description": "Directive description",
+              "isRepeatable": true,
+              "args": [
+                {
+                  "name": "arg",
+                  "description": "Directive argument description",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": "\u0022default\u0022",
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "locations": [
+                "QUERY",
+                "MUTATION",
+                "SUBSCRIPTION",
+                "FIELD",
+                "FRAGMENT_DEFINITION",
+                "FRAGMENT_SPREAD",
+                "INLINE_FRAGMENT",
+                "VARIABLE_DEFINITION",
+                "SCHEMA",
+                "SCALAR",
+                "OBJECT",
+                "FIELD_DEFINITION",
+                "ARGUMENT_DEFINITION",
+                "INTERFACE",
+                "UNION",
+                "ENUM",
+                "ENUM_VALUE",
+                "INPUT_OBJECT",
+                "INPUT_FIELD_DEFINITION"
+              ]
+            },
+            {
               "name": "skip",
               "description": "Directs the executor to skip this field or fragment when the \u0060if\u0060 argument is true.",
               "isRepeatable": false,
