@@ -27,7 +27,7 @@ internal sealed class __Directive : ITypeResolverInterceptor
             case "locations":
                 features.Set(new ResolveFieldValue(Locations));
                 break;
-            case "arguments":
+            case "args":
                 features.Set(new ResolveFieldValue(Arguments));
                 break;
         }
