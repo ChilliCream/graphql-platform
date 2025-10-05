@@ -294,6 +294,11 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             typeCondition = schema.Types[inlineFragmentNode.TypeCondition.Name.Value];
         }
 
+        if (!typeCondition.ExistsInSchema(context.SchemaName))
+        {
+            return (null, null);
+        }
+
         context.Nodes.Push(inlineFragmentNode);
 
         var (resolvable, unresolvable) =
