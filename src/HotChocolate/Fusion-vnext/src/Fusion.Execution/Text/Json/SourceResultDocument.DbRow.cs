@@ -24,7 +24,7 @@ public sealed partial class SourceResultDocument
         // exceed that range.
         private readonly int _numberOfRowsAndTypeUnion;
 
-        internal DbRow(JsonTokenType jsonTokenType, int location, int sizeOrLength)
+        internal DbRow(JsonTokenType jsonTokenType, int location, int sizeOrLength, bool hasComplexChildren)
         {
             Debug.Assert(jsonTokenType is > JsonTokenType.None and <= JsonTokenType.Null);
             Debug.Assert((byte)jsonTokenType < 1 << 4);
@@ -33,7 +33,11 @@ public sealed partial class SourceResultDocument
             Debug.Assert(Unsafe.SizeOf<DbRow>() == Size);
 
             _location = location;
-            _sizeOrLengthUnion = sizeOrLength;
+            _sizeOrLengthUnion = hasComplexChildren
+                // Set sign bit
+                ? sizeOrLength | int.MinValue
+                // Clear sign bit
+                : sizeOrLength & int.MaxValue;
             _numberOfRowsAndTypeUnion = ((int)jsonTokenType << 28) | 1;
         }
 

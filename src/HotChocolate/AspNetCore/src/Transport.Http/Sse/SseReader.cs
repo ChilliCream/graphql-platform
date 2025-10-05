@@ -115,21 +115,23 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
                                 case SseEventType.Next when eventMessage.Data is not null:
 #if FUSION
                                     var leftOver = eventBuffers.Count - eventMessage.Data.Length;
+                                    currentPosition = 0;
 
                                     if (leftOver == 0)
                                     {
                                         eventBuffers.Clear();
-                                        currentPosition = 0;
                                     }
                                     else
                                     {
                                         eventBuffers.RemoveRange(0, eventBuffers.Count - leftOver);
-                                        currentPosition = 0;
                                     }
 
                                     yield return SourceResultDocument.Parse(
                                         eventMessage.Data,
-                                        eventMessage.LastChunkSize);
+                                        eventMessage.LastChunkSize,
+                                        eventMessage.UsedChunks,
+                                        options: default,
+                                        pooledMemory: true);
 #else
                                     eventBuffer.Reset();
                                     var document = JsonDocument.Parse(eventMessage.Data.WrittenMemory);

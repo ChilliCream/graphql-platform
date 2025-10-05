@@ -128,7 +128,12 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
             lastChunkSize = JsonMemory.ChunkSize;
         }
 
-        return SourceResultDocument.Parse(chunks.ToArray(), lastChunkSize);
+        return SourceResultDocument.Parse(
+            chunks,
+            lastChunkSize, 
+            requiredSize,
+            options: default,
+            pooledMemory: true);
     }
 
     private static void WriteBytesToChunks(

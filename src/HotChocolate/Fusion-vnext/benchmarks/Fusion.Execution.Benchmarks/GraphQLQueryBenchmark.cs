@@ -10,13 +10,16 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HotChocolate.Fusion.Text.Json;
-using System.IO;
-using System.Text.Json;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Columns;
+using BenchmarkDotNet.Exporters.Csv;
+using BenchmarkDotNet.Exporters;
 
 namespace Fusion.Execution.Benchmarks;
 
 [MemoryDiagnoser]
 [SimpleJob(RuntimeMoniker.Net10_0, warmupCount: 3, iterationCount: 10)]
+[Config(typeof(PercentilesConfig))]
 public class GraphQLQueryBenchmark
 {
     private readonly Uri _requestUri = new Uri("http://localhost:5000/graphql");
@@ -29,6 +32,16 @@ public class GraphQLQueryBenchmark
     private TransportClient _transportClient = null!;
     private TransportGraphQLHttpRequest _transportItemsRequest = null!;
     private TransportGraphQLHttpRequest _transportFewItemsRequest = null!;
+
+    private sealed class PercentilesConfig : ManualConfig
+    {
+        public PercentilesConfig()
+        {
+            AddColumn(StatisticColumn.P95);
+            AddExporter(CsvMeasurementsExporter.Default);
+            AddExporter(RPlotExporter.Default);
+        }
+    }
 
     [GlobalSetup]
     public async Task GlobalSetup()

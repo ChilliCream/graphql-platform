@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Buffers;
 
@@ -8,19 +9,17 @@ namespace HotChocolate.Fusion.Text.Json;
 /// </summary>
 public static class JsonMemory
 {
-    /// <summary>
-    /// The size of one JSON chunk.
-    /// </summary>
-    public const int ChunkSize = 128 * 1024 * 1;
+    public const int BufferSize = 1 << 17;
 
-    private static readonly FixedSizeArrayPool s_pool = new(1, ChunkSize, 128, preAllocate: true);
+    private static readonly FixedSizeArrayPool s_pool = new(1, BufferSize, 128, preAllocate: true);
+    private static readonly ArrayPool<byte[]> s_chunkPool = ArrayPool<byte[]>.Shared;
 
     public static byte[] Rent()
         => s_pool.Rent();
 
     public static byte[][] RentRange(int requiredChunks)
     {
-        var chunks = new byte[requiredChunks][];
+        var chunks = s_chunkPool.Rent(requiredChunks);
 
         for (var i = 0; i < requiredChunks; i++)
         {
@@ -43,11 +42,11 @@ public static class JsonMemory
         }
     }
 
-    public static void Return(byte[][] chunks)
+    public static void Return(byte[][] chunks, int usedChunks)
     {
         ArgumentNullException.ThrowIfNull(chunks);
 
-        foreach (var chunk in chunks.AsSpan())
+        foreach (var chunk in chunks.AsSpan(0, usedChunks))
         {
             s_pool.Return(chunk);
         }

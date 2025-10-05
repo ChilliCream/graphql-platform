@@ -7,20 +7,19 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class SourceResultDocument
 {
-    internal string? GetString(int index, JsonTokenType expectedType)
+    internal string? GetString(Cursor cursor, JsonTokenType expectedType)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
+        var rowTokenType = row.TokenType;
 
-        var tokenType = row.TokenType;
-
-        if (tokenType == JsonTokenType.Null)
+        if (rowTokenType is JsonTokenType.Null)
         {
             return null;
         }
 
-        CheckExpectedType(expectedType, tokenType);
+        CheckExpectedType(expectedType, rowTokenType);
 
         var segment = ReadRawValue(row);
 
@@ -29,12 +28,11 @@ public sealed partial class SourceResultDocument
             : JsonReaderHelper.TranscodeHelper(segment);
     }
 
-    internal bool TextEquals(int index, ReadOnlySpan<char> otherText, bool isPropertyName)
+    internal bool TextEquals(Cursor cursor, ReadOnlySpan<char> otherText, bool isPropertyName)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         byte[]? otherUtf8TextArray = null;
-
         var length = checked(otherText.Length * JsonConstants.MaxExpansionFactorWhileTranscoding);
         var otherUtf8Text = length <= JsonConstants.StackallocByteThreshold
             ? stackalloc byte[JsonConstants.StackallocByteThreshold]
@@ -60,10 +58,10 @@ public sealed partial class SourceResultDocument
         else
         {
             Debug.Assert(status == OperationStatus.Done);
-            result = TextEquals(index, otherUtf8Text[..written], isPropertyName, shouldUnescape: true);
+            result = TextEquals(cursor, otherUtf8Text[..written], isPropertyName, shouldUnescape: true);
         }
 
-        if (otherUtf8TextArray != null)
+        if (otherUtf8TextArray is not null)
         {
             otherUtf8Text[..written].Clear();
             ArrayPool<byte>.Shared.Return(otherUtf8TextArray);
@@ -72,17 +70,16 @@ public sealed partial class SourceResultDocument
         return result;
     }
 
-    internal bool TextEquals(int index, ReadOnlySpan<byte> otherUtf8Text, bool isPropertyName, bool shouldUnescape)
+    internal bool TextEquals(Cursor cursor, ReadOnlySpan<byte> otherUtf8Text, bool isPropertyName, bool shouldUnescape)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var matchIndex = isPropertyName ? index - DbRow.Size : index;
+        // The propertyName is stored exactly one row before its value
+        var matchCursor = isPropertyName ? cursor - 1 : cursor;
 
-        var row = _parsedData.Get(matchIndex);
+        var row = _parsedData.Get(matchCursor);
 
-        CheckExpectedType(
-            isPropertyName ? JsonTokenType.PropertyName : JsonTokenType.String,
-            row.TokenType);
+        CheckExpectedType(isPropertyName ? JsonTokenType.PropertyName : JsonTokenType.String, row.TokenType);
 
         var segment = ReadRawValue(row);
 
@@ -112,39 +109,37 @@ public sealed partial class SourceResultDocument
         return segment.SequenceEqual(otherUtf8Text);
     }
 
-    internal string GetNameOfPropertyValue(int index)
-    {
-        // The property name is one row before the property value
-        return GetString(index - DbRow.Size, JsonTokenType.PropertyName)!;
-    }
+    internal string GetNameOfPropertyValue(Cursor valueCursor)
+        // The propertyName is stored exactly one row before its value
+        => GetString(valueCursor - 1, JsonTokenType.PropertyName)!;
 
-    internal ReadOnlySpan<byte> GetPropertyNameRaw(int index)
+    internal ReadOnlySpan<byte> GetPropertyNameRaw(Cursor valueCursor)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index - DbRow.Size);
+        var row = _parsedData.Get(valueCursor - 1);
         Debug.Assert(row.TokenType is JsonTokenType.PropertyName);
 
         return ReadRawValue(row);
     }
 
-    internal string GetRawValueAsString(int index)
+    internal string GetRawValueAsString(Cursor cursor)
     {
-        var segment = GetRawValue(index, includeQuotes: true);
+        var segment = GetRawValue(cursor, includeQuotes: true);
         return JsonReaderHelper.TranscodeHelper(segment);
     }
 
-    internal string GetPropertyRawValueAsString(int valueIndex)
+    internal string GetPropertyRawValueAsString(Cursor valueCursor)
     {
-        var segment = GetPropertyRawValue(valueIndex);
+        var segment = GetPropertyRawValue(valueCursor);
         return JsonReaderHelper.TranscodeHelper(segment);
     }
 
-    internal ReadOnlySpan<byte> GetRawValue(int index, bool includeQuotes)
+    internal ReadOnlySpan<byte> GetRawValue(Cursor cursor, bool includeQuotes)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
 
         if (row.IsSimpleValue)
         {
@@ -158,17 +153,17 @@ public sealed partial class SourceResultDocument
             return ReadRawValue(row);
         }
 
-        var endElementIdx = GetEndIndex(index, includeEndElement: false);
         var start = row.Location;
-        row = _parsedData.Get(endElementIdx);
-        return ReadRawValue(start, row.Location - start + row.SizeOrLength);
+        var endCursor = GetEndIndex(cursor, includeEndElement: false);
+        var endRow = _parsedData.Get(endCursor);
+        return ReadRawValue(start, endRow.Location - start + endRow.SizeOrLength);
     }
 
-    internal ValueRange GetRawValuePointer(int index, bool includeQuotes)
+    internal ValueRange GetRawValuePointer(Cursor cursor, bool includeQuotes)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
 
         if (row.IsSimpleValue)
         {
@@ -182,63 +177,63 @@ public sealed partial class SourceResultDocument
             return new ValueRange(row.Location, row.SizeOrLength);
         }
 
-        var endElementIdx = GetEndIndex(index, includeEndElement: false);
         var start = row.Location;
-        row = _parsedData.Get(endElementIdx);
-        return new ValueRange(start, row.Location - start + row.SizeOrLength);
+        var endCursor = GetEndIndex(cursor, includeEndElement: false);
+        var endRow = _parsedData.Get(endCursor);
+        return new ValueRange(start, endRow.Location - start + endRow.SizeOrLength);
     }
 
-    private ReadOnlySpan<byte> GetPropertyRawValue(int valueIndex)
+    private ReadOnlySpan<byte> GetPropertyRawValue(Cursor valueCursor)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         // The property name is stored one row before the value
-        var row = _parsedData.Get(valueIndex - DbRow.Size);
-        Debug.Assert(row.TokenType == JsonTokenType.PropertyName);
+        var nameRow = _parsedData.Get(valueCursor - 1);
+        Debug.Assert(nameRow.TokenType == JsonTokenType.PropertyName);
 
         // Subtract one for the open quote.
-        var start = row.Location - 1;
-        int end;
+        var start = nameRow.Location - 1;
 
-        row = _parsedData.Get(valueIndex);
+        var valueRow = _parsedData.Get(valueCursor);
 
-        if (row.IsSimpleValue)
+        if (valueRow.IsSimpleValue)
         {
-            end = row.Location + row.SizeOrLength;
+            var end = valueRow.Location + valueRow.SizeOrLength;
 
-            // If the value was a string, pick up the terminating quote.
-            if (row.TokenType == JsonTokenType.String)
+            if (valueRow.TokenType == JsonTokenType.String)
             {
-                end++;
+                end++; // include closing quote for strings
             }
 
             return ReadRawValue(start, end - start);
         }
 
-        var endElementIdx = GetEndIndex(valueIndex, includeEndElement: false);
-        row = _parsedData.Get(endElementIdx);
-        end = row.Location + row.SizeOrLength;
-        return ReadRawValue(start, end - start);
+        var endCursor = GetEndIndex(valueCursor, includeEndElement: false);
+        var endRow = _parsedData.Get(endCursor);
+        var endOffset = endRow.Location + endRow.SizeOrLength;
+        return ReadRawValue(start, endOffset - start);
     }
 
-    internal int GetEndIndex(int index, bool includeEndElement)
+    internal Cursor GetEndIndex(Cursor cursor, bool includeEndElement)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
 
         if (row.IsSimpleValue)
         {
-            return index + DbRow.Size;
+            // End index is the row after a simple value
+            return cursor + 1;
         }
 
-        var endIndex = index + (DbRow.Size * row.NumberOfRows) - DbRow.Size;
+        // Last row within this composite = start + (rows - 1)
+        var endId = cursor + (row.NumberOfRows - 1);
 
         if (includeEndElement)
         {
-            endIndex += DbRow.Size;
+            endId += 1;
         }
 
-        return endIndex;
+        return endId;
     }
 }

@@ -1,7 +1,8 @@
+using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
-using static HotChocolate.Fusion.Text.Json.MetaDbMemory;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -13,18 +14,23 @@ public sealed partial class SourceResultDocument
         private const int NumberOfRowsOffset = 8;
 
         private byte[][] _chunks;
-        private int _currentChunk;
-        private int _currentPosition;
+        private Cursor _cursor;
         private bool _disposed;
 
-        internal int Length { get; private set; }
+        static MetaDb()
+        {
+            Debug.Assert(
+                MetaDbMemory.BufferSize >= Cursor.ChunkBytes,
+                "MetaDb.BufferSize must match Cursor.ChunkBytes for index math to align.");
+        }
 
         internal static MetaDb CreateForEstimatedRows(int estimatedRows)
         {
-            var chunksNeeded = Math.Max(4, (estimatedRows / RowsPerChunk) + 1);
-            var chunks = new byte[chunksNeeded][];
+            var chunksNeeded = Math.Max(4, (estimatedRows / Cursor.RowsPerChunk) + 1);
+            var chunks = ArrayPool<byte[]>.Shared.Rent(chunksNeeded);
 
-            chunks[0] = Rent();
+            // Rent the first chunk now to avoid branching on first append
+            chunks[0] = MetaDbMemory.Rent();
 
             for (var i = 1; i < chunks.Length; i++)
             {
@@ -34,159 +40,171 @@ public sealed partial class SourceResultDocument
             return new MetaDb
             {
                 _chunks = chunks,
-                _currentChunk = 0,
-                _currentPosition = 0,
-                Length = 0
+                _cursor = Cursor.Zero
             };
         }
 
-        internal int Append(
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Cursor Append(
             JsonTokenType tokenType,
             int startLocation = DbRow.NoLocation,
-            int length = DbRow.UnknownSize)
+            int length = DbRow.UnknownSize,
+            bool hasComplexChildren = false)
         {
-            // Check if we need to allocate a new chunk
-            if (_currentPosition + DbRow.Size > ChunkSize)
+            var cursor = _cursor;
+            var chunks = _chunks.AsSpan();
+            var chunksLength = chunks.Length;
+
+            // If current chunk is full, move to next chunk row 0.
+            if (cursor.Row >= Cursor.RowsPerChunk)
             {
-                _currentChunk++;
-                _currentPosition = 0;
-
-                // Ensure we have space for another chunk.
-                if (_currentChunk >= _chunks.Length)
-                {
-                    var newChunks = new byte[_chunks.Length * 2][];
-                    Array.Copy(_chunks, newChunks, _chunks.Length);
-
-                    for (var i = _chunks.Length; i < newChunks.Length; i++)
-                    {
-                        newChunks[i] = [];
-                    }
-
-                    _chunks = newChunks;
-                }
-
-                if (_chunks[_currentChunk].Length == 0)
-                {
-                    _chunks[_currentChunk] = Rent();
-                }
+                cursor = Cursor.From(cursor.Chunk + 1, 0);
             }
 
-            // Create DbRow and write to chunk
-            var row = new DbRow(tokenType, startLocation, length);
-            MemoryMarshal.Write(_chunks[_currentChunk].AsSpan(_currentPosition), in row);
+            var chunkIndex = cursor.Chunk;
 
-            var id = Length;
-            _currentPosition += DbRow.Size;
-            Length += DbRow.Size;
-            return id;
+            // make sure we have enough space for the chunk referenced by the chunkIndex.
+            if (chunkIndex >= chunksLength)
+            {
+                // if we do not have enough space we will double the size we have for
+                // chunks of memory.
+                var nextChunksLength = chunksLength * 2;
+                var newChunks = ArrayPool<byte[]>.Shared.Rent(nextChunksLength);
+
+                Array.Copy(_chunks, newChunks, chunksLength);
+
+                for (var i = chunksLength; i < nextChunksLength; i++)
+                {
+                    newChunks[i] = [];
+                }
+
+                _chunks = newChunks;
+                chunks = newChunks.AsSpan();
+            }
+
+            var chunk = chunks[chunkIndex];
+
+            // if the chunk is empty we did not yet rent any memory for it
+            if (chunk.Length == 0)
+            {
+                chunk = chunks[chunkIndex] = MetaDbMemory.Rent();
+            }
+
+            var byteOffset = cursor.ByteOffset;
+            var row = new DbRow(tokenType, startLocation, length, hasComplexChildren);
+            ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, byteOffset), row);
+
+            _cursor++;
+            return cursor;
         }
 
-        internal void SetLength(int index, int length)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void SetLength(Cursor cursor, int length)
         {
-            AssertValidIndex(index);
+            AssertValidCursor(cursor);
             Debug.Assert(length >= 0);
 
-            var byteOffset = index;
-            var chunkIndex = byteOffset / ChunkSize;
-            var localOffset = (byteOffset % ChunkSize) + SizeOrLengthOffset;
+            var offset = cursor.ByteOffset + SizeOrLengthOffset;
+            var destination = _chunks[cursor.Chunk].AsSpan(offset);
 
-            var destination = _chunks[chunkIndex].AsSpan(localOffset);
             MemoryMarshal.Write(destination, length);
         }
 
-        internal void SetNumberOfRows(int index, int numberOfRows)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void SetNumberOfRows(Cursor cursor, int numberOfRows)
         {
-            AssertValidIndex(index);
+            AssertValidCursor(cursor);
             Debug.Assert(numberOfRows is >= 1 and <= 0x0FFFFFFF);
 
-            var byteOffset = index;
-            var chunkIndex = byteOffset / ChunkSize;
-            var localOffset = (byteOffset % ChunkSize) + NumberOfRowsOffset;
-
-            var dataPos = _chunks[chunkIndex].AsSpan(localOffset);
+            var offset = cursor.ByteOffset + NumberOfRowsOffset;
+            var dataPos = _chunks[cursor.Chunk].AsSpan(offset);
             var current = MemoryMarshal.Read<int>(dataPos);
 
-            // Persist the most significant nybble
             var value = (current & unchecked((int)0xF0000000)) | numberOfRows;
             MemoryMarshal.Write(dataPos, value);
         }
 
-        internal void SetHasComplexChildren(int index)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void SetHasComplexChildren(Cursor cursor)
         {
-            AssertValidIndex(index);
+            AssertValidCursor(cursor);
 
-            var byteOffset = index;
-            var chunkIndex = byteOffset / ChunkSize;
-            var localOffset = (byteOffset % ChunkSize) + SizeOrLengthOffset;
+            var offset = cursor.ByteOffset + SizeOrLengthOffset;
+            var dataPos = _chunks[cursor.Chunk].AsSpan(offset);
 
-            var dataPos = _chunks[chunkIndex].AsSpan(localOffset);
             var current = MemoryMarshal.Read<int>(dataPos);
-
-            var value = current | unchecked((int)0x80000000);
-            MemoryMarshal.Write(dataPos, value);
+            MemoryMarshal.Write(dataPos, current | unchecked((int)0x80000000));
         }
 
-        internal int FindIndexOfFirstUnsetSizeOrLength(JsonTokenType lookupType)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal readonly DbRow Get(Cursor cursor)
         {
-            Debug.Assert(lookupType == JsonTokenType.StartObject || lookupType == JsonTokenType.StartArray);
+            AssertValidCursor(cursor);
 
-            for (var i = Length - DbRow.Size; i >= 0; i -= DbRow.Size)
-            {
-                var row = Get(i);
+            var dataPos = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
 
-                if (row.IsUnknownSize && row.TokenType == lookupType)
-                {
-                    return i;
-                }
-            }
-
-            Debug.Fail($"Unable to find expected {lookupType} token");
-            return -1;
+            return MemoryMarshal.Read<DbRow>(dataPos);
         }
 
-        internal readonly DbRow Get(int index)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal readonly JsonTokenType GetJsonTokenType(Cursor cursor)
         {
-            AssertValidIndex(index);
+            AssertValidCursor(cursor);
 
-            var byteOffset = index;
-            var chunkIndex = byteOffset / ChunkSize;
-            var localOffset = byteOffset % ChunkSize;
+            var offset = cursor.ByteOffset + NumberOfRowsOffset;
+            var dataPos = _chunks[cursor.Chunk].AsSpan(offset);
 
-            return MemoryMarshal.Read<DbRow>(_chunks[chunkIndex].AsSpan(localOffset));
-        }
-
-        internal JsonTokenType GetJsonTokenType(int index)
-        {
-            AssertValidIndex(index);
-
-            var byteOffset = index;
-            var chunkIndex = byteOffset / ChunkSize;
-            var localOffset = (byteOffset % ChunkSize) + NumberOfRowsOffset;
-
-            var union = MemoryMarshal.Read<uint>(_chunks[chunkIndex].AsSpan(localOffset));
-            return (JsonTokenType)(union >> 28);
+            var current = MemoryMarshal.Read<int>(dataPos);
+            return (JsonTokenType)(current >> 28);
         }
 
         [Conditional("DEBUG")]
-        private readonly void AssertValidIndex(int index)
+        private readonly void AssertValidCursor(Cursor cursor)
         {
-            Debug.Assert(index >= 0);
-            Debug.Assert(index <= Length - DbRow.Size, $"index {index} is out of bounds");
-            Debug.Assert(index % DbRow.Size == 0, $"index {index} is not at a record start position");
+            Debug.Assert(
+                cursor.Chunk >= 0 && cursor.Chunk < _chunks.Length,
+                $"chunk {cursor.Chunk} out of bounds");
+
+            if (cursor.Chunk < _cursor.Chunk)
+            {
+                Debug.Assert(
+                    cursor.Row is >= 0 and < Cursor.RowsPerChunk,
+                    $"row {cursor.Row} out of bounds for chunk {cursor.Chunk}");
+            }
+            else if (cursor.Chunk == _cursor.Chunk)
+            {
+                Debug.Assert(
+                    cursor.Row >= 0 && cursor.Row < _cursor.Row,
+                    $"row {cursor.Row} not yet written in current chunk (max valid {_cursor.Row - 1})");
+            }
+            else
+            {
+                Debug.Fail($"chunk {cursor.Chunk} is beyond current chunk {_cursor.Chunk}");
+            }
         }
 
         public void Dispose()
         {
             if (!_disposed)
             {
-                foreach (var chunk in _chunks)
+                if (_chunks != null)
                 {
-                    if (chunk.Length == 0)
+                    var cursor = _cursor;
+                    var chunks = _chunks.AsSpan(0, cursor.Chunk + 1);
+
+                    foreach (var chunk in chunks)
                     {
-                        break;
+                        if (chunk.Length == 0)
+                        {
+                            break;
+                        }
+
+                        MetaDbMemory.Return(chunk);
                     }
 
-                    Return(chunk);
+                    chunks.Clear();
+                    ArrayPool<byte[]>.Shared.Return(_chunks);
                 }
 
                 _chunks = [];

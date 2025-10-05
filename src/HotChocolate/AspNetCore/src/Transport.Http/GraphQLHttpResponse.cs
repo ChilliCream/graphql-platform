@@ -1,11 +1,14 @@
+#if FUSION
 using System.Buffers;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Text.Json;
-#if FUSION
 using System.IO.Pipelines;
 using HotChocolate.Transport;
 using HotChocolate.Fusion.Text.Json;
+#else
+using System.Net;
+using System.Net.Http.Headers;
+using System.Text.Json;
 #endif
 
 #if FUSION
@@ -157,9 +160,10 @@ public sealed class GraphQLHttpResponse : IDisposable
 #if FUSION
         // we try and read the first chunk into a single chunk.
         var reader = PipeReader.Create(stream, s_options);
-        var currentChunk = JsonMemory.Rent(); // 128KB chunk
+        var currentChunk = JsonMemory.Rent();
         var currentChunkPosition = 0;
-        List<byte[]>? chunks = null;
+        var chunkIndex = 0;
+        var chunks = ArrayPool<byte[]>.Shared.Rent(64);
 
         try
         {
@@ -173,31 +177,85 @@ public sealed class GraphQLHttpResponse : IDisposable
                     break;
                 }
 
-                // Process each segment in the buffer
-                foreach (var segment in buffer)
+                if (buffer.IsSingleSegment)
                 {
-                    var segmentSpan = segment.Span;
-                    var segmentOffset = 0;
+                    var target = currentChunk.AsSpan(currentChunkPosition);
+                    var source = buffer.FirstSpan;
 
-                    while (segmentOffset < segmentSpan.Length)
+                    if (target.Length >= source.Length)
                     {
-                        var spaceInCurrentChunk = JsonMemory.ChunkSize - currentChunkPosition;
-                        var bytesToCopy = Math.Min(spaceInCurrentChunk, segmentSpan.Length - segmentOffset);
+                        source.CopyTo(target);
+                        currentChunkPosition += source.Length;
+                    }
+                    else
+                    {
+                        var segmentOffset = 0;
 
-                        // we copy the data we have into the current chunk.
-                        var chunkSlice = currentChunk.AsSpan(currentChunkPosition);
-                        segmentSpan.Slice(segmentOffset, bytesToCopy).CopyTo(chunkSlice);
-                        currentChunkPosition += bytesToCopy;
-                        segmentOffset += bytesToCopy;
-
-                        // if the current chunk is full, we need to get a new one
-                        // and store the chunk in the chunk list
-                        if (currentChunkPosition == JsonMemory.ChunkSize)
+                        while (segmentOffset < source.Length)
                         {
-                            chunks ??= [];
-                            chunks.Add(currentChunk);
-                            currentChunk = JsonMemory.Rent();
-                            currentChunkPosition = 0;
+                            var spaceInCurrentChunk = JsonMemory.ChunkSize - currentChunkPosition;
+                            var bytesToCopy = Math.Min(spaceInCurrentChunk, source.Length - segmentOffset);
+
+                            // we copy the data we have into the current chunk.
+                            var chunkSlice = currentChunk.AsSpan(currentChunkPosition);
+                            source.Slice(segmentOffset, bytesToCopy).CopyTo(chunkSlice);
+                            currentChunkPosition += bytesToCopy;
+                            segmentOffset += bytesToCopy;
+
+                            // if the current chunk is full, we need to get a new one
+                            // and store the chunk in the chunk list
+                            if (currentChunkPosition == JsonMemory.ChunkSize)
+                            {
+                                if (chunkIndex >= chunks.Length)
+                                {
+                                    var newChunks = ArrayPool<byte[]>.Shared.Rent(chunks.Length * 2);
+                                    Array.Copy(chunks, 0, newChunks, 0, chunks.Length);
+                                    chunks.AsSpan().Clear();
+                                    chunks = newChunks;
+                                }
+
+                                chunks[chunkIndex++] = currentChunk;
+                                currentChunk = JsonMemory.Rent();
+                                currentChunkPosition = 0;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Process each segment in the buffer
+                    foreach (var segment in buffer)
+                    {
+                        var segmentSpan = segment.Span;
+                        var segmentOffset = 0;
+
+                        while (segmentOffset < segmentSpan.Length)
+                        {
+                            var spaceInCurrentChunk = JsonMemory.ChunkSize - currentChunkPosition;
+                            var bytesToCopy = Math.Min(spaceInCurrentChunk, segmentSpan.Length - segmentOffset);
+
+                            // we copy the data we have into the current chunk.
+                            var chunkSlice = currentChunk.AsSpan(currentChunkPosition);
+                            segmentSpan.Slice(segmentOffset, bytesToCopy).CopyTo(chunkSlice);
+                            currentChunkPosition += bytesToCopy;
+                            segmentOffset += bytesToCopy;
+
+                            // if the current chunk is full, we need to get a new one
+                            // and store the chunk in the chunk list
+                            if (currentChunkPosition == JsonMemory.ChunkSize)
+                            {
+                                if (chunkIndex >= chunks.Length)
+                                {
+                                    var newChunks = ArrayPool<byte[]>.Shared.Rent(chunks.Length * 2);
+                                    Array.Copy(chunks, 0, newChunks, 0, chunks.Length);
+                                    chunks.AsSpan().Clear();
+                                    chunks = newChunks;
+                                }
+
+                                chunks[chunkIndex++] = currentChunk;
+                                currentChunk = JsonMemory.Rent();
+                                currentChunkPosition = 0;
+                            }
                         }
                     }
                 }
@@ -205,16 +263,23 @@ public sealed class GraphQLHttpResponse : IDisposable
                 reader.AdvanceTo(buffer.End);
             }
 
-            // if we do not have a chunk list everything has fit into out initial chunk.
-            // this means we do not need to allocate any memory and can use the optimized parse.
-            if (chunks is null)
+            // add the final partial chunk to the list
+            if (chunkIndex >= chunks.Length)
             {
-                return SourceResultDocument.Parse(currentChunk, size: currentChunkPosition);
+                var newChunks = ArrayPool<byte[]>.Shared.Rent(chunks.Length * 2);
+                Array.Copy(chunks, 0, newChunks, 0, chunks.Length);
+                chunks.AsSpan().Clear();
+                chunks = newChunks;
             }
 
-            // add the final partial chunk to the list
-            chunks.Add(currentChunk);
-            return SourceResultDocument.Parse(chunks.ToArray(), currentChunkPosition);
+            chunks[chunkIndex++] = currentChunk;
+
+            return SourceResultDocument.Parse(
+                chunks,
+                lastLength: currentChunkPosition,
+                usedChunks: chunkIndex,
+                options: default,
+                pooledMemory: true);
         }
         finally
         {

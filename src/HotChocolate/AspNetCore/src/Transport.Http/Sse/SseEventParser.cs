@@ -1,4 +1,5 @@
 #if FUSION
+using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Text.Json;
@@ -39,14 +40,14 @@ internal static class SseEventParser
         switch (type)
         {
             case SseEventType.Next:
-                var (data, size) = ParseData(message, lastChunkSize, position);
-                return new SseEventData(SseEventType.Next, data, size);
+                var (data, size, usedChunks) = ParseData(message, lastChunkSize, position);
+                return new SseEventData(SseEventType.Next, data, size, usedChunks);
 
             case SseEventType.Complete:
-                return new SseEventData(SseEventType.Complete, null, -1);
+                return new SseEventData(SseEventType.Complete, null, -1, -1);
 
             default:
-                return new SseEventData(SseEventType.Unknown, null, -1);
+                return new SseEventData(SseEventType.Unknown, null, -1, -1);
         }
     }
 #else
@@ -74,7 +75,10 @@ internal static class SseEventParser
     /// <summary>
     /// Collects <c>data:</c> lines until the blank-line separator and concatenates them with LF.
     /// </summary>
-    private static (byte[][], int) ParseData(List<byte[]> message, int lastChunkSize, int position)
+    private static (byte[][] Chunks, int LastChunkSize, int UsedChunks) ParseData(
+        List<byte[]> message,
+        int lastChunkSize,
+        int position)
     {
         var dataLength = message.Count == 1
             ? lastChunkSize - position
@@ -115,13 +119,13 @@ internal static class SseEventParser
         var newLastChunkSize = nextWritePosition == 0 ? 0 : ((nextWritePosition - 1) % JsonMemory.ChunkSize) + 1;
 
         // Create new list with only the used chunks
-        var result = new byte[usedChunks][];
+        var result = ArrayPool<byte[]>.Shared.Rent(usedChunks);
         for (var i = 0; i < usedChunks; i++)
         {
             result[i] = message[i];
         }
 
-        return (result, newLastChunkSize);
+        return (result, newLastChunkSize, usedChunks);
     }
 
     private static void ParseLine(
