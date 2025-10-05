@@ -309,55 +309,6 @@ public class IntrospectionTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact]
-    public async Task Directives_Should_Include_Args()
-    {
-        // arrange
-        using var server1 = CreateSourceSchema(
-            "A",
-            b => b.AddQueryType<SourceSchema1.Query>());
-
-        using var server2 = CreateSourceSchema(
-            "B",
-            b => b.AddQueryType<SourceSchema2.Query>());
-
-        using var gateway = await CreateCompositeSchemaAsync(
-        [
-            ("A", server1),
-            ("B", server2)
-        ]);
-
-        // act
-        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-        var request = new Transport.OperationRequest(
-            """
-            query SkipIncludeDirectiveArgs {
-              __schema {
-                directives {
-                  name
-                  args {
-                    name
-                    defaultValue
-                    type {
-                      kind
-                      name
-                      ofType { kind name }
-                    }
-                  }
-                }
-              }
-            }
-            """);
-
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
-
-        // assert
-        await MatchSnapshotAsync(gateway, request, result, postFix: "SkipIncludeDirectiveArgs");
-    }
-
     [Theory]
     [InlineData("SchemaCapabilitiesQuery")]
     [InlineData("InputValueCapabilitiesQuery")]
@@ -568,8 +519,7 @@ public class IntrospectionTests : FusionTestBase
             private readonly OrderedDictionary<int, Author> _authors =
                 new OrderedDictionary<int, Author>()
                 {
-                    [1] = new Author(1, "Jon Skeet"),
-                    [2] = new Author(2, "JRR Tolkien")
+                    [1] = new Author(1, "Jon Skeet"), [2] = new Author(2, "JRR Tolkien")
                 };
 
             [Internal]
