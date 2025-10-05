@@ -199,6 +199,8 @@ public sealed partial class SourceResultDocument : IDisposable
                 JsonMemory.Return(_dataChunks);
             }
 
+            _parsedData.Dispose();
+
             _disposed = true;
         }
     }

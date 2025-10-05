@@ -2,12 +2,12 @@ using HotChocolate.Fusion.Buffers;
 
 namespace HotChocolate.Fusion.Text.Json;
 
-internal static class MetaDbMemory
+public static class MetaDbMemory
 {
     public const int ChunkSize = RowsPerChunk * CompositeResultDocument.DbRow.Size;
-    public const int RowsPerChunk = 6552;
+    public const int RowsPerChunk = 6552 * 4;
 
-    private static readonly FixedSizeArrayPool s_pool = new(1, ChunkSize, 64, preAllocate: false);
+    private static readonly FixedSizeArrayPool s_pool = new(2, ChunkSize, 128, preAllocate: true);
 
     public static byte[] Rent()
         => s_pool.Rent();
