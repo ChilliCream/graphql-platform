@@ -479,6 +479,209 @@ public class InterfaceTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Interface_Field_With_Only_Type_Refinements_On_Same_Schema()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              someField: SomeInterface
+            }
+
+            interface SomeInterface {
+              value: String
+            }
+
+            type ConcreteTypeA implements SomeInterface {
+              value: String
+              specificToA: String
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              anotherField: SomeInterface
+            }
+
+            interface SomeInterface {
+              value: String
+            }
+
+            type ConcreteTypeB implements SomeInterface {
+              value: String
+              specificToB: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new Transport.OperationRequest(
+            """
+            {
+              someField {
+                value
+                ... on ConcreteTypeA {
+                  specificToA
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Interface_Field_With_Type_Refinements_Exclusive_To_Other_Schema()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              someField: SomeInterface
+            }
+
+            interface SomeInterface {
+              value: String
+            }
+
+            type ConcreteTypeA implements SomeInterface {
+              value: String
+              specificToA: String
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              anotherField: SomeInterface
+            }
+
+            interface SomeInterface {
+              value: String
+            }
+
+            type ConcreteTypeB implements SomeInterface {
+              value: String
+              specificToB: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new Transport.OperationRequest(
+            """
+            {
+              someField {
+                value
+                ... on ConcreteTypeA {
+                  specificToA
+                }
+                ... on ConcreteTypeB {
+                  specificToB
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Interface_Field_With_Only_Type_Refinements_Exclusive_To_Other_Schema()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              someField: SomeInterface
+            }
+
+            interface SomeInterface {
+              value: String
+            }
+
+            type ConcreteTypeA implements SomeInterface {
+              value: String
+              specificToA: String
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              anotherField: SomeInterface
+            }
+
+            interface SomeInterface {
+              value: String
+            }
+
+            type ConcreteTypeB implements SomeInterface {
+              value: String
+              specificToB: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new Transport.OperationRequest(
+            """
+            {
+              someField {
+                ... on ConcreteTypeB {
+                  specificToB
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     #endregion
 
     # region interfaces { ... }
