@@ -155,8 +155,8 @@ public sealed partial class SourceResultDocument
             var offset = cursor.ByteOffset + NumberOfRowsOffset;
             var dataPos = _chunks[cursor.Chunk].AsSpan(offset);
 
-            var current = MemoryMarshal.Read<int>(dataPos);
-            return (JsonTokenType)(current >> 28);
+            var union = MemoryMarshal.Read<uint>(dataPos);
+            return (JsonTokenType)(union >> 28);
         }
 
         [Conditional("DEBUG")]

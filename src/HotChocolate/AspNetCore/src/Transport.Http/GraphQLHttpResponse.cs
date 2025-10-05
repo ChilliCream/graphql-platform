@@ -193,7 +193,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
                         while (segmentOffset < source.Length)
                         {
-                            var spaceInCurrentChunk = JsonMemory.ChunkSize - currentChunkPosition;
+                            var spaceInCurrentChunk = JsonMemory.BufferSize - currentChunkPosition;
                             var bytesToCopy = Math.Min(spaceInCurrentChunk, source.Length - segmentOffset);
 
                             // we copy the data we have into the current chunk.
@@ -204,7 +204,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
                             // if the current chunk is full, we need to get a new one
                             // and store the chunk in the chunk list
-                            if (currentChunkPosition == JsonMemory.ChunkSize)
+                            if (currentChunkPosition == JsonMemory.BufferSize)
                             {
                                 if (chunkIndex >= chunks.Length)
                                 {
@@ -231,7 +231,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
                         while (segmentOffset < segmentSpan.Length)
                         {
-                            var spaceInCurrentChunk = JsonMemory.ChunkSize - currentChunkPosition;
+                            var spaceInCurrentChunk = JsonMemory.BufferSize - currentChunkPosition;
                             var bytesToCopy = Math.Min(spaceInCurrentChunk, segmentSpan.Length - segmentOffset);
 
                             // we copy the data we have into the current chunk.
@@ -242,7 +242,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
                             // if the current chunk is full, we need to get a new one
                             // and store the chunk in the chunk list
-                            if (currentChunkPosition == JsonMemory.ChunkSize)
+                            if (currentChunkPosition == JsonMemory.BufferSize)
                             {
                                 if (chunkIndex >= chunks.Length)
                                 {

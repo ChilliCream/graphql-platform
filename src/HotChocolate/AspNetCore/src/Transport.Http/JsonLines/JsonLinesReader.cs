@@ -102,7 +102,7 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
         var requiredSize = (int)lineBuffer.Length;
 
         // Ceiling division to make sure we end up with the right amount of chunks.
-        var chunksNeeded = (requiredSize + JsonMemory.ChunkSize - 1) / JsonMemory.ChunkSize;
+        var chunksNeeded = (requiredSize + JsonMemory.BufferSize - 1) / JsonMemory.BufferSize;
         var chunks = JsonMemory.RentRange(chunksNeeded);
         var chunkIndex = 0;
         var chunkPosition = 0;
@@ -122,15 +122,15 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
             }
         }
 
-        var lastChunkSize = requiredSize % JsonMemory.ChunkSize;
-        if (lastChunkSize == 0 && chunks.Length > 0)
+        var lastBufferSize = requiredSize % JsonMemory.BufferSize;
+        if (lastBufferSize == 0 && chunks.Length > 0)
         {
-            lastChunkSize = JsonMemory.ChunkSize;
+            lastBufferSize = JsonMemory.BufferSize;
         }
 
         return SourceResultDocument.Parse(
             chunks,
-            lastChunkSize, 
+            lastBufferSize,
             requiredSize,
             options: default,
             pooledMemory: true);
@@ -146,14 +146,14 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
 
         while (dataOffset < data.Length)
         {
-            if (chunkPosition >= JsonMemory.ChunkSize)
+            if (chunkPosition >= JsonMemory.BufferSize)
             {
                 chunkPosition = 0;
                 chunkIndex++;
             }
 
             var currentChunk = chunks[chunkIndex];
-            var spaceInChunk = JsonMemory.ChunkSize - chunkPosition;
+            var spaceInChunk = JsonMemory.BufferSize - chunkPosition;
             var bytesToWrite = Math.Min(spaceInChunk, data.Length - dataOffset);
 
             data.Slice(dataOffset, bytesToWrite).CopyTo(currentChunk.AsSpan(chunkPosition));

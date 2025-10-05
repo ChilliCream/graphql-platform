@@ -16,16 +16,19 @@ public readonly partial struct SourceResultElement
     public struct ArrayEnumerator : IEnumerable<SourceResultElement>, IEnumerator<SourceResultElement>
     {
         private readonly SourceResultElement _target;
-        private int _curIdx;
-        private readonly int _endIdxOrVersion;
+        private readonly SourceResultDocument.Cursor _endCursor; // exclusive frontier (start of EndArray)
+        private SourceResultDocument.Cursor _current;        // points at the current element start
+        private bool _hasStarted;                            // tracks "before start" vs "on an element"
 
-        internal ArrayEnumerator(SourceResultElement target, int currentIndex = -1)
+        internal ArrayEnumerator(SourceResultElement target)
         {
-            _target = target;
-            _curIdx = currentIndex;
-
             Debug.Assert(target.TokenType == JsonTokenType.StartArray);
-            _endIdxOrVersion = target._parent.GetEndIndex(_target._index, includeEndElement: false);
+
+            _target = target;
+            _endCursor = target._parent.GetEndIndex(target._cursor, includeEndElement: false);
+
+            _current = default;
+            _hasStarted = false;
         }
 
         /// <inheritdoc />
@@ -33,26 +36,23 @@ public readonly partial struct SourceResultElement
         {
             get
             {
-                if (_curIdx < 0)
+                if (!_hasStarted)
                 {
                     return default;
                 }
 
-                return new SourceResultElement(_target._parent, _curIdx);
+                return new SourceResultElement(_target._parent, _current);
             }
         }
 
         /// <summary>
         /// Returns an enumerator that iterates through a collection.
         /// </summary>
-        /// <returns>
-        /// An <see cref="ArrayEnumerator"/> value that can be used to iterate
-        /// through the array.
-        /// </returns>
         public ArrayEnumerator GetEnumerator()
         {
             var enumerator = this;
-            enumerator._curIdx = -1;
+            enumerator._hasStarted = false;
+            enumerator._current = default;
             return enumerator;
         }
 
@@ -65,13 +65,15 @@ public readonly partial struct SourceResultElement
         /// <inheritdoc />
         public void Dispose()
         {
-            _curIdx = _endIdxOrVersion;
+            _hasStarted = false;
+            _current = _endCursor;
         }
 
         /// <inheritdoc />
         public void Reset()
         {
-            _curIdx = -1;
+            _hasStarted = false;
+            _current = default;
         }
 
         /// <inheritdoc />
@@ -80,21 +82,41 @@ public readonly partial struct SourceResultElement
         /// <inheritdoc />
         public bool MoveNext()
         {
-            if (_curIdx >= _endIdxOrVersion)
+            // If we haven't started, move to the first element (cursor + 1 row).
+            if (!_hasStarted)
             {
-                return false;
+                var first = _target._cursor + 1;
+
+                if (first < _endCursor)
+                {
+                    _current = first;
+                    _hasStarted = true;
+                    return true;
+                }
+                else
+                {
+                    // Empty array: no elements before EndArray.
+                    _current = _endCursor;
+                    _hasStarted = false;
+                    return false;
+                }
             }
 
-            if (_curIdx < 0)
+            // Already on an element: jump to just after this element (exclusive),
+            // which is the start of the next element if one exists.
+            var next = _target._parent.GetEndIndex(_current, includeEndElement: true);
+
+            if (next < _endCursor)
             {
-                _curIdx = _target._index + SourceResultDocument.DbRow.Size;
+                _current = next;
+                return true;
             }
             else
             {
-                _curIdx = _target._parent.GetEndIndex(_curIdx, includeEndElement: true);
+                _current = _endCursor;
+                _hasStarted = false;
+                return false;
             }
-
-            return _curIdx < _endIdxOrVersion;
         }
     }
 }

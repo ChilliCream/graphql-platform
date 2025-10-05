@@ -1,19 +1,15 @@
-using System.Buffers;
 using System.Buffers.Text;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using System.Text.Unicode;
 
 namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class SourceResultDocument
 {
-    internal bool TryGetValue(int index, out sbyte value)
+    internal bool TryGetValue(Cursor cursor, out sbyte value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
@@ -30,11 +26,11 @@ public sealed partial class SourceResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out byte value)
+    internal bool TryGetValue(Cursor cursor, out byte value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
@@ -51,11 +47,11 @@ public sealed partial class SourceResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out short value)
+    internal bool TryGetValue(Cursor cursor, out short value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
@@ -72,11 +68,11 @@ public sealed partial class SourceResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out ushort value)
+    internal bool TryGetValue(Cursor cursor, out ushort value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
@@ -93,11 +89,11 @@ public sealed partial class SourceResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out int value)
+    internal bool TryGetValue(Cursor cursor, out int value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
@@ -114,11 +110,11 @@ public sealed partial class SourceResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out uint value)
+    internal bool TryGetValue(Cursor cursor, out uint value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
@@ -135,11 +131,11 @@ public sealed partial class SourceResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out long value)
+    internal bool TryGetValue(Cursor cursor, out long value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
@@ -156,11 +152,11 @@ public sealed partial class SourceResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out ulong value)
+    internal bool TryGetValue(Cursor cursor, out ulong value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
@@ -177,11 +173,11 @@ public sealed partial class SourceResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out double value)
+    internal bool TryGetValue(Cursor cursor, out double value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
@@ -198,11 +194,11 @@ public sealed partial class SourceResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out float value)
+    internal bool TryGetValue(Cursor cursor, out float value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 
@@ -219,11 +215,11 @@ public sealed partial class SourceResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out decimal value)
+    internal bool TryGetValue(Cursor cursor, out decimal value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _parsedData.Get(index);
+        var row = _parsedData.Get(cursor);
 
         CheckExpectedType(JsonTokenType.Number, row.TokenType);
 

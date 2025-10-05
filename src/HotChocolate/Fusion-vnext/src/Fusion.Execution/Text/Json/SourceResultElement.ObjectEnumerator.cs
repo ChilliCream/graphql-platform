@@ -13,16 +13,19 @@ public readonly partial struct SourceResultElement
     public struct ObjectEnumerator : IEnumerable<SourceResultProperty>, IEnumerator<SourceResultProperty>
     {
         private readonly SourceResultElement _target;
-        private int _curIdx;
-        private readonly int _endIdxOrVersion;
+        private readonly SourceResultDocument.Cursor _endCursor;     // exclusive frontier (Start of EndObject)
+        private SourceResultDocument.Cursor _current;                // points at the current property's VALUE
+        private bool _hasStarted;                                    // before-start sentinel
 
-        internal ObjectEnumerator(SourceResultElement target, int currentIndex = -1)
+        internal ObjectEnumerator(SourceResultElement target)
         {
-            _target = target;
-            _curIdx = currentIndex;
-
             Debug.Assert(target.TokenType == JsonTokenType.StartObject);
-            _endIdxOrVersion = target._parent.GetEndIndex(_target._index, includeEndElement: false);
+
+            _target = target;
+            _endCursor = target._parent.GetEndIndex(target._cursor, includeEndElement: false);
+
+            _current = default;
+            _hasStarted = false;
         }
 
         /// <inheritdoc />
@@ -30,12 +33,12 @@ public readonly partial struct SourceResultElement
         {
             get
             {
-                if (_curIdx < 0)
+                if (!_hasStarted)
                 {
                     return default;
                 }
 
-                return new SourceResultProperty(new SourceResultElement(_target._parent, _curIdx));
+                return new SourceResultProperty(new SourceResultElement(_target._parent, _current));
             }
         }
 
@@ -55,7 +58,8 @@ public readonly partial struct SourceResultElement
         public ObjectEnumerator GetEnumerator()
         {
             var enumerator = this;
-            enumerator._curIdx = -1;
+            enumerator._hasStarted = false;
+            enumerator._current = default;
             return enumerator;
         }
 
@@ -68,13 +72,15 @@ public readonly partial struct SourceResultElement
         /// <inheritdoc />
         public void Dispose()
         {
-            _curIdx = _endIdxOrVersion;
+            _hasStarted = false;
+            _current = _endCursor;
         }
 
         /// <inheritdoc />
         public void Reset()
         {
-            _curIdx = -1;
+            _hasStarted = false;
+            _current = default;
         }
 
         /// <inheritdoc />
@@ -83,24 +89,46 @@ public readonly partial struct SourceResultElement
         /// <inheritdoc />
         public bool MoveNext()
         {
-            if (_curIdx >= _endIdxOrVersion)
+            if (!_hasStarted)
             {
-                return false;
+                // First property: after StartObject comes PropertyName (+1), then Value (+1).
+                var firstName = _target._cursor + 1;
+                var firstValue = firstName + 1;
+
+                if (firstValue < _endCursor)
+                {
+                    _current = firstValue;
+                    _hasStarted = true;
+                    return true;
+                }
+                else
+                {
+                    // Empty object ({}): no properties before EndObject.
+                    _current = _endCursor;
+                    _hasStarted = false;
+                    return false;
+                }
             }
 
-            if (_curIdx < 0)
+            // Advance past the current VALUE to the start of the next element.
+            // GetEndIndex(current, includeEndElement: true) yields the row after the current value.
+            var afterCurrent = _target._parent.GetEndIndex(_current, includeEndElement: true);
+
+            // After a value, the next row (if any) is the next PropertyName; we need the VALUE,
+            // so we skip one more row.
+            var nextValue = afterCurrent + 1;
+
+            if (nextValue < _endCursor)
             {
-                _curIdx = _target._index + SourceResultDocument.DbRow.Size;
+                _current = nextValue;
+                return true;
             }
             else
             {
-                _curIdx = _target._parent.GetEndIndex(_curIdx, includeEndElement: true);
+                _current = _endCursor;
+                _hasStarted = false;
+                return false;
             }
-
-            // _curIdx is now pointing at a property name, move one more to get the value
-            _curIdx += SourceResultDocument.DbRow.Size;
-
-            return _curIdx < _endIdxOrVersion;
         }
     }
 }

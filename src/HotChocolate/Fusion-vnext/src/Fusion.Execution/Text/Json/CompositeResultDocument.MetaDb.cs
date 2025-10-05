@@ -50,7 +50,7 @@ public sealed partial class CompositeResultDocument
             ElementFlags flags = ElementFlags.None)
         {
             // Check if we need to allocate a new chunk
-            if (_currentPosition + DbRow.Size > ChunkSize)
+            if (_currentPosition + DbRow.Size > BufferSize)
             {
                 _currentChunk++;
                 _currentPosition = 0;
@@ -77,7 +77,7 @@ public sealed partial class CompositeResultDocument
                 // just have filled up a block and must rent more memory.
                 if (_chunks[_currentChunk].Length == 0)
                 {
-                    _chunks[_currentChunk] = MetaDbMemory.Rent();
+                    _chunks[_currentChunk] = Rent();
                 }
             }
 
@@ -124,8 +124,8 @@ public sealed partial class CompositeResultDocument
             // in turn break up into the chunk where the row resides and the
             // local offset we have in that chunk.
             var offset = index * DbRow.Size;
-            var chunkIndex = offset / ChunkSize;
-            var localOffset = offset % ChunkSize;
+            var chunkIndex = offset / BufferSize;
+            var localOffset = offset % BufferSize;
 
             Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
             Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
@@ -155,8 +155,8 @@ public sealed partial class CompositeResultDocument
             // // in turn break up into the chunk where the row resides and the
             // // local offset we have in that chunk.
             var byteOffset = index * DbRow.Size;
-            var chunkIndex = byteOffset / ChunkSize;
-            var localOffset = byteOffset % ChunkSize;
+            var chunkIndex = byteOffset / BufferSize;
+            var localOffset = byteOffset % BufferSize;
 
             Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
             Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
@@ -172,8 +172,8 @@ public sealed partial class CompositeResultDocument
             // in turn break up into the chunk where the row resides and the
             // local offset we have in that chunk.
             var byteOffset = index * DbRow.Size;
-            var chunkIndex = byteOffset / ChunkSize;
-            var localOffset = byteOffset % ChunkSize;
+            var chunkIndex = byteOffset / BufferSize;
+            var localOffset = byteOffset % BufferSize;
 
             var union = MemoryMarshal.Read<uint>(_chunks[chunkIndex].AsSpan(localOffset + TokenTypeOffset));
             var tokenType = (ElementTokenType)(union >> 28);
@@ -193,8 +193,8 @@ public sealed partial class CompositeResultDocument
 
             // Convert row index to byte offset
             var byteOffset = index * DbRow.Size;
-            var chunkIndex = byteOffset / ChunkSize;
-            var localOffset = byteOffset % ChunkSize;
+            var chunkIndex = byteOffset / BufferSize;
+            var localOffset = byteOffset % BufferSize;
 
             Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
             Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
@@ -213,8 +213,8 @@ public sealed partial class CompositeResultDocument
 
             // Convert row index to byte offset
             var byteOffset = index * DbRow.Size;
-            var chunkIndex = byteOffset / ChunkSize;
-            var localOffset = byteOffset % ChunkSize;
+            var chunkIndex = byteOffset / BufferSize;
+            var localOffset = byteOffset % BufferSize;
 
             Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
             Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
@@ -237,8 +237,8 @@ public sealed partial class CompositeResultDocument
 
             // Convert row index to byte offset
             var byteOffset = index * DbRow.Size;
-            var chunkIndex = byteOffset / ChunkSize;
-            var localOffset = byteOffset % ChunkSize;
+            var chunkIndex = byteOffset / BufferSize;
+            var localOffset = byteOffset % BufferSize;
 
             Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
             Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
@@ -259,8 +259,8 @@ public sealed partial class CompositeResultDocument
 
             // Convert row index to byte offset
             var byteOffset = index * DbRow.Size;
-            var chunkIndex = byteOffset / ChunkSize;
-            var localOffset = byteOffset % ChunkSize;
+            var chunkIndex = byteOffset / BufferSize;
+            var localOffset = byteOffset % BufferSize;
 
             Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
             Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
@@ -285,8 +285,8 @@ public sealed partial class CompositeResultDocument
             // in turn break up into the chunk where the row resides and the
             // local offset we have in that chunk.
             var byteOffset = index * DbRow.Size;
-            var chunkIndex = byteOffset / ChunkSize;
-            var localOffset = byteOffset % ChunkSize;
+            var chunkIndex = byteOffset / BufferSize;
+            var localOffset = byteOffset % BufferSize;
 
             var union = MemoryMarshal.Read<uint>(_chunks[chunkIndex].AsSpan(localOffset + TokenTypeOffset));
             var tokenType = (ElementTokenType)(union >> 28);
@@ -295,8 +295,8 @@ public sealed partial class CompositeResultDocument
             {
                 index = GetLocation(index);
                 byteOffset = index * DbRow.Size;
-                chunkIndex = byteOffset / ChunkSize;
-                localOffset = byteOffset % ChunkSize;
+                chunkIndex = byteOffset / BufferSize;
+                localOffset = byteOffset % BufferSize;
                 union = MemoryMarshal.Read<uint>(_chunks[chunkIndex].AsSpan(localOffset + TokenTypeOffset));
                 tokenType = (ElementTokenType)(union >> 28);
             }

@@ -23,16 +23,16 @@ internal static class SseEventParser
     private static ReadOnlySpan<byte> CompleteEvent => "complete"u8;
 
 #if FUSION
-    public static SseEventData Parse(List<byte[]> message, int lastChunkSize)
+    public static SseEventData Parse(List<byte[]> message, int lastBufferSize)
     {
         Debug.Assert(message.Count > 0);
-        Debug.Assert(message.All(c => c.Length >= JsonMemory.ChunkSize));
+        Debug.Assert(message.All(c => c.Length >= JsonMemory.BufferSize));
 
         var position = 0;
 
-        // if we only have a single chunk we must apply the lastChunkSize
+        // if we only have a single chunk we must apply the lastBufferSize
         // to the first chunk as it's also the last chunk.
-        var firstChunk = message.Count == 1 ? message[position].AsSpan(0, lastChunkSize) : message[position];
+        var firstChunk = message.Count == 1 ? message[position].AsSpan(0, lastBufferSize) : message[position];
 
         // The event type will always fit in the first chunk, so we do not need to do any heavy lifting here.
         var type = ParseEventType(firstChunk, ref position);
@@ -40,7 +40,7 @@ internal static class SseEventParser
         switch (type)
         {
             case SseEventType.Next:
-                var (data, size, usedChunks) = ParseData(message, lastChunkSize, position);
+                var (data, size, usedChunks) = ParseData(message, lastBufferSize, position);
                 return new SseEventData(SseEventType.Next, data, size, usedChunks);
 
             case SseEventType.Complete:
@@ -75,16 +75,16 @@ internal static class SseEventParser
     /// <summary>
     /// Collects <c>data:</c> lines until the blank-line separator and concatenates them with LF.
     /// </summary>
-    private static (byte[][] Chunks, int LastChunkSize, int UsedChunks) ParseData(
+    private static (byte[][] Chunks, int LastBufferSize, int UsedChunks) ParseData(
         List<byte[]> message,
-        int lastChunkSize,
+        int lastBufferSize,
         int position)
     {
         var dataLength = message.Count == 1
-            ? lastChunkSize - position
-            : ((message.Count - 1) * JsonMemory.ChunkSize) + lastChunkSize - position;
+            ? lastBufferSize - position
+            : ((message.Count - 1) * JsonMemory.BufferSize) + lastBufferSize - position;
 
-        if (dataLength < Data.Length || !ConsumeToken(message, lastChunkSize, ref position, Data))
+        if (dataLength < Data.Length || !ConsumeToken(message, lastBufferSize, ref position, Data))
         {
             throw new GraphQLHttpStreamException("Invalid GraphQL over SSE Message Format.");
         }
@@ -94,14 +94,14 @@ internal static class SseEventParser
 
         do
         {
-            SkipWhitespaces(message, lastChunkSize, ref position);
+            SkipWhitespaces(message, lastBufferSize, ref position);
 
             var lineStart = position;
-            ParseLine(message, lastChunkSize, dataLength, lineStart, out var lineEnd, out position);
+            ParseLine(message, lastBufferSize, dataLength, lineStart, out var lineEnd, out position);
 
             if (lineEnd > position)
             {
-                SkipWhitespaces(message, lastChunkSize, ref lineStart);
+                SkipWhitespaces(message, lastBufferSize, ref lineStart);
 
                 // Make sure we don't skip past the end of the line
                 if (lineStart > lineEnd)
@@ -110,13 +110,13 @@ internal static class SseEventParser
                 }
             }
 
-            ShiftDataLeft(message, lastChunkSize, ref nextWritePosition, lineStart, lineEnd, prependLineFeed);
+            ShiftDataLeft(message, lastBufferSize, ref nextWritePosition, lineStart, lineEnd, prependLineFeed);
             prependLineFeed = true;
         } while (position < dataLength);
 
         // Calculate how many chunks we actually used and the final chunk size
-        var usedChunks = nextWritePosition == 0 ? 0 : ((nextWritePosition - 1) / JsonMemory.ChunkSize) + 1;
-        var newLastChunkSize = nextWritePosition == 0 ? 0 : ((nextWritePosition - 1) % JsonMemory.ChunkSize) + 1;
+        var usedChunks = nextWritePosition == 0 ? 0 : ((nextWritePosition - 1) / JsonMemory.BufferSize) + 1;
+        var newLastBufferSize = nextWritePosition == 0 ? 0 : ((nextWritePosition - 1) % JsonMemory.BufferSize) + 1;
 
         // Create new list with only the used chunks
         var result = ArrayPool<byte[]>.Shared.Rent(usedChunks);
@@ -125,21 +125,21 @@ internal static class SseEventParser
             result[i] = message[i];
         }
 
-        return (result, newLastChunkSize, usedChunks);
+        return (result, newLastBufferSize, usedChunks);
     }
 
     private static void ParseLine(
         List<byte[]> chunks,
-        int lastChunkSize,
+        int lastBufferSize,
         int dataLength,
         int start,
         out int end,
         out int next)
     {
-        var chunkIndex = start / JsonMemory.ChunkSize;
-        var localPosition = start % JsonMemory.ChunkSize;
-        var chunkSize = chunkIndex + 1 == chunks.Count ? lastChunkSize : JsonMemory.ChunkSize;
-        var chunk = chunks[chunkIndex].AsSpan(localPosition, chunkSize - localPosition);
+        var chunkIndex = start / JsonMemory.BufferSize;
+        var localPosition = start % JsonMemory.BufferSize;
+        var bufferSize = chunkIndex + 1 == chunks.Count ? lastBufferSize : JsonMemory.BufferSize;
+        var chunk = chunks[chunkIndex].AsSpan(localPosition, bufferSize - localPosition);
 
         // we first try to find the line feed character in the current chunk.
         if (FindLineEnd(chunk, out end, out next))
@@ -150,8 +150,8 @@ internal static class SseEventParser
         // we already checked if the linefeed is in the current chunk so we can start with next one.
         while (++chunkIndex < chunks.Count)
         {
-            chunkSize = chunkIndex + 1 == chunks.Count ? lastChunkSize : JsonMemory.ChunkSize;
-            chunk = chunks[chunkIndex].AsSpan(0, chunkSize);
+            bufferSize = chunkIndex + 1 == chunks.Count ? lastBufferSize : JsonMemory.BufferSize;
+            chunk = chunks[chunkIndex].AsSpan(0, bufferSize);
             localPosition = 0;
 
             if (FindLineEnd(chunk, out end, out next))
@@ -170,7 +170,7 @@ internal static class SseEventParser
 
             if (lineFeedIndex != -1)
             {
-                var possibleEnd = (chunkIndex * JsonMemory.ChunkSize) + localPosition + lineFeedIndex;
+                var possibleEnd = (chunkIndex * JsonMemory.BufferSize) + localPosition + lineFeedIndex;
 
                 // let's check if we have a CRLF sequence
                 if (lineFeedIndex > 0 && chunk[lineFeedIndex - 1] == (byte)'\r')
@@ -193,14 +193,14 @@ internal static class SseEventParser
 
     private static void ShiftDataLeft(
         List<byte[]> chunks,
-        int lastChunkSize,
+        int lastBufferSize,
         ref int nextWritePosition,
         int startData,
         int endData,
         bool prependLineFeed)
     {
-        var destinationChunkIndex = nextWritePosition / JsonMemory.ChunkSize;
-        var destinationLocalPosition = nextWritePosition % JsonMemory.ChunkSize;
+        var destinationChunkIndex = nextWritePosition / JsonMemory.BufferSize;
+        var destinationLocalPosition = nextWritePosition % JsonMemory.BufferSize;
 
         // First, handle the optional line feed
         if (prependLineFeed)
@@ -220,18 +220,18 @@ internal static class SseEventParser
         var destinationPosition = nextWritePosition;
 
         // Fast path: check if both source and destination fit in single chunks
-        var sourceChunkIndex = sourcePosition / JsonMemory.ChunkSize;
-        var sourceLocalPosition = sourcePosition % JsonMemory.ChunkSize;
-        var sourceChunkSize = sourceChunkIndex + 1 == chunks.Count ? lastChunkSize : JsonMemory.ChunkSize;
+        var sourceChunkIndex = sourcePosition / JsonMemory.BufferSize;
+        var sourceLocalPosition = sourcePosition % JsonMemory.BufferSize;
+        var sourceBufferSize = sourceChunkIndex + 1 == chunks.Count ? lastBufferSize : JsonMemory.BufferSize;
 
-        destinationChunkIndex = destinationPosition / JsonMemory.ChunkSize;
-        destinationLocalPosition = destinationPosition % JsonMemory.ChunkSize;
-        var destinationChunkSize = destinationChunkIndex + 1 == chunks.Count ? lastChunkSize : JsonMemory.ChunkSize;
+        destinationChunkIndex = destinationPosition / JsonMemory.BufferSize;
+        destinationLocalPosition = destinationPosition % JsonMemory.BufferSize;
+        var destinationBufferSize = destinationChunkIndex + 1 == chunks.Count ? lastBufferSize : JsonMemory.BufferSize;
 
         // if we can read the data from a single chunk and write the data to a single chunk
         // we will go for a single copy.
-        if (sourceLocalPosition + dataLength <= sourceChunkSize
-            && destinationLocalPosition + dataLength <= destinationChunkSize)
+        if (sourceLocalPosition + dataLength <= sourceBufferSize
+            && destinationLocalPosition + dataLength <= destinationBufferSize)
         {
             var source = chunks[sourceChunkIndex].AsSpan(sourceLocalPosition, dataLength);
             var destination = chunks[destinationChunkIndex].AsSpan(destinationLocalPosition, dataLength);
@@ -246,19 +246,19 @@ internal static class SseEventParser
         // but might end up with multiple copies.
         while (dataLength > 0)
         {
-            sourceChunkIndex = sourcePosition / JsonMemory.ChunkSize;
-            sourceLocalPosition = sourcePosition % JsonMemory.ChunkSize;
-            sourceChunkSize = sourceChunkIndex + 1 == chunks.Count ? lastChunkSize : JsonMemory.ChunkSize;
+            sourceChunkIndex = sourcePosition / JsonMemory.BufferSize;
+            sourceLocalPosition = sourcePosition % JsonMemory.BufferSize;
+            sourceBufferSize = sourceChunkIndex + 1 == chunks.Count ? lastBufferSize : JsonMemory.BufferSize;
 
-            destinationChunkIndex = destinationPosition / JsonMemory.ChunkSize;
-            destinationLocalPosition = destinationPosition % JsonMemory.ChunkSize;
-            destinationChunkSize = destinationChunkIndex + 1 == chunks.Count ? lastChunkSize : JsonMemory.ChunkSize;
+            destinationChunkIndex = destinationPosition / JsonMemory.BufferSize;
+            destinationLocalPosition = destinationPosition % JsonMemory.BufferSize;
+            destinationBufferSize = destinationChunkIndex + 1 == chunks.Count ? lastBufferSize : JsonMemory.BufferSize;
 
             // How much data can we read from the current source chunk?
-            var sourceSize = sourceChunkSize - sourceLocalPosition;
+            var sourceSize = sourceBufferSize - sourceLocalPosition;
 
             // How much can we write to the current destination chunk?
-            var destinationSize = destinationChunkSize - destinationLocalPosition;
+            var destinationSize = destinationBufferSize - destinationLocalPosition;
 
             // Copy the minimum of what we can read and what we can write.
             var bytesToCopy = Math.Min(sourceSize, destinationSize);
@@ -401,22 +401,22 @@ internal static class SseEventParser
 #if FUSION
     private static bool ConsumeToken(
         List<byte[]> chunks,
-        int lastChunkSize,
+        int lastBufferSize,
         ref int position,
         ReadOnlySpan<byte> token)
     {
         var startPosition = position;
 
-        var chunkIndex = position / JsonMemory.ChunkSize;
-        var localPosition = position % JsonMemory.ChunkSize;
-        var chunkSize = chunkIndex + 1 == chunks.Count ? lastChunkSize : JsonMemory.ChunkSize;
+        var chunkIndex = position / JsonMemory.BufferSize;
+        var localPosition = position % JsonMemory.BufferSize;
+        var bufferSize = chunkIndex + 1 == chunks.Count ? lastBufferSize : JsonMemory.BufferSize;
 
         // if the token fits into a single chunk we take the fast path and consume the token in one go.
-        if (localPosition + token.Length <= chunkSize)
+        if (localPosition + token.Length <= bufferSize)
         {
             if (ConsumeToken(chunks[chunkIndex], ref localPosition, token))
             {
-                position = (chunkIndex * JsonMemory.ChunkSize) + localPosition;
+                position = (chunkIndex * JsonMemory.BufferSize) + localPosition;
                 return true;
             }
 
@@ -426,11 +426,11 @@ internal static class SseEventParser
         // if however it spans multiple chunks we need to parse token character by token character.
         for (var i = 0; i < token.Length; i++)
         {
-            chunkIndex = position / JsonMemory.ChunkSize;
-            localPosition = position % JsonMemory.ChunkSize;
-            chunkSize = chunkIndex + 1 == chunks.Count ? lastChunkSize : JsonMemory.ChunkSize;
+            chunkIndex = position / JsonMemory.BufferSize;
+            localPosition = position % JsonMemory.BufferSize;
+            bufferSize = chunkIndex + 1 == chunks.Count ? lastBufferSize : JsonMemory.BufferSize;
 
-            if (chunkIndex >= chunks.Count || localPosition >= chunkSize)
+            if (chunkIndex >= chunks.Count || localPosition >= bufferSize)
             {
                 position = startPosition;
                 return false;
@@ -458,50 +458,50 @@ internal static class SseEventParser
     }
 
 #if FUSION
-    private static void SkipWhitespaces(List<byte[]> chunks, int lastChunkSize, ref int position)
+    private static void SkipWhitespaces(List<byte[]> chunks, int lastBufferSize, ref int position)
     {
-        var chunkIndex = position / JsonMemory.ChunkSize;
-        var localPosition = position % JsonMemory.ChunkSize;
+        var chunkIndex = position / JsonMemory.BufferSize;
+        var localPosition = position % JsonMemory.BufferSize;
 
         if (chunkIndex >= chunks.Count)
         {
             return;
         }
 
-        var chunkSize = chunkIndex + 1 == chunks.Count ? lastChunkSize : JsonMemory.ChunkSize;
+        var bufferSize = chunkIndex + 1 == chunks.Count ? lastBufferSize : JsonMemory.BufferSize;
         var chunk = chunks[chunkIndex].AsSpan();
 
         // We try to move past white spaces in the current chunk.
-        while (localPosition < chunkSize && IsWhitespace(chunk[localPosition]))
+        while (localPosition < bufferSize && IsWhitespace(chunk[localPosition]))
         {
             localPosition++;
         }
 
-        position = (chunkIndex * JsonMemory.ChunkSize) + localPosition;
+        position = (chunkIndex * JsonMemory.BufferSize) + localPosition;
 
         // If we hit end of chunk but not end of data, we continue with the slow path
-        if (localPosition >= chunkSize && chunkIndex + 1 < chunks.Count)
+        if (localPosition >= bufferSize && chunkIndex + 1 < chunks.Count)
         {
             // Continue to next chunks
             chunkIndex++;
 
             while (chunkIndex < chunks.Count)
             {
-                chunkSize = chunkIndex + 1 == chunks.Count ? lastChunkSize : JsonMemory.ChunkSize;
+                bufferSize = chunkIndex + 1 == chunks.Count ? lastBufferSize : JsonMemory.BufferSize;
                 chunk = chunks[chunkIndex];
                 localPosition = 0;
 
                 // Process entire current chunk
-                while (localPosition < chunkSize && IsWhitespace(chunk[localPosition]))
+                while (localPosition < bufferSize && IsWhitespace(chunk[localPosition]))
                 {
                     localPosition++;
                 }
 
                 // Update global position
-                position = (chunkIndex * JsonMemory.ChunkSize) + localPosition;
+                position = (chunkIndex * JsonMemory.BufferSize) + localPosition;
 
                 // If we found non-whitespace, we're done
-                if (localPosition < chunkSize)
+                if (localPosition < bufferSize)
                 {
                     break;
                 }

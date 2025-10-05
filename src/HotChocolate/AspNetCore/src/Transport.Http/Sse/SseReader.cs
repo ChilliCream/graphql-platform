@@ -229,14 +229,14 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
 
         while (dataOffset < data.Length)
         {
-            if (chunks.Count == 0 || currentPosition >= JsonMemory.ChunkSize)
+            if (chunks.Count == 0 || currentPosition >= JsonMemory.BufferSize)
             {
                 currentPosition = 0;
                 chunks.Add(JsonMemory.Rent());
             }
 
             var currentChunk = chunks[^1];
-            var spaceInChunk = JsonMemory.ChunkSize - currentPosition;
+            var spaceInChunk = JsonMemory.BufferSize - currentPosition;
             var bytesToWrite = Math.Min(spaceInChunk, data.Length - dataOffset);
 
             var chunkSlice = currentChunk.AsSpan(currentPosition);
