@@ -519,8 +519,7 @@ public class IntrospectionTests : FusionTestBase
             private readonly OrderedDictionary<int, Author> _authors =
                 new OrderedDictionary<int, Author>()
                 {
-                    [1] = new Author(1, "Jon Skeet"),
-                    [2] = new Author(2, "JRR Tolkien")
+                    [1] = new Author(1, "Jon Skeet"), [2] = new Author(2, "JRR Tolkien")
                 };
 
             [Internal]
