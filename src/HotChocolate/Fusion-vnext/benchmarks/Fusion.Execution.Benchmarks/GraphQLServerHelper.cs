@@ -31,11 +31,15 @@ public static class GraphQLServerHelper
 public class Query
 {
     private readonly string[] _items;
+    private readonly string[] _fewItems;
 
     public Query()
     {
         _items = Enumerable.Range(0, 500_000).Select(i => $"Item {i}").ToArray();
+        _fewItems = _items.Take(10).ToArray();
     }
 
     public string[] Items => _items;
+
+    public string[] FewItems => _fewItems;
 }

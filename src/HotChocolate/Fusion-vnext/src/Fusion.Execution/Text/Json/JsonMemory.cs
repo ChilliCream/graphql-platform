@@ -11,7 +11,7 @@ public static class JsonMemory
     /// <summary>
     /// The size of one JSON chunk.
     /// </summary>
-    public const int ChunkSize = 128 * 1024 * 4;
+    public const int ChunkSize = 128 * 1024 * 1;
 
     private static readonly FixedSizeArrayPool s_pool = new(1, ChunkSize, 128, preAllocate: true);
 

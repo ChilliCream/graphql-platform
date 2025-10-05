@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Text.Json;
 public static class MetaDbMemory
 {
     public const int ChunkSize = RowsPerChunk * CompositeResultDocument.DbRow.Size;
-    public const int RowsPerChunk = 6552 * 4;
+    public const int RowsPerChunk = 6552 * 1;
 
     private static readonly FixedSizeArrayPool s_pool = new(2, ChunkSize, 128, preAllocate: true);
 

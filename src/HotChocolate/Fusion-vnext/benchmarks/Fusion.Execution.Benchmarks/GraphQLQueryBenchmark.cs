@@ -24,10 +24,11 @@ public class GraphQLQueryBenchmark
     private WebApplication _app = null!;
     private HttpClient _client = null!;
     private FusionClient _fusionClient = null!;
-    private FusionGraphQLHttpRequest _fusionRequest = null!;
+    private FusionGraphQLHttpRequest _fusionItemsRequest = null!;
+    private FusionGraphQLHttpRequest _fusionFewItemsRequest = null!;
     private TransportClient _transportClient = null!;
-    private TransportGraphQLHttpRequest _transportRequest = null!;
-    private MemoryStream _largeResponse = null!;
+    private TransportGraphQLHttpRequest _transportItemsRequest = null!;
+    private TransportGraphQLHttpRequest _transportFewItemsRequest = null!;
 
     [GlobalSetup]
     public async Task GlobalSetup()
@@ -35,18 +36,20 @@ public class GraphQLQueryBenchmark
         (_server, _app) = await GraphQLServerHelper.CreateTestServer();
         _client = _server.CreateClient();
 
-        var operationRequest = new HotChocolate.Transport.OperationRequest("{ items }");
-        _fusionRequest = new FusionGraphQLHttpRequest(operationRequest, _requestUri);
+        var items = new HotChocolate.Transport.OperationRequest("{ items }");
+        var fewItems = new HotChocolate.Transport.OperationRequest("{ fewItems }");
+
+
+        _fusionItemsRequest = new FusionGraphQLHttpRequest(items, _requestUri);
+        _fusionFewItemsRequest = new FusionGraphQLHttpRequest(fewItems, _requestUri);
         _fusionClient = new FusionClient(_client);
 
-        _transportRequest = new TransportGraphQLHttpRequest(operationRequest, _requestUri);
+        _transportItemsRequest = new TransportGraphQLHttpRequest(items, _requestUri);
+        _transportFewItemsRequest = new TransportGraphQLHttpRequest(fewItems, _requestUri);
         _transportClient = new TransportClient(_client);
 
         JsonMemory.Return(JsonMemory.Rent());
         MetaDbMemory.Return(MetaDbMemory.Rent());
-
-        _largeResponse = new MemoryStream(File.ReadAllBytes("/Users/michael/local/hc-3/src/HotChocolate/Fusion-vnext/benchmarks/Fusion.Execution.Benchmarks/result.json"), false);
-
     }
 
     [GlobalCleanup]
@@ -62,16 +65,33 @@ public class GraphQLQueryBenchmark
     [Benchmark]
     public async Task<int> Send_Large_Request_With_Transport()
     {
-        using var result = await _transportClient.SendAsync(_transportRequest);
+        using var result = await _transportClient.SendAsync(_transportItemsRequest);
         using var document = await result.ReadAsResultAsync();
-        return document.Data.GetProperty("items").GetArrayLength();
+        return document.Data.GetProperty("items"u8).GetArrayLength();
     }
 
     [Benchmark]
     public async Task<int> Send_Large_Request_With_Fusion()
     {
-        using var result = await _fusionClient.SendAsync(_fusionRequest);
+        using var result = await _fusionClient.SendAsync(_fusionItemsRequest);
         using var document = await result.ReadAsResultAsync();
         return document.Root.GetProperty("data"u8).GetProperty("items"u8).GetArrayLength();
+    }
+
+
+    [Benchmark]
+    public async Task<int> Send_Small_Request_With_Transport()
+    {
+        using var result = await _transportClient.SendAsync(_transportFewItemsRequest);
+        using var document = await result.ReadAsResultAsync();
+        return document.Data.GetProperty("fewItems"u8).GetArrayLength();
+    }
+
+    [Benchmark]
+    public async Task<int> Send_Small_Request_With_Fusion()
+    {
+        using var result = await _fusionClient.SendAsync(_fusionFewItemsRequest);
+        using var document = await result.ReadAsResultAsync();
+        return document.Root.GetProperty("data"u8).GetProperty("fewItems"u8).GetArrayLength();
     }
 }
