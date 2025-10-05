@@ -1,0 +1,172 @@
+title: Custom_Directive_Is_Composed
+request:
+  document: |
+    query CustomDirectiveIntrospection {
+      __schema {
+        directives {
+          name
+          description
+          locations
+          args {
+            name
+            description
+            defaultValue
+            type {
+              kind
+              name
+              ofType {
+                kind
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "__schema": {
+          "directives": [
+            {
+              "name": "customAuth",
+              "description": null,
+              "locations": [
+                "OBJECT",
+                "FIELD_DEFINITION"
+              ],
+              "args": [
+                {
+                  "name": "permission",
+                  "description": null,
+                  "defaultValue": "\u0022read\u0022",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  }
+                },
+                {
+                  "name": "role",
+                  "description": null,
+                  "defaultValue": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  }
+                }
+              ]
+            },
+            {
+              "name": "skip",
+              "description": "Directs the executor to skip this field or fragment when the \u0060if\u0060 argument is true.",
+              "locations": [
+                "FIELD",
+                "FRAGMENT_SPREAD",
+                "INLINE_FRAGMENT"
+              ],
+              "args": [
+                {
+                  "name": "if",
+                  "description": "Skips this field or fragment when the condition is true.",
+                  "defaultValue": null,
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "name": "include",
+              "description": "Directs the executor to include this field or fragment when the \u0060if\u0060 argument is true.",
+              "locations": [
+                "FIELD",
+                "FRAGMENT_SPREAD",
+                "INLINE_FRAGMENT"
+              ],
+              "args": [
+                {
+                  "name": "if",
+                  "description": "Includes this field or fragment when the condition is true.",
+                  "defaultValue": null,
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        publicField: String
+        protectedField: String @customAuth(role: "admin", permission: "write")
+      }
+      
+      directive @customAuth(role: String! permission: String = "read") on OBJECT | FIELD_DEFINITION
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        otherField: String @customAuth(role: "user")
+      }
+      
+      directive @customAuth(role: String! permission: String = "read") on OBJECT | FIELD_DEFINITION
+operationPlan:
+  operation:
+    - document: |
+        query CustomDirectiveIntrospection {
+          __schema {
+            directives {
+              name
+              description
+              locations
+              args {
+                name
+                description
+                defaultValue
+                type {
+                  kind
+                  name
+                  ofType {
+                    kind
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+      name: CustomDirectiveIntrospection
+      hash: 8ec8f6c3e13c33db296def51ea176d73
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 1
+          responseName: __schema
+          fieldName: __schema

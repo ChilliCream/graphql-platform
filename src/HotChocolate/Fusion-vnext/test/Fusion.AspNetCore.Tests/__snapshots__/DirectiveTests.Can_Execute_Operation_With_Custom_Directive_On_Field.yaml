@@ -1,0 +1,63 @@
+title: Can_Execute_Operation_With_Custom_Directive_On_Field
+request:
+  document: |
+    query CustomDirectiveUsage {
+      first: a @flag(note: "one")
+      second: b @flag
+    }
+response:
+  body: |
+    {
+      "data": {
+        "first": "Query",
+        "second": "Query"
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        a: String
+        b: String
+      }
+      
+      directive @flag(note: String) on FIELD
+    interactions:
+      - request:
+          document: |
+            query CustomDirectiveUsage_4b77c3a7_1 {
+              first: a @flag(note: "one")
+              second: b @flag
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "first": "Query",
+                  "second": "Query"
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query CustomDirectiveUsage {
+          first: a @flag(note: "one")
+          second: b @flag
+        }
+      name: CustomDirectiveUsage
+      hash: 4b77c3a71bdbe7389cf71a918fbbc229
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query CustomDirectiveUsage_4b77c3a7_1 {
+          first: a @flag(note: "one")
+          second: b @flag
+        }
