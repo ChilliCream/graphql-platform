@@ -100,6 +100,11 @@ internal sealed class FusionRequestExecutorManager
                 return registration.Executor;
             }
 
+            if (!SchemaNames.Contains(schemaName))
+            {
+                throw new InvalidOperationException($"The requested schema '{schemaName}' does not exist.");
+            }
+
             registration = await CreateInitialRegistrationAsync(schemaName, cancellationToken).ConfigureAwait(false);
             _registry.TryAdd(schemaName, registration);
             await _executorEvents.WriteCreatedAsync(registration.Executor, cancellationToken).ConfigureAwait(false);

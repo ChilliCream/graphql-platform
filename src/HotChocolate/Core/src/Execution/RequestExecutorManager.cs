@@ -92,6 +92,11 @@ internal sealed partial class RequestExecutorManager
                 return re.Executor;
             }
 
+            if (!SchemaNames.Contains(schemaName))
+            {
+                throw new InvalidOperationException($"The requested schema '{schemaName}' does not exist.");
+            }
+
             var registeredExecutor = await CreateRequestExecutorAsync(schemaName, true, cancellationToken)
                 .ConfigureAwait(false);
 
