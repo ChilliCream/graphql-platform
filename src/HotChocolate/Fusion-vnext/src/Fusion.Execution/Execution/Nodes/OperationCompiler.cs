@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public sealed class OperationCompiler
 {
     private readonly ISchemaDefinition _schema;
-    private readonly InlineFragmentOperationRewriterNew _inlineRewriter;
+    private readonly OperationRewriter _operationRewriter;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
     private readonly TypeNameField _typeNameField;
     private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
@@ -24,7 +24,7 @@ public sealed class OperationCompiler
 
         _schema = schema;
         _fieldsPool = fieldsPool;
-        _inlineRewriter = new InlineFragmentOperationRewriterNew(schema/*, removeStaticallyExcludedSelections: true*/);
+        _operationRewriter = new OperationRewriter(schema, removeStaticallyExcludedSelections: true);
         var nonNullStringType = new NonNullType(_schema.Types.GetType<IScalarTypeDefinition>(SpecScalarNames.String));
         _typeNameField = new TypeNameField(nonNullStringType);
     }
@@ -35,7 +35,7 @@ public sealed class OperationCompiler
         ArgumentNullException.ThrowIfNull(operationDefinition);
 
         var document = new DocumentNode(new IDefinitionNode[] { operationDefinition });
-        document = _inlineRewriter.RewriteDocument(document);
+        document = _operationRewriter.RewriteDocument(document);
         operationDefinition = (OperationDefinitionNode)document.Definitions[0];
 
         var includeConditions = new IncludeConditionCollection();

@@ -3,7 +3,7 @@ using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion.Rewriters;
 
-public class InlineFragmentOperationRewriterNewTests
+public class OperationRewriterTests
 {
     [Fact]
     public void Field_Without_SelectionSet_And_Conditional_Merged_With_Field_Without_Conditional()
@@ -23,7 +23,7 @@ public class InlineFragmentOperationRewriterNewTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -59,7 +59,7 @@ public class InlineFragmentOperationRewriterNewTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -95,7 +95,7 @@ public class InlineFragmentOperationRewriterNewTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -132,7 +132,7 @@ public class InlineFragmentOperationRewriterNewTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -173,7 +173,7 @@ public class InlineFragmentOperationRewriterNewTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -216,7 +216,7 @@ public class InlineFragmentOperationRewriterNewTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -259,7 +259,7 @@ public class InlineFragmentOperationRewriterNewTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -302,7 +302,7 @@ public class InlineFragmentOperationRewriterNewTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -338,7 +338,7 @@ public class InlineFragmentOperationRewriterNewTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -374,7 +374,7 @@ public class InlineFragmentOperationRewriterNewTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -414,7 +414,7 @@ public class InlineFragmentOperationRewriterNewTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -455,7 +455,7 @@ public class InlineFragmentOperationRewriterNewTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -496,7 +496,7 @@ public class InlineFragmentOperationRewriterNewTests
              """);
 
          // act
-         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewriter = new OperationRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -537,7 +537,7 @@ public class InlineFragmentOperationRewriterNewTests
              """);
 
          // act
-         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewriter = new OperationRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -592,7 +592,7 @@ public class InlineFragmentOperationRewriterNewTests
              """);
 
          // act
-         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewriter = new OperationRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -648,7 +648,7 @@ public class InlineFragmentOperationRewriterNewTests
              """);
 
          // act
-         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewriter = new OperationRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -705,7 +705,7 @@ public class InlineFragmentOperationRewriterNewTests
              """);
 
          // act
-         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewriter = new OperationRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -765,7 +765,7 @@ public class InlineFragmentOperationRewriterNewTests
              """);
 
          // act
-         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewriter = new OperationRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -822,7 +822,7 @@ public class InlineFragmentOperationRewriterNewTests
              """);
 
          // act
-         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewriter = new OperationRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -878,7 +878,7 @@ public class InlineFragmentOperationRewriterNewTests
              """);
 
          // act
-         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewriter = new OperationRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -943,7 +943,7 @@ public class InlineFragmentOperationRewriterNewTests
              """);
 
          // act
-         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewriter = new OperationRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -995,7 +995,7 @@ public class InlineFragmentOperationRewriterNewTests
              """);
 
          // act
-         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewriter = new OperationRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -1054,21 +1054,21 @@ public class InlineFragmentOperationRewriterNewTests
              """);
 
          // act
-         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewriter = new OperationRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
          rewritten.MatchInlineSnapshot(
              """
              query(
-               $skip1: Boolean!,
+               $skip1: Boolean!
                $skip2: Boolean!
              ) {
                votables {
                  ... on Product @skip(if: $skip1) {
                    voteCount
                  }
-                 ... on Product  @skip(if: $skip2) {
+                 ... on Product @skip(if: $skip2) {
                    voteCount
                    viewerCanVote
                  }
@@ -1119,19 +1119,19 @@ public class InlineFragmentOperationRewriterNewTests
              """);
 
          // act
-         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewriter = new OperationRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
          rewritten.MatchInlineSnapshot(
              """
              query(
-               $skip1: Boolean!,
+               $skip1: Boolean!
                $skip2: Boolean!
              ) {
                votables {
                  voteCount
-                 ... on Product  @skip(if: $skip2) {
+                 ... on Product @skip(if: $skip2) {
                    viewerCanVote
                  }
                }
@@ -1162,14 +1162,14 @@ public class InlineFragmentOperationRewriterNewTests
              """);
 
          // act
-         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewriter = new OperationRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
          rewritten.MatchInlineSnapshot(
              """
              query(
-               $skip: Boolean!,
+               $skip: Boolean!
                $include: Boolean!
              ) {
                productBySlug(slug: "a") @skip(if: $skip) {
@@ -1206,14 +1206,14 @@ public class InlineFragmentOperationRewriterNewTests
              """);
 
          // act
-         var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+         var rewriter = new OperationRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
          rewritten.MatchInlineSnapshot(
              """
              query(
-               $skip: Boolean!,
+               $skip: Boolean!
                $include: Boolean!
              ) {
                productBySlug(slug: "a") {

@@ -27,7 +27,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert
@@ -68,7 +68,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert
@@ -103,7 +103,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert
@@ -146,7 +146,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert
@@ -183,7 +183,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert
@@ -219,7 +219,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition, true);
+        var rewriter = new OperationRewriter(schemaDefinition, true);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert
@@ -257,7 +257,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert
@@ -296,7 +296,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition, true);
+        var rewriter = new OperationRewriter(schemaDefinition, true);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert
@@ -331,7 +331,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition, true);
+        var rewriter = new OperationRewriter(schemaDefinition, true);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert
@@ -362,7 +362,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition, true);
+        var rewriter = new OperationRewriter(schemaDefinition, true);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert
@@ -396,7 +396,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition, true);
+        var rewriter = new OperationRewriter(schemaDefinition, true);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert
@@ -438,7 +438,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert
@@ -490,7 +490,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert
@@ -537,7 +537,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition);
+        var rewriter = new OperationRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert
@@ -574,7 +574,7 @@ public class InlineFragmentOperationRewriterTests
             """);
 
         // act
-        var rewriter = new InlineFragmentOperationRewriterNew(schemaDefinition, true);
+        var rewriter = new OperationRewriter(schemaDefinition, true);
         var rewritten = rewriter.RewriteDocument(doc, null);
 
         // assert

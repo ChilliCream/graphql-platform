@@ -672,6 +672,50 @@ public static class SchemaParser
                     directiveDef);
             }
         }
+
+        AddSpecDirectives(schema);
+    }
+
+    private static void AddSpecDirectives(MutableSchemaDefinition schema)
+    {
+        schema.DirectiveDefinitions.Add(BuiltIns.Skip.Create(schema));
+        schema.DirectiveDefinitions.Add(BuiltIns.Include.Create(schema));
+    }
+
+    private static MutableDirectiveDefinition CreateSkipDirective(MutableScalarTypeDefinition booleanType)
+    {
+        var ifArgument = new MutableInputFieldDefinition("if", booleanType)
+        {
+            Description = "Skips this field or fragment when the condition is true."
+        };
+
+        var skipDirective = new MutableDirectiveDefinition("skip")
+        {
+            Description = "Directs the executor to skip this field or fragment when the `if` argument is true.",
+            Locations = DirectiveLocation.Field | DirectiveLocation.FragmentSpread | DirectiveLocation.InlineFragment
+        };
+
+        skipDirective.Arguments.Add(ifArgument);
+
+        return skipDirective;
+    }
+
+    private static MutableDirectiveDefinition CreateIncludeDirective(MutableScalarTypeDefinition booleanType)
+    {
+        var ifArgument = new MutableInputFieldDefinition("if", booleanType)
+        {
+            Description = "Includes this field or fragment when the condition is true."
+        };
+
+        var skipDirective = new MutableDirectiveDefinition("include")
+        {
+            Description = "Directs the executor to include this field or fragment when the `if` argument is true.",
+            Locations = DirectiveLocation.Field | DirectiveLocation.FragmentSpread | DirectiveLocation.InlineFragment
+        };
+
+        skipDirective.Arguments.Add(ifArgument);
+
+        return skipDirective;
     }
 
     private static void BuildDirectiveType(
