@@ -13,6 +13,38 @@ namespace HotChocolate.Fusion.Execution;
 public class FusionRequestExecutorManagerTests : FusionTestBase
 {
     [Fact]
+    public async Task GetExecutorAsync_Throws_If_Schema_Does_Not_Exist()
+    {
+        // arrange
+        var schemaDocument =
+            ComposeSchemaDocument(
+                """
+                schema {
+                    query: Query
+                }
+
+                type Query {
+                    foo: String
+                }
+                """);
+
+        var manager =
+            new ServiceCollection()
+                .AddGraphQLGateway("some-name")
+                .AddInMemoryConfiguration(schemaDocument)
+                .Services
+                .BuildServiceProvider()
+                .GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var act = async () => await manager.GetExecutorAsync("unknown-name");
+
+        // assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
+        Assert.Equal($"The requested schema 'unknown-name' does not exist.", exception.Message);
+    }
+
+    [Fact]
     public async Task CreateExecutor()
     {
         // arrange
