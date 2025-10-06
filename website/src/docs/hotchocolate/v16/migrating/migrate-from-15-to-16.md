@@ -144,3 +144,18 @@ In addition, the default output for such errors has been standardized: earlier, 
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
+
+# Noteworthy changes
+
+## RunWithGraphQLCommandsAsync returns exit code
+
+`RunWithGraphQLCommandsAsync` and `RunWithGraphQLCommands` now return exit codes (`Task<int>` and `int` respectively, instead of `Task` and `void`).
+
+We recommend updating your `Program.cs` to return this exit code. This ensures that command failures signal an error to shell scripts, CI/CD pipelines, and other tools:
+
+```diff
+var app = builder.Build();
+
+- await app.RunWithGraphQLCommandsAsync(args);
++ return await app.RunWithGraphQLCommandsAsync(args);
+```
