@@ -6,7 +6,6 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
-using Microsoft.AspNetCore.Components.Forms;
 using ThrowHelper = HotChocolate.Fusion.Utilities.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning.Pipeline;
@@ -331,7 +330,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         }
 
         var overallCouldPlanSelections = false;
-        foreach (var possibleType in operation.GetPossibleTypes(parentSelection))
+        foreach (var possibleType in operation.GetSchemaPossibleTypes(parentSelection, _config, executionStep.SubgraphName))
         {
             var couldPlanSelections = CollectNestedSelections(
                 context,
@@ -573,7 +572,13 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             queryTypeMetadata);
         context.Steps.Add(nodeExecutionStep);
 
-        foreach (var entityType in operation.GetPossibleTypes(nodeSelection))
+        var subgraph = string.Empty;
+        if(context.TryGetExecutionStep(nodeSelection, out var executionStep))
+        {
+            subgraph = executionStep.SubgraphName;
+        }
+
+        foreach (var entityType in operation.GetSchemaPossibleTypes(nodeSelection, _config, subgraph))
         {
             var entityTypeInfo = _config.GetType<ObjectTypeMetadata>(entityType.Name);
             var selectionSet = operation.GetSelectionSet(nodeSelection, entityType);
