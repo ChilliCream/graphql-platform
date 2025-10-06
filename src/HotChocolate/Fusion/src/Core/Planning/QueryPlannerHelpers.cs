@@ -76,7 +76,10 @@ internal static class QueryPlannerHelpers
 
                     if (selection.SelectionSet is not null)
                     {
-                        foreach (var possibleType in operation.GetPossibleTypes(selection))
+                        foreach (var possibleType in operation.GetSchemaPossibleTypes(
+                            selection,
+                            configuration,
+                            schemaName))
                         {
                             var type = configuration.GetType<ObjectTypeMetadata>(possibleType.Name);
                             var selectionSet = operation.GetSelectionSet(selection, possibleType);

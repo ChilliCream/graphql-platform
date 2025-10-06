@@ -773,4 +773,195 @@ public class InterfaceTests(ITestOutputHelper output)
         CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task Interface_Field_With_Only_Type_Refinements_On_Same_Schema()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              someField: SomeInterface
+            }
+
+            interface SomeInterface {
+              value: String
+            }
+
+            type ConcreteTypeA implements SomeInterface {
+              value: String
+              specificToA: String
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              anotherField: SomeInterface
+            }
+
+            interface SomeInterface {
+              value: String
+            }
+
+            type ConcreteTypeB implements SomeInterface {
+              value: String
+              specificToB: String
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = Parse(
+            """
+            {
+              someField {
+                value
+                ... on ConcreteTypeA {
+                  specificToA
+                }
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Interface_Field_With_Type_Refinements_Exclusive_To_Other_Schema()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              someField: SomeInterface
+            }
+
+            interface SomeInterface {
+              value: String
+            }
+
+            type ConcreteTypeA implements SomeInterface {
+              value: String
+              specificToA: String
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              anotherField: SomeInterface
+            }
+
+            interface SomeInterface {
+              value: String
+            }
+
+            type ConcreteTypeB implements SomeInterface {
+              value: String
+              specificToB: String
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = Parse(
+            """
+            {
+              someField {
+                value
+                ... on ConcreteTypeA {
+                  specificToA
+                }
+                ... on ConcreteTypeB {
+                  specificToB
+                }
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Interface_Field_With_Only_Type_Refinements_Exclusive_To_Other_Schema()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              someField: SomeInterface
+            }
+
+            interface SomeInterface {
+              value: String
+            }
+
+            type ConcreteTypeA implements SomeInterface {
+              value: String
+              specificToA: String
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              anotherField: SomeInterface
+            }
+
+            interface SomeInterface {
+              value: String
+            }
+
+            type ConcreteTypeB implements SomeInterface {
+              value: String
+              specificToB: String
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = Parse(
+            """
+            {
+              someField {
+                ... on ConcreteTypeB {
+                  specificToB
+                }
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
 }
