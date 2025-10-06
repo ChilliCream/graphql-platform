@@ -131,7 +131,7 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
         return SourceResultDocument.Parse(
             chunks,
             lastBufferSize,
-            requiredSize,
+            chunksNeeded,
             options: default,
             pooledMemory: true);
     }

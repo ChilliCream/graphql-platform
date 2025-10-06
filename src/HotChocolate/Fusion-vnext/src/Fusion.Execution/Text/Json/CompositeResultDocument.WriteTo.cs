@@ -89,7 +89,8 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                 WriteByte(Space);
             }
 
-            if ((ElementFlags.Invalidated & row.Flags) == ElementFlags.Invalidated)
+            if (row.TokenType is ElementTokenType.Null
+                || (ElementFlags.Invalidated & row.Flags) == ElementFlags.Invalidated)
             {
                 writer.Write(Null);
             }

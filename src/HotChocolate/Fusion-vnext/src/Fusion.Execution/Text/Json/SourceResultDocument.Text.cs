@@ -156,7 +156,14 @@ public sealed partial class SourceResultDocument
         var start = row.Location;
         var endCursor = GetEndIndex(cursor, includeEndElement: false);
         var endRow = _parsedData.Get(endCursor);
-        return ReadRawValue(start, endRow.Location - start + endRow.SizeOrLength);
+        var endRowLength = endRow.SizeOrLength;
+
+        if (endRow.TokenType is JsonTokenType.EndObject or JsonTokenType.StartArray)
+        {
+            endRowLength = 1;
+        }
+
+        return ReadRawValue(start, endRow.Location - start + endRowLength);
     }
 
     internal ValueRange GetRawValuePointer(Cursor cursor, bool includeQuotes)
@@ -180,7 +187,14 @@ public sealed partial class SourceResultDocument
         var start = row.Location;
         var endCursor = GetEndIndex(cursor, includeEndElement: false);
         var endRow = _parsedData.Get(endCursor);
-        return new ValueRange(start, endRow.Location - start + endRow.SizeOrLength);
+        var endRowLength = endRow.SizeOrLength;
+
+        if (endRow.TokenType is JsonTokenType.EndObject or JsonTokenType.StartArray)
+        {
+            endRowLength = 1;
+        }
+
+        return new ValueRange(start, endRow.Location - start + endRowLength);
     }
 
     private ReadOnlySpan<byte> GetPropertyRawValue(Cursor valueCursor)

@@ -68,6 +68,11 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal Selection? GetSelection(Cursor cursor)
     {
+        if (cursor == Cursor.Zero)
+        {
+            return null;
+        }
+
         // If the cursor points at a value, step back to the PropertyName row.
         var row = _metaDb.Get(cursor);
 
@@ -200,6 +205,11 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal CompositeResultElement GetParent(Cursor current)
     {
+        if (current == Cursor.Zero)
+        {
+            return default;
+        }
+
         var flags = _metaDb.GetFlags(current);
 
         if ((flags & ElementFlags.IsRoot) == ElementFlags.IsRoot)
@@ -208,6 +218,12 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         var parent = _metaDb.GetParentCursor(current);
+
+        if (_metaDb.GetElementTokenType(parent) is ElementTokenType.PropertyName)
+        {
+            parent = _metaDb.GetParentCursor(parent);
+        }
+
         return new CompositeResultElement(this, parent);
     }
 
@@ -284,21 +300,26 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var tt = _metaDb.GetElementTokenType(current);
+        var tokenType = _metaDb.GetElementTokenType(current);
 
-        if (tt is ElementTokenType.StartObject)
+        if (tokenType is ElementTokenType.None)
+        {
+            return;
+        }
+
+        if (tokenType is ElementTokenType.StartObject)
         {
             var f = _metaDb.GetFlags(current);
             _metaDb.SetFlags(current, f | ElementFlags.Invalidated);
             return;
         }
 
-        if (tt is ElementTokenType.Reference)
+        if (tokenType is ElementTokenType.Reference)
         {
             current = _metaDb.GetLocationCursor(current);
-            tt = _metaDb.GetElementTokenType(current);
+            tokenType = _metaDb.GetElementTokenType(current);
 
-            if (tt is ElementTokenType.StartObject)
+            if (tokenType is ElementTokenType.StartObject)
             {
                 var f = _metaDb.GetFlags(current);
                 _metaDb.SetFlags(current, f | ElementFlags.Invalidated);

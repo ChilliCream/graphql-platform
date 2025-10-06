@@ -87,6 +87,11 @@ public readonly partial struct CompositeResultElement
         {
             CheckValidInstance();
 
+            if (_cursor == CompositeResultDocument.Cursor.Zero)
+            {
+                return null;
+            }
+
             // note: the selection is stored on the property not on the value.
             return _parent.GetSelection(_cursor - 1);
         }
@@ -96,6 +101,11 @@ public readonly partial struct CompositeResultElement
     {
         get
         {
+            if (_cursor == CompositeResultDocument.Cursor.Zero)
+            {
+                return null;
+            }
+
             var selection = Selection;
 
             if (selection is not null)
