@@ -155,29 +155,29 @@ public sealed partial class SourceResultDocument
             {
                 case JsonTokenType.StartObject:
                 {
-                    var id = metaDb.Append(tokenType, location);
-                    containerStart[stackIndex++] = id;
+                    var startCursor = metaDb.Append(tokenType, location);
+                    containerStart[stackIndex++] = startCursor;
                     break;
                 }
 
                 case JsonTokenType.EndObject:
                 {
-                    var startId = containerStart[--stackIndex];
-                    CloseObject(ref metaDb, startId, location);
+                    var startCursor = containerStart[--stackIndex];
+                    CloseObject(ref metaDb, startCursor, location);
                     break;
                 }
 
                 case JsonTokenType.StartArray:
                 {
-                    var id = metaDb.Append(tokenType, location);
-                    containerStart[stackIndex++] = id;
+                    var startCursor = metaDb.Append(tokenType, location);
+                    containerStart[stackIndex++] = startCursor;
                     break;
                 }
 
                 case JsonTokenType.EndArray:
                 {
-                    var startId = containerStart[--stackIndex];
-                    CloseArray(ref metaDb, startId, location);
+                    var startCursor = containerStart[--stackIndex];
+                    CloseArray(ref metaDb, startCursor, location);
                     break;
                 }
 

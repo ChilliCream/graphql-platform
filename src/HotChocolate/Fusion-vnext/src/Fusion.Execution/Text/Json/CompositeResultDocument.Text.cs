@@ -6,12 +6,11 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument
 {
-    internal string? GetString(int index, ElementTokenType expectedType)
+    internal string? GetString(Cursor cursor, ElementTokenType expectedType)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(index);
-
+        var row = _metaDb.Get(cursor);
         var tokenType = row.TokenType;
 
         if (tokenType == ElementTokenType.Null)
@@ -33,9 +32,9 @@ public sealed partial class CompositeResultDocument
             : JsonReaderHelper.TranscodeHelper(segment);
     }
 
-    internal string GetRequiredString(int index, ElementTokenType expectedType)
+    internal string GetRequiredString(Cursor cursor, ElementTokenType expectedType)
     {
-        var value = GetString(index, expectedType);
+        var value = GetString(cursor, expectedType);
 
         if (value is null)
         {
@@ -45,40 +44,41 @@ public sealed partial class CompositeResultDocument
         return value;
     }
 
-    internal string GetNameOfPropertyValue(int index)
+    internal string GetNameOfPropertyValue(Cursor valueCursor)
     {
         // The property name is one row before the property value
-        return GetString(index - 1, ElementTokenType.PropertyName)!;
+        return GetString(valueCursor + (-1), ElementTokenType.PropertyName)!;
     }
 
-    internal ReadOnlySpan<byte> GetPropertyNameRaw(int index)
+    internal ReadOnlySpan<byte> GetPropertyNameRaw(Cursor valueCursor)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(index - 1);
+        // The property name is stored one row before the value
+        var nameCursor = valueCursor + (-1);
+        var row = _metaDb.Get(nameCursor);
         Debug.Assert(row.TokenType is ElementTokenType.PropertyName);
 
         return ReadRawValue(row);
     }
 
-    internal string GetRawValueAsString(int index)
+    internal string GetRawValueAsString(Cursor cursor)
     {
-        var segment = GetRawValue(index, includeQuotes: true);
+        var segment = GetRawValue(cursor, includeQuotes: true);
         return JsonReaderHelper.TranscodeHelper(segment);
     }
 
-    internal ReadOnlySpan<byte> GetRawValue(int index, bool includeQuotes)
+    internal ReadOnlySpan<byte> GetRawValue(Cursor cursor, bool includeQuotes)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(index);
+        var row = _metaDb.Get(cursor);
 
         if (row.IsSimpleValue)
         {
             if (!includeQuotes && row.TokenType == ElementTokenType.String)
             {
-                // Start one character earlier than the value (the open quote)
-                // End one character after the value (the close quote)
+                // Skip opening/closing quotes
                 return ReadRawValue(row)[1..^1];
             }
 
@@ -86,46 +86,40 @@ public sealed partial class CompositeResultDocument
         }
 
         // TODO: this is more complex with the new design, we gonna tackle this later.
-        // int endElementIdx = GetEndIndex(index, includeEndElement: false);
-        // int start = row.Location;
-        // row = _parsedData.Get(endElementIdx);
-        // return _utf8Json.Slice(start, row.Location - start + row.SizeOrLength);
+        // var endCursor = GetEndCursor(cursor, includeEndElement: false);
+        // var start = row.Location;
+        // var endRow = _metaDb.Get(endCursor);
+        // return _utf8Json.Slice(start, endRow.Location - start + endRow.SizeOrLength);
         throw new NotImplementedException();
     }
 
-    internal string GetPropertyRawValueAsString(int valueIndex)
+    internal string GetPropertyRawValueAsString(Cursor valueCursor)
     {
-        var segment = GetPropertyRawValue(valueIndex);
+        var segment = GetPropertyRawValue(valueCursor);
         return JsonReaderHelper.TranscodeHelper(segment);
     }
 
-    private ReadOnlySpan<byte> GetPropertyRawValue(int valueIndex)
+    private ReadOnlySpan<byte> GetPropertyRawValue(Cursor valueCursor)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         // The property name is stored one row before the value
-        var row = _metaDb.Get(valueIndex - 1);
-        Debug.Assert(row.TokenType == ElementTokenType.PropertyName);
+        Debug.Assert(_metaDb.GetElementTokenType(valueCursor -1) == ElementTokenType.PropertyName);
 
-        // Subtract one for the open quote.
-        // var start = row.Location - 1;
-        // int end;
-
-        row = _metaDb.Get(valueIndex);
+        var row = _metaDb.Get(valueCursor);
 
         if (row.IsSimpleValue)
         {
             return ReadRawValue(row);
         }
 
-        // var endElementIdx = GetEndIndex(valueIndex, includeEndElement: false);
-        // row = _parsedData.Get(endElementIdx);
-        // end = row.Location + row.SizeOrLength;
+        // var endCursor = GetEndCursor(valueCursor, includeEndElement: false);
+        // var endRow = _metaDb.Get(endCursor);
         // return _utf8Json.Slice(start, end - start);
-        throw new NotImplementedException();
+        throw new NotSupportedException("Properties are expected to be simple values.");
     }
 
-    internal bool TextEquals(int index, ReadOnlySpan<char> otherText, bool isPropertyName)
+    internal bool TextEquals(Cursor cursor, ReadOnlySpan<char> otherText, bool isPropertyName)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -139,6 +133,7 @@ public sealed partial class CompositeResultDocument
         var status = Utf8.FromUtf16(
             otherText, otherUtf8Text, out var charsRead, out var written,
             replaceInvalidSequences: false, isFinalBlock: true);
+
         Debug.Assert(status is OperationStatus.Done or
             OperationStatus.DestinationTooSmall or
             OperationStatus.InvalidData);
@@ -152,7 +147,7 @@ public sealed partial class CompositeResultDocument
         else
         {
             Debug.Assert(status == OperationStatus.Done);
-            result = TextEquals(index, otherUtf8Text[..written], isPropertyName, shouldUnescape: true);
+            result = TextEquals(cursor, otherUtf8Text[..written], isPropertyName, shouldUnescape: true);
         }
 
         if (otherUtf8TextArray != null)
@@ -164,13 +159,12 @@ public sealed partial class CompositeResultDocument
         return result;
     }
 
-    internal bool TextEquals(int index, ReadOnlySpan<byte> otherUtf8Text, bool isPropertyName, bool shouldUnescape)
+    internal bool TextEquals(Cursor cursor, ReadOnlySpan<byte> otherUtf8Text, bool isPropertyName, bool shouldUnescape)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var matchIndex = isPropertyName ? index - DbRow.Size : index;
-
-        var row = _metaDb.Get(matchIndex);
+        var matchCursor = isPropertyName ? cursor + (-1) : cursor;
+        var row = _metaDb.Get(matchCursor);
 
         CheckExpectedType(
             isPropertyName ? ElementTokenType.PropertyName : ElementTokenType.String,

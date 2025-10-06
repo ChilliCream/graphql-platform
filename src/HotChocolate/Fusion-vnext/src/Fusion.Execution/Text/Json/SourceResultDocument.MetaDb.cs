@@ -58,7 +58,7 @@ public sealed partial class SourceResultDocument
             // If current chunk is full, move to next chunk row 0.
             if (cursor.Row >= Cursor.RowsPerChunk)
             {
-                cursor = Cursor.From(cursor.Chunk + 1, 0);
+                cursor = Cursor.FromByteOffset(cursor.Chunk + 1, 0);
             }
 
             var chunkIndex = cursor.Chunk;
@@ -188,24 +188,21 @@ public sealed partial class SourceResultDocument
         {
             if (!_disposed)
             {
-                if (_chunks != null)
+                var cursor = _cursor;
+                var chunks = _chunks.AsSpan(0, cursor.Chunk + 1);
+
+                foreach (var chunk in chunks)
                 {
-                    var cursor = _cursor;
-                    var chunks = _chunks.AsSpan(0, cursor.Chunk + 1);
-
-                    foreach (var chunk in chunks)
+                    if (chunk.Length == 0)
                     {
-                        if (chunk.Length == 0)
-                        {
-                            break;
-                        }
-
-                        MetaDbMemory.Return(chunk);
+                        break;
                     }
 
-                    chunks.Clear();
-                    ArrayPool<byte[]>.Shared.Return(_chunks);
+                    MetaDbMemory.Return(chunk);
                 }
+
+                chunks.Clear();
+                ArrayPool<byte[]>.Shared.Return(_chunks);
 
                 _chunks = [];
                 _disposed = true;

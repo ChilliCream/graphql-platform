@@ -4,12 +4,11 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument
 {
-    internal bool TryGetValue(int index, out sbyte value)
+    internal bool TryGetValue(Cursor cursor, out sbyte value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(index);
-
+        var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
 
         var rawValue = ReadRawValue(row);
@@ -25,12 +24,11 @@ public sealed partial class CompositeResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out byte value)
+    internal bool TryGetValue(Cursor cursor, out byte value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(index);
-
+        var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
 
         var rawValue = ReadRawValue(row);
@@ -46,12 +44,11 @@ public sealed partial class CompositeResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out short value)
+    internal bool TryGetValue(Cursor cursor, out short value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(index);
-
+        var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
 
         var rawValue = ReadRawValue(row);
@@ -67,12 +64,11 @@ public sealed partial class CompositeResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out ushort value)
+    internal bool TryGetValue(Cursor cursor, out ushort value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(index);
-
+        var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
 
         var rawValue = ReadRawValue(row);
@@ -88,12 +84,11 @@ public sealed partial class CompositeResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out int value)
+    internal bool TryGetValue(Cursor cursor, out int value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(index);
-
+        var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
 
         var rawValue = ReadRawValue(row);
@@ -109,12 +104,11 @@ public sealed partial class CompositeResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out uint value)
+    internal bool TryGetValue(Cursor cursor, out uint value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(index);
-
+        var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
 
         var rawValue = ReadRawValue(row);
@@ -130,12 +124,11 @@ public sealed partial class CompositeResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out long value)
+    internal bool TryGetValue(Cursor cursor, out long value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(index);
-
+        var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
 
         var rawValue = ReadRawValue(row);
@@ -151,12 +144,11 @@ public sealed partial class CompositeResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out ulong value)
+    internal bool TryGetValue(Cursor cursor, out ulong value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(index);
-
+        var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
 
         var rawValue = ReadRawValue(row);
@@ -172,12 +164,11 @@ public sealed partial class CompositeResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out double value)
+    internal bool TryGetValue(Cursor cursor, out double value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(index);
-
+        var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
 
         var rawValue = ReadRawValue(row);
@@ -193,12 +184,11 @@ public sealed partial class CompositeResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out float value)
+    internal bool TryGetValue(Cursor cursor, out float value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(index);
-
+        var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
 
         var rawValue = ReadRawValue(row);
@@ -214,12 +204,11 @@ public sealed partial class CompositeResultDocument
         return false;
     }
 
-    internal bool TryGetValue(int index, out decimal value)
+    internal bool TryGetValue(Cursor cursor, out decimal value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(index);
-
+        var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
 
         var rawValue = ReadRawValue(row);

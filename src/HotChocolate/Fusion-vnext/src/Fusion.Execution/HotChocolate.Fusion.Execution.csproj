@@ -36,14 +36,7 @@
     <ProjectReference Include="..\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
     <ProjectReference Include="..\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\FusionExecutionResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>FusionExecutionResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  
+
   <ItemGroup>
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\DefaultGraphQLHttpClient.cs">
       <Link>Transport\Http\DefaultGraphQLHttpClient.cs</Link>
@@ -96,17 +89,7 @@
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseReader.cs">
       <Link>Transport\Http\Sse\SseReader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\HttpResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <Link>Transport\Http\HttpResources.Designer.cs</Link>
-      <DependentUpon>HttpResources.resx</DependentUpon>
-    </Compile>
-    <EmbeddedResource Include="..\..\..\AspNetCore\src\Transport.Http\HttpResources.resx">
-      <Link>Transport\Http\HttpResources.resx</Link>
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>HttpResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+
     <Compile Update="Text\Json\SourceResultElement.ObjectEnumerator.cs">
       <DependentUpon>SourceResultElement.cs</DependentUpon>
     </Compile>
@@ -116,13 +99,8 @@
     <Compile Update="Text\Json\CompositeResultDocument.WriteTo.cs">
       <DependentUpon>CompositeResultDocument.cs</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Properties\FusionExecutionResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>FusionExecutionResources.resx</DependentUpon>
+    <Compile Update="Text\Json\CompositeResultDocument.Cursor.cs">
+      <DependentUpon>CompositeResultDocument.cs</DependentUpon>
     </Compile>
     <Compile Update="Text\Json\CompositeResultDocument.DbRow.cs">
       <DependentUpon>CompositeResultDocument.cs</DependentUpon>
@@ -163,6 +141,29 @@
     <Compile Update="Text\Json\SourceResultDocument.TryGetValue.cs">
       <DependentUpon>SourceResultDocument.cs</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\FusionExecutionResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FusionExecutionResources.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Properties\FusionExecutionResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FusionExecutionResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\HttpResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <Link>Transport\Http\HttpResources.Designer.cs</Link>
+      <DependentUpon>HttpResources.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="..\..\..\AspNetCore\src\Transport.Http\HttpResources.resx">
+      <Link>Transport\Http\HttpResources.resx</Link>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>HttpResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

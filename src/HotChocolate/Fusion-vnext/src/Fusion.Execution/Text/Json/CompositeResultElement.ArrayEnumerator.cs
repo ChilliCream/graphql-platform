@@ -6,21 +6,23 @@ namespace HotChocolate.Fusion.Text.Json;
 public readonly partial struct CompositeResultElement
 {
     /// <summary>
-    ///   An enumerable and enumerator for the contents of a JSON array.
+    /// An enumerable and enumerator for the contents of a JSON array.
     /// </summary>
     [DebuggerDisplay("{Current,nq}")]
     public struct ArrayEnumerator : IEnumerable<CompositeResultElement>, IEnumerator<CompositeResultElement>
     {
-        private readonly CompositeResultElement _target;
-        private int _index;
-        private readonly int _startIndex;
-        private readonly int _endIndex;
+        private readonly CompositeResultDocument _document;
+        private readonly CompositeResultDocument.Cursor _start;
+        private readonly CompositeResultDocument.Cursor _end;
+        private CompositeResultDocument.Cursor _cursor;
 
         internal ArrayEnumerator(CompositeResultElement target)
         {
-            _target = target;
-            _index = _startIndex = target._parent.GetStartIndex(_target._index);
-            _endIndex = target._parent.GetEndIndex(_index);
+            _document = target._parent;
+            _start = _document._metaDb.GetStartCursor(target._cursor);
+            Debug.Assert(_document._metaDb.GetElementTokenType(_start) is ElementTokenType.StartArray);
+            _end = _start + _document._metaDb.GetNumberOfRows(_start);
+            _cursor = _start;
         }
 
         /// <inheritdoc />
@@ -28,26 +30,26 @@ public readonly partial struct CompositeResultElement
         {
             get
             {
-                if (_index == _startIndex || _index >= _endIndex)
+                var cursor = _cursor;
+                if (cursor == _start || cursor >= _end)
                 {
                     return default;
                 }
 
-                return new CompositeResultElement(_target._parent, _index);
+                return new CompositeResultElement(_document, cursor);
             }
         }
 
+        /// <inheritdoc />
+        object IEnumerator.Current => Current;
+
         /// <summary>
-        ///   Returns an enumerator that iterates through a collection.
+        ///   Returns an enumerator that iterates through the array.
         /// </summary>
-        /// <returns>
-        ///   An <see cref="ArrayEnumerator"/> value that can be used to iterate
-        ///   through the array.
-        /// </returns>
         public ArrayEnumerator GetEnumerator()
         {
             var enumerator = this;
-            enumerator._index = enumerator._startIndex;
+            enumerator._cursor = enumerator._start;
             return enumerator;
         }
 
@@ -60,30 +62,39 @@ public readonly partial struct CompositeResultElement
             => GetEnumerator();
 
         /// <inheritdoc />
-        public void Dispose()
-        {
-            _index = _endIndex;
-        }
-
-        /// <inheritdoc />
-        public void Reset()
-        {
-            _index = _startIndex;
-        }
-
-        /// <inheritdoc />
-        object IEnumerator.Current => Current;
-
-        /// <inheritdoc />
         public bool MoveNext()
         {
-            if (_index >= _endIndex)
+            var start = _start;
+            var end = _end;
+
+            if (_cursor == start)
             {
+                var first = start + 1;
+                if (first < end)
+                {
+                    _cursor = first;
+                    return true;
+                }
+
+                _cursor = end;
                 return false;
             }
 
-            _index++;
-            return _index < _endIndex;
+            var next = _cursor + 1;
+            if (next < end)
+            {
+                _cursor = next;
+                return true;
+            }
+
+            _cursor = end;
+            return false;
         }
+
+        /// <inheritdoc />
+        public void Reset() => _cursor = _start;
+
+        /// <inheritdoc />
+        public void Dispose() => _cursor = _end;
     }
 }

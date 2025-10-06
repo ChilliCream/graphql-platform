@@ -1,29 +1,29 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 using System.Collections;
 using System.Diagnostics;
+using static HotChocolate.Fusion.Text.Json.CompositeResultDocument;
 
 namespace HotChocolate.Fusion.Text.Json;
 
 public readonly partial struct CompositeResultElement
 {
     /// <summary>
-    ///   An enumerable and enumerator for the properties of a JSON object.
+    /// An enumerable and enumerator for the properties of a JSON object.
     /// </summary>
     [DebuggerDisplay("{Current,nq}")]
     public struct ObjectEnumerator : IEnumerable<CompositeResultProperty>, IEnumerator<CompositeResultProperty>
     {
-        private readonly CompositeResultElement _target;
-        private int _index;
-        private readonly int _startIndex;
-        private readonly int _endIndex;
+        private readonly CompositeResultDocument _document;
+        private readonly Cursor _start;
+        private readonly Cursor _end;
+        private Cursor _cursor;
 
         internal ObjectEnumerator(CompositeResultElement target)
         {
-            _target = target;
-            _index = _startIndex = target._parent.GetStartIndex(_target._index);
-            _endIndex = target._parent.GetEndIndex(_index);
+            _document = target._parent;
+            _start = _document._metaDb.GetStartCursor(target._cursor);
+            Debug.Assert(_document._metaDb.GetElementTokenType(_start) is ElementTokenType.StartObject);
+            _end = _start + _document._metaDb.GetNumberOfRows(_start);
+            _cursor = _start;
         }
 
         /// <inheritdoc />
@@ -31,32 +31,32 @@ public readonly partial struct CompositeResultElement
         {
             get
             {
-                if (_index == _startIndex || _index >= _endIndex)
+                if (_cursor == _start || _cursor >= _end)
                 {
                     return default;
                 }
 
-                return new CompositeResultProperty(new CompositeResultElement(_target._parent, _index));
+                return new CompositeResultProperty(new CompositeResultElement(_document, _cursor + 1));
             }
         }
 
         /// <summary>
-        ///   Returns an enumerator that iterates the properties of an object.
+        /// Returns an enumerator that iterates the properties of an object.
         /// </summary>
         /// <returns>
-        ///   An <see cref="ObjectEnumerator"/> value that can be used to iterate
-        ///   through the object.
+        /// An <see cref="ObjectEnumerator"/> value that can be used to iterate
+        /// through the object.
         /// </returns>
         /// <remarks>
-        ///   The enumerator will enumerate the properties in the order they are
-        ///   declared, and when an object has multiple definitions of a single
-        ///   property they will all individually be returned (each in the order
-        ///   they appear in the content).
+        /// The enumerator will enumerate the properties in the order they are
+        /// declared, and when an object has multiple definitions of a single
+        /// property they will all individually be returned (each in the order
+        /// they appear in the content).
         /// </remarks>
         public ObjectEnumerator GetEnumerator()
         {
             var enumerator = this;
-            enumerator._index = enumerator._startIndex;
+            enumerator._cursor = enumerator._start;
             return enumerator;
         }
 
@@ -71,13 +71,13 @@ public readonly partial struct CompositeResultElement
         /// <inheritdoc />
         public void Dispose()
         {
-            _index = _endIndex;
+            _cursor = _end;
         }
 
         /// <inheritdoc />
         public void Reset()
         {
-            _index = _startIndex;
+            _cursor = _start;
         }
 
         /// <inheritdoc />
@@ -86,13 +86,28 @@ public readonly partial struct CompositeResultElement
         /// <inheritdoc />
         public bool MoveNext()
         {
-            if (_index >= _endIndex)
+            if (_cursor == _start)
             {
+                var first = _start + 1;
+                if (first < _end)
+                {
+                    _cursor = first;
+                    return true;
+                }
+
+                _cursor = _end;
                 return false;
             }
 
-            _index += 2;
-            return _index < _endIndex;
+            var next = _cursor += 2;
+            if (next < _end)
+            {
+                _cursor = next;
+                return true;
+            }
+
+            _cursor = _end;
+            return false;
         }
     }
 }

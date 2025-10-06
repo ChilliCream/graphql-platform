@@ -7,14 +7,14 @@ namespace HotChocolate.Fusion.Text.Json;
 public sealed partial class CompositeResultDocument
 {
     internal bool TryGetNamedPropertyValue(
-        int startIndex,
+        Cursor startCursor,
         ReadOnlySpan<char> propertyName,
         out CompositeResultElement value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        startIndex = _metaDb.GetStartIndex(startIndex);
-        var row = _metaDb.Get(startIndex);
+        startCursor = _metaDb.GetStartCursor(startCursor);
+        var row = _metaDb.Get(startCursor);
 
         CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
 
@@ -26,7 +26,7 @@ public sealed partial class CompositeResultDocument
         }
 
         var maxBytes = s_utf8Encoding.GetMaxByteCount(propertyName.Length);
-        var endIndex = startIndex + row.NumberOfRows - 1;
+        var endCursor = startCursor + (row.NumberOfRows - 1);
 
         if (maxBytes < JsonConstants.StackallocByteThreshold)
         {
@@ -35,8 +35,8 @@ public sealed partial class CompositeResultDocument
             utf8Name = utf8Name[..len];
 
             return TryGetNamedPropertyValue(
-                startIndex + 1,
-                endIndex,
+                startCursor + 1,
+                endCursor,
                 utf8Name,
                 out value);
         }
@@ -49,17 +49,17 @@ public sealed partial class CompositeResultDocument
         // and switch once one viable long property is found.
 
         var minBytes = propertyName.Length;
-        var candidateIndex = endIndex;
+        var candidate = endCursor;
 
-        while (candidateIndex > startIndex)
+        while (candidate > startCursor)
         {
-            var passedIndex = candidateIndex;
+            var passed = candidate;
 
-            row = _metaDb.Get(candidateIndex);
+            row = _metaDb.Get(candidate);
             Debug.Assert(row.TokenType != ElementTokenType.PropertyName);
 
-            candidateIndex--;
-            row = _metaDb.Get(candidateIndex);
+            candidate--;
+            row = _metaDb.Get(candidate);
             Debug.Assert(row.TokenType == ElementTokenType.PropertyName);
 
             if (row.SizeOrLength >= minBytes)
@@ -73,8 +73,8 @@ public sealed partial class CompositeResultDocument
                     utf8Name = tmpUtf8.AsSpan(0, len);
 
                     return TryGetNamedPropertyValue(
-                        startIndex,
-                        passedIndex + 1,
+                        startCursor,
+                        passed + 1,
                         utf8Name,
                         out value);
                 }
@@ -90,7 +90,7 @@ public sealed partial class CompositeResultDocument
             }
 
             // Move to the previous value
-            candidateIndex--;
+            candidate--;
         }
 
         // None of the property names were within the range that the UTF-8 encoding would have been.
@@ -99,18 +99,18 @@ public sealed partial class CompositeResultDocument
     }
 
     internal bool TryGetNamedPropertyValue(
-        int startIndex,
+        Cursor startCursor,
         ReadOnlySpan<byte> propertyName,
         out CompositeResultElement value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(startIndex);
+        var row = _metaDb.Get(startCursor);
 
         if (row.TokenType is ElementTokenType.Reference)
         {
-            startIndex = row.Location;
-            row = _metaDb.Get(row.Location);
+            startCursor = _metaDb.GetStartCursor(startCursor);
+            row = _metaDb.Get(startCursor);
         }
 
         CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
@@ -122,31 +122,31 @@ public sealed partial class CompositeResultDocument
             return false;
         }
 
-        var endIndex = startIndex + row.NumberOfRows - 1;
+        var endCursor = startCursor + (row.NumberOfRows - 1);
 
         return TryGetNamedPropertyValue(
-            startIndex + 1,
-            endIndex,
+            startCursor + 1,
+            endCursor,
             propertyName,
             out value);
     }
 
     private bool TryGetNamedPropertyValue(
-        int startIndex,
-        int endIndex,
+        Cursor startCursor,
+        Cursor endCursor,
         ReadOnlySpan<byte> propertyName,
         out CompositeResultElement value)
     {
         Span<byte> utf8UnescapedStack = stackalloc byte[JsonConstants.StackallocByteThreshold];
-        var index = endIndex;
+        var cursor = endCursor;
 
-        while (index > startIndex)
+        while (cursor > startCursor)
         {
-            var row = _metaDb.Get(index);
+            var row = _metaDb.Get(cursor);
             Debug.Assert(row.TokenType != ElementTokenType.PropertyName);
-            index--;
+            cursor--;
 
-            row = _metaDb.Get(index);
+            row = _metaDb.Get(cursor);
             Debug.Assert(row.TokenType == ElementTokenType.PropertyName);
             var currentPropertyName = ReadRawValue(row);
 
@@ -180,7 +180,7 @@ public sealed partial class CompositeResultDocument
                             if (utf8Unescaped[..written].SequenceEqual(propertyName[idx..]))
                             {
                                 // If the property name is a match, the answer is the next element.
-                                value = new CompositeResultElement(this, index + 1);
+                                value = new CompositeResultElement(this, cursor + 1);
                                 return true;
                             }
                         }
@@ -198,28 +198,27 @@ public sealed partial class CompositeResultDocument
             else if (currentPropertyName.SequenceEqual(propertyName))
             {
                 // If the property name is a match, the answer is the next element.
-                value = new CompositeResultElement(this, index + 1);
+                value = new CompositeResultElement(this, cursor + 1);
                 return true;
             }
 
             // Move to the previous value
-            index--;
+            cursor--;
         }
 
         value = default;
         return false;
     }
 
-    internal int GetStartIndex(int index)
+    internal Cursor GetStartCursor(Cursor cursor)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        return _metaDb.GetStartIndex(index);
+        return _metaDb.GetStartCursor(cursor);
     }
 
-    internal int GetEndIndex(int index)
+    internal Cursor GetEndCursor(Cursor cursor)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        var row = _metaDb.Get(index);
-        return row.NumberOfRows + index;
+        return cursor + _metaDb.GetNumberOfRows(cursor);
     }
 }

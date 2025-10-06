@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Types;
-using static HotChocolate.Fusion.Text.Json.MetaDbMemory;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -15,17 +14,16 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly ulong _includeFlags;
     private List<IError>? _errors;
     private Dictionary<string, object?>? _extensions;
-    private MetaDb _metaDb;
+    internal MetaDb _metaDb;
     private bool _disposed;
 
     public CompositeResultDocument(Operation operation, ulong includeFlags)
     {
-        _metaDb = MetaDb.CreateForEstimatedRows(RowsPerChunk * 8);
+        _metaDb = MetaDb.CreateForEstimatedRows(Cursor.RowsPerChunk * 8);
         _operation = operation;
         _includeFlags = includeFlags;
 
-        // we create the root data object.
-        Data = CreateObject(0, operation.RootSelectionSet);
+        Data = CreateObject(Cursor.Zero, operation.RootSelectionSet);
     }
 
     public CompositeResultElement Data { get; }
@@ -49,16 +47,16 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal ElementTokenType GetElementTokenType(int index)
-        => _metaDb.GetElementTokenType(index);
+    internal ElementTokenType GetElementTokenType(Cursor cursor)
+        => _metaDb.GetElementTokenType(cursor);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal Operation GetOperation()
         => _operation;
 
-    internal SelectionSet? GetSelectionSet(int index)
+    internal SelectionSet? GetSelectionSet(Cursor cursor)
     {
-        var row = _metaDb.Get(index);
+        var row = _metaDb.Get(cursor);
 
         if (row.OperationReferenceType is not OperationReferenceType.SelectionSet)
         {
@@ -68,17 +66,23 @@ public sealed partial class CompositeResultDocument : IDisposable
         return _operation.GetSelectionSetById(row.OperationReferenceId);
     }
 
-    internal Selection? GetSelection(int index)
+    internal Selection? GetSelection(Cursor cursor)
     {
-        if (index < 0)
+        // If the cursor points at a value, step back to the PropertyName row.
+        var row = _metaDb.Get(cursor);
+
+        if (row.TokenType is not ElementTokenType.PropertyName)
         {
-            return null;
+            cursor = cursor.AddRows(-1);
+            row = _metaDb.Get(cursor);
+
+            if (row.TokenType is not ElementTokenType.PropertyName)
+            {
+                return null;
+            }
         }
 
-        var row = _metaDb.Get(index);
-
-        if (row.TokenType is not ElementTokenType.PropertyName
-            || row.OperationReferenceType is not OperationReferenceType.Selection)
+        if (row.OperationReferenceType is not OperationReferenceType.Selection)
         {
             return null;
         }
@@ -86,93 +90,104 @@ public sealed partial class CompositeResultDocument : IDisposable
         return _operation.GetSelectionById(row.OperationReferenceId);
     }
 
-    internal CompositeResultElement GetArrayIndexElement(int currentIndex, int arrayIndex)
+    internal CompositeResultElement GetArrayIndexElement(Cursor current, int arrayIndex)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var startIndex = _metaDb.GetStartIndex(currentIndex);
-        var row = _metaDb.Get(startIndex);
+        var start = _metaDb.GetStartCursor(current);
+        var row = _metaDb.Get(start);
 
         CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
 
-        var arrayLength = row.NumberOfRows;
+        var len = row.NumberOfRows;
 
-        if ((uint)arrayIndex >= (uint)arrayLength)
+        if ((uint)arrayIndex >= (uint)len)
         {
             throw new IndexOutOfRangeException();
         }
 
-        return new CompositeResultElement(this, startIndex + arrayIndex + 1);
+        // first element is at +1 after StartArray
+        return new CompositeResultElement(this, start.AddRows(arrayIndex + 1));
     }
 
-    internal int GetArrayLength(int currentIndex)
+    internal int GetArrayLength(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        currentIndex = _metaDb.GetStartIndex(currentIndex);
-        var row = _metaDb.Get(currentIndex);
+        current = _metaDb.GetStartCursor(current);
+        var row = _metaDb.Get(current);
 
         CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
 
         return row.NumberOfRows;
     }
 
-    internal int GetPropertyCount(int currentIndex)
+    internal int GetPropertyCount(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(currentIndex);
+        var row = _metaDb.Get(current);
 
         CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
 
         return row.SizeOrLength;
     }
 
-    internal Path CreatePath(int currentIndex)
+    internal Path CreatePath(Cursor current)
     {
-        if (currentIndex == 0)
+        // Stop at root via IsRoot flag.
+        if ((_metaDb.GetFlags(current) & ElementFlags.IsRoot) == ElementFlags.IsRoot)
         {
             return Path.Root;
         }
 
-        Span<int> indexes = stackalloc int[64];
-        var index = currentIndex;
+        Span<Cursor> chain = stackalloc Cursor[64];
+        var c = current;
         var written = 0;
 
         do
         {
-            indexes[written++] = index;
-            index = _metaDb.GetParentIndex(index);
+            chain[written++] = c;
 
-            if (written >= 64 && index > 0)
+            var parentIndex = _metaDb.GetParent(c);
+            if (parentIndex <= 0)
+            {
+                break;
+            }
+
+            c = Cursor.FromIndex(parentIndex);
+
+            if (written >= 64)
             {
                 throw new InvalidOperationException("The path is to deep.");
             }
-        } while (index > 0);
+        } while (true);
 
         var path = Path.Root;
         var parentTokenType = ElementTokenType.StartObject;
 
-        indexes = indexes[..written];
+        chain = chain[..written];
 
-        for (var i = indexes.Length - 1; i >= 0; i--)
+        for (var i = chain.Length - 1; i >= 0; i--)
         {
-            index = indexes[i];
-            var tokenType = _metaDb.GetElementTokenType(index, resolveReferences: false);
+            c = chain[i];
+            var tokenType = _metaDb.GetElementTokenType(c, resolveReferences: false);
 
             if (tokenType == ElementTokenType.PropertyName)
             {
-                path = path.Append(GetSelection(index)!.ResponseName);
-                // we jump over the actual value.
-                i--;
+                path = path.Append(GetSelection(c)!.ResponseName);
+                i--; // skip over the actual value
             }
-            else if (indexes.Length - 1 > i)
+            else if (chain.Length - 1 > i)
             {
-                var parentIndex = indexes[i + 1];
+                var parentCursor = chain[i + 1];
+
                 if (parentTokenType is ElementTokenType.StartArray)
                 {
-                    var parentRow = _metaDb.Get(parentIndex);
-                    var arrayIndex = index - (parentIndex + 1);
+                    // arrayIndex = abs(child) - (abs(parent) + 1)
+                    var absChild = c.Chunk * Cursor.RowsPerChunk + c.Row;
+                    var absParent = parentCursor.Chunk * Cursor.RowsPerChunk + parentCursor.Row;
+                    var arrayIndex = absChild - (absParent + 1);
                     path = path.Append(arrayIndex);
                 }
             }
@@ -183,114 +198,110 @@ public sealed partial class CompositeResultDocument : IDisposable
         return path;
     }
 
-    internal CompositeResultElement GetParent(int currentIndex)
+    internal CompositeResultElement GetParent(Cursor current)
     {
-        var flags = _metaDb.GetFlags(currentIndex);
+        var flags = _metaDb.GetFlags(current);
 
         if ((flags & ElementFlags.IsRoot) == ElementFlags.IsRoot)
         {
             return default;
         }
 
-        var parentIndex = _metaDb.GetParentIndex(currentIndex);
-        return new CompositeResultElement(this, parentIndex);
+        var parent = _metaDb.GetParentCursor(current);
+        return new CompositeResultElement(this, parent);
     }
 
-    internal bool IsInvalidated(int currentIndex)
+    internal bool IsInvalidated(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var elementFlags = _metaDb.GetElementTokenType(currentIndex);
+        var tt = _metaDb.GetElementTokenType(current);
 
-        if (elementFlags is ElementTokenType.StartObject)
+        if (tt is ElementTokenType.StartObject)
         {
-            var flags = _metaDb.GetFlags(currentIndex);
-            return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+            var f = _metaDb.GetFlags(current);
+            return (f & ElementFlags.Invalidated) == ElementFlags.Invalidated;
         }
 
-        if (elementFlags is ElementTokenType.Reference)
+        if (tt is ElementTokenType.Reference)
         {
-            currentIndex = _metaDb.GetLocation(currentIndex);
-            elementFlags = _metaDb.GetElementTokenType(currentIndex);
+            current = _metaDb.GetLocationCursor(current);
+            tt = _metaDb.GetElementTokenType(current);
 
-            if (elementFlags is ElementTokenType.StartObject)
+            if (tt is ElementTokenType.StartObject)
             {
-                var flags = _metaDb.GetFlags(currentIndex);
-                return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+                var f = _metaDb.GetFlags(current);
+                return (f & ElementFlags.Invalidated) == ElementFlags.Invalidated;
             }
         }
 
         return false;
     }
 
-    internal bool IsNullOrInvalidated(int currentIndex)
+    internal bool IsNullOrInvalidated(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var elementFlags = _metaDb.GetElementTokenType(currentIndex);
+        var tt = _metaDb.GetElementTokenType(current);
 
-        if (elementFlags is ElementTokenType.Null)
+        if (tt is ElementTokenType.Null)
         {
             return true;
         }
 
-        if (elementFlags is ElementTokenType.StartObject)
+        if (tt is ElementTokenType.StartObject)
         {
-            var flags = _metaDb.GetFlags(currentIndex);
-            return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+            var f = _metaDb.GetFlags(current);
+            return (f & ElementFlags.Invalidated) == ElementFlags.Invalidated;
         }
 
-        if (elementFlags is ElementTokenType.Reference)
+        if (tt is ElementTokenType.Reference)
         {
-            currentIndex = _metaDb.GetLocation(currentIndex);
-            elementFlags = _metaDb.GetElementTokenType(currentIndex);
+            current = _metaDb.GetLocationCursor(current);
+            tt = _metaDb.GetElementTokenType(current);
 
-            if (elementFlags is ElementTokenType.StartObject)
+            if (tt is ElementTokenType.StartObject)
             {
-                var flags = _metaDb.GetFlags(currentIndex);
-                return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+                var f = _metaDb.GetFlags(current);
+                return (f & ElementFlags.Invalidated) == ElementFlags.Invalidated;
             }
         }
 
         return false;
     }
 
-    internal bool IsInternalProperty(int currentIndex)
+    internal bool IsInternalProperty(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (currentIndex == 0)
-        {
-            return false;
-        }
-
-        currentIndex--;
-        var flags = _metaDb.GetFlags(currentIndex);
+        // The flag sits on the property row (one before value)
+        var propertyCursor = current.AddRows(-1);
+        var flags = _metaDb.GetFlags(propertyCursor);
         return (flags & ElementFlags.IsInternal) == ElementFlags.IsInternal;
     }
 
-    internal void Invalidate(int currentIndex)
+    internal void Invalidate(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var elementFlags = _metaDb.GetElementTokenType(currentIndex);
+        var tt = _metaDb.GetElementTokenType(current);
 
-        if (elementFlags is ElementTokenType.StartObject)
+        if (tt is ElementTokenType.StartObject)
         {
-            var flags = _metaDb.GetFlags(currentIndex);
-            _metaDb.SetFlags(currentIndex, flags | ElementFlags.Invalidated);
+            var f = _metaDb.GetFlags(current);
+            _metaDb.SetFlags(current, f | ElementFlags.Invalidated);
             return;
         }
 
-        if (elementFlags is ElementTokenType.Reference)
+        if (tt is ElementTokenType.Reference)
         {
-            currentIndex = _metaDb.GetLocation(currentIndex);
-            elementFlags = _metaDb.GetElementTokenType(currentIndex);
+            current = _metaDb.GetLocationCursor(current);
+            tt = _metaDb.GetElementTokenType(current);
 
-            if (elementFlags is ElementTokenType.StartObject)
+            if (tt is ElementTokenType.StartObject)
             {
-                var flags = _metaDb.GetFlags(currentIndex);
-                _metaDb.SetFlags(currentIndex, flags | ElementFlags.Invalidated);
+                var f = _metaDb.GetFlags(current);
+                _metaDb.SetFlags(current, f | ElementFlags.Invalidated);
                 return;
             }
         }
@@ -329,48 +340,45 @@ public sealed partial class CompositeResultDocument : IDisposable
         throw new NotSupportedException();
     }
 
-    internal CompositeResultElement CreateObject(int parentRow, SelectionSet selectionSet)
+    internal CompositeResultElement CreateObject(Cursor parent, SelectionSet selectionSet)
     {
-        var index = WriteStartObject(
-            parentRow,
-            selectionSet.Id,
-            selectionSet.Selections.Length);
+        var cur = WriteStartObject(parent, selectionSet.Id, selectionSet.Selections.Length);
 
         foreach (var selection in selectionSet.Selections)
         {
             if (selection.IsIncluded(_includeFlags))
             {
-                WriteEmptyProperty(index, selection);
+                WriteEmptyProperty(cur, selection);
             }
         }
 
         WriteEndObject();
 
-        return new CompositeResultElement(this, index);
+        return new CompositeResultElement(this, cur);
     }
 
-    internal CompositeResultElement CreateArray(int parentRow, int length)
+    internal CompositeResultElement CreateArray(Cursor parent, int length)
     {
-        var index = WriteStartArray(parentRow, length);
+        var cur = WriteStartArray(parent, length);
 
         for (var i = 0; i < length; i++)
         {
-            WriteEmptyValue(index);
+            WriteEmptyValue(cur);
         }
 
         WriteEndArray();
 
-        return new CompositeResultElement(this, index);
+        return new CompositeResultElement(this, cur);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignCompositeValue(CompositeResultElement target, CompositeResultElement value)
     {
         _metaDb.Replace(
-            index: target.Index,
+            cursor: target.Cursor,
             tokenType: ElementTokenType.Reference,
-            location: value.Index,
-            parentRow: _metaDb.GetParentIndex(target.Index));
+            location: value.Cursor.ToIndex(),
+            parentRow: _metaDb.GetParent(target.Cursor));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -381,25 +389,20 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         if (parent.Id == -1)
         {
-            Debug.Assert(
-                !_sources.Contains(parent),
-                "The source document is marked as unbound but is already registered.");
-
+            Debug.Assert(!_sources.Contains(parent), "The source document is marked as unbound but is already registered.");
             parent.Id = _sources.Count;
             _sources.Add(parent);
         }
 
-        Debug.Assert(
-            _sources.Contains(parent),
-            "Expected the source document of the source element to be registered.");
+        Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
 
         _metaDb.Replace(
-            index: target.Index,
+            cursor: target.Cursor,
             tokenType: source.TokenType.ToElementTokenType(),
             location: value.Location,
             sizeOrLength: value.Size,
             sourceDocumentId: parent.Id,
-            parentRow: _metaDb.GetParentIndex(target.Index),
+            parentRow: _metaDb.GetParent(target.Cursor),
             flags: ElementFlags.SourceResult);
     }
 
@@ -407,15 +410,16 @@ public sealed partial class CompositeResultDocument : IDisposable
     internal void AssignNullValue(CompositeResultElement target)
     {
         _metaDb.Replace(
-            index: target.Index,
+            cursor: target.Cursor,
             tokenType: ElementTokenType.Null,
-            parentRow: _metaDb.GetParentIndex(target.Index));
+            parentRow: _metaDb.GetParent(target.Cursor));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private int WriteStartObject(int parentRow = 0, int selectionSetId = 0, int length = 0)
+    private Cursor WriteStartObject(Cursor parent, int selectionSetId = 0, int length = 0)
     {
         var flags = ElementFlags.None;
+        var parentRow = ToIndex(parent);
 
         if (parentRow < 0)
         {
@@ -437,9 +441,10 @@ public sealed partial class CompositeResultDocument : IDisposable
     private void WriteEndObject() => _metaDb.Append(ElementTokenType.EndObject);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private int WriteStartArray(int parentRow = 0, int length = 0)
+    private Cursor WriteStartArray(Cursor parent, int length = 0)
     {
         var flags = ElementFlags.None;
+        var parentRow = ToIndex(parent);
 
         if (parentRow < 0)
         {
@@ -459,7 +464,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     private void WriteEndArray() => _metaDb.Append(ElementTokenType.EndArray);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEmptyProperty(int parentRow, Selection selection)
+    private void WriteEmptyProperty(Cursor parent, Selection selection)
     {
         var flags = ElementFlags.None;
 
@@ -478,31 +483,34 @@ public sealed partial class CompositeResultDocument : IDisposable
             flags |= ElementFlags.IsNullable;
         }
 
-        var index = _metaDb.Append(
+        var prop = _metaDb.Append(
             ElementTokenType.PropertyName,
-            parentRow: parentRow,
+            parentRow: ToIndex(parent),
             operationReferenceId: selection.Id,
             operationReferenceType: OperationReferenceType.Selection,
             flags: flags);
 
         _metaDb.Append(
             ElementTokenType.None,
-            parentRow: index);
+            parentRow: ToIndex(prop));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEmptyValue(int parentRow)
+    private void WriteEmptyValue(Cursor parent)
     {
         _metaDb.Append(
             ElementTokenType.None,
-            parentRow: parentRow);
+            parentRow: ToIndex(parent));
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int ToIndex(Cursor c) => (c.Chunk * Cursor.RowsPerChunk) + c.Row;
 
     private static void CheckExpectedType(ElementTokenType expected, ElementTokenType actual)
     {
         if (expected != actual)
         {
-            throw new ArgumentOutOfRangeException();
+            throw new ArgumentOutOfRangeException($"Expected {expected} but found {actual}.");
         }
     }
 

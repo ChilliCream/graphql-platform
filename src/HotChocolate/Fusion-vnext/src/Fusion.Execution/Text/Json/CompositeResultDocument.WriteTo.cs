@@ -70,9 +70,10 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                 WriteByte(Comma);
             }
 
-            var row = document._metaDb.Get(0);
+            // Write "data":
+            var root = Cursor.Zero;
+            var row = document._metaDb.Get(root);
 
-            // Write data property name with quotes
             if (indented)
             {
                 WriteIndent();
@@ -94,7 +95,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             }
             else
             {
-                WriteObject(0, row);
+                WriteObject(root, row);
             }
 
             if (document._extensions?.Count > 0)
@@ -132,15 +133,15 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             WriteByte(EndObject);
         }
 
-        private void WriteValue(int index, DbRow row)
+        private void WriteValue(Cursor cursor, DbRow row)
         {
             var tokenType = row.TokenType;
 
-            // if the row is a reference we resolve the reference in place
+            // Inline reference resolution
             if (tokenType is ElementTokenType.Reference)
             {
-                index = row.Location;
-                row = document._metaDb.Get(index);
+                cursor = document._metaDb.GetLocationCursor(cursor);
+                row = document._metaDb.Get(cursor);
                 tokenType = row.TokenType;
             }
 
@@ -151,11 +152,11 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             switch (tokenType)
             {
                 case ElementTokenType.StartObject:
-                    WriteObject(index, row);
+                    WriteObject(cursor, row);
                     break;
 
                 case ElementTokenType.StartArray:
-                    WriteArray(index, row);
+                    WriteArray(cursor, row);
                     break;
 
                 case ElementTokenType.None:
@@ -177,29 +178,30 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             }
         }
 
-        private void WriteObject(int index, DbRow row)
+        private void WriteObject(Cursor start, DbRow startRow)
         {
-            Debug.Assert(row.TokenType is ElementTokenType.StartObject);
+            Debug.Assert(startRow.TokenType is ElementTokenType.StartObject);
 
-            var currentIndex = index + 1;
-            var endIndex = index + row.NumberOfRows;
+            var current = start + 1;
+            var end = start + startRow.NumberOfRows;
 
             WriteByte(StartObject);
 
-            if (indented && currentIndex < endIndex)
+            if (indented && current < end)
             {
                 _indentLevel++;
             }
 
             var first = true;
-            while (currentIndex < endIndex)
+            while (current < end)
             {
-                row = document._metaDb.Get(currentIndex);
+                var row = document._metaDb.Get(current);
                 Debug.Assert(row.TokenType is ElementTokenType.PropertyName);
 
                 if ((ElementFlags.IsInternal & row.Flags) == ElementFlags.IsInternal)
                 {
-                    currentIndex += 2;
+                    // skip name+value
+                    current += 2;
                     continue;
                 }
 
@@ -215,7 +217,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                     WriteIndent();
                 }
 
-                // Write property name with quotes
+                // property name (quoted)
                 WriteByte(Quote);
                 writer.Write(document.ReadRawValue(row));
                 WriteByte(Quote);
@@ -226,13 +228,13 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                     WriteByte(Space);
                 }
 
-                // Write property value
-                currentIndex++;
-                row = document._metaDb.Get(currentIndex);
-                WriteValue(currentIndex, row);
+                // property value
+                current++;
+                row = document._metaDb.Get(current);
+                WriteValue(current, row);
 
-                // Skip to next property
-                currentIndex++;
+                // next property (move past value)
+                current++;
             }
 
             if (indented && !first)
@@ -245,22 +247,22 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             WriteByte(EndObject);
         }
 
-        private void WriteArray(int index, DbRow row)
+        private void WriteArray(Cursor start, DbRow startRow)
         {
-            Debug.Assert(row.TokenType is ElementTokenType.StartArray);
+            Debug.Assert(startRow.TokenType is ElementTokenType.StartArray);
 
-            var currentIndex = index + 1;
-            var endIndex = index + row.NumberOfRows;
+            var current = start + 1;
+            var end = start + startRow.NumberOfRows;
 
             WriteByte(StartArray);
 
-            if (indented && currentIndex < endIndex)
+            if (indented && current < end)
             {
                 _indentLevel++;
             }
 
             var first = true;
-            while (currentIndex < endIndex)
+            while (current < end)
             {
                 if (!first)
                 {
@@ -274,13 +276,13 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                     WriteIndent();
                 }
 
-                row = document._metaDb.Get(currentIndex);
-                WriteValue(currentIndex, row);
+                var row = document._metaDb.Get(current);
+                WriteValue(current, row);
 
-                currentIndex++;
+                current++;
             }
 
-            if (indented && endIndex > index + 1)
+            if (indented && end > start + 1)
             {
                 _indentLevel--;
                 WriteNewLine();

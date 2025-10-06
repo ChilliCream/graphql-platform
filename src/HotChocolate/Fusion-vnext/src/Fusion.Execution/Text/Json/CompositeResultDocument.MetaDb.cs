@@ -1,6 +1,7 @@
+using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static HotChocolate.Fusion.Text.Json.MetaDbMemory;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -11,18 +12,16 @@ public sealed partial class CompositeResultDocument
         private const int TokenTypeOffset = 8;
 
         private byte[][] _chunks;
-        private int _currentChunk;
-        private int _currentPosition;
+        private Cursor _next; // exclusive end (write position)
         private bool _disposed;
-
-        internal int Length { get; private set; }
 
         internal static MetaDb CreateForEstimatedRows(int estimatedRows)
         {
-            var chunksNeeded = Math.Max(4, (estimatedRows / RowsPerChunk) + 1);
-            var chunks = new byte[chunksNeeded][];
+            var chunksNeeded = Math.Max(4, (estimatedRows / Cursor.RowsPerChunk) + 1);
+            var chunks = ArrayPool<byte[]>.Shared.Rent(chunksNeeded);
 
-            chunks[0] = Rent();
+            // Rent the first chunk now to avoid branching on first append
+            chunks[0] = MetaDbMemory.Rent();
 
             for (var i = 1; i < chunks.Length; i++)
             {
@@ -32,13 +31,14 @@ public sealed partial class CompositeResultDocument
             return new MetaDb
             {
                 _chunks = chunks,
-                _currentChunk = 0,
-                _currentPosition = 0,
-                Length = 0
+                _next = Cursor.Zero
             };
         }
 
-        internal int Append(
+        public Cursor NextCursor => _next;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Cursor Append(
             ElementTokenType tokenType,
             int location = 0,
             int sizeOrLength = 0,
@@ -49,40 +49,46 @@ public sealed partial class CompositeResultDocument
             int numberOfRows = 0,
             ElementFlags flags = ElementFlags.None)
         {
-            // Check if we need to allocate a new chunk
-            if (_currentPosition + DbRow.Size > BufferSize)
+            var next = _next;
+            var chunkIndex = next.Chunk;
+            var byteOffset = next.ByteOffset;
+
+            var chunks = _chunks.AsSpan();
+            var chunksLength = chunks.Length;
+
+            if (byteOffset + DbRow.Size > Cursor.ChunkBytes)
             {
-                _currentChunk++;
-                _currentPosition = 0;
-
-                // Ensure we have space in the chunks array
-                if (_currentChunk >= _chunks.Length)
-                {
-                    // todo: we might want to pool this
-                    // If we need to grow the chunks array we will do
-                    // so by doubling the space.
-                    var newChunks = new byte[_chunks.Length * 2][];
-                    Array.Copy(_chunks, newChunks, _chunks.Length);
-
-                    // Each new space will be initialized with am empty array
-                    for (var i = _chunks.Length; i < newChunks.Length; i++)
-                    {
-                        newChunks[i] = [];
-                    }
-
-                    _chunks = newChunks;
-                }
-
-                // If the current selected chunk is empty then we
-                // just have filled up a block and must rent more memory.
-                if (_chunks[_currentChunk].Length == 0)
-                {
-                    _chunks[_currentChunk] = Rent();
-                }
+                chunkIndex++;
+                byteOffset = 0;
+                next = Cursor.FromByteOffset(chunkIndex, byteOffset);
             }
 
-            // Calculate the global row index for return value
-            var rowIndex = Length / DbRow.Size;
+            // make sure we have enough space for the chunk referenced by the chunkIndex.
+            if (chunkIndex >= chunksLength)
+            {
+                // if we do not have enough space we will double the size we have for
+                // chunks of memory.
+                var nextChunksLength = chunksLength * 2;
+                var newChunks = ArrayPool<byte[]>.Shared.Rent(nextChunksLength);
+
+                Array.Copy(_chunks, newChunks, chunksLength);
+
+                for (var i = chunksLength; i < nextChunksLength; i++)
+                {
+                    newChunks[i] = [];
+                }
+
+                _chunks = newChunks;
+                chunks = newChunks.AsSpan();
+            }
+
+            var chunk = chunks[chunkIndex];
+
+            // if the chunk is empty we did not yet rent any memory for it
+            if (chunk.Length == 0)
+            {
+                chunk = chunks[chunkIndex] = MetaDbMemory.Rent();
+            }
 
             var row = new DbRow(
                 tokenType,
@@ -95,18 +101,17 @@ public sealed partial class CompositeResultDocument
                 numberOfRows,
                 flags);
 
-            // Write the row to the current chunk
-            MemoryMarshal.Write(_chunks[_currentChunk].AsSpan(_currentPosition), in row);
+            ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, byteOffset), row);
 
-            // Update position and length for the next append
-            _currentPosition += DbRow.Size;
-            Length += DbRow.Size;
-
-            return rowIndex;
+            // Advance write head by one row
+            _next = next + 1;
+            return next;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Replace(
-            int index,
+            Cursor cursor,
             ElementTokenType tokenType,
             int location = 0,
             int sizeOrLength = 0,
@@ -117,20 +122,8 @@ public sealed partial class CompositeResultDocument
             int numberOfRows = 0,
             ElementFlags flags = ElementFlags.None)
         {
-            Debug.Assert(index >= 0);
-            Debug.Assert(index < Length / DbRow.Size, "Index out of bounds");
+            AssertValidCursor(cursor);
 
-            // We convert the row index back into a byte offset that we can
-            // in turn break up into the chunk where the row resides and the
-            // local offset we have in that chunk.
-            var offset = index * DbRow.Size;
-            var chunkIndex = offset / BufferSize;
-            var localOffset = offset % BufferSize;
-
-            Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
-            Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
-
-            // We create a new row to replace the current data.
             var row = new DbRow(
                 tokenType,
                 location,
@@ -142,181 +135,177 @@ public sealed partial class CompositeResultDocument
                 numberOfRows,
                 flags);
 
-            // Then write it all back to the chunk.
-            MemoryMarshal.Write(_chunks[chunkIndex].AsSpan(localOffset), in row);
+            var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
+
+            MemoryMarshal.Write(span, in row);
         }
 
-        internal DbRow Get(int index)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal DbRow Get(Cursor cursor)
         {
-            Debug.Assert(index >= 0);
-            Debug.Assert(index < Length / DbRow.Size, "Index out of bounds");
+            AssertValidCursor(cursor);
 
-            // We convert the row index back into a byte offset that we can
-            // // in turn break up into the chunk where the row resides and the
-            // // local offset we have in that chunk.
-            var byteOffset = index * DbRow.Size;
-            var chunkIndex = byteOffset / BufferSize;
-            var localOffset = byteOffset % BufferSize;
+            var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
 
-            Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
-            Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
-
-            return MemoryMarshal.Read<DbRow>(_chunks[chunkIndex].AsSpan(localOffset));
+            return MemoryMarshal.Read<DbRow>(span);
         }
 
-        // gets the actual start index... if element is a reference it gets an index
-        // to the referenced object.
-        internal int GetStartIndex(int index)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Cursor GetStartCursor(Cursor cursor)
         {
-            // We convert the row index back into a byte offset that we can
-            // in turn break up into the chunk where the row resides and the
-            // local offset we have in that chunk.
-            var byteOffset = index * DbRow.Size;
-            var chunkIndex = byteOffset / BufferSize;
-            var localOffset = byteOffset % BufferSize;
+            var tokenType = GetElementTokenType(cursor, resolveReferences: false);
 
-            var union = MemoryMarshal.Read<uint>(_chunks[chunkIndex].AsSpan(localOffset + TokenTypeOffset));
-            var tokenType = (ElementTokenType)(union >> 28);
-
-            if (tokenType == ElementTokenType.Reference)
+            if (tokenType is ElementTokenType.Reference)
             {
-                return GetLocation(index);
+                var index = GetLocation(cursor);
+                return Cursor.FromIndex(index);
             }
 
-            return index;
+            return cursor;
         }
 
-        internal int GetLocation(int index)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal int GetLocation(Cursor cursor)
         {
-            Debug.Assert(index >= 0);
-            Debug.Assert(index < Length / DbRow.Size, "Index out of bounds");
+            AssertValidCursor(cursor);
 
-            // Convert row index to byte offset
-            var byteOffset = index * DbRow.Size;
-            var chunkIndex = byteOffset / BufferSize;
-            var localOffset = byteOffset % BufferSize;
+            var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
 
-            Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
-            Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
-
-            // Read the first field that contains the Location bits
-            var locationAndOpRefType = MemoryMarshal.Read<int>(_chunks[chunkIndex].AsSpan(localOffset));
-
-            // Extract Location from the low 27 bits
+            var locationAndOpRefType = MemoryMarshal.Read<int>(span);
             return locationAndOpRefType & 0x07FFFFFF;
         }
 
-        internal int GetParentIndex(int index)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Cursor GetLocationCursor(Cursor cursor)
         {
-            Debug.Assert(index >= 0);
-            Debug.Assert(index < Length / DbRow.Size, "Index out of bounds");
+            AssertValidCursor(cursor);
 
-            // Convert row index to byte offset
-            var byteOffset = index * DbRow.Size;
-            var chunkIndex = byteOffset / BufferSize;
-            var localOffset = byteOffset % BufferSize;
+            var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
 
-            Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
-            Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
-
-            // Read the two fields that contain the ParentRow bits
-            // Offset to 4th field
-            var sourceAndParentHigh = MemoryMarshal.Read<int>(_chunks[chunkIndex].AsSpan(localOffset + 12));
-
-            // Offset to 5th field
-            var selectionSetFlagsAndParentLow = MemoryMarshal.Read<int>(_chunks[chunkIndex].AsSpan(localOffset + 16));
-
-            // Reconstruct ParentRow from high and low bits (same logic as DbRow property)
-            return ((int)((uint)sourceAndParentHigh >> 15) << 11) | ((selectionSetFlagsAndParentLow >> 21) & 0x7FF);
+            var locationAndOpRefType = MemoryMarshal.Read<int>(span);
+            return Cursor.FromIndex(locationAndOpRefType & 0x07FFFFFF);
         }
 
-        internal ElementFlags GetFlags(int index)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal int GetParent(Cursor cursor)
         {
-            Debug.Assert(index >= 0);
-            Debug.Assert(index < Length / DbRow.Size, "Index out of bounds");
+            AssertValidCursor(cursor);
 
-            // Convert row index to byte offset
-            var byteOffset = index * DbRow.Size;
-            var chunkIndex = byteOffset / BufferSize;
-            var localOffset = byteOffset % BufferSize;
+            var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
 
-            Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
-            Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
+            var sourceAndParentHigh = MemoryMarshal.Read<int>(span[12..]);
+            var selectionSetFlagsAndParentLow = MemoryMarshal.Read<int>(span[16..]);
 
-            // Read the 5th field that contains the Flags bits
-            // Offset to 5th field (selectionSetFlagsAndParentLow)
-            var selectionSetFlagsAndParentLow = MemoryMarshal.Read<int>(_chunks[chunkIndex].AsSpan(localOffset + 16));
+            return (sourceAndParentHigh >>> 15 << 11)
+                | ((selectionSetFlagsAndParentLow >> 21) & 0x7FF);
+        }
 
-            // Extract Flags from bits 15-20 (6 bits)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Cursor GetParentCursor(Cursor cursor)
+        {
+            AssertValidCursor(cursor);
+
+            var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
+
+            var sourceAndParentHigh = MemoryMarshal.Read<int>(span[12..]);
+            var selectionSetFlagsAndParentLow = MemoryMarshal.Read<int>(span[16..]);
+
+            var index = (sourceAndParentHigh >>> 15 << 11)
+                | ((selectionSetFlagsAndParentLow >> 21) & 0x7FF);
+
+            return Cursor.FromIndex(index);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal int GetNumberOfRows(Cursor cursor)
+        {
+            AssertValidCursor(cursor);
+
+            var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + TokenTypeOffset);
+
+            var value = MemoryMarshal.Read<int>(span);
+            return value & 0x0FFFFFFF;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal ElementFlags GetFlags(Cursor cursor)
+        {
+            AssertValidCursor(cursor);
+
+            var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 16);
+
+            var selectionSetFlagsAndParentLow = MemoryMarshal.Read<int>(span);
             return (ElementFlags)((selectionSetFlagsAndParentLow >> 15) & 0x3F);
         }
 
-        internal void SetFlags(int index, ElementFlags flags)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void SetFlags(Cursor cursor, ElementFlags flags)
         {
-            Debug.Assert(index >= 0);
-            Debug.Assert(index < Length / DbRow.Size, "Index out of bounds");
-            Debug.Assert((byte)flags <= 63, "Flags value exceeds 6-bit limit"); // 0x3F = 63
+            AssertValidCursor(cursor);
+            Debug.Assert((byte)flags <= 63, "Flags value exceeds 6-bit limit");
 
-            // Convert row index to byte offset
-            var byteOffset = index * DbRow.Size;
-            var chunkIndex = byteOffset / BufferSize;
-            var localOffset = byteOffset % BufferSize;
-
-            Debug.Assert(chunkIndex < _chunks.Length, "Chunk index out of bounds");
-            Debug.Assert(_chunks[chunkIndex].Length > 0, "Accessing unallocated chunk");
-
-            // Read the current 5th field value
-            // Offset to 5th field (selectionSetFlagsAndParentLow)
-            var fieldSpan = _chunks[chunkIndex].AsSpan(localOffset + 16);
+            var fieldSpan = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 16);
             var currentValue = MemoryMarshal.Read<int>(fieldSpan);
 
-            // Clear the flags bits (15-20) and set the new flags
-            // Mask: ~(0x3F << 15) = ~0x1F8000 = 0xFFE07FFF
-            var clearedValue = currentValue & 0xFFE07FFF;
+            var clearedValue = currentValue & 0xFFE07FFF; // ~(0x3F << 15)
             var newValue = (int)(clearedValue | (uint)((int)flags << 15));
 
-            // Write back the modified field
             MemoryMarshal.Write(fieldSpan, newValue);
         }
 
-        internal ElementTokenType GetElementTokenType(int index, bool resolveReferences = true)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal ElementTokenType GetElementTokenType(Cursor cursor, bool resolveReferences = true)
         {
-            // We convert the row index back into a byte offset that we can
-            // in turn break up into the chunk where the row resides and the
-            // local offset we have in that chunk.
-            var byteOffset = index * DbRow.Size;
-            var chunkIndex = byteOffset / BufferSize;
-            var localOffset = byteOffset % BufferSize;
+            AssertValidCursor(cursor);
 
-            var union = MemoryMarshal.Read<uint>(_chunks[chunkIndex].AsSpan(localOffset + TokenTypeOffset));
+            var union = MemoryMarshal.Read<uint>(_chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + TokenTypeOffset));
             var tokenType = (ElementTokenType)(union >> 28);
 
-            if (resolveReferences && tokenType is ElementTokenType.Reference)
+            if (resolveReferences && tokenType == ElementTokenType.Reference)
             {
-                index = GetLocation(index);
-                byteOffset = index * DbRow.Size;
-                chunkIndex = byteOffset / BufferSize;
-                localOffset = byteOffset % BufferSize;
-                union = MemoryMarshal.Read<uint>(_chunks[chunkIndex].AsSpan(localOffset + TokenTypeOffset));
+                var idx = GetLocation(cursor);
+                var resolved = Cursor.FromIndex(idx);
+                union = MemoryMarshal.Read<uint>(_chunks[resolved.Chunk].AsSpan(resolved.ByteOffset + TokenTypeOffset));
                 tokenType = (ElementTokenType)(union >> 28);
             }
 
             return tokenType;
         }
 
+        [Conditional("DEBUG")]
+        private void AssertValidCursor(Cursor cursor)
+        {
+            Debug.Assert(cursor.Chunk >= 0, "Negative chunk");
+            Debug.Assert(cursor.Chunk < _chunks.Length, "Chunk index out of bounds");
+            Debug.Assert(_chunks[cursor.Chunk].Length > 0, "Accessing unallocated chunk");
+
+            var maxExclusive = _next.Chunk * Cursor.RowsPerChunk + _next.Row;
+            var absoluteIndex = cursor.Chunk * Cursor.RowsPerChunk + cursor.Row;
+
+            Debug.Assert(absoluteIndex >= 0 && absoluteIndex < maxExclusive,
+                $"Cursor points to row {absoluteIndex}, but only {maxExclusive} rows are valid.");
+            Debug.Assert(cursor.ByteOffset + DbRow.Size <= MetaDbMemory.BufferSize, "Cursor byte offset out of bounds");
+        }
+
         public void Dispose()
         {
             if (!_disposed)
             {
-                foreach (var chunk in _chunks)
+                var cursor = _next;
+                var chunks = _chunks.AsSpan(0, cursor.Chunk + 1);
+
+                foreach (var chunk in chunks)
                 {
                     if (chunk.Length == 0)
                     {
                         break;
                     }
 
-                    Return(chunk);
+                    MetaDbMemory.Return(chunk);
                 }
+
+                chunks.Clear();
+                ArrayPool<byte[]>.Shared.Return(_chunks);
 
                 _chunks = [];
                 _disposed = true;

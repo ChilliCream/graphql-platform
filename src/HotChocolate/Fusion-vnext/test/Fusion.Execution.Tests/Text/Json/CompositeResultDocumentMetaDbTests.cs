@@ -4,17 +4,7 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public class CompositeResultDocumentMetaDbTests : IDisposable
 {
-    private MetaDb _metaDb;
-
-    public CompositeResultDocumentMetaDbTests()
-    {
-        _metaDb = MetaDb.CreateForEstimatedRows(100);
-    }
-
-    public void Dispose()
-    {
-        _metaDb.Dispose();
-    }
+    private MetaDb _metaDb = MetaDb.CreateForEstimatedRows(100);
 
     [Fact]
     public void CreateForEstimatedRows_WithSmallEstimate_CreatesValidMetaDb()
@@ -23,14 +13,14 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         using var metaDb = MetaDb.CreateForEstimatedRows(10);
 
         // Assert
-        Assert.Equal(0, metaDb.Length);
+        Assert.Equal(0, metaDb.NextCursor.ToIndex());
     }
 
     [Fact]
     public void Append_SingleRow_ReturnsCorrectIndex()
     {
         // Arrange & Act
-        var index = _metaDb.Append(
+        var cursor = _metaDb.Append(
             ElementTokenType.String,
             location: 42,
             sizeOrLength: 10,
@@ -40,8 +30,8 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
             flags: ElementFlags.None);
 
         // Assert
-        Assert.Equal(0, index);
-        Assert.Equal(20, _metaDb.Length); // DbRow.Size = 20
+        Assert.Equal(0, cursor.ToIndex());
+        Assert.Equal(20, _metaDb.NextCursor.ToTotalBytes());
     }
 
     [Fact]
@@ -53,10 +43,10 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         var index3 = _metaDb.Append(ElementTokenType.EndObject);
 
         // Assert
-        Assert.Equal(0, index1);
-        Assert.Equal(1, index2);
-        Assert.Equal(2, index3);
-        Assert.Equal(60, _metaDb.Length); // 3 * DbRow.Size
+        Assert.Equal(0, index1.ToIndex());
+        Assert.Equal(1, index2.ToIndex());
+        Assert.Equal(2, index3.ToIndex());
+        Assert.Equal(60, _metaDb.NextCursor.ToTotalBytes());
     }
 
     [Fact]
@@ -145,8 +135,8 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         const int rowsPerChunk = chunkSize / 20; // DbRow.Size = 20
 
         // Act - Add more rows than fit in a single chunk
-        var indices = new List<int>();
-        for (int i = 0; i < rowsPerChunk + 10; i++)
+        var indices = new List<Cursor>();
+        for (var i = 0; i < rowsPerChunk + 10; i++)
         {
             indices.Add(_metaDb.Append(ElementTokenType.String, location: i));
         }
@@ -155,7 +145,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(rowsPerChunk + 10, indices.Count);
 
         // Verify we can read from both chunks
-        var firstRow = _metaDb.Get(0);
+        var firstRow = _metaDb.Get(Cursor.FromIndex(0));
         var lastRow = _metaDb.Get(indices.Last());
 
         Assert.Equal(0, firstRow.Location);
@@ -281,28 +271,31 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     [Fact]
     public void Append_ExceedsInitialChunkCapacity_ExpandsChunkArray()
     {
-        // Arrange - Start with minimal estimate to force expansion
-        using var metaDb = MetaDb.CreateForEstimatedRows(1);
+        // Arrange
+        using var metaDb = MetaDb.CreateForEstimatedRows(4);
 
-        const int chunkSize = 128 * 1024; // 128KB
-        const int rowsPerChunk = chunkSize / 20; // DbRow.Size = 20
-        const int totalRowsToAdd = (rowsPerChunk * 4) + 10; // Force multiple chunk allocations
+        const int chunkSize = 128 * 1024;
+        const int rowsPerChunk = chunkSize / 20;
+        const int totalRowsToAdd = (rowsPerChunk * 4) + 10;
 
         // Act - Add enough rows to exceed initial capacity and trigger expansion
-        var indices = new List<int>();
-        for (int i = 0; i < totalRowsToAdd; i++)
+        var indices = new List<Cursor>();
+        for (var i = 0; i < totalRowsToAdd; i++)
         {
             indices.Add(metaDb.Append(ElementTokenType.String, location: i, sizeOrLength: i % 100));
         }
 
-        // Assert - Verify all rows were added correctly
+        // Assert
         Assert.Equal(totalRowsToAdd, indices.Count);
-        Assert.Equal(totalRowsToAdd * 20, metaDb.Length);
+
+        // since 20 bytes do not fit perfectly into 128kb buffers we have some
+        // extra skip bytes.
+        Assert.Equal((totalRowsToAdd * 20) + 48, metaDb.NextCursor.ToTotalBytes());
 
         // Verify we can read data from all chunks
-        var firstRow = metaDb.Get(0);
-        var middleRow = metaDb.Get(totalRowsToAdd / 2);
-        var lastRow = metaDb.Get(totalRowsToAdd - 1);
+        var firstRow = metaDb.Get(Cursor.FromIndex(0));
+        var middleRow = metaDb.Get(Cursor.FromIndex(totalRowsToAdd / 2));
+        var lastRow = metaDb.Get(Cursor.FromIndex(totalRowsToAdd - 1));
 
         Assert.Equal(0, firstRow.Location);
         Assert.Equal(totalRowsToAdd / 2, middleRow.Location);
@@ -313,4 +306,6 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal((totalRowsToAdd / 2) % 100, middleRow.SizeOrLength);
         Assert.Equal((totalRowsToAdd - 1) % 100, lastRow.SizeOrLength);
     }
+
+    public void Dispose() => _metaDb.Dispose();
 }
