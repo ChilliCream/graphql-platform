@@ -68,9 +68,9 @@ internal sealed class __Schema : ITypeResolverInterceptor
 
     public static void SubscriptionType(FieldContext context)
     {
-        if (context.Schema.MutationType is not null)
+        if (context.Schema.SubscriptionType is not null)
         {
-            context.AddRuntimeResult(context.Schema.MutationType);
+            context.AddRuntimeResult(context.Schema.SubscriptionType);
             context.FieldResult.SetNextValue(context.RentInitializedObjectResult());
         }
     }
