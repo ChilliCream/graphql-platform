@@ -4,26 +4,8 @@
 
 ```json
 {
-  "errors": [
-    {
-      "message": "Field \"someField\" of type \"SomeInterface\" must have a selection of subfields. Did you mean \"someField { ... }\"?",
-      "locations": [
-        {
-          "line": 1,
-          "column": 27
-        }
-      ],
-      "extensions": {
-        "declaringType": "Query",
-        "field": "someField",
-        "type": "SomeInterface",
-        "responseName": "someField",
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-      }
-    }
-  ],
   "data": {
-    "someField": null
+    "someField": {}
   }
 }
 ```
@@ -43,7 +25,7 @@
 ## QueryPlan Hash
 
 ```text
-FAE12506C6604D14892FE4B185078A93A6CDC794
+D517577711CC066E36DD6785CA938437DAA08994
 ```
 
 ## QueryPlan
@@ -57,7 +39,7 @@ FAE12506C6604D14892FE4B185078A93A6CDC794
       {
         "type": "Resolve",
         "subgraph": "Subgraph_1",
-        "document": "query fetch_someField_1 { someField {  } }",
+        "document": "query fetch_someField_1 { someField { __typename } }",
         "selectionSetId": 0
       },
       {

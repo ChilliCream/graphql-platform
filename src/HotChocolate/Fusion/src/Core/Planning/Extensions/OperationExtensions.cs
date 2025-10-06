@@ -33,22 +33,26 @@ internal static class OperationExtensions
         return operation.GetSelectionSet(step.ParentSelection, step.SelectionSetType);
     }
 
-    public static IEnumerable<IObjectType> GetSchemaPossibleTypes(this IOperation operation, ISelection selection, FusionGraphConfiguration config, string subgraph)
+    public static IEnumerable<IObjectType> GetSchemaPossibleTypes(
+        this IOperation operation,
+        ISelection selection,
+        FusionGraphConfiguration config,
+        string schemaName)
     {
         var possibleTypes = new List<IObjectType>();
 
         foreach (var possibleType in operation.GetPossibleTypes(selection))
         {
-            if (!string.IsNullOrWhiteSpace(subgraph) && (selection.Type.IsInterfaceType() || selection.Type.IsUnionType()))
+            if (selection.Type.IsInterfaceType() || selection.Type.IsUnionType())
             {
                 var declaringType = config.GetType<ObjectTypeMetadata>(possibleType.Name);
-                if (!declaringType.Fields.Any(
-                    field =>
-                    // We exclude the typename because it's present in all subgraphs
-                    !field.Name.EqualsOrdinal(IntrospectionFields.TypeName)
-                    && field.Bindings.ContainsSubgraph(subgraph)))
+
+                // Due to a bug we currently do not properly annotate sources (bindings)
+                // to types, so we can't directly check against the bindings of declaringType
+                // and instead we have to look at the type's fields to determine if
+                // it exists on the given subgraph.
+                if (!declaringType.Fields.Any(field => HasFieldOnSubgraph(field, schemaName)))
                 {
-                    // The current graph can't resolve this type
                     continue;
                 }
             }
@@ -57,5 +61,10 @@ internal static class OperationExtensions
         }
 
         return possibleTypes;
+    }
+
+    private static bool HasFieldOnSubgraph(ObjectFieldInfo field, string schemaName)
+    {
+        return !field.Name.EqualsOrdinal(IntrospectionFields.TypeName) && field.Bindings.ContainsSubgraph(schemaName);
     }
 }

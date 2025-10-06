@@ -339,7 +339,10 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
     {
         var selectionNodes = new List<ISelectionNode>();
         var typeSelectionNodes = selectionNodes;
-        var possibleTypes = context.Operation.GetSchemaPossibleTypes(parentSelection, _config, executionStep.SubgraphName);
+        var possibleTypes = context.Operation.GetSchemaPossibleTypes(
+            parentSelection,
+            _config,
+            executionStep.SubgraphName);
         var parentType = parentSelection.Type.NamedType();
 
         using var typeEnumerator = possibleTypes.GetEnumerator();
@@ -391,6 +394,11 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
             }
 
             AddInlineFragment(possibleType);
+        }
+
+        if (isAbstractType && selectionNodes.Count == 0)
+        {
+            selectionNodes.Add(TypeNameField);
         }
 
         return new SelectionSetNode(selectionNodes);

@@ -783,9 +783,11 @@ public class InterfaceTests(ITestOutputHelper output)
             type Query {
               someField: SomeInterface
             }
+
             interface SomeInterface {
               value: String
             }
+
             type ConcreteTypeA implements SomeInterface {
               value: String
               specificToA: String
@@ -797,9 +799,11 @@ public class InterfaceTests(ITestOutputHelper output)
             type Query {
               anotherField: SomeInterface
             }
+
             interface SomeInterface {
               value: String
             }
+
             type ConcreteTypeB implements SomeInterface {
               value: String
               specificToB: String
@@ -810,15 +814,15 @@ public class InterfaceTests(ITestOutputHelper output)
         var executor = await subgraphs.GetExecutorAsync();
         var request = Parse(
             """
-                            {
-                              someField {
-                                value
-                                ... on ConcreteTypeA {
-                                  specificToA
-                                }
-                              }
-                            }
-                            """);
+            {
+              someField {
+                value
+                ... on ConcreteTypeA {
+                  specificToA
+                }
+              }
+            }
+            """);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -842,9 +846,11 @@ public class InterfaceTests(ITestOutputHelper output)
             type Query {
               someField: SomeInterface
             }
+
             interface SomeInterface {
               value: String
             }
+
             type ConcreteTypeA implements SomeInterface {
               value: String
               specificToA: String
@@ -856,9 +862,11 @@ public class InterfaceTests(ITestOutputHelper output)
             type Query {
               anotherField: SomeInterface
             }
+
             interface SomeInterface {
               value: String
             }
+
             type ConcreteTypeB implements SomeInterface {
               value: String
               specificToB: String
@@ -904,9 +912,11 @@ public class InterfaceTests(ITestOutputHelper output)
             type Query {
               someField: SomeInterface
             }
+
             interface SomeInterface {
               value: String
             }
+
             type ConcreteTypeA implements SomeInterface {
               value: String
               specificToA: String
@@ -918,9 +928,11 @@ public class InterfaceTests(ITestOutputHelper output)
             type Query {
               anotherField: SomeInterface
             }
+
             interface SomeInterface {
               value: String
             }
+
             type ConcreteTypeB implements SomeInterface {
               value: String
               specificToB: String

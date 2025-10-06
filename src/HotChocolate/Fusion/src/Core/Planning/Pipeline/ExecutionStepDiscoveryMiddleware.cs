@@ -330,7 +330,10 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         }
 
         var overallCouldPlanSelections = false;
-        foreach (var possibleType in operation.GetSchemaPossibleTypes(parentSelection, _config, executionStep.SubgraphName))
+        foreach (var possibleType in operation.GetSchemaPossibleTypes(
+            parentSelection,
+            _config,
+            executionStep.SubgraphName))
         {
             var couldPlanSelections = CollectNestedSelections(
                 context,
@@ -572,13 +575,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             queryTypeMetadata);
         context.Steps.Add(nodeExecutionStep);
 
-        var subgraph = string.Empty;
-        if(context.TryGetExecutionStep(nodeSelection, out var executionStep))
-        {
-            subgraph = executionStep.SubgraphName;
-        }
-
-        foreach (var entityType in operation.GetSchemaPossibleTypes(nodeSelection, _config, subgraph))
+        foreach (var entityType in operation.GetPossibleTypes(nodeSelection))
         {
             var entityTypeInfo = _config.GetType<ObjectTypeMetadata>(entityType.Name);
             var selectionSet = operation.GetSelectionSet(nodeSelection, entityType);
