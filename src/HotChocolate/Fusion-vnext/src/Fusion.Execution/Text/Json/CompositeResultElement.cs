@@ -184,7 +184,20 @@ public readonly partial struct CompositeResultElement
         }
     }
 
-    public bool IsNullable => Type?.IsNullableType() ?? true;
+    public bool IsNullable
+    {
+        get
+        {
+            CheckValidInstance();
+
+            if (_cursor == CompositeResultDocument.Cursor.Zero)
+            {
+                return false;
+            }
+
+            return Type?.IsNullableType() ?? true;
+        }
+    }
 
     public bool IsInternal
     {

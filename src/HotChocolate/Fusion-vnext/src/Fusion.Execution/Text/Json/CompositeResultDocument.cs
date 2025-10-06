@@ -205,23 +205,33 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal CompositeResultElement GetParent(Cursor current)
     {
+        // The null cursor represents the data object, which is the utmost root.
+        // If we have reached that we simply return an undefined element
         if (current == Cursor.Zero)
-        {
-            return default;
-        }
-
-        var flags = _metaDb.GetFlags(current);
-
-        if ((flags & ElementFlags.IsRoot) == ElementFlags.IsRoot)
         {
             return default;
         }
 
         var parent = _metaDb.GetParentCursor(current);
 
+        // if the parent element is a property name then we must get the parent of that,
+        // as property name and value represent the same element.
         if (_metaDb.GetElementTokenType(parent) is ElementTokenType.PropertyName)
         {
             parent = _metaDb.GetParentCursor(parent);
+        }
+
+        // if we have not yet reached the root and the element type of the parent is an object or an array
+        // then we need to get still the parent of this row as we want to get the logical parent
+        // which is the value level of the property or the element in an array.
+        if (parent != Cursor.Zero
+            && _metaDb.GetElementTokenType(parent) is ElementTokenType.StartObject or ElementTokenType.StartArray)
+        {
+            parent = _metaDb.GetParentCursor(parent);
+
+            // in this case the parent must be a reference, otherwise we would have
+            // found an inconsistency in the database.
+            Debug.Assert(_metaDb.GetElementTokenType(parent, resolveReferences: false) == ElementTokenType.Reference);
         }
 
         return new CompositeResultElement(this, parent);
