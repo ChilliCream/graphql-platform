@@ -4,8 +4,28 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
 
-public class RequestExecutorResolverTests
+public class RequestExecutorManagerTests
 {
+    [Fact]
+    public async Task GetExecutorAsync_Throws_If_Schema_Does_Not_Exist()
+    {
+        // arrange
+        var manager =
+            new ServiceCollection()
+                .AddGraphQL("some-name")
+                .AddQueryType(d => d.Field("foo").Resolve(""))
+                .Services
+                .BuildServiceProvider()
+                .GetRequiredService<RequestExecutorManager>();
+
+        // act
+        var act = async () => await manager.GetExecutorAsync("unknown-name");
+
+        // assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
+        Assert.Equal($"The requested schema 'unknown-name' does not exist.", exception.Message);
+    }
+
     [Fact]
     public async Task Operation_Cache_Should_Be_Scoped_To_Executor()
     {
