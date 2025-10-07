@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection;
 using HotChocolate.Utilities;
 
@@ -28,7 +29,10 @@ public sealed partial class ExtendedType
             };
         }
 
-        public static ExtendedMethodInfo FromMethod(MethodInfo method, TypeCache cache)
+        public static ExtendedMethodInfo FromMethod(
+            MethodInfo method,
+            ParameterInfo[] parameters,
+            TypeCache cache)
         {
             var helper = new NullableHelper(method.DeclaringType!);
             var context = helper.GetContext(method);
@@ -40,7 +44,6 @@ public sealed partial class ExtendedType
                     method,
                     cache));
 
-            var parameters = method.GetParameters();
             var parameterTypes = ImmutableDictionary.CreateBuilder<ParameterInfo, IExtendedType>();
 
             foreach (var parameter in parameters)
