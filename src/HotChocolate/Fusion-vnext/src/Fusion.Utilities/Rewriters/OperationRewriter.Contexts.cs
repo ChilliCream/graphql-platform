@@ -23,12 +23,6 @@ public sealed partial class OperationRewriter
         public FragmentDefinitionNode GetFragmentDefinition(string name)
             => fragmentLookup[name];
 
-        public void AddSelection(ISelectionNode selection)
-        {
-            Selections ??= new HashSet<ISelectionNode>(SyntaxNodeComparer.Instance);
-            Selections.Add(selection);
-        }
-
         public virtual BaseContext GetOrCreateFragmentContext(
             InlineFragmentNode inlineFragmentNode,
             ITypeDefinition typeCondition)
@@ -46,7 +40,7 @@ public sealed partial class OperationRewriter
             return fragmentContext;
         }
 
-        public virtual BaseContext? AddField(FieldNode fieldNode, ITypeDefinition fieldType)
+        public virtual BaseContext? GetOrCreateFieldContext(FieldNode fieldNode, ITypeDefinition fieldType)
         {
             if (fieldNode.SelectionSet is not null)
             {
@@ -89,6 +83,26 @@ public sealed partial class OperationRewriter
 
             return conditionalContext;
         }
+
+        protected void AddSelection(ISelectionNode selection)
+        {
+            Selections ??= new HashSet<ISelectionNode>(SyntaxNodeComparer.Instance);
+            Selections.Add(selection);
+        }
+
+        protected internal void RemoveSelection(ISelectionNode selection)
+        {
+            Selections?.Remove(selection);
+
+            if (selection is FieldNode fieldNode)
+            {
+                FieldContexts?.Remove(fieldNode);
+            }
+            else if (selection is InlineFragmentNode inlineFragmentNode)
+            {
+                FragmentContexts?.Remove(inlineFragmentNode);
+            }
+        }
     }
 
     private sealed class Context(
@@ -96,6 +110,36 @@ public sealed partial class OperationRewriter
         Dictionary<string, FragmentDefinitionNode> fragmentLookup)
         : BaseContext(type, fragmentLookup)
     {
+        public Dictionary<ISelectionNode, List<ConditionalContext>>? ConditionalParentContexts { get; set; }
+
+        public override BaseContext? GetOrCreateFieldContext(FieldNode fieldNode, ITypeDefinition fieldType)
+        {
+            var fieldContext = base.GetOrCreateFieldContext(fieldNode, fieldType);
+
+            if (ConditionalParentContexts is not null
+                && ConditionalParentContexts.TryGetValue(fieldNode, out var conditionalContexts))
+            {
+                foreach (var conditionalContext in conditionalContexts)
+                {
+                    if (conditionalContext.FieldContexts is not null
+                        && conditionalContext.FieldContexts.TryGetValue(fieldNode, out var conditionalFieldContext))
+                    {
+                        // TODO: This should actually recreate the entire conditional hierarchy up until the first non-conditional parent
+                        var conditionalContextBelowUnconditionalField =
+                            GetOrCreateConditionalContext(conditionalContext.Conditional);
+
+                        // TODO: Merge conditionalFieldContext into conditionalContextBelowUnconditionalField
+                    }
+
+                    conditionalContext.RemoveSelection(fieldNode);
+                }
+
+                ConditionalParentContexts.Remove(fieldNode);
+            }
+
+            return fieldContext;
+        }
+
         public override BaseContext GetOrCreateFragmentContext(
             InlineFragmentNode inlineFragmentNode,
             ITypeDefinition typeCondition)
@@ -115,6 +159,45 @@ public sealed partial class OperationRewriter
     {
         public Context UnconditionalContext { get; } = unconditionalContext;
 
+        public Conditional Conditional { get; } = conditional;
+
+        public override BaseContext? GetOrCreateFieldContext(FieldNode fieldNode, ITypeDefinition fieldType)
+        {
+            if (UnconditionalContext.Selections?.Contains(fieldNode) == true)
+            {
+                if (fieldNode.SelectionSet is null)
+                {
+                    return null;
+                }
+
+                if (UnconditionalContext.FieldContexts!.TryGetValue(fieldNode, out var unconditionalFieldContext))
+                {
+                    // TODO: This should actually recreate the entire conditional hierarchy up until the first non-conditional parent
+                    var conditionalContext = unconditionalFieldContext.GetOrCreateConditionalContext(Conditional);
+
+                    return conditionalContext;
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        "Expected to be able to a find a field context, if the selection exists.");
+                }
+            }
+
+            UnconditionalContext.ConditionalParentContexts ??=
+                new Dictionary<ISelectionNode, List<ConditionalContext>>(SyntaxNodeComparer.Instance);
+
+            if (!UnconditionalContext.ConditionalParentContexts.TryGetValue(fieldNode, out var conditionalContexts))
+            {
+                conditionalContexts = [];
+                UnconditionalContext.ConditionalParentContexts[fieldNode] = conditionalContexts;
+            }
+
+            conditionalContexts.Add(this);
+
+            return base.GetOrCreateFieldContext(fieldNode, fieldType);
+        }
+
         public override BaseContext GetOrCreateFragmentContext(
             InlineFragmentNode inlineFragmentNode,
             ITypeDefinition typeCondition)
@@ -123,7 +206,7 @@ public sealed partial class OperationRewriter
                 && UnconditionalContext.FragmentContexts.TryGetValue(inlineFragmentNode, out var unconditionalFragmentContext))
             {
                 // TODO: This should actually recreate the entire conditional hierarchy up until the first non-conditional parent
-                var conditionalContext = unconditionalFragmentContext.GetOrCreateConditionalContext(conditional);
+                var conditionalContext = unconditionalFragmentContext.GetOrCreateConditionalContext(Conditional);
 
                 return conditionalContext;
             }

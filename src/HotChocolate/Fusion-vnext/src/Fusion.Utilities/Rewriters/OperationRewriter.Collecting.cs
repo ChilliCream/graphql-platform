@@ -49,7 +49,7 @@ public sealed partial class OperationRewriter
 
         var field = ((IComplexTypeDefinition)context.Type).Fields[fieldNode.Name.Value];
 
-        var fieldContext = context.AddField(fieldNode, field.Type.AsTypeDefinition());
+        var fieldContext = context.GetOrCreateFieldContext(fieldNode, field.Type.AsTypeDefinition());
 
         if (fieldContext is not null && fieldNode.SelectionSet is not null)
         {

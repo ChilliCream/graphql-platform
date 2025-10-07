@@ -1109,7 +1109,7 @@ public class OperationRewriterTests
                  ... on Product @skip(if: $skip1) {
                    voteCount
                  }
-                 ... on Product  @skip(if: $skip2) {
+                 ... on Product @skip(if: $skip2) {
                    voteCount
                    viewerCanVote
                  }
