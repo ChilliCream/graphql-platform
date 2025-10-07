@@ -48,16 +48,16 @@ public sealed class IsInvalidSyntaxRuleTests
     {
         return new TheoryData<string[]>
         {
-            // In the following example, the @is directive’s "field" argument is a valid selection
-            // map and satisfies the rule.
+            // In the following example, the @is directive’s "field" argument is a valid
+            // FieldSelectionMap and satisfies the rule.
             {
                 [
                     """
                     type Query {
-                        personById(id: ID! @is(field: "id")): Person @lookup
+                        product(id: ID! @is(field: "id")): Product @lookup
                     }
 
-                    type Person {
+                    type Product {
                         id: ID!
                         name: String
                     }
@@ -77,18 +77,18 @@ public sealed class IsInvalidSyntaxRuleTests
                 [
                     """
                     type Query {
-                        personById(id: ID! @is(field: "{ id ")): Person @lookup
+                        product(id: ID! @is(field: "{ id ")): Product @lookup
                     }
 
-                    type Person {
+                    type Product {
                         id: ID!
                         name: String
                     }
                     """
                 ],
                 [
-                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' "
-                    + "contains invalid syntax in the 'field' argument."
+                    "The @is directive on argument 'Query.product(id:)' in schema 'A' contains "
+                    + "invalid syntax in the 'field' argument."
                 ]
             }
         };
