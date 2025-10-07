@@ -1,24 +1,28 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed class ValueCompletion
 {
     private readonly ISchemaDefinition _schema;
+    private readonly IErrorHandler _errorHandler;
     private readonly ResultPoolSession _resultPoolSession;
-    private readonly ErrorHandling _errorHandling;
+    private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly int _maxDepth;
     private readonly ulong _includeFlags;
     private readonly List<IError> _errors;
 
     public ValueCompletion(
         ISchemaDefinition schema,
+        IErrorHandler errorHandler,
         ResultPoolSession resultPoolSession,
-        ErrorHandling errorHandling,
+        ErrorHandlingMode errorHandlingMode,
         int maxDepth,
         ulong includeFlags,
         List<IError> errors)
@@ -28,14 +32,23 @@ internal sealed class ValueCompletion
         ArgumentNullException.ThrowIfNull(errors);
 
         _schema = schema;
+        _errorHandler = errorHandler;
         _resultPoolSession = resultPoolSession;
-        _errorHandling = errorHandling;
+        _errorHandlingMode = errorHandlingMode;
         _maxDepth = maxDepth;
         _includeFlags = includeFlags;
         _errors = errors;
     }
 
-    public void BuildResult(
+    /// <summary>
+    /// Tries to complete the <paramref name="selectionSet"/> from the
+    /// <paramref name="data"/>, checking for errors on the <paramref name="errorTrie"/>.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c>, if the execution can continue.
+    /// <c>false</c>, if the execution needs to be halted.
+    /// </returns>
+    public bool BuildResult(
         SelectionSet selectionSet,
         JsonElement data,
         ErrorTrie? errorTrie,
@@ -49,13 +62,16 @@ internal sealed class ValueCompletion
                     .SetMessage("Unexpected Execution Error")
                     .Build();
 
-            BuildErrorResult(objectResult, responseNames, error, objectResult.Path);
-
-            return;
+            return BuildErrorResult(objectResult, responseNames, error, objectResult.Path);
         }
 
-        foreach (var selection in selectionSet.Selections)
+        foreach (var property in data.EnumerateObject())
         {
+            if (!selectionSet.TryGetSelection(property.Name, out var selection))
+            {
+                continue;
+            }
+
             if (!selection.IsIncluded(_includeFlags))
             {
                 continue;
@@ -63,23 +79,35 @@ internal sealed class ValueCompletion
 
             var fieldResult = objectResult[selection.ResponseName];
 
-            if (data.TryGetProperty(selection.ResponseName, out var element))
-            {
-                ErrorTrie? errorTrieForResponseName = null;
-                errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
+            ErrorTrie? errorTrieForResponseName = null;
+            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
-                if (!TryCompleteValue(selection, selection.Type, element, errorTrieForResponseName, 0, fieldResult))
+            if (!TryCompleteValue(selection, selection.Type, property.Value, errorTrieForResponseName, 0, fieldResult))
+            {
+                switch (_errorHandlingMode)
                 {
-                    if (_errorHandling is ErrorHandling.Propagate)
-                    {
-                        PropagateNullValues(objectResult);
-                    }
+                    case ErrorHandlingMode.Propagate:
+                        var didPropagateToRoot = PropagateNullValues(objectResult);
+                        return !didPropagateToRoot;
+
+                    case ErrorHandlingMode.Halt:
+                        return false;
                 }
             }
         }
+
+        return true;
     }
 
-    public void BuildErrorResult(
+    /// <summary>
+    /// Tries to <c>null</c> and assign the <paramref name="error"/> to the path
+    /// of each <paramref name="responseNames"/>.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c>, if the execution can continue.
+    /// <c>false</c>, if the execution needs to be halted.
+    /// </returns>
+    public bool BuildErrorResult(
         ObjectResult objectResult,
         ReadOnlySpan<string> responseNames,
         IError error,
@@ -98,23 +126,38 @@ internal sealed class ValueCompletion
                 .SetPath(path.Append(responseName))
                 .AddLocation(fieldResult.Selection.SyntaxNodes[0].Node)
                 .Build();
+            errorWithPath = _errorHandler.Handle(errorWithPath);
 
             _errors.Add(errorWithPath);
 
-            if (_errorHandling is ErrorHandling.Propagate && fieldResult.Selection.Type.IsNonNullType())
+            if (_errorHandlingMode is ErrorHandlingMode.Halt)
             {
-                PropagateNullValues(objectResult);
+                return false;
+            }
 
-                return;
+            if (_errorHandlingMode is ErrorHandlingMode.Propagate && fieldResult.Selection.Type.IsNonNullType())
+            {
+                var didPropagateToRoot = PropagateNullValues(objectResult);
+
+                return !didPropagateToRoot;
             }
         }
+
+        return true;
     }
 
-    private static void PropagateNullValues(ResultData result)
+    /// <summary>
+    /// Invalidates the current result and its parents,
+    /// until reaching a parent that can be set to <c>null</c>.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c>, if the null propagated up to the root.
+    /// </returns>
+    private static bool PropagateNullValues(ResultData result)
     {
         if (result.IsInvalidated)
         {
-            return;
+            return result.Parent is null;
         }
 
         result.IsInvalidated = true;
@@ -124,22 +167,22 @@ internal sealed class ValueCompletion
             var index = result.ParentIndex;
             var parent = result.Parent;
 
-            if (parent.IsInvalidated)
+            if (parent.IsInvalidated || parent.TrySetValueNull(index))
             {
-                return;
-            }
-
-            if (parent.TrySetValueNull(index))
-            {
-                return;
+                return false;
             }
 
             parent.IsInvalidated = true;
 
             result = parent;
         }
+
+        return true;
     }
 
+    // TODO: When extracting an error from a path below the current field,
+    //       we should try to use the path of the original error if it's
+    //       part of what was selected.
     private bool TryCompleteValue(
         Selection selection,
         IType type,
@@ -148,20 +191,37 @@ internal sealed class ValueCompletion
         int depth,
         ResultData parent)
     {
-        if (errorTrie?.Error is { } error)
-        {
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(parent.Path)
-                .AddLocation(selection.SyntaxNodes[0].Node)
-                .Build();
-            _errors.Add(errorWithPath);
-        }
-
         if (type.Kind is TypeKind.NonNull)
         {
-            if (data.IsNullOrUndefined() && _errorHandling is ErrorHandling.Propagate)
+            if (data.IsNullOrUndefined())
             {
-                return false;
+                IError error;
+                if (errorTrie?.FindFirstError() is { } errorFromPath)
+                {
+                    error = ErrorBuilder.FromError(errorFromPath)
+                        .SetPath(parent.Path)
+                        .AddLocation(selection.SyntaxNodes[0].Node)
+                        .Build();
+                }
+                else
+                {
+                    error = ErrorBuilder.New()
+                        .SetMessage("Cannot return null for non-nullable field.")
+                        .SetCode(ErrorCodes.Execution.NonNullViolation)
+                        .SetPath(parent.Path)
+                        .AddLocation(selection.SyntaxNodes[0].Node)
+                        .Build();
+                }
+
+                error = _errorHandler.Handle(error);
+                _errors.Add(error);
+
+                if (_errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                {
+                    return false;
+                }
+
+                return true;
             }
 
             type = type.InnerType();
@@ -169,6 +229,25 @@ internal sealed class ValueCompletion
 
         if (data.IsNullOrUndefined())
         {
+            // If the value is null, it might've been nulled due to a
+            // down-stream null propagation.
+            // So we try to get an error that is associated with this field
+            // or with a path below it.
+            if (errorTrie?.FindFirstError() is { } error)
+            {
+                var errorWithPath = ErrorBuilder.FromError(error)
+                    .SetPath(parent.Path)
+                    .AddLocation(selection.SyntaxNodes[0].Node)
+                    .Build();
+                errorWithPath = _errorHandler.Handle(errorWithPath);
+                _errors.Add(errorWithPath);
+
+                if (_errorHandlingMode is ErrorHandlingMode.Halt)
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -218,9 +297,11 @@ internal sealed class ValueCompletion
                 : _resultPoolSession.RentObjectListResult();
         listResult.Initialize(type);
 
-        for (int i = 0, len = data.GetArrayLength(); i < len; ++i)
+        var i = -1;
+        foreach (var item in data.EnumerateArray())
         {
-            var item = data[i];
+            i++;
+
             ErrorTrie? errorTrieForIndex = null;
             errorTrie?.TryGetValue(i, out errorTrieForIndex);
 
@@ -230,12 +311,18 @@ internal sealed class ValueCompletion
                     .SetPath(parent.Path.Append(i))
                     .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
+                errorWithPath = _errorHandler.Handle(errorWithPath);
                 _errors.Add(errorWithPath);
+
+                if (_errorHandlingMode is ErrorHandlingMode.Halt)
+                {
+                    return false;
+                }
             }
 
             if (item.IsNullOrUndefined())
             {
-                if (!isNullable && _errorHandling is ErrorHandling.Propagate)
+                if (!isNullable && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
                 {
                     return false;
                 }
@@ -307,16 +394,32 @@ internal sealed class ValueCompletion
 
         var operation = selection.DeclaringSelectionSet.DeclaringOperation;
         var selectionSet = operation.GetSelectionSet(selection, objectType);
-        var objectResult = _resultPoolSession.RentObjectResult();
 
-        objectResult.Initialize(_resultPoolSession, selectionSet, _includeFlags);
-
-        // we set the value early so that in the error case we can correctly
-        // traverse along the parent path and propagate errors.
-        parent.SetNextValue(objectResult);
-
-        foreach (var field in objectResult.Fields)
+        ObjectResult objectResult;
+        // In the case of shared paths, an object result might have already been initialized
+        // by another operation node, so we reuse it.
+        if (parent is ObjectFieldResult { Value: { } existingObjectResult })
         {
+            objectResult = existingObjectResult;
+        }
+        else
+        {
+            objectResult = _resultPoolSession.RentObjectResult();
+
+            objectResult.Initialize(_resultPoolSession, selectionSet, _includeFlags);
+
+            // we set the value early so that in the error case we can correctly
+            // traverse along the parent path and propagate errors.
+            parent.SetNextValue(objectResult);
+        }
+
+        foreach (var property in data.EnumerateObject())
+        {
+            if (!objectResult.TryGetValue(property.Name, out var field))
+            {
+                continue;
+            }
+
             var fieldSelection = field.Selection;
 
             if (!fieldSelection.IsIncluded(_includeFlags))
@@ -324,15 +427,18 @@ internal sealed class ValueCompletion
                 continue;
             }
 
-            if (data.TryGetProperty(fieldSelection.ResponseName, out var child))
-            {
-                ErrorTrie? errorTrieForResponseName = null;
-                errorTrie?.TryGetValue(fieldSelection.ResponseName, out errorTrieForResponseName);
+            ErrorTrie? errorTrieForResponseName = null;
+            errorTrie?.TryGetValue(fieldSelection.ResponseName, out errorTrieForResponseName);
 
-                if (!TryCompleteValue(fieldSelection, fieldSelection.Type, child, errorTrieForResponseName, depth, field))
-                {
-                    return false;
-                }
+            if (!TryCompleteValue(
+                fieldSelection,
+                fieldSelection.Type,
+                property.Value,
+                errorTrieForResponseName,
+                depth,
+                field))
+            {
+                return false;
             }
         }
 

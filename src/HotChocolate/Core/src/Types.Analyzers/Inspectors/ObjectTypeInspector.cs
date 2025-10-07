@@ -58,7 +58,11 @@ public class ObjectTypeInspector : ISyntaxInspector
 
         foreach (var member in members)
         {
-            if (member.DeclaredAccessibility is Accessibility.Public && !member.IsIgnored())
+            if (member.DeclaredAccessibility is
+                Accessibility.Public or
+                Accessibility.Internal or
+                Accessibility.ProtectedAndInternal
+                && !member.IsIgnored())
             {
                 if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
                 {

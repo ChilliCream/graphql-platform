@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
@@ -10,14 +11,19 @@ namespace HotChocolate.Fusion.Types.Completion;
 
 internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderContext
 {
+#pragma warning disable IDE0052 // WIP
+    private readonly DocumentNode _document;
+#pragma warning restore IDE0052
     private readonly Dictionary<ITypeNode, IType> _compositeTypes = new(SyntaxComparer.BySyntax);
     private readonly Dictionary<string, ITypeDefinition> _typeDefinitionLookup;
     private ImmutableDictionary<string, ITypeDefinitionNode> _typeDefinitionNodeLookup;
     private readonly Dictionary<string, FusionDirectiveDefinition> _directiveDefinitionLookup;
     private ImmutableDictionary<string, DirectiveDefinitionNode> _directiveDefinitionNodeLookup;
     private readonly List<INeedsCompletion> _completions = [];
+    private readonly ImmutableDictionary<string, ImmutableDictionary<SchemaKey, ImmutableHashSet<string>>> _sourceUnions;
 
     public CompositeSchemaBuilderContext(
+        DocumentNode document,
         string name,
         string? description,
         IServiceProvider services,
@@ -33,6 +39,9 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         IFeatureCollection features,
         CompositeTypeInterceptor interceptor)
     {
+        _document = document;
+        _sourceUnions = UnionMemberDirectiveParser.Parse(document.Definitions.OfType<UnionTypeDefinitionNode>());
+
         _typeDefinitionLookup = typeDefinitions.ToDictionary(t => t.Name);
         _directiveDefinitionLookup = directiveDefinitions.ToDictionary(t => t.Name);
         _typeDefinitionNodeLookup = typeDefinitionNodeLookup;
@@ -183,17 +192,24 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
     }
 
     public FusionDirectiveDefinition GetDirectiveType(string name)
-    {
-        if (_directiveDefinitionLookup.TryGetValue(name, out var type))
-        {
-            return type;
-        }
-
-        throw new InvalidOperationException();
-    }
+        => _directiveDefinitionLookup.TryGetValue(name, out var type)
+            ? type
+            : throw new InvalidOperationException();
 
     public string GetSchemaName(SchemaKey schemaKey)
         => SourceSchemaLookup[schemaKey.Value].Name;
+
+    public ImmutableDictionary<SchemaKey, ImmutableHashSet<string>> GetSourceUnionMembers(
+        string objectTypeName)
+    {
+        return _sourceUnions.TryGetValue(objectTypeName, out var sourceUnions)
+            ? sourceUnions
+#if NET10_0_OR_GREATER
+            : [];
+#else
+            : ImmutableDictionary<SchemaKey, ImmutableHashSet<string>>.Empty;
+#endif
+    }
 
     private void AddSpecDirectives()
     {

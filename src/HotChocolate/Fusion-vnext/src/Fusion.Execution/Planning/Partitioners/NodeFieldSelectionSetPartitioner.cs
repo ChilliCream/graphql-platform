@@ -29,7 +29,7 @@ internal sealed class NodeFieldSelectionSetPartitioner(FusionSchemaDefinition sc
         SelectionSet? prunedSelectionSet = null;
         if (selectionSet is not null)
         {
-            indexBuilder.Register(input.SelectionSet.Node, selectionSet);
+            indexBuilder.Register(selectionSet);
 
             prunedSelectionSet = input.SelectionSet with
             {

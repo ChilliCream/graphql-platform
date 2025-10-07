@@ -3,6 +3,8 @@ using System.Security.Cryptography;
 using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -14,7 +16,8 @@ public sealed partial class OperationPlanner
     private OperationPlan BuildExecutionPlan(
         Operation operation,
         OperationDefinitionNode operationDefinition,
-        ImmutableList<PlanStep> planSteps)
+        ImmutableList<PlanStep> planSteps,
+        uint searchSpace)
     {
         if (operation.IsIntrospectionOnly())
         {
@@ -23,7 +26,7 @@ public sealed partial class OperationPlanner
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
 
-            return OperationPlan.Create(operation, nodes, nodes);
+            return OperationPlan.Create(operation, nodes, nodes, searchSpace);
         }
 
         var completedSteps = new HashSet<int>();
@@ -61,7 +64,7 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        return OperationPlan.Create(operation, rootNodes, allNodes);
+        return OperationPlan.Create(operation, rootNodes, allNodes, searchSpace);
     }
 
     private static ImmutableList<PlanStep> PrepareSteps(
@@ -136,8 +139,7 @@ public sealed partial class OperationPlanner
 
                 fallbackDependencies.Add(nodePlanStep.Id);
 
-                branchesLookup.Add(nodePlanStep.Id, nodePlanStep.Branches
-                    .ToDictionary(x => x.Key, x => x.Value.Id));
+                branchesLookup.Add(nodePlanStep.Id, nodePlanStep.Branches.ToDictionary(x => x.Key, x => x.Value.Id));
                 fallbackLookup.Add(nodePlanStep.Id, nodePlanStep.FallbackQuery.Id);
             }
         }
@@ -232,7 +234,7 @@ public sealed partial class OperationPlanner
 
                     var node = new OperationExecutionNode(
                         operationStep.Id,
-                        operationStep.Definition.ToSourceText(),
+                        RemoveEmptyTypeNames(operationStep.Definition).ToSourceText(),
                         operationStep.SchemaName,
                         operationStep.Target,
                         operationStep.Source,
@@ -279,8 +281,7 @@ public sealed partial class OperationPlanner
     {
         foreach (var (nodeId, stepDependencies) in dependencyLookup)
         {
-            if (!completedNodes.TryGetValue(nodeId, out var entry)
-                || entry is not OperationExecutionNode node)
+            if (!completedNodes.TryGetValue(nodeId, out var entry) || entry is not OperationExecutionNode node)
             {
                 continue;
             }
@@ -379,7 +380,7 @@ public sealed partial class OperationPlanner
             return current;
         }
 
-        for (var i = path.Segments.Length - 1; i >= 0; i--)
+        for (var i = 0; i < path.Segments.Length; i++)
         {
             var segment = path.Segments[i];
 
@@ -417,6 +418,69 @@ public sealed partial class OperationPlanner
         }
 
         return current;
+    }
+
+    private static OperationDefinitionNode RemoveEmptyTypeNames(OperationDefinitionNode operationDefinition)
+    {
+        return (OperationDefinitionNode)SyntaxRewriter.Create<List<bool>>(
+            rewrite: (node, context) =>
+            {
+                if (node is SelectionSetNode selectionSet && context.Peek())
+                {
+                    var items = selectionSet.Selections.ToList();
+                    for (var i = items.Count - 1; i >= 0; i--)
+                    {
+                        if (items[i] is FieldNode
+                            {
+                                Alias: null,
+                                Name.Value: IntrospectionFieldNames.TypeName,
+                                Directives: [{ Name.Value: "fusion__empty" }]
+                            } field)
+                        {
+                            if (items.Count > 1)
+                            {
+                                items.RemoveAt(i);
+                            }
+                            else
+                            {
+                                items[i] = field.WithDirectives([]);
+                            }
+                        }
+                    }
+
+                    return new SelectionSetNode(items);
+                }
+
+                return node;
+            },
+            enter: (node, context) =>
+            {
+                switch (node)
+                {
+                    case SelectionSetNode:
+                        context.Push(false);
+                        break;
+
+                    case FieldNode
+                    {
+                        Alias: null,
+                        Name.Value: IntrospectionFieldNames.TypeName,
+                        Directives: [{ Name.Value: "fusion__empty" }]
+                    }:
+                        context[^1] = true;
+                        break;
+                }
+
+                return context;
+            },
+            leave: (node, context) =>
+            {
+                if (node is SelectionSetNode)
+                {
+                    context.Pop();
+                }
+            })
+            .Rewrite(operationDefinition, [])!;
     }
 }
 

@@ -285,6 +285,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Is the lookup meant as an entry point or just to provide more data..
+        /// </summary>
+        internal static string FusionLookupMutableDirectiveDefinition_Argument_Internal_Description {
+            get {
+                return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Internal_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A selection set on the annotated entity type that describes the stable key for the lookup..
         /// </summary>
         internal static string FusionLookupMutableDirectiveDefinition_Argument_Key_Description {
@@ -728,9 +737,9 @@ namespace HotChocolate.Fusion.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
         /// </summary>
-        internal static string LogEntryHelper_IsInvalidField {
+        internal static string LogEntryHelper_IsInvalidFields {
             get {
-                return ResourceManager.GetString("LogEntryHelper_IsInvalidField", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_IsInvalidFields", resourceCulture);
             }
         }
         
@@ -789,7 +798,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection..
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
         /// </summary>
         internal static string LogEntryHelper_KeyInvalidFields {
             get {
@@ -1167,7 +1176,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type &apos;{0}&apos; implements the &apos;Node&apos; interface, but no source schema provides a &apos;Query.node&lt;Node&gt;&apos; lookup field for this type..
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; implements the &apos;Node&apos; interface, but no source schema provides a non-internal &apos;Query.node&lt;Node&gt;&apos; lookup field for this type..
         /// </summary>
         internal static string SatisfiabilityValidator_NodeTypeHasNoNodeLookup {
             get {
@@ -1217,24 +1226,6 @@ namespace HotChocolate.Fusion.Properties {
         internal static string SatisfiabilityValidator_UnableToTransitionBetweenSchemas {
             get {
                 return ResourceManager.GetString("SatisfiabilityValidator_UnableToTransitionBetweenSchemas", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The name of the source schema..
-        /// </summary>
-        internal static string SchemaNameMutableDirectiveDefinition_Argument_Value_Description {
-            get {
-                return ResourceManager.GetString("SchemaNameMutableDirectiveDefinition_Argument_Value_Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The @schemaName directive is used to specify the name of a source schema..
-        /// </summary>
-        internal static string SchemaNameMutableDirectiveDefinition_Description {
-            get {
-                return ResourceManager.GetString("SchemaNameMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
         

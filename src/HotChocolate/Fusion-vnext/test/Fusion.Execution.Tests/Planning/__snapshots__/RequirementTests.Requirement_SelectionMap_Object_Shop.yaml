@@ -1,5 +1,5 @@
 operation:
-  - document: >-
+  - document: |
       {
         users {
           nodes {
@@ -8,14 +8,12 @@ operation:
                 product {
                   deliveryEstimate(zip: "123")
                   id @fusion__requirement
-                  id @fusion__requirement
                   weight @fusion__requirement
                   dimension @fusion__requirement {
                     length
                     width
                     height
                   }
-                  id @fusion__requirement
                 }
               }
             }
@@ -24,11 +22,12 @@ operation:
         }
       }
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: >-
+    operation: |
       query Op_123456789101112_1 {
         users {
           nodes {
@@ -39,7 +38,7 @@ nodes:
   - id: 2
     type: Operation
     schema: f
-    operation: >-
+    operation: |
       query Op_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
@@ -57,13 +56,14 @@ nodes:
     target: $.users.nodes
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1
   - id: 4
     type: Operation
     schema: g
-    operation: >-
+    operation: |
       query Op_123456789101112_4(
         $__fusion_3_dimension: ProductDimensionInput!
         $__fusion_4_id: ID!
@@ -76,40 +76,40 @@ nodes:
     target: $.users.nodes.reviews.nodes.product
     requirements:
       - name: __fusion_3_dimension
-        selectionMap: {
-  weight
-  length: dimension.length
-  width: dimension.width
-  height: dimension.height
-}
+        selectionMap: >-
+          {
+            weight
+            length: dimension.length
+            width: dimension.width
+            height: dimension.height
+          }
       - name: __fusion_4_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 2
       - id: 5
   - id: 5
     type: Operation
     schema: e
-    operation: >-
+    operation: |
       query Op_123456789101112_5(
         $__fusion_5_id: ID!
       ) {
-        node(id: $__fusion_5_id) {
-          __typename
-          ... on Product {
-            weight
-            dimension {
-              length
-              width
-              height
-            }
+        productById(id: $__fusion_5_id) {
+          weight
+          dimension {
+            length
+            width
+            height
           }
         }
       }
-    source: $.node<Product>
+    source: $.productById
     target: $.users.nodes.reviews.nodes.product
     requirements:
       - name: __fusion_5_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 2

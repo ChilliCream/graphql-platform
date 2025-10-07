@@ -93,13 +93,13 @@ public class HttpConnection : IHttpConnection
 
         if (strategy == RequestStrategy.PersistedOperation)
         {
-            operation = new HotChocolate.Transport.OperationRequest(null, id, name, variables, extensions);
+            operation = new HotChocolate.Transport.OperationRequest(null, id, name, onError: null, variables, extensions);
         }
         else
         {
             var body = Encoding.UTF8.GetString(document.Body);
 
-            operation = new HotChocolate.Transport.OperationRequest(body, null, name, variables, extensions);
+            operation = new HotChocolate.Transport.OperationRequest(body, null, name, onError: null, variables, extensions);
         }
 
         return new GraphQLHttpRequest(operation) { EnableFileUploads = hasFiles };

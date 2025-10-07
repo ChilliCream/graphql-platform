@@ -1,0 +1,105 @@
+title: Execution_Is_Halted_While_Subscription_Is_Still_Ongoing
+request:
+  document: |
+    subscription {
+      onReviewCreated {
+        id
+      }
+    }
+responseStream:
+  - body: |
+      {
+        "data": {
+          "onReviewCreated": {
+            "id": 1
+          }
+        }
+      }
+  - body: |
+      {
+        "errors": [
+          {
+            "message": "Could not produce review",
+            "path": [
+              "onReviewCreated"
+            ]
+          }
+        ]
+      }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+        subscription: Subscription
+      }
+      
+      type Query {
+        reviews: [Review!]
+      }
+      
+      type Review {
+        id: Int!
+      }
+      
+      type Subscription {
+        onReviewCreated: Review
+      }
+    interactions:
+      - request:
+          document: |
+            subscription Op_1c7b790e_1 {
+              onReviewCreated {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "onReviewCreated": {
+                    "id": 1
+                  }
+                }
+              }
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Could not produce review",
+                    "locations": [
+                      {
+                        "line": 2,
+                        "column": 3
+                      }
+                    ],
+                    "path": [
+                      "onReviewCreated"
+                    ]
+                  }
+                ],
+                "data": {
+                  "onReviewCreated": null
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        subscription {
+          onReviewCreated {
+            id
+          }
+        }
+      hash: 1c7b790e223d28e348d3e04a33527c96
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        subscription Op_1c7b790e_1 {
+          onReviewCreated {
+            id
+          }
+        }

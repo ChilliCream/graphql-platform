@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
+    <PublishAot>false</PublishAot>
     <UseAppHost>false</UseAppHost>
     <ToolCommandName>nitro</ToolCommandName>
     <RootNamespace>ChilliCream.Nitro.CommandLine</RootNamespace>
@@ -12,8 +13,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.CommandLine\HotChocolate.Fusion.CommandLine.csproj" />
     <ProjectReference Include="..\CommandLine.Cloud\Nitro.CommandLine.Cloud.csproj" />
+    <ProjectReference Include="..\CommandLine.Fusion\Nitro.CommandLine.Fusion.csproj" />
   </ItemGroup>
 
   <ItemGroup>

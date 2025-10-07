@@ -7,6 +7,7 @@ internal static class WellKnownArgumentNames
     public const string From = "from";
     public const string Id = "id";
     public const string Interface = "interface";
+    public const string Internal = "internal";
     public const string Key = "key";
     public const string Map = "map";
     public const string Member = "member";

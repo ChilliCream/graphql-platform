@@ -29,12 +29,32 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
         => EmptyScope;
 
     /// <inheritdoc />
+    public virtual void RequestError(RequestContext context, Exception error)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void RequestError(RequestContext context, IError error)
+    {
+    }
+
+    /// <inheritdoc />
     public virtual IDisposable ParseDocument(RequestContext context)
         => EmptyScope;
 
     /// <inheritdoc />
     public virtual IDisposable ValidateDocument(RequestContext context)
         => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual void ValidationErrors(RequestContext context, IReadOnlyList<IError> errors)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void SubscriptionEventError(RequestContext context, ulong subscriptionId, Exception exception)
+    {
+    }
 
     /// <inheritdoc />
     public virtual IDisposable AnalyzeOperationCost(RequestContext context)
@@ -69,8 +89,23 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
         => EmptyScope;
 
     /// <inheritdoc />
+    public virtual void ResolverError(IMiddlewareContext context, IError error)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void ResolverError(RequestContext context, ISelection selection, IError error)
+    {
+    }
+
+    /// <inheritdoc />
     public virtual IDisposable RunTask(IExecutionTask task)
         => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual void TaskError(IExecutionTask task, IError error)
+    {
+    }
 
     /// <inheritdoc />
     public virtual void StartProcessing(RequestContext context)
@@ -95,15 +130,6 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
         => EmptyScope;
 
     /// <inheritdoc />
-    public virtual void ExecutionError(
-        RequestContext context,
-        ErrorKind kind,
-        IReadOnlyList<IError> errors,
-        object? state)
-    {
-    }
-
-    /// <inheritdoc />
     public virtual void AddedDocumentToCache(RequestContext context)
     {
     }
@@ -122,6 +148,11 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
     public virtual void DocumentNotFoundInStorage(
         RequestContext context,
         OperationDocumentId documentId)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void UntrustedDocumentRejected(RequestContext context)
     {
     }
 

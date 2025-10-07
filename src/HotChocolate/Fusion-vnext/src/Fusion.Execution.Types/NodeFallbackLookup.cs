@@ -37,7 +37,7 @@ internal sealed class NodeFallbackLookup : INeedsCompletion
                 .GetPossibleLookups(possibleType)
                 .FirstOrDefault(
                     l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }]
-                        && l.FieldName == "node");
+                        && l is { FieldName: "node", IsInternal: false });
 
             if (nodeLookup is null)
             {

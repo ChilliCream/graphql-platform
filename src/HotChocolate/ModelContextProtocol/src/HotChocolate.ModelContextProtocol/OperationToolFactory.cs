@@ -3,6 +3,7 @@ using CaseConverter;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.ModelContextProtocol.Extensions;
+using HotChocolate.ModelContextProtocol.Storage;
 using HotChocolate.Types;
 using Json.Schema;
 using ModelContextProtocol.Protocol;
@@ -14,31 +15,30 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
 {
     private static readonly Walker s_walker = new();
 
-    public OperationTool CreateTool(string name, DocumentNode documentNode)
+    public OperationTool CreateTool(OperationToolDefinition toolDefinition)
     {
-        var operationNode = documentNode.Definitions.OfType<OperationDefinitionNode>().Single();
-        var result = s_walker.Walk(operationNode, documentNode, schema);
-        var mcpToolDirective = operationNode.GetMcpToolDirective();
+        var operationNode = toolDefinition.Document.Definitions.OfType<OperationDefinitionNode>().Single();
+        var result = s_walker.Walk(operationNode, toolDefinition.Document, schema);
         var inputSchema = CreateInputSchema(operationNode);
         var outputSchema = CreateOutputSchema(CreateDataSchema(result.Properties, result.RequiredProperties));
 
         var tool = new Tool
         {
-            Name = name,
-            Title = mcpToolDirective?.Title ?? operationNode.Name!.Value.InsertSpaceBeforeUpperCase(),
+            Name = toolDefinition.Name,
+            Title = toolDefinition.Title ?? operationNode.Name!.Value.InsertSpaceBeforeUpperCase(),
             Description = operationNode.Description?.Value,
             InputSchema = inputSchema.ToJsonElement(),
             OutputSchema = outputSchema.ToJsonElement(),
             Annotations = new ToolAnnotations
             {
-                DestructiveHint = mcpToolDirective?.DestructiveHint ?? result.DestructiveHint,
-                IdempotentHint = mcpToolDirective?.IdempotentHint ?? result.IdempotentHint,
-                OpenWorldHint = mcpToolDirective?.OpenWorldHint ?? result.OpenWorldHint,
+                DestructiveHint = toolDefinition.DestructiveHint ?? result.DestructiveHint,
+                IdempotentHint = toolDefinition.IdempotentHint ?? result.IdempotentHint,
+                OpenWorldHint = toolDefinition.OpenWorldHint ?? result.OpenWorldHint,
                 ReadOnlyHint = operationNode.Operation is not OperationType.Mutation
             }
         };
 
-        return new OperationTool(documentNode, tool);
+        return new OperationTool(toolDefinition.Document, tool);
     }
 
     private JsonSchema CreateInputSchema(OperationDefinitionNode operation)

@@ -6,11 +6,16 @@ namespace HotChocolate.Fusion.Planning;
 public sealed class SelectionSetIndex : ISelectionSetIndex
 {
     private readonly ImmutableDictionary<SelectionSetNode, uint> _selectionSets;
+    private readonly ImmutableDictionary<uint, uint> _clonedToOriginalMap;
     private readonly uint _nextId;
 
-    internal SelectionSetIndex(ImmutableDictionary<SelectionSetNode, uint> selectionSets, uint nextId)
+    internal SelectionSetIndex(
+        ImmutableDictionary<SelectionSetNode, uint> selectionSets,
+        ImmutableDictionary<uint, uint> clonedToOriginalMap,
+        uint nextId)
     {
         _selectionSets = selectionSets;
+        _clonedToOriginalMap = clonedToOriginalMap;
         _nextId = nextId;
     }
 
@@ -20,9 +25,12 @@ public sealed class SelectionSetIndex : ISelectionSetIndex
     public bool TryGetId(SelectionSetNode selectionSet, out uint id)
         => _selectionSets.TryGetValue(selectionSet, out id);
 
+    public bool TryGetOriginalIdFromCloned(uint clonedId, out uint originalId)
+        => _clonedToOriginalMap.TryGetValue(clonedId, out originalId);
+
     public bool IsRegistered(SelectionSetNode selectionSet)
         => _selectionSets.ContainsKey(selectionSet);
 
     public SelectionSetIndexBuilder ToBuilder()
-        => new(_selectionSets, _nextId);
+        => new(_selectionSets, _clonedToOriginalMap, _nextId);
 }

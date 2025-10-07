@@ -489,7 +489,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object> { { "foo", new List<object> { "abc" } } })
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", new List<object> { "abc" } } })
                 .Build());
 
         // assert
@@ -517,7 +517,7 @@ public class AnyTypeTests
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(
-                    new Dictionary<string, object>
+                    new Dictionary<string, object?>
                     {
                         {
                             "foo", new List<object>
@@ -555,7 +555,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object> { { "foo", "bar" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", "bar" } })
                 .Build());
 
         // assert
@@ -582,7 +582,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object> { { "foo", 123 } })
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", 123 } })
                 .Build());
 
         // assert
@@ -609,7 +609,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object> { { "foo", 1.2 } })
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", 1.2 } })
                 .Build());
 
         // assert
@@ -636,7 +636,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object> { { "foo", new { a = "b" } } })
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", new { a = "b" } } })
                 .Build());
 
         // assert
@@ -664,7 +664,7 @@ public class AnyTypeTests
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(
-                    new Dictionary<string, object>
+                    new Dictionary<string, object?>
                     {
                         { "foo", new Dictionary<string, object> { { "a", "b" } } }
                     })
@@ -695,7 +695,7 @@ public class AnyTypeTests
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(
-                    new Dictionary<string, object>
+                    new Dictionary<string, object?>
                     {
                         { "foo", new Dictionary<string, object> { { "a", "b" } } }
                     })
@@ -725,7 +725,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object> { { "foo", false } })
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", false } })
                 .Build());
 
         // assert
@@ -752,7 +752,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object> { { "foo", null } })
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", null } })
                 .Build());
 
         // assert
@@ -1387,12 +1387,12 @@ public class AnyTypeTests
 
     public class FooCyclic
     {
-        public BarCyclic BarCyclic { get; set; }
+        public BarCyclic? BarCyclic { get; set; }
     }
 
     public class BarCyclic
     {
-        public FooCyclic FooCyclic { get; set; }
+        public FooCyclic? FooCyclic { get; set; }
     }
 
     public record FooRecord

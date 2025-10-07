@@ -14,7 +14,7 @@ internal static class CompositionHelper
     public static async Task<bool> TryComposeAsync(
         string fusionArchivePath,
         ImmutableArray<SourceSchemaInfo> sourceSchemas,
-        string environmentName,
+        GraphQLCompositionSettings settings,
         ILogger<SchemaComposition> logger,
         CancellationToken cancellationToken)
     {
@@ -66,8 +66,11 @@ internal static class CompositionHelper
 
         var compositionLog = new CompositionLog();
         var schemaComposer = new SchemaComposer(
-            sourceSchemaMap.Values.OrderBy(t => t.Name).Select(t => t.Schema),
-            new SchemaComposerOptions { EnableGlobalObjectIdentification = false },
+            sourceSchemaMap.Values.Select(t => t.Schema),
+            new SchemaComposerOptions
+            {
+                EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification
+            },
             compositionLog);
         var result = schemaComposer.Compose();
 
@@ -77,7 +80,7 @@ internal static class CompositionHelper
         {
             if (entry.Severity is LogSeverity.Error)
             {
-                output.AppendLine($"‼️ {entry.Message}");
+                output.AppendLine($"‼️ {FormatMultilineMessage(entry.Message)}");
             }
             else
             {
@@ -89,7 +92,10 @@ internal static class CompositionHelper
         {
             using var buffer = new PooledArrayWriter(4096);
             var settingsComposer = new SettingsComposer();
-            settingsComposer.Compose(buffer, sourceSchemaMap.Values.Select(t => t.SchemaSettings).ToArray(), environmentName);
+            settingsComposer.Compose(
+                buffer,
+                sourceSchemaMap.Values.Select(t => t.SchemaSettings).ToArray(),
+                settings.EnvironmentName ?? "Aspire");
 
             var metadata = new ArchiveMetadata
             {
@@ -133,5 +139,21 @@ internal static class CompositionHelper
         await using var stream = await configuration.OpenReadSchemaAsync(cancellationToken);
         using var reader = new StreamReader(stream, Encoding.UTF8);
         return await reader.ReadToEndAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Since we're prefixing the message with an emoji and space before printing,
+    /// we need to also indent each line of a multiline message by three spaces to fix the alignment.
+    /// </summary>
+    private static string FormatMultilineMessage(string message)
+    {
+        var lines = message.Split(Environment.NewLine);
+
+        if (lines.Length <= 1)
+        {
+            return message;
+        }
+
+        return string.Join(Environment.NewLine + "   ", lines);
     }
 }

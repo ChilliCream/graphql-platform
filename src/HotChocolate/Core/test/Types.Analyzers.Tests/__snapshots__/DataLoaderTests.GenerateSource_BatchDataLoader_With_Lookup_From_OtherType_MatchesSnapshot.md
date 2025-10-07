@@ -34,6 +34,10 @@ namespace TestNamespace
         {
             _services = services ??
                 throw new global::System.ArgumentNullException(nameof(services));
+
+            global::GreenDonut.PromiseCacheObserver
+                .Create<int, global::TestNamespace.Entity2, global::TestNamespace.Entity1>(global::TestNamespace.TestClass.CreateLookupKey, this)
+                .Accept(this);
         }
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(

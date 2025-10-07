@@ -446,7 +446,13 @@ public class ActivityEnricher
         }
     }
 
-    public virtual void EnrichSyntaxError(
+    public virtual void EnrichRequestError(
+        RequestContext context,
+        Activity activity,
+        Exception error)
+        => EnrichError(ErrorBuilder.FromException(error).Build(), activity);
+
+    public virtual void EnrichRequestError(
         RequestContext context,
         Activity activity,
         IError error)
@@ -562,7 +568,12 @@ public class ActivityEnricher
 
     public virtual void EnrichResolverError(
         RequestContext context,
-        IMiddlewareContext? middlewareContext,
+        IError error,
+        Activity activity)
+        => EnrichError(error, activity);
+
+    public virtual void EnrichResolverError(
+        IMiddlewareContext middlewareContext,
         IError error,
         Activity activity)
         => EnrichError(error, activity);

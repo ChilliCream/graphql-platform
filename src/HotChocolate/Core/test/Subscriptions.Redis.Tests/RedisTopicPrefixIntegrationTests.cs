@@ -55,13 +55,44 @@ public class RedisTopicPrefixIntegrationTests(RedisResource redisResource, ITest
             cancellationToken: cts.Token);
 
         var activeChannels = await GetActiveChannelsAsync();
+        Assert.NotEmpty(activeChannels);
+    }
 
-        Assert.Contains(activeChannels, channel => channel.ToString()!.StartsWith(TopicPrefix));
+    [Fact]
+    public async Task Unsubscribe_And_Reconnect_Topic()
+    {
+        using var cts = new CancellationTokenSource(Timeout);
+        await using var services = CreateServer<Subscription>();
+
+        var result = await services.ExecuteRequestAsync(
+            "subscription { onMessage }",
+            cancellationToken: cts.Token);
+
+        var activeChannelsAfterSubscribe = await GetActiveChannelsAsync();
+        Assert.NotEmpty(activeChannelsAfterSubscribe);
+
+        await result.DisposeAsync();
+
+        var activeChannelsAfterUnsubscribe = RedisIntegrationTests.WaitForChannelRemoval(
+            cts,
+            activeChannelsAfterSubscribe.Length,
+            GetActiveChannelsAsync);
+        Assert.True(activeChannelsAfterSubscribe.Length > activeChannelsAfterUnsubscribe);
+
+        // reconnect
+        result = await services.ExecuteRequestAsync(
+            "subscription { onMessage }",
+            cancellationToken: cts.Token);
+        activeChannelsAfterSubscribe = await GetActiveChannelsAsync();
+        Assert.True(activeChannelsAfterSubscribe.Length > activeChannelsAfterUnsubscribe);
+
+        await result.DisposeAsync();
     }
 
     private async Task<RedisResult[]> GetActiveChannelsAsync()
     {
-        return (RedisResult[])(await redisResource.GetConnection().GetDatabase().ExecuteAsync("PUBSUB", "CHANNELS"))!;
+        var channels = (RedisResult[])(await redisResource.GetConnection().GetDatabase().ExecuteAsync("PUBSUB", "CHANNELS"))!;
+        return channels.Where(x => x.ToString()!.StartsWith(TopicPrefix)).ToArray();
     }
 
     protected override void ConfigurePubSub(IRequestExecutorBuilder graphqlBuilder)

@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -41,7 +41,7 @@ internal sealed class OperationExecutionMiddleware
                         .SetMessage("Variable batching is not supported for subscriptions.")
                         .Build();
 
-                    _diagnosticEvents.ExecutionError(context, ErrorKind.RequestError, [error]);
+                    _diagnosticEvents.RequestError(context, error);
 
                     context.Result = OperationResultBuilder.CreateError(error);
                     return;

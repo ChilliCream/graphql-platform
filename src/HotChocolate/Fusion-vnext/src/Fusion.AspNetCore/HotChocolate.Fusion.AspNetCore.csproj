@@ -11,6 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Update="Properties\FusionUtilitiesResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>FusionUtilitiesResources.Designer.cs</LastGenOutput>

@@ -17,7 +17,7 @@ public class UploadScalarInMemoryTest : ServerTestBase
     {
         // arrange
         var client = CreateClient();
-        using var data = CreateStream("a");
+        await using var data = CreateStream("a");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -40,8 +40,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
     {
         // arrange
         var client = CreateClient();
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -64,8 +64,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
     {
         // arrange
         var client = CreateClient();
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -88,7 +88,7 @@ public class UploadScalarInMemoryTest : ServerTestBase
     {
         // arrange
         var client = CreateClient();
-        using var data = CreateStream("a");
+        await using var data = CreateStream("a");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
@@ -117,8 +117,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
     {
         // arrange
         var client = CreateClient();
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
         // act
         var result = await client.TestUpload.ExecuteAsync(
             "foo",
@@ -156,8 +156,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
     {
         // arrange
         var client = CreateClient();
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
+        await using var dataA = CreateStream("a");
+        await using var dataB = CreateStream("b");
 
         // act
         var result = await client.TestUpload.ExecuteAsync(

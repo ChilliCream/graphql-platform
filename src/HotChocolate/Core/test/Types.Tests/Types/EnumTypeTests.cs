@@ -280,7 +280,7 @@ public class EnumTypeTests : TypeTestBase
         void Action() => SchemaBuilder.New()
             .AddQueryType<Bar>()
             .AddType(new EnumType(d => d.Name("Foo")
-                .Value<string>(null)))
+                .Value<string>(null!)))
             .Create();
 
         // assert
@@ -810,7 +810,7 @@ public class EnumTypeTests : TypeTestBase
 
     public class ValueComparer : IEqualityComparer<object>
     {
-        bool IEqualityComparer<object>.Equals(object x, object y)
+        bool IEqualityComparer<object>.Equals(object? x, object? y)
         {
             return true;
         }

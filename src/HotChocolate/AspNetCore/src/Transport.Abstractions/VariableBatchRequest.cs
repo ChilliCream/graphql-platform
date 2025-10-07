@@ -21,6 +21,9 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// <param name="operationName">
     /// The name of the operation to execute.
     /// </param>
+    /// <param name="onError">
+    /// The requested error handling mode.
+    /// </param>
     /// <param name="variables">
     /// A list of dictionaries representing the sets of variable values to use when executing the operation.
     /// </param>
@@ -34,12 +37,14 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
         string? query,
         string? id,
         string? operationName,
+        ErrorHandlingMode? onError,
         IReadOnlyList<ObjectValueNode>? variables,
         ObjectValueNode? extensions)
     {
         Query = query;
         Id = id;
         OperationName = operationName;
+        OnError = onError;
         VariablesNode = variables;
         ExtensionsNode = extensions;
     }
@@ -56,6 +61,9 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// <param name="operationName">
     /// The name of the operation to execute.
     /// </param>
+    /// <param name="onError">
+    /// The requested error handling mode.
+    /// </param>
     /// <param name="variables">
     /// A list of dictionaries representing the sets of variable values to use when executing the operation.
     /// </param>
@@ -69,12 +77,14 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
         string? query = null,
         string? id = null,
         string? operationName = null,
+        ErrorHandlingMode? onError = null,
         IReadOnlyList<IReadOnlyDictionary<string, object?>>? variables = null,
         IReadOnlyDictionary<string, object?>? extensions = null)
     {
         Query = query;
         Id = id;
         OperationName = operationName;
+        OnError = onError;
         Variables = variables;
         Extensions = extensions;
     }
@@ -98,6 +108,11 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// Gets the name of the operation to execute.
     /// </summary>
     public string? OperationName { get; }
+
+    /// <summary>
+    /// Gets the requested error handling mode.
+    /// </summary>
+    public ErrorHandlingMode? OnError { get; }
 
     /// <summary>
     /// Gets a list of dictionaries representing the sets of variable values to use when executing the operation.
@@ -131,7 +146,7 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     {
         ArgumentNullException.ThrowIfNull(writer);
 
-        Utf8JsonWriterHelper.WriteOperationRequest(writer, this);
+        Utf8JsonWriterHelper.WriteVariableBatchRequest(writer, this);
     }
 
     /// <summary>

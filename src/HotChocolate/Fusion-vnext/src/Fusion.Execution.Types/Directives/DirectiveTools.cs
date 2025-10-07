@@ -25,6 +25,11 @@ internal static class DirectiveTools
                 continue;
             }
 
+            if (DeprecatedDirectiveParser.CanParse(directiveNode))
+            {
+                continue;
+            }
+
             // TODO : Remove once we have a better way to handle built-in directives.
             if (FusionBuiltIns.IsBuiltInDirective(directiveNode.Name.Value))
             {

@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 
-namespace HotChocolate.Fusion.Types;
+namespace HotChocolate.Fusion.Types.Metadata;
 
 public sealed class SourceUnionType(
     string name,

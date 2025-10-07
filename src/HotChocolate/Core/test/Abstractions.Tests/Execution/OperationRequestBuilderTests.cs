@@ -305,4 +305,35 @@ public class OperationRequestBuilderTests
         // assert
         request.MatchSnapshot();
     }
+
+    [Fact]
+    public void BuildRequest_SetErrorHandlingMode()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .SetErrorHandlingMode(ErrorHandlingMode.Halt)
+                .Build();
+
+        // assert
+        request.MatchSnapshot();
+    }
+
+    [Fact]
+    public void BuildRequest_SetErrorHandlingMode_VariableBatchRequest()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .SetErrorHandlingMode(ErrorHandlingMode.Halt)
+                .SetVariableValuesSet([new Dictionary<string, object?> { ["one"] = "foo" }])
+                .Build();
+
+        // assert
+        request.MatchSnapshot();
+    }
 }

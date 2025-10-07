@@ -1,101 +1,97 @@
 using HotChocolate.Caching.Memory;
+using HotChocolate.Execution.Relay;
+using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 
 namespace HotChocolate.Fusion.Execution;
 
 public sealed class FusionRequestOptions : ICloneable
 {
     private static readonly TimeSpan s_minExecutionTimeout = TimeSpan.FromMilliseconds(100);
-    private TimeSpan _executionTimeout = TimeSpan.FromSeconds(30);
-    private int _operationExecutionPlanCacheSize = 256;
-    private CacheDiagnostics? _operationExecutionPlanCacheDiagnostics;
-    private int _operationDocumentCacheSize = 256;
-    private bool _collectOperationPlanTelemetry;
     private bool _isReadOnly;
 
     /// <summary>
     /// Gets or sets the execution timeout.
-    /// By default, the execution timeout is set to 30 seconds;
+    /// <c>30s</c> by default. <c>100ms</c> is the minimum.
     /// </summary>
     public TimeSpan ExecutionTimeout
     {
-        get => _executionTimeout;
+        get;
         set
         {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
+            ExpectMutableOptions();
 
-            _executionTimeout = value < s_minExecutionTimeout
+            field = value < s_minExecutionTimeout
                 ? s_minExecutionTimeout
                 : value;
         }
-    }
+    } = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// Gets or sets the size of the operation execution plan cache.
-    /// By default, the cache will store up to 256 operation execution plans.
+    /// Gets or sets whether telemetry data like status and duration
+    /// of operation plan nodes should be collected.
+    /// <c>false</c> by default.
     /// </summary>
-    public int OperationExecutionPlanCacheSize
-    {
-        get => _operationExecutionPlanCacheSize;
-        set
-        {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
-
-            _operationExecutionPlanCacheSize = value;
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the diagnostics for the operation execution plan cache.
-    /// </summary>
-    public CacheDiagnostics? OperationExecutionPlanCacheDiagnostics
-    {
-        get => _operationExecutionPlanCacheDiagnostics;
-        set
-        {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
-
-            _operationExecutionPlanCacheDiagnostics = value;
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the size of the operation document cache.
-    /// By default, the cache will store up to 256 operation documents.
-    /// </summary>
-    public int OperationDocumentCacheSize
-    {
-        get => _operationDocumentCacheSize;
-        set
-        {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
-
-            _operationDocumentCacheSize = value;
-        }
-    }
-
     public bool CollectOperationPlanTelemetry
     {
-        get => _collectOperationPlanTelemetry;
+        get;
         set
         {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
+            ExpectMutableOptions();
 
-            _collectOperationPlanTelemetry = value;
+            field = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets whether the <see cref="FusionOptions.DefaultErrorHandlingMode"/> can be overriden
+    /// on a per-request basis.
+    /// <c>false</c> by default.
+    /// </summary>
+    public bool AllowErrorHandlingModeOverride
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the persisted operation options.
+    /// </summary>
+    public PersistedOperationOptions PersistedOperations
+    {
+        get;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = new();
+
+    /// <summary>
+    /// Gets or sets whether exception details should be included for GraphQL
+    /// errors in the GraphQL response.
+    /// <c>false</c> by default.
+    /// </summary>
+    /// <remarks>
+    /// This should only be enabled for development purposes
+    /// and not in production environments.
+    /// </remarks>
+    public bool IncludeExceptionDetails
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
         }
     }
 
@@ -107,17 +103,26 @@ public sealed class FusionRequestOptions : ICloneable
     /// </returns>
     public FusionRequestOptions Clone()
     {
-        var clone = new FusionRequestOptions();
-        clone._executionTimeout = _executionTimeout;
-        clone._operationExecutionPlanCacheSize = _operationExecutionPlanCacheSize;
-        clone._operationExecutionPlanCacheDiagnostics = _operationExecutionPlanCacheDiagnostics;
-        clone._operationDocumentCacheSize = _operationDocumentCacheSize;
-        clone._collectOperationPlanTelemetry = _collectOperationPlanTelemetry;
-        return clone;
+        return new FusionRequestOptions
+        {
+            ExecutionTimeout = ExecutionTimeout,
+            CollectOperationPlanTelemetry = CollectOperationPlanTelemetry,
+            AllowErrorHandlingModeOverride = AllowErrorHandlingModeOverride,
+            PersistedOperations = PersistedOperations,
+            IncludeExceptionDetails = IncludeExceptionDetails
+        };
     }
 
     object ICloneable.Clone() => Clone();
 
     internal void MakeReadOnly()
         => _isReadOnly = true;
+
+    private void ExpectMutableOptions()
+    {
+        if (_isReadOnly)
+        {
+            throw new InvalidOperationException("The request options are read-only.");
+        }
+    }
 }

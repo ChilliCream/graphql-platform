@@ -321,13 +321,17 @@ public class GraphQLWebSocketProtocolTests
         // arrange
         SemaphoreSlim semaphoreSlim = new(0);
         string? error = null;
-        const string message = @"{
-            ""type"": ""error"",
-            ""id"": ""123"",
-            ""payload"": {
-                ""message"": ""test message""
+        const string message =
+            // lang=json
+            """
+            {
+                "type": "error",
+                "id": "123",
+                "payload": {
+                    "message": "test message"
+                }
             }
-        }";
+            """;
         var socketClient = new SocketClientStub { KeepOpen = true, IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         protocol.Subscribe((_, operationMessage, _) =>

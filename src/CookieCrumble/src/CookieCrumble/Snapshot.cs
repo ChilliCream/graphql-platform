@@ -48,6 +48,8 @@ public class Snapshot
         _extension = extension ?? ".snap";
     }
 
+    public string Title => _title;
+
     public static Snapshot Create(string? postFix = null, string? extension = null)
         => new(postFix, extension);
 
@@ -503,8 +505,11 @@ public class Snapshot
     {
         if (OperatingSystem.IsWindows())
         {
-            // Normalize escaped line endings
-            after = after.Replace("\\r\\n", "\\n");
+            // Normalize escaped line endings if the expected value does not explicitly contain them.
+            if (!before.Contains("\\r\\n", StringComparison.Ordinal))
+            {
+                after = after.Replace("\\r\\n", "\\n");
+            }
         }
 
         var diff = InlineDiffBuilder.Diff(before, after);

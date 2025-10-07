@@ -1,3 +1,4 @@
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using HotChocolate.Types.Composite;
@@ -19,17 +20,16 @@ public class BookStoreTests : FusionTestBase
             "b",
             b => b.AddQueryType<SourceSchema2.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("a", server1),
             ("b", server2)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               bookById(id: 1) {
@@ -37,12 +37,14 @@ public class BookStoreTests : FusionTestBase
                 title
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -57,7 +59,6 @@ public class BookStoreTests : FusionTestBase
             "b",
             b => b.AddQueryType<SourceSchema2.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
             [
                 ("a", server1),
@@ -87,10 +88,10 @@ public class BookStoreTests : FusionTestBase
             }
             """);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               bookById(id: 1) {
@@ -98,12 +99,14 @@ public class BookStoreTests : FusionTestBase
                 title
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -118,17 +121,16 @@ public class BookStoreTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema2.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result1 = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               bookById(id: 1) {
@@ -136,30 +138,21 @@ public class BookStoreTests : FusionTestBase
                 title
               }
             }
-            """,
+            """);
+
+        using var result1 = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        using (var response = await result1.ReadAsResultAsync())
-        {
-            response.MatchSnapshot();
-        }
+        // assert
+        await MatchSnapshotAsync(gateway, request, result1);
 
         using var result2 = await client.PostAsync(
-            """
-            {
-              bookById(id: 1) {
-                id
-                title
-              }
-            }
-            """,
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using (var response = await result2.ReadAsResultAsync())
-        {
-            response.MatchSnapshot();
-        }
+        // assert
+        await MatchSnapshotAsync(gateway, request, result2);
     }
 
     [Fact]
@@ -174,17 +167,16 @@ public class BookStoreTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema2.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               bookById(id: 1) {
@@ -194,12 +186,14 @@ public class BookStoreTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -223,6 +217,21 @@ public class BookStoreTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                nodes {
+                  id
+                  title
+                  author {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+
         using var result = await client.PostAsync(
             """
             {
@@ -240,8 +249,7 @@ public class BookStoreTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -265,7 +273,7 @@ public class BookStoreTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             query GetBooks($first: Int) {
               books(first: $first) {
@@ -279,15 +287,14 @@ public class BookStoreTests : FusionTestBase
               }
             }
             """,
-            variables: new Dictionary<string, object?>
-            {
-                { "first", 1 }
-            },
+            variables: new Dictionary<string, object?> { ["first"] = 1 });
+
+        using var result = await client.PostAsync(
+            request,
             uri: new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -311,7 +318,7 @@ public class BookStoreTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             query GetBooks($first: Int) {
               books(first: $first) {
@@ -325,12 +332,14 @@ public class BookStoreTests : FusionTestBase
               }
             }
             """,
-            variables: new Dictionary<string, object?>(),
+            variables: new Dictionary<string, object?>());
+
+        using var result = await client.PostAsync(
+            request,
             uri: new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -354,7 +363,7 @@ public class BookStoreTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             query GetBooks($first: Int, $last: Int) {
               books(first: $first, last: $last) {
@@ -368,15 +377,14 @@ public class BookStoreTests : FusionTestBase
               }
             }
             """,
-            variables: new Dictionary<string, object?>
-            {
-                { "first", 1 }
-            },
+            variables: new Dictionary<string, object?> { ["first"] = 1 });
+
+        using var result = await client.PostAsync(
+            request,
             uri: new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -400,7 +408,7 @@ public class BookStoreTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               books {
@@ -409,12 +417,14 @@ public class BookStoreTests : FusionTestBase
                 }
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     [Fact]
@@ -435,64 +445,48 @@ public class BookStoreTests : FusionTestBase
             ("B", server2)
         ]);
 
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                nodes {
+                  idAndTitle
+                }
+              }
+            }
+            """);
+
         // act 1
         using (var client = GraphQLHttpClient.Create(gateway.CreateClient()))
         {
             using var result = await client.PostAsync(
-                """
-                {
-                  books {
-                    nodes {
-                      idAndTitle
-                    }
-                  }
-                }
-                """,
+                request,
                 new Uri("http://localhost:5000/graphql"));
 
             // assert 1
-            using var response = await result.ReadAsResultAsync();
-            response.MatchSnapshot();
+            await MatchSnapshotAsync(gateway, request, result);
         }
 
         // act 2
         using (var client = GraphQLHttpClient.Create(gateway.CreateClient()))
         {
             using var result = await client.PostAsync(
-                """
-                {
-                  books {
-                    nodes {
-                      idAndTitle
-                    }
-                  }
-                }
-                """,
+                request,
                 new Uri("http://localhost:5000/graphql"));
 
             // assert 2
-            using var response = await result.ReadAsResultAsync();
-            response.MatchSnapshot();
+            await MatchSnapshotAsync(gateway, request, result);
         }
 
         // act 3
         using (var client = GraphQLHttpClient.Create(gateway.CreateClient()))
         {
             using var result = await client.PostAsync(
-                """
-                {
-                  books {
-                    nodes {
-                      idAndTitle
-                    }
-                  }
-                }
-                """,
+                request,
                 new Uri("http://localhost:5000/graphql"));
 
             // assert 3
-            using var response = await result.ReadAsResultAsync();
-            response.MatchSnapshot();
+            await MatchSnapshotAsync(gateway, request, result);
         }
     }
 
@@ -522,7 +516,8 @@ public class BookStoreTests : FusionTestBase
         {
             // act
             using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-            using var result = await client.PostAsync(
+
+            var request = new OperationRequest(
                 """
                 {
                   books {
@@ -531,13 +526,88 @@ public class BookStoreTests : FusionTestBase
                     }
                   }
                 }
-                """,
+                """);
+
+            using var result = await client.PostAsync(
+                request,
                 new Uri("http://localhost:5000/graphql"));
 
             // assert
-            using var response = await result.ReadAsResultAsync();
-            response.MatchSnapshot();
+            await MatchSnapshotAsync(gateway, request, result);
         }
+    }
+
+    [Fact]
+    public async Task Ensure_String_Literals_Can_Be_Empty()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              formatTitle(title: "")
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Ensure_String_Variables_Can_Be_Empty()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query ($s: String!) {
+              formatTitle(title: $s)
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["s"] = "" });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     public static class SourceSchema1
@@ -564,6 +634,9 @@ public class BookStoreTests : FusionTestBase
             [UsePaging]
             public IEnumerable<Book> GetBooks()
                 => _books.Values;
+
+            public string FormatTitle(string title)
+                => title;
         }
     }
 

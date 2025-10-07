@@ -1,11 +1,11 @@
-﻿schema {
+schema {
   query: Query
 }
 
 type Model {
   time: DateTime!
   date: Date!
-  foo: String
+  foo: String!
   bar: Int!
   baz: Boolean!
 }

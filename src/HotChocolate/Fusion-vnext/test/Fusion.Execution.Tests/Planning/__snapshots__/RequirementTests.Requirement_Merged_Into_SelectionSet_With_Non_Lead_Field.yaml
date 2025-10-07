@@ -1,5 +1,5 @@
 operation:
-  - document: >-
+  - document: |
       {
         products {
           brand {
@@ -11,11 +11,12 @@ operation:
         }
       }
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: >-
+    operation: |
       query Op_123456789101112_1 {
         products {
           brand {
@@ -28,7 +29,7 @@ nodes:
   - id: 2
     type: Operation
     schema: b
-    operation: >-
+    operation: |
       query Op_123456789101112_2(
         $__fusion_1_id: Int!
         $__fusion_2_name: String!
@@ -41,8 +42,10 @@ nodes:
     target: $.products
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
       - name: __fusion_2_name
-        selectionMap: name
+        selectionMap: >-
+          name
     dependencies:
       - id: 1

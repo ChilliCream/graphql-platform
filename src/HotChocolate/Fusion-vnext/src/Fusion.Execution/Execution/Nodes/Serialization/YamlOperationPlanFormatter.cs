@@ -46,7 +46,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.WriteLine("operation:");
         writer.Indent();
 
-        writer.WriteLine("- document: >-");
+        writer.WriteLine("- document: |");
         writer.Indent();
         writer.Indent();
         var reader = new StringReader(plan.Operation.Definition.ToString(indented: true));
@@ -64,6 +64,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
 
         writer.WriteLine("hash: {0}", plan.Operation.Id);
+        writer.WriteLine("searchSpace: {0}", plan.SearchSpace);
 
         if (trace is not null)
         {
@@ -101,7 +102,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("schema: {0}", node.SchemaName);
         }
 
-        writer.WriteLine("operation: >-");
+        writer.WriteLine("operation: |");
         writer.Indent();
         var reader = new StringReader(node.Operation.SourceText);
         var line = reader.ReadLine();
@@ -130,7 +131,17 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             {
                 writer.WriteLine("- name: {0}", requirement.Key);
                 writer.Indent();
-                writer.WriteLine("selectionMap: {0}", requirement.Map);
+
+                writer.WriteLine("selectionMap: >-");
+                writer.Indent();
+                var selectionMapReader = new StringReader(requirement.Map.ToString(indented: true));
+                var selectionMapLine = selectionMapReader.ReadLine();
+                while (selectionMapLine != null)
+                {
+                    writer.WriteLine(selectionMapLine);
+                    selectionMapLine = selectionMapReader.ReadLine();
+                }
+                writer.Unindent();
                 writer.Unindent();
             }
 

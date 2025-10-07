@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Types.Metadata;
 
 namespace HotChocolate.Fusion.Types.Collections;
 

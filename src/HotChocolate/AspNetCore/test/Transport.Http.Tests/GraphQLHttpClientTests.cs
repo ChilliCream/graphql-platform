@@ -416,6 +416,60 @@ public class GraphQLHttpClientTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Post_GraphQL_Query_With_OnError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .UseRequest(next => async context =>
+                {
+                    context.ContextData["mode"] = context.Request.ErrorHandlingMode;
+
+                    await next(context);
+                })
+                .UseDefaultPipeline()
+                .AddQueryType(desc =>
+                {
+                    desc.Name("Query");
+
+                    desc.Field("errorHandlingMode")
+                        .Resolve(ctx => (ErrorHandlingMode?)ctx.ContextData["mode"]);
+                }),
+            app => app
+                .UseRouting()
+                .UseEndpoints(e => e.MapGraphQL()));
+        var httpClient = server.CreateClient();
+        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        const string query =
+            """
+            query {
+              errorHandlingMode
+            }
+            """;
+
+        // act
+        var response = await client.PostAsync(
+            new OperationRequest(query, onError: ErrorHandlingMode.Halt),
+            cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "errorHandlingMode": "HALT"
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Get_GraphQL_Query_With_RequestUri()
     {
         // arrange
@@ -698,6 +752,60 @@ public class GraphQLHttpClientTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Get_GraphQL_Query_With_OnError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .UseRequest(next => async context =>
+                {
+                    context.ContextData["mode"] = context.Request.ErrorHandlingMode;
+
+                    await next(context);
+                })
+                .UseDefaultPipeline()
+                .AddQueryType(desc =>
+                {
+                    desc.Name("Query");
+
+                    desc.Field("errorHandlingMode")
+                        .Resolve(ctx => (ErrorHandlingMode?)ctx.ContextData["mode"]);
+                }),
+            app => app
+                .UseRouting()
+                .UseEndpoints(e => e.MapGraphQL()));
+        var httpClient = server.CreateClient();
+        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        const string query =
+            """
+            query {
+              errorHandlingMode
+            }
+            """;
+
+        // act
+        var response = await client.GetAsync(
+            new OperationRequest(query, onError: ErrorHandlingMode.Halt),
+            cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "errorHandlingMode": "HALT"
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Post_Subscription_Over_SSE()
     {
         // arrange
@@ -958,6 +1066,7 @@ public class GraphQLHttpClientTests : ServerTestBase
               singleUpload(file: $upload)
             }
             """,
+            null,
             null,
             null,
             variables: new ObjectValueNode(

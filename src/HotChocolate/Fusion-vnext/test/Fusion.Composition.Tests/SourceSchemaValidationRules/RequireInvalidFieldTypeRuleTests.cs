@@ -55,7 +55,7 @@ public sealed class RequireInvalidFieldTypeRuleTests
                     """
                     type User @key(fields: "id") {
                         id: ID!
-                        profile(name: String! @require(field: "name")): Profile
+                        profile(name: String @require(field: "name")): Profile
                     }
 
                     type Profile {

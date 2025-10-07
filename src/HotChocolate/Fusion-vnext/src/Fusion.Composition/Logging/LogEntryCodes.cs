@@ -23,7 +23,7 @@ public static class LogEntryCodes
     public const string InterfaceFieldNoImplementation = "INTERFACE_FIELD_NO_IMPLEMENTATION";
     public const string InvalidGraphQL = "INVALID_GRAPHQL";
     public const string InvalidShareableUsage = "INVALID_SHAREABLE_USAGE";
-    public const string IsInvalidField = "IS_INVALID_FIELD";
+    public const string IsInvalidFields = "IS_INVALID_FIELDS";
     public const string IsInvalidFieldType = "IS_INVALID_FIELD_TYPE";
     public const string IsInvalidSyntax = "IS_INVALID_SYNTAX";
     public const string IsInvalidUsage = "IS_INVALID_USAGE";
@@ -35,6 +35,7 @@ public static class LogEntryCodes
     public const string KeyInvalidSyntax = "KEY_INVALID_SYNTAX";
     public const string LookupReturnsList = "LOOKUP_RETURNS_LIST";
     public const string LookupReturnsNonNullableType = "LOOKUP_RETURNS_NON_NULLABLE_TYPE";
+    public const string ModifiedCompositionSetting = "MODIFIED_COMPOSITION_SETTING";
     public const string NonNullInputFieldIsInaccessible = "NON_NULL_INPUT_FIELD_IS_INACCESSIBLE";
     public const string NoQueries = "NO_QUERIES";
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
