@@ -1,7 +1,8 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Xml.Linq;
+using System.Xml;
+using System.Xml.XPath;
 using IOPath = System.IO.Path;
 
 namespace HotChocolate.Types.Descriptors;
@@ -12,7 +13,7 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
 
     private readonly Func<Assembly, string>? _resolveXmlDocumentationFileName;
 
-    private readonly ConcurrentDictionary<string, XDocument?> _cache =
+    private readonly ConcurrentDictionary<string, XPathDocument?> _cache =
         new(StringComparer.OrdinalIgnoreCase);
 
     public XmlDocumentationFileResolver()
@@ -27,7 +28,7 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
 
     public bool TryGetXmlDocument(
         Assembly assembly,
-        [NotNullWhen(true)] out XDocument? document)
+        [NotNullWhen(true)] out XPathDocument? document)
     {
         var fullName = assembly.GetName().FullName;
 
@@ -37,7 +38,11 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
 
             if (xmlDocumentFileName is not null && File.Exists(xmlDocumentFileName))
             {
-                doc = XDocument.Load(xmlDocumentFileName, LoadOptions.PreserveWhitespace);
+                var settings = new XmlReaderSettings { IgnoreWhitespace = false };
+
+                using var xmlFileStream = File.OpenRead(xmlDocumentFileName);
+                using var xmlFileReader = XmlReader.Create(xmlFileStream, settings);
+                doc = new XPathDocument(xmlFileReader);
             }
 
             _cache[fullName] = doc;

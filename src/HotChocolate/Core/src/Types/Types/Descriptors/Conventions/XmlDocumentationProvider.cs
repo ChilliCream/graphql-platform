@@ -69,18 +69,22 @@ public class XmlDocumentationProvider : IDocumentationProvider
             return null;
         }
 
+        var summaryNode = element.SelectSingleNode(SummaryElementName);
+        var returnsNode = element.SelectSingleNode(ReturnsElementName);
+        var exceptionNodes = element.Select(ExceptionElementName);
+
         var description = ComposeMemberDescription(
-            element.Element(SummaryElementName),
-            element.Element(ReturnsElementName),
-            element.Elements(ExceptionElementName));
+            summaryNode,
+            returnsNode,
+            exceptionNodes);
 
         return RemoveLineBreakWhiteSpaces(description);
     }
 
     private string? ComposeMemberDescription(
-        XElement? summary,
-        XElement? returns,
-        IEnumerable<XElement> errors)
+        XPathNavigator? summary,
+        XPathNavigator? returns,
+        XPathNodeIterator errors)
     {
         var description = _stringBuilderPool.Get();
 
@@ -113,17 +117,21 @@ public class XmlDocumentationProvider : IDocumentationProvider
     }
 
     private void AppendErrorDescription(
-        IEnumerable<XElement> errors,
+        XPathNodeIterator errors,
         StringBuilder description,
         bool needsNewLine)
     {
         var errorCount = 0;
-        foreach (var error in errors)
+        while (errors.MoveNext())
         {
-            var code = error.Attribute(Code);
-            if (code is { }
-                && !string.IsNullOrEmpty(error.Value)
-                && !string.IsNullOrEmpty(code.Value))
+            var error = errors.Current;
+            if(string.IsNullOrEmpty(error?.Value))
+            {
+                continue;
+            }
+
+            var code = error.GetAttribute(Code, string.Empty);
+            if (!string.IsNullOrEmpty(code))
             {
                 if (errorCount == 0)
                 {
@@ -136,7 +144,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
                 }
 
                 description.Append($"{++errorCount}. ");
-                description.Append($"{code.Value}: ");
+                description.Append($"{code}: ");
 
                 AppendText(error, description);
             }
@@ -144,7 +152,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
     }
 
     private static void AppendText(
-        XElement? element,
+        XPathNavigator? element,
         StringBuilder description)
     {
         if (element is null || string.IsNullOrWhiteSpace(element.Value))
@@ -152,63 +160,65 @@ public class XmlDocumentationProvider : IDocumentationProvider
             return;
         }
 
-        foreach (var node in element.Nodes())
+        var children = element.SelectChildren(XPathNodeType.All);
+        while (children.MoveNext())
         {
-            if (node is not XElement currentElement)
+            var child = children.Current;
+            switch (child?.NodeType)
             {
-                if (node is XText text)
-                {
-                    description.Append(text.Value);
-                }
+                case XPathNodeType.Text:
+                case XPathNodeType.SignificantWhitespace:
+                case XPathNodeType.Whitespace:
+                    description.Append(child.Value);
+                    break;
 
-                continue;
-            }
+                case XPathNodeType.Element:
+                    var localName = child.LocalName;
 
-            if (currentElement.Name == Paramref)
-            {
-                var nameAttribute = currentElement.Attribute(Name);
-
-                if (nameAttribute != null)
-                {
-                    description.Append(nameAttribute.Value);
-                    continue;
-                }
-            }
-
-            if (currentElement.Name != See)
-            {
-                description.Append(currentElement.Value);
-                continue;
-            }
-
-            var attribute = currentElement.Attribute(Langword);
-            if (attribute != null)
-            {
-                description.Append(attribute.Value);
-                continue;
-            }
-
-            if (!string.IsNullOrEmpty(currentElement.Value))
-            {
-                description.Append(currentElement.Value);
-            }
-            else
-            {
-                attribute = currentElement.Attribute(Cref);
-                if (attribute != null)
-                {
-                    description.Append(attribute.Value
-                        .Trim('!', ':').Trim()
-                        .Split('.').Last());
-                }
-                else
-                {
-                    attribute = currentElement.Attribute(Href);
-                    if (attribute != null)
+                    if (localName == Paramref)
                     {
-                        description.Append(attribute.Value);
+                        var nameAttr = child.GetAttribute(Name, string.Empty);
+                        description.Append(nameAttr);
+                        break;
                     }
-                }
+
+                    if (localName != See)
+                    {
+                        description.Append(child.Value);
+                        break;
+                    }
+
+                    // handle <see ... />
+                    var langword = child.GetAttribute(Langword, string.Empty);
+                    if (!string.IsNullOrEmpty(langword))
+                    {
+                        description.Append(langword);
+                        break;
+                    }
+
+                    if (!string.IsNullOrEmpty(child.Value))
+                    {
+                        description.Append(child.Value);
+                        break;
+                    }
+
+                    var cref = child.GetAttribute(Cref, string.Empty);
+                    if (!string.IsNullOrEmpty(cref))
+                    {
+                        // TODO
+                        description.Append(
+                            cref.Trim('!', ':', ' ')
+                                .Split('.').Last());
+                        break;
+                    }
+
+                    var href = child.GetAttribute(Href, string.Empty);
+                    if (!string.IsNullOrEmpty(href))
+                    {
+                        description.Append(href);
+                    }
+
+                    break;
             }
         }
     }
@@ -224,7 +234,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
         }
     }
 
-    private XElement? GetMemberElement(MemberInfo member)
+    private XPathNavigator? GetMemberElement(MemberInfo member)
     {
         try
         {
@@ -233,8 +243,11 @@ public class XmlDocumentationProvider : IDocumentationProvider
                 out var document))
             {
                 var name = GetMemberElementName(member);
-                var element = document.XPathSelectElements(name.Path)
-                    .FirstOrDefault();
+                var element = document.CreateNavigator().SelectSingleNode(name.Path);
+                if (element == null)
+                {
+                    return null;
+                }
 
                 ReplaceInheritdocElements(member, element);
 
@@ -249,7 +262,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
         }
     }
 
-    private XElement? GetParameterElement(ParameterInfo parameter)
+    private XPathNavigator? GetParameterElement(ParameterInfo parameter)
     {
         try
         {
@@ -258,28 +271,28 @@ public class XmlDocumentationProvider : IDocumentationProvider
                 out var document))
             {
                 var name = GetMemberElementName(parameter.Member);
-                var result = document.XPathSelectElements(name.Path);
-                var element = result.FirstOrDefault();
+                var navigator = document.CreateNavigator();
+                var result = navigator.SelectSingleNode(name.Path);
 
-                if (element is null)
+                if (result is null)
                 {
                     return null;
                 }
 
-                ReplaceInheritdocElements(parameter.Member, element);
+                ReplaceInheritdocElements(parameter.Member, result);
 
                 if (parameter.IsRetval
                     || string.IsNullOrEmpty(parameter.Name))
                 {
-                    result = document.XPathSelectElements(name.ReturnsPath);
+                    result = navigator.SelectSingleNode(name.ReturnsPath);
                 }
                 else
                 {
-                    result = document.XPathSelectElements(
+                    result = navigator.SelectSingleNode(
                         name.GetParameterPath(parameter.Name));
                 }
 
-                return result.FirstOrDefault();
+                return result;
             }
 
             return null;
@@ -292,18 +305,19 @@ public class XmlDocumentationProvider : IDocumentationProvider
 
     private void ReplaceInheritdocElements(
         MemberInfo member,
-        XElement? element)
+        XPathNavigator element)
     {
-        if (element is null)
+        var interitDocChildren = element.SelectChildren(Inheritdoc, string.Empty);
+        while (interitDocChildren.MoveNext())
         {
-            return;
-        }
+            var child = interitDocChildren.Current;
+            if (child is null)
+            {
+                continue;
+            }
 
-        var children = element.Nodes().ToList();
-        foreach (var child in children.OfType<XElement>())
-        {
-            if (string.Equals(child.Name.LocalName, Inheritdoc,
-                StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(child.LocalName, Inheritdoc,
+               StringComparison.OrdinalIgnoreCase))
             {
                 var baseType =
                     member.DeclaringType?.GetTypeInfo().BaseType;
@@ -316,9 +330,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
                     var baseDoc = GetMemberElement(baseMember);
                     if (baseDoc != null)
                     {
-                        var nodes =
-                            baseDoc.Nodes().OfType<object>().ToArray();
-                        child.ReplaceWith(nodes);
+                        child.ReplaceSelf(baseDoc.InnerXml);
                     }
                     else
                     {
@@ -335,7 +347,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
 
     private void ProcessInheritdocInterfaceElements(
         MemberInfo member,
-        XElement child)
+        XPathNavigator child)
     {
         if (member.DeclaringType is { })
         {
@@ -350,8 +362,8 @@ public class XmlDocumentationProvider : IDocumentationProvider
                     var baseDoc = GetMemberElement(baseMember);
                     if (baseDoc != null)
                     {
-                        child.ReplaceWith(
-                            baseDoc.Nodes().OfType<object>().ToArray());
+                        child.ReplaceSelf(baseDoc.InnerXml);
+                        return;
                     }
                 }
             }
