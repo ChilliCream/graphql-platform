@@ -108,6 +108,7 @@
     <Project Path="HotChocolate/Core/src/Types.Scalars.Upload/HotChocolate.Types.Scalars.Upload.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Scalars/HotChocolate.Types.Scalars.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Shared/HotChocolate.Types.Shared.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.Validation/HotChocolate.Types.Validation.csproj" />
     <Project Path="HotChocolate/Core/src/Types/HotChocolate.Types.csproj" />
     <Project Path="HotChocolate/Core/src/Validation/HotChocolate.Validation.csproj" />
   </Folder>
@@ -137,6 +138,7 @@
     <Project Path="HotChocolate/Core/test/Types.Scalars.Tests/HotChocolate.Types.Scalars.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Tests.Documentation/HotChocolate.Types.Tests.Documentation.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Tests/HotChocolate.Types.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.Validation.Tests/HotChocolate.Types.Validation.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Utilities/HotChocolate.Tests.Utilities.csproj" />
     <Project Path="HotChocolate/Core/test/Validation.Tests/HotChocolate.Validation.Tests.csproj" />
   </Folder>

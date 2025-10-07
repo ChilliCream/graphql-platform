@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Types.Validation.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Validation</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
+    <ProjectReference Include="..\..\src\Types.Validation\HotChocolate.Types.Validation.csproj" />
+  </ItemGroup>
+
+</Project>
