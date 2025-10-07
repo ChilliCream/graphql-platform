@@ -37,6 +37,8 @@ public sealed partial class OperationRewriter
             fieldNode,
             Types.DirectiveLocation.Field);
 
+        conditional = RemoveInheritedConditionals(conditional, context);
+
         if (conditional is not null)
         {
             context = context.GetOrCreateConditionalContext(conditional);
@@ -109,6 +111,8 @@ public sealed partial class OperationRewriter
         IReadOnlyList<DirectiveNode>? otherDirectives,
         BaseContext context)
     {
+        conditional = RemoveInheritedConditionals(conditional, context);
+
         if (conditional is not null)
         {
             context = context.GetOrCreateConditionalContext(conditional);
@@ -131,6 +135,40 @@ public sealed partial class OperationRewriter
         }
 
         CollectSelections(selectionSet, fragmentContext);
+    }
+
+    private static Conditional? RemoveInheritedConditionals(Conditional? conditional, BaseContext context)
+    {
+        if (conditional is not null)
+        {
+            var current = context;
+            do
+            {
+                if (current is ConditionalContext conditionalContext)
+                {
+                    var parentConditional = conditionalContext.Conditional;
+
+                    if (conditional.Skip?.Equals(parentConditional.Skip, SyntaxComparison.Syntax) == true)
+                    {
+                        conditional.Skip = null;
+                    }
+
+                    if (conditional.Include?.Equals(parentConditional.Include, SyntaxComparison.Syntax) == true)
+                    {
+                        conditional.Include = null;
+                    }
+
+                    if (conditional.Skip is null && conditional.Include is null)
+                    {
+                        return null;
+                    }
+                }
+
+                current = current.Parent;
+            } while (current is not null);
+        }
+
+        return conditional;
     }
 
     private (Conditional? Conditional, IReadOnlyList<DirectiveNode>? Directives) DivideDirectives(

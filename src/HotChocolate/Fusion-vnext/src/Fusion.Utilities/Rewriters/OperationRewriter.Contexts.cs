@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -7,9 +9,12 @@ namespace HotChocolate.Fusion.Rewriters;
 public sealed partial class OperationRewriter
 {
     private abstract class BaseContext(
+        BaseContext? parent,
         ITypeDefinition type,
         Dictionary<string, FragmentDefinitionNode> fragmentLookup)
     {
+        public BaseContext? Parent { get; } = parent;
+
         public ITypeDefinition Type { get; } = type;
 
         public Dictionary<Conditional, ConditionalContext>? ConditionalContexts { get; set; }
@@ -31,13 +36,41 @@ public sealed partial class OperationRewriter
 
             if (!FragmentContexts.TryGetValue(inlineFragmentNode, out var fragmentContext))
             {
-                fragmentContext = new Context(typeCondition, fragmentLookup);
+                fragmentContext = new Context(this, typeCondition, fragmentLookup);
                 FragmentContexts[inlineFragmentNode] = fragmentContext;
 
                 AddSelection(inlineFragmentNode);
             }
 
             return fragmentContext;
+        }
+
+        public ConditionalContext RecreateConditionalContextHierarchy(BaseContext newRoot, ConditionalContext baseConditional)
+        {
+            var conditionalParents = new Stack<ConditionalContext>();
+            BaseContext? current = baseConditional;
+
+            while (true)
+            {
+                if (current is ConditionalContext conditionalContext)
+                {
+                    conditionalParents.Push(conditionalContext);
+                    current = conditionalContext.Parent;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            var currentRoot = newRoot;
+            while (conditionalParents.TryPop(out var oldConditionalContext))
+            {
+                currentRoot = currentRoot.GetOrCreateConditionalContext(oldConditionalContext.Conditional);
+            }
+
+            // TODO: Improve
+            return (ConditionalContext)currentRoot;
         }
 
         public virtual BaseContext? GetOrCreateFieldContext(FieldNode fieldNode, ITypeDefinition fieldType)
@@ -48,7 +81,7 @@ public sealed partial class OperationRewriter
 
                 if (!FieldContexts.TryGetValue(fieldNode, out var fieldContext))
                 {
-                    fieldContext = new Context(fieldType, fragmentLookup);
+                    fieldContext = new Context(this, fieldType, fragmentLookup);
                     FieldContexts[fieldNode] = fieldContext;
 
                     AddSelection(fieldNode);
@@ -77,7 +110,13 @@ public sealed partial class OperationRewriter
                     _ => throw new NotSupportedException()
                 };
 
-                conditionalContext = new ConditionalContext(unconditionalContext, conditional, Type, fragmentLookup);
+                conditionalContext = new ConditionalContext(
+                    this,
+                    unconditionalContext,
+                    conditional,
+                    Type,
+                    fragmentLookup);
+
                 ConditionalContexts[conditional] = conditionalContext;
             }
 
@@ -106,14 +145,16 @@ public sealed partial class OperationRewriter
     }
 
     private sealed class Context(
+        BaseContext? parent,
         ITypeDefinition type,
         Dictionary<string, FragmentDefinitionNode> fragmentLookup)
-        : BaseContext(type, fragmentLookup)
+        : BaseContext(parent, type, fragmentLookup)
     {
         public Dictionary<ISelectionNode, List<ConditionalContext>>? ConditionalParentContexts { get; set; }
 
         public override BaseContext? GetOrCreateFieldContext(FieldNode fieldNode, ITypeDefinition fieldType)
         {
+            // This already takes core of the case of there not being a selection set.
             var fieldContext = base.GetOrCreateFieldContext(fieldNode, fieldType);
 
             if (ConditionalParentContexts is not null
@@ -121,14 +162,14 @@ public sealed partial class OperationRewriter
             {
                 foreach (var conditionalContext in conditionalContexts)
                 {
-                    if (conditionalContext.FieldContexts is not null
+                    if (fieldContext is not null
+                        && conditionalContext.FieldContexts is not null
                         && conditionalContext.FieldContexts.TryGetValue(fieldNode, out var conditionalFieldContext))
                     {
-                        // TODO: This should actually recreate the entire conditional hierarchy up until the first non-conditional parent
                         var conditionalContextBelowUnconditionalField =
-                            GetOrCreateConditionalContext(conditionalContext.Conditional);
+                            RecreateConditionalContextHierarchy(fieldContext, conditionalContext);
 
-                        // TODO: Merge conditionalFieldContext into conditionalContextBelowUnconditionalField
+                        MergeContexts(conditionalFieldContext, conditionalContextBelowUnconditionalField);
                     }
 
                     conditionalContext.RemoveSelection(fieldNode);
@@ -144,18 +185,43 @@ public sealed partial class OperationRewriter
             InlineFragmentNode inlineFragmentNode,
             ITypeDefinition typeCondition)
         {
-            // TODO: Remove associated conditionals and merge their contexts
-            //       This action is basically the same as for the conditional one
-            return base.GetOrCreateFragmentContext(inlineFragmentNode, typeCondition);
+            var fragmentContext = base.GetOrCreateFragmentContext(inlineFragmentNode, typeCondition);
+
+            if (ConditionalParentContexts is not null
+                && ConditionalParentContexts.TryGetValue(inlineFragmentNode, out var conditionalContexts))
+            {
+                foreach (var conditionalContext in conditionalContexts)
+                {
+                    if (conditionalContext.FragmentContexts is not null
+                        && conditionalContext.FragmentContexts.TryGetValue(inlineFragmentNode, out var conditionalFragmentContext))
+                    {
+                        var conditionalContextBelowUnconditionalFragment =
+                            RecreateConditionalContextHierarchy(fragmentContext, conditionalContext);
+
+                        MergeContexts(conditionalFragmentContext, conditionalContextBelowUnconditionalFragment);
+                    }
+
+                    conditionalContext.RemoveSelection(inlineFragmentNode);
+                }
+
+                ConditionalParentContexts.Remove(inlineFragmentNode);
+            }
+
+            return fragmentContext;
+        }
+
+        private void MergeContexts(BaseContext source, BaseContext target)
+        {
         }
     }
 
     private sealed class ConditionalContext(
+        BaseContext parent,
         Context unconditionalContext,
         Conditional conditional,
         ITypeDefinition type,
         Dictionary<string, FragmentDefinitionNode> fragmentLookup)
-        : BaseContext(type, fragmentLookup)
+        : BaseContext(parent, type, fragmentLookup)
     {
         public Context UnconditionalContext { get; } = unconditionalContext;
 
@@ -211,6 +277,17 @@ public sealed partial class OperationRewriter
                 return conditionalContext;
             }
 
+            UnconditionalContext.ConditionalParentContexts ??=
+                new Dictionary<ISelectionNode, List<ConditionalContext>>(SyntaxNodeComparer.Instance);
+
+            if (!UnconditionalContext.ConditionalParentContexts.TryGetValue(inlineFragmentNode, out var conditionalContexts))
+            {
+                conditionalContexts = [];
+                UnconditionalContext.ConditionalParentContexts[inlineFragmentNode] = conditionalContexts;
+            }
+
+            conditionalContexts.Add(this);
+
             return base.GetOrCreateFragmentContext(inlineFragmentNode, typeCondition);
         }
     }
@@ -236,6 +313,29 @@ public sealed partial class OperationRewriter
             }
 
             return builder.ToImmutable();
+        }
+
+        public override string ToString()
+        {
+            var skipDirective = Skip?.ToString();
+            var includeDirective = Include?.ToString();
+
+            if (skipDirective is not null && includeDirective is not null)
+            {
+                return $"{skipDirective} {includeDirective}";
+            }
+
+            if (skipDirective is not null)
+            {
+                return skipDirective;
+            }
+
+            if (includeDirective is not null)
+            {
+                return includeDirective;
+            }
+
+            throw new InvalidOperationException();
         }
     }
 

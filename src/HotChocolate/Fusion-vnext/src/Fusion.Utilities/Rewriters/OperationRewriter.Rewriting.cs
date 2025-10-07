@@ -94,9 +94,9 @@ public sealed partial class OperationRewriter
 
                 ISelectionNode conditionalSelection = conditionalSelections switch
                 {
-                    [FieldNode fieldNode] => fieldNode
+                    [FieldNode { Directives.Count: 0 } fieldNode] => fieldNode
                         .WithDirectives([..fieldNode.Directives, ..conditionalDirectives]),
-                    [InlineFragmentNode inlineFragmentNode] => inlineFragmentNode
+                    [InlineFragmentNode { Directives.Count: 0 } inlineFragmentNode] => inlineFragmentNode
                         .WithDirectives([..inlineFragmentNode.Directives, ..conditionalDirectives]),
                     _ => new InlineFragmentNode(
                         null,

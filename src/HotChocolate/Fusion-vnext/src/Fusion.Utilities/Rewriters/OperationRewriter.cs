@@ -13,7 +13,7 @@ public sealed partial class OperationRewriter(
         var operation = document.GetOperation(operationName);
         var operationType = schema.GetOperationType(operation.Operation);
         var fragmentLookup = CreateFragmentLookup(document);
-        var context = new Context(operationType, fragmentLookup);
+        var context = new Context(null, operationType, fragmentLookup);
 
         CollectSelections(operation.SelectionSet, context);
 

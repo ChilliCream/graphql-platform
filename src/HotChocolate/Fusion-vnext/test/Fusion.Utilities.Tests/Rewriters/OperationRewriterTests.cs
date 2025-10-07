@@ -1217,7 +1217,7 @@ public class OperationRewriterTests
                $include: Boolean!
              ) {
                productBySlug(slug: "a") {
-                 dimension @include(if: $include) @skip(if: $skip) {
+                 dimension @skip(if: $skip) @include(if: $include) {
                    width
                    height
                  }
