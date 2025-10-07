@@ -310,17 +310,22 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var tokenType = _metaDb.GetElementTokenType(current);
+        var tokenType = _metaDb.GetElementTokenType(current, resolveReferences: false);
 
         if (tokenType is ElementTokenType.None)
         {
             return;
         }
 
+        if (tokenType is ElementTokenType.StartArray)
+        {
+            return;
+        }
+
         if (tokenType is ElementTokenType.StartObject)
         {
-            var f = _metaDb.GetFlags(current);
-            _metaDb.SetFlags(current, f | ElementFlags.Invalidated);
+            var flags = _metaDb.GetFlags(current);
+            _metaDb.SetFlags(current, flags | ElementFlags.Invalidated);
             return;
         }
 
@@ -331,13 +336,14 @@ public sealed partial class CompositeResultDocument : IDisposable
 
             if (tokenType is ElementTokenType.StartObject)
             {
-                var f = _metaDb.GetFlags(current);
-                _metaDb.SetFlags(current, f | ElementFlags.Invalidated);
-                return;
+                var flags = _metaDb.GetFlags(current);
+                _metaDb.SetFlags(current, flags | ElementFlags.Invalidated);
             }
+
+            return;
         }
 
-        throw new InvalidOperationException("Only objects can be invalidated.");
+        Debug.Fail("Only objects can be invalidated.");
     }
 
     private ReadOnlySpan<byte> ReadRawValue(DbRow row)

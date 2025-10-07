@@ -115,26 +115,9 @@ public readonly partial struct CompositeResultElement
 
             var type = Parent.Type;
 
-            if (type is not null)
+            if (type?.IsListType() == true)
             {
-                var valueKind = ValueKind;
-                if (valueKind == JsonValueKind.Array)
-                {
-                    if (type.Kind == TypeKind.List)
-                    {
-                        return ((ListType)type).ElementType;
-                    }
-
-                    if (type.Kind == TypeKind.NonNull)
-                    {
-                        var innerType = ((NonNullType)type).NullableType;
-
-                        if (innerType.Kind == TypeKind.List)
-                        {
-                            return ((ListType)innerType).ElementType;
-                        }
-                    }
-                }
+                return type.ElementType();
             }
 
             return null;
