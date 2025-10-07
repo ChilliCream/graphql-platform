@@ -35,7 +35,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     private readonly TypeCache _typeCache = new();
     private readonly ConcurrentDictionary<MethodInfo, ExtendedMethodInfo> _methods = [];
     private readonly ConcurrentDictionary<(Type, bool, bool), MemberInfo[]> _membersCache = new();
-    private readonly Dictionary<MethodInfo, ParameterInfo[]> _parametersCache = new();
+    private readonly ConcurrentDictionary<MethodInfo, ParameterInfo[]> _parametersCache = new();
 
     /// <summary>
     /// Infer type to be non-null if <see cref="RequiredAttribute"/> is found.
@@ -100,7 +100,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             }
 
             parameters = method.GetParameters();
-            _parametersCache[method] = parameters;
+            _parametersCache.TryAdd(method, parameters);
 
             return parameters;
         }
