@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Rewriters;
 
 public sealed class MergeSelectionSetRewriter(ISchemaDefinition schema)
 {
-    private readonly InlineFragmentOperationRewriter _rewriter = new(schema);
+    private readonly DocumentRewriter _rewriter = new(schema);
 
     public SelectionSetNode Merge(
         SelectionSetNode selectionSet1,
@@ -21,16 +21,18 @@ public sealed class MergeSelectionSetRewriter(ISchemaDefinition schema)
         CopyTo(selectionSet1.Selections, selections, 0);
         CopyTo(selectionSet2.Selections, selections, selectionSet1.Selections.Count);
 
-        var context = new InlineFragmentOperationRewriter.Context(type, [], mergeObserver);
-        var merged = new SelectionSetNode(null, selections);
+        throw new NotImplementedException();
 
-        mergeObserver.OnMerge(selectionSet1, selectionSet2);
-        mergeObserver.OnMerge(selectionSet1, merged);
-
-        _rewriter.CollectSelections(merged, context);
-        _rewriter.RewriteSelections(context);
-
-        return new SelectionSetNode(null, context.Selections.ToImmutable());
+        // var context = new InlineFragmentOperationRewriter.Context(type, [], mergeObserver);
+        // var merged = new SelectionSetNode(null, selections);
+        //
+        // mergeObserver.OnMerge(selectionSet1, selectionSet2);
+        // mergeObserver.OnMerge(selectionSet1, merged);
+        //
+        // _rewriter.CollectSelections(merged, context);
+        // _rewriter.RewriteSelections(context);
+        //
+        // return new SelectionSetNode(null, context.Selections.ToImmutable());
     }
 
     public SelectionSetNode Merge(
@@ -40,16 +42,18 @@ public sealed class MergeSelectionSetRewriter(ISchemaDefinition schema)
     {
         mergeObserver ??= NoopSelectionSetMergeObserver.Instance;
 
-        var context = new InlineFragmentOperationRewriter.Context(type, [], mergeObserver);
-        var merged = new SelectionSetNode(null, [.. selectionSets.SelectMany(t => t.Selections)]);
+        throw new NotImplementedException();
 
-        mergeObserver.OnMerge(selectionSets);
-        mergeObserver.OnMerge(selectionSets[0], merged);
-
-        _rewriter.CollectSelections(merged, context);
-        _rewriter.RewriteSelections(context);
-
-        return new SelectionSetNode(null, context.Selections.ToImmutable());
+        // var context = new InlineFragmentOperationRewriter.Context(type, [], mergeObserver);
+        // var merged = new SelectionSetNode(null, [.. selectionSets.SelectMany(t => t.Selections)]);
+        //
+        // mergeObserver.OnMerge(selectionSets);
+        // mergeObserver.OnMerge(selectionSets[0], merged);
+        //
+        // _rewriter.CollectSelections(merged, context);
+        // _rewriter.RewriteSelections(context);
+        //
+        // return new SelectionSetNode(null, context.Selections.ToImmutable());
     }
 
     private static void CopyTo(IReadOnlyList<ISelectionNode> source, ISelectionNode[] target, int offset)

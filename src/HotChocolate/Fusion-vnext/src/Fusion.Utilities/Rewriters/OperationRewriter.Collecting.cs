@@ -197,8 +197,8 @@ public sealed partial class OperationRewriter
 
         foreach (var directive in directiveProvider.Directives)
         {
-            if (!schema.DirectiveDefinitions.TryGetDirective(directive.Name.Value, out var directiveDefinition)
-                || !directiveDefinition.Locations.HasFlag(targetLocation))
+            if (schema.DirectiveDefinitions.TryGetDirective(directive.Name.Value, out var directiveDefinition)
+                && !directiveDefinition.Locations.HasFlag(targetLocation))
             {
                 continue;
             }

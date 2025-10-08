@@ -41,9 +41,14 @@ public sealed partial class OperationRewriter
 
                             var fieldSelections = RewriteSelections(fieldContext);
 
-                            if (fieldSelections is null)
+                            if (fieldSelections is null || fieldSelections.Count == 0)
                             {
-                                continue;
+                                if (!removeStaticallyExcludedSelections)
+                                {
+                                    continue;
+                                }
+
+                                fieldSelections = [s_typeNameField];
                             }
 
                             var fieldSelection = fieldNode

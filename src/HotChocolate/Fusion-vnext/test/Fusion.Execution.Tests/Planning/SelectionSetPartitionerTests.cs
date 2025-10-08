@@ -42,8 +42,8 @@ public class SelectionSetPartitionerTests
             }
             """);
 
-        var fragmentRewriter = new InlineFragmentOperationRewriter(compositeSchema);
-        var operation = fragmentRewriter.RewriteDocument(doc).Definitions.OfType<OperationDefinitionNode>().Single();
+        var operationRewriter = new OperationRewriter(compositeSchema);
+        var operation = operationRewriter.RewriteDocument(doc).Definitions.OfType<OperationDefinitionNode>().Single();
         var index = SelectionSetIndexer.Create(operation);
 
         // act
@@ -114,8 +114,8 @@ public class SelectionSetPartitionerTests
             }
             """);
 
-        var fragmentRewriter = new InlineFragmentOperationRewriter(compositeSchema);
-        var operation = fragmentRewriter.RewriteDocument(doc).Definitions.OfType<OperationDefinitionNode>().Single();
+        var operationRewriter = new OperationRewriter(compositeSchema);
+        var operation = operationRewriter.RewriteDocument(doc).Definitions.OfType<OperationDefinitionNode>().Single();
         var index = SelectionSetIndexer.Create(operation);
 
         // act

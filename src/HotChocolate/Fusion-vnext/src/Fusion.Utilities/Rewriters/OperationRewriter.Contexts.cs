@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Rewriters;
 
 public sealed partial class OperationRewriter
 {
-    private abstract class BaseContext(
+    internal abstract class BaseContext(
         BaseContext? parent,
         ITypeDefinition type,
         Dictionary<string, FragmentDefinitionNode> fragmentLookup)
@@ -23,7 +23,7 @@ public sealed partial class OperationRewriter
 
         public HashSet<ISelectionNode>? Selections { get; set; }
 
-        // TODO: This is stupod
+        // TODO: This is stupid
         public Dictionary<ISelectionNode, ITypeDefinition>? TypeLookup { get; set; }
 
         public FragmentDefinitionNode GetFragmentDefinition(string name)
@@ -148,7 +148,7 @@ public sealed partial class OperationRewriter
         }
     }
 
-    private sealed class Context(
+    internal sealed class Context(
         BaseContext? parent,
         ITypeDefinition type,
         Dictionary<string, FragmentDefinitionNode> fragmentLookup)
@@ -259,7 +259,7 @@ public sealed partial class OperationRewriter
         }
     }
 
-    private sealed class ConditionalContext(
+    internal sealed class ConditionalContext(
         BaseContext parent,
         Context unconditionalContext,
         Conditional conditional,
@@ -336,7 +336,7 @@ public sealed partial class OperationRewriter
         }
     }
 
-    private sealed class Conditional
+    internal sealed class Conditional
     {
         public DirectiveNode? Skip { get; set; }
 
@@ -383,7 +383,7 @@ public sealed partial class OperationRewriter
         }
     }
 
-     private sealed class ConditionalComparer : IEqualityComparer<Conditional>
+    private sealed class ConditionalComparer : IEqualityComparer<Conditional>
     {
         private static readonly IEqualityComparer<ISyntaxNode> s_comparer = SyntaxComparer.BySyntax;
 

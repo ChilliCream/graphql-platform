@@ -669,8 +669,8 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
 
     private static SelectionSetByTypePartitionerResult Partition(FusionSchemaDefinition schema, DocumentNode document)
     {
-        var fragmentRewriter = new InlineFragmentOperationRewriter(schema);
-        var operation = fragmentRewriter.RewriteDocument(document).Definitions
+        var operationRewriter = new OperationRewriter(schema);
+        var operation = operationRewriter.RewriteDocument(document).Definitions
             .OfType<OperationDefinitionNode>()
             .Single();
         var index = SelectionSetIndexer.Create(operation);
