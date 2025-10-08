@@ -221,11 +221,19 @@ public sealed partial class ExtendedType : IExtendedType
         return Members.FromMember(member, cache);
     }
 
-    internal static ExtendedMethodInfo FromMethod(MethodInfo method, TypeCache cache)
+    internal static ExtendedMethodInfo FromMethod(
+        MethodInfo method,
+        ParameterInfo[] parameters,
+        TypeCache cache)
     {
         if (method is null)
         {
             throw new ArgumentNullException(nameof(method));
+        }
+
+        if (parameters is null)
+        {
+            throw new ArgumentNullException(nameof(parameters));
         }
 
         if (cache is null)
@@ -233,7 +241,7 @@ public sealed partial class ExtendedType : IExtendedType
             throw new ArgumentNullException(nameof(cache));
         }
 
-        return Members.FromMethod(method, cache);
+        return Members.FromMethod(method, parameters, cache);
     }
 
     /// <summary>

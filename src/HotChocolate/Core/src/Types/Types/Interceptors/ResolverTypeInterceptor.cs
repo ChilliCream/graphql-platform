@@ -399,8 +399,8 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
     {
         if (member is MethodInfo method)
         {
-            foreach (var parameter in
-                _resolverCompiler.GetArgumentParameters(method.GetParameters()))
+            var parameters = _context.TypeInspector.GetParameters(method);
+            foreach (var parameter in _resolverCompiler.GetArgumentParameters(parameters))
             {
                 _parameters[parameter.Name!] = parameter;
             }
