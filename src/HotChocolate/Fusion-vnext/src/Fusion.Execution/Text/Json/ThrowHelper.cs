@@ -5,10 +5,9 @@ namespace HotChocolate.Fusion.Text.Json;
 
 internal static class ThrowHelper
 {
-    [DoesNotReturn]
-    public static void ThrowFormatException()
+    public static FormatException FormatException()
     {
-        throw new FormatException { Source = Rethrowable };
+        return new FormatException { Source = Rethrowable };
     }
 
     [DoesNotReturn]

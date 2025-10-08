@@ -124,7 +124,7 @@ internal sealed class __Type : ITypeResolverInterceptor
             var count = includeDeprecated
                 ? ct.Fields.Count
                 : ct.Fields.Count(t => !t.IsDeprecated);
-            var list = context.FieldResult.SetListValue(count);
+            var list = context.FieldResult.CreateListValue(count);
 
             var i = 0;
             foreach (var element in list.EnumerateArray())
@@ -136,7 +136,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(field);
-                element.SetObjectValue();
+                element.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
     }
@@ -146,14 +146,14 @@ internal sealed class __Type : ITypeResolverInterceptor
         if (context.Parent<IType>() is IComplexTypeDefinition complexType)
         {
             var implements = complexType.Implements;
-            var list = context.FieldResult.SetListValue(implements.Count);
+            var list = context.FieldResult.CreateListValue(implements.Count);
 
             var index = 0;
             foreach (var element in list.EnumerateArray())
             {
                 var type = complexType.Implements[index++];
                 context.AddRuntimeResult(type);
-                element.SetObjectValue();
+                element.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
     }
@@ -164,14 +164,14 @@ internal sealed class __Type : ITypeResolverInterceptor
         {
             var schema = Unsafe.As<FusionSchemaDefinition>(context.Schema);
             var possibleTypes = schema.GetPossibleTypes(nt);
-            var list = context.FieldResult.SetListValue(possibleTypes.Length);
+            var list = context.FieldResult.CreateListValue(possibleTypes.Length);
 
             var index = 0;
             foreach (var element in list.EnumerateArray())
             {
                 var type = possibleTypes[index++];
                 context.AddRuntimeResult(type);
-                element.SetObjectValue();
+                element.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
     }
@@ -184,7 +184,7 @@ internal sealed class __Type : ITypeResolverInterceptor
             var count = includeDeprecated
                 ? et.Values.Count
                 : et.Values.Count(t => !t.IsDeprecated);
-            var list = context.FieldResult.SetListValue(count);
+            var list = context.FieldResult.CreateListValue(count);
 
             var index = 0;
             foreach (var element in list.EnumerateArray())
@@ -196,7 +196,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(value);
-                element.SetObjectValue();
+                element.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
     }
@@ -209,7 +209,7 @@ internal sealed class __Type : ITypeResolverInterceptor
             var count = includeDeprecated
                 ? iot.Fields.Count
                 : iot.Fields.Count(t => !t.IsDeprecated);
-            var list = context.FieldResult.SetListValue(count);
+            var list = context.FieldResult.CreateListValue(count);
 
             var index = 0;
             foreach (var element in list.EnumerateArray())
@@ -222,7 +222,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(value);
-                element.SetObjectValue();
+                element.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
     }
@@ -232,12 +232,12 @@ internal sealed class __Type : ITypeResolverInterceptor
         switch (context.Parent<IType>())
         {
             case ListType lt:
-                context.FieldResult.SetObjectValue();
+                context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
                 context.AddRuntimeResult(lt.ElementType);
                 break;
 
             case NonNullType nnt:
-                context.FieldResult.SetObjectValue();
+                context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
                 context.AddRuntimeResult(nnt.NullableType);
                 break;
         }

@@ -56,7 +56,7 @@ internal sealed class __Field : ITypeResolverInterceptor
         var count = includeDeprecated
             ? field.Arguments.Count
             : field.Arguments.Count(t => !t.IsDeprecated);
-        var list = context.FieldResult.SetListValue(count);
+        var list = context.FieldResult.CreateListValue(count);
 
         var index = 0;
         foreach (var element in list.EnumerateArray())
@@ -69,7 +69,7 @@ internal sealed class __Field : ITypeResolverInterceptor
             }
 
             context.AddRuntimeResult(argument);
-            element.SetObjectValue();
+            element.CreateObjectValue(context.Selection, context.IncludeFlags);
         }
     }
 
@@ -77,7 +77,7 @@ internal sealed class __Field : ITypeResolverInterceptor
     {
         var field = context.Parent<IOutputFieldDefinition>();
         context.AddRuntimeResult(field.Type);
-        context.FieldResult.SetObjectValue();
+        context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
     }
 
     public static void IsDeprecated(FieldContext context)

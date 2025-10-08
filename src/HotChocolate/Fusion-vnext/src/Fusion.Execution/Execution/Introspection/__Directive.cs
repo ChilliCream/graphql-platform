@@ -123,7 +123,7 @@ internal sealed class __Directive : ITypeResolverInterceptor
         var count = includeDeprecated
             ? directiveDef.Arguments.Count
             : directiveDef.Arguments.Count(t => !t.IsDeprecated);
-        var list = context.FieldResult.SetListValue(count);
+        var list = context.FieldResult.CreateListValue(count);
 
         var index = 0;
         foreach (var element in list.EnumerateArray())
@@ -136,7 +136,7 @@ internal sealed class __Directive : ITypeResolverInterceptor
             }
 
             context.AddRuntimeResult(argument);
-            element.SetObjectValue();
+            element.CreateObjectValue(context.Selection, context.IncludeFlags);
         }
     }
 }

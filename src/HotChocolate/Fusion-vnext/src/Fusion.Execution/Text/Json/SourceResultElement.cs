@@ -136,13 +136,9 @@ public readonly partial struct SourceResultElement
     /// The parent <see cref="SourceResultDocument"/> has been disposed.
     /// </exception>
     public SourceResultElement GetProperty(ReadOnlySpan<char> propertyName)
-    {
-        if (TryGetProperty(propertyName, out var property))
-        {
-            return property;
-        }
-        throw new KeyNotFoundException();
-    }
+        => TryGetProperty(propertyName, out var property)
+            ? property
+            : throw new KeyNotFoundException();
 
     /// <summary>
     /// Gets the value of a required property with name <paramref name="utf8PropertyName"/>.
@@ -163,13 +159,9 @@ public readonly partial struct SourceResultElement
     /// The parent <see cref="SourceResultDocument"/> has been disposed.
     /// </exception>
     public SourceResultElement GetProperty(ReadOnlySpan<byte> utf8PropertyName)
-    {
-        if (TryGetProperty(utf8PropertyName, out var property))
-        {
-            return property;
-        }
-        throw new KeyNotFoundException();
-    }
+        => TryGetProperty(utf8PropertyName, out var property)
+            ? property
+            : throw new KeyNotFoundException();
 
     /// <summary>
     /// Tries to get the value of property <paramref name="propertyName"/> without throwing.
@@ -242,6 +234,7 @@ public readonly partial struct SourceResultElement
     public bool GetBoolean()
     {
         var type = TokenType;
+
         return type switch
         {
             JsonTokenType.True => true,
@@ -305,7 +298,7 @@ public readonly partial struct SourceResultElement
     /// <exception cref="InvalidOperationException">The value kind is not Number.</exception>
     /// <exception cref="FormatException">The value is out of range for <see cref="sbyte"/>.</exception>
     /// <exception cref="ObjectDisposedException">Parent <see cref="SourceResultDocument"/> disposed.</exception>
-    public sbyte GetSByte() => TryGetSByte(out var v) ? v : throw new FormatException();
+    public sbyte GetSByte() => TryGetSByte(out var value) ? value : throw ThrowHelper.FormatException();
 
     /// <summary>
     /// Attempts to represent the current JSON number as a <see cref="byte"/>.
@@ -332,14 +325,7 @@ public readonly partial struct SourceResultElement
 
     /// <summary>Gets the current JSON number as a <see cref="byte"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="byte"/>.</exception>
-    public byte GetByte()
-    {
-        if (TryGetByte(out var v))
-        {
-            return v;
-        }
-        throw new FormatException();
-    }
+    public byte GetByte() => TryGetByte(out var value) ? value : throw ThrowHelper.FormatException();
 
     /// <summary>Tries to get the current JSON number as a <see cref="short"/> without throwing.</summary>
     public bool TryGetInt16(out short value)
@@ -350,14 +336,7 @@ public readonly partial struct SourceResultElement
 
     /// <summary>Gets the current JSON number as a <see cref="short"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="short"/>.</exception>
-    public short GetInt16()
-    {
-        if (TryGetInt16(out var v))
-        {
-            return v;
-        }
-        throw new FormatException();
-    }
+    public short GetInt16() => TryGetInt16(out var value) ? value : throw ThrowHelper.FormatException();
 
     /// <summary>Tries to get the current JSON number as a <see cref="ushort"/> without throwing.</summary>
     public bool TryGetUInt16(out ushort value)
@@ -368,14 +347,7 @@ public readonly partial struct SourceResultElement
 
     /// <summary>Gets the current JSON number as a <see cref="ushort"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="ushort"/>.</exception>
-    public ushort GetUInt16()
-    {
-        if (TryGetUInt16(out var v))
-        {
-            return v;
-        }
-        throw new FormatException();
-    }
+    public ushort GetUInt16() => TryGetUInt16(out var value) ? value : throw ThrowHelper.FormatException();
 
     /// <summary>Tries to get the current JSON number as an <see cref="int"/> without throwing.</summary>
     public bool TryGetInt32(out int value)
@@ -386,14 +358,7 @@ public readonly partial struct SourceResultElement
 
     /// <summary>Gets the current JSON number as an <see cref="int"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="int"/>.</exception>
-    public int GetInt32()
-    {
-        if (!TryGetInt32(out var v))
-        {
-            ThrowHelper.ThrowFormatException();
-        }
-        return v;
-    }
+    public int GetInt32() => TryGetInt32(out var value)  ? value : throw ThrowHelper.FormatException();
 
     /// <summary>Tries to get the current JSON number as a <see cref="uint"/> without throwing.</summary>
     public bool TryGetUInt32(out uint value)
@@ -404,14 +369,7 @@ public readonly partial struct SourceResultElement
 
     /// <summary>Gets the current JSON number as a <see cref="uint"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="uint"/>.</exception>
-    public uint GetUInt32()
-    {
-        if (!TryGetUInt32(out var v))
-        {
-            ThrowHelper.ThrowFormatException();
-        }
-        return v;
-    }
+    public uint GetUInt32() => TryGetUInt32(out var value) ? value : throw ThrowHelper.FormatException();
 
     /// <summary>Tries to get the current JSON number as a <see cref="long"/> without throwing.</summary>
     public bool TryGetInt64(out long value)
@@ -422,14 +380,7 @@ public readonly partial struct SourceResultElement
 
     /// <summary>Gets the current JSON number as a <see cref="long"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="long"/>.</exception>
-    public long GetInt64()
-    {
-        if (!TryGetInt64(out var v))
-        {
-            ThrowHelper.ThrowFormatException();
-        }
-        return v;
-    }
+    public long GetInt64() => TryGetInt64(out var value) ? value : throw ThrowHelper.FormatException();
 
     /// <summary>Tries to get the current JSON number as a <see cref="ulong"/> without throwing.</summary>
     public bool TryGetUInt64(out ulong value)
@@ -440,14 +391,7 @@ public readonly partial struct SourceResultElement
 
     /// <summary>Gets the current JSON number as a <see cref="ulong"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="ulong"/>.</exception>
-    public ulong GetUInt64()
-    {
-        if (!TryGetUInt64(out var v))
-        {
-            ThrowHelper.ThrowFormatException();
-        }
-        return v;
-    }
+    public ulong GetUInt64() => TryGetUInt64(out var value) ? value : throw ThrowHelper.FormatException();
 
     /// <summary>Tries to get the current JSON number as a <see cref="double"/> without throwing.</summary>
     public bool TryGetDouble(out double value)
@@ -458,14 +402,7 @@ public readonly partial struct SourceResultElement
 
     /// <summary>Gets the current JSON number as a <see cref="double"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="double"/>.</exception>
-    public double GetDouble()
-    {
-        if (!TryGetDouble(out var v))
-        {
-            ThrowHelper.ThrowFormatException();
-        }
-        return v;
-    }
+    public double GetDouble() => TryGetDouble(out var value) ? value : throw ThrowHelper.FormatException();
 
     /// <summary>Tries to get the current JSON number as a <see cref="float"/> without throwing.</summary>
     public bool TryGetSingle(out float value)
@@ -476,14 +413,7 @@ public readonly partial struct SourceResultElement
 
     /// <summary>Gets the current JSON number as a <see cref="float"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="float"/>.</exception>
-    public float GetSingle()
-    {
-        if (!TryGetSingle(out var v))
-        {
-            ThrowHelper.ThrowFormatException();
-        }
-        return v;
-    }
+    public float GetSingle() => TryGetSingle(out var value) ? value : throw ThrowHelper.FormatException();
 
     /// <summary>Tries to get the current JSON number as a <see cref="decimal"/> without throwing.</summary>
     public bool TryGetDecimal(out decimal value)
@@ -494,14 +424,7 @@ public readonly partial struct SourceResultElement
 
     /// <summary>Gets the current JSON number as a <see cref="decimal"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="decimal"/>.</exception>
-    public decimal GetDecimal()
-    {
-        if (!TryGetDecimal(out var v))
-        {
-            ThrowHelper.ThrowFormatException();
-        }
-        return v;
-    }
+    public decimal GetDecimal() => TryGetDecimal(out var value) ? value : throw ThrowHelper.FormatException();
 
     /// <summary>
     /// Gets the property name for the current property value.

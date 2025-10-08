@@ -22,7 +22,7 @@ internal class Query : ITypeResolverInterceptor
 
     public static void Schema(FieldContext context)
     {
-        context.FieldResult.SetObjectValue();
+        context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
         context.AddRuntimeResult(context.Schema);
     }
 
@@ -31,7 +31,7 @@ internal class Query : ITypeResolverInterceptor
         var name = context.ArgumentValue<StringValueNode>("name");
         if (context.Schema.Types.TryGetType(name.Value, out var type))
         {
-            context.FieldResult.SetObjectValue();
+            context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
             context.AddRuntimeResult(type);
         }
     }

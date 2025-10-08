@@ -416,7 +416,7 @@ public readonly partial struct CompositeResultElement
     {
         if (!TryGetInt32(out var value))
         {
-            ThrowHelper.ThrowFormatException();
+            ThrowHelper.FormatException();
         }
 
         return value;
@@ -433,7 +433,7 @@ public readonly partial struct CompositeResultElement
     {
         if (!TryGetUInt32(out var value))
         {
-            ThrowHelper.ThrowFormatException();
+            ThrowHelper.FormatException();
         }
 
         return value;
@@ -450,7 +450,7 @@ public readonly partial struct CompositeResultElement
     {
         if (!TryGetInt64(out var value))
         {
-            ThrowHelper.ThrowFormatException();
+            ThrowHelper.FormatException();
         }
 
         return value;
@@ -467,7 +467,7 @@ public readonly partial struct CompositeResultElement
     {
         if (!TryGetUInt64(out var value))
         {
-            ThrowHelper.ThrowFormatException();
+            ThrowHelper.FormatException();
         }
 
         return value;
@@ -484,7 +484,7 @@ public readonly partial struct CompositeResultElement
     {
         if (!TryGetDouble(out var value))
         {
-            ThrowHelper.ThrowFormatException();
+            ThrowHelper.FormatException();
         }
 
         return value;
@@ -501,7 +501,7 @@ public readonly partial struct CompositeResultElement
     {
         if (!TryGetSingle(out var value))
         {
-            ThrowHelper.ThrowFormatException();
+            ThrowHelper.FormatException();
         }
 
         return value;
@@ -518,7 +518,7 @@ public readonly partial struct CompositeResultElement
     {
         if (!TryGetDecimal(out var value))
         {
-            ThrowHelper.ThrowFormatException();
+            ThrowHelper.FormatException();
         }
 
         return value;

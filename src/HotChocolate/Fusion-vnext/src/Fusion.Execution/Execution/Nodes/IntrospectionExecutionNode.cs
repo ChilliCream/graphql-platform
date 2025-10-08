@@ -36,8 +36,9 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         CancellationToken cancellationToken = default)
     {
         var backlog = new Stack<(object? Parent, Selection Selection, SourceResultElementBuilder Result)>();
-        var resultBuilder = new SourceResultDocumentBuilder();
+        var resultBuilder = new SourceResultDocumentBuilder(context.OperationPlan.Operation, context.IncludeFlags);
         var root = resultBuilder.Root;
+        var index = 0;
 
         foreach (var selection in _selections)
         {
@@ -48,7 +49,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                 continue;
             }
 
-            var property = root.CreateProperty(selection);
+            var property = root.CreateProperty(selection, index++);
             backlog.Push((null, selection, property));
         }
 
@@ -95,7 +96,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                             continue;
                         }
 
-                        var property = result.CreateProperty(childSelection);
+                        var property = result.CreateProperty(childSelection, i);
                         backlog.Push((fieldContext.RuntimeResults[0], childSelection, property));
                     }
                 }
@@ -125,7 +126,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                                 continue;
                             }
 
-                            var property = result.CreateProperty(childSelection);
+                            var property = result.CreateProperty(childSelection, i);
                             backlog.Push((runtimeResult, childSelection, property));
                         }
                     }

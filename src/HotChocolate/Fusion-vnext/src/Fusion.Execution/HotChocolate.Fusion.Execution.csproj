@@ -141,6 +141,18 @@
     <Compile Update="Text\Json\SourceResultDocument.TryGetValue.cs">
       <DependentUpon>SourceResultDocument.cs</DependentUpon>
     </Compile>
+    <Compile Update="Text\Json\SourceResultDocument.Cursor.cs">
+      <DependentUpon>SourceResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\SourceResultDocumentBuilder.MetaDb.cs">
+      <DependentUpon>SourceResultDocumentBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\SourceResultElementBuilder.cs">
+      <DependentUpon>SourceResultDocumentBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\SourceResultElementBuilder.ArrayEnumerator.cs">
+      <DependentUpon>SourceResultDocumentBuilder.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
