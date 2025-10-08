@@ -13,5 +13,5 @@ public interface IXmlDocumentationFileResolver
     /// Trues to resolve an XML documentation file from the given assembly..
     /// </summary>
     bool TryGetXmlDocument(Assembly assembly,
-        [NotNullWhen(true)] out XPathDocument? document);
+        [NotNullWhen(true)] out XPathNavigator? document);
 }
