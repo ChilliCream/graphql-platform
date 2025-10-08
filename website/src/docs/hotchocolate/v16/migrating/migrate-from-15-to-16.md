@@ -36,6 +36,36 @@ builder.Services.AddGraphQLServer()
     });
 ```
 
+## IRequestContext
+
+We've removed the `IRequestContext` abstraction in favor of the concrete `RequestContext` class.
+Additionally, all information related to the parsed operation document has been consolidated into a new `OperationDocumentInfo` class, accessible via `RequestContext.OperationDocumentInfo`.
+
+| Before                      | After                                     |
+| --------------------------- | ----------------------------------------- |
+| context.DocumentId          | context.OperationDocumentInfo.Id.Value    |
+| context.Document            | context.OperationDocumentInfo.Document    |
+| context.DocumentHash        | context.OperationDocumentInfo.Hash.Value  |
+| context.ValidationResult    | context.OperationDocumentInfo.IsValidated |
+| context.IsCachedDocument    | context.OperationDocumentInfo.IsCached    |
+| context.IsPersistedDocument | context.OperationDocumentInfo.IsPersisted |
+
+Here's how you would update a custom request middleware implementation:
+
+```diff
+public class CustomRequestMiddleware
+{
+-   public async ValueTask InvokeAsync(IRequestContext context)
++   public async ValueTask InvokeAsync(RequestContext context)
+    {
+-       string documentId = context.DocumentId;
++       string documentId = context.OperationDocumentInfo.Id.Value;
+
+        await _next(context).ConfigureAwait(false);
+    }
+}
+```
+
 ## Skip/include disallowed on root subscription fields
 
 The `@skip` and `@include` directives are now disallowed on root subscription fields, as specified in the RFC: [Prevent @skip and @include on root subscription selection set](https://github.com/graphql/graphql-spec/pull/860).
@@ -114,3 +144,18 @@ In addition, the default output for such errors has been standardized: earlier, 
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
+
+# Noteworthy changes
+
+## RunWithGraphQLCommandsAsync returns exit code
+
+`RunWithGraphQLCommandsAsync` and `RunWithGraphQLCommands` now return exit codes (`Task<int>` and `int` respectively, instead of `Task` and `void`).
+
+We recommend updating your `Program.cs` to return this exit code. This ensures that command failures signal an error to shell scripts, CI/CD pipelines, and other tools:
+
+```diff
+var app = builder.Build();
+
+- await app.RunWithGraphQLCommandsAsync(args);
++ return await app.RunWithGraphQLCommandsAsync(args);
+```

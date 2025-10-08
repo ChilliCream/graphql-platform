@@ -2,12 +2,10 @@
 
 ```text
 Headers:
-ETag: "1-9lT+j9S1VOCU5XKHoaNVEuxjYrB+yk/yPGmxKIktwoY="
 Cache-Control: public, must-revalidate, max-age=3600
 Content-Type: application/graphql; charset=utf-8
 Content-Disposition: attachment; filename="schema.graphql"
 Last-Modified: Fri, 01 Jan 2021 00:00:00 GMT
-Content-Length: 7466
 -------------------------->
 Status Code: OK
 -------------------------->

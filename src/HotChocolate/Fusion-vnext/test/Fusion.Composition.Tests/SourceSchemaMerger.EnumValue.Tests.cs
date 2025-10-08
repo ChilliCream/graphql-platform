@@ -88,6 +88,90 @@ public sealed class SourceSchemaMergerEnumValueTests
                         @fusion__enumValue(schema: B)
                 }
                 """
+            },
+            // Even if an enum value is only @deprecated in one source schema,
+            // the composite enum value is marked as @deprecated.
+            {
+                [
+                    """
+                    # Schema A
+                    enum Status {
+                        ACTIVE @deprecated(reason: "Some reason")
+                    }
+                    """,
+                    """
+                    # Schema B
+                    enum Status {
+                        ACTIVE
+                    }
+                    """
+                ],
+                """
+                enum Status
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B) {
+                    ACTIVE
+                        @fusion__enumValue(schema: A)
+                        @fusion__enumValue(schema: B)
+                        @deprecated(reason: "Some reason")
+                }
+                """
+            },
+            // If the same enum value is @deprecated in multiple source schemas,
+            // the first non-null deprecation message is chosen.
+            {
+                [
+                    """
+                    # Schema A
+                    enum Status {
+                        ACTIVE @deprecated(reason: "Some reason")
+                    }
+                    """,
+                    """
+                    # Schema B
+                    enum Status {
+                        ACTIVE @deprecated(reason: "Another reason")
+                    }
+                    """
+                ],
+                """
+                enum Status
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B) {
+                    ACTIVE
+                        @fusion__enumValue(schema: A)
+                        @fusion__enumValue(schema: B)
+                        @deprecated(reason: "Some reason")
+                }
+                """
+            },
+            // If the an enum value is deprecated without a deprecation reason,
+            // a default reason is inserted to be compatible with the latest spec.
+            {
+                [
+                    """
+                    # Schema A
+                    enum Status {
+                        ACTIVE @deprecated
+                    }
+                    """,
+                    """
+                    # Schema B
+                    enum Status {
+                        ACTIVE @deprecated
+                    }
+                    """
+                ],
+                """
+                enum Status
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B) {
+                    ACTIVE
+                        @fusion__enumValue(schema: A)
+                        @fusion__enumValue(schema: B)
+                        @deprecated(reason: "No longer supported.")
+                }
+                """
             }
         };
     }

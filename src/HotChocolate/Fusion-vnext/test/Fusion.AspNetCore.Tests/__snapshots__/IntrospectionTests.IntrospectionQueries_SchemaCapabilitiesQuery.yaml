@@ -1,0 +1,139 @@
+title: IntrospectionQueries
+request:
+  document: |
+    query IntrospectionQuery {
+      __type(name: "__Schema") {
+        name
+        fields {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "__type": {
+          "name": "__Schema",
+          "fields": [
+            {
+              "name": "description"
+            },
+            {
+              "name": "types"
+            },
+            {
+              "name": "queryType"
+            },
+            {
+              "name": "mutationType"
+            },
+            {
+              "name": "subscriptionType"
+            },
+            {
+              "name": "directives"
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      "Schema description"
+      schema @test(arg: "value") {
+        query: Query
+        mutation: Mutation
+        subscription: Subscription
+      }
+      
+      interface Node @test(arg: "value") {
+        id: ID!
+      }
+      
+      "Interface description"
+      interface Votable implements Node {
+        "Interface field description"
+        id: ID!
+      }
+      
+      type Mutation @test(arg: "value") {
+        postReview(input: PostReviewInput): Review @test(arg: "value")
+      }
+      
+      type Post implements Votable & Node @key(fields: "id") {
+        id: ID!
+        postKind: PostKind @shareable
+        location: String @inaccessible
+      }
+      
+      "Object type description"
+      type Query @test(arg: "value") {
+        "Object field description"
+        posts("Argument description" filter: PostsFilter first: Int! = 5 @test(arg: "value") hidden: Boolean @deprecated(reason: "No longer supported")): [Post]
+        userCreation: UserCreation
+        votables: [Votable]! @deprecated(reason: "No longer supported")
+        postById(postId: ID! @is(field: "id")): Post @lookup
+        node(id: ID!): Node @lookup
+      }
+      
+      type Review implements Votable & Node @test(arg: "value") {
+        id: ID!
+      }
+      
+      type Subscription @test(arg: "value") {
+        onNewReview: Review
+      }
+      
+      "Union description"
+      union UserCreation @test(arg: "value") = Post | Review
+      
+      input PostReviewInput @oneOf {
+        scalar: String @deprecated(reason: "No longer supported")
+        pros: [PostReviewPro]
+      }
+      
+      input PostReviewPro {
+        scalar: Int!
+      }
+      
+      "Input object type description"
+      input PostsFilter @test(arg: "value") {
+        "Input field description"
+        scalar: String = "test" @test(arg: "value")
+      }
+      
+      "Enum description"
+      enum PostKind @test(arg: "value") {
+        "Enum value description"
+        STORY @test(arg: "value")
+        PHOTO @deprecated(reason: "No longer supported")
+      }
+      
+      "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
+      directive @oneOf on INPUT_OBJECT
+      
+      "Directive description"
+      directive @test("Directive argument description" arg: String! = "default") repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD | FRAGMENT_DEFINITION | FRAGMENT_SPREAD | INLINE_FRAGMENT | VARIABLE_DEFINITION | SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+operationPlan:
+  operation:
+    - document: |
+        query IntrospectionQuery {
+          __type(name: "__Schema") {
+            name
+            fields {
+              name
+            }
+          }
+        }
+      name: IntrospectionQuery
+      hash: 0fe1f53c13f6b62c801102193160023a
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 1
+          responseName: __type
+          fieldName: __type

@@ -25,7 +25,8 @@ public static class FusionServerServiceCollectionExtensions
 
         return services
             .AddGraphQLGateway(name)
-            .AddGraphQLGatewayServerCore()
+            .AddGraphQLGatewayServerCore(maxAllowedRequestSize)
+            .AddStartupInitialization()
             .AddDefaultHttpRequestInterceptor()
             .AddSubscriptionServices();
     }
@@ -65,33 +66,12 @@ public static class FusionServerServiceCollectionExtensions
         return builder;
     }
 
-    public static IFusionGatewayBuilder AddHttpRequestInterceptor<T>(
+    private static IFusionGatewayBuilder AddStartupInitialization(
         this IFusionGatewayBuilder builder)
-        where T : IHttpRequestInterceptor, new()
     {
-        ArgumentNullException.ThrowIfNull(builder);
+        builder.Services.AddHostedService<RequestExecutorWarmupService>();
 
-        return builder.ConfigureSchemaServices(
-            (_, s) =>
-            {
-                s.RemoveAll<IHttpRequestInterceptor>();
-                s.AddSingleton<IHttpRequestInterceptor>(new T());
-            });
-    }
-
-    public static IFusionGatewayBuilder AddHttpRequestInterceptor(
-        this IFusionGatewayBuilder builder,
-        Func<IServiceProvider, IHttpRequestInterceptor> factory)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(factory);
-
-        return builder.ConfigureSchemaServices(
-            (_, s) =>
-            {
-                s.RemoveAll<IHttpRequestInterceptor>();
-                s.AddSingleton(factory);
-            });
+        return builder;
     }
 
     private static IFusionGatewayBuilder AddDefaultHttpRequestInterceptor(

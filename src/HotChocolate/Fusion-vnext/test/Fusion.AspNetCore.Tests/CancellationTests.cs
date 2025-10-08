@@ -67,7 +67,7 @@ public class CancellationTests : FusionTestBase
             ("B", server2)
         ],
         configureGatewayBuilder: builder =>
-            builder.ModifyRequestOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Halt));
+            builder.ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Halt));
 
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
@@ -107,7 +107,7 @@ public class CancellationTests : FusionTestBase
                 ("A", server1)
             ],
             configureGatewayBuilder: builder =>
-                builder.ModifyRequestOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Halt));
+                builder.ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Halt));
 
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
@@ -178,7 +178,7 @@ public class CancellationTests : FusionTestBase
             ("A", server1)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Halt));
+            .ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Halt));
 
         var request = new OperationRequest(
             """
