@@ -794,7 +794,7 @@ public class InputObjectTypeTests : TypeTestBase
 
     public interface IDoesNotWork
     {
-        public double? Member { get; set; }
+        double? Member { get; set; }
     }
 
     public class SimpleInput

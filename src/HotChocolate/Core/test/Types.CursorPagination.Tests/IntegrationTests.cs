@@ -1224,13 +1224,13 @@ public class IntegrationTests
 
     public interface ISome
     {
-        public string[] ExplicitType();
+        string[] ExplicitType();
     }
 
     public interface ISome2
     {
         [UsePaging(typeof(NonNullType<StringType>))]
-        public string[] ExplicitType();
+        string[] ExplicitType();
     }
 
     public class InferConnectionNameFromFieldType : ObjectType<InferConnectionNameFromField>
