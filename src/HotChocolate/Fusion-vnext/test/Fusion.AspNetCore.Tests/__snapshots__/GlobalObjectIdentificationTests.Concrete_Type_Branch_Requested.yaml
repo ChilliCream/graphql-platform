@@ -115,11 +115,11 @@ operationPlan:
         {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
+            id @fusion__requirement
             ... on Discussion {
               title
               commentCount
             }
-            id @fusion__requirement
           }
         }
       hash: e567807ec1ad5128cfb566fad1645abc

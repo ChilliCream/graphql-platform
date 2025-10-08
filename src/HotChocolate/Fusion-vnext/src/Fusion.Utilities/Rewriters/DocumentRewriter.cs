@@ -1,11 +1,14 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Rewriters;
 
-internal sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStaticallyExcludedSelections = false)
+// TODO: Observer
+public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStaticallyExcludedSelections = false)
 {
     private static readonly FieldNode s_typeNameField =
         new FieldNode(
@@ -22,37 +25,523 @@ internal sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStat
         var operationType = schema.GetOperationType(operation.Operation);
         var fragmentLookup = CreateFragmentLookup(document);
 
-        return null!;
+        var context = new Context(null, null, operationType, null, fragmentLookup);
+        CollectSelections(operation.SelectionSet, context);
 
-        // var context = new Context(null, operationType, fragmentLookup);
-        //
-        // CollectSelections(operation.SelectionSet, context);
-        //
-        // var newSelections = RewriteSelections(context);
-        //
-        // // TODO: Handle empty case better
-        // var newSelectionSet = new SelectionSetNode(newSelections ?? []);
-        //
-        // var newOperation = new OperationDefinitionNode(
-        //     null,
-        //     operation.Name,
-        //     operation.Description,
-        //     operation.Operation,
-        //     operation.VariableDefinitions,
-        //     RewriteDirectives(operation.Directives),
-        //     newSelectionSet);
-        //
-        // return new DocumentNode([newOperation]);
-    }
+        var newSelections = RewriteSelections(context);
 
-    public SelectionSetNode RewriteSelectionSet(
-        SelectionSetNode selectionSet,
-        ISelectionSetMergeObserver mergeObserver)
-    {
-        throw new NotImplementedException();
+        var newSelectionSet = new SelectionSetNode(newSelections ?? []);
+
+        var newOperation = new OperationDefinitionNode(
+            null,
+            operation.Name,
+            operation.Description,
+            operation.Operation,
+            operation.VariableDefinitions,
+            RewriteDirectives(operation.Directives),
+            newSelectionSet);
+
+        return new DocumentNode([newOperation]);
     }
 
     #region Collecting
+    private void CollectSelections(SelectionSetNode selectionSet, Context context)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field:
+                    CollectField(field, context);
+                    break;
+
+                case InlineFragmentNode inlineFragment:
+                    CollectInlineFragment(inlineFragment, context);
+                    break;
+
+                case FragmentSpreadNode fragmentSpread:
+                    CollectFragmentSpread(fragmentSpread, context);
+                    break;
+            }
+        }
+    }
+
+    private void CollectField(FieldNode fieldNode, Context context)
+    {
+        if (removeStaticallyExcludedSelections && IsStaticallySkipped(fieldNode))
+        {
+            return;
+        }
+
+        var (conditional, directives) = DivideDirectives(
+            fieldNode,
+            Types.DirectiveLocation.Field);
+
+        conditional = RemoveInheritedConditionals(conditional, context);
+
+        if (conditional is not null)
+        {
+            context = context.GetOrAddConditionalContext(conditional);
+        }
+
+        fieldNode = fieldNode
+            .WithArguments(RewriteArguments(fieldNode.Arguments))
+            .WithDirectives(directives ?? [])
+            .WithLocation(null);
+
+        var fieldName = fieldNode.Name.Value;
+        ITypeDefinition fieldType;
+
+        if (fieldName == IntrospectionFieldNames.TypeName)
+        {
+            fieldType = schema.Types["String"];
+        }
+        else
+        {
+            var field = ((IComplexTypeDefinition)context.Type).Fields[fieldName];
+
+            fieldType = field.Type.AsTypeDefinition();
+        }
+
+        var fieldContext = GetOrAddContextForField(context, fieldNode, fieldType);
+
+        if (fieldContext is not null && fieldNode.SelectionSet is not null)
+        {
+            CollectSelections(fieldNode.SelectionSet, fieldContext);
+        }
+    }
+
+    private void CollectInlineFragment(InlineFragmentNode inlineFragment, Context context)
+    {
+        if (removeStaticallyExcludedSelections && IsStaticallySkipped(inlineFragment))
+        {
+            return;
+        }
+
+        var typeCondition = inlineFragment.TypeCondition is not null
+            ? schema.Types[inlineFragment.TypeCondition.Name.Value]
+            : context.Type;
+
+        var (conditional, directives) = DivideDirectives(
+            inlineFragment,
+            Types.DirectiveLocation.InlineFragment);
+
+        CollectFragment(
+            inlineFragment.SelectionSet,
+            typeCondition,
+            conditional,
+            directives,
+            context);
+    }
+
+    private void CollectFragmentSpread(FragmentSpreadNode fragmentSpread, Context context)
+    {
+        if (removeStaticallyExcludedSelections && IsStaticallySkipped(fragmentSpread))
+        {
+            return;
+        }
+
+        var fragmentDefinition = context.GetFragmentDefinition(fragmentSpread.Name.Value);
+        var typeCondition = schema.Types[fragmentDefinition.TypeCondition.Name.Value];
+
+        var (conditional, directives) = DivideDirectives(
+            fragmentSpread,
+            Types.DirectiveLocation.InlineFragment);
+
+        CollectFragment(
+            fragmentDefinition.SelectionSet,
+            typeCondition,
+            conditional,
+            directives,
+            context);
+    }
+
+    private void CollectFragment(
+        SelectionSetNode selectionSet,
+        ITypeDefinition typeCondition,
+        Conditional? conditional,
+        IReadOnlyList<DirectiveNode>? otherDirectives,
+        Context context)
+    {
+        conditional = RemoveInheritedConditionals(conditional, context);
+
+        if (conditional is not null)
+        {
+            context = context.GetOrAddConditionalContext(conditional);
+        }
+
+        var isTypeRefinement = !typeCondition.IsAssignableFrom(context.Type);
+
+        Context fragmentContext = context;
+        if (isTypeRefinement || otherDirectives is not null)
+        {
+            var inlineFragment = new InlineFragmentNode(
+                null,
+                isTypeRefinement
+                    ? new NamedTypeNode(typeCondition.Name)
+                    : null,
+                otherDirectives ?? [],
+                selectionSet);
+
+            fragmentContext = GetOrAddFragmentContext(context, inlineFragment, typeCondition);
+        }
+
+        CollectSelections(selectionSet, fragmentContext);
+    }
+
+    private static Context? GetOrAddContextForField(Context context, FieldNode fieldNode, ITypeDefinition fieldType)
+    {
+        if (context.IsConditionalContext)
+        {
+            var unconditionalContext = context.UnconditionalContext;
+
+            if (unconditionalContext.HasField(fieldNode, out var unconditionalFieldContext))
+            {
+                if (fieldNode.SelectionSet is null)
+                {
+                    return null;
+                }
+
+                if (unconditionalFieldContext is null)
+                {
+                    throw new InvalidOperationException("Expected to have a field context");
+                }
+
+                // TODO: Is this correct?
+                var conditionalContextBelowUnconditionalFieldContext =
+                    RecreateConditionalContextHierarchy(unconditionalFieldContext, context);
+
+                return conditionalContextBelowUnconditionalFieldContext;
+            }
+
+            if (!context.HasField(fieldNode, out var fieldContext))
+            {
+                fieldContext = context.AddField(fieldNode, fieldType);
+
+                unconditionalContext.RecordReferenceInConditionalContext(fieldNode, context);
+            }
+
+            return fieldContext;
+        }
+        else
+        {
+            if (!context.HasField(fieldNode, out var fieldContext))
+            {
+                fieldContext = context.AddField(fieldNode, fieldType);
+            }
+
+            if (context.TryGetConditionalContextsWithReferences(fieldNode, out var conditionalContexts))
+            {
+                foreach (var conditionalContext in conditionalContexts)
+                {
+                    if (fieldContext is not null
+                        && conditionalContext.HasField(fieldNode, out var conditionalFieldContext)
+                        && conditionalFieldContext is not null)
+                    {
+                        // TODO: Is this correct?
+                        var conditionalContextBelowUnconditionalField =
+                            RecreateConditionalContextHierarchy(fieldContext, conditionalContext);
+
+                        // TODO: references arent set on unconditional context
+
+                        MergeContexts(conditionalFieldContext, conditionalContextBelowUnconditionalField);
+                    }
+
+                    conditionalContext.RemoveField(fieldNode);
+                }
+
+                context.RemoveReferenceToConditionalContext(fieldNode);
+            }
+
+            return fieldContext;
+        }
+    }
+
+    private static Context GetOrAddFragmentContext(
+        Context context,
+        InlineFragmentNode inlineFragmentNode,
+        ITypeDefinition typeCondition)
+    {
+        if (context.IsConditionalContext)
+        {
+            var unconditionalContext = context.UnconditionalContext;
+
+            if (unconditionalContext.HasFragment(inlineFragmentNode, out var unconditionalFragmentContext))
+            {
+                // TODO: Is this correct?
+                var conditionalContextBelowUnconditionalFragmentContext =
+                    RecreateConditionalContextHierarchy(unconditionalFragmentContext, context);
+
+                return conditionalContextBelowUnconditionalFragmentContext;
+            }
+
+            if (!context.HasFragment(inlineFragmentNode, out var fragmentContext))
+            {
+                fragmentContext = context.AddFragment(inlineFragmentNode, typeCondition);
+
+                unconditionalContext.RecordReferenceInConditionalContext(inlineFragmentNode, context);
+            }
+
+            return fragmentContext;
+        }
+        else
+        {
+            if (!context.HasFragment(inlineFragmentNode, out var fragmentContext))
+            {
+                fragmentContext = context.AddFragment(inlineFragmentNode, typeCondition);
+            }
+
+            if (context.TryGetConditionalContextsWithReferences(inlineFragmentNode, out var conditionalContexts))
+            {
+                foreach (var conditionalContext in conditionalContexts)
+                {
+                    if (conditionalContext.HasFragment(inlineFragmentNode,
+                        out var conditionalFragmentContext))
+                    {
+                        // TODO: Is this correct?
+                        var conditionalContextBelowUnconditionalFragment =
+                            RecreateConditionalContextHierarchy(fragmentContext, conditionalContext);
+
+                        MergeContexts(conditionalFragmentContext, conditionalContextBelowUnconditionalFragment);
+                    }
+
+                    conditionalContext.RemoveFragment(inlineFragmentNode);
+                }
+
+                context.RemoveReferenceToConditionalContext(inlineFragmentNode);
+            }
+
+            return fragmentContext;
+        }
+    }
+
+    // TODO: Make this easier to understand and add summary
+    private static Context RecreateConditionalContextHierarchy(Context newRoot, Context baseConditional)
+    {
+        var conditionalParents = new Stack<Context>();
+        var current = baseConditional;
+
+        do
+        {
+            if (current.IsConditionalContext)
+            {
+                conditionalParents.Push(current);
+                current = current.Parent;
+            }
+            else
+            {
+                break;
+            }
+        } while (current is not null);
+
+        var currentRoot = newRoot;
+        while (conditionalParents.TryPop(out var oldConditionalContext))
+        {
+            currentRoot = currentRoot.GetOrAddConditionalContext(oldConditionalContext.Conditional!);
+        }
+
+        return currentRoot;
+    }
+
+    private static void MergeContexts(Context source, Context target)
+    {
+        if (source.Conditionals is not null)
+        {
+            foreach (var (conditional, conditionalContext) in source.Conditionals)
+            {
+                var targetConditionalContext = target.GetOrAddConditionalContext(conditional);
+
+                MergeContexts(conditionalContext, targetConditionalContext);
+            }
+        }
+
+        if (source.Fields is not null)
+        {
+            foreach (var (_, fieldContextLookup) in source.Fields)
+            {
+                foreach (var (fieldNode, fieldContext) in fieldContextLookup)
+                {
+                    if (target.HasField(fieldNode, out var targetFieldContext))
+                    {
+                        if (fieldContext is not null && targetFieldContext is not null)
+                        {
+                            MergeContexts(fieldContext, targetFieldContext);
+                        }
+                    }
+                    else
+                    {
+                        if (fieldContext is not null)
+                        {
+                            fieldContext.Parent = target;
+                            // TODO: Set Unconditional
+                        }
+
+                        target.AddField(fieldNode, fieldContext);
+                    }
+                }
+            }
+        }
+
+        if (source.Fragments is not null)
+        {
+            foreach (var (_, fragmentContextLookup) in source.Fragments)
+            {
+                foreach (var (inlineFragmentNode, fragmentContext) in fragmentContextLookup)
+                {
+                    if (target.HasFragment(inlineFragmentNode, out var targetFragmentContext))
+                    {
+                        MergeContexts(fragmentContext, targetFragmentContext);
+                    }
+                    else
+                    {
+                        fragmentContext.Parent = target;
+                        // TODO: Set Unconditional
+                        target.AddFragment(inlineFragmentNode, fragmentContext);
+                    }
+                }
+            }
+        }
+    }
+
+    private static Conditional? RemoveInheritedConditionals(Conditional? conditional, Context context)
+    {
+        if (conditional is null)
+        {
+            return null;
+        }
+
+        var current = context;
+        do
+        {
+            if (current.Conditional is { } parentConditional)
+            {
+                if (conditional.Skip?.Equals(parentConditional.Skip, SyntaxComparison.Syntax) == true)
+                {
+                    conditional.Skip = null;
+                }
+
+                if (conditional.Include?.Equals(parentConditional.Include, SyntaxComparison.Syntax) == true)
+                {
+                    conditional.Include = null;
+                }
+
+                if (conditional.Skip is null && conditional.Include is null)
+                {
+                    return null;
+                }
+            }
+
+            current = current.Parent;
+        } while (current is not null);
+
+        return conditional;
+    }
+
+    private (Conditional? Conditional, IReadOnlyList<DirectiveNode>? Directives) DivideDirectives(
+        IHasDirectives directiveProvider,
+        Types.DirectiveLocation targetLocation)
+    {
+        if (directiveProvider.Directives.Count == 0)
+        {
+            return (null, null);
+        }
+
+        Conditional? conditional = null;
+        List<DirectiveNode>? directives = null;
+
+        foreach (var directive in directiveProvider.Directives)
+        {
+            if (schema.DirectiveDefinitions.TryGetDirective(directive.Name.Value, out var directiveDefinition)
+                && !directiveDefinition.Locations.HasFlag(targetLocation))
+            {
+                continue;
+            }
+
+            var rewrittenDirective = RewriteDirective(directive);
+
+            if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal))
+            {
+                if (directive.Arguments is [{ Value: BooleanValueNode }])
+                {
+                    continue;
+                }
+
+                conditional ??= new Conditional();
+                conditional.Skip = rewrittenDirective;
+
+                continue;
+            }
+
+            if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal))
+            {
+                if (directive.Arguments is [{ Value: BooleanValueNode }])
+                {
+                    continue;
+                }
+
+                conditional ??= new Conditional();
+                conditional.Include = rewrittenDirective;
+
+                continue;
+            }
+
+            if (directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal))
+            {
+                var ifArgument = directive.Arguments
+                    .FirstOrDefault(a => a.Name.Value.Equals("if", StringComparison.Ordinal));
+
+                if (ifArgument?.Value is BooleanValueNode { Value: false })
+                {
+                    continue;
+                }
+            }
+
+            directives ??= [];
+            directives.Add(rewrittenDirective);
+        }
+
+        return (conditional, directives);
+    }
+
+    private static bool IsStaticallySkipped(IHasDirectives directiveProvider)
+    {
+        if (directiveProvider.Directives.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (var directive in directiveProvider.Directives)
+        {
+            if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal)
+                && directive.Arguments is [{ Value: BooleanValueNode { Value: true } }])
+            {
+                return true;
+            }
+
+            if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal)
+                && directive.Arguments is [{ Value: BooleanValueNode { Value: false } }])
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static Dictionary<string, FragmentDefinitionNode> CreateFragmentLookup(DocumentNode document)
+    {
+        var lookup = new Dictionary<string, FragmentDefinitionNode>();
+
+        foreach (var definition in document.Definitions)
+        {
+            if (definition is FragmentDefinitionNode fragmentDef)
+            {
+                lookup.Add(fragmentDef.Name.Value, fragmentDef);
+            }
+        }
+
+        return lookup;
+    }
     #endregion
 
     #region Rewriting
@@ -60,14 +549,13 @@ internal sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStat
     {
         List<ISelectionNode>? selections = null;
 
-        if (context.ResponseNameToFieldLookup is not null)
+        if (context.Fields is not null)
         {
-            // TODO: Maybe we still need to order this by key manually
-            foreach (var (_, fieldNodes) in context.ResponseNameToFieldLookup)
+            foreach (var (_, fieldContextLookup) in context.Fields)
             {
-                foreach (var fieldNode in fieldNodes)
+                foreach (var (fieldNode, fieldContext) in fieldContextLookup)
                 {
-                    var newFieldNode = RewriteField(fieldNode, context);
+                    var newFieldNode = RewriteField(fieldNode, fieldContext);
 
                     if (newFieldNode is null)
                     {
@@ -80,14 +568,13 @@ internal sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStat
             }
         }
 
-        if (context.TypeNameToFragmentLookup is not null)
+        if (context.Fragments is not null)
         {
-            // TODO: Maybe we still need to order this by key manually
-            foreach (var (_, inlineFragmentNodes) in context.TypeNameToFragmentLookup)
+            foreach (var (_, fragmentContextLookup) in context.Fragments)
             {
-                foreach (var inlineFragmentNode in inlineFragmentNodes)
+                foreach (var (inlineFragmentNode, fragmentContext) in fragmentContextLookup)
                 {
-                    var newInlineFragmentNode = RewriteInlineFragment(inlineFragmentNode, context);
+                    var newInlineFragmentNode = RewriteInlineFragment(inlineFragmentNode, fragmentContext);
 
                     if (newInlineFragmentNode is null)
                     {
@@ -100,9 +587,9 @@ internal sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStat
             }
         }
 
-        if (context.ConditionalContexts is not null)
+        if (context.Conditionals is not null)
         {
-            foreach (var (conditional, conditionalContext) in context.ConditionalContexts)
+            foreach (var (conditional, conditionalContext) in context.Conditionals)
             {
                 var conditionalSelection = RewriteConditional(conditional, conditionalContext);
 
@@ -147,17 +634,16 @@ internal sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStat
         };
     }
 
-    private FieldNode? RewriteField(FieldNode fieldNode, Context context)
+    private FieldNode? RewriteField(FieldNode fieldNode, Context? fieldContext)
     {
         if (fieldNode.SelectionSet is null)
         {
             return fieldNode;
         }
 
-        if (context.FieldContexts is null
-            || !context.FieldContexts.TryGetValue(fieldNode, out var fieldContext))
+        if (fieldContext is null)
         {
-            throw new InvalidOperationException("Expected to have a field context.");
+            throw new InvalidOperationException("Expected to have field context");
         }
 
         var fieldSelections = RewriteSelections(fieldContext);
@@ -176,14 +662,8 @@ internal sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStat
         return fieldNode.WithSelectionSet(new SelectionSetNode(fieldSelections));
     }
 
-    private InlineFragmentNode? RewriteInlineFragment(InlineFragmentNode inlineFragmentNode, Context context)
+    private InlineFragmentNode? RewriteInlineFragment(InlineFragmentNode inlineFragmentNode, Context fragmentContext)
     {
-        if (context.FragmentContexts is null
-            || !context.FragmentContexts.TryGetValue(inlineFragmentNode, out var fragmentContext))
-        {
-            throw new InvalidOperationException("Expected to have a fragment context.");
-        }
-
         var fragmentSelections = RewriteSelections(fragmentContext);
 
         if (fragmentSelections is null)
@@ -248,115 +728,285 @@ internal sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStat
     }
     #endregion
 
-    private static bool IsStaticallySkipped(IHasDirectives directiveProvider)
+    [DebuggerDisplay("{Type.Name}, Fields: {Fields?.Count}, Fragments: {Fragments?.Count}, Conditionals: {Conditionals?.Count}")]
+    private sealed class Context(
+        Context? parent,
+        Context? unconditionalContext,
+        ITypeDefinition type,
+        Conditional? conditional,
+        Dictionary<string, FragmentDefinitionNode> fragmentLookup)
     {
-        if (directiveProvider.Directives.Count == 0)
-        {
-            return false;
-        }
+        /// <summary>
+        /// Points to the parent of this context.
+        /// Null for the root context.
+        /// </summary>
+        public Context? Parent { get; set; } = parent;
 
-        foreach (var directive in directiveProvider.Directives)
-        {
-            if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal)
-                && directive.Arguments is [{ Value: BooleanValueNode { Value: true } }])
-            {
-                return true;
-            }
-
-            if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal)
-                && directive.Arguments is [{ Value: BooleanValueNode { Value: false } }])
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static Dictionary<string, FragmentDefinitionNode> CreateFragmentLookup(DocumentNode document)
-    {
-        var lookup = new Dictionary<string, FragmentDefinitionNode>();
-
-        foreach (var definition in document.Definitions)
-        {
-            if (definition is FragmentDefinitionNode fragmentDef)
-            {
-                lookup.Add(fragmentDef.Name.Value, fragmentDef);
-            }
-        }
-
-        return lookup;
-    }
-
-    private sealed class Context(ITypeDefinition type)
-    {
         /// <summary>
         /// The type selections in this context are on.
         /// </summary>
         public ITypeDefinition Type { get; } = type;
 
-        /// <summary>
-        /// Points to the parent of this context.
-        /// Null for the root context.
-        /// </summary>
-        public Context? Parent { get; }
+        [MemberNotNullWhen(true, nameof(Conditional))]
+        [MemberNotNullWhen(true, nameof(UnconditionalContext))]
+        public bool IsConditionalContext { get; } = conditional is not null;
 
-        #region Conditional
         /// <summary>
         /// Contains the conditional, if this context is conditional.
         /// </summary>
-        public Conditional? Conditional { get; }
+        public Conditional? Conditional { get; } = conditional;
 
         /// <summary>
         /// If this context is conditional, this points to the unconditional version
         /// of the context.
         /// </summary>
-        public Context? UnconditionalContext { get; }
+        public Context? UnconditionalContext { get; } = unconditionalContext;
 
         /// <summary>
         /// The context for a specific <see cref="HotChocolate.Fusion.Rewriters.DocumentRewriter.Conditional"/>.
         /// </summary>
-        public Dictionary<Conditional, Context>? ConditionalContexts { get; }
-        #endregion
+        public Dictionary<Conditional, Context>? Conditionals { get; private set; }
 
-        #region Fields
+        /// <summary>
+        /// Provides a way to find all conditional context a given selection node is referenced in.
+        /// </summary>
+        private Dictionary<ISelectionNode, List<Context>>? ReferencesInConditionalContexts { get; set; }
+
         /// <summary>
         /// Provides a fast way to get all FieldNodes for the same response name.
         /// The key is the respones name.
         /// </summary>
-        public Dictionary<string, HashSet<FieldNode>>? ResponseNameToFieldLookup { get; }
+        public Dictionary<string, Dictionary<FieldNode, Context?>>? Fields { get; private set; }
 
-        /// <summary>
-        /// The context for a specific FieldNode with a SelectionSet.
-        /// </summary>
-        public Dictionary<FieldNode, Context>? FieldContexts { get; }
-        #endregion
-
-        #region Fragments
         /// <summary>
         /// Provides a fast way to get all InlineFragmentNodes of the same type refinement.
         /// The key is the name of the type being refined to or an empty string
         /// for an inline fragment without type refinement.
         /// </summary>
-        public Dictionary<string, HashSet<InlineFragmentNode>>? TypeNameToFragmentLookup { get; }
+        public Dictionary<string, Dictionary<InlineFragmentNode, Context>>? Fragments { get; private set; }
+
+        public FragmentDefinitionNode GetFragmentDefinition(string name)
+            => fragmentLookup[name];
+
+        public Context GetOrAddConditionalContext(Conditional conditional)
+        {
+            Conditionals ??= new Dictionary<Conditional, Context>();
+
+            if (!Conditionals.TryGetValue(conditional, out var conditionalContext))
+            {
+                conditionalContext = new Context(
+                    this,
+                    GetUnconditionalContext(),
+                    Type,
+                    conditional,
+                    fragmentLookup);
+
+                Conditionals[conditional] = conditionalContext;
+            }
+
+            return conditionalContext;
+        }
 
         /// <summary>
-        /// The context for a specific InlineFragmentNode.
+        /// Records that <paramref name="selectionNode"/> is referenced in <paramref name="conditionalContext"/>,
+        /// so we can later quickly jump there.
         /// </summary>
-        public Dictionary<InlineFragmentNode, Context>? FragmentContexts { get; }
-        #endregion
+        public void RecordReferenceInConditionalContext(ISelectionNode selectionNode, Context conditionalContext)
+        {
+            ReferencesInConditionalContexts ??=
+                new Dictionary<ISelectionNode, List<Context>>(SyntaxNodeComparer.Instance);
+
+            if (!ReferencesInConditionalContexts.TryGetValue(selectionNode, out var conditionalContexts))
+            {
+                conditionalContexts = [];
+                ReferencesInConditionalContexts[selectionNode] = conditionalContexts;
+            }
+
+            conditionalContexts.Add(conditionalContext);
+        }
+
+        public bool TryGetConditionalContextsWithReferences(
+            ISelectionNode selectionNode,
+            [NotNullWhen(true)] out List<Context>? conditionalContexts)
+        {
+            conditionalContexts = null;
+
+            if (ReferencesInConditionalContexts is null)
+            {
+                return false;
+            }
+
+            return ReferencesInConditionalContexts.TryGetValue(selectionNode, out conditionalContexts);
+        }
+
+        public void RemoveReferenceToConditionalContext(ISelectionNode selectionNode)
+        {
+            if (ReferencesInConditionalContexts is null)
+            {
+                return;
+            }
+
+            ReferencesInConditionalContexts.Remove(selectionNode);
+        }
+
+        public bool HasField(FieldNode fieldNode, out Context? fieldContext)
+        {
+            fieldContext = null;
+
+            if (Fields is null)
+            {
+                return false;
+            }
+
+            var responseName = fieldNode.Alias?.Value ?? fieldNode.Name.Value;
+
+            if (!Fields.TryGetValue(responseName, out var existingFieldContextLookup))
+            {
+                return false;
+            }
+
+            return existingFieldContextLookup.TryGetValue(fieldNode, out fieldContext);
+        }
+
+        public Context? AddField(FieldNode fieldNode, ITypeDefinition fieldType)
+        {
+            Context? fieldContext = null;
+
+            if (fieldNode.SelectionSet is not null)
+            {
+                fieldContext = new Context(
+                    this,
+                    GetUnconditionalContext(),
+                    fieldType,
+                    null,
+                    fragmentLookup);
+            }
+
+            AddField(fieldNode, fieldContext);
+
+            return fieldContext;
+        }
+
+        public void AddField(FieldNode fieldNode, Context? fieldContext)
+        {
+            Fields ??= [];
+
+            var responseName = fieldNode.Alias?.Value ?? fieldNode.Name.Value;
+
+            if (!Fields.TryGetValue(responseName, out var existingFieldContextLookup))
+            {
+                existingFieldContextLookup = new Dictionary<FieldNode, Context?>(FieldNodeComparer.Instance);
+                Fields[responseName] = existingFieldContextLookup;
+            }
+
+            existingFieldContextLookup.Add(fieldNode, fieldContext);
+        }
+
+        public void RemoveField(FieldNode fieldNode)
+        {
+            if (Fields is null)
+            {
+                return;
+            }
+
+            var responseName = fieldNode.Alias?.Value ?? fieldNode.Name.Value;
+
+            if (!Fields.TryGetValue(responseName, out var existingFieldContextLookup))
+            {
+                return;
+            }
+
+            existingFieldContextLookup.Remove(fieldNode);
+        }
+
+        public bool HasFragment(
+            InlineFragmentNode inlineFragmentNode,
+            [NotNullWhen(true)] out Context? fragmentContext)
+        {
+            fragmentContext = null;
+
+            if (Fragments is null)
+            {
+                return false;
+            }
+
+            var typeName = inlineFragmentNode.TypeCondition?.Name.Value ?? string.Empty;
+
+            if (!Fragments.TryGetValue(typeName, out var existingFragmentContextLookup))
+            {
+                return false;
+            }
+
+            return existingFragmentContextLookup.TryGetValue(inlineFragmentNode, out fragmentContext);
+        }
+
+        public Context AddFragment(InlineFragmentNode inlineFragmentNode, ITypeDefinition typeCondition)
+        {
+            var fragmentContext = new Context(
+                this,
+                GetUnconditionalContext(),
+                typeCondition,
+                null,
+                fragmentLookup);
+
+            AddFragment(inlineFragmentNode, fragmentContext);
+
+            return fragmentContext;
+        }
+
+        public void AddFragment(InlineFragmentNode inlineFragmentNode, Context fragmentContext)
+        {
+            Fragments ??= [];
+
+            var typeName = inlineFragmentNode.TypeCondition?.Name.Value ?? string.Empty;
+
+            if (!Fragments.TryGetValue(typeName, out var existingFragmentContextLookup))
+            {
+                existingFragmentContextLookup = new Dictionary<InlineFragmentNode, Context>(InlineFragmentNodeComparer.Instance);
+                Fragments[typeName] = existingFragmentContextLookup;
+            }
+
+            existingFragmentContextLookup.Add(inlineFragmentNode, fragmentContext);
+        }
+
+        public void RemoveFragment(InlineFragmentNode inlineFragmentNode)
+        {
+            if (Fragments is null)
+            {
+                return;
+            }
+
+            var typeName = inlineFragmentNode.TypeCondition?.Name.Value ?? string.Empty;
+
+            if (!Fragments.TryGetValue(typeName, out var existingFragmentContextLookup))
+            {
+                return;
+            }
+
+            existingFragmentContextLookup.Remove(inlineFragmentNode);
+        }
+
+        private Context GetUnconditionalContext()
+        {
+            if (IsConditionalContext)
+            {
+                return UnconditionalContext;
+            }
+
+            return this;
+        }
     }
 
     /// <summary>
     /// Holds a combination of @skip and @include.
     /// </summary>
-    private sealed record Conditional
+    private sealed class Conditional
     {
         private static readonly IEqualityComparer<ISyntaxNode> s_comparer = SyntaxComparer.BySyntax;
 
-        public DirectiveNode? Skip { get; init; }
+        public DirectiveNode? Skip { get; set; }
 
-        public DirectiveNode? Include { get; init; }
+        public DirectiveNode? Include { get; set; }
 
         public IEnumerable<DirectiveNode> ToDirectives()
         {
@@ -371,8 +1021,13 @@ internal sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStat
             }
         }
 
-        public bool Equals(Conditional? other)
+        public override bool Equals(object? obj)
         {
+            if (obj is not Conditional other)
+            {
+                return false;
+            }
+
             return s_comparer.Equals(Skip, other?.Skip) && s_comparer.Equals(Include, other?.Include);
         }
 
@@ -410,6 +1065,7 @@ internal sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStat
         }
     }
 
+    #region Comparers
     private sealed class SyntaxNodeComparer : IEqualityComparer<ISyntaxNode>
     {
         public bool Equals(ISyntaxNode? x, ISyntaxNode? y)
@@ -559,4 +1215,5 @@ internal sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStat
 
         public static FieldNodeComparer Instance { get; } = new();
     }
+    #endregion
 }

@@ -99,10 +99,10 @@ operationPlan:
         ) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
-            id @skip(if: $skip)
             ... on Discussion {
               title
             }
+            id @skip(if: $skip)
           }
         }
       name: testQuery

@@ -3,7 +3,7 @@ using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion.Rewriters;
 
-public class OperationRewriterTests
+public partial class DocumentRewriterTests
 {
     [Fact]
     public void Field_Without_SelectionSet_And_Conditional_Merged_With_Field_Without_Conditional()
@@ -23,7 +23,7 @@ public class OperationRewriterTests
             """);
 
         // act
-        var rewriter = new OperationRewriter(schemaDefinition);
+        var rewriter = new DocumentRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -59,7 +59,7 @@ public class OperationRewriterTests
             """);
 
         // act
-        var rewriter = new OperationRewriter(schemaDefinition);
+        var rewriter = new DocumentRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -95,7 +95,7 @@ public class OperationRewriterTests
             """);
 
         // act
-        var rewriter = new OperationRewriter(schemaDefinition);
+        var rewriter = new DocumentRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -132,7 +132,7 @@ public class OperationRewriterTests
             """);
 
         // act
-        var rewriter = new OperationRewriter(schemaDefinition);
+        var rewriter = new DocumentRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -173,7 +173,7 @@ public class OperationRewriterTests
             """);
 
         // act
-        var rewriter = new OperationRewriter(schemaDefinition);
+        var rewriter = new DocumentRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -216,7 +216,7 @@ public class OperationRewriterTests
             """);
 
         // act
-        var rewriter = new OperationRewriter(schemaDefinition);
+        var rewriter = new DocumentRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -259,7 +259,7 @@ public class OperationRewriterTests
             """);
 
         // act
-        var rewriter = new OperationRewriter(schemaDefinition);
+        var rewriter = new DocumentRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -302,7 +302,7 @@ public class OperationRewriterTests
             """);
 
         // act
-        var rewriter = new OperationRewriter(schemaDefinition);
+        var rewriter = new DocumentRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -338,7 +338,7 @@ public class OperationRewriterTests
             """);
 
         // act
-        var rewriter = new OperationRewriter(schemaDefinition);
+        var rewriter = new DocumentRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -374,7 +374,7 @@ public class OperationRewriterTests
             """);
 
         // act
-        var rewriter = new OperationRewriter(schemaDefinition);
+        var rewriter = new DocumentRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -414,7 +414,7 @@ public class OperationRewriterTests
             """);
 
         // act
-        var rewriter = new OperationRewriter(schemaDefinition);
+        var rewriter = new DocumentRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -455,7 +455,7 @@ public class OperationRewriterTests
             """);
 
         // act
-        var rewriter = new OperationRewriter(schemaDefinition);
+        var rewriter = new DocumentRewriter(schemaDefinition);
         var rewritten = rewriter.RewriteDocument(doc);
 
         // assert
@@ -496,7 +496,7 @@ public class OperationRewriterTests
              """);
 
          // act
-         var rewriter = new OperationRewriter(schemaDefinition);
+         var rewriter = new DocumentRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -537,7 +537,7 @@ public class OperationRewriterTests
              """);
 
          // act
-         var rewriter = new OperationRewriter(schemaDefinition);
+         var rewriter = new DocumentRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -592,7 +592,7 @@ public class OperationRewriterTests
              """);
 
          // act
-         var rewriter = new OperationRewriter(schemaDefinition);
+         var rewriter = new DocumentRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -648,7 +648,7 @@ public class OperationRewriterTests
              """);
 
          // act
-         var rewriter = new OperationRewriter(schemaDefinition);
+         var rewriter = new DocumentRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -705,7 +705,7 @@ public class OperationRewriterTests
              """);
 
          // act
-         var rewriter = new OperationRewriter(schemaDefinition);
+         var rewriter = new DocumentRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -765,7 +765,7 @@ public class OperationRewriterTests
              """);
 
          // act
-         var rewriter = new OperationRewriter(schemaDefinition);
+         var rewriter = new DocumentRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -822,7 +822,7 @@ public class OperationRewriterTests
              """);
 
          // act
-         var rewriter = new OperationRewriter(schemaDefinition);
+         var rewriter = new DocumentRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -878,7 +878,7 @@ public class OperationRewriterTests
              """);
 
          // act
-         var rewriter = new OperationRewriter(schemaDefinition);
+         var rewriter = new DocumentRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -943,7 +943,7 @@ public class OperationRewriterTests
              """);
 
          // act
-         var rewriter = new OperationRewriter(schemaDefinition);
+         var rewriter = new DocumentRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -995,7 +995,7 @@ public class OperationRewriterTests
              """);
 
          // act
-         var rewriter = new OperationRewriter(schemaDefinition);
+         var rewriter = new DocumentRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -1054,7 +1054,7 @@ public class OperationRewriterTests
              """);
 
          // act
-         var rewriter = new OperationRewriter(schemaDefinition);
+         var rewriter = new DocumentRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -1119,7 +1119,7 @@ public class OperationRewriterTests
              """);
 
          // act
-         var rewriter = new OperationRewriter(schemaDefinition);
+         var rewriter = new DocumentRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -1162,7 +1162,7 @@ public class OperationRewriterTests
              """);
 
          // act
-         var rewriter = new OperationRewriter(schemaDefinition);
+         var rewriter = new DocumentRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert
@@ -1206,7 +1206,7 @@ public class OperationRewriterTests
              """);
 
          // act
-         var rewriter = new OperationRewriter(schemaDefinition);
+         var rewriter = new DocumentRewriter(schemaDefinition);
          var rewritten = rewriter.RewriteDocument(doc);
 
          // assert

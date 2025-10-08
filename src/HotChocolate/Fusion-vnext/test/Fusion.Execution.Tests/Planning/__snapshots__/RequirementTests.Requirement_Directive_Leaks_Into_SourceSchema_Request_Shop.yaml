@@ -22,7 +22,6 @@ operation:
                   deliveryEstimate(zip: "4383")
                   pictureFileName
                   price
-                  quantity @skip(if: $skip)
                   reviews {
                     nodes {
                       author {
@@ -52,6 +51,7 @@ operation:
                     width
                     height
                   }
+                  quantity @skip(if: $skip)
                 }
               }
             }

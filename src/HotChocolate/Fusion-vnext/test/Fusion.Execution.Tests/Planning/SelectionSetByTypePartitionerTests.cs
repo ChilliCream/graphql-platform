@@ -180,6 +180,7 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
                 node(id: $id) {
                     ... on Node @skip(if: $skip) {
                         id
+                        a: id
                     }
                     ... on Discussion {
                         title
@@ -198,12 +199,14 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
             Shared: {
               ... @skip(if: $skip) {
                 id
+                a: id
               }
             }
 
             Discussion: {
               ... @skip(if: $skip) {
                 id
+                a: id
               }
               title
             }
@@ -578,6 +581,7 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
                 node(id: $id) {
                     ... on Node @skip(if: $skip) {
                       id
+                      a: id
                     }
                     ... on Discussion  {
                         title
@@ -596,12 +600,14 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
             Shared: {
               ... @skip(if: $skip) {
                 id
+                a: id
               }
             }
 
             Discussion: {
               ... @skip(if: $skip) {
                 id
+                a: id
               }
               title
             }
@@ -669,8 +675,8 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
 
     private static SelectionSetByTypePartitionerResult Partition(FusionSchemaDefinition schema, DocumentNode document)
     {
-        var operationRewriter = new OperationRewriter(schema);
-        var operation = operationRewriter.RewriteDocument(document).Definitions
+        var rewriter = new DocumentRewriter(schema);
+        var operation = rewriter.RewriteDocument(document).Definitions
             .OfType<OperationDefinitionNode>()
             .Single();
         var index = SelectionSetIndexer.Create(operation);

@@ -11,7 +11,7 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 internal sealed class OperationPlanMiddleware
 {
     private readonly OperationPlanner _planner;
-    private readonly OperationRewriter _operationRewriter;
+    private readonly DocumentRewriter _documentRewriter;
     private readonly IOperationPlannerInterceptor[] _interceptors;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticsEvents;
 
@@ -21,7 +21,7 @@ internal sealed class OperationPlanMiddleware
         IEnumerable<IOperationPlannerInterceptor>? interceptors,
         IFusionExecutionDiagnosticEvents diagnosticsEvents)
     {
-        _operationRewriter = new OperationRewriter(schema);
+        _documentRewriter = new(schema);
         _planner = planner;
         _interceptors = interceptors?.ToArray() ?? [];
         _diagnosticsEvents = diagnosticsEvents;
@@ -61,7 +61,7 @@ internal sealed class OperationPlanMiddleware
         try
         {
             // Before we can plan an operation, we must defragmentize it and remove statical include conditions.
-            var rewritten = _operationRewriter.RewriteDocument(operationDocument, context.Request.OperationName);
+            var rewritten = _documentRewriter.RewriteDocument(operationDocument, context.Request.OperationName);
             var operation = rewritten.GetOperation(context.Request.OperationName);
 
             // After optimizing the query structure we can begin the planning process.
