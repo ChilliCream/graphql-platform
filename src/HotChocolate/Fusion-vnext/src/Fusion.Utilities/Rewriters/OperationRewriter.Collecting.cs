@@ -49,9 +49,21 @@ public sealed partial class OperationRewriter
             .WithDirectives(directives ?? [])
             .WithLocation(null);
 
-        var field = ((IComplexTypeDefinition)context.Type).Fields[fieldNode.Name.Value];
+        var fieldName = fieldNode.Name.Value;
+        ITypeDefinition fieldType;
 
-        var fieldContext = context.GetOrCreateFieldContext(fieldNode, field.Type.AsTypeDefinition());
+        if (fieldName == IntrospectionFieldNames.TypeName)
+        {
+            fieldType = schema.Types["String"];
+        }
+        else
+        {
+            var field = ((IComplexTypeDefinition)context.Type).Fields[fieldName];
+
+            fieldType = field.Type.AsTypeDefinition();
+        }
+
+        var fieldContext = context.GetOrCreateFieldContext(fieldNode, fieldType);
 
         if (fieldContext is not null && fieldNode.SelectionSet is not null)
         {

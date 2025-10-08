@@ -1,6 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -25,6 +23,9 @@ public sealed partial class OperationRewriter
 
         public HashSet<ISelectionNode>? Selections { get; set; }
 
+        // TODO: This is stupod
+        public Dictionary<ISelectionNode, ITypeDefinition>? TypeLookup { get; set; }
+
         public FragmentDefinitionNode GetFragmentDefinition(string name)
             => fragmentLookup[name];
 
@@ -39,7 +40,7 @@ public sealed partial class OperationRewriter
                 fragmentContext = new Context(this, typeCondition, fragmentLookup);
                 FragmentContexts[inlineFragmentNode] = fragmentContext;
 
-                AddSelection(inlineFragmentNode);
+                AddSelection(inlineFragmentNode, typeCondition);
             }
 
             return fragmentContext;
@@ -84,14 +85,14 @@ public sealed partial class OperationRewriter
                     fieldContext = new Context(this, fieldType, fragmentLookup);
                     FieldContexts[fieldNode] = fieldContext;
 
-                    AddSelection(fieldNode);
+                    AddSelection(fieldNode, fieldType);
                 }
 
                 return fieldContext;
             }
             else
             {
-                AddSelection(fieldNode);
+                AddSelection(fieldNode, fieldType);
 
                 return null;
             }
@@ -123,10 +124,13 @@ public sealed partial class OperationRewriter
             return conditionalContext;
         }
 
-        protected void AddSelection(ISelectionNode selection)
+        protected void AddSelection(ISelectionNode selection, ITypeDefinition type)
         {
             Selections ??= new HashSet<ISelectionNode>(SyntaxNodeComparer.Instance);
             Selections.Add(selection);
+
+            TypeLookup ??= new Dictionary<ISelectionNode, ITypeDefinition>(SyntaxNodeComparer.Instance);
+            TypeLookup.TryAdd(selection, type);
         }
 
         protected internal void RemoveSelection(ISelectionNode selection)
@@ -210,8 +214,48 @@ public sealed partial class OperationRewriter
             return fragmentContext;
         }
 
+        // TODO: We can short-circuit a lot here
         private void MergeContexts(BaseContext source, BaseContext target)
         {
+            if (source.ConditionalContexts is not null)
+            {
+                foreach (var (conditional, conditionalContext) in source.ConditionalContexts)
+                {
+                    var targetConditionalContext = target.GetOrCreateConditionalContext(conditional);
+
+                    MergeContexts(conditionalContext, targetConditionalContext);
+                }
+            }
+
+            if (source.Selections is not null)
+            {
+                foreach (var selection in source.Selections)
+                {
+                    var type = source.TypeLookup![selection];
+
+                    if (selection is FieldNode fieldNode)
+                    {
+                        var targetFieldContext = target.GetOrCreateFieldContext(fieldNode, type);
+
+                        if (targetFieldContext is not null
+                            && source.FieldContexts is not null
+                            && source.FieldContexts.TryGetValue(fieldNode, out var fieldContext))
+                        {
+                            MergeContexts(fieldContext, targetFieldContext);
+                        }
+                    }
+                    else if (selection is InlineFragmentNode inlineFragmentNode)
+                    {
+                        var targetFragmentContext = target.GetOrCreateFragmentContext(inlineFragmentNode, type);
+
+                        if (source.FragmentContexts is not null
+                            && source.FragmentContexts.TryGetValue(inlineFragmentNode, out var fragmentContext))
+                        {
+                            MergeContexts(fragmentContext, targetFragmentContext);
+                        }
+                    }
+                }
+            }
         }
     }
 
