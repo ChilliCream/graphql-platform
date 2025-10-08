@@ -43,7 +43,8 @@ public sealed partial class ExtendedType
                     method,
                     cache));
 
-            var parameterTypes = ImmutableDictionary.CreateBuilder<ParameterInfo, IExtendedType>();
+            var parameterTypes = ImmutableDictionary.CreateBuilder<ParameterInfo, IExtendedType>(
+                ParameterInfoComparer.Instance);
 
             foreach (var parameter in parameters)
             {
