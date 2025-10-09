@@ -48,11 +48,20 @@ public sealed class ExternalOverrideCollisionRuleTests
     {
         return new TheoryData<string[]>
         {
-            // In this scenario, "User.fullName" is overriding the field from schema A. Since
-            // @override is not combined with @external on the same field, no collision occurs.
+            // In this scenario, "User.fullName" is defined in Schema A, but overridden in Schema B.
+            // Since @override is not combined with @external on the same field, no collision
+            // occurs.
             {
                 [
                     """
+                    # Source Schema A
+                    type User {
+                        id: ID!
+                        fullName: String
+                    }
+                    """,
+                    """
+                    # Source Schema B
                     type User {
                         id: ID!
                         fullName: String @override(from: "A")
@@ -73,6 +82,14 @@ public sealed class ExternalOverrideCollisionRuleTests
             {
                 [
                     """
+                    # Source Schema A
+                    type Payment {
+                        id: ID!
+                        amount: Int
+                    }
+                    """,
+                    """
+                    # Source Schema B
                     type Payment {
                         id: ID!
                         amount: Int @override(from: "A") @external
@@ -80,7 +97,8 @@ public sealed class ExternalOverrideCollisionRuleTests
                     """
                 ],
                 [
-                    "The external field 'Payment.amount' must not be annotated with the @override directive."
+                    "The external field 'Payment.amount' in schema 'B' must not be annotated with "
+                    + "the @override directive."
                 ]
             }
         };

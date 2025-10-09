@@ -10,7 +10,8 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// schema, and the current schema merely references it. Therefore, a field marked with
 /// <c>@external</c> must <b>not</b> simultaneously carry directives that assume local ownership or
 /// resolution responsibility, such as <c>@override</c>, which transfers ownership of the field’s
-/// definition from one schema to another.
+/// definition from one schema to another, and is incompatible with an already-external field
+/// definition.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-External-Override-Collision">
 /// Specification
