@@ -1,11 +1,13 @@
-title: Require_Object_In_A_List
+title: Require_Enumerable_In_List
 request:
   document: |
     {
       books {
         nodes {
           title
-          estimatedDelivery
+          genres {
+            name
+          }
         }
       }
     }
@@ -17,15 +19,33 @@ response:
           "nodes": [
             {
               "title": "The Great Gatsby",
-              "estimatedDelivery": 300
+              "genres": [
+                {
+                  "name": "Fiction"
+                },
+                {
+                  "name": "Classic"
+                }
+              ]
             },
             {
               "title": "1984",
-              "estimatedDelivery": 450
+              "genres": [
+                {
+                  "name": "Science Fiction"
+                },
+                {
+                  "name": "Classic"
+                }
+              ]
             },
             {
               "title": "The Catcher in the Rye",
-              "estimatedDelivery": 600
+              "genres": [
+                {
+                  "name": "Fiction"
+                }
+              ]
             }
           ]
         }
@@ -86,11 +106,12 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query Op_1f7d6449_1 {
+            query Op_684e067a_1 {
               books {
                 nodes {
                   title
                   id
+                  genreIds
                 }
               }
             }
@@ -103,15 +124,26 @@ sourceSchemas:
                     "nodes": [
                       {
                         "title": "The Great Gatsby",
-                        "id": 1
+                        "id": 1,
+                        "genreIds": [
+                          1,
+                          3
+                        ]
                       },
                       {
                         "title": "1984",
-                        "id": 2
+                        "id": 2,
+                        "genreIds": [
+                          2,
+                          3
+                        ]
                       },
                       {
                         "title": "The Catcher in the Rye",
-                        "id": 3
+                        "id": 3,
+                        "genreIds": [
+                          1
+                        ]
                       }
                     ]
                   }
@@ -136,66 +168,6 @@ sourceSchemas:
       type Query {
         book(id: Int!): Book @lookup
       }
-    interactions:
-      - request:
-          document: |
-            query Op_1f7d6449_4(
-              $__fusion_4_id: Int!
-            ) {
-              book(id: $__fusion_4_id) {
-                dimension {
-                  width
-                  height
-                }
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_4_id": 1
-              },
-              {
-                "__fusion_4_id": 2
-              },
-              {
-                "__fusion_4_id": 3
-              }
-            ]
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "book": {
-                    "dimension": {
-                      "width": 100,
-                      "height": 200
-                    }
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "book": {
-                    "dimension": {
-                      "width": 150,
-                      "height": 300
-                    }
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "book": {
-                    "dimension": {
-                      "width": 200,
-                      "height": 400
-                    }
-                  }
-                }
-              }
   - name: c
     schema: |
       schema {
@@ -216,70 +188,6 @@ sourceSchemas:
         width: Int!
         height: Int!
       }
-    interactions:
-      - request:
-          document: |
-            query Op_1f7d6449_3(
-              $__fusion_2_dimension: BookDimensionInput!
-              $__fusion_3_id: Int!
-            ) {
-              book(id: $__fusion_3_id) {
-                estimatedDelivery(dimension: $__fusion_2_dimension)
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_2_dimension": {
-                  "title": "The Great Gatsby",
-                  "width": 100,
-                  "height": 200
-                },
-                "__fusion_3_id": 1
-              },
-              {
-                "__fusion_2_dimension": {
-                  "title": "1984",
-                  "width": 150,
-                  "height": 300
-                },
-                "__fusion_3_id": 2
-              },
-              {
-                "__fusion_2_dimension": {
-                  "title": "The Catcher in the Rye",
-                  "width": 200,
-                  "height": 400
-                },
-                "__fusion_3_id": 3
-              }
-            ]
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "book": {
-                    "estimatedDelivery": 300
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "book": {
-                    "estimatedDelivery": 450
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "book": {
-                    "estimatedDelivery": 600
-                  }
-                }
-              }
   - name: d
     schema: |
       schema {
@@ -299,6 +207,86 @@ sourceSchemas:
       type Query {
         book(id: Int!): Book @lookup
       }
+    interactions:
+      - request:
+          document: |
+            query Op_684e067a_2(
+              $__fusion_1_id: Int!
+              $__fusion_2_genreIds: [Int!]!
+            ) {
+              book(id: $__fusion_1_id) {
+                genres(genreIds: $__fusion_2_genreIds) {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": 1,
+                "__fusion_2_genreIds": [
+                  1,
+                  3
+                ]
+              },
+              {
+                "__fusion_1_id": 2,
+                "__fusion_2_genreIds": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "__fusion_1_id": 3,
+                "__fusion_2_genreIds": [
+                  1
+                ]
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "book": {
+                    "genres": [
+                      {
+                        "name": "Fiction"
+                      },
+                      {
+                        "name": "Classic"
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "book": {
+                    "genres": [
+                      {
+                        "name": "Science Fiction"
+                      },
+                      {
+                        "name": "Classic"
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "book": {
+                    "genres": [
+                      {
+                        "name": "Fiction"
+                      }
+                    ]
+                  }
+                }
+              }
 operationPlan:
   operation:
     - document: |
@@ -306,78 +294,52 @@ operationPlan:
           books {
             nodes {
               title
-              title @fusion__requirement
-              estimatedDelivery
-              id @fusion__requirement
-              dimension @fusion__requirement {
-                width
-                height
+              genres {
+                name
               }
+              id @fusion__requirement
+              genreIds @fusion__requirement
             }
           }
         }
-      hash: 1f7d64490a0ae4c811ddec3de271b2bd
+      hash: 684e067a80efad0f197393d61f996250
       searchSpace: 1
   nodes:
     - id: 1
       type: Operation
       schema: a
       operation: |
-        query Op_1f7d6449_1 {
+        query Op_684e067a_1 {
           books {
             nodes {
               title
               id
+              genreIds
             }
           }
         }
-    - id: 3
+    - id: 2
       type: Operation
-      schema: c
+      schema: d
       operation: |
-        query Op_1f7d6449_3(
-          $__fusion_2_dimension: BookDimensionInput!
-          $__fusion_3_id: Int!
+        query Op_684e067a_2(
+          $__fusion_1_id: Int!
+          $__fusion_2_genreIds: [Int!]!
         ) {
-          book(id: $__fusion_3_id) {
-            estimatedDelivery(dimension: $__fusion_2_dimension)
-          }
-        }
-      source: $.book
-      target: $.books.nodes
-      requirements:
-        - name: __fusion_2_dimension
-          selectionMap: >-
-            {
-              title
-              width: dimension.width
-              height: dimension.height
-            }
-        - name: __fusion_3_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-        - id: 4
-    - id: 4
-      type: Operation
-      schema: b
-      operation: |
-        query Op_1f7d6449_4(
-          $__fusion_4_id: Int!
-        ) {
-          book(id: $__fusion_4_id) {
-            dimension {
-              width
-              height
+          book(id: $__fusion_1_id) {
+            genres(genreIds: $__fusion_2_genreIds) {
+              name
             }
           }
         }
       source: $.book
       target: $.books.nodes
       requirements:
-        - name: __fusion_4_id
+        - name: __fusion_1_id
           selectionMap: >-
             id
+        - name: __fusion_2_genreIds
+          selectionMap: >-
+            genreIds
       dependencies:
         - id: 1

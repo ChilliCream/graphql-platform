@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
@@ -67,8 +68,6 @@ internal static class ResultDataMapper
             return null;
         }
 
-        // Note: to capture data from the introspection
-        // system we would need to also cover raw field results.
         if (result is LeafFieldResult field)
         {
             if (field.HasNullValue)
@@ -76,9 +75,17 @@ internal static class ResultDataMapper
                 return NullValueNode.Default;
             }
 
-            context.Writer ??= new PooledArrayWriter();
-            var parser = new JsonValueParser(buffer: context.Writer);
-            return parser.Parse(field.Value);
+            return MapLeaf(field.Value, ref context.Writer);
+        }
+
+        if (result is ListFieldResult listField)
+        {
+            if (listField.HasNullValue || listField.Value is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            return MapListResult(listField.Value, ref context.Writer);
         }
 
         throw new InvalidSelectionMapPathException(node);
@@ -277,6 +284,107 @@ internal static class ResultDataMapper
         }
 
         return currentResult;
+    }
+
+    private static IValueNode MapListResult(ListResult list, ref PooledArrayWriter? writer)
+    {
+        switch (list)
+        {
+            case LeafListResult leafList:
+            {
+                var items = new List<IValueNode>(leafList.Items.Count);
+                foreach (var json in leafList.Items)
+                {
+                    if (json.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+                    {
+                        items.Add(NullValueNode.Default);
+                    }
+                    else
+                    {
+                        items.Add(MapLeaf(json, ref writer));
+                    }
+                }
+
+                return new ListValueNode(items);
+            }
+            case ObjectListResult objectList:
+            {
+                var items = new List<IValueNode>(objectList.Items.Count);
+                foreach (var obj in objectList.Items)
+                {
+                    items.Add(obj is null ? NullValueNode.Default : MapObjectResult(obj, ref writer));
+                }
+
+                return new ListValueNode(items);
+            }
+            case NestedListResult nestedList:
+            {
+                var items = new List<IValueNode>(nestedList.Items.Count);
+                foreach (var inner in nestedList.Items)
+                {
+                    items.Add(inner is null ? NullValueNode.Default : MapListResult(inner, ref writer));
+                }
+
+                return new ListValueNode(items);
+            }
+            case RawListFieldResult raw:
+            {
+                // fallback to JSON serialization for raw encoded list; depth impact is minimal (flat list)
+                using var temp = new PooledArrayWriter();
+                using (var jsonWriter = new Utf8JsonWriter(temp))
+                {
+                    raw.WriteTo(jsonWriter);
+                }
+
+                writer ??= new PooledArrayWriter();
+                var parser = new JsonValueParser(buffer: writer);
+                return parser.Parse(temp.WrittenSpan);
+            }
+            default:
+                throw new NotSupportedException($"Unsupported list result type {list.GetType().Name}.");
+        }
+    }
+
+    private static IValueNode MapObjectResult(ObjectResult obj, ref PooledArrayWriter? writer)
+    {
+        var fields = obj.Fields;
+        var list = new List<ObjectFieldNode>(fields.Length);
+        for (var i = 0; i < fields.Length; i++)
+        {
+            var field = fields[i];
+            if (field.Selection.IsInternal)
+            {
+                continue;
+            }
+
+            var valueNode = MapFieldResult(field, ref writer);
+            list.Add(new ObjectFieldNode(field.Selection.ResponseName, valueNode));
+        }
+
+        return new ObjectValueNode(list);
+    }
+
+    private static IValueNode MapFieldResult(FieldResult field, ref PooledArrayWriter? writer)
+    {
+        if (field.HasNullValue)
+        {
+            return NullValueNode.Default;
+        }
+
+        return field switch
+        {
+            LeafFieldResult leaf => MapLeaf(leaf.Value, ref writer),
+            ObjectFieldResult { Value: { } obj } => MapObjectResult(obj, ref writer),
+            ListFieldResult { Value: { } list } => MapListResult(list, ref writer),
+            _ => NullValueNode.Default
+        };
+    }
+
+    private static IValueNode MapLeaf(JsonElement element, ref PooledArrayWriter? writer)
+    {
+        writer ??= new PooledArrayWriter();
+        var parser = new JsonValueParser(buffer: writer);
+        return parser.Parse(element);
     }
 
     private readonly ref struct Context
