@@ -27,7 +27,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         var newSelectionSet = RewriteSelectionSet(
             operation.SelectionSet,
             operationType,
-            null,
             fragmentLookup);
 
         var newOperation = new OperationDefinitionNode(
@@ -42,27 +41,18 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         return new DocumentNode([newOperation]);
     }
 
-    public SelectionSetNode RewriteSelectionSet(
-        SelectionSetNode selectionSetNode,
-        ITypeDefinition type,
-        ISelectionSetMergeObserver? mergeObserver = null)
-        => RewriteSelectionSet(selectionSetNode, type, mergeObserver, null);
-
     private SelectionSetNode RewriteSelectionSet(
         SelectionSetNode selectionSetNode,
         ITypeDefinition type,
-        ISelectionSetMergeObserver? mergeObserver,
         Dictionary<string, FragmentDefinitionNode>? fragmentLookup)
     {
         var context = new Context(null, null, type, null, fragmentLookup ?? []);
 
         CollectSelections(selectionSetNode, context);
 
-        var newSelections = RewriteSelections(context, mergeObserver);
+        var newSelections = RewriteSelections(context);
 
         var newSelectionSetNode = new SelectionSetNode(newSelections ?? []);
-
-        mergeObserver?.OnMerge(newSelectionSetNode, selectionSetNode);
 
         return newSelectionSetNode;
     }
@@ -555,7 +545,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
     #endregion
 
     #region Rewriting
-    private List<ISelectionNode>? RewriteSelections(Context context, ISelectionSetMergeObserver? mergeObserver)
+    private List<ISelectionNode>? RewriteSelections(Context context)
     {
         List<ISelectionNode>? selections = null;
 
@@ -565,20 +555,11 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             {
                 foreach (var (fieldNode, fieldContext) in fieldContextLookup)
                 {
-                    var newFieldNode = RewriteField(fieldNode, fieldContext, mergeObserver);
+                    var newFieldNode = RewriteField(fieldNode, fieldContext);
 
                     if (newFieldNode is null)
                     {
                         continue;
-                    }
-
-                    if (mergeObserver is not null)
-                    {
-                        if (fieldNode.SelectionSet is not null && newFieldNode.SelectionSet is not null)
-                        {
-                            // TODO: There could be multiple original field nodes that have been merged into one.
-                            mergeObserver.OnMerge(newFieldNode.SelectionSet, fieldNode.SelectionSet);
-                        }
                     }
 
                     selections ??= [];
@@ -595,16 +576,12 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 {
                     var newInlineFragmentNode = RewriteInlineFragment(
                         inlineFragmentNode,
-                        fragmentContext,
-                        mergeObserver);
+                        fragmentContext);
 
                     if (newInlineFragmentNode is null)
                     {
                         continue;
                     }
-
-                    // TODO: There could be multiple original fragment nodes that have been merged into one.
-                    mergeObserver?.OnMerge(inlineFragmentNode.SelectionSet, newInlineFragmentNode.SelectionSet);
 
                     selections ??= [];
                     selections.Add(newInlineFragmentNode);
@@ -616,7 +593,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         {
             foreach (var (conditional, conditionalContext) in context.Conditionals)
             {
-                var conditionalSelection = RewriteConditional(conditional, conditionalContext, mergeObserver);
+                var conditionalSelection = RewriteConditional(conditional, conditionalContext);
 
                 if (conditionalSelection is null)
                 {
@@ -636,10 +613,9 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
     private ISelectionNode? RewriteConditional(
         Conditional conditional,
-        Context context,
-        ISelectionSetMergeObserver? mergeObserver)
+        Context context)
     {
-        var conditionalSelections = RewriteSelections(context, mergeObserver);
+        var conditionalSelections = RewriteSelections(context);
 
         if (conditionalSelections is null)
         {
@@ -667,8 +643,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
     private FieldNode? RewriteField(
         FieldNode fieldNode,
-        Context? fieldContext,
-        ISelectionSetMergeObserver? mergeObserver)
+        Context? fieldContext)
     {
         if (fieldNode.SelectionSet is null)
         {
@@ -680,7 +655,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             throw new InvalidOperationException("Expected to have field context");
         }
 
-        var fieldSelections = RewriteSelections(fieldContext, mergeObserver);
+        var fieldSelections = RewriteSelections(fieldContext);
 
         if (fieldSelections is null)
         {
@@ -698,10 +673,9 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
     private InlineFragmentNode? RewriteInlineFragment(
         InlineFragmentNode inlineFragmentNode,
-        Context fragmentContext,
-        ISelectionSetMergeObserver? mergeObserver)
+        Context fragmentContext)
     {
-        var fragmentSelections = RewriteSelections(fragmentContext, mergeObserver);
+        var fragmentSelections = RewriteSelections(fragmentContext);
 
         if (fragmentSelections is null)
         {
