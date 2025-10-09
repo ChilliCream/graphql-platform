@@ -54,17 +54,17 @@ sourceSchemas:
         products: [Product]
       }
       
-      type Item1 implements Node & ProductList @key(fields: "id") {
+      type Item1 implements Node & ProductList {
         id: ID!
         products: [Product]
       }
       
-      type Item2 implements Node & ProductList @key(fields: "id") {
+      type Item2 implements Node & ProductList {
         id: ID!
         products: [Product]
       }
       
-      type Product implements Node @key(fields: "id") {
+      type Product implements Node {
         id: ID!
       }
       
@@ -124,7 +124,7 @@ sourceSchemas:
         id: ID!
       }
       
-      type Product implements Node @key(fields: "id") {
+      type Product implements Node {
         id: ID!
         name: String
       }

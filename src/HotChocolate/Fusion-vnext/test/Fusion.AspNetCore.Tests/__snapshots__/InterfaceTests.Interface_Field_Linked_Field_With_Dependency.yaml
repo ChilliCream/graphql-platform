@@ -32,7 +32,7 @@ sourceSchemas:
         author: Author
       }
       
-      type Author @key(fields: "id") {
+      type Author {
         id: ID!
       }
       
@@ -77,7 +77,7 @@ sourceSchemas:
         query: Query
       }
       
-      type Author @key(fields: "id") {
+      type Author {
         id: ID!
         displayName: String!
       }
