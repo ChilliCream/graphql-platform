@@ -1,0 +1,72 @@
+﻿{
+  "data": {
+    "test": [
+      {
+        "bar": "A",
+        "scalarList": [
+          "A1",
+          "A2",
+          "A3"
+        ],
+        "objectList": [
+          {
+            "bar": "A1",
+            "qux": "A1"
+          },
+          {
+            "bar": "A2",
+            "qux": "A2"
+          },
+          {
+            "bar": "A3",
+            "qux": "A3"
+          }
+        ]
+      },
+      {
+        "bar": "B",
+        "scalarList": [
+          "B1",
+          "B2",
+          "B3"
+        ],
+        "objectList": [
+          {
+            "bar": "B1",
+            "qux": "B1"
+          },
+          {
+            "bar": "B2",
+            "qux": "B2"
+          },
+          {
+            "bar": "B3",
+            "qux": "B3"
+          }
+        ]
+      },
+      {
+        "bar": "C",
+        "scalarList": [
+          "C1",
+          "C2",
+          "C3"
+        ],
+        "objectList": [
+          {
+            "bar": "C1",
+            "qux": "C1"
+          },
+          {
+            "bar": "C2",
+            "qux": "C2"
+          },
+          {
+            "bar": "C3",
+            "qux": "C3"
+          }
+        ]
+      }
+    ]
+  }
+}

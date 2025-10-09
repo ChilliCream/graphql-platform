@@ -1,0 +1,21 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "must_not": [
+              {
+                "range": {
+                  "value": {
+                    "gt": 0.0
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
