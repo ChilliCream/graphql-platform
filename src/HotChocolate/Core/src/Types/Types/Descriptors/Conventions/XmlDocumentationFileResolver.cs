@@ -1,8 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Xml;
-using System.Xml.XPath;
+using System.Xml.Linq;
 using IOPath = System.IO.Path;
 
 namespace HotChocolate.Types.Descriptors;
@@ -13,7 +12,7 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
 
     private readonly Func<Assembly, string>? _resolveXmlDocumentationFileName;
 
-    private readonly ConcurrentDictionary<string, XPathNavigator?> _cache =
+    private readonly ConcurrentDictionary<string, XDocument?> _cache =
         new(StringComparer.OrdinalIgnoreCase);
 
     public XmlDocumentationFileResolver()
@@ -26,8 +25,9 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
         _resolveXmlDocumentationFileName = resolveXmlDocumentationFileName;
     }
 
-    public bool TryGetXmlDocument(Assembly assembly,
-        [NotNullWhen(true)] out XPathNavigator? document)
+    public bool TryGetXmlDocument(
+        Assembly assembly,
+        [NotNullWhen(true)] out XDocument? document)
     {
         var fullName = assembly.GetName().FullName;
 
@@ -37,10 +37,7 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
 
             if (xmlDocumentFileName is not null && File.Exists(xmlDocumentFileName))
             {
-                var xml = File.ReadAllText(xmlDocumentFileName);
-                xml = AddXmlSpacePreserve(xml);
-                using var reader = XmlReader.Create(new StringReader(xml), new XmlReaderSettings { IgnoreWhitespace = false });
-                doc = new XPathDocument(reader).CreateNavigator();
+                doc = XDocument.Load(xmlDocumentFileName, LoadOptions.PreserveWhitespace);
             }
 
             _cache[fullName] = doc;
@@ -133,23 +130,5 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
         {
             return null;
         }
-    }
-    string AddXmlSpacePreserve(string xml)
-    {
-        // Skip metatag
-        var startIndex = 0;
-        if (xml.StartsWith("<?xml", StringComparison.OrdinalIgnoreCase))
-        {
-            startIndex = xml.IndexOf("?>", StringComparison.Ordinal) + 2;
-        }
-
-        var i = xml.IndexOf('>', startIndex);
-        if (i < 0)
-        {
-            return xml;
-        }
-
-        var head = xml.Substring(startIndex, i - startIndex);
-        return head.Trim() != "<doc" ? xml : xml.Insert(i, " xml:space=\"preserve\"");
     }
 }

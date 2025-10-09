@@ -38,7 +38,7 @@ public class XmlDocumentProviderBenchmarks
     {
         var config = ManualConfig.Create(DefaultConfig.Instance)
             .AddDiagnoser(MemoryDiagnoser.Default)
-            .AddJob(Job.Dry)
+            .AddJob(Job.ShortRun)
             .AddExporter(MarkdownExporter.GitHub);
 
         var summary = BenchmarkRunner.Run(typeof(Bench), config);

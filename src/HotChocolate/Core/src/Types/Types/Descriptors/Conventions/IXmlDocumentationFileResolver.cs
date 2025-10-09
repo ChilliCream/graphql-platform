@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Xml.XPath;
+using System.Xml.Linq;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -13,5 +13,5 @@ public interface IXmlDocumentationFileResolver
     /// Trues to resolve an XML documentation file from the given assembly..
     /// </summary>
     bool TryGetXmlDocument(Assembly assembly,
-        [NotNullWhen(true)] out XPathNavigator? document);
+        [NotNullWhen(true)] out XDocument? document);
 }
