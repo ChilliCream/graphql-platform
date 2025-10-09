@@ -32,8 +32,8 @@ public class XmlDocumentProviderBenchmarks
         _testOutputHelper = testOutputHelper;
     }
 
-    //[Fact(Skip = "Run manually when performance regression testing is required")]
-    [Fact]
+    [Fact(Skip = "Run manually when performance regression testing is required")]
+    //[Fact]
     public void RunBenchmarks()
     {
         var config = ManualConfig.Create(DefaultConfig.Instance)
@@ -51,13 +51,13 @@ public class XmlDocumentProviderBenchmarks
 
     public class Bench
     {
-        private static XmlDocumentationProvider s_documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
-            new NoOpStringBuilderPool());
+        private static readonly XmlDocumentationProvider s_documentationProvider = new XmlDocumentationProvider(
+            new XmlDocumentationResolver(),
+            new DefaultObjectPoolProvider().CreateStringBuilderPool());
 
-        private static OldXmlDocumentationProvider s_oldDocumentationProvider = new OldXmlDocumentationProvider(
+        private static readonly OldXmlDocumentationProvider s_oldDocumentationProvider = new OldXmlDocumentationProvider(
             new OldXmlDocumentationFileResolver(),
-            new NoOpStringBuilderPool());
+            new DefaultObjectPoolProvider().CreateStringBuilderPool());
 
         // Example parameterization
         [Params(1, 10, 100)] public int N { get; set; }

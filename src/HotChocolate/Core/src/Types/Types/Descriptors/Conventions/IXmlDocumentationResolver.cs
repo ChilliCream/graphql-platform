@@ -7,11 +7,11 @@ namespace HotChocolate.Types.Descriptors;
 /// <summary>
 /// Resolves an XML documentation file from an assembly.
 /// </summary>
-public interface IXmlDocumentationFileResolver
+public interface IXmlDocumentationResolver
 {
     /// <summary>
-    /// Trues to resolve an XML documentation file from the given assembly..
+    /// Trues to resolve an XML documentation element from the given assembly..
     /// </summary>
     bool TryGetXmlDocument(Assembly assembly,
-        [NotNullWhen(true)] out XDocument? document);
+        [NotNullWhen(true)] out IReadOnlyDictionary<string, XElement>? memberLookup);
 }

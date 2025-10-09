@@ -21,14 +21,14 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
     private const string Paramref = "paramref";
     private const string Name = "name";
 
-    private readonly IXmlDocumentationFileResolver _fileResolver;
+    private readonly IXmlDocumentationResolver _documentationResolver;
     private readonly ObjectPool<StringBuilder> _stringBuilderPool;
 
     public XmlDocumentationProvider(
-        IXmlDocumentationFileResolver fileResolver,
+        IXmlDocumentationResolver documentationResolver,
         ObjectPool<StringBuilder> stringBuilderPool)
     {
-        _fileResolver = fileResolver ?? throw new ArgumentNullException(nameof(fileResolver));
+        _documentationResolver = documentationResolver ?? throw new ArgumentNullException(nameof(documentationResolver));
         _stringBuilderPool = stringBuilderPool;
     }
 
@@ -230,14 +230,13 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
         }
     }
 
-    private void AppendNewLineIfNeeded(
+    private static void AppendNewLineIfNeeded(
         StringBuilder description,
         bool condition)
     {
         if (condition)
         {
-            description.AppendLine();
-            description.AppendLine();
+            description.Append("\n\n");
         }
     }
 
@@ -245,20 +244,15 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
     {
         try
         {
-            if (_fileResolver.TryGetXmlDocument(
+            if (_documentationResolver.TryGetXmlDocument(
                 member.Module.Assembly,
-                out var document))
+                out var elementLookup))
             {
                 var name = GetMemberElementName(member);
-                var x = document
-                    .Element("doc")?
-                    .Element("members")?
-                    .Elements("member");
-                  var element  = x?.FirstOrDefault(m => m.Attribute("name")?.Value == name);
-                  if (element == null)
-                  {
-                      return null;
-                  }
+                if (!elementLookup.TryGetValue(name, out var element))
+                {
+                    return null;
+                }
 
                 ReplaceInheritdocElements(member, element);
 
@@ -277,18 +271,12 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
     {
         try
         {
-            if (_fileResolver.TryGetXmlDocument(
+            if (_documentationResolver.TryGetXmlDocument(
                 parameter.Member.Module.Assembly,
-                out var document))
+                out var elementLookup))
             {
                 var name = GetMemberElementName(parameter.Member);
-                var x = document
-                    .Element("doc")?
-                    .Element("members")?
-                    .Elements("member");
-                var element  = x?.FirstOrDefault(m => m.Attribute("name")?.Value == name);
-
-                if (element is null)
+                if (!elementLookup.TryGetValue(name, out var element))
                 {
                     return null;
                 }
@@ -331,6 +319,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                     if (baseDoc != null)
                     {
                         // TODO: This implicitly mutates the document (which is cached!) and is not threadsafe -> potential flaw
+                        // TODO: clone / lock / replace ?
                         child.ReplaceWith(baseDoc.Nodes());
                     }
                 }
@@ -342,16 +331,22 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
         MemberInfo member,
         XElement element)
     {
+        if (!element.Value.Contains(Inheritdoc, StringComparison.Ordinal))
+        {
+            return;
+        }
+
         var baseType = member.DeclaringType?.BaseType;
         if (baseType is null)
         {
             return;
         }
 
+        MemberInfo? baseMember = null;
         var children = element.Elements(Inheritdoc);
         foreach (var child in children)
         {
-            var baseMember =
+            baseMember ??=
                 baseType?.GetTypeInfo().DeclaredMembers
                     .SingleOrDefault(m => m.Name == member.Name);
 
@@ -361,6 +356,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                 if (baseDoc != null)
                 {
                     // TODO: This implicitly mutates the document (which is cached!) and is not threadsafe -> potential flaw
+                    // TODO: lock / replace ?
                     var nodes = baseDoc.Nodes();
                     child.ReplaceWith(nodes);
                 }
@@ -383,19 +379,34 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
             return null;
         }
 
+        if (stringBuilder[^1] == '\n')
+        {
+            stringBuilder.Remove(stringBuilder.Length - 1, 1);
+        }
+
+        var containsNewLineChar = false;
+        foreach (var chunk in stringBuilder.GetChunks())
+        {
+            if (chunk.Span.Contains('\n'))
+            {
+                containsNewLineChar = true;
+                break;
+            }
+        }
+
+        if (!containsNewLineChar)
+        {
+            return stringBuilder.ToString().Trim();
+        }
+
         stringBuilder.Replace("\r", string.Empty);
         if (stringBuilder[0] != '\n')
         {
             stringBuilder.Insert(0, '\n');
         }
 
-        if (stringBuilder[^1] == '\n')
-        {
-            stringBuilder.Remove(stringBuilder.Length - 1, 1);
-        }
-
         var materializedString = stringBuilder.ToString();
-        var whitespace = MyRegex().Match(materializedString).Value;
+        var whitespace = DetectWhitespaceIndentRegex().Match(materializedString).Value;
         if (!string.IsNullOrEmpty(whitespace))
         {
             stringBuilder.Replace(whitespace, "\n");
@@ -440,13 +451,15 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                         for (var index = 0; index < parameters.Length; index++)
                         {
                             var parameterInfo = parameters[index];
-                            var result = MyRegex1().Replace(parameterInfo.ParameterType.FullName!, m => m.Value switch
-                            {
-                                "[[" => "{",
-                                "]]" => "}",
-                                "],[" => ",",
-                                _ => ""
-                            });
+                            var result = NormalizeParameterNameRegex()
+                                .Replace(parameterInfo.ParameterType.FullName!,
+                                    static m => m.Value switch
+                                    {
+                                        "[[" => "{",
+                                        "]]" => "}",
+                                        "],[" => ",",
+                                        _ => ""
+                                    });
                             builder.Append(result);
                             if (index < parameters.Length - 1)
                             {
@@ -494,7 +507,8 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
     }
 
     [GeneratedRegex("(\\n[ \\t]*)")]
-    private static partial Regex MyRegex();
+    private static partial Regex DetectWhitespaceIndentRegex();
+
     [GeneratedRegex(@"(`\d+)|(, .*?PublicKeyToken=[0-9a-z]*)|\[\[|\]\]|\],\[")]
-    private static partial Regex MyRegex1();
+    private static partial Regex NormalizeParameterNameRegex();
 }
