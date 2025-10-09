@@ -654,6 +654,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; must not be annotated with the @provides directive..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalProvidesCollision {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalProvidesCollision", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; is not referenced by a @provides directive in the schema..
         /// </summary>
         internal static string LogEntryHelper_ExternalUnused {
