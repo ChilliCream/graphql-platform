@@ -254,6 +254,38 @@ public sealed partial class CompositeResultDocument
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void SetSizeOrLength(Cursor cursor, int sizeOrLength)
+        {
+            AssertValidCursor(cursor);
+            Debug.Assert(sizeOrLength >= 0 && sizeOrLength <= int.MaxValue, "SizeOrLength value exceeds 31-bit limit");
+
+            var fieldSpan = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 4);
+            var currentValue = MemoryMarshal.Read<int>(fieldSpan);
+
+            // Keep only the sign bit (HasComplexChildren)
+            var clearedValue = currentValue & unchecked((int)0x80000000);
+            var newValue = clearedValue | (sizeOrLength & int.MaxValue);
+
+            MemoryMarshal.Write(fieldSpan, newValue);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void SetNumberOfRows(Cursor cursor, int numberOfRows)
+        {
+            AssertValidCursor(cursor);
+            Debug.Assert(numberOfRows >= 0 && numberOfRows <= 0x0FFFFFFF, "NumberOfRows value exceeds 28-bit limit");
+
+            var fieldSpan = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + TokenTypeOffset);
+            var currentValue = MemoryMarshal.Read<int>(fieldSpan);
+
+            // Keep only the top 4 bits (token type)
+            var clearedValue = currentValue & unchecked((int)0xF0000000);
+            var newValue = clearedValue | (numberOfRows & 0x0FFFFFFF);
+
+            MemoryMarshal.Write(fieldSpan, newValue);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal ElementTokenType GetElementTokenType(Cursor cursor, bool resolveReferences = true)
         {
             AssertValidCursor(cursor);

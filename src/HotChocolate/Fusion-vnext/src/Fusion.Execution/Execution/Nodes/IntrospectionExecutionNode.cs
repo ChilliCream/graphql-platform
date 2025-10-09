@@ -87,6 +87,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                     var objectType = selection.Type.NamedType<IObjectTypeDefinition>();
                     var selectionSet = operation.GetSelectionSet(selection, objectType);
 
+                    var j = 0;
                     for (var i = 0; i < selectionSet.Selections.Length; i++)
                     {
                         var childSelection = selectionSet.Selections[i];
@@ -96,7 +97,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                             continue;
                         }
 
-                        var property = result.CreateProperty(childSelection, i);
+                        var property = result.CreateProperty(childSelection, j++);
                         backlog.Push((fieldContext.RuntimeResults[0], childSelection, property));
                     }
                 }
@@ -117,6 +118,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                             continue;
                         }
 
+                        var k = 0;
                         for (var j = 0; j < selectionSet.Selections.Length; j++)
                         {
                             var childSelection = selectionSet.Selections[j];
@@ -126,7 +128,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                                 continue;
                             }
 
-                            var property = result.CreateProperty(childSelection, i);
+                            var property = element.CreateProperty(childSelection, k++);
                             backlog.Push((runtimeResult, childSelection, property));
                         }
                     }

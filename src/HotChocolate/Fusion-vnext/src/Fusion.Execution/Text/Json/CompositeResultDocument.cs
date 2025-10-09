@@ -241,23 +241,23 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var tt = _metaDb.GetElementTokenType(current);
+        var tokenType = _metaDb.GetElementTokenType(current, resolveReferences: false);
 
-        if (tt is ElementTokenType.StartObject)
+        if (tokenType is ElementTokenType.StartObject)
         {
-            var f = _metaDb.GetFlags(current);
-            return (f & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+            var flags = _metaDb.GetFlags(current);
+            return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
         }
 
-        if (tt is ElementTokenType.Reference)
+        if (tokenType is ElementTokenType.Reference)
         {
             current = _metaDb.GetLocationCursor(current);
-            tt = _metaDb.GetElementTokenType(current);
+            tokenType = _metaDb.GetElementTokenType(current);
 
-            if (tt is ElementTokenType.StartObject)
+            if (tokenType is ElementTokenType.StartObject)
             {
-                var f = _metaDb.GetFlags(current);
-                return (f & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+                var flags = _metaDb.GetFlags(current);
+                return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
             }
         }
 
@@ -268,28 +268,28 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var tt = _metaDb.GetElementTokenType(current);
+        var tokenType = _metaDb.GetElementTokenType(current);
 
-        if (tt is ElementTokenType.Null)
+        if (tokenType is ElementTokenType.Null)
         {
             return true;
         }
 
-        if (tt is ElementTokenType.StartObject)
+        if (tokenType is ElementTokenType.StartObject)
         {
-            var f = _metaDb.GetFlags(current);
-            return (f & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+            var flags = _metaDb.GetFlags(current);
+            return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
         }
 
-        if (tt is ElementTokenType.Reference)
+        if (tokenType is ElementTokenType.Reference)
         {
             current = _metaDb.GetLocationCursor(current);
-            tt = _metaDb.GetElementTokenType(current);
+            tokenType = _metaDb.GetElementTokenType(current);
 
-            if (tt is ElementTokenType.StartObject)
+            if (tokenType is ElementTokenType.StartObject)
             {
-                var f = _metaDb.GetFlags(current);
-                return (f & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+                var flags = _metaDb.GetFlags(current);
+                return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
             }
         }
 
@@ -379,33 +379,35 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal CompositeResultElement CreateObject(Cursor parent, SelectionSet selectionSet)
     {
-        var cur = WriteStartObject(parent, selectionSet.Id, selectionSet.Selections.Length);
+        var startObjectCursor = WriteStartObject(parent, selectionSet.Id);
 
+        var selectionCount = 0;
         foreach (var selection in selectionSet.Selections)
         {
             if (selection.IsIncluded(_includeFlags))
             {
-                WriteEmptyProperty(cur, selection);
+                WriteEmptyProperty(startObjectCursor, selection);
+                selectionCount++;
             }
         }
 
-        WriteEndObject();
+        WriteEndObject(startObjectCursor, selectionCount);
 
-        return new CompositeResultElement(this, cur);
+        return new CompositeResultElement(this, startObjectCursor);
     }
 
     internal CompositeResultElement CreateArray(Cursor parent, int length)
     {
-        var cur = WriteStartArray(parent, length);
+        var cursor = WriteStartArray(parent, length);
 
         for (var i = 0; i < length; i++)
         {
-            WriteEmptyValue(cur);
+            WriteEmptyValue(cursor);
         }
 
         WriteEndArray();
 
-        return new CompositeResultElement(this, cur);
+        return new CompositeResultElement(this, cursor);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -453,7 +455,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Cursor WriteStartObject(Cursor parent, int selectionSetId = 0, int length = 0)
+    private Cursor WriteStartObject(Cursor parent, int selectionSetId = 0)
     {
         var flags = ElementFlags.None;
         var parentRow = ToIndex(parent);
@@ -466,16 +468,20 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         return _metaDb.Append(
             ElementTokenType.StartObject,
-            sizeOrLength: length,
             parentRow: parentRow,
             operationReferenceId: selectionSetId,
             operationReferenceType: OperationReferenceType.SelectionSet,
-            numberOfRows: (length * 2) + 1,
             flags: flags);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEndObject() => _metaDb.Append(ElementTokenType.EndObject);
+    private void WriteEndObject(Cursor startObjectCursor, int length)
+    {
+        _metaDb.Append(ElementTokenType.EndObject);
+
+        _metaDb.SetNumberOfRows(startObjectCursor, (length * 2) + 1);
+        _metaDb.SetSizeOrLength(startObjectCursor, length);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Cursor WriteStartArray(Cursor parent, int length = 0)

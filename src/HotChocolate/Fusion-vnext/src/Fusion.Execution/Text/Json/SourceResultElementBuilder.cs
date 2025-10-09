@@ -18,13 +18,31 @@ internal readonly partial struct SourceResultElementBuilder
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    internal ElementTokenType TokenType => _builder?.GetElementTokenType(_index) ?? ElementTokenType.None;
+    internal ElementTokenType TokenType
+    {
+        get
+        {
+            if (_builder is null)
+            {
+                return ElementTokenType.None;
+            }
+
+            var tokenType = _builder.GetElementTokenType(_index);
+            return tokenType is ElementTokenType.Reference
+                ? _builder.GetElementTokenType(_builder._metaDb.GetLocation(_index))
+                : tokenType;
+        }
+    }
 
     public JsonValueKind ValueKind => TokenType.ToValueKind();
 
     public SourceResultElementBuilder CreateObjectValue(Selection parent, ulong includeFlags)
     {
         AssertValidInstance();
+
+        Debug.Assert(_builder._metaDb.GetElementTokenType(_index)
+            is ElementTokenType.None or ElementTokenType.Null
+            or ElementTokenType.Reference);
 
         var selectionSet = parent.DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(parent);
         var objectIndex = _builder.CreateObjectValue(selectionSet.Selections, includeFlags);
@@ -37,6 +55,10 @@ internal readonly partial struct SourceResultElementBuilder
     {
         AssertValidInstance();
 
+        Debug.Assert(_builder._metaDb.GetElementTokenType(_index)
+            is ElementTokenType.None or ElementTokenType.Null
+            or ElementTokenType.Reference);
+
         var arrayIndex = _builder.CreateListValue(length);
         var element = new SourceResultElementBuilder(_builder, arrayIndex);
         _builder.AssignReference(this, element);
@@ -46,6 +68,10 @@ internal readonly partial struct SourceResultElementBuilder
     public void SetStringValue(ReadOnlySpan<byte> value)
     {
         AssertValidInstance();
+
+        Debug.Assert(_builder._metaDb.GetElementTokenType(_index)
+            is ElementTokenType.None or ElementTokenType.Null
+            or ElementTokenType.String);
 
         var writer = _builder._data;
         var writeIndex = _builder._data.Length;
@@ -69,6 +95,9 @@ internal readonly partial struct SourceResultElementBuilder
     {
         AssertValidInstance();
 
+        Debug.Assert(_builder._metaDb.GetElementTokenType(_index)
+            is ElementTokenType.None or ElementTokenType.Null
+            or ElementTokenType.True or ElementTokenType.False);
         _builder._metaDb.SetElementTokenType(_index, value ? ElementTokenType.True : ElementTokenType.False);
     }
 
@@ -76,14 +105,24 @@ internal readonly partial struct SourceResultElementBuilder
     {
         AssertValidInstance();
 
+        Debug.Assert(_builder._metaDb.GetElementTokenType(_index)
+            is ElementTokenType.None or ElementTokenType.Null
+            or ElementTokenType.String or ElementTokenType.Number
+            or ElementTokenType.True or ElementTokenType.False
+            or ElementTokenType.Reference);
         _builder._metaDb.SetElementTokenType(_index, ElementTokenType.Null);
     }
 
     public SourceResultElementBuilder CreateProperty(Selection selection, int index)
     {
-        var propertyIndex = _index + (index * 2) + 1;
-        _builder._metaDb.SetLocation(propertyIndex, selection.Id);
+        var startIndex = _builder.GetStartIndex(_index);
+        Debug.Assert(_builder._metaDb.GetElementTokenType(startIndex) is ElementTokenType.StartObject);
+
+        var propertyIndex = startIndex + (index * 2) + 1;
+        Debug.Assert(startIndex + _builder._metaDb.GetNumberOfRows(startIndex) - 1 > propertyIndex);
         Debug.Assert(_builder._metaDb.GetElementTokenType(propertyIndex) is ElementTokenType.PropertyName);
+
+        _builder._metaDb.SetLocation(propertyIndex, selection.Id);
         return new SourceResultElementBuilder(_builder, propertyIndex + 1);
     }
 

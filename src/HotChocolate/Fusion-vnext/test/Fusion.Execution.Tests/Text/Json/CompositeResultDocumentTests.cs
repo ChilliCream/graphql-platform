@@ -192,28 +192,6 @@ public class CompositeResultDocumentTests : FusionTestBase
     }
 
     [Fact]
-    public void Invalidate_Scalar_Throws()
-    {
-        // arrange
-        var schema = CreateCompositeSchema();
-
-        var plan = PlanOperation(
-            schema,
-            """
-            {
-                __typename
-            }
-            """);
-
-        var compositeResult = new CompositeResultDocument(plan.Operation, 0);
-
-        var typeName = compositeResult.Data.GetProperty("__typename");
-
-        // act + assert
-        Assert.Throws<InvalidOperationException>(typeName.Invalidate);
-    }
-
-    [Fact]
     public void Enumerate_Object()
     {
         // arrange

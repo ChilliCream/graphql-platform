@@ -57,7 +57,7 @@ public sealed partial class CompositeResultDocument
         }
 
         /// <summary>
-        /// Byte offset in source data OR metadb row index for references.
+        /// Byte offset in source data OR metaDb row index for references.
         /// 27 bits = 134M limit (increased from 26 bits / 67M limit)
         /// </summary>
         public int Location => _locationAndOpRefType & 0x07FFFFFF;
