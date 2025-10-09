@@ -645,7 +645,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The external field &apos;{0}&apos; must not be annotated with the @override directive..
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; must not be annotated with the @override directive..
         /// </summary>
         internal static string LogEntryHelper_ExternalOverrideCollision {
             get {
