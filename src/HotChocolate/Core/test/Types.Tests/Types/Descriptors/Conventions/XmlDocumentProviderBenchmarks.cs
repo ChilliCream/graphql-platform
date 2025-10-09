@@ -32,13 +32,13 @@ public class XmlDocumentProviderBenchmarks
         _testOutputHelper = testOutputHelper;
     }
 
-    [Fact(Skip = "Run manually when performance regression testing is required")]
-    //[Fact]
+    //[Fact(Skip = "Run manually when performance regression testing is required")]
+    [Fact]
     public void RunBenchmarks()
     {
         var config = ManualConfig.Create(DefaultConfig.Instance)
             .AddDiagnoser(MemoryDiagnoser.Default)
-            .AddJob(Job.ShortRun)
+            .AddJob(Job.Dry)
             .AddExporter(MarkdownExporter.GitHub);
 
         var summary = BenchmarkRunner.Run(typeof(Bench), config);
@@ -53,7 +53,13 @@ public class XmlDocumentProviderBenchmarks
     {
         private static readonly XmlDocumentationProvider s_documentationProvider = new XmlDocumentationProvider(
             new XmlDocumentationResolver(),
-            new DefaultObjectPoolProvider().CreateStringBuilderPool());
+            new DefaultObjectPoolProvider().CreateStringBuilderPool(),
+            false);
+
+        private static readonly XmlDocumentationProvider s_safeDocumentationProvider = new XmlDocumentationProvider(
+            new XmlDocumentationResolver(),
+            new DefaultObjectPoolProvider().CreateStringBuilderPool(),
+            true);
 
         private static readonly OldXmlDocumentationProvider s_oldDocumentationProvider = new OldXmlDocumentationProvider(
             new OldXmlDocumentationFileResolver(),
@@ -62,6 +68,7 @@ public class XmlDocumentProviderBenchmarks
         // Example parameterization
         [Params(1, 10, 100)] public int N { get; set; }
 
+        /*
         [Benchmark]
         public void When_xml_doc_is_missing_then_description_is_empty()
         {
@@ -215,7 +222,7 @@ public class XmlDocumentProviderBenchmarks
                     typeof(BaseBaseClass));
             }
         }
-
+*/
         [Benchmark]
         public void When_parameter_has_inheritdoc_then_it_is_resolved()
         {
@@ -229,6 +236,21 @@ public class XmlDocumentProviderBenchmarks
                         .Single(p => p.Name == "baz"));
             }
         }
+
+        [Benchmark]
+        public void When_parameter_has_inheritdoc_then_it_is_resolved_threadSafeAndNoCacheMutation()
+        {
+            for (int i = 0; i < N; i++)
+            {
+                // act
+                s_safeDocumentationProvider.GetDescription(
+                    typeof(ClassWithInheritdoc)
+                        .GetMethod(nameof(ClassWithInheritdoc.Bar))!
+                        .GetParameters()
+                        .Single(p => p.Name == "baz"));
+            }
+        }
+
         [Benchmark]
         public void When_parameter_has_inheritdoc_then_it_is_resolved_old()
         {
@@ -243,152 +265,153 @@ public class XmlDocumentProviderBenchmarks
             }
         }
 
-        [Benchmark]
-        public void When_method_has_inheritdoc_then_it_is_resolved()
-        {
-            for (int i = 0; i < N; i++)
-            {
-                // act
-                s_documentationProvider.GetDescription(
-                    typeof(ClassWithInheritdoc)
-                        .GetMethod(nameof(ClassWithInheritdoc.Bar))!);
-            }
-        }
+        // [Benchmark]
+        // public void When_method_has_inheritdoc_then_it_is_resolved()
+        // {
+        //     for (int i = 0; i < N; i++)
+        //     {
+        //         // act
+        //         s_documentationProvider.GetDescription(
+        //             typeof(ClassWithInheritdoc)
+        //                 .GetMethod(nameof(ClassWithInheritdoc.Bar))!);
+        //     }
+        // }
+        //
+        // [Benchmark]
+        // public void When_method_has_inheritdoc_then_it_is_resolved_old()
+        // {
+        //     for (int i = 0; i < N; i++)
+        //     {
+        //         // act
+        //         s_oldDocumentationProvider.GetDescription(
+        //             typeof(ClassWithInheritdoc)
+        //                 .GetMethod(nameof(ClassWithInheritdoc.Bar))!);
+        //     }
+        // }
+        //
+        // [Benchmark]
+        // public void When_property_has_inheritdoc_then_it_is_resolved()
+        // {
+        //     for (int i = 0; i < N; i++)
+        //     {
+        //         // act
+        //         s_documentationProvider.GetDescription(
+        //             typeof(ClassWithInheritdoc)
+        //                 .GetProperty(nameof(ClassWithInheritdoc.Foo))!);
+        //     }
+        // }
+        //
+        // [Benchmark]
+        // public void When_property_has_inheritdoc_then_it_is_resolved_old()
+        // {
+        //     for (int i = 0; i < N; i++)
+        //     {
+        //         // act
+        //         s_oldDocumentationProvider.GetDescription(
+        //             typeof(ClassWithInheritdoc)
+        //                 .GetProperty(nameof(ClassWithInheritdoc.Foo))!);
+        //     }
+        // }
+        //
+        // [Benchmark]
+        // public void When_type_is_an_interface_then_description_is_resolved()
+        // {
+        //     for (int i = 0; i < N; i++)
+        //     {
+        //         // act
+        //         s_documentationProvider.GetDescription(
+        //             typeof(IBaseBaseInterface));
+        //     }
+        // }
+        // [Benchmark]
+        // public void When_type_is_an_interface_then_description_is_resolved_old()
+        // {
+        //     for (int i = 0; i < N; i++)
+        //     {
+        //         // act
+        //         s_oldDocumentationProvider.GetDescription(
+        //             typeof(IBaseBaseInterface));
+        //     }
+        // }
+        //
+        // [Benchmark]
+        // public void When_parameter_has_inheritdoc_on_interface_then_it_is_resolved()
+        // {
+        //     for (int i = 0; i < N; i++)
+        //     {
+        //         // act
+        //         s_documentationProvider.GetDescription(
+        //             typeof(ClassWithInheritdocOnInterface)
+        //                 .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))!
+        //                 .GetParameters()
+        //                 .Single(p => p.Name == "baz"));
+        //     }
+        // }
+        //
+        // [Benchmark]
+        // public void When_parameter_has_inheritdoc_on_interface_then_it_is_resolved_old()
+        // {
+        //     for (int i = 0; i < N; i++)
+        //     {
+        //         // act
+        //         s_oldDocumentationProvider.GetDescription(
+        //             typeof(ClassWithInheritdocOnInterface)
+        //                 .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))!
+        //                 .GetParameters()
+        //                 .Single(p => p.Name == "baz"));
+        //     }
+        // }
+        //
+        //
+        // [Benchmark]
+        // public void When_property_has_inheritdoc_on_interface_then_it_is_resolved()
+        // {
+        //     for (int i = 0; i < N; i++)
+        //     {
+        //         // act
+        //         s_documentationProvider.GetDescription(
+        //             typeof(ClassWithInheritdocOnInterface)
+        //                 .GetProperty(nameof(ClassWithInheritdocOnInterface.Foo))!);
+        //     }
+        // }
+        //
+        // [Benchmark]
+        // public void When_property_has_inheritdoc_on_interface_then_it_is_resolved_old()
+        // {
+        //     for (int i = 0; i < N; i++)
+        //     {
+        //         // act
+        //         s_oldDocumentationProvider.GetDescription(
+        //             typeof(ClassWithInheritdocOnInterface)
+        //                 .GetProperty(nameof(ClassWithInheritdocOnInterface.Foo))!);
+        //     }
+        // }
+        //
+        // [Benchmark]
+        // public void When_method_has_inheritdoc_then_on_interface_it_is_resolved()
+        // {
+        //     for (int i = 0; i < N; i++)
+        //     {
+        //         // act
+        //         s_documentationProvider.GetDescription(
+        //             typeof(ClassWithInheritdocOnInterface)
+        //                 .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))!);
+        //     }
+        // }
+        //
+        // [Benchmark]
+        // public void When_method_has_inheritdoc_then_on_interface_it_is_resolved_old()
+        // {
+        //     for (int i = 0; i < N; i++)
+        //     {
+        //         // act
+        //         s_oldDocumentationProvider.GetDescription(
+        //             typeof(ClassWithInheritdocOnInterface)
+        //                 .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))!);
+        //     }
+        // }
 
-        [Benchmark]
-        public void When_method_has_inheritdoc_then_it_is_resolved_old()
-        {
-            for (int i = 0; i < N; i++)
-            {
-                // act
-                s_oldDocumentationProvider.GetDescription(
-                    typeof(ClassWithInheritdoc)
-                        .GetMethod(nameof(ClassWithInheritdoc.Bar))!);
-            }
-        }
-
-        [Benchmark]
-        public void When_property_has_inheritdoc_then_it_is_resolved()
-        {
-            for (int i = 0; i < N; i++)
-            {
-                // act
-                s_documentationProvider.GetDescription(
-                    typeof(ClassWithInheritdoc)
-                        .GetProperty(nameof(ClassWithInheritdoc.Foo))!);
-            }
-        }
-
-        [Benchmark]
-        public void When_property_has_inheritdoc_then_it_is_resolved_old()
-        {
-            for (int i = 0; i < N; i++)
-            {
-                // act
-                s_oldDocumentationProvider.GetDescription(
-                    typeof(ClassWithInheritdoc)
-                        .GetProperty(nameof(ClassWithInheritdoc.Foo))!);
-            }
-        }
-
-        [Benchmark]
-        public void When_type_is_an_interface_then_description_is_resolved()
-        {
-            for (int i = 0; i < N; i++)
-            {
-                // act
-                s_documentationProvider.GetDescription(
-                    typeof(IBaseBaseInterface));
-            }
-        }
-        [Benchmark]
-        public void When_type_is_an_interface_then_description_is_resolved_old()
-        {
-            for (int i = 0; i < N; i++)
-            {
-                // act
-                s_oldDocumentationProvider.GetDescription(
-                    typeof(IBaseBaseInterface));
-            }
-        }
-
-        [Benchmark]
-        public void When_parameter_has_inheritdoc_on_interface_then_it_is_resolved()
-        {
-            for (int i = 0; i < N; i++)
-            {
-                // act
-                s_documentationProvider.GetDescription(
-                    typeof(ClassWithInheritdocOnInterface)
-                        .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))!
-                        .GetParameters()
-                        .Single(p => p.Name == "baz"));
-            }
-        }
-
-        [Benchmark]
-        public void When_parameter_has_inheritdoc_on_interface_then_it_is_resolved_old()
-        {
-            for (int i = 0; i < N; i++)
-            {
-                // act
-                s_oldDocumentationProvider.GetDescription(
-                    typeof(ClassWithInheritdocOnInterface)
-                        .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))!
-                        .GetParameters()
-                        .Single(p => p.Name == "baz"));
-            }
-        }
-
-
-        [Benchmark]
-        public void When_property_has_inheritdoc_on_interface_then_it_is_resolved()
-        {
-            for (int i = 0; i < N; i++)
-            {
-                // act
-                s_documentationProvider.GetDescription(
-                    typeof(ClassWithInheritdocOnInterface)
-                        .GetProperty(nameof(ClassWithInheritdocOnInterface.Foo))!);
-            }
-        }
-
-        [Benchmark]
-        public void When_property_has_inheritdoc_on_interface_then_it_is_resolved_old()
-        {
-            for (int i = 0; i < N; i++)
-            {
-                // act
-                s_oldDocumentationProvider.GetDescription(
-                    typeof(ClassWithInheritdocOnInterface)
-                        .GetProperty(nameof(ClassWithInheritdocOnInterface.Foo))!);
-            }
-        }
-
-        [Benchmark]
-        public void When_method_has_inheritdoc_then_on_interface_it_is_resolved()
-        {
-            for (int i = 0; i < N; i++)
-            {
-                // act
-                s_documentationProvider.GetDescription(
-                    typeof(ClassWithInheritdocOnInterface)
-                        .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))!);
-            }
-        }
-
-        [Benchmark]
-        public void When_method_has_inheritdoc_then_on_interface_it_is_resolved_old()
-        {
-            for (int i = 0; i < N; i++)
-            {
-                // act
-                s_oldDocumentationProvider.GetDescription(
-                    typeof(ClassWithInheritdocOnInterface)
-                        .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))!);
-            }
-        }
-
+        /*
         [Benchmark]
         public void When_class_implements_interface_and_property_has_description_then_property_description_is_used()
         {
@@ -643,6 +666,7 @@ public class XmlDocumentProviderBenchmarks
                     typeof(WithDictionaryArgs).GetMethod(nameof(WithDictionaryArgs.Method))!);
             }
         }
+        */
     }
 }
 

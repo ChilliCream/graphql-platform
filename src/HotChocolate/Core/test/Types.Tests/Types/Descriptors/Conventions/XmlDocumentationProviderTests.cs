@@ -143,6 +143,12 @@ public class XmlDocumentationProviderTests
                 .GetParameters()
                 .Single(p => p.Name == "baz"));
 
+        parameterXml = documentationProvider.GetDescription(
+            typeof(ClassWithInheritdoc)
+                .GetMethod(nameof(ClassWithInheritdoc.Bar))!
+                .GetParameters()
+                .Single(p => p.Name == "baz"));
+
         // assert
         Assert.Equal("Parameter details.", parameterXml);
     }

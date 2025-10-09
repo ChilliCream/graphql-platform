@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Types.Descriptors;
@@ -20,16 +19,25 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
     private const string Code = "code";
     private const string Paramref = "paramref";
     private const string Name = "name";
+    private const BindingFlags BindingFlags =
+        System.Reflection.BindingFlags.Instance
+        | System.Reflection.BindingFlags.Static
+        | System.Reflection.BindingFlags.Public
+        | System.Reflection.BindingFlags.NonPublic
+        | System.Reflection.BindingFlags.DeclaredOnly;
 
     private readonly IXmlDocumentationResolver _documentationResolver;
     private readonly ObjectPool<StringBuilder> _stringBuilderPool;
+    private readonly bool _noCacheMutation;
 
     public XmlDocumentationProvider(
         IXmlDocumentationResolver documentationResolver,
-        ObjectPool<StringBuilder> stringBuilderPool)
+        ObjectPool<StringBuilder> stringBuilderPool,
+        bool noCacheMutation = true)
     {
         _documentationResolver = documentationResolver ?? throw new ArgumentNullException(nameof(documentationResolver));
         _stringBuilderPool = stringBuilderPool;
+        _noCacheMutation = noCacheMutation;
     }
 
     public string? GetDescription(Type type) =>
@@ -254,7 +262,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                     return null;
                 }
 
-                ReplaceInheritdocElements(member, element);
+                element = ReplaceInheritdocElements(member, element);
 
                 return element;
             }
@@ -281,7 +289,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                     return null;
                 }
 
-                ReplaceInheritdocElements(parameter.Member, element);
+                element = ReplaceInheritdocElements(parameter.Member, element);
 
                 if (parameter.IsRetval
                     || string.IsNullOrEmpty(parameter.Name))
@@ -304,61 +312,53 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
 
     private void ProcessInheritdocInterfaceElements(
         MemberInfo member,
-        XElement child)
+        XElement mutableElement)
     {
         if (member.DeclaringType is { })
         {
             foreach (var baseInterface in member.DeclaringType.GetInterfaces())
             {
-                var baseMember = baseInterface.GetTypeInfo()
-                    .DeclaredMembers.SingleOrDefault(m =>
-                        m.Name.EqualsOrdinal(member.Name));
+                var baseMember = baseInterface.GetMember(member.Name, BindingFlags).SingleOrDefault();
                 if (baseMember != null)
                 {
                     var baseDoc = GetMemberElement(baseMember);
                     if (baseDoc != null)
                     {
-                        // TODO: This implicitly mutates the document (which is cached!) and is not threadsafe -> potential flaw
-                        // TODO: clone / lock / replace ?
-                        child.ReplaceWith(baseDoc.Nodes());
+                        // Note: This implicitly mutates the xelement
+                        mutableElement.ReplaceWith(baseDoc.Nodes());
                     }
                 }
             }
         }
     }
 
-    private void ReplaceInheritdocElements(
+    private XElement ReplaceInheritdocElements(
         MemberInfo member,
         XElement element)
     {
-        if (!element.Value.Contains(Inheritdoc, StringComparison.Ordinal))
+        if (element.Element(Inheritdoc) is null)
         {
-            return;
+            return element;
         }
 
         var baseType = member.DeclaringType?.BaseType;
         if (baseType is null)
         {
-            return;
+            return element;
         }
 
-        MemberInfo? baseMember = null;
-        var children = element.Elements(Inheritdoc);
-        foreach (var child in children)
+        // Deep copy to ensure that we do not mutate the original element from the cache.
+        var elementCopy = _noCacheMutation ? new XElement(element) : element;
+        var baseMember = baseType.GetMember(member.Name, BindingFlags).SingleOrDefault();
+        foreach (var child in elementCopy.Elements(Inheritdoc))
         {
-            baseMember ??=
-                baseType?.GetTypeInfo().DeclaredMembers
-                    .SingleOrDefault(m => m.Name == member.Name);
-
             if (baseMember != null)
             {
                 var baseDoc = GetMemberElement(baseMember);
                 if (baseDoc != null)
                 {
-                    // TODO: This implicitly mutates the document (which is cached!) and is not threadsafe -> potential flaw
-                    // TODO: lock / replace ?
-                    var nodes = baseDoc.Nodes();
-                    child.ReplaceWith(nodes);
+                    // Note: This implicitly mutates the elementCopy
+                    child.ReplaceWith(baseDoc.Nodes());
                 }
                 else
                 {
@@ -370,6 +370,8 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                 ProcessInheritdocInterfaceElements(member, child);
             }
         }
+
+        return element;
     }
 
     private static string? RemoveLineBreakWhiteSpaces(StringBuilder stringBuilder)
