@@ -1,10 +1,13 @@
-title: Root_Skip_On_All_Selections
+title: Root_Skip_Only_On_Some_Fields_From_Different_Source_Schemas
 request:
   document: |
     query testQuery(
       $skip: Boolean!
     ) {
       productBySlug(slug: "product") @skip(if: $skip) {
+        name
+      }
+      viewer {
         name
       }
     }
@@ -15,7 +18,11 @@ request:
 response:
   body: |
     {
-      "data": {}
+      "data": {
+        "viewer": {
+          "name": "Viewer"
+        }
+      }
     }
 sourceSchemas:
   - name: A
@@ -35,7 +42,7 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query testQuery_60827aef_1(
+            query testQuery_d58c3d50_2(
               $skip: Boolean!
             ) {
               productBySlug(slug: "product") @skip(if: $skip) {
@@ -52,25 +59,68 @@ sourceSchemas:
               {
                 "data": {}
               }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        viewer: Viewer
+      }
+      
+      type Viewer {
+        name: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_d58c3d50_1 {
+              viewer {
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "name": "Viewer"
+                  }
+                }
+              }
 operationPlan:
   operation:
     - document: |
         query testQuery(
           $skip: Boolean!
         ) {
+          viewer {
+            name
+          }
           productBySlug(slug: "product") @skip(if: $skip) {
             name
           }
         }
       name: testQuery
-      hash: 60827aef95828f171f928a28d1065777
-      searchSpace: 1
+      hash: d58c3d50fb2e1f9bfa7afd1029c8933b
+      searchSpace: 2
   nodes:
     - id: 1
       type: Operation
+      schema: B
+      operation: |
+        query testQuery_d58c3d50_1 {
+          viewer {
+            name
+          }
+        }
+    - id: 2
+      type: Operation
       schema: A
       operation: |
-        query testQuery_60827aef_1(
+        query testQuery_d58c3d50_2(
           $skip: Boolean!
         ) {
           productBySlug(slug: "product") @skip(if: $skip) {

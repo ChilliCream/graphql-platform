@@ -1,19 +1,23 @@
-title: NodeField_Skip_Around_NodeField
+title: NodeField_Multiple_Skip_Levels_Around_NodeField
 request:
   document: |
     query testQuery(
-      $skip: Boolean!
+      $skip1: Boolean!
+      $skip2: Boolean!
     ) {
-      ... @skip(if: $skip) {
-        __typename
-        node(id: "RGlzY3Vzc2lvbjox") {
+      ... @skip(if: $skip1) {
+        ... @skip(if: $skip2) {
           __typename
+          node(id: "RGlzY3Vzc2lvbjox") {
+            __typename
+          }
         }
       }
     }
   variables: |
     {
-      "skip": true
+      "skip1": true,
+      "skip2": true
     }
 response:
   body: |
@@ -42,7 +46,7 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query testQuery_10801a85_2 {
+            query testQuery_77cabf0d_2 {
               node(id: "RGlzY3Vzc2lvbjox") {
                 __typename
               }
@@ -61,17 +65,20 @@ operationPlan:
   operation:
     - document: |
         query testQuery(
-          $skip: Boolean!
+          $skip1: Boolean!
+          $skip2: Boolean!
         ) {
-          ... @skip(if: $skip) {
-            __typename
-            node(id: "RGlzY3Vzc2lvbjox") {
+          ... @skip(if: $skip1) {
+            ... @skip(if: $skip2) {
               __typename
+              node(id: "RGlzY3Vzc2lvbjox") {
+                __typename
+              }
             }
           }
         }
       name: testQuery
-      hash: 10801a856f6686b5f88162250887cefd
+      hash: 77cabf0dee8ded4914c8a472c2afabb0
       searchSpace: 1
   nodes:
     - id: 1
@@ -83,7 +90,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_10801a85_2 {
+        query testQuery_77cabf0d_2 {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
           }

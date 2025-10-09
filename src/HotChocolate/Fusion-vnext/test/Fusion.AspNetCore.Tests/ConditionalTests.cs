@@ -5,8 +5,10 @@ namespace HotChocolate.Fusion;
 
 public class ConditionalTests : FusionTestBase
 {
+    #region Root
+
     [Fact]
-    public async Task Root_Skip_On_All_Selections()
+    public async Task Root_Skip_On_Field()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -49,7 +51,7 @@ public class ConditionalTests : FusionTestBase
     }
 
     [Fact(Skip = "Does not yet work correctly")]
-    public async Task Root_All_Selections_Statically_Skipped()
+    public async Task Root_Field_Statically_Skipped()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -91,7 +93,7 @@ public class ConditionalTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Root_Selection_Twice_Only_Skipped_Once()
+    public async Task Root_Skip_Around_Fields_Of_Same_Source_Schema()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -99,12 +101,16 @@ public class ConditionalTests : FusionTestBase
             """
             type Query {
               productBySlug(slug: String!): Product
+              viewer: Viewer
             }
 
             type Product {
               id: ID!
               name: String!
-              price: Float!
+            }
+
+            type Viewer {
+              name: String!
             }
             """);
 
@@ -119,11 +125,13 @@ public class ConditionalTests : FusionTestBase
         var request = new OperationRequest(
             """
             query testQuery($skip: Boolean!) {
-              productBySlug(slug: "product") {
-                name
-              }
-              productBySlug(slug: "product") @skip(if: $skip) {
-                price
+              ... @skip(if: $skip) {
+                productBySlug(slug: "product") {
+                  name
+                }
+                viewer {
+                  name
+                }
               }
             }
             """,
@@ -138,7 +146,7 @@ public class ConditionalTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Root_Selection_Twice_Only_Skipped_Once_Identical_Selection_Sets()
+    public async Task Root_Skip_Around_Fields_From_Different_Source_Schemas()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -151,7 +159,72 @@ public class ConditionalTests : FusionTestBase
             type Product {
               id: ID!
               name: String!
-              price: Float!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              name: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              ... @skip(if: $skip) {
+                productBySlug(slug: "product") {
+                  name
+                }
+                viewer {
+                  name
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Root_Skip_Only_On_Some_Fields_Of_Same_Source_Schema()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+              viewer: Viewer
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+
+            type Viewer {
+              name: String!
             }
             """);
 
@@ -165,16 +238,16 @@ public class ConditionalTests : FusionTestBase
 
         var request = new OperationRequest(
             """
-            query testQuery($slug: String!, $skip: Boolean!) {
-              productBySlug(slug: $slug) @skip(if: $skip) {
+            query testQuery($skip: Boolean!) {
+              productBySlug(slug: "product") @skip(if: $skip) {
                 name
               }
-              productBySlug(slug: $slug) {
+              viewer {
                 name
               }
             }
             """,
-            variables: new Dictionary<string, object?> { ["slug"] = "product", ["skip"] = true });
+            variables: new Dictionary<string, object?> { ["skip"] = true });
 
         using var result = await client.PostAsync(
             request,
@@ -183,6 +256,765 @@ public class ConditionalTests : FusionTestBase
         // assert
         await MatchSnapshotAsync(gateway, request, result);
     }
+
+    [Fact]
+    public async Task Root_Skip_Only_On_Some_Fields_From_Different_Source_Schemas()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              name: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              productBySlug(slug: "product") @skip(if: $skip) {
+                name
+              }
+              viewer {
+                name
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Root_Multiple_Skip_Levels_Around_Fields_From_Different_Source_Schemas()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              name: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip1: Boolean!, $skip2: Boolean!) {
+              ... @skip(if: $skip1) {
+                ... @skip(if: $skip2) {
+                  productBySlug(slug: "product") {
+                    name
+                  }
+                  viewer {
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip1"] = true, ["skip2"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    #endregion
+
+    #region Lookup
+
+    [Fact]
+    public async Task Lookup_Skip_On_Parent_Field_Of_Field_Fetched_Through_Lookup()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+              review: Review
+            }
+
+            type Review {
+              id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              reviewById(id: ID!): Review @lookup
+            }
+
+            type Review {
+              id: ID!
+              title: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              productBySlug(slug: "product") {
+                name
+                review @skip(if: $skip) {
+                  title
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Skip_Around_Fields_Fetched_Through_Lookup()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+              review: Review
+            }
+
+            type Review {
+              id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              reviewById(id: ID!): Review @lookup
+            }
+
+            type Review {
+              id: ID!
+              title: String!
+              rating: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              productBySlug(slug: "product") {
+                name
+                review {
+                  ... @skip(if: $skip) {
+                    title
+                    rating
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Multiple_Skip_Levels_Around_Fields_Fetched_Through_Lookup()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+              review: Review
+            }
+
+            type Review {
+              id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              reviewById(id: ID!): Review @lookup
+            }
+
+            type Review {
+              id: ID!
+              title: String!
+              rating: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip1: Boolean!, $skip2: Boolean!) {
+              productBySlug(slug: "product") {
+                name
+                review {
+                  ... @skip(if: $skip1) {
+                    ... @skip(if: $skip2) {
+                      title
+                      rating
+                    }
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip1"] = true,  ["skip2"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Multiple_Skip_Levels_Around_Fields_Fetched_Through_Lookup_And_On_Same_Source_Schema()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+              reviewById(id: ID!): Review @lookup
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+              review: Review
+            }
+
+            type Review {
+              id: ID!
+              author: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              reviewById(id: ID!): Review @lookup
+            }
+
+            type Review {
+              id: ID!
+              title: String!
+              rating: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip1: Boolean!, $skip2: Boolean!) {
+              productBySlug(slug: "product") {
+                name
+                review {
+                  ... @skip(if: $skip1) {
+                    ... @skip(if: $skip2) {
+                      title
+                      author
+                      rating
+                    }
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip1"] = true,  ["skip2"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Skip_On_Field_Fetched_Through_Lookup()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+              review: Review
+            }
+
+            type Review {
+              id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              reviewById(id: ID!): Review @lookup
+            }
+
+            type Review {
+              id: ID!
+              title: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              productBySlug(slug: "product") {
+                name
+                review {
+                  title @skip(if: $skip)
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Skip_Only_On_Some_Fields_Fetched_Through_Lookup()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+              review: Review
+            }
+
+            type Review {
+              id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              reviewById(id: ID!): Review @lookup
+            }
+
+            type Review {
+              id: ID!
+              title: String!
+              rating: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              productBySlug(slug: "product") {
+                name
+                review {
+                  title @skip(if: $skip)
+                  rating
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    #endregion
+
+    #region Require
+
+    [Fact]
+    public async Task Lookup_Skip_On_Field_With_Requirement()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              size: Int!
+            }
+            """);
+
+        using var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              dimension(size: Int! @require(field: "size")): String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              productBySlug(slug: "product") {
+                dimension @skip(if: $skip)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Skip_Around_Field_With_Requirement_With_Other_Field()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              size: Int!
+            }
+            """);
+
+        using var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              dimension(size: Int! @require(field: "size")): String
+              price: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              productBySlug(slug: "product") {
+                ... @skip(if: $skip) {
+                  dimension
+                  price
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Skip_Not_Only_On_Field_With_Requirement()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              size: Int!
+            }
+            """);
+
+        using var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              dimension(size: Int! @require(field: "size")): String
+              price: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              productBySlug(slug: "product") {
+                dimension @skip(if: $skip)
+                price
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    #endregion
 
     #region node field
 
@@ -267,6 +1099,9 @@ public class ConditionalTests : FusionTestBase
             """
             query testQuery($skip: Boolean!) {
               ... @skip(if: $skip) {
+                # We need another selection here or our rewriter
+                # would (correctly) pull the skip down on the node field.
+                __typename
                 # Discussion:1
                 node(id: "RGlzY3Vzc2lvbjox") {
                   __typename
@@ -275,6 +1110,61 @@ public class ConditionalTests : FusionTestBase
             }
             """,
             variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task NodeField_Multiple_Skip_Levels_Around_NodeField()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              title: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip1: Boolean!, $skip2: Boolean!) {
+              ... @skip(if: $skip1) {
+                ... @skip(if: $skip2) {
+                  # We need another selection here or our rewriter
+                  # would (correctly) pull the skip down on the node field.
+                  __typename
+                  # Discussion:1
+                  node(id: "RGlzY3Vzc2lvbjox") {
+                    __typename
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip1"] = true, ["skip2"] = true });
 
         using var result = await client.PostAsync(
             request,
@@ -871,6 +1761,87 @@ public class ConditionalTests : FusionTestBase
                   author {
                     rating
                   }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    #endregion
+
+    #region Introspection
+
+    [Fact]
+    public async Task Introspection_Skip_On_Field()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              field: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              __typename @skip(if: $skip)
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Introspection_Skip_Around_Field()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              field: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              ... @skip(if: $skip) {
+                __typename
+                __type(name: "Query") {
+                  name
                 }
               }
             }

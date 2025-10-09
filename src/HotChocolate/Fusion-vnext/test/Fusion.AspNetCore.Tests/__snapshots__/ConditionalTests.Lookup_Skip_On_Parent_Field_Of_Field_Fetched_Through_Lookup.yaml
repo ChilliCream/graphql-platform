@@ -1,4 +1,4 @@
-title: Root_Selection_Twice_Only_Skipped_Once
+title: Lookup_Skip_On_Parent_Field_Of_Field_Fetched_Through_Lookup
 request:
   document: |
     query testQuery(
@@ -6,9 +6,9 @@ request:
     ) {
       productBySlug(slug: "product") {
         name
-      }
-      productBySlug(slug: "product") @skip(if: $skip) {
-        price
+        review @skip(if: $skip) {
+          title
+        }
       }
     }
   variables: |
@@ -34,21 +34,27 @@ sourceSchemas:
       type Product {
         id: ID!
         name: String!
-        price: Float!
+        review: Review
       }
       
       type Query {
         productBySlug(slug: String!): Product
       }
+      
+      type Review {
+        id: ID!
+      }
     interactions:
       - request:
           document: |
-            query testQuery_2f62336a_1(
+            query testQuery_dcf2affd_1(
               $skip: Boolean!
             ) {
               productBySlug(slug: "product") {
                 name
-                price @skip(if: $skip)
+                review @skip(if: $skip) {
+                  id
+                }
               }
             }
           variables: |
@@ -65,6 +71,20 @@ sourceSchemas:
                   }
                 }
               }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        reviewById(id: ID!): Review @lookup
+      }
+      
+      type Review {
+        id: ID!
+        title: String!
+      }
 operationPlan:
   operation:
     - document: |
@@ -73,22 +93,46 @@ operationPlan:
         ) {
           productBySlug(slug: "product") {
             name
-            price @skip(if: $skip)
+            review @skip(if: $skip) {
+              title
+              id @fusion__requirement
+            }
           }
         }
       name: testQuery
-      hash: 2f62336a9f7c0d55b78c6c41bec25763
+      hash: dcf2affdd717b34522665fb9ecd548f8
       searchSpace: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
       operation: |
-        query testQuery_2f62336a_1(
+        query testQuery_dcf2affd_1(
           $skip: Boolean!
         ) {
           productBySlug(slug: "product") {
             name
-            price @skip(if: $skip)
+            review @skip(if: $skip) {
+              id
+            }
           }
         }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_dcf2affd_2(
+          $__fusion_1_id: ID!
+        ) {
+          reviewById(id: $__fusion_1_id) {
+            title
+          }
+        }
+      source: $.reviewById
+      target: $.productBySlug.review
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

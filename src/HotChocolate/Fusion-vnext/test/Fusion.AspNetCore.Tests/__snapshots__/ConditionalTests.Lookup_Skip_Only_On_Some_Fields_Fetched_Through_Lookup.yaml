@@ -1,0 +1,168 @@
+title: Lookup_Skip_Only_On_Some_Fields_Fetched_Through_Lookup
+request:
+  document: |
+    query testQuery(
+      $skip: Boolean!
+    ) {
+      productBySlug(slug: "product") {
+        name
+        review {
+          title @skip(if: $skip)
+          rating
+        }
+      }
+    }
+  variables: |
+    {
+      "skip": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productBySlug": {
+          "name": "Product: UHJvZHVjdDox",
+          "review": {
+            "rating": 123
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: ID!
+        name: String!
+        review: Review
+      }
+      
+      type Query {
+        productBySlug(slug: String!): Product
+      }
+      
+      type Review {
+        id: ID!
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_8a7e6c10_1 {
+              productBySlug(slug: "product") {
+                name
+                review {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productBySlug": {
+                    "name": "Product: UHJvZHVjdDox",
+                    "review": {
+                      "id": "UmV2aWV3OjI="
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        reviewById(id: ID!): Review @lookup
+      }
+      
+      type Review {
+        id: ID!
+        title: String!
+        rating: Int!
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_8a7e6c10_2(
+              $skip: Boolean!
+              $__fusion_1_id: ID!
+            ) {
+              reviewById(id: $__fusion_1_id) {
+                rating
+                title @skip(if: $skip)
+              }
+            }
+          variables: |
+            {
+              "skip": true,
+              "__fusion_1_id": "UmV2aWV3OjI="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "reviewById": {
+                    "rating": 123
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip: Boolean!
+        ) {
+          productBySlug(slug: "product") {
+            name
+            review {
+              rating
+              id @fusion__requirement
+              title @skip(if: $skip)
+            }
+          }
+        }
+      name: testQuery
+      hash: 8a7e6c10a18f14af822384ae6c9a85c3
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_8a7e6c10_1 {
+          productBySlug(slug: "product") {
+            name
+            review {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_8a7e6c10_2(
+          $skip: Boolean!
+          $__fusion_1_id: ID!
+        ) {
+          reviewById(id: $__fusion_1_id) {
+            rating
+            title @skip(if: $skip)
+          }
+        }
+      source: $.reviewById
+      target: $.productBySlug.review
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
