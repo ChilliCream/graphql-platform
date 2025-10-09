@@ -243,6 +243,11 @@ internal static class InputObjectCompiler
             {
                 value = CreateOptional(value, field.RuntimeType);
             }
+            else if (field.Property.PropertyType.IsValueType
+                     && System.Nullable.GetUnderlyingType(field.Property.PropertyType) == null)
+            {
+                value = Expression.Coalesce(value, Expression.Default(field.Property.PropertyType));
+            }
 
             value = Expression.Convert(value, field.Property.PropertyType);
             Expression setPropertyValue = Expression.Call(instance, setter, value);
