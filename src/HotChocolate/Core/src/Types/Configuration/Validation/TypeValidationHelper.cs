@@ -5,6 +5,8 @@ namespace HotChocolate.Configuration.Validation;
 
 internal static class TypeValidationHelper
 {
+    private static readonly InputParser s_inputParser = new();
+
     public static void EnsureTypeHasFields(
         IComplexTypeDefinition type,
         ICollection<ISchemaError> errors)
@@ -40,6 +42,29 @@ internal static class TypeValidationHelper
                 if (argument.IsDeprecated && argument.Type.IsNonNullType() && argument.DefaultValue is null)
                 {
                     errors.Add(RequiredArgumentCannotBeDeprecated(type, field, argument));
+                }
+            }
+        }
+    }
+
+    public static void EnsureArgumentDefaultValuesAreCompatible(
+        ObjectType type,
+        ICollection<ISchemaError> errors)
+    {
+        foreach (var field in type.Fields)
+        {
+            foreach (var argument in field.Arguments)
+            {
+                if (argument.DefaultValue is not null)
+                {
+                    try
+                    {
+                        s_inputParser.ParseLiteral(argument.DefaultValue, argument);
+                    }
+                    catch (SerializationException)
+                    {
+                        errors.Add(ArgumentDefaultValueMustBeCompatible(type, field, argument));
+                    }
                 }
             }
         }
