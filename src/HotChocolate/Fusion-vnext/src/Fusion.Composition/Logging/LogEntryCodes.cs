@@ -15,6 +15,7 @@ public static class LogEntryCodes
     public const string ExternalOnInterface = "EXTERNAL_ON_INTERFACE";
     public const string ExternalOverrideCollision = "EXTERNAL_OVERRIDE_COLLISION";
     public const string ExternalProvidesCollision = "EXTERNAL_PROVIDES_COLLISION";
+    public const string ExternalRequireCollision = "EXTERNAL_REQUIRE_COLLISION";
     public const string ExternalUnused = "EXTERNAL_UNUSED";
     public const string FieldArgumentTypesNotMergeable = "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE";
     public const string FieldWithMissingRequiredArgument = "FIELD_WITH_MISSING_REQUIRED_ARGUMENT";

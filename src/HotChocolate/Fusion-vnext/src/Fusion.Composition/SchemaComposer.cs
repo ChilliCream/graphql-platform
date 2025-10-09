@@ -116,6 +116,7 @@ public sealed class SchemaComposer
         new ExternalOnInterfaceRule(),
         new ExternalOverrideCollisionRule(),
         new ExternalProvidesCollisionRule(),
+        new ExternalRequireCollisionRule(),
         new ExternalUnusedRule(),
         new InvalidShareableUsageRule(),
         new IsInvalidFieldTypeRule(),
