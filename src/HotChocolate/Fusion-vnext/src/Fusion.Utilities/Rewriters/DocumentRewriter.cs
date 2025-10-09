@@ -192,7 +192,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 otherDirectives ?? [],
                 selectionSet);
 
-            fragmentContext = GetOrAddFragmentContext(context, inlineFragment, typeCondition);
+            fragmentContext = GetOrAddContextForFragment(context, inlineFragment, typeCondition);
         }
 
         CollectSelections(selectionSet, fragmentContext);
@@ -249,8 +249,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                         var conditionalContextBelowUnconditionalField =
                             RecreateConditionalContextHierarchy(fieldContext, conditionalContext);
 
-                        // TODO: references arent set on unconditional context
-
                         MergeContexts(conditionalFieldContext, conditionalContextBelowUnconditionalField);
                     }
 
@@ -264,7 +262,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         }
     }
 
-    private static Context GetOrAddFragmentContext(
+    private static Context GetOrAddContextForFragment(
         Context context,
         InlineFragmentNode inlineFragmentNode,
         ITypeDefinition typeCondition)
@@ -361,22 +359,14 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             {
                 foreach (var (fieldNode, fieldContext) in fieldContextLookup)
                 {
-                    if (target.HasField(fieldNode, out var targetFieldContext))
+                    if (!target.HasField(fieldNode, out var targetFieldContext))
                     {
-                        if (fieldContext is not null && targetFieldContext is not null)
-                        {
-                            MergeContexts(fieldContext, targetFieldContext);
-                        }
+                        targetFieldContext = GetOrAddContextForField(target, fieldNode, fieldContext?.Type);
                     }
-                    else
-                    {
-                        if (fieldContext is not null)
-                        {
-                            fieldContext.Parent = target;
-                            // TODO: Set Unconditional
-                        }
 
-                        target.AddField(fieldNode, fieldContext);
+                    if (fieldContext is not null && targetFieldContext is not null)
+                    {
+                        MergeContexts(fieldContext, targetFieldContext);
                     }
                 }
             }
@@ -388,16 +378,15 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             {
                 foreach (var (inlineFragmentNode, fragmentContext) in fragmentContextLookup)
                 {
-                    if (target.HasFragment(inlineFragmentNode, out var targetFragmentContext))
+                    if (!target.HasFragment(inlineFragmentNode, out var targetFragmentContext))
                     {
-                        MergeContexts(fragmentContext, targetFragmentContext);
+                        targetFragmentContext = GetOrAddContextForFragment(
+                            target,
+                            inlineFragmentNode,
+                            fragmentContext.Type);
                     }
-                    else
-                    {
-                        fragmentContext.Parent = target;
-                        // TODO: Set Unconditional
-                        target.AddFragment(inlineFragmentNode, fragmentContext);
-                    }
+
+                    MergeContexts(fragmentContext, targetFragmentContext);
                 }
             }
         }
@@ -599,9 +588,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 {
                     continue;
                 }
-
-                // TODO: What to do here about the merge observer?
-                //       We also need a test case for this.
 
                 selections ??= [];
                 selections.Add(conditionalSelection);
