@@ -63,6 +63,11 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
     {
         foreach (var selection in selectionSet.Selections)
         {
+            if (removeStaticallyExcludedSelections && IsStaticallySkipped(selection))
+            {
+                continue;
+            }
+
             switch (selection)
             {
                 case FieldNode field:
@@ -82,26 +87,29 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
     private void CollectField(FieldNode fieldNode, Context context)
     {
-        if (removeStaticallyExcludedSelections && IsStaticallySkipped(fieldNode))
-        {
-            return;
-        }
-
         var (conditional, directives) = DivideDirectives(
             fieldNode,
             Types.DirectiveLocation.Field);
 
-        conditional = RemoveInheritedConditionals(conditional, context);
-
         if (conditional is not null)
         {
-            context = context.GetOrAddConditionalContext(conditional);
+            if (IsStaticallySkipped(conditional, context, out conditional))
+            {
+                return;
+            }
+
+            if (conditional is not null)
+            {
+                context = context.GetOrAddConditionalContext(conditional);
+            }
         }
 
-        fieldNode = fieldNode
-            .WithArguments(RewriteArguments(fieldNode.Arguments))
-            .WithDirectives(directives ?? [])
-            .WithLocation(null);
+        fieldNode = new FieldNode(
+            fieldNode.Name,
+            fieldNode.Alias,
+            directives ?? [],
+            RewriteArguments(fieldNode.Arguments),
+            fieldNode.SelectionSet);
 
         var fieldName = fieldNode.Name.Value;
         ITypeDefinition? fieldType = null;
@@ -123,11 +131,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
     private void CollectInlineFragment(InlineFragmentNode inlineFragment, Context context)
     {
-        if (removeStaticallyExcludedSelections && IsStaticallySkipped(inlineFragment))
-        {
-            return;
-        }
-
         var typeCondition = inlineFragment.TypeCondition is not null
             ? schema.Types[inlineFragment.TypeCondition.Name.Value]
             : context.Type;
@@ -146,11 +149,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
     private void CollectFragmentSpread(FragmentSpreadNode fragmentSpread, Context context)
     {
-        if (removeStaticallyExcludedSelections && IsStaticallySkipped(fragmentSpread))
-        {
-            return;
-        }
-
         var fragmentDefinition = context.GetFragmentDefinition(fragmentSpread.Name.Value);
         var typeCondition = schema.Types[fragmentDefinition.TypeCondition.Name.Value];
 
@@ -173,11 +171,17 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         IReadOnlyList<DirectiveNode>? otherDirectives,
         Context context)
     {
-        conditional = RemoveInheritedConditionals(conditional, context);
-
         if (conditional is not null)
         {
-            context = context.GetOrAddConditionalContext(conditional);
+            if (IsStaticallySkipped(conditional, context, out conditional))
+            {
+                return;
+            }
+
+            if (conditional is not null)
+            {
+                context = context.GetOrAddConditionalContext(conditional);
+            }
         }
 
         var isTypeRefinement = !typeCondition.IsAssignableFrom(context.Type);
@@ -393,40 +397,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         }
     }
 
-    private static Conditional? RemoveInheritedConditionals(Conditional? conditional, Context context)
-    {
-        if (conditional is null)
-        {
-            return null;
-        }
-
-        var current = context;
-        do
-        {
-            if (current.Conditional is { } parentConditional)
-            {
-                if (conditional.Skip?.Equals(parentConditional.Skip, SyntaxComparison.Syntax) == true)
-                {
-                    conditional.Skip = null;
-                }
-
-                if (conditional.Include?.Equals(parentConditional.Include, SyntaxComparison.Syntax) == true)
-                {
-                    conditional.Include = null;
-                }
-
-                if (conditional.Skip is null && conditional.Include is null)
-                {
-                    return null;
-                }
-            }
-
-            current = current.Parent;
-        } while (current is not null);
-
-        return conditional;
-    }
-
     private (Conditional? Conditional, IReadOnlyList<DirectiveNode>? Directives) DivideDirectives(
         IHasDirectives directiveProvider,
         Types.DirectiveLocation targetLocation)
@@ -491,6 +461,90 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         }
 
         return (conditional, directives);
+    }
+
+    /// <summary>
+    /// Checks whether a parent context already contains an opposite conditional part
+    /// with the same variable value, e.g. <c>@skip(if: $value) :: @include(if: $value)</c>.
+    /// <br/>
+    /// If that's the case, the child conditional will always be skipped, so we can statically
+    /// skip the selection this conditional is on.
+    /// <br/>
+    /// Additionally, we check whether a part of the conditional already exists in a parent context.
+    /// <br/>
+    /// In a hierarchy like <c>@skip(if: $skip) -> something -> @skip(if: $skip)</c>,
+    /// we can get rid of the second @skip, since it will always be included.
+    /// </summary>
+    private static bool IsStaticallySkipped(
+        Conditional conditional,
+        Context context,
+        out Conditional? newConditional)
+    {
+        newConditional = conditional;
+
+        var current = context;
+        do
+        {
+            if (current.Conditional is { } parentConditional)
+            {
+                if (parentConditional.Skip is not null)
+                {
+                    if (newConditional.Skip?.Equals(parentConditional.Skip, SyntaxComparison.Syntax) == true)
+                    {
+                        // If the parent has exactly the same @skip, we can remove the new one.
+                        newConditional.Skip = null;
+                    }
+                    else if (ConditionalDirectiveHasSameVariable(parentConditional.Skip, newConditional.Include))
+                    {
+                        // If the parent has a @skip with the same variable as the new @include,
+                        // the new @include will never be included, so the selection its on
+                        // can be statically removed.
+                        return true;
+                    }
+                }
+
+                if (parentConditional.Include is not null)
+                {
+                    if (newConditional.Include?.Equals(parentConditional.Include, SyntaxComparison.Syntax) == true)
+                    {
+                        // If the parent has exactly the same @include, we can remove the new one.
+                        newConditional.Include = null;
+                    }
+                    else if (ConditionalDirectiveHasSameVariable(parentConditional.Include, newConditional.Skip))
+                    {
+                        // If the parent has a @include with the same variable as the new @skip,
+                        // the new @skip will never be included, so the selection its on
+                        // can be statically removed.
+                        return true;
+                    }
+                }
+
+                if (newConditional.Skip is null && newConditional.Include is null)
+                {
+                    // Both of the @skip and @include in the new conditional have already
+                    // appeared on a parent, so we can get rid of the entire conditional.
+                    newConditional = null;
+                    break;
+                }
+            }
+
+            current = current.Parent;
+        } while (current is not null);
+
+        return false;
+    }
+
+    private static bool ConditionalDirectiveHasSameVariable(DirectiveNode directive1, DirectiveNode? directive2)
+    {
+        if (directive2 is null)
+        {
+            return false;
+        }
+
+        var if1 = directive1.Arguments[0];
+        var if2 = directive2.Arguments[0];
+
+        return if1.Value.Equals(if2.Value, SyntaxComparison.Syntax);
     }
 
     private static bool IsStaticallySkipped(IHasDirectives directiveProvider)
@@ -693,7 +747,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         var buffer = new DirectiveNode[directives.Count];
         for (var i = 0; i < buffer.Length; i++)
         {
-            buffer[i] = RewriteDirective(directives[0]);
+            buffer[i] = RewriteDirective(directives[i]);
         }
 
         return ImmutableArray.Create(buffer);

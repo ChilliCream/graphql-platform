@@ -2570,4 +2570,106 @@ public class DocumentRewriterTests
             }
             """);
     }
+
+    [Fact]
+    public void Remove_Opposite_Child_Conditional_With_Same_Value_Skip_Include()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+              dimension: Dimension
+            }
+
+            type Dimension {
+              width: Int!
+              height: Int!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($conditional: Boolean!) {
+              productBySlug(slug: "a") @skip(if: $conditional) {
+                name
+                dimension @include(if: $conditional) {
+                  width
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query(
+              $conditional: Boolean!
+            ) {
+              productBySlug(slug: "a") @skip(if: $conditional) {
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Remove_Opposite_Child_Conditional_With_Same_Value_Include_Skip()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+              dimension: Dimension
+            }
+
+            type Dimension {
+              width: Int!
+              height: Int!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($conditional: Boolean!) {
+              productBySlug(slug: "a") @include(if: $conditional) {
+                name
+                dimension @skip(if: $conditional) {
+                  width
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query(
+              $conditional: Boolean!
+            ) {
+              productBySlug(slug: "a") @include(if: $conditional) {
+                name
+              }
+            }
+            """);
+    }
 }
