@@ -6,8 +6,8 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
 /// <summary>
 /// The <c>@is</c> directive’s <c>field</c> argument must be syntactically valid GraphQL. If
-/// the selection map string is malformed (e.g., missing closing braces, unbalanced quotes, invalid
-/// tokens), then the schema cannot be composed correctly. In such cases, the error
+/// the <c>FieldSelectionMap</c> string is malformed (e.g., missing closing braces, unbalanced
+/// quotes, invalid tokens), then the schema cannot be composed correctly. In such cases, the error
 /// <c>IS_INVALID_SYNTAX</c> is raised.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Is-Invalid-Syntax">

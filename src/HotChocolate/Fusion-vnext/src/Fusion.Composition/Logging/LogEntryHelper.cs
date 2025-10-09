@@ -443,7 +443,7 @@ internal static class LogEntryHelper
             schema);
     }
 
-    public static LogEntry IsInvalidField(
+    public static LogEntry IsInvalidFields(
         Directive isDirective,
         string argumentName,
         string fieldName,
@@ -454,8 +454,8 @@ internal static class LogEntryHelper
         var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
 
         return new LogEntry(
-            string.Format(LogEntryHelper_IsInvalidField, coordinate, sourceSchema.Name),
-            LogEntryCodes.IsInvalidField,
+            string.Format(LogEntryHelper_IsInvalidFields, coordinate, sourceSchema.Name),
+            LogEntryCodes.IsInvalidFields,
             LogSeverity.Error,
             coordinate,
             isDirective,
@@ -980,21 +980,6 @@ internal static class LogEntryHelper
             severity: LogSeverity.Error,
             member: schema,
             schema: schema);
-    }
-
-    public static LogEntry TypeDefinitionInvalid(
-        INameProvider member,
-        MutableSchemaDefinition schema,
-        string? details = null)
-    {
-        return new LogEntry(
-            string.Format(LogEntryHelper_TypeDefinitionInvalid, member.Name, schema.Name),
-            LogEntryCodes.TypeDefinitionInvalid,
-            LogSeverity.Error,
-            new SchemaCoordinate(member.Name),
-            member,
-            schema,
-            details);
     }
 
     public static LogEntry TypeKindMismatch(

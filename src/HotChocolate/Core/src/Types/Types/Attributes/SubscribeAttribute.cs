@@ -35,7 +35,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
         if (MessageType is null)
         {
             var messageParameter =
-                method.GetParameters()
+                context.TypeInspector.GetParameters(method)
                     .FirstOrDefault(t => t.IsDefined(typeof(EventMessageAttribute)));
 
             if (messageParameter is null)

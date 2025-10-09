@@ -36,6 +36,36 @@ builder.Services.AddGraphQLServer()
     });
 ```
 
+## IRequestContext
+
+We've removed the `IRequestContext` abstraction in favor of the concrete `RequestContext` class.
+Additionally, all information related to the parsed operation document has been consolidated into a new `OperationDocumentInfo` class, accessible via `RequestContext.OperationDocumentInfo`.
+
+| Before                      | After                                     |
+| --------------------------- | ----------------------------------------- |
+| context.DocumentId          | context.OperationDocumentInfo.Id.Value    |
+| context.Document            | context.OperationDocumentInfo.Document    |
+| context.DocumentHash        | context.OperationDocumentInfo.Hash.Value  |
+| context.ValidationResult    | context.OperationDocumentInfo.IsValidated |
+| context.IsCachedDocument    | context.OperationDocumentInfo.IsCached    |
+| context.IsPersistedDocument | context.OperationDocumentInfo.IsPersisted |
+
+Here's how you would update a custom request middleware implementation:
+
+```diff
+public class CustomRequestMiddleware
+{
+-   public async ValueTask InvokeAsync(IRequestContext context)
++   public async ValueTask InvokeAsync(RequestContext context)
+    {
+-       string documentId = context.DocumentId;
++       string documentId = context.OperationDocumentInfo.Id.Value;
+
+        await _next(context).ConfigureAwait(false);
+    }
+}
+```
+
 ## Skip/include disallowed on root subscription fields
 
 The `@skip` and `@include` directives are now disallowed on root subscription fields, as specified in the RFC: [Prevent @skip and @include on root subscription selection set](https://github.com/graphql/graphql-spec/pull/860).
@@ -48,6 +78,84 @@ Deprecating a field now requires the implemented field in the interface to also 
 
 Previously, the global ID input value formatter was added to ID filter fields regardless of whether or not Global Object Identification was enabled. This is now conditional.
 
+## `fieldCoordinate` renamed to `coordinate` in error extensions
+
+Some GraphQL validation errors included an extension named `fieldCoordinate` that provided a schema coordinate pointing to the field or argument that caused the error. Since schema coordinates can reference various schema elements (not just fields), we've renamed this extension to `coordinate` for clarity.
+
+```diff
+{
+  "errors": [
+    {
+      "message": "Some error",
+      "locations": [
+        {
+          "line": 3,
+          "column": 21
+        }
+      ],
+      "path": [
+        "field"
+      ],
+      "extensions": {
+        "code": "HC0001",
+-       "fieldCoordinate": "Query.field"
++       "coordinate": "Query.field"
+      }
+    }
+  ],
+  "data": {
+    "field": null
+  }
+}
+```
+
+## Errors from `TypeConverter`s are now accessible in the `ErrorFilter`
+
+Previously, exceptions thrown by a `TypeConverter` were not forwarded to the `ErrorFilter`. Such exceptions are now properly propagated and can therefore be intercepted.
+
+In addition, the default output for such errors has been standardized: earlier, type conversion errors resulted in different responses depending on where in the document they occurred. Now, all exceptions thrown by type converters are reported in a unified format:
+
+```json
+{
+  "errors": [
+    {
+      "message": "The value provided for `[name of field or argument that caused the error]` is not in a valid format.",
+      "locations": [
+        {
+          "line": <lineNumber>,
+          "column": <columnNumber>
+        }
+      ],
+      "path": [ path to output field that caused the error],
+      "extensions": {
+        "code": "HC0001",
+        "coordinate": "schema coordinate pointing to the field or argument that caused the error",
+        "inputPath": [path to nested input field or argument (if any) that caused the error]
+        "...": "other extensions"
+      }
+    }
+  ],
+  "data": {
+    ...
+  }
+}
+```
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
+
+# Noteworthy changes
+
+## RunWithGraphQLCommandsAsync returns exit code
+
+`RunWithGraphQLCommandsAsync` and `RunWithGraphQLCommands` now return exit codes (`Task<int>` and `int` respectively, instead of `Task` and `void`).
+
+We recommend updating your `Program.cs` to return this exit code. This ensures that command failures signal an error to shell scripts, CI/CD pipelines, and other tools:
+
+```diff
+var app = builder.Build();
+
+- await app.RunWithGraphQLCommandsAsync(args);
++ return await app.RunWithGraphQLCommandsAsync(args);
+```

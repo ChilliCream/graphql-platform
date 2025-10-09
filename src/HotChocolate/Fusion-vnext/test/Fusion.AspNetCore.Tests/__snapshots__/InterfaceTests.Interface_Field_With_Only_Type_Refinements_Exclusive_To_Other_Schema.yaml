@@ -1,0 +1,95 @@
+title: Interface_Field_With_Only_Type_Refinements_Exclusive_To_Other_Schema
+request:
+  document: |
+    {
+      someField {
+        ... on ConcreteTypeB {
+          specificToB
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "someField": {}
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface SomeInterface {
+        value: String
+      }
+      
+      type ConcreteTypeA implements SomeInterface {
+        value: String
+        specificToA: String
+      }
+      
+      type Query {
+        someField: SomeInterface
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_405afc94_1 {
+              someField {
+                __typename
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "someField": {
+                    "__typename": "ConcreteTypeA"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface SomeInterface {
+        value: String
+      }
+      
+      type ConcreteTypeB implements SomeInterface {
+        value: String
+        specificToB: String
+      }
+      
+      type Query {
+        anotherField: SomeInterface
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          someField {
+            __typename @fusion__requirement
+            ... on ConcreteTypeB {
+              specificToB
+            }
+          }
+        }
+      hash: 405afc947c86c0c4323453d1dca73a19
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_405afc94_1 {
+          someField {
+            __typename
+          }
+        }

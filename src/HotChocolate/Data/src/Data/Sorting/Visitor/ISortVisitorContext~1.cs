@@ -6,10 +6,10 @@ public interface ISortVisitorContext<T>
     ///<summary>
     /// Stores all sort operations
     ///</summary>
-    public Queue<T> Operations { get; }
+    Queue<T> Operations { get; }
 
     ///<summary>
     /// Stores the current instance. In case of an expression this would be x.Foo.Bar
     ///</summary>
-    public Stack<T> Instance { get; }
+    Stack<T> Instance { get; }
 }

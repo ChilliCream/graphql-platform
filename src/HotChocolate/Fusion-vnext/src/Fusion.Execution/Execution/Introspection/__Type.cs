@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -122,21 +123,20 @@ internal sealed class __Type : ITypeResolverInterceptor
         {
             var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
             var count = includeDeprecated
-                ? ct.Fields.Count
-                : ct.Fields.Count(t => !t.IsDeprecated);
-            var list = context.FieldResult.CreateListValue(count);
+                ? ct.Fields.Count(t => !t.IsIntrospectionField)
+                : ct.Fields.Count(t => !t.IsDeprecated && !t.IsIntrospectionField);
+            using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
 
-            var i = 0;
-            foreach (var element in list.EnumerateArray())
+            foreach (var field in ct.Fields)
             {
-                var field = ct.Fields[i++];
                 if (field.IsIntrospectionField || (!includeDeprecated && field.IsDeprecated))
                 {
                     continue;
                 }
 
                 context.AddRuntimeResult(field);
-                element.CreateObjectValue(context.Selection, context.IncludeFlags);
+                Debug.Assert(list.MoveNext());
+                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
     }
@@ -184,19 +184,18 @@ internal sealed class __Type : ITypeResolverInterceptor
             var count = includeDeprecated
                 ? et.Values.Count
                 : et.Values.Count(t => !t.IsDeprecated);
-            var list = context.FieldResult.CreateListValue(count);
+            using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
 
-            var index = 0;
-            foreach (var element in list.EnumerateArray())
+            foreach (var value in et.Values)
             {
-                var value = et.Values[index++];
                 if (!includeDeprecated && value.IsDeprecated)
                 {
                     continue;
                 }
 
                 context.AddRuntimeResult(value);
-                element.CreateObjectValue(context.Selection, context.IncludeFlags);
+                Debug.Assert(list.MoveNext());
+                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
     }
@@ -209,20 +208,18 @@ internal sealed class __Type : ITypeResolverInterceptor
             var count = includeDeprecated
                 ? iot.Fields.Count
                 : iot.Fields.Count(t => !t.IsDeprecated);
-            var list = context.FieldResult.CreateListValue(count);
+            using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
 
-            var index = 0;
-            foreach (var element in list.EnumerateArray())
+            foreach (var field in iot.Fields)
             {
-                var value = iot.Fields[index++];
-
-                if (!includeDeprecated && value.IsDeprecated)
+                if (!includeDeprecated && field.IsDeprecated)
                 {
                     continue;
                 }
 
-                context.AddRuntimeResult(value);
-                element.CreateObjectValue(context.Selection, context.IncludeFlags);
+                context.AddRuntimeResult(field);
+                Debug.Assert(list.MoveNext());
+                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
     }

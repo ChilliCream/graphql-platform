@@ -16,12 +16,12 @@ namespace HotChocolate.Fusion.PostMergeValidationRules;
 /// Even if the field selection map for <c>@is(field: "…")</c> is syntactically valid, its contents
 /// must also be valid within the composed schema. Fields must exist on the parent type for them to
 /// be referenced by <c>@is</c>. In addition, fields referencing unknown fields break the valid
-/// usage of <c>@is</c>, leading to an <c>IS_INVALID_FIELD</c> error.
+/// usage of <c>@is</c>, leading to an <c>IS_INVALID_FIELDS</c> error.
 /// </summary>
-/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Is-Invalid-Field">
+/// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Is-Invalid-Fields">
 /// Specification
 /// </seealso>
-internal sealed class IsInvalidFieldRule : IEventHandler<SchemaEvent>
+internal sealed class IsInvalidFieldsRule : IEventHandler<SchemaEvent>
 {
     public void Handle(SchemaEvent @event, CompositionContext context)
     {
@@ -54,7 +54,7 @@ internal sealed class IsInvalidFieldRule : IEventHandler<SchemaEvent>
             if (errors.Any())
             {
                 context.Log.Write(
-                    IsInvalidField(
+                    IsInvalidFields(
                         isDirective,
                         sourceArgument.Name,
                         sourceField.Name,

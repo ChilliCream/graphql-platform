@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
 
@@ -7,6 +8,7 @@ namespace HotChocolate.Fusion.Text.Json;
 
 internal readonly partial struct SourceResultElementBuilder
 {
+    private static readonly JavaScriptEncoder s_encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
     private readonly SourceResultDocumentBuilder _builder;
     internal readonly int _index;
@@ -76,11 +78,14 @@ internal readonly partial struct SourceResultElementBuilder
         var writer = _builder._data;
         var writeIndex = _builder._data.Length;
 
-        var requiredSize = value.Length + 2;
+        var jsonEncoded = JsonEncodedText.Encode(value, s_encoder);
+        var requiredSize = jsonEncoded.EncodedUtf8Bytes.Length + 2;
         var target = writer.GetSpan(requiredSize);
+
         target[0] = (byte)'"';
-        value.CopyTo(target[1..]);
-        target[^1..][0] = (byte)'"';
+        jsonEncoded.EncodedUtf8Bytes.CopyTo(target[1..]);
+        target[requiredSize - 1] = (byte)'"';
+
         writer.Advance(requiredSize);
 
         _builder._metaDb.SetLocation(_index, writeIndex);

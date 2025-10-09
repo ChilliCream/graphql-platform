@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -170,6 +171,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
                 WriteBytes("false"u8, chunks, ref currentChunkIndex, ref currentChunkOffset);
                 break;
 
+            case ElementTokenType.None:
             case ElementTokenType.Null:
                 WriteBytes("null"u8, chunks, ref currentChunkIndex, ref currentChunkOffset);
                 break;
@@ -188,6 +190,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         ref int currentChunkOffset)
     {
         WriteByte((byte)'{', chunks, ref currentChunkIndex, ref currentChunkOffset);
+        WriteByte((byte)'\n', chunks, ref currentChunkIndex, ref currentChunkOffset);
 
         startIndex = GetStartIndex(startIndex);
         var current = startIndex;
@@ -203,9 +206,11 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
             WritePropertyName(++current, chunks, ref currentChunkIndex, ref currentChunkOffset);
             WriteByte((byte)':', chunks, ref currentChunkIndex, ref currentChunkOffset);
             WriteElement(++current, chunks, ref currentChunkIndex, ref currentChunkOffset);
+            WriteByte((byte)'\n', chunks, ref currentChunkIndex, ref currentChunkOffset);
         }
 
         WriteByte((byte)'}', chunks, ref currentChunkIndex, ref currentChunkOffset);
+        WriteByte((byte)'\n', chunks, ref currentChunkIndex, ref currentChunkOffset);
     }
 
     private void WriteArray(
