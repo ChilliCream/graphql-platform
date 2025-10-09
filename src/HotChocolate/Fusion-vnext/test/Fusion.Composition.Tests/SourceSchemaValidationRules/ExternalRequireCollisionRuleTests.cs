@@ -4,9 +4,9 @@ using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class ExternalProvidesCollisionRuleTests
+public sealed class ExternalRequireCollisionRuleTests
 {
-    private static readonly object s_rule = new ExternalProvidesCollisionRule();
+    private static readonly object s_rule = new ExternalRequireCollisionRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
     private readonly CompositionLog _log = new();
 
@@ -40,7 +40,7 @@ public sealed class ExternalProvidesCollisionRuleTests
         // assert
         Assert.True(result.IsFailure);
         Assert.Equal(errorMessages, _log.Select(e => e.Message).ToArray());
-        Assert.True(_log.All(e => e.Code == "EXTERNAL_PROVIDES_COLLISION"));
+        Assert.True(_log.All(e => e.Code == "EXTERNAL_REQUIRE_COLLISION"));
         Assert.True(_log.All(e => e.Severity == LogSeverity.Error));
     }
 
@@ -48,22 +48,23 @@ public sealed class ExternalProvidesCollisionRuleTests
     {
         return new TheoryData<string[]>
         {
-            // In this example, "description" is only annotated with @provides in Schema B, without
-            // any other directive. This usage is valid.
+            // In this example, "title" has arguments annotated with @require in Schema B, but is
+            // not marked as @external. This usage is valid.
             {
                 [
                     """
                     # Source Schema A
-                    type Invoice {
+                    type Book {
                         id: ID!
-                        description: String
+                        title: String
+                        subtitle: String
                     }
                     """,
                     """
                     # Source Schema B
-                    type Invoice {
+                    type Book {
                         id: ID!
-                        description: String @provides(fields: "length")
+                        title(subtitle: String @require(field: "subtitle")): String
                     }
                     """
                 ]
@@ -75,29 +76,30 @@ public sealed class ExternalProvidesCollisionRuleTests
     {
         return new TheoryData<string[], string[]>
         {
-            // In this example, "description" is annotated with @external and also with @provides.
-            // Because @external and @provides cannot co-exist on the same field, an
-            // EXTERNAL_PROVIDES_COLLISION error is produced.
+            // The following example is invalid, since "title" is marked with @external and has an
+            // argument that is annotated with @require. This conflict leads to an
+            // EXTERNAL_REQUIRE_COLLISION error.
             {
                 [
                     """
                     # Source Schema A
-                    type Invoice {
+                    type Book {
                         id: ID!
-                        description: String
+                        title: String
+                        subtitle: String
                     }
                     """,
                     """
                     # Source Schema B
-                    type Invoice {
+                    type Book {
                         id: ID!
-                        description: String @external @provides(fields: "length")
+                        title(subtitle: String @require(field: "subtitle")): String @external
                     }
                     """
                 ],
                 [
-                    "The external field 'Invoice.description' in schema 'B' must not be annotated "
-                    + "with the @provides directive."
+                    "The external field 'Book.title' in schema 'B' must not have arguments that "
+                    + "are annotated with the @require directive."
                 ]
             }
         };
