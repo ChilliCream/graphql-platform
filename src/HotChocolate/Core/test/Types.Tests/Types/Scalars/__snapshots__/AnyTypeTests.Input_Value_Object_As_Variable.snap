@@ -1,8 +1,13 @@
-﻿{
+{
   "data": {
     "foo": {
       "kind": "ObjectValue",
-      "location": null,
+      "location": {
+        "start": 31,
+        "end": 36,
+        "line": 1,
+        "column": 32
+      },
       "fields": [
         {
           "kind": "ObjectField",

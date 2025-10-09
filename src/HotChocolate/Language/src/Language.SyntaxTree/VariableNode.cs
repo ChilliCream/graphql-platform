@@ -100,6 +100,10 @@ public sealed class VariableNode : IValueNode<string>
     /// </returns>
     public VariableNode WithLocation(Location? location) => new(location, Name);
 
+    /// <inheritdoc />
+    IValueNode IValueNode.WithLocation(Location? location)
+        => WithLocation(location);
+
     /// <summary>
     /// Creates a new node from the current instance and replaces the
     /// <see cref="NamedSyntaxNode.Name" /> with <paramref name="name" />.
