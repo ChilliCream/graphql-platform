@@ -50,14 +50,15 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
         CollectSelections(selectionSetNode, context);
 
-        var newSelections = RewriteSelections(context);
+        var newSelections = RewriteSelections(context) ?? [s_typeNameField];
 
-        var newSelectionSetNode = new SelectionSetNode(newSelections ?? []);
+        var newSelectionSetNode = new SelectionSetNode(newSelections);
 
         return newSelectionSetNode;
     }
 
     #region Collecting
+
     private void CollectSelections(SelectionSetNode selectionSet, Context context)
     {
         foreach (var selection in selectionSet.Selections)
@@ -531,9 +532,11 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
         return lookup;
     }
+
     #endregion
 
     #region Rewriting
+
     private List<ISelectionNode>? RewriteSelections(Context context)
     {
         List<ISelectionNode>? selections = null;
@@ -645,7 +648,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
         if (fieldSelections is null)
         {
-            // TODO: Is this right?
             if (!removeStaticallyExcludedSelections)
             {
                 return null;
@@ -665,7 +667,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
         if (fragmentSelections is null)
         {
-            // TODO: Is this right?
             if (!removeStaticallyExcludedSelections)
             {
                 return null;
@@ -723,9 +724,11 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
         return ImmutableArray.Create(buffer);
     }
+
     #endregion
 
-    [DebuggerDisplay("{Type.Name}, Fields: {Fields?.Count}, Fragments: {Fragments?.Count}, Conditionals: {Conditionals?.Count}")]
+    [DebuggerDisplay(
+        "{Type.Name}, Fields: {Fields?.Count}, Fragments: {Fragments?.Count}, Conditionals: {Conditionals?.Count}")]
     private sealed class Context(
         Context? parent,
         Context? unconditionalContext,
@@ -959,7 +962,8 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
             if (!Fragments.TryGetValue(typeName, out var existingFragmentContextLookup))
             {
-                existingFragmentContextLookup = new Dictionary<InlineFragmentNode, Context>(InlineFragmentNodeComparer.Instance);
+                existingFragmentContextLookup =
+                    new Dictionary<InlineFragmentNode, Context>(InlineFragmentNodeComparer.Instance);
                 Fragments[typeName] = existingFragmentContextLookup;
             }
 
@@ -1063,6 +1067,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
     }
 
     #region Comparers
+
     private sealed class SyntaxNodeComparer : IEqualityComparer<ISyntaxNode>
     {
         public bool Equals(ISyntaxNode? x, ISyntaxNode? y)
@@ -1212,5 +1217,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
         public static FieldNodeComparer Instance { get; } = new();
     }
+
     #endregion
 }
