@@ -4,7 +4,6 @@ using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion;
 
-// TODO: Test shared path, with two paths, but only one is shared, should fail validation.
 public sealed class SatisfiabilityValidatorTests
 {
     // Tests from the specification.
