@@ -29,22 +29,22 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Votable {
         viewerCanVote: Boolean!
       }
-      
+
       type Comment implements Votable {
         id: ID!
         viewerCanVote: Boolean!
       }
-      
+
       type Discussion implements Votable {
         id: ID!
         viewerCanVote: Boolean!
         viewerRating: Float!
       }
-      
+
       type Query {
         votables: [Votable]
       }
