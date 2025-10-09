@@ -7,7 +7,6 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Rewriters;
 
-// TODO: Observer
 public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStaticallyExcludedSelections = false)
 {
     private static readonly FieldNode s_typeNameField =
@@ -114,15 +113,11 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             .WithLocation(null);
 
         var fieldName = fieldNode.Name.Value;
-        ITypeDefinition fieldType;
+        ITypeDefinition? fieldType = null;
 
-        if (fieldName == IntrospectionFieldNames.TypeName)
+        if (fieldNode.SelectionSet is not null && context.Type is IComplexTypeDefinition complexType)
         {
-            fieldType = schema.Types["String"];
-        }
-        else
-        {
-            var field = ((IComplexTypeDefinition)context.Type).Fields[fieldName];
+            var field = complexType.Fields[fieldName];
 
             fieldType = field.Type.AsTypeDefinition();
         }
@@ -213,7 +208,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         CollectSelections(selectionSet, fragmentContext);
     }
 
-    private static Context? GetOrAddContextForField(Context context, FieldNode fieldNode, ITypeDefinition fieldType)
+    private static Context? GetOrAddContextForField(Context context, FieldNode fieldNode, ITypeDefinition? fieldType)
     {
         if (context.IsConditionalContext)
         {
@@ -231,7 +226,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                     throw new InvalidOperationException("Expected to have a field context");
                 }
 
-                // TODO: Is this correct?
                 var conditionalContextBelowUnconditionalFieldContext =
                     RecreateConditionalContextHierarchy(unconditionalFieldContext, context);
 
@@ -262,7 +256,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                         && conditionalContext.HasField(fieldNode, out var conditionalFieldContext)
                         && conditionalFieldContext is not null)
                     {
-                        // TODO: Is this correct?
                         var conditionalContextBelowUnconditionalField =
                             RecreateConditionalContextHierarchy(fieldContext, conditionalContext);
 
@@ -292,7 +285,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
             if (unconditionalContext.HasFragment(inlineFragmentNode, out var unconditionalFragmentContext))
             {
-                // TODO: Is this correct?
                 var conditionalContextBelowUnconditionalFragmentContext =
                     RecreateConditionalContextHierarchy(unconditionalFragmentContext, context);
 
@@ -322,7 +314,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                     if (conditionalContext.HasFragment(inlineFragmentNode,
                         out var conditionalFragmentContext))
                     {
-                        // TODO: Is this correct?
                         var conditionalContextBelowUnconditionalFragment =
                             RecreateConditionalContextHierarchy(fragmentContext, conditionalContext);
 
@@ -339,32 +330,27 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         }
     }
 
-    // TODO: Make this easier to understand and add summary
-    private static Context RecreateConditionalContextHierarchy(Context newRoot, Context baseConditional)
+    /// <summary>
+    /// Rebuilds the conditional directive hierarchy of <paramref name="sourceContext"/> into
+    /// <paramref name="targetContext"/>, returning the innermost, rebuilt conditional context.
+    /// </summary>
+    private static Context RecreateConditionalContextHierarchy(Context targetContext, Context sourceContext)
     {
-        var conditionalParents = new Stack<Context>();
-        var current = baseConditional;
+        var conditionalStack = new Stack<Context>();
+        var current = sourceContext;
 
-        do
+        while (current?.IsConditionalContext == true)
         {
-            if (current.IsConditionalContext)
-            {
-                conditionalParents.Push(current);
-                current = current.Parent;
-            }
-            else
-            {
-                break;
-            }
-        } while (current is not null);
-
-        var currentRoot = newRoot;
-        while (conditionalParents.TryPop(out var oldConditionalContext))
-        {
-            currentRoot = currentRoot.GetOrAddConditionalContext(oldConditionalContext.Conditional!);
+            conditionalStack.Push(current);
+            current = current.Parent;
         }
 
-        return currentRoot;
+        while (conditionalStack.TryPop(out var conditionalContext))
+        {
+            targetContext = targetContext.GetOrAddConditionalContext(conditionalContext.Conditional!);
+        }
+
+        return targetContext;
     }
 
     private static void MergeContexts(Context source, Context target)
@@ -819,7 +805,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         public Dictionary<Conditional, Context>? Conditionals { get; private set; }
 
         /// <summary>
-        /// Provides a way to find all conditional context a given selection node is referenced in.
+        /// Provides a way to find all conditional contexts a given selection node is referenced in.
         /// </summary>
         private Dictionary<ISelectionNode, List<Context>>? ReferencesInConditionalContexts { get; set; }
 
@@ -919,11 +905,11 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             return existingFieldContextLookup.TryGetValue(fieldNode, out fieldContext);
         }
 
-        public Context? AddField(FieldNode fieldNode, ITypeDefinition fieldType)
+        public Context? AddField(FieldNode fieldNode, ITypeDefinition? fieldType)
         {
             Context? fieldContext = null;
 
-            if (fieldNode.SelectionSet is not null)
+            if (fieldNode.SelectionSet is not null && fieldType is not null)
             {
                 fieldContext = new Context(
                     this,
@@ -1079,7 +1065,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 return false;
             }
 
-            return s_comparer.Equals(Skip, other?.Skip) && s_comparer.Equals(Include, other?.Include);
+            return s_comparer.Equals(Skip, other.Skip) && s_comparer.Equals(Include, other.Include);
         }
 
         public override int GetHashCode()
