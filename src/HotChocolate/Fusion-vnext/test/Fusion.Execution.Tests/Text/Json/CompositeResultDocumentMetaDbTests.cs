@@ -60,7 +60,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
             sourceDocumentId: 7,
             parentRow: 89,
             operationReferenceId: 12,
-            flags: ElementFlags.IsNullable | ElementFlags.IsLeaf);
+            flags: ElementFlags.IsNullable | ElementFlags.IsExcluded);
 
         // Act
         var row = _metaDb.Get(originalIndex);
@@ -72,7 +72,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(7, row.SourceDocumentId);
         Assert.Equal(89, row.ParentRow);
         Assert.Equal(12, row.OperationReferenceId);
-        Assert.Equal(ElementFlags.IsNullable | ElementFlags.IsLeaf, row.Flags);
+        Assert.Equal(ElementFlags.IsNullable | ElementFlags.IsExcluded, row.Flags);
         Assert.False(row.HasComplexChildren);
     }
 
@@ -170,7 +170,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
             sourceDocumentId: maxSourceDocumentId,
             parentRow: maxParentRow,
             operationReferenceId: maxSelectionSetId,
-            flags: ElementFlags.IsRoot | ElementFlags.IsNullable | ElementFlags.IsLeaf);
+            flags: ElementFlags.IsRoot | ElementFlags.IsNullable | ElementFlags.IsExcluded);
 
         // Assert
         var row = _metaDb.Get(index);

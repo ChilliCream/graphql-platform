@@ -199,7 +199,8 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                 var row = document._metaDb.Get(current);
                 Debug.Assert(row.TokenType is ElementTokenType.PropertyName);
 
-                if ((ElementFlags.IsInternal & row.Flags) == ElementFlags.IsInternal)
+                if ((ElementFlags.IsInternal & row.Flags) == ElementFlags.IsInternal
+                    || (ElementFlags.IsExcluded & row.Flags) == ElementFlags.IsExcluded)
                 {
                     // skip name+value
                     current += 2;

@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Diagnostics;
-using System.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -8,7 +7,7 @@ public sealed partial class CompositeResultDocument
 {
     internal bool TryGetNamedPropertyValue(
         Cursor startCursor,
-        ReadOnlySpan<char> propertyName,
+        string propertyName,
         out CompositeResultElement value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -19,10 +18,26 @@ public sealed partial class CompositeResultDocument
         var numberOfRows = _metaDb.GetNumberOfRows(startCursor);
 
         // Only one row means it was EndObject.
-        if (numberOfRows == 0)
+        if (numberOfRows == 1)
         {
             value = default;
             return false;
+        }
+
+        var row = _metaDb.Get(startCursor);
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+            if (selectionSet.TryGetSelection(propertyName, out var selection))
+            {
+                var propertyIndex = selection.Id - selectionSet.Id - 1;
+                var propertyRowIndex = (propertyIndex * 2) + 1;
+                var propertyCursor = startCursor + propertyRowIndex;
+                Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+                Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
+                value = new CompositeResultElement(this, propertyCursor + 1);
+                return true;
+            }
         }
 
         var maxBytes = s_utf8Encoding.GetMaxByteCount(propertyName.Length);
@@ -55,7 +70,7 @@ public sealed partial class CompositeResultDocument
         {
             var passed = candidate;
 
-            var row = _metaDb.Get(candidate);
+            row = _metaDb.Get(candidate);
             Debug.Assert(row.TokenType != ElementTokenType.PropertyName);
 
             candidate--;
@@ -115,6 +130,22 @@ public sealed partial class CompositeResultDocument
         {
             value = default;
             return false;
+        }
+
+        var row = _metaDb.Get(startCursor);
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+            if (selectionSet.TryGetSelection(propertyName, out var selection))
+            {
+                var propertyIndex = selection.Id - selectionSet.Id - 1;
+                var propertyRowIndex = (propertyIndex * 2) + 1;
+                var propertyCursor = startCursor + propertyRowIndex;
+                Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
+                Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
+                value = new CompositeResultElement(this, propertyCursor + 1);
+                return true;
+            }
         }
 
         var endCursor = startCursor + (numberOfRows - 1);

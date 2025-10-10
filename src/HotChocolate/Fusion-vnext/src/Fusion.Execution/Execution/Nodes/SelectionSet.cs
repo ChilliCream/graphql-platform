@@ -9,6 +9,7 @@ public sealed class SelectionSet : ISelectionSet
 {
     private readonly Selection[] _selections;
     private readonly FrozenDictionary<string, Selection> _responseNameLookup;
+    private readonly SelectionLookup _utf8ResponseNameLookup;
     private bool _isSealed;
 
     public SelectionSet(int id, IObjectTypeDefinition type, Selection[] selections, bool isConditional)
@@ -25,6 +26,7 @@ public sealed class SelectionSet : ISelectionSet
         IsConditional = isConditional;
         _selections = selections;
         _responseNameLookup = _selections.ToFrozenDictionary(t => t.ResponseName);
+        _utf8ResponseNameLookup = SelectionLookup.Create(this);
     }
 
     /// <summary>
@@ -63,6 +65,21 @@ public sealed class SelectionSet : ISelectionSet
     /// </returns>
     public bool TryGetSelection(string responseName, [NotNullWhen(true)] out Selection? selection)
         => _responseNameLookup.TryGetValue(responseName, out selection);
+
+    /// <summary>
+    /// Tries to resolve a selection by name.
+    /// </summary>
+    /// <param name="utf8ResponseName">
+    /// The selection response name.
+    /// </param>
+    /// <param name="selection">
+    /// The resolved selection.
+    /// </param>
+    /// <returns>
+    /// Returns true if the selection was successfully resolved.
+    /// </returns>
+    public bool TryGetSelection(ReadOnlySpan<byte> utf8ResponseName, [NotNullWhen(true)] out Selection? selection)
+        => _utf8ResponseNameLookup.TryGetSelection(utf8ResponseName, out selection);
 
     /// <summary>
     /// Gets the declaring operation.

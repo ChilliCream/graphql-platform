@@ -363,7 +363,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         if (row.TokenType == ElementTokenType.PropertyName)
         {
-            return _operation.GetSelectionById(row.OperationReferenceId).RawResponseName;
+            return _operation.GetSelectionById(row.OperationReferenceId).Utf8ResponseName;
         }
 
         if ((row.Flags & ElementFlags.SourceResult) == ElementFlags.SourceResult)
@@ -382,11 +382,8 @@ public sealed partial class CompositeResultDocument : IDisposable
         var selectionCount = 0;
         foreach (var selection in selectionSet.Selections)
         {
-            if (selection.IsIncluded(_includeFlags))
-            {
-                WriteEmptyProperty(startObjectCursor, selection);
-                selectionCount++;
-            }
+            WriteEmptyProperty(startObjectCursor, selection);
+            selectionCount++;
         }
 
         WriteEndObject(startObjectCursor, selectionCount);
@@ -514,9 +511,9 @@ public sealed partial class CompositeResultDocument : IDisposable
             flags = ElementFlags.IsInternal;
         }
 
-        if (selection.IsLeaf)
+        if (!selection.IsIncluded(_includeFlags))
         {
-            flags |= ElementFlags.IsLeaf;
+            flags |= ElementFlags.IsExcluded;
         }
 
         if (selection.Type.Kind is not TypeKind.NonNull)

@@ -267,16 +267,6 @@ public readonly partial struct CompositeResultElement
         throw new KeyNotFoundException();
     }
 
-    public CompositeResultElement GetProperty(ReadOnlySpan<char> propertyName)
-    {
-        if (TryGetProperty(propertyName, out var property))
-        {
-            return property;
-        }
-
-        throw new KeyNotFoundException();
-    }
-
     public CompositeResultElement GetProperty(ReadOnlySpan<byte> utf8PropertyName)
     {
         if (TryGetProperty(utf8PropertyName, out var property))
@@ -290,13 +280,6 @@ public readonly partial struct CompositeResultElement
     public bool TryGetProperty(string propertyName, out CompositeResultElement value)
     {
         ArgumentNullException.ThrowIfNull(propertyName);
-
-        return TryGetProperty(propertyName.AsSpan(), out value);
-    }
-
-    public bool TryGetProperty(ReadOnlySpan<char> propertyName, out CompositeResultElement value)
-    {
-        CheckValidInstance();
 
         return _parent.TryGetNamedPropertyValue(_cursor, propertyName, out value);
     }
@@ -633,10 +616,12 @@ public readonly partial struct CompositeResultElement
 
         var tokenType = TokenType;
 
-        if (tokenType != ElementTokenType.StartObject)
+        if (tokenType is not ElementTokenType.StartObject)
         {
-            // TODO : rework exception
-            throw new InvalidOperationException();
+            throw new InvalidOperationException(string.Format(
+                "The requested operation requires an element of type '{0}', but the target element has type '{1}'.",
+                ElementTokenType.StartObject,
+                tokenType));
         }
 
         return new ObjectEnumerator(this);

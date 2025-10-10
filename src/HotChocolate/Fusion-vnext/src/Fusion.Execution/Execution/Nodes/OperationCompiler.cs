@@ -194,6 +194,7 @@ public sealed class OperationCompiler
         var selections = new Selection[fieldMap.Count];
         var isConditional = false;
         var includeFlags = new List<ulong>();
+        var selectionSetId = ++lastId;
 
         foreach (var (responseName, nodes) in fieldMap)
         {
@@ -258,7 +259,7 @@ public sealed class OperationCompiler
             }
         }
 
-        return new SelectionSet(++lastId, typeContext, selections, isConditional);
+        return new SelectionSet(selectionSetId, typeContext, selections, isConditional);
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)

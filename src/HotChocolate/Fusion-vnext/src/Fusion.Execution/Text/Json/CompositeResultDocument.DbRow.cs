@@ -142,6 +142,6 @@ public sealed partial class CompositeResultDocument
         IsNullable = 4,
         IsRoot = 8,
         IsInternal = 16,
-        IsLeaf = 32
+        IsExcluded = 32
     }
 }

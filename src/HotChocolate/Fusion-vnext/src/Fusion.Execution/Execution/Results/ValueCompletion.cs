@@ -60,11 +60,6 @@ internal sealed class ValueCompletion
 
         foreach (var property in source.EnumerateObject())
         {
-            // TODO : we need to optimize the lookup performance of the result object
-            // at the moment its close to what the JSON Document would do,
-            // but since the result object has a selection set and each property
-            // is associated with a selection index we can get the lookup performance close
-            // the the one of a frozen dictionary.
             if (!target.TryGetProperty(property.NameSpan, out var resultField))
             {
                 continue;

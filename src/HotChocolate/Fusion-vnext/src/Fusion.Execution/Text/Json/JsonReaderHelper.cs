@@ -123,7 +123,6 @@ internal static class JsonReaderHelper
         return result;
     }
 
-    // TODO: Similar to escaping, replace the unescaping logic with publicly shipping APIs from https://github.com/dotnet/runtime/issues/27919
     public static string GetUnescapedString(ReadOnlySpan<byte> utf8Source)
     {
         // The escaped name is always >= than the unescaped, so it is safe to use escaped name for the buffer length.
@@ -375,10 +374,10 @@ internal static class JsonReaderHelper
             }
         }
 
-        Success:
+Success:
         return true;
 
-        DestinationTooShort:
+DestinationTooShort:
         return false;
     }
 }

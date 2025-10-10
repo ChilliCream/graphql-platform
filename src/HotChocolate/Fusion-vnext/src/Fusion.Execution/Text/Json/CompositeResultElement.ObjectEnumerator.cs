@@ -86,6 +86,20 @@ public readonly partial struct CompositeResultElement
         /// <inheritdoc />
         public bool MoveNext()
         {
+            while (MoveNextInternal())
+            {
+                var flags = _document._metaDb.GetFlags(_cursor);
+                if ((ElementFlags.IsExcluded & flags) is not ElementFlags.IsExcluded)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MoveNextInternal()
+        {
             if (_cursor == _start)
             {
                 var first = _start + 1;

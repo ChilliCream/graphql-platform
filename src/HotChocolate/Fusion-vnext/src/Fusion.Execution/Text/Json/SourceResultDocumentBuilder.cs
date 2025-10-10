@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Diagnostics;
-using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -249,7 +248,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
 
         // Get the selection to retrieve the UTF-8 response name
         var selection = _operation.GetSelectionById(selectionId);
-        var nameBytes = selection.RawResponseName;
+        var nameBytes = selection.Utf8ResponseName;
 
         WriteByte((byte)'"', chunks, ref currentChunkIndex, ref currentChunkOffset);
         WriteBytes(nameBytes, chunks, ref currentChunkIndex, ref currentChunkOffset);
