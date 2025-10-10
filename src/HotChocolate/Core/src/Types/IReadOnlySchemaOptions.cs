@@ -193,7 +193,17 @@ public interface IReadOnlySchemaOptions
 
     /// <summary>
     /// Specifies that the <see cref="IRequestExecutor"/> should be constructed
-    /// laz
+    /// lazily.
     /// </summary>
     bool LazyInitialization { get; }
+
+    /// <summary>
+    /// Specifies the size of the prepared operation cache.
+    /// </summary>
+    int PreparedOperationCacheSize { get; }
+
+    /// <summary>
+    /// Specifies the size of the operation document cache.
+    /// </summary>
+    int OperationDocumentCacheSize { get; }
 }

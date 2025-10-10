@@ -35,9 +35,13 @@ public sealed class FusionOptions : ICloneable
         {
             ExpectMutableOptions();
 
-            field = value < 16
-                ? 16
-                : value;
+            if (value < 16)
+            {
+                throw new ArgumentException(
+                    "The size of operation execution plan cache must be greater than 16.");
+            }
+
+            field = value;
         }
     } = 256;
 
@@ -66,9 +70,13 @@ public sealed class FusionOptions : ICloneable
         {
             ExpectMutableOptions();
 
-            field = value < 16
-                ? 16
-                : value;
+            if (value < 16)
+            {
+                throw new ArgumentException(
+                    "The size of operation document cache must be greater than 16.");
+            }
+
+            field = value;
         }
     } = 256;
 

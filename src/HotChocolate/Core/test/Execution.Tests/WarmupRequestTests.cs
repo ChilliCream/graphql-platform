@@ -35,7 +35,7 @@ public class WarmupRequestTests
         // assert 1
         Assert.IsType<WarmupExecutionResult>(warmupResult);
 
-        var documentCache = executor.Schema.Services.GetCombinedServices().GetRequiredService<IDocumentCache>();
+        var documentCache = executor.Schema.Services.GetRequiredService<IDocumentCache>();
         var operationCache = executor.Schema.Services.GetRequiredService<IPreparedOperationCache>();
 
         Assert.True(documentCache.TryGetDocument(documentId, out _));
@@ -82,7 +82,7 @@ public class WarmupRequestTests
         // assert
         Assert.IsType<WarmupExecutionResult>(warmupResult);
 
-        var provider = executor.Schema.Services.GetCombinedServices();
+        var provider = executor.Schema.Services;
         var documentCache = provider.GetRequiredService<IDocumentCache>();
         var operationCache = provider.GetRequiredService<IPreparedOperationCache>();
 
