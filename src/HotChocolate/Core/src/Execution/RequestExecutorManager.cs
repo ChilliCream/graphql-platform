@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Threading.Channels;
 using HotChocolate.Collections.Immutable;
@@ -26,13 +25,11 @@ namespace HotChocolate.Execution;
 internal sealed partial class RequestExecutorManager
     : IRequestExecutorManager
     , IRequestExecutorEvents
-    , IRequestExecutorWarmup
     , IAsyncDisposable
 {
     private readonly CancellationTokenSource _cts = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreBySchema = new();
     private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
-    private readonly FrozenDictionary<string, WarmupSchemaTask[]> _warmupTasksBySchema;
     private readonly IRequestExecutorOptionsMonitor _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
     private readonly EventObservable _events = new();
@@ -42,7 +39,6 @@ internal sealed partial class RequestExecutorManager
 
     public RequestExecutorManager(
         IRequestExecutorOptionsMonitor optionsMonitor,
-        IEnumerable<WarmupSchemaTask> warmupSchemaTasks,
         IServiceProvider serviceProvider)
     {
         ArgumentNullException.ThrowIfNull(optionsMonitor);
@@ -50,10 +46,6 @@ internal sealed partial class RequestExecutorManager
 
         _optionsMonitor = optionsMonitor;
         _applicationServices = serviceProvider;
-
-        _warmupTasksBySchema = warmupSchemaTasks
-            .GroupBy(t => t.SchemaName)
-            .ToFrozenDictionary(g => g.Key, g => g.ToArray());
 
         var executorEvictionChannel = Channel.CreateUnbounded<string>();
         _executorEvictionChannelWriter = executorEvictionChannel.Writer;
@@ -163,9 +155,12 @@ internal sealed partial class RequestExecutorManager
             await _optionsMonitor.GetAsync(schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
+        var options = CreateSchemaOptions(setup);
+        var schemaBuilder = SchemaBuilder.New(options);
+
         var context = new ConfigurationContext(
             schemaName,
-            setup.SchemaBuilder ?? SchemaBuilder.New(),
+            schemaBuilder,
             _applicationServices);
 
         var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, context.SchemaName);
@@ -196,18 +191,7 @@ internal sealed partial class RequestExecutorManager
         await OnRequestExecutorCreatedAsync(context, executor, setup, cancellationToken)
             .ConfigureAwait(false);
 
-        if (_warmupTasksBySchema.TryGetValue(schemaName, out var warmupTasks))
-        {
-            if (!isInitialCreation)
-            {
-                warmupTasks = [.. warmupTasks.Where(t => t.KeepWarm)];
-            }
-
-            foreach (var warmupTask in warmupTasks)
-            {
-                await warmupTask.ExecuteAsync(executor, cancellationToken).ConfigureAwait(false);
-            }
-        }
+        await WarmupExecutorAsync(executor, isInitialCreation, cancellationToken).ConfigureAwait(false);
 
         _executors[schemaName] = registeredExecutor;
 
@@ -263,6 +247,18 @@ internal sealed partial class RequestExecutorManager
             await Task.Delay(registeredExecutor.EvictionTimeout).ConfigureAwait(false);
             await registeredExecutor.DisposeAsync().ConfigureAwait(false);
         }
+    }
+
+    internal static SchemaOptions CreateSchemaOptions(RequestExecutorSetup setup)
+    {
+        var options = new SchemaOptions();
+
+        foreach (var configure in setup.SchemaOptionModifiers)
+        {
+            configure(options);
+        }
+
+        return options;
     }
 
     private async Task<ServiceProvider> CreateSchemaServicesAsync(

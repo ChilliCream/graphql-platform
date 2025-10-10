@@ -1,6 +1,9 @@
 using HotChocolate.Execution.Caching;
+using HotChocolate.Execution.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.Execution;
 
@@ -49,14 +52,14 @@ public class RequestExecutorManagerTests
 
         // act
         var firstExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
-        var firstOperationCache = firstExecutor.Schema.Services.GetCombinedServices()
+        var firstOperationCache = firstExecutor.Schema.Services
             .GetRequiredService<IPreparedOperationCache>();
 
         manager.EvictExecutor();
         executorEvictedResetEvent.Wait(cts.Token);
 
         var secondExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
-        var secondOperationCache = secondExecutor.Schema.Services.GetCombinedServices()
+        var secondOperationCache = secondExecutor.Schema.Services
             .GetRequiredService<IPreparedOperationCache>();
 
         // assert
@@ -73,14 +76,12 @@ public class RequestExecutorManagerTests
 
         var manager = new ServiceCollection()
             .AddGraphQL()
-            .InitializeOnStartup(
-                warmup: (_, _) =>
-                {
-                    warmupResetEvent.Wait(cts.Token);
+            .AddWarmupTask((_, _) =>
+            {
+                warmupResetEvent.Wait(cts.Token);
 
-                    return Task.CompletedTask;
-                },
-                keepWarm: true)
+                return Task.CompletedTask;
+            })
             .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
             .GetRequiredService<RequestExecutorManager>();
@@ -113,11 +114,8 @@ public class RequestExecutorManagerTests
         cts.Dispose();
     }
 
-    [Theory]
-    [InlineData(false, 1)]
-    [InlineData(true, 2)]
-    public async Task WarmupSchemaTasks_Are_Applied_Correct_Number_Of_Times(
-        bool keepWarm, int expectedWarmups)
+    [Fact]
+    public async Task WarmupTasks_Are_Applied_Correct_Number_Of_Times()
     {
         // arrange
         var warmups = 0;
@@ -126,13 +124,11 @@ public class RequestExecutorManagerTests
 
         var manager = new ServiceCollection()
             .AddGraphQL()
-            .InitializeOnStartup(
-                warmup: (_, _) =>
-                {
-                    warmups++;
-                    return Task.CompletedTask;
-                },
-                keepWarm: keepWarm)
+            .AddWarmupTask((_, _) =>
+            {
+                warmups++;
+                return Task.CompletedTask;
+            })
             .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
             .GetRequiredService<RequestExecutorManager>();
@@ -149,13 +145,15 @@ public class RequestExecutorManagerTests
         // assert
         var initialExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
 
+        Assert.Equal(1, warmups);
+
         manager.EvictExecutor();
         executorEvictedResetEvent.Wait(cts.Token);
 
         var executorAfterEviction = await manager.GetExecutorAsync(cancellationToken: cts.Token);
 
         Assert.NotSame(initialExecutor, executorAfterEviction);
-        Assert.Equal(expectedWarmups, warmups);
+        Assert.Equal(2, warmups);
     }
 
     [Fact]
@@ -212,5 +210,90 @@ public class RequestExecutorManagerTests
         await executor1Task;
 
         cts.Dispose();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Ensure_Executor_Is_Created_During_Startup(bool lazyInitialization)
+    {
+        // arrange
+        var typeModule = new TriggerableTypeModule();
+        var executorCreated = false;
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var createdResetEvent = new ManualResetEventSlim(false);
+
+        var services = new ServiceCollection();
+        services
+            .AddGraphQLServer()
+            .ModifyOptions(o => o.LazyInitialization = lazyInitialization)
+            .AddTypeModule(_ => typeModule)
+            .AddQueryType(d => d.Field("foo").Resolve(""));
+        var provider = services.BuildServiceProvider();
+        var executorManager = provider.GetRequiredService<RequestExecutorManager>();
+        var warmupService = provider.GetRequiredService<IHostedService>();
+
+        executorManager.Subscribe(new RequestExecutorEventObserver(@event =>
+        {
+            if (@event.Type == RequestExecutorEventType.Created)
+            {
+                executorCreated = true;
+                createdResetEvent.Set();
+            }
+        }));
+
+        // act
+        await warmupService.StartAsync(cts.Token);
+
+        // assert
+        if (lazyInitialization)
+        {
+            Assert.False(executorCreated);
+        }
+        else
+        {
+            createdResetEvent.Wait(cts.Token);
+            Assert.True(executorCreated);
+        }
+    }
+
+    [Fact(Skip = "SomeService needs to be registered with the schema services")]
+    public async Task WarmupTask_Should_Be_Able_To_Access_Schema_And_Regular_Services()
+    {
+        // arrange
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var services = new ServiceCollection();
+        services.AddSingleton<SomeService>();
+        services
+            .AddGraphQLServer()
+            .AddWarmupTask<CustomWarmupTask>()
+            .AddQueryType(d => d.Field("foo").Resolve(""));
+        var provider = services.BuildServiceProvider();
+        var manager = provider.GetRequiredService<RequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+
+        // assert
+        Assert.NotNull(executor);
+
+        cts.Dispose();
+    }
+
+#pragma warning disable CS9113 // Parameter is unread.
+    private sealed class CustomWarmupTask(IDocumentCache documentCache, SomeService service) : IRequestExecutorWarmupTask
+#pragma warning restore CS9113 // Parameter is unread.
+    {
+        public bool ApplyOnlyOnStartup => false;
+
+        public Task WarmupAsync(IRequestExecutor executor, CancellationToken cancellationToken) => Task.CompletedTask;
+    }
+
+    private class SomeService;
+
+    private sealed class TriggerableTypeModule : TypeModule
+    {
+        public void TriggerChange() => OnTypesChanged();
     }
 }
