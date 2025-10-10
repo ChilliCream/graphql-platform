@@ -1,3 +1,4 @@
+using System.IO.Pipelines;
 using System.Security.Claims;
 using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Http;
@@ -96,6 +97,9 @@ internal sealed class AzureHttpContext : HttpContext
     public override void Abort()
         => _innerContext.Abort();
 
-    public HttpResponseData CreateResponseData()
-        => _innerResponse.ResponseData;
+    public async Task<HttpResponseData> CreateResponseDataAsync()
+    {
+        await _innerResponse.CompleteAsync();
+        return _innerResponse.ResponseData;
+    }
 }

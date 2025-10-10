@@ -82,7 +82,8 @@ public abstract partial class FusionTestBase
         {
             try
             {
-                if (result.Extensions.TryGetProperty("fusion", out var fusionProperty)
+                if (result.Extensions.ValueKind is JsonValueKind.Object
+                    && result.Extensions.TryGetProperty("fusion", out var fusionProperty)
                     && fusionProperty.TryGetProperty("operationPlan", out var operationPlanProperty))
                 {
                     var manager = gateway.Services.GetRequiredService<FusionRequestExecutorManager>();
@@ -295,19 +296,19 @@ public abstract partial class FusionTestBase
         if (result.RawErrors.ValueKind != JsonValueKind.Undefined)
         {
             jsonWriter.WritePropertyName("errors");
-            result.RawErrors.WriteTo(jsonWriter);
+            jsonWriter.WriteRawValue(result.RawErrors.GetRawValue());
         }
 
         if (result.Data.ValueKind != JsonValueKind.Undefined)
         {
             jsonWriter.WritePropertyName("data");
-            result.Data.WriteTo(jsonWriter);
+            jsonWriter.WriteRawValue(result.Data.GetRawValue());
         }
 
         if (result.Extensions.ValueKind != JsonValueKind.Undefined)
         {
             jsonWriter.WritePropertyName("extensions");
-            result.Extensions.WriteTo(jsonWriter);
+            jsonWriter.WriteRawValue(result.Extensions.GetRawValue());
         }
 
         jsonWriter.WriteEndObject();
@@ -315,8 +316,8 @@ public abstract partial class FusionTestBase
 
         memoryStream.Position = 0;
 
-        var reader = new StreamReader(memoryStream);
-        return reader.ReadToEnd();
+        using var document = JsonDocument.Parse(memoryStream);
+        return JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
     }
 
     private static void WriteSourceSchemaDocument(CodeWriter writer, string schemaText)

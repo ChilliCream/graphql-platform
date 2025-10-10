@@ -1,3 +1,4 @@
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Fusion;
@@ -41,7 +42,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votable {
@@ -108,7 +109,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               authorable {
@@ -178,7 +179,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               authorable {
@@ -255,7 +256,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               authorable {
@@ -315,7 +316,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votable {
@@ -384,7 +385,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votable {
@@ -457,7 +458,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votable {
@@ -526,7 +527,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               someField {
@@ -593,7 +594,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               someField {
@@ -663,7 +664,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               someField {
@@ -721,7 +722,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votables {
@@ -788,7 +789,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               authorables {
@@ -858,7 +859,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               authorables {
@@ -935,7 +936,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               authorables {
@@ -995,7 +996,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votables {
@@ -1064,7 +1065,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votables {
@@ -1137,7 +1138,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votables {
@@ -1217,7 +1218,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1293,7 +1294,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1375,7 +1376,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1440,7 +1441,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1515,7 +1516,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1594,7 +1595,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               wrappers {
