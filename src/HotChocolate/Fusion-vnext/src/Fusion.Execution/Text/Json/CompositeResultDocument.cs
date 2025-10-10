@@ -99,12 +99,11 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var start = _metaDb.GetStartCursor(current);
-        var row = _metaDb.Get(start);
+        (var start, var tokenType) = _metaDb.GetStartCursor(current);
 
-        CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
+        CheckExpectedType(ElementTokenType.StartArray, tokenType);
 
-        var len = row.NumberOfRows;
+        var len = _metaDb.GetNumberOfRows(start);
 
         if ((uint)arrayIndex >= (uint)len)
         {
@@ -119,23 +118,22 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        current = _metaDb.GetStartCursor(current);
-        var row = _metaDb.Get(current);
+        (current, var tokenType) = _metaDb.GetStartCursor(current);
 
-        CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
+        CheckExpectedType(ElementTokenType.StartArray, tokenType);
 
-        return row.NumberOfRows;
+        return _metaDb.GetSizeOrLength(current);
     }
 
     internal int GetPropertyCount(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(current);
+        (current, var tokenType) = _metaDb.GetStartCursor(current);
 
-        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+        CheckExpectedType(ElementTokenType.StartObject, tokenType);
 
-        return row.SizeOrLength;
+        return _metaDb.GetSizeOrLength(current);
     }
 
     internal Path CreatePath(Cursor current)

@@ -12,7 +12,7 @@ public sealed partial class CompositeResultDocument
         private const int TokenTypeOffset = 8;
 
         private byte[][] _chunks;
-        private Cursor _next; // exclusive end (write position)
+        private Cursor _next;
         private bool _disposed;
 
         internal static MetaDb CreateForEstimatedRows(int estimatedRows)
@@ -151,17 +151,26 @@ public sealed partial class CompositeResultDocument
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Cursor GetStartCursor(Cursor cursor)
+        internal (Cursor, ElementTokenType) GetStartCursor(Cursor cursor)
         {
-            var tokenType = GetElementTokenType(cursor, resolveReferences: false);
+            AssertValidCursor(cursor);
+
+            var chunks = _chunks.AsSpan();
+            var span = chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
+            var union = MemoryMarshal.Read<uint>(span[TokenTypeOffset..]);
+            var tokenType = (ElementTokenType)(union >> 28);
 
             if (tokenType is ElementTokenType.Reference)
             {
-                var index = GetLocation(cursor);
-                return Cursor.FromIndex(index);
+                var index = MemoryMarshal.Read<int>(span) & 0x07FFFFFF;
+                cursor = Cursor.FromIndex(index);
+                span = chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + TokenTypeOffset);
+                union = MemoryMarshal.Read<uint>(span[TokenTypeOffset..]);
+                tokenType = (ElementTokenType)(union >> 28);
+                return (cursor, tokenType);
             }
 
-            return cursor;
+            return (cursor, tokenType);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -251,6 +260,17 @@ public sealed partial class CompositeResultDocument
             var newValue = (int)(clearedValue | (uint)((int)flags << 15));
 
             MemoryMarshal.Write(fieldSpan, newValue);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal int GetSizeOrLength(Cursor cursor)
+        {
+            AssertValidCursor(cursor);
+
+            var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 4);
+            var value = MemoryMarshal.Read<int>(span);
+
+            return value & int.MaxValue;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
