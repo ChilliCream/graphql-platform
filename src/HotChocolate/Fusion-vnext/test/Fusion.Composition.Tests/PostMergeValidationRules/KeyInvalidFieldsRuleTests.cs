@@ -109,11 +109,6 @@ public sealed class KeyInvalidFieldsRuleTests
             {
                 [
                     """
-                    #tmp
-                    type Query {
-                        productById(id: ID!): Product @lookup
-                    }
-
                     type Product @key(fields: "id") {
                         sku: String!
                     }
