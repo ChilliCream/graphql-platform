@@ -162,3 +162,5 @@ operationPlan:
         ) {
           formatTitle(title: $s)
         }
+      forwardedVariables:
+        - s

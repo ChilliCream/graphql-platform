@@ -12,15 +12,18 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
     private ExecutionNode _fallbackQuery = null!;
     private readonly string _responseName;
     private readonly IValueNode _idValue;
+    private readonly ExecutionNodeCondition[] _conditions;
 
     internal NodeFieldExecutionNode(
         int id,
         string responseName,
-        IValueNode idValue)
+        IValueNode idValue,
+        ExecutionNodeCondition[] conditions)
     {
         _responseName = responseName;
         _idValue = idValue;
         Id = id;
+        _conditions = conditions;
     }
 
     /// <inheritdoc />
@@ -28,6 +31,9 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
 
     /// <inheritdoc />
     public override ExecutionNodeType Type => ExecutionNodeType.Node;
+
+    /// <inheritdoc />
+    public override ReadOnlySpan<ExecutionNodeCondition> Conditions => _conditions;
 
     /// <summary>
     /// Gets the possible type branches for the node field.

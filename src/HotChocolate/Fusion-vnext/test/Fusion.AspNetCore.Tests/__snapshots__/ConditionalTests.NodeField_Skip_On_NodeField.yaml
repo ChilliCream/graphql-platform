@@ -86,5 +86,7 @@ operationPlan:
             __typename
           }
         }
+      forwardedVariables:
+        - skip
       dependencies:
         - id: 1

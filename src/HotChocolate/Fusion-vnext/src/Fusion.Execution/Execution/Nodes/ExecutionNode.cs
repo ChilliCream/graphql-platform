@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -10,9 +12,20 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
     private int _dependentCount;
     private int _dependencyCount;
 
+    /// <summary>
+    /// The unique id of this execution node.
+    /// </summary>
     public abstract int Id { get; }
 
+    /// <summary>
+    /// The type of this execution node.
+    /// </summary>
     public abstract ExecutionNodeType Type { get; }
+
+    /// <summary>
+    /// The conditions that need to be met to execute this node.
+    /// </summary>
+    public abstract ReadOnlySpan<ExecutionNodeCondition> Conditions { get; }
 
     /// <summary>
     /// Gets the execution nodes that depend on this node to be completed
@@ -37,7 +50,14 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
 
         try
         {
-            status = await OnExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+            if (IsSkipped(context))
+            {
+                status = ExecutionStatus.Skipped;
+            }
+            else
+            {
+                status = await OnExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {
@@ -174,4 +194,24 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
 
     public override int GetHashCode()
         => Id;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool IsSkipped(OperationPlanContext context)
+    {
+        foreach (var condition in Conditions)
+        {
+            if (!context.Variables.TryGetValue<BooleanValueNode>(condition.VariableName, out var booleanValueNode))
+            {
+                throw new InvalidOperationException(
+                    $"Expected to have a boolean value for variable '${condition.VariableName}'");
+            }
+
+            if (booleanValueNode.Value != condition.PassingValue)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
