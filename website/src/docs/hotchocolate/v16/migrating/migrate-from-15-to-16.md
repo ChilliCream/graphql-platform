@@ -38,28 +38,38 @@ builder.Services.AddGraphQLServer()
     .ModifyOptions(options => options.LazyInitialization = true);
 ```
 
-## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
+## Cache size configuration
 
-**Before**
+Previously, configuring document and operation cache sizes required calling methods directly on IServiceCollection rather than using the standard IRequestExecutorBuilder pattern. We've now consolidated cache configuration with other GraphQL options for consistency.
+If you're currently using AddOperationCache or AddDocumentCache, update your code as follows:
 
-```csharp
+```diff
+-builder.Services.AddDocumentCache(200);
+-builder.Services.AddOperationCache(100);
+
 builder.Services.AddGraphQLServer()
-    .ModifyOptions(options =>
-    {
-        options.MaxAllowedNodeBatchSize = 100;
-        options.EnsureAllNodesCanBeResolved = false;
-    });
++    .ModifyOptions(options =>
++    {
++        options.OperationDocumentCacheSize = 200;
++        options.PreparedOperationCacheSize = 100;
++    });
 ```
 
-**After**
+## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
 
-```csharp
+```diff
 builder.Services.AddGraphQLServer()
-    .AddGlobalObjectIdentification(options =>
-    {
-        options.MaxAllowedNodeBatchSize = 100;
-        options.EnsureAllNodesCanBeResolved = false;
-    });
+-    .ModifyOptions(options =>
+-    {
+-        options.MaxAllowedNodeBatchSize = 100;
+-        options.EnsureAllNodesCanBeResolved = false;
+-    })
+-    .AddGlobalObjectIdentification()
++    .AddGlobalObjectIdentification(options =>
++    {
++        options.MaxAllowedNodeBatchSize = 100;
++        options.EnsureAllNodesCanBeResolved = false;
++    });
 ```
 
 ## IRequestContext
