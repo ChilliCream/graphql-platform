@@ -159,16 +159,6 @@ internal static class InternalServiceCollectionExtensions
         return services;
     }
 
-    internal static IServiceCollection TryAddDefaultCaches(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton(_ => new PreparedOperationCacheOptions { Capacity = 256 });
-        services.TryAddSingleton<IDocumentCache>(
-            sp => new DefaultDocumentCache(
-                sp.GetRequiredService<PreparedOperationCacheOptions>().Capacity));
-        return services;
-    }
-
     internal static IServiceCollection TryAddDefaultDocumentHashProvider(
         this IServiceCollection services)
     {

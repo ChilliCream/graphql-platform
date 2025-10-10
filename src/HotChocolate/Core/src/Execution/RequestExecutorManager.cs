@@ -172,7 +172,7 @@ internal sealed partial class RequestExecutorManager
         }
 
         var schemaServices =
-            await CreateSchemaServicesAsync(context, setup, typeModuleChangeMonitor, cancellationToken)
+            await CreateSchemaServicesAsync(context, setup, options, typeModuleChangeMonitor, cancellationToken)
                 .ConfigureAwait(false);
 
         var registeredExecutor = new RegisteredExecutor(
@@ -242,6 +242,7 @@ internal sealed partial class RequestExecutorManager
     private async Task<ServiceProvider> CreateSchemaServicesAsync(
         ConfigurationContext context,
         RequestExecutorSetup setup,
+        SchemaOptions schemaOptions,
         TypeModuleChangeMonitor typeModuleChangeMonitor,
         CancellationToken cancellationToken)
     {
@@ -268,28 +269,37 @@ internal sealed partial class RequestExecutorManager
 
         serviceCollection.AddSingleton(new SchemaVersionInfo(version));
 
+        serviceCollection.AddSingleton(schemaOptions);
         serviceCollection.AddSingleton(executorOptions);
         serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
-            static s => s.GetRequiredService<RequestExecutorOptions>());
+            static sp => sp.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IErrorHandlerOptionsAccessor>(
-            static s => s.GetRequiredService<RequestExecutorOptions>());
+            static sp => sp.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IRequestTimeoutOptionsAccessor>(
-            static s => s.GetRequiredService<RequestExecutorOptions>());
+            static sp => sp.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IPersistedOperationOptionsAccessor>(
-            static s => s.GetRequiredService<RequestExecutorOptions>());
+            static sp => sp.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton(
-            static s => s.GetRequiredService<RequestExecutorOptions>().PersistedOperations);
+            static sp => sp.GetRequiredService<RequestExecutorOptions>().PersistedOperations);
 
-        serviceCollection.AddSingleton<IPreparedOperationCache>(static sp => new DefaultPreparedOperationCache(
-            sp.GetRootServiceProvider().GetRequiredService<PreparedOperationCacheOptions>().Capacity));
+        serviceCollection.AddSingleton<IPreparedOperationCache>(
+            static sp =>
+            {
+                var options = sp.GetRequiredService<SchemaOptions>();
+                return new DefaultPreparedOperationCache(options.PreparedOperationCacheSize);
+            });
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
         serviceCollection.AddSingleton(
             static sp => sp.GetRootServiceProvider().GetRequiredService<ParserOptions>());
         serviceCollection.AddSingleton(
             static sp => sp.GetRootServiceProvider().GetRequiredService<IDocumentHashProvider>());
-        serviceCollection.AddSingleton(
-            static sp => sp.GetRootServiceProvider().GetRequiredService<IDocumentCache>());
+        serviceCollection.AddSingleton<IDocumentCache>(
+            static sp =>
+            {
+                var options = sp.GetRequiredService<SchemaOptions>();
+                return new DefaultDocumentCache(options.OperationDocumentCacheSize);
+            });
 
         serviceCollection.TryAddDiagnosticEvents();
         serviceCollection.TryAddOperationExecutors();

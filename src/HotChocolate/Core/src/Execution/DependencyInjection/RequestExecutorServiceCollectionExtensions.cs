@@ -50,7 +50,6 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddTypeConverter()
             .TryAddInputFormatter()
             .TryAddInputParser()
-            .TryAddDefaultCaches()
             .TryAddDefaultDocumentHashProvider()
             .TryAddDefaultBatchDispatcher()
             .TryAddDefaultDataLoaderRegistry()
@@ -167,25 +166,6 @@ public static class RequestExecutorServiceCollectionExtensions
         builder.ConfigureSchemaServices(static s => s.TryAddSingleton<ITimeProvider, DefaultTimeProvider>());
 
         return builder;
-    }
-
-    public static IServiceCollection AddDocumentCache(
-        this IServiceCollection services,
-        int capacity = 256)
-    {
-        services.RemoveAll<IDocumentCache>();
-        services.AddSingleton<IDocumentCache>(
-            _ => new DefaultDocumentCache(capacity));
-        return services;
-    }
-
-    public static IServiceCollection AddOperationCache(
-        this IServiceCollection services,
-        int capacity = 256)
-    {
-        services.RemoveAll<PreparedOperationCacheOptions>();
-        services.AddSingleton(_ => new PreparedOperationCacheOptions { Capacity = capacity });
-        return services;
     }
 
     public static IServiceCollection AddMD5DocumentHashProvider(
