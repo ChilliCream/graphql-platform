@@ -23,6 +23,11 @@ internal record InputTypeGroupEvent(
     string InputTypeName,
     ImmutableArray<InputTypeInfo> InputTypeGroup) : IEvent;
 
+internal record ObjectFieldGroupEvent(
+    string FieldName,
+    ImmutableArray<ObjectFieldInfo> FieldGroup,
+    string TypeName) : IEvent;
+
 internal record OutputFieldGroupEvent(
     string FieldName,
     ImmutableArray<OutputFieldInfo> FieldGroup,

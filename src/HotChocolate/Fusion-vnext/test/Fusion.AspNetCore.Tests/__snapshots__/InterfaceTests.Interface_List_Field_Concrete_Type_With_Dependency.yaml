@@ -51,7 +51,7 @@ sourceSchemas:
       
       type Query {
         votables: [Votable]
-        discussionById(id: ID!): Discussion @lookup
+        discussionById(id: ID!): Discussion @lookup @shareable
       }
     interactions:
       - request:
@@ -100,7 +100,7 @@ sourceSchemas:
       }
       
       type Query {
-        discussionById(id: ID!): Discussion @lookup
+        discussionById(id: ID!): Discussion @lookup @shareable
       }
     interactions:
       - request:

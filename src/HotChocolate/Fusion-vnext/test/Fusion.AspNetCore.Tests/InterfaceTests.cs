@@ -345,7 +345,7 @@ public class InterfaceTests : FusionTestBase
             """
             type Query {
               votable: Votable
-              discussionById(id: ID!): Discussion @lookup
+              discussionById(id: ID!): Discussion @lookup @shareable
             }
 
             interface Votable {
@@ -367,7 +367,7 @@ public class InterfaceTests : FusionTestBase
             "B",
             """
             type Query {
-              discussionById(id: ID!): Discussion @lookup
+              discussionById(id: ID!): Discussion @lookup @shareable
             }
 
             type Discussion {
@@ -1025,7 +1025,7 @@ public class InterfaceTests : FusionTestBase
             """
             type Query {
               votables: [Votable]
-              discussionById(id: ID!): Discussion @lookup
+              discussionById(id: ID!): Discussion @lookup @shareable
             }
 
             interface Votable {
@@ -1047,7 +1047,7 @@ public class InterfaceTests : FusionTestBase
             "B",
             """
             type Query {
-              discussionById(id: ID!): Discussion @lookup
+              discussionById(id: ID!): Discussion @lookup @shareable
             }
 
             type Discussion {
@@ -1472,7 +1472,7 @@ public class InterfaceTests : FusionTestBase
             """
             type Query {
               wrappers: [Wrapper]
-              discussionById(id: ID!): Discussion @lookup
+              discussionById(id: ID!): Discussion @lookup @shareable
             }
 
             type Wrapper {
@@ -1498,7 +1498,7 @@ public class InterfaceTests : FusionTestBase
             "B",
             """
             type Query {
-              discussionById(id: ID!): Discussion @lookup
+              discussionById(id: ID!): Discussion @lookup @shareable
             }
 
             type Discussion {
