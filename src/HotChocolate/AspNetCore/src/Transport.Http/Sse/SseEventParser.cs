@@ -281,7 +281,7 @@ internal static class SseEventParser
     /// </summary>
     private static PooledArrayWriter ParseData(ReadOnlySpan<byte> span, int position)
     {
-        if (span.Length < Data.Length || !span.StartsWith(Data))
+        if (span.Length - position < Data.Length || !span[position..].StartsWith(Data))
         {
             throw new GraphQLHttpStreamException("Invalid GraphQL over SSE Message Format.");
         }
@@ -295,28 +295,23 @@ internal static class SseEventParser
                 SkipWhitespaces(span, ref position);
 
                 // read one logical line up to LF or end
-                var lineBreak = span.IndexOf((byte)'\n');
+                var remaining = span[position..];
+                var lineBreak = remaining.IndexOf((byte)'\n');
                 ReadOnlySpan<byte> line;
                 switch (lineBreak)
                 {
                     case -1:
-                        line = span;
-                        span = default;
+                        line = remaining;
+                        position = span.Length;
                         break;
-                    case > 0 when span[lineBreak - 1] == (byte)'\r':
-                        line = span[..(lineBreak - 1)];
-                        span = span[(lineBreak + 1)..];
+                    case > 0 when remaining[lineBreak - 1] == (byte)'\r':
+                        line = remaining[..(lineBreak - 1)];
+                        position += lineBreak + 1;
                         break;
                     default:
-                        line = span[..lineBreak];
-                        span = span[(lineBreak + 1)..];
+                        line = remaining[..lineBreak];
+                        position += lineBreak + 1;
                         break;
-                }
-
-                if (line.Length > 0)
-                {
-                    // Remove optional leading space
-                    SkipWhitespaces(line, ref position);
                 }
 
                 // append to buffer (insert LF between lines)
