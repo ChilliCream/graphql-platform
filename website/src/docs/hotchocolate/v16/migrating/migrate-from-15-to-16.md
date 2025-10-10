@@ -55,6 +55,27 @@ builder.Services.AddGraphQLServer()
 +    });
 ```
 
+If you were previously accessing `IDocumentCache` or `IPreparedOperationCache` through the root service provider, you now need to access it through the schema-specific service provider instead.
+For instance, to populate the document cache during startup, create a custom `IRequestExecutorWarmupTask` that injects `IDocumentCache`:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddWarmupTask<MyWarmupTask>();
+
+public class MyWarmupTask(IDocumentCache cache) : IRequestExecutorWarmupTask
+{
+    public bool ApplyOnlyOnStartup => false;
+
+    public async Task WarmupAsync(
+        IRequestExecutor executor,
+        CancellationToken cancellationToken)
+    {
+        // Modify the cache
+    }
+}
+```
+
 ## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
 
 ```diff
