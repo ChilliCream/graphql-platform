@@ -19,13 +19,14 @@ public static partial class RequestExecutorBuilderExtensions
         {
             builder.Services.TryAddSingleton<T>();
             builder.ConfigureSchemaServices(
-                s => s.AddSingleton(
-                    sp => (IExecutionDiagnosticEventListener)sp.GetRootServiceProvider().GetRequiredService<T>()));
+                static s => s.AddSingleton(
+                    static sp => (IExecutionDiagnosticEventListener)sp.GetRequiredService<T>()));
         }
         else if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
             builder.Services.TryAddSingleton<T>();
-            builder.Services.AddSingleton(s => (IDataLoaderDiagnosticEventListener)s.GetRequiredService<T>());
+            builder.Services.AddSingleton(
+                static s => (IDataLoaderDiagnosticEventListener)s.GetRequiredService<T>());
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
@@ -35,7 +36,7 @@ public static partial class RequestExecutorBuilderExtensions
             {
                 var attribute = typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
                 var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
-                s.AddSingleton(listener, sp => sp.GetRootServiceProvider().GetRequiredService<T>());
+                s.AddSingleton(listener, sp => sp.GetRequiredService<T>());
             });
         }
         else
@@ -48,23 +49,21 @@ public static partial class RequestExecutorBuilderExtensions
 
     public static IRequestExecutorBuilder AddDiagnosticEventListener<T>(
         this IRequestExecutorBuilder builder,
-        Func<IServiceProvider, T> diagnosticEventListener)
+        Func<IServiceProvider, T> factory)
         where T : class
     {
         ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(diagnosticEventListener);
+        ArgumentNullException.ThrowIfNull(factory);
 
         if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
             builder.ConfigureSchemaServices(
-                s => s.AddSingleton(
-                    sp => (IExecutionDiagnosticEventListener)diagnosticEventListener(
-                        sp.GetCombinedServices())));
+                s => s.AddSingleton(sp => (IExecutionDiagnosticEventListener)factory(sp)));
         }
         else if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
             builder.Services.AddSingleton(
-                s => (IDataLoaderDiagnosticEventListener)diagnosticEventListener(s));
+                s => (IDataLoaderDiagnosticEventListener)factory(s));
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
@@ -78,13 +77,13 @@ public static partial class RequestExecutorBuilderExtensions
                 builder.ConfigureSchemaServices(s =>
                 {
                     var listener = attribute.Listener;
-                    s.AddSingleton(listener, sp => diagnosticEventListener(sp.GetCombinedServices()));
+                    s.AddSingleton(listener, factory);
                 });
             }
             else
             {
                 var listener = attribute.Listener;
-                builder.Services.AddSingleton(listener, diagnosticEventListener);
+                builder.Services.AddSingleton(listener, factory);
             }
         }
         else
