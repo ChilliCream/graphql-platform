@@ -170,7 +170,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             if (value < 16)
             {
                 throw new ArgumentException(
-                    "The size of operation document cache must be greater than 16.");
+                    "The size of operation document cache must be at least 16");
             }
 
             field = value;
