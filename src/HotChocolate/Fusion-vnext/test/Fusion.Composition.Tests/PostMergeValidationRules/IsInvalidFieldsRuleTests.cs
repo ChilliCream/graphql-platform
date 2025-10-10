@@ -145,6 +145,27 @@ public sealed class IsInvalidFieldsRuleTests
                     + "specifies an invalid field selection against the composed schema."
                 ]
             },
+            // In this example, the @is directive references a field ("id") via a missing concrete
+            // type ("SpecialPerson"), causing an IS_INVALID_FIELDS error.
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        personById(id: ID! @is(field: "<SpecialPerson>.id")): Person @lookup
+                    }
+
+                    interface Person {
+                        id: ID!
+                        name: String
+                    }
+                    """
+                ],
+                [
+                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
+                ]
+            },
             // Type of argument does not match field type.
             {
                 [
