@@ -332,12 +332,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         foreach (var conditionElement in conditionsElement.EnumerateArray())
         {
-            var variableName = conditionElement.GetProperty("variable").GetString()!.TrimStart('$');
-            var passingValue = conditionsElement.GetProperty("passingValue").GetBoolean();
-
-            var condition = new ExecutionNodeCondition { VariableName = variableName, PassingValue = passingValue };
-
-            conditions.Add(condition);
+            conditions.Add(new ExecutionNodeCondition
+            {
+                VariableName = conditionElement.GetProperty("variable").GetString()!.TrimStart('$'),
+                PassingValue = conditionElement.GetProperty("passingValue").GetBoolean()
+            });
         }
 
         return conditions.ToArray();

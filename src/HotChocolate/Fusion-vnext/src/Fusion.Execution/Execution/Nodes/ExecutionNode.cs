@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -198,7 +199,15 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool IsSkipped(OperationPlanContext context)
     {
-        foreach (var condition in Conditions)
+        if (Conditions.IsEmpty)
+        {
+            return false;
+        }
+
+        ref var condition = ref MemoryMarshal.GetReference(Conditions);
+        ref var end = ref Unsafe.Add(ref condition, Conditions.Length);
+
+        while (Unsafe.IsAddressLessThan(ref condition, ref end))
         {
             if (!context.Variables.TryGetValue<BooleanValueNode>(condition.VariableName, out var booleanValueNode))
             {
@@ -210,6 +219,8 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
             {
                 return true;
             }
+
+            condition = ref Unsafe.Add(ref condition, 1)!;
         }
 
         return false;
