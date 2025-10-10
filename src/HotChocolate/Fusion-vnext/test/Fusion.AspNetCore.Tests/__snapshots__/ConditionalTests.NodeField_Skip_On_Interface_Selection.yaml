@@ -1,21 +1,30 @@
-title: Concrete_Type_Branch_Requested
+title: NodeField_Skip_On_Interface_Selection
 request:
   document: |
-    {
+    query testQuery(
+      $skip: Boolean!
+    ) {
       node(id: "RGlzY3Vzc2lvbjox") {
+        ... on Authorable {
+          author @skip(if: $skip) {
+            username
+          }
+        }
         ... on Discussion {
           title
-          commentCount
         }
       }
+    }
+  variables: |
+    {
+      "skip": true
     }
 response:
   body: |
     {
       "data": {
         "node": {
-          "title": "Discussion: RGlzY3Vzc2lvbjox",
-          "commentCount": 123
+          "title": "Discussion: RGlzY3Vzc2lvbjox"
         }
       }
     }
@@ -26,28 +35,47 @@ sourceSchemas:
         query: Query
       }
       
+      interface Authorable {
+        author: Author
+      }
+      
       interface Node {
         id: ID!
       }
       
-      type Discussion implements Node {
+      type Author implements Node {
         id: ID!
-        title: String!
+      }
+      
+      type Discussion implements Node & Authorable {
+        id: ID!
+        title: String
+        author: Author
       }
       
       type Query {
         node(id: ID!): Node @lookup
-        discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
     interactions:
       - request:
           document: |
-            query Op_e567807e_3 {
-              node: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
+            query testQuery_7ae73f43_3(
+              $skip: Boolean!
+            ) {
+              node(id: "RGlzY3Vzc2lvbjox") {
                 __typename
-                title
-                id
+                ... on Discussion {
+                  __typename
+                  author @skip(if: $skip) {
+                    id
+                  }
+                  title
+                }
               }
+            }
+          variables: |
+            {
+              "skip": true
             }
         response:
           results:
@@ -56,8 +84,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Discussion",
-                    "title": "Discussion: RGlzY3Vzc2lvbjox",
-                    "id": "RGlzY3Vzc2lvbjox"
+                    "title": "Discussion: RGlzY3Vzc2lvbjox"
                   }
                 }
               }
@@ -67,62 +94,36 @@ sourceSchemas:
         query: Query
       }
       
-      interface Node {
+      type Author {
         id: ID!
-      }
-      
-      type Discussion implements Node {
-        id: ID!
-        commentCount: Int!
-      }
-      
-      type Product implements Node {
-        id: ID!
-        name: String!
+        username: String
+        rating: Int
       }
       
       type Query {
-        node(id: ID!): Node @lookup
-        discussionById(id: ID!): Discussion @lookup @internal
+        authorById(id: ID!): Author @lookup
       }
-    interactions:
-      - request:
-          document: |
-            query Op_e567807e_4(
-              $__fusion_1_id: ID!
-            ) {
-              discussionById(id: $__fusion_1_id) {
-                commentCount
-              }
-            }
-          variables: |
-            {
-              "__fusion_1_id": "RGlzY3Vzc2lvbjox"
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "discussionById": {
-                    "commentCount": 123
-                  }
-                }
-              }
 operationPlan:
   operation:
     - document: |
-        {
+        query testQuery(
+          $skip: Boolean!
+        ) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
-            id @fusion__requirement
+            ... on Authorable {
+              author @skip(if: $skip) {
+                username
+                id @fusion__requirement
+              }
+            }
             ... on Discussion {
               title
-              commentCount
             }
           }
         }
-      hash: e567807ec1ad5128cfb566fad1645abc
+      name: testQuery
+      hash: 7ae73f43cd702c36dfd5051c12bf0ce7
       searchSpace: 1
   nodes:
     - id: 1
@@ -135,7 +136,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query Op_e567807e_2 {
+        query testQuery_7ae73f43_2 {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
           }
@@ -146,11 +147,18 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_e567807e_3 {
-          node: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
+        query testQuery_7ae73f43_3(
+          $skip: Boolean!
+        ) {
+          node(id: "RGlzY3Vzc2lvbjox") {
             __typename
-            title
-            id
+            ... on Discussion {
+              __typename
+              author @skip(if: $skip) {
+                id
+              }
+              title
+            }
           }
         }
       dependencies:
@@ -159,15 +167,15 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_e567807e_4(
+        query testQuery_7ae73f43_4(
           $__fusion_1_id: ID!
         ) {
-          discussionById(id: $__fusion_1_id) {
-            commentCount
+          authorById(id: $__fusion_1_id) {
+            username
           }
         }
-      source: $.discussionById
-      target: $.node<Discussion>
+      source: $.authorById
+      target: $.node<Discussion>.author
       requirements:
         - name: __fusion_1_id
           selectionMap: >-

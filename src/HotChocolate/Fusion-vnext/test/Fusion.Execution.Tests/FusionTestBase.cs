@@ -471,7 +471,7 @@ public abstract class FusionTestBase : IDisposable
 
         var operationDoc = Utf8GraphQLParser.Parse(operationText);
 
-        var rewriter = new InlineFragmentOperationRewriter(schema);
+        var rewriter = new DocumentRewriter(schema);
         var rewritten = rewriter.RewriteDocument(operationDoc, operationName: null);
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
 

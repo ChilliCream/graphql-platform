@@ -1,0 +1,258 @@
+title: NodeField_Skip_On_Interface_Selection_Type_Refinement_With_Same_Unskipped_Selection
+request:
+  document: |
+    query testQuery(
+      $skip: Boolean!
+    ) {
+      node(id: "RGlzY3Vzc2lvbjox") {
+        ... on Authorable {
+          author @skip(if: $skip) {
+            username
+          }
+        }
+        ... on Discussion {
+          author {
+            rating
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "skip": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {}
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Authorable {
+        author: Author
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Author implements Node {
+        id: ID!
+      }
+      
+      type Discussion implements Node & Authorable {
+        id: ID!
+        author: Author
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_ff22954e_3(
+              $skip: Boolean!
+            ) {
+              node(id: "RGlzY3Vzc2lvbjox") {
+                __typename
+                ... on Discussion {
+                  __typename
+                  author @skip(if: $skip) {
+                    id
+                  }
+                  author {
+                    id
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "skip": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Discussion",
+                    "author": {
+                      "id": "QXV0aG9yOjE="
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        id: ID!
+        username: String
+        rating: Int
+      }
+      
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_ff22954e_4(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                rating
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "QXV0aG9yOjE="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "rating": 123
+                  }
+                }
+              }
+      - request:
+          document: |
+            query testQuery_ff22954e_5(
+              $__fusion_2_id: ID!
+            ) {
+              authorById(id: $__fusion_2_id) {
+                username
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "QXV0aG9yOjE="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "username": "Author: QXV0aG9yOjE="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip: Boolean!
+        ) {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            __typename @fusion__requirement
+            ... on Authorable {
+              author @skip(if: $skip) {
+                username
+                id @fusion__requirement
+              }
+            }
+            ... on Discussion {
+              author {
+                rating
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: ff22954e3944e63f559392b468b03876
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "RGlzY3Vzc2lvbjox"
+      responseName: node
+      branches:
+        - Discussion: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query testQuery_ff22954e_2 {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_ff22954e_3(
+          $skip: Boolean!
+        ) {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            __typename
+            ... on Discussion {
+              __typename
+              author @skip(if: $skip) {
+                id
+              }
+              author {
+                id
+              }
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_ff22954e_4(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            rating
+          }
+        }
+      source: $.authorById
+      target: $.node<Discussion>.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+    - id: 5
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_ff22954e_5(
+          $__fusion_2_id: ID!
+        ) {
+          authorById(id: $__fusion_2_id) {
+            username
+          }
+        }
+      source: $.authorById
+      target: $.node<Discussion>.author
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
