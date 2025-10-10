@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Planning;
 /// The <see cref="Backlog"/> represents the pieces of work that are still to be planned
 /// to have a complete execution plan for the <see cref="OperationDefinition"/>.
 /// </summary>
-public sealed record PlanNode
+internal sealed record PlanNode
 {
     /// <summary>
     /// The previous plan node.

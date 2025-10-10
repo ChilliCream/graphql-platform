@@ -216,13 +216,16 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.WriteLine("idValue: {0}", node.IdValue.ToString());
         writer.WriteLine("responseName: {0}", node.ResponseName);
 
-        writer.WriteLine("branches:");
-        writer.Indent();
-        foreach (var branch in node.Branches.OrderBy(kvp => kvp.Key))
+        if (node.Branches.Count > 0)
         {
-            writer.WriteLine("- {0}: {1}", branch.Key, branch.Value.Id);
+            writer.WriteLine("branches:");
+            writer.Indent();
+            foreach (var branch in node.Branches.OrderBy(kvp => kvp.Key))
+            {
+                writer.WriteLine("- {0}: {1}", branch.Key, branch.Value.Id);
+            }
+            writer.Unindent();
         }
-        writer.Unindent();
 
         writer.WriteLine("fallback: {0}", node.FallbackQuery.Id);
 
@@ -258,7 +261,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                 writer.WriteLine("- variable: {0}", "$" + condition.VariableName);
                 writer.Indent();
 
-                writer.WriteLine("passingValue: {0}", condition.PassingValue);
+                writer.WriteLine("passingValue: {0}", condition.PassingValue ? "true" : "false");
                 writer.Unindent();
             }
 

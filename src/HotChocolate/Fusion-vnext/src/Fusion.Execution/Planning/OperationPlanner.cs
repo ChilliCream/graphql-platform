@@ -143,8 +143,8 @@ public sealed partial class OperationPlanner
         {
             foreach (var nodeField in result.NodeFields)
             {
-                var nodeWorkItem = new NodeWorkItem(nodeField);
-                backlog = backlog.Push(nodeWorkItem);
+                var workItem = new NodeFieldWorkItem(nodeField);
+                backlog = backlog.Push(workItem);
             }
         }
 
@@ -285,7 +285,7 @@ public sealed partial class OperationPlanner
                     PlanFieldWithRequirement(wi, wi.Lookup, current, possiblePlans, backlog);
                     break;
 
-                case NodeWorkItem wi:
+                case NodeFieldWorkItem wi:
                     PlanNode(wi, current, possiblePlans, backlog);
                     break;
 
@@ -937,7 +937,7 @@ public sealed partial class OperationPlanner
     }
 
     private void PlanNode(
-        NodeWorkItem workItem,
+        NodeFieldWorkItem workItem,
         PlanNode current,
         PriorityQueue<PlanNode, double> possiblePlans,
         ImmutableStack<WorkItem> backlog)
@@ -945,7 +945,7 @@ public sealed partial class OperationPlanner
         var stepId = current.Steps.NextId();
         var fallbackQueryStepId = stepId + 1;
         var index = current.SelectionSetIndex;
-        var nodeField = workItem.NodeField;
+        var nodeField = workItem.NodeField.Field;
         var responseName = nodeField.Alias?.Value ?? nodeField.Name.Value;
         var selectionPath = SelectionPath.Root.AppendField(responseName);
 
@@ -1006,9 +1006,10 @@ public sealed partial class OperationPlanner
         var nodeStep = new NodePlanStep
         {
             Id = stepId,
-            FallbackQuery = fallbackQueryStep,
             ResponseName = responseName,
-            IdValue = idArgumentValue
+            IdValue = idArgumentValue,
+            Conditions = ExtractConditions(workItem.NodeField),
+            FallbackQuery = fallbackQueryStep
         };
 
         foreach (var (type, selectionSetNode) in selectionSetsByType)
@@ -1044,6 +1045,63 @@ public sealed partial class OperationPlanner
         };
 
         possiblePlans.Enqueue(next, _schema);
+    }
+
+    private static ExecutionNodeCondition[] ExtractConditions(NodeField nodeField)
+    {
+        var conditions = new List<ExecutionNodeCondition>();
+
+        if (nodeField.ParentFragments is not null)
+        {
+            foreach (var fragment in nodeField.ParentFragments)
+            {
+                var fragmentConditions = ExtractConditions(fragment);
+
+                if (fragmentConditions is not null)
+                {
+                    conditions.AddRange(fragmentConditions);
+                }
+            }
+        }
+
+        var nodeFieldConditions = ExtractConditions(nodeField.Field);
+
+        if (nodeFieldConditions is not null)
+        {
+            conditions.AddRange(nodeFieldConditions);
+        }
+
+        return conditions.ToArray();
+    }
+
+    private static List<ExecutionNodeCondition>? ExtractConditions(IHasDirectives hasDirectives)
+    {
+        List<ExecutionNodeCondition>? conditions = null;
+
+        foreach (var directive in hasDirectives.Directives)
+        {
+            var passingValue = directive.Name.Value switch
+            {
+                "skip" => false,
+                "include" => true,
+                _ => (bool?)null
+            };
+
+            if (passingValue.HasValue)
+            {
+                var ifArgument = directive.Arguments[0];
+                var condition = new ExecutionNodeCondition
+                {
+                    VariableName = ((VariableNode)ifArgument.Value).Name.Value,
+                    PassingValue = passingValue.Value
+                };
+
+                conditions ??= [];
+                conditions.Add(condition);
+            }
+        }
+
+        return conditions;
     }
 
     private static List<ArgumentNode> GetLookupArguments(Lookup lookup, string requirementKey)
@@ -1602,7 +1660,7 @@ file static class Extensions
         switch (nextWorkItem)
         {
             case null:
-            case NodeWorkItem:
+            case NodeFieldWorkItem:
                 possiblePlans.Enqueue(planNodeTemplate);
                 break;
 

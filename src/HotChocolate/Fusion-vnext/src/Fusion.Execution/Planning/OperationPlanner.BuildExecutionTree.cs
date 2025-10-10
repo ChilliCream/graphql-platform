@@ -255,7 +255,7 @@ public sealed partial class OperationPlanner
                         nodeStep.Id,
                         nodeStep.ResponseName,
                         nodeStep.IdValue,
-                        []);
+                        nodeStep.Conditions);
 
                     completedNodes.Add(step.Id, node);
                 }
