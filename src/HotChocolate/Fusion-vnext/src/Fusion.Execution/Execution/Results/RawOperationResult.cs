@@ -22,6 +22,10 @@ public sealed class RawOperationResult : ExecutionResult, IRawJsonFormatter, IOp
 
     public CompositeResultDocument Result => _result;
 
+    public IReadOnlyList<IError>? Errors => _result.Errors;
+
+    public IReadOnlyDictionary<string, object?>? Extensions => _result.Extensions;
+
     public override IReadOnlyDictionary<string, object?>? ContextData => _contextData;
 
     public void WriteTo(IBufferWriter<byte> writer, bool indented = false)
@@ -43,8 +47,6 @@ public sealed class RawOperationResult : ExecutionResult, IRawJsonFormatter, IOp
     IReadOnlyDictionary<string, object?>? IOperationResult.Data => throw new NotSupportedException();
 
     IReadOnlyList<object?>? IOperationResult.Items => throw new NotSupportedException();
-
-    IReadOnlyList<IError>? IOperationResult.Errors => throw new NotSupportedException();
 
     IReadOnlyDictionary<string, object?>? IOperationResult.Extensions => throw new NotSupportedException();
 
