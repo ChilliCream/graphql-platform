@@ -33,26 +33,26 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       interface Votable {
         viewerCanVote: Boolean!
       }
-      
+
       type Comment implements Node & Votable {
         id: ID!
         viewerCanVote: Boolean!
       }
-      
+
       type Discussion implements Node & Votable {
         id: ID!
         viewerCanVote: Boolean!
         viewerRating: Float!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }

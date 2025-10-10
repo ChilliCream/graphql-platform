@@ -44,25 +44,25 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Discussion {
         id: ID!
         product: Product
       }
-      
+
       type Photo {
         id: ID!
         product: Product
       }
-      
+
       type Product {
         id: ID!
       }
-      
+
       type Query {
         posts: [Post]
       }
-      
+
       union Post = Photo | Discussion
     interactions:
       - request:
@@ -114,12 +114,12 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         id: ID!
         subgraph2: String!
       }
-      
+
       type Query {
         productById(id: ID!): Product @lookup
       }

@@ -60,12 +60,12 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         id: Int!
         price: Float!
       }
-      
+
       type Query {
         topProduct: Product!
         nullableTopProduct: Product
@@ -107,12 +107,12 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         name: String
         id: Int!
       }
-      
+
       type Query {
         productById(id: Int!): Product @lookup
       }

@@ -31,20 +31,20 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type ExclusiveSubgraphA {
         id: ID!
       }
-      
+
       type Query {
         exclusiveSubgraphA: ExclusiveSubgraphA
         viewer: Viewer
       }
-      
+
       type SubType {
         subgraphA: String
       }
-      
+
       type Viewer {
         subType: SubType
       }
@@ -71,15 +71,15 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
         viewer: Viewer
       }
-      
+
       type SubType {
         subgraphB: String
       }
-      
+
       type Viewer {
         subType: SubType
       }

@@ -24,12 +24,12 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         id: Int!
         price: Float!
       }
-      
+
       type Query {
         topProduct: Product!
         nullableTopProduct: Product

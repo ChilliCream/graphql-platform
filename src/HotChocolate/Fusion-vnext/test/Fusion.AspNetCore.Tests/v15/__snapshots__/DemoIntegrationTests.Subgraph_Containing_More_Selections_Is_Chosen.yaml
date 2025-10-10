@@ -27,11 +27,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         id: ID!
       }
-      
+
       type Query {
         productBySlug: Product
       }
@@ -58,16 +58,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Author {
         name: String!
       }
-      
+
       type Product {
         id: ID!
         author: Author
       }
-      
+
       type Query {
         productById(id: ID!): Product @lookup
       }
@@ -76,17 +76,17 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Author {
         name: String!
         rating: Int!
       }
-      
+
       type Product {
         id: ID!
         author: Author
       }
-      
+
       type Query {
         productById(id: ID!): Product @lookup
       }

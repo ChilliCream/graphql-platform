@@ -57,30 +57,30 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       interface ProductList {
         products: [Product]
       }
-      
+
       type Item1 implements Node & ProductList {
         id: ID!
         products: [Product]
       }
-      
+
       type Item2 implements Node & ProductList {
         id: ID!
         products: [Product]
         singularProduct: Product
       }
-      
+
       type Product implements Node {
         id: ID!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }
@@ -138,16 +138,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Product implements Node {
         id: ID!
         name: String
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }

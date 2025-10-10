@@ -27,11 +27,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
         viewer: Viewer
       }
-      
+
       type Viewer {
         name: String!
       }

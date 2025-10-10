@@ -27,19 +27,19 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Product implements Node {
         id: ID!
       }
-      
+
       type Query {
         viewer: Viewer
       }
-      
+
       type Viewer {
         product: Product!
       }
@@ -70,16 +70,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         id: ID!
         name: String!
       }
-      
+
       type Query {
         test: Test!
       }
-      
+
       type Test {
         id: ID!
       }
@@ -88,16 +88,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Product implements Node {
         id: ID!
         name: String!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }
