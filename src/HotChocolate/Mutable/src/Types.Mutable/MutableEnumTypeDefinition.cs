@@ -64,6 +64,9 @@ public class MutableEnumTypeDefinition
     public SchemaCoordinate Coordinate
         => new(Name, ofDirective: false);
 
+    /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
+    public bool IsIntrospectionType { get; set; }
+
     /// <summary>
     /// Gets the string representation of this instance.
     /// </summary>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="LogEntryHelper_AdditionalArgumentNotNullable" xml:space="preserve">
+    <value>The field '{0}' must only declare additional arguments to an implemented field that are nullable.</value>
+  </data>
+  <data name="LogEntryHelper_ArgumentNotImplemented" xml:space="preserve">
+    <value>The field '{0}' must define the argument '{1}' to match the field defined in interface '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_DirectiveMissingLocation" xml:space="preserve">
+    <value>The Directive definition '@{0}' must include at least one DirectiveLocation.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyEnumType" xml:space="preserve">
+    <value>The Enum type '{0}' must define one or more values.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyInputObjectType" xml:space="preserve">
+    <value>The Input Object type '{0}' must define one or more fields.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyInterfaceType" xml:space="preserve">
+    <value>The Interface type '{0}' must define one or more fields.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyObjectType" xml:space="preserve">
+    <value>The Object type '{0}' must define one or more fields.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyUnionType" xml:space="preserve">
+    <value>The Union type '{0}' must define one or more member types.</value>
+  </data>
+  <data name="LogEntryHelper_FieldNotImplemented" xml:space="preserve">
+    <value>The interface field '{0}' must be implemented by type '{1}'.</value>
+  </data>
+  <data name="LogEntryHelper_InputObjectCycle_Direct" xml:space="preserve">
+    <value>Invalid circular reference. The Input Object '{0}' references itself in the non-null field '{1}'.</value>
+  </data>
+  <data name="LogEntryHelper_InputObjectCycle_Indirect" xml:space="preserve">
+    <value>Invalid circular reference. The Input Object '{0}' references itself via the non-null fields: {1}.</value>
+  </data>
+  <data name="LogEntryHelper_InputObjectDefaultValueCycle_Direct" xml:space="preserve">
+    <value>Invalid circular reference. The default value of Input Object field '{0}' references itself.</value>
+  </data>
+  <data name="LogEntryHelper_InputObjectDefaultValueCycle_Indirect" xml:space="preserve">
+    <value>Invalid circular reference. The default value of Input Object field '{0}' references itself via the default values of: {1}.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidArgumentDeprecation" xml:space="preserve">
+    <value>The required argument '{0}' cannot be deprecated.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidArgumentType" xml:space="preserve">
+    <value>The argument '{0}' on field '{1}' must accept type '{2}' to match the argument defined in interface '{3}'.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidFieldDeprecation" xml:space="preserve">
+    <value>The field '{0}' must not be deprecated without the corresponding field in the interface '{1}' being deprecated.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidFieldType" xml:space="preserve">
+    <value>The field '{0}' must return a type which is equal to or a sub-type of (covariant) the return type '{1}' of the interface field.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidInputFieldDeprecation" xml:space="preserve">
+    <value>The required Input Object field '{0}' cannot be deprecated.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidMemberName" xml:space="preserve">
+    <value>The name of the type system member '{0}' must not start with two underscores '__'.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidOneOfField" xml:space="preserve">
+    <value>The OneOf Input Object field '{0}' must be nullable and must not have a default value.</value>
+  </data>
+  <data name="LogEntryHelper_NotTransitivelyImplemented" xml:space="preserve">
+    <value>The type '{0}' must declare all interfaces declared by implemented interfaces.</value>
+  </data>
+  <data name="LogEntryHelper_SelfImplementation" xml:space="preserve">
+    <value>The Interface type '{0}' may not implement itself.</value>
+  </data>
+</root>

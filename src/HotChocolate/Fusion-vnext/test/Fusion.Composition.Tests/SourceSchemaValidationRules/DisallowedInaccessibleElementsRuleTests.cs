@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -32,6 +33,13 @@ public sealed class DisallowedInaccessibleElementsRuleTests
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
+        foreach (var schema in schemas)
+        {
+            if (schema.Types.TryGetType("__Type", out MutableObjectTypeDefinition? type))
+            {
+                type.IsIntrospectionType = true;
+            }
+        }
         var validator = new SourceSchemaValidator(schemas, s_rules, _log);
 
         // act

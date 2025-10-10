@@ -73,6 +73,9 @@ public abstract class MutableComplexTypeDefinition
     public IFeatureCollection Features
         => field ??= new FeatureCollection();
 
+    /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
+    public bool IsIntrospectionType { get; set; }
+
     /// <inheritdoc />
     public bool Equals(IType? other) => Equals(other, TypeComparison.Reference);
 

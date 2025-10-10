@@ -60,6 +60,9 @@ public class MutableUnionTypeDefinition
     public SchemaCoordinate Coordinate
         => new(Name, ofDirective: false);
 
+    /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
+    public bool IsIntrospectionType { get; set; }
+
     /// <summary>
     /// Get the string representation of the union type definition.
     /// </summary>

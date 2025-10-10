@@ -32,6 +32,9 @@ public class MutableScalarTypeDefinition(string name)
     /// <inheritdoc />
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
+    public bool IsIntrospectionType { get; set; }
+
     /// <summary>
     /// Gets or sets a value indicating whether this scalar type is a spec scalar.
     /// </summary>
