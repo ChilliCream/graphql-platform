@@ -10,7 +10,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -25,7 +25,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -45,7 +45,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -65,7 +65,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -84,7 +84,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -101,7 +101,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -117,7 +117,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(_ => "Dummy.xml"),
+            new XmlDocumentationResolver(_ => "Dummy.xml"),
             new NoOpStringBuilderPool());
 
         // act
@@ -133,11 +133,17 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
         var parameterXml = documentationProvider.GetDescription(
+            typeof(ClassWithInheritdoc)
+                .GetMethod(nameof(ClassWithInheritdoc.Bar))!
+                .GetParameters()
+                .Single(p => p.Name == "baz"));
+
+        parameterXml = documentationProvider.GetDescription(
             typeof(ClassWithInheritdoc)
                 .GetMethod(nameof(ClassWithInheritdoc.Bar))!
                 .GetParameters()
@@ -152,7 +158,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -169,7 +175,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -186,7 +192,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -202,7 +208,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -221,7 +227,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -238,7 +244,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -255,7 +261,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -272,7 +278,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -289,7 +295,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -308,7 +314,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -324,7 +330,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -340,7 +346,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -356,7 +362,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -372,7 +378,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -388,7 +394,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -404,7 +410,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act
@@ -420,7 +426,7 @@ public class XmlDocumentationProviderTests
     {
         // arrange
         var documentationProvider = new XmlDocumentationProvider(
-            new XmlDocumentationFileResolver(),
+            new XmlDocumentationResolver(),
             new NoOpStringBuilderPool());
 
         // act

@@ -6,44 +6,54 @@ using IOPath = System.IO.Path;
 
 namespace HotChocolate.Types.Descriptors;
 
-public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
+public class XmlDocumentationResolver : IXmlDocumentationResolver
 {
     private const string Bin = "bin";
 
     private readonly Func<Assembly, string>? _resolveXmlDocumentationFileName;
 
-    private readonly ConcurrentDictionary<string, XDocument> _cache =
-        new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, IReadOnlyDictionary<string, XElement>?> _cache =
+        new(StringComparer.Ordinal);
 
-    public XmlDocumentationFileResolver()
+    public XmlDocumentationResolver()
     {
         _resolveXmlDocumentationFileName = null;
     }
 
-    public XmlDocumentationFileResolver(Func<Assembly, string>? resolveXmlDocumentationFileName)
+    public XmlDocumentationResolver(Func<Assembly, string>? resolveXmlDocumentationFileName)
     {
         _resolveXmlDocumentationFileName = resolveXmlDocumentationFileName;
     }
 
     public bool TryGetXmlDocument(
         Assembly assembly,
-        [NotNullWhen(true)] out XDocument? document)
+        [NotNullWhen(true)] out IReadOnlyDictionary<string, XElement>? memberLookup)
     {
         var fullName = assembly.GetName().FullName;
 
-        if (!_cache.TryGetValue(fullName, out var doc))
+        if (!_cache.TryGetValue(fullName, out memberLookup))
         {
             var xmlDocumentFileName = GetXmlDocumentationPath(assembly);
-
             if (xmlDocumentFileName is not null && File.Exists(xmlDocumentFileName))
             {
-                doc = XDocument.Load(xmlDocumentFileName, LoadOptions.PreserveWhitespace);
-                _cache[fullName] = doc;
+                var doc = XDocument.Load(xmlDocumentFileName, LoadOptions.PreserveWhitespace);
+                memberLookup =
+                    doc.Element("doc")?
+                        .Element("members")?
+                        .Elements("member")
+                        .Where(static x => x.Attribute("name") != null)
+                        .ToDictionary(static x => x.Attribute("name")!.Value, static delegate(XElement x)
+                        {
+                            // Optimize memory usage: We already stored the name as key in the dictionary.
+                            x.RemoveAttributes();
+                            return x;
+                        });
             }
+
+            _cache.TryAdd(fullName, memberLookup);
         }
 
-        document = doc;
-        return document != null;
+        return memberLookup != null;
     }
 
     private string? GetXmlDocumentationPath(Assembly? assembly)

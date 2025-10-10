@@ -69,7 +69,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
             field ??= GetConventionOrDefault<INamingConventions>(() => Options.UseXmlDocumentation
                 ? new DefaultNamingConventions(
                     new XmlDocumentationProvider(
-                        new XmlDocumentationFileResolver(
+                        new XmlDocumentationResolver(
                             Options.ResolveXmlDocumentationFileName),
                         _serviceHelper.GetStringBuilderPool()))
                 : new DefaultNamingConventions(

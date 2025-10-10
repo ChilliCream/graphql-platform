@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
     <PackageReference Include="Microsoft.Extensions.Identity.Core" />
   </ItemGroup>
 
