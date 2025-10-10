@@ -260,6 +260,54 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry ExternalOverrideCollision(
+        MutableOutputFieldDefinition externalField,
+        ITypeDefinition type,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ExternalOverrideCollision, coordinate, schema.Name),
+            LogEntryCodes.ExternalOverrideCollision,
+            LogSeverity.Error,
+            coordinate,
+            externalField,
+            schema);
+    }
+
+    public static LogEntry ExternalProvidesCollision(
+        MutableOutputFieldDefinition externalField,
+        ITypeDefinition type,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ExternalProvidesCollision, coordinate, schema.Name),
+            LogEntryCodes.ExternalProvidesCollision,
+            LogSeverity.Error,
+            coordinate,
+            externalField,
+            schema);
+    }
+
+    public static LogEntry ExternalRequireCollision(
+        MutableOutputFieldDefinition externalField,
+        ITypeDefinition type,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ExternalRequireCollision, coordinate, schema.Name),
+            LogEntryCodes.ExternalRequireCollision,
+            LogSeverity.Error,
+            coordinate,
+            externalField,
+            schema);
+    }
+
     public static LogEntry ExternalUnused(
         MutableOutputFieldDefinition externalField,
         ITypeDefinition type,
