@@ -2,12 +2,14 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Fusion.FusionUtilitiesResources;
 
 namespace HotChocolate.Fusion.Rewriters;
 
 public sealed class InlineFragmentOperationRewriter(
     ISchemaDefinition schema,
-    bool removeStaticallyExcludedSelections = false)
+    bool removeStaticallyExcludedSelections = false,
+    bool ignoreMissingTypeSystemMembers = false)
 {
     private List<ISelectionNode>? _selections;
 
@@ -147,8 +149,27 @@ public sealed class InlineFragmentOperationRewriter(
         }
         else
         {
-            var field = ((IComplexTypeDefinition)context.Type).Fields[fieldNode.Name.Value];
-            var fieldContext = context.Branch(field.Type.AsTypeDefinition());
+            var type = (IComplexTypeDefinition)context.Type;
+            ITypeDefinition fieldType;
+
+            if (type.Fields.TryGetField(fieldNode.Name.Value, out var field))
+            {
+                fieldType = field.Type.AsTypeDefinition();
+            }
+            else if (ignoreMissingTypeSystemMembers)
+            {
+                fieldType = new MissingType("__MissingType__");
+            }
+            else
+            {
+                throw new RewriterException(
+                    string.Format(
+                        InlineFragmentOperationRewriter_FieldDoesNotExistOnType,
+                        fieldNode.Name.Value,
+                        type.Name));
+            }
+
+            var fieldContext = context.Branch(fieldType);
 
             CollectSelections(fieldNode.SelectionSet, fieldContext);
             RewriteSelections(fieldContext);
@@ -188,9 +209,30 @@ public sealed class InlineFragmentOperationRewriter(
 
     private void RewriteInlineFragment(InlineFragmentNode inlineFragment, Context context)
     {
-        var typeCondition = inlineFragment.TypeCondition is null
-            ? context.Type
-            : schema.Types[inlineFragment.TypeCondition.Name.Value];
+        ITypeDefinition? typeCondition;
+        if (inlineFragment.TypeCondition is null)
+        {
+            typeCondition = context.Type;
+        }
+        else
+        {
+            var typeName = inlineFragment.TypeCondition.Name.Value;
+
+            if (!schema.Types.TryGetType(typeName, out typeCondition))
+            {
+                if (ignoreMissingTypeSystemMembers)
+                {
+                    typeCondition = new MissingType("__MissingType__");
+                }
+                else
+                {
+                    throw new RewriterException(string.Format(
+                        InlineFragmentOperationRewriter_InvalidTypeConditionOnInlineFragment,
+                        context.Type.Name,
+                        typeName));
+                }
+            }
+        }
 
         var inlineFragmentContext = context.Branch(typeCondition);
 
@@ -216,7 +258,22 @@ public sealed class InlineFragmentOperationRewriter(
         Context context)
     {
         var fragmentDefinition = context.GetFragmentDefinition(fragmentSpread.Name.Value);
-        var typeCondition = schema.Types[fragmentDefinition.TypeCondition.Name.Value];
+        var typeName = fragmentDefinition.TypeCondition.Name.Value;
+
+        if (!schema.Types.TryGetType(typeName, out var typeCondition))
+        {
+            if (ignoreMissingTypeSystemMembers)
+            {
+                typeCondition = new MissingType("__MissingType__");
+            }
+            else
+            {
+                throw new RewriterException(string.Format(
+                    InlineFragmentOperationRewriter_InvalidTypeConditionOnFragment,
+                    fragmentSpread.Name,
+                    typeName));
+            }
+        }
 
         if (fragmentSpread.Directives.Count == 0
             && typeCondition.IsAssignableFrom(context.Type))
@@ -548,7 +605,16 @@ public sealed class InlineFragmentOperationRewriter(
         public Dictionary<string, List<FieldNode>> Fields { get; } = new(StringComparer.Ordinal);
 
         public FragmentDefinitionNode GetFragmentDefinition(string name)
-            => fragments[name];
+        {
+            if (!fragments.TryGetValue(name, out var fragment))
+            {
+                throw new RewriterException(string.Format(
+                    InlineFragmentOperationRewriter_FragmentDoesNotExist,
+                    name));
+            }
+
+            return fragment;
+        }
 
         public void AddField(FieldNode field)
         {

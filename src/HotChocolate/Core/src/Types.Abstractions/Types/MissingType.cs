@@ -1,8 +1,7 @@
 using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 
-namespace HotChocolate.Types.Mutable;
+namespace HotChocolate.Types;
 
 /// <summary>
 /// <para>
@@ -18,7 +17,7 @@ namespace HotChocolate.Types.Mutable;
 /// </summary>
 public sealed class MissingType : IInputTypeDefinition, IOutputTypeDefinition
 {
-    private DirectiveCollection? _directives;
+    private IReadOnlyDirectiveCollection? _directives;
     private FeatureCollection? _features;
 
     /// <summary>
@@ -42,14 +41,10 @@ public sealed class MissingType : IInputTypeDefinition, IOutputTypeDefinition
     public TypeKind Kind => TypeKind.Scalar;
 
     /// <inheritdoc />
-    public string Name
-    {
-        get;
-        set => field = value.EnsureGraphQLName();
-    }
+    public string Name { get; }
 
     /// <inheritdoc />
-    public string? Description { get; set; }
+    public string? Description { get; }
 
     /// <inheritdoc />
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
@@ -57,8 +52,8 @@ public sealed class MissingType : IInputTypeDefinition, IOutputTypeDefinition
     /// <summary>
     /// Gets the directives annotated to this type.
     /// </summary>
-    public DirectiveCollection Directives
-        => _directives ??= [];
+    public IReadOnlyDirectiveCollection Directives
+        => _directives ??= EmptyCollections.Directives;
 
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives
         => _directives ?? EmptyCollections.Directives;
