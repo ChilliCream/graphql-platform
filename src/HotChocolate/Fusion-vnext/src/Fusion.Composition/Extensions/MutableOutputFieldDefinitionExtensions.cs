@@ -83,7 +83,8 @@ internal static class MutableOutputFieldDefinitionExtensions
         MutableSchemaDefinition schema)
     {
         var selectedValues = lookupMap.Select(a => new FieldSelectionMapParser(a).Parse());
-        var valueSelectionToSelectionSetRewriter = new ValueSelectionToSelectionSetRewriter(schema);
+        var valueSelectionToSelectionSetRewriter =
+            new ValueSelectionToSelectionSetRewriter(schema, ignoreMissingTypeSystemMembers: true);
         var fieldType = field.Type.AsTypeDefinition();
         var selectionSets = selectedValues
             .Select(s => valueSelectionToSelectionSetRewriter.Rewrite(s, fieldType))

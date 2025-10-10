@@ -3,9 +3,12 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Rewriters;
 
-public sealed class MergeSelectionSetRewriter(ISchemaDefinition schema)
+public sealed class MergeSelectionSetRewriter(
+    ISchemaDefinition schema,
+    bool ignoreMissingTypeSystemMembers = false)
 {
-    private readonly InlineFragmentOperationRewriter _rewriter = new(schema);
+    private readonly InlineFragmentOperationRewriter _rewriter =
+        new(schema, ignoreMissingTypeSystemMembers: ignoreMissingTypeSystemMembers);
 
     public SelectionSetNode Merge(
         SelectionSetNode selectionSet1,
