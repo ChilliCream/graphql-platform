@@ -1354,7 +1354,9 @@ public sealed partial class OperationPlanner
 
         if (!didInline)
         {
-            throw new InvalidOperationException("Failed to inline selections");
+            throw new InvalidOperationException(
+                $"Selections `{selectionsToInline}` could not be inlined into selection set of type "
+                + $"'{selectionSetType.Name}', as no selection set with the id {targetSelectionSetId} was found.");
         }
 
         return rewrittenOperation;

@@ -93,6 +93,6 @@ operationPlan:
     - id: 3
       type: Introspection
       selections:
-        - id: 1
+        - id: 2
           responseName: __typename
           fieldName: __typename

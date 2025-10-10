@@ -60,7 +60,7 @@ internal sealed class OperationPlanMiddleware
 
         try
         {
-            // Before we can plan an operation, we must de-fragmentize it and remove statical include conditions.
+            // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
             var rewritten = _documentRewriter.RewriteDocument(operationDocument, context.Request.OperationName);
             var operation = rewritten.GetOperation(context.Request.OperationName);
 
