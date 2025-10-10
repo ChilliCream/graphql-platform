@@ -28,16 +28,13 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
 
     private readonly IXmlDocumentationResolver _documentationResolver;
     private readonly ObjectPool<StringBuilder> _stringBuilderPool;
-    private readonly bool _noCacheMutation;
 
     public XmlDocumentationProvider(
         IXmlDocumentationResolver documentationResolver,
-        ObjectPool<StringBuilder> stringBuilderPool,
-        bool noCacheMutation = true)
+        ObjectPool<StringBuilder> stringBuilderPool)
     {
         _documentationResolver = documentationResolver ?? throw new ArgumentNullException(nameof(documentationResolver));
         _stringBuilderPool = stringBuilderPool;
-        _noCacheMutation = noCacheMutation;
     }
 
     public string? GetDescription(Type type) =>
@@ -164,10 +161,10 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
     }
 
     private static void AppendText(
-        XElement? element,
+        XElement element,
         StringBuilder description)
     {
-        if (element?.IsEmpty != false)
+        if (element.IsEmpty)
         {
             return;
         }
@@ -262,9 +259,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                     return null;
                 }
 
-                element = ReplaceInheritdocElements(member, element);
-
-                return element;
+                return ReplaceInheritdocElements(member, element);
             }
 
             return null;
@@ -310,11 +305,10 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
         }
     }
 
-    private void ProcessInheritdocInterfaceElements(
-        MemberInfo member,
-        XElement mutableElement)
+    private IEnumerable<XNode>? ProcessInheritdocInterfaceElements(
+        MemberInfo member)
     {
-        if (member.DeclaringType is { })
+        if (member.DeclaringType is not null)
         {
             foreach (var baseInterface in member.DeclaringType.GetInterfaces())
             {
@@ -324,12 +318,13 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                     var baseDoc = GetMemberElement(baseMember);
                     if (baseDoc != null)
                     {
-                        // Note: This implicitly mutates the xelement
-                        mutableElement.ReplaceWith(baseDoc.Nodes());
+                        return baseDoc.Nodes();
                     }
                 }
             }
         }
+
+        return null;
     }
 
     private XElement ReplaceInheritdocElements(
@@ -347,31 +342,32 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
             return element;
         }
 
-        // Deep copy to ensure that we do not mutate the original element from the cache.
-        var elementCopy = _noCacheMutation ? new XElement(element) : element;
+        // Shallow copy to ensure that we do not mutate the original element from the cache.
+        // We use a shallow copy instead of a deep copy (new XElement(element)) to avoid the allocation
+        // overhead since we only need to replace a few (generally 1) inheritdoc-elements.
+        var elementCopy = new XElement(element.Name);
+
         var baseMember = baseType.GetMember(member.Name, BindingFlags).SingleOrDefault();
-        foreach (var child in elementCopy.Elements(Inheritdoc))
+        foreach (var child in element.Elements())
         {
+            if (child.Name != Inheritdoc)
+            {
+                elementCopy.Add(child);
+                continue;
+            }
+
             if (baseMember != null)
             {
                 var baseDoc = GetMemberElement(baseMember);
-                if (baseDoc != null)
-                {
-                    // Note: This implicitly mutates the elementCopy
-                    child.ReplaceWith(baseDoc.Nodes());
-                }
-                else
-                {
-                    ProcessInheritdocInterfaceElements(member, child);
-                }
+                elementCopy.Add(baseDoc != null ? baseDoc.Nodes() : ProcessInheritdocInterfaceElements(member));
             }
             else
             {
-                ProcessInheritdocInterfaceElements(member, child);
+                elementCopy.Add(ProcessInheritdocInterfaceElements(member));
             }
         }
 
-        return element;
+        return elementCopy;
     }
 
     private static string? RemoveLineBreakWhiteSpaces(StringBuilder stringBuilder)
@@ -420,7 +416,6 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
 
     private string GetMemberElementName(MemberInfo member)
     {
-        char prefixCode;
         var builder = _stringBuilderPool.Get();
         try
         {
@@ -437,6 +432,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                 builder.Append(member.DeclaringType.FullName).Append('.').Append(member.Name);
             }
 
+            char prefixCode;
             switch (member.MemberType)
             {
                 case MemberTypes.Constructor:
