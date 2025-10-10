@@ -42,31 +42,6 @@ sourceSchemas:
       type Viewer {
         name: String!
       }
-    interactions:
-      - request:
-          document: |
-            query testQuery_94aeda21_1(
-              $skip: Boolean!
-            ) {
-              ... @skip(if: $skip) {
-                productBySlug(slug: "product") {
-                  name
-                }
-                viewer {
-                  name
-                }
-              }
-            }
-          variables: |
-            {
-              "skip": true
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {}
-              }
 operationPlan:
   operation:
     - document: |
@@ -90,17 +65,14 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_94aeda21_1(
-          $skip: Boolean!
-        ) {
-          ... @skip(if: $skip) {
-            productBySlug(slug: "product") {
-              name
-            }
-            viewer {
-              name
-            }
+        query testQuery_94aeda21_1 {
+          productBySlug(slug: "product") {
+            name
+          }
+          viewer {
+            name
           }
         }
-      forwardedVariables:
-        - skip
+      conditions:
+        - variable: $skip
+          passingValue: false

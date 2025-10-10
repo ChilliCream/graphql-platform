@@ -37,28 +37,6 @@ sourceSchemas:
       type Query {
         productBySlug(slug: String!): Product
       }
-    interactions:
-      - request:
-          document: |
-            query testQuery_94aeda21_1(
-              $skip: Boolean!
-            ) {
-              ... @skip(if: $skip) {
-                productBySlug(slug: "product") {
-                  name
-                }
-              }
-            }
-          variables: |
-            {
-              "skip": true
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {}
-              }
   - name: B
     schema: |
       schema {
@@ -113,17 +91,14 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_94aeda21_1(
-          $skip: Boolean!
-        ) {
-          ... @skip(if: $skip) {
-            productBySlug(slug: "product") {
-              name
-            }
+        query testQuery_94aeda21_1 {
+          productBySlug(slug: "product") {
+            name
           }
         }
-      forwardedVariables:
-        - skip
+      conditions:
+        - variable: $skip
+          passingValue: false
     - id: 2
       type: Operation
       schema: B

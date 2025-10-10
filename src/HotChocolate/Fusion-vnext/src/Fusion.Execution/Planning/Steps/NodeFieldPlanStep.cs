@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
-public record NodePlanStep : PlanStep
+public record NodeFieldPlanStep : PlanStep
 {
     public required string ResponseName { get; init; }
 

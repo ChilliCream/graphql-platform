@@ -404,7 +404,8 @@ public sealed partial class OperationPlanner
             Dependents = workItem.Dependents,
             Requirements = requirements,
             Target = workItem.SelectionSet.Path,
-            Source = source
+            Source = source,
+            Lookup = lookup
         };
 
         var next = new PlanNode
@@ -808,7 +809,8 @@ public sealed partial class OperationPlanner
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, indexBuilder),
             Requirements = requirements,
             Target = workItem.Selection.Path,
-            Source = source
+            Source = source,
+            Lookup = lookup
         };
 
         var next = new PlanNode
@@ -902,11 +904,12 @@ public sealed partial class OperationPlanner
             Requirements = ImmutableDictionary<string, OperationRequirement>.Empty,
 #endif
             Target = SelectionPath.Root,
-            Source = SelectionPath.Root
+            Source = SelectionPath.Root,
+            Lookup = lookup
         };
 
-        var nodePlanStep = current.Steps.OfType<NodePlanStep>().LastOrDefault() ??
-            throw new InvalidOperationException($"Expected to find a {nameof(NodePlanStep)} in the existing steps.");
+        var nodePlanStep = current.Steps.OfType<NodeFieldPlanStep>().LastOrDefault() ??
+            throw new InvalidOperationException($"Expected to find a {nameof(NodeFieldPlanStep)} in the existing steps.");
 
         var steps = current.Steps;
 
@@ -1003,7 +1006,7 @@ public sealed partial class OperationPlanner
             Source = SelectionPath.Root
         };
 
-        var nodeStep = new NodePlanStep
+        var nodeStep = new NodeFieldPlanStep
         {
             Id = stepId,
             ResponseName = responseName,
@@ -1055,7 +1058,7 @@ public sealed partial class OperationPlanner
         {
             foreach (var fragment in nodeField.ParentFragments)
             {
-                var fragmentConditions = ExtractConditions(fragment);
+                var fragmentConditions = ExtractConditions(fragment.Directives);
 
                 if (fragmentConditions is not null)
                 {
@@ -1064,7 +1067,7 @@ public sealed partial class OperationPlanner
             }
         }
 
-        var nodeFieldConditions = ExtractConditions(nodeField.Field);
+        var nodeFieldConditions = ExtractConditions(nodeField.Field.Directives);
 
         if (nodeFieldConditions is not null)
         {
@@ -1074,11 +1077,11 @@ public sealed partial class OperationPlanner
         return conditions.ToArray();
     }
 
-    private static List<ExecutionNodeCondition>? ExtractConditions(IHasDirectives hasDirectives)
+    private static List<ExecutionNodeCondition>? ExtractConditions(IReadOnlyList<DirectiveNode> directives)
     {
         List<ExecutionNodeCondition>? conditions = null;
 
-        foreach (var directive in hasDirectives.Directives)
+        foreach (var directive in directives)
         {
             var passingValue = directive.Name.Value switch
             {
@@ -1093,7 +1096,8 @@ public sealed partial class OperationPlanner
                 var condition = new ExecutionNodeCondition
                 {
                     VariableName = ((VariableNode)ifArgument.Value).Name.Value,
-                    PassingValue = passingValue.Value
+                    PassingValue = passingValue.Value,
+                    Directive = directive
                 };
 
                 conditions ??= [];
