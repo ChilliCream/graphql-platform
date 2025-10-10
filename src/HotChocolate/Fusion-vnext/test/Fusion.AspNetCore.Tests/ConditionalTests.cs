@@ -3,6 +3,7 @@ using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Fusion;
 
+// TODO: Test with conditional field that also acts as requirement
 public class ConditionalTests : FusionTestBase
 {
     #region Root
