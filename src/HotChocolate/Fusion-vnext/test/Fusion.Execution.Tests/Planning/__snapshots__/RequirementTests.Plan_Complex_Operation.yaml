@@ -56,6 +56,8 @@ nodes:
           id
         }
       }
+    forwardedVariables:
+      - userId
     dependencies:
       - id: 1
   - id: 3
@@ -71,6 +73,8 @@ nodes:
           name
         }
       }
+    forwardedVariables:
+      - userId
     dependencies:
       - id: 1
   - id: 4
@@ -89,6 +93,8 @@ nodes:
           }
         }
       }
+    forwardedVariables:
+      - userId
   - id: 5
     type: Operation
     schema: f

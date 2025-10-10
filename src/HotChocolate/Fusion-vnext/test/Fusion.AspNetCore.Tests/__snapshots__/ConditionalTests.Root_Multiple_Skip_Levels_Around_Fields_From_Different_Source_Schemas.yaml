@@ -136,6 +136,9 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - skip1
+        - skip2
     - id: 2
       type: Operation
       schema: B

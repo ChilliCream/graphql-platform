@@ -21,7 +21,10 @@ public sealed partial class OperationPlanner
     {
         if (operation.IsIntrospectionOnly())
         {
-            var introspectionNode = new IntrospectionExecutionNode(1, [.. operation.RootSelectionSet.Selections]);
+            var introspectionNode = new IntrospectionExecutionNode(
+                1,
+                [.. operation.RootSelectionSet.Selections],
+                []);
             introspectionNode.Seal();
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
@@ -54,7 +57,8 @@ public sealed partial class OperationPlanner
         {
             var introspectionNode = new IntrospectionExecutionNode(
                 allNodes.Max(t => t.Id) + 1,
-                operation.GetIntrospectionSelections());
+                operation.GetIntrospectionSelections(),
+                []);
             rootNodes = rootNodes.Add(introspectionNode);
             allNodes = allNodes.Add(introspectionNode);
         }
@@ -240,7 +244,8 @@ public sealed partial class OperationPlanner
                         operationStep.Source,
                         requirements,
                         variables?.Count > 0 ? variables.ToArray() : [],
-                        GetResponseNamesFromPath(operationStep.Definition, operationStep.Source));
+                        GetResponseNamesFromPath(operationStep.Definition, operationStep.Source),
+                        []);
 
                     completedNodes.Add(step.Id, node);
                 }
@@ -249,7 +254,8 @@ public sealed partial class OperationPlanner
                     var node = new NodeFieldExecutionNode(
                         nodeStep.Id,
                         nodeStep.ResponseName,
-                        nodeStep.IdValue);
+                        nodeStep.IdValue,
+                        []);
 
                     completedNodes.Add(step.Id, node);
                 }

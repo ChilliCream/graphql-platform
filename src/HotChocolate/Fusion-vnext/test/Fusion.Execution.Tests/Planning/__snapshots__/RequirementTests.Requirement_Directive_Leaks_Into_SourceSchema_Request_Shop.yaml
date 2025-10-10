@@ -162,6 +162,8 @@ nodes:
       - name: __fusion_3_id
         selectionMap: >-
           id
+    forwardedVariables:
+      - skip
     dependencies:
       - id: 2
   - id: 5
