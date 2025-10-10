@@ -32,8 +32,7 @@ public class XmlDocumentProviderBenchmarks
         _testOutputHelper = testOutputHelper;
     }
 
-    //[Fact(Skip = "Run manually when performance regression testing is required")]
-    [Fact]
+    [Fact(Skip = "Run manually when required")]
     public void RunBenchmarks()
     {
         var config = ManualConfig.Create(DefaultConfig.Instance)
