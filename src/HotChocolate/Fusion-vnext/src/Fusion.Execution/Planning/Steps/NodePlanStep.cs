@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
@@ -8,6 +9,8 @@ public record NodePlanStep : PlanStep
     public required string ResponseName { get; init; }
 
     public required IValueNode IdValue { get; init; }
+
+    public required ExecutionNodeCondition[] Conditions { get; init; }
 
     public required OperationPlanStep FallbackQuery { get; init; }
 
