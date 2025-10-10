@@ -27,7 +27,7 @@ public class MutationTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             mutation {
               a: createBook(input: { title: "Book1" }) {
@@ -68,7 +68,7 @@ public class MutationTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             mutation {
               a: createBook(input: { title: "Book1" }) {

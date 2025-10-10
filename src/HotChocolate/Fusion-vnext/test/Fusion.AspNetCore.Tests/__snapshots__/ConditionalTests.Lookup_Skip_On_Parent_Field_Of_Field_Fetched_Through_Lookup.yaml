@@ -1,0 +1,138 @@
+title: Lookup_Skip_On_Parent_Field_Of_Field_Fetched_Through_Lookup
+request:
+  document: |
+    query testQuery(
+      $skip: Boolean!
+    ) {
+      productBySlug(slug: "product") {
+        name
+        review @skip(if: $skip) {
+          title
+        }
+      }
+    }
+  variables: |
+    {
+      "skip": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productBySlug": {
+          "name": "Product: UHJvZHVjdDox"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: ID!
+        name: String!
+        review: Review
+      }
+      
+      type Query {
+        productBySlug(slug: String!): Product
+      }
+      
+      type Review {
+        id: ID!
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_dcf2affd_1(
+              $skip: Boolean!
+            ) {
+              productBySlug(slug: "product") {
+                name
+                review @skip(if: $skip) {
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "skip": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productBySlug": {
+                    "name": "Product: UHJvZHVjdDox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        reviewById(id: ID!): Review @lookup
+      }
+      
+      type Review {
+        id: ID!
+        title: String!
+      }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip: Boolean!
+        ) {
+          productBySlug(slug: "product") {
+            name
+            review @skip(if: $skip) {
+              title
+              id @fusion__requirement
+            }
+          }
+        }
+      name: testQuery
+      hash: dcf2affdd717b34522665fb9ecd548f8
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_dcf2affd_1(
+          $skip: Boolean!
+        ) {
+          productBySlug(slug: "product") {
+            name
+            review @skip(if: $skip) {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_dcf2affd_2(
+          $__fusion_1_id: ID!
+        ) {
+          reviewById(id: $__fusion_1_id) {
+            title
+          }
+        }
+      source: $.reviewById
+      target: $.productBySlug.review
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

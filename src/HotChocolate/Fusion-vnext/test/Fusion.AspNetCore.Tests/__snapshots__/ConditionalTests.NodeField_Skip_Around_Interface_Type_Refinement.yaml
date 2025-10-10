@@ -1,0 +1,187 @@
+title: NodeField_Skip_Around_Interface_Type_Refinement
+request:
+  document: |
+    query testQuery(
+      $skip: Boolean!
+    ) {
+      node(id: "RGlzY3Vzc2lvbjox") {
+        ... @skip(if: $skip) {
+          ... on Votable {
+            viewerCanVote
+          }
+          __typename
+        }
+        ... on Discussion {
+          title
+        }
+      }
+    }
+  variables: |
+    {
+      "skip": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "title": "Discussion: RGlzY3Vzc2lvbjox"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      interface Votable {
+        viewerCanVote: Boolean!
+      }
+      
+      type Author implements Node & Votable {
+        id: ID!
+        username: String
+        viewerCanVote: Boolean!
+      }
+      
+      type Discussion implements Node & Votable {
+        id: ID!
+        title: String
+        viewerCanVote: Boolean!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_f0a0d960_3(
+              $skip: Boolean!
+            ) {
+              node(id: "RGlzY3Vzc2lvbjox") {
+                __typename
+                ... on Discussion {
+                  __typename
+                  ... @skip(if: $skip) {
+                    __typename
+                  }
+                  title
+                  ... @skip(if: $skip) {
+                    viewerCanVote
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "skip": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Discussion",
+                    "title": "Discussion: RGlzY3Vzc2lvbjox"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip: Boolean!
+        ) {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            __typename @fusion__requirement
+            ... on Discussion {
+              title
+            }
+            ... @skip(if: $skip) {
+              __typename
+              ... on Votable {
+                viewerCanVote
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: f0a0d96078514a7a52cb7e007f08182c
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "RGlzY3Vzc2lvbjox"
+      responseName: node
+      branches:
+        - Author: 4
+        - Discussion: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query testQuery_f0a0d960_2(
+          $skip: Boolean!
+        ) {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            __typename
+            ... @skip(if: $skip) {
+              __typename
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_f0a0d960_3(
+          $skip: Boolean!
+        ) {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            __typename
+            ... on Discussion {
+              __typename
+              ... @skip(if: $skip) {
+                __typename
+              }
+              title
+              ... @skip(if: $skip) {
+                viewerCanVote
+              }
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_f0a0d960_4(
+          $skip: Boolean!
+        ) {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            __typename
+            ... on Author {
+              __typename
+              ... @skip(if: $skip) {
+                __typename
+              }
+              ... @skip(if: $skip) {
+                viewerCanVote
+              }
+            }
+          }
+        }
+      dependencies:
+        - id: 1

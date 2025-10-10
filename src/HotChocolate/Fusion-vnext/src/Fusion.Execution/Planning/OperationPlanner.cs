@@ -1276,6 +1276,7 @@ public sealed partial class OperationPlanner
         bool inlineInternal = false)
     {
         List<SelectionSetNode>? backlog = null;
+        var didInline = false;
 
         var rewriter = SyntaxRewriter.Create<List<ISyntaxNode>>(
             rewrite: (node, path) =>
@@ -1337,6 +1338,8 @@ public sealed partial class OperationPlanner
                         index);
                 }
 
+                didInline = true;
+
                 index.Register(originalSelectionSet, newSelectionSet);
                 return newSelectionSet;
             },
@@ -1347,7 +1350,16 @@ public sealed partial class OperationPlanner
             },
             leave: (_, path) => path.Pop());
 
-        return (OperationDefinitionNode)rewriter.Rewrite(operation, [])!;
+        var rewrittenOperation = (OperationDefinitionNode)rewriter.Rewrite(operation, [])!;
+
+        if (!didInline)
+        {
+            throw new InvalidOperationException(
+                $"Selections `{selectionsToInline}` could not be inlined into selection set of type "
+                + $"'{selectionSetType.Name}', as no selection set with the id {targetSelectionSetId} was found.");
+        }
+
+        return rewrittenOperation;
 
         static IReadOnlyList<DirectiveNode> AddInternalDirective(IHasDirectives selection)
         {
