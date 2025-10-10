@@ -561,7 +561,6 @@ SaveSafe_Next:
 
         if (elementKind is JsonValueKind.Array && path is IndexerPathSegment indexSegment)
         {
-            // todo: we should introduce an optimized path with a single read of the metadb
             if (element.GetArrayLength() <= indexSegment.Index)
             {
                 throw new InvalidOperationException(

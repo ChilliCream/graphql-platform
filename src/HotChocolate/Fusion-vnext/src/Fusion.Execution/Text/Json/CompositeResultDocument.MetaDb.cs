@@ -165,7 +165,7 @@ public sealed partial class CompositeResultDocument
                 var index = MemoryMarshal.Read<int>(span) & 0x07FFFFFF;
                 cursor = Cursor.FromIndex(index);
                 span = chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + TokenTypeOffset);
-                union = MemoryMarshal.Read<uint>(span[TokenTypeOffset..]);
+                union = MemoryMarshal.Read<uint>(span);
                 tokenType = (ElementTokenType)(union >> 28);
                 return (cursor, tokenType);
             }

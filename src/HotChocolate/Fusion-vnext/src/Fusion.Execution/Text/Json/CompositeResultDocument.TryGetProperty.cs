@@ -13,20 +13,20 @@ public sealed partial class CompositeResultDocument
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        startCursor = _metaDb.GetStartCursor(startCursor);
-        var row = _metaDb.Get(startCursor);
+        (startCursor, var tokenType) = _metaDb.GetStartCursor(startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, tokenType);
 
-        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+        var numberOfRows = _metaDb.GetNumberOfRows(startCursor);
 
         // Only one row means it was EndObject.
-        if (row.NumberOfRows == 0)
+        if (numberOfRows == 0)
         {
             value = default;
             return false;
         }
 
         var maxBytes = s_utf8Encoding.GetMaxByteCount(propertyName.Length);
-        var endCursor = startCursor + (row.NumberOfRows - 1);
+        var endCursor = startCursor + (numberOfRows - 1);
 
         if (maxBytes < JsonConstants.StackallocByteThreshold)
         {
@@ -55,7 +55,7 @@ public sealed partial class CompositeResultDocument
         {
             var passed = candidate;
 
-            row = _metaDb.Get(candidate);
+            var row = _metaDb.Get(candidate);
             Debug.Assert(row.TokenType != ElementTokenType.PropertyName);
 
             candidate--;
@@ -105,24 +105,19 @@ public sealed partial class CompositeResultDocument
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var row = _metaDb.Get(startCursor);
+        (startCursor, var tokenType) = _metaDb.GetStartCursor(startCursor);
+        CheckExpectedType(ElementTokenType.StartObject, tokenType);
 
-        if (row.TokenType is ElementTokenType.Reference)
-        {
-            startCursor = _metaDb.GetStartCursor(startCursor);
-            row = _metaDb.Get(startCursor);
-        }
-
-        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+        var numberOfRows = _metaDb.GetNumberOfRows(startCursor);
 
         // Only one row means it was EndObject.
-        if (row.NumberOfRows == 0)
+        if (numberOfRows == 1)
         {
             value = default;
             return false;
         }
 
-        var endCursor = startCursor + (row.NumberOfRows - 1);
+        var endCursor = startCursor + (numberOfRows - 1);
 
         return TryGetNamedPropertyValue(
             startCursor + 1,
@@ -213,7 +208,8 @@ public sealed partial class CompositeResultDocument
     internal Cursor GetStartCursor(Cursor cursor)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        return _metaDb.GetStartCursor(cursor);
+        (cursor, _) = _metaDb.GetStartCursor(cursor);
+        return cursor;
     }
 
     internal Cursor GetEndCursor(Cursor cursor)

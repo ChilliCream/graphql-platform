@@ -20,8 +20,8 @@ public readonly partial struct CompositeResultElement
         internal ObjectEnumerator(CompositeResultElement target)
         {
             _document = target._parent;
-            _start = _document._metaDb.GetStartCursor(target._cursor);
-            Debug.Assert(_document._metaDb.GetElementTokenType(_start) is ElementTokenType.StartObject);
+            (_start, var tokenType) = _document._metaDb.GetStartCursor(target._cursor);
+            Debug.Assert(tokenType is ElementTokenType.StartObject);
             _end = _start + _document._metaDb.GetNumberOfRows(_start);
             _cursor = _start;
         }
