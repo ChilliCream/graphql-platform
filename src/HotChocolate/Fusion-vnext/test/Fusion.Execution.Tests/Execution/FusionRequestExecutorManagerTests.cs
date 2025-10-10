@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Net.Security;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Caching.Memory;
@@ -6,6 +7,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Pipeline;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -173,7 +175,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         // act
         var firstExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
-        var firstPlanCache = firstExecutor.Schema.Services.GetCombinedServices()
+        var firstPlanCache = firstExecutor.Schema.Services
             .GetRequiredService<Cache<OperationPlan>>();
 
         configProvider.UpdateConfiguration(
@@ -190,7 +192,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         executorEvictedResetEvent.Wait(cts.Token);
 
         var secondExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
-        var secondPlanCache = secondExecutor.Schema.Services.GetCombinedServices()
+        var secondPlanCache = secondExecutor.Schema.Services
             .GetRequiredService<Cache<OperationPlan>>();
 
         // assert
@@ -384,6 +386,41 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         cts.Dispose();
     }
+
+    [Fact(Skip = "SomeService needs to be registered with the schema services")]
+    public async Task WarmupTask_Should_Be_Able_To_Access_Schema_And_Regular_Services()
+    {
+        // arrange
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var services = new ServiceCollection();
+        services.AddSingleton<SomeService>();
+        services
+            .AddGraphQLGateway()
+            .AddInMemoryConfiguration(CreateConfiguration().Schema)
+            .AddWarmupTask<CustomWarmupTask>();
+        var provider = services.BuildServiceProvider();
+        var manager = provider.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+
+        // assert
+        Assert.NotNull(executor);
+
+        cts.Dispose();
+    }
+
+#pragma warning disable CS9113 // Parameter is unread.
+    private sealed class CustomWarmupTask(IDocumentCache documentCache, SomeService service) : IRequestExecutorWarmupTask
+#pragma warning restore CS9113 // Parameter is unread.
+    {
+        public bool ApplyOnlyOnStartup => false;
+
+        public Task WarmupAsync(IRequestExecutor executor, CancellationToken cancellationToken) => Task.CompletedTask;
+    }
+
+    private class SomeService;
 
     private static FusionConfiguration CreateConfiguration(string? sourceSchemaText = null)
     {

@@ -36,7 +36,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(warmupFunc);
 
-        return builder.AddWarmupTask(new DelegateWarmupTask(warmupFunc), skipIf);
+        return builder.AddWarmupTask(new DelegateRequestExecutorWarmupTask(warmupFunc), skipIf);
     }
 
     /// <summary>
@@ -73,9 +73,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             return builder;
         }
 
-        builder.ConfigureSchemaServices((_, sc) => sc.AddSingleton(warmupTask));
-
-        return builder;
+        return builder.ConfigureSchemaServices((_, sc) => sc.AddSingleton(warmupTask));
     }
 
     /// <summary>

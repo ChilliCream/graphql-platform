@@ -52,28 +52,6 @@ var request = OperationRequestBuilder.New()
 await executor.ExecuteAsync(request, cancellationToken);
 ```
 
-## Skipping reporting
-
-If you've set up [instrumentation](/docs/hotchocolate/v16/server/instrumentation), you might want to skip reporting certain events in the case of a warmup request.
-
-You can use the `RequestContext.IsWarmupRequest()` method to determine whether a request is a warmup request or not:
-
-```csharp
-public class MyExecutionEventListener : ExecutionDiagnosticEventListener
-{
-    public override void RequestError(RequestContext context,
-        Exception exception)
-    {
-        if (context.IsWarmupRequest())
-        {
-            return;
-        }
-
-        // Reporting
-    }
-}
-```
-
 ## Custom warmup tasks
 
 For more control over warmup behavior, you can implement the `IRequestExecutorWarmupTask` interface:
@@ -99,6 +77,42 @@ public class MyWarmupTask : IRequestExecutorWarmupTask
 
 The `ApplyOnlyOnStartup` property controls whether the warmup task should run only at server startup (`true`) or also when the request executor is rebuilt at runtime (`false`, the default).
 Register your custom warmup task using any of these approaches:
+
+<!--
+### Accessing services
+
+You can inject services into your custom warmup task through constructor injection. This includes both Hot Chocolate's built-in schema services like `IDocumentCache` or `IPreparedOperationCache`, as well as any application services you've registered:
+
+```csharp
+public class MyWarmupTask(IDocumentCache documentCache, MyService myService)
+    : IRequestExecutorWarmupTask
+{
+    // ...
+}
+```
+
+## Skipping reporting
+
+If you've set up [instrumentation](/docs/hotchocolate/v16/server/instrumentation), you might want to skip reporting certain events in the case of a warmup request.
+
+You can use the `RequestContext.IsWarmupRequest()` method to determine whether a request is a warmup request or not:
+
+```csharp
+public class MyExecutionEventListener : ExecutionDiagnosticEventListener
+{
+    public override void RequestError(RequestContext context,
+        Exception exception)
+    {
+        if (context.IsWarmupRequest())
+        {
+            return;
+        }
+
+        // Reporting
+    }
+}
+```
+-->
 
 # Opting into lazy initialization
 

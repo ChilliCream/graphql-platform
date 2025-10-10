@@ -8,7 +8,7 @@ public interface IRequestExecutorWarmupTask
 {
     /// <summary>
     /// Specifies whether the warmup task should be only applied on startup,
-    /// but not subsequent request executor creations.
+    /// but not on subsequent request executor creations.
     /// </summary>
     bool ApplyOnlyOnStartup { get; }
 

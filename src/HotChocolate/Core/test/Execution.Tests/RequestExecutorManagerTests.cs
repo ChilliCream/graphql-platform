@@ -1,5 +1,6 @@
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -51,14 +52,14 @@ public class RequestExecutorManagerTests
 
         // act
         var firstExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
-        var firstOperationCache = firstExecutor.Schema.Services.GetCombinedServices()
+        var firstOperationCache = firstExecutor.Schema.Services
             .GetRequiredService<IPreparedOperationCache>();
 
         manager.EvictExecutor();
         executorEvictedResetEvent.Wait(cts.Token);
 
         var secondExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
-        var secondOperationCache = secondExecutor.Schema.Services.GetCombinedServices()
+        var secondOperationCache = secondExecutor.Schema.Services
             .GetRequiredService<IPreparedOperationCache>();
 
         // assert
@@ -255,6 +256,41 @@ public class RequestExecutorManagerTests
             Assert.True(executorCreated);
         }
     }
+
+    [Fact(Skip = "SomeService needs to be registered with the schema services")]
+    public async Task WarmupTask_Should_Be_Able_To_Access_Schema_And_Regular_Services()
+    {
+        // arrange
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var services = new ServiceCollection();
+        services.AddSingleton<SomeService>();
+        services
+            .AddGraphQLServer()
+            .AddWarmupTask<CustomWarmupTask>()
+            .AddQueryType(d => d.Field("foo").Resolve(""));
+        var provider = services.BuildServiceProvider();
+        var manager = provider.GetRequiredService<RequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+
+        // assert
+        Assert.NotNull(executor);
+
+        cts.Dispose();
+    }
+
+#pragma warning disable CS9113 // Parameter is unread.
+    private sealed class CustomWarmupTask(IDocumentCache documentCache, SomeService service) : IRequestExecutorWarmupTask
+#pragma warning restore CS9113 // Parameter is unread.
+    {
+        public bool ApplyOnlyOnStartup => false;
+
+        public Task WarmupAsync(IRequestExecutor executor, CancellationToken cancellationToken) => Task.CompletedTask;
+    }
+
+    private class SomeService;
 
     private sealed class TriggerableTypeModule : TypeModule
     {
