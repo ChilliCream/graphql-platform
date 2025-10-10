@@ -31,9 +31,7 @@ public static class HotChocolateRedisPersistedOperationsRequestExecutorBuilderEx
         ArgumentNullException.ThrowIfNull(databaseFactory);
 
         return builder.ConfigureSchemaServices(
-            s => s.AddRedisOperationDocumentStorage(
-                sp => databaseFactory(sp.GetCombinedServices()),
-                queryExpiration));
+            s => s.AddRedisOperationDocumentStorage(databaseFactory, queryExpiration));
     }
 
     /// <summary>
@@ -58,7 +56,7 @@ public static class HotChocolateRedisPersistedOperationsRequestExecutorBuilderEx
 
         return builder.ConfigureSchemaServices(
             s => s.AddRedisOperationDocumentStorage(
-                sp => multiplexerFactory(sp.GetCombinedServices()).GetDatabase(),
+                sp => multiplexerFactory(sp).GetDatabase(),
                 queryExpiration));
     }
 
