@@ -308,7 +308,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         cts.Dispose();
     }
 
-    [Fact(Skip = "SomeService needs to be registered with the schema services")]
+    [Fact]
     public async Task WarmupTask_Should_Be_Able_To_Access_Schema_And_Regular_Services()
     {
         // arrange
@@ -319,6 +319,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         services
             .AddGraphQLGateway()
             .AddInMemoryConfiguration(CreateConfiguration().Schema)
+            .AddApplicationService<SomeService>()
             .AddWarmupTask<CustomWarmupTask>();
         var provider = services.BuildServiceProvider();
         var manager = provider.GetRequiredService<FusionRequestExecutorManager>();
