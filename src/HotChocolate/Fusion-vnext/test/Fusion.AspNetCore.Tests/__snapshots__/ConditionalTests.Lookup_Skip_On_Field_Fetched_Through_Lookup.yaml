@@ -83,30 +83,6 @@ sourceSchemas:
         id: ID!
         title: String!
       }
-    interactions:
-      - request:
-          document: |
-            query testQuery_c8d03103_2(
-              $skip: Boolean!
-              $__fusion_1_id: ID!
-            ) {
-              reviewById(id: $__fusion_1_id) {
-                title @skip(if: $skip)
-              }
-            }
-          variables: |
-            {
-              "skip": true,
-              "__fusion_1_id": "UmV2aWV3OjI="
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "reviewById": {}
-                }
-              }
 operationPlan:
   operation:
     - document: |
@@ -142,11 +118,10 @@ operationPlan:
       schema: B
       operation: |
         query testQuery_c8d03103_2(
-          $skip: Boolean!
           $__fusion_1_id: ID!
         ) {
           reviewById(id: $__fusion_1_id) {
-            title @skip(if: $skip)
+            title
           }
         }
       source: $.reviewById
@@ -155,5 +130,8 @@ operationPlan:
         - name: __fusion_1_id
           selectionMap: >-
             id
+      conditions:
+        - variable: $skip
+          passingValue: false
       dependencies:
         - id: 1

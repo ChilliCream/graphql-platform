@@ -110,8 +110,9 @@ public abstract partial class FusionTestBase
                     break;
                 }
             }
-            catch
+            catch (Exception exception)
             {
+                Console.WriteLine(exception.Message);
                 // For some reason
                 // CancellationTests.Request_Is_Running_Into_Execution_Timeout_While_Http_Request_In_Node_Is_Still_Ongoing
                 // runs into an issue here

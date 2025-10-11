@@ -200,6 +200,8 @@ operationPlan:
             __typename
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 3
@@ -219,6 +221,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 4
@@ -260,6 +264,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 6

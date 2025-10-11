@@ -8,8 +8,12 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 {
     private readonly Selection[] _selections;
     private readonly string[] _responseNames;
+    private readonly ExecutionNodeCondition[] _conditions;
 
-    public IntrospectionExecutionNode(int id, Selection[] selections)
+    public IntrospectionExecutionNode(
+        int id,
+        Selection[] selections,
+        ExecutionNodeCondition[] conditions)
     {
         ArgumentNullException.ThrowIfNull(selections);
 
@@ -23,12 +27,21 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         Id = id;
         _selections = selections;
         _responseNames = selections.Select(t => t.ResponseName).ToArray();
+        _conditions = conditions;
     }
 
+    /// <inheritdoc />
     public override int Id { get; }
 
+    /// <inheritdoc />
     public override ExecutionNodeType Type => ExecutionNodeType.Introspection;
 
+    /// <inheritdoc />
+    public override ReadOnlySpan<ExecutionNodeCondition> Conditions => _conditions;
+
+    /// <summary>
+    /// The introspection selections.
+    /// </summary>
     public ReadOnlySpan<Selection> Selections => _selections;
 
     protected override ValueTask<ExecutionStatus> OnExecuteAsync(

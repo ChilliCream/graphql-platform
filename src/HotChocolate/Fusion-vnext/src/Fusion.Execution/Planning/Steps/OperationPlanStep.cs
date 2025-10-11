@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -17,6 +18,8 @@ public record OperationPlanStep : PlanStep
 
     public required string? SchemaName { get; init; }
 
+    public ExecutionNodeCondition[] Conditions { get; init; } = [];
+
     public ImmutableHashSet<int> Dependents { get; init; } = [];
 
     public ImmutableDictionary<string, OperationRequirement> Requirements { get; init; }
@@ -29,6 +32,8 @@ public record OperationPlanStep : PlanStep
     public required SelectionPath Target { get; init; }
 
     public required SelectionPath Source { get; init; }
+
+    public Lookup? Lookup { get; init; }
 
     public bool DependsOn(OperationPlanStep otherStep, ImmutableList<PlanStep> allSteps)
         => DependsOnRecursive(otherStep, Id, allSteps, []);

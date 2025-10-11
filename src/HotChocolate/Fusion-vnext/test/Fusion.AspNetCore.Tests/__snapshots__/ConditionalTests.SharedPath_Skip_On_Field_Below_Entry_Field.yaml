@@ -1,0 +1,128 @@
+title: SharedPath_Skip_On_Field_Below_Entry_Field
+request:
+  document: |
+    query testQuery(
+      $skip: Boolean!
+    ) {
+      viewer {
+        fieldA
+        fieldB @skip(if: $skip)
+      }
+    }
+  variables: |
+    {
+      "skip": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "viewer": {
+          "fieldA": "Viewer"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        viewer: Viewer
+      }
+      
+      type Viewer {
+        fieldA: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_c549857e_1 {
+              viewer {
+                fieldA
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "fieldA": "Viewer"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        viewer: Viewer
+      }
+      
+      type Viewer {
+        fieldB: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_c549857e_2(
+              $skip: Boolean!
+            ) {
+              viewer {
+                fieldB @skip(if: $skip)
+              }
+            }
+          variables: |
+            {
+              "skip": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {}
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip: Boolean!
+        ) {
+          viewer {
+            fieldA
+            fieldB @skip(if: $skip)
+          }
+        }
+      name: testQuery
+      hash: c549857e1ec016692dfa7635c250233a
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_c549857e_1 {
+          viewer {
+            fieldA
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_c549857e_2(
+          $skip: Boolean!
+        ) {
+          viewer {
+            fieldB @skip(if: $skip)
+          }
+        }
+      forwardedVariables:
+        - skip

@@ -1,0 +1,57 @@
+title: SharedPath_Multiple_Skip_Levels_Around_Entry_Field
+request:
+  document: |
+    query testQuery(
+      $skip1: Boolean!
+      $skip2: Boolean!
+    ) {
+      ... @skip(if: $skip1) {
+        ... @skip(if: $skip2) {
+          viewer {
+            fieldA
+            fieldB
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "skip1": true,
+      "skip2": true
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Unexpected Execution Error"
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        viewer: Viewer
+      }
+      
+      type Viewer {
+        fieldA: String!
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        viewer: Viewer
+      }
+      
+      type Viewer {
+        fieldB: String!
+      }
