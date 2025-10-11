@@ -1,0 +1,86 @@
+title: SharedPath_Skip_On_Entry_Field
+request:
+  document: |
+    query testQuery(
+      $skip: Boolean!
+    ) {
+      viewer @skip(if: $skip) {
+        fieldA
+        fieldB
+      }
+    }
+  variables: |
+    {
+      "skip": true
+    }
+response:
+  body: |
+    {
+      "data": {}
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        viewer: Viewer
+      }
+      
+      type Viewer {
+        fieldA: String!
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        viewer: Viewer
+      }
+      
+      type Viewer {
+        fieldB: String!
+      }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip: Boolean!
+        ) {
+          viewer @skip(if: $skip) {
+            fieldA
+            fieldB
+          }
+        }
+      name: testQuery
+      hash: 23031ae0670c2e1a0d2f3b9f006622d9
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_23031ae0_1 {
+          viewer {
+            fieldA
+          }
+        }
+      conditions:
+        - variable: $skip
+          passingValue: false
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_23031ae0_2 {
+          viewer {
+            fieldB
+          }
+        }
+      conditions:
+        - variable: $skip
+          passingValue: false
