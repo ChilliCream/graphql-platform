@@ -131,31 +131,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query testQuery_3197e72d_3(
-              $skip: Boolean!
-              $__fusion_2_size: Int!
-              $__fusion_3_id: ID!
-            ) {
-              productById(id: $__fusion_3_id) {
-                dimension(size: $__fusion_2_size) @skip(if: $skip)
-              }
-            }
-          variables: |
-            {
-              "skip": true,
-              "__fusion_2_size": 123,
-              "__fusion_3_id": "UHJvZHVjdDox"
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "productById": {}
-                }
-              }
 operationPlan:
   operation:
     - document: |
@@ -206,12 +181,11 @@ operationPlan:
       schema: C
       operation: |
         query testQuery_3197e72d_3(
-          $skip: Boolean!
           $__fusion_2_size: Int!
           $__fusion_3_id: ID!
         ) {
           productById(id: $__fusion_3_id) {
-            dimension(size: $__fusion_2_size) @skip(if: $skip)
+            dimension(size: $__fusion_2_size)
           }
         }
       source: $.productById
@@ -223,8 +197,9 @@ operationPlan:
         - name: __fusion_3_id
           selectionMap: >-
             id
-      forwardedVariables:
-        - skip
+      conditions:
+        - variable: $skip
+          passingValue: false
       dependencies:
         - id: 1
         - id: 4

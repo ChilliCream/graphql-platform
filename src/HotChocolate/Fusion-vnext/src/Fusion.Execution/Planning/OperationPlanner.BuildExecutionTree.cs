@@ -358,15 +358,46 @@ public sealed partial class OperationPlanner
     {
         var context = new Context();
 
-        var newSelectionSet = RewriteSelectionSet(step.Definition.SelectionSet, context);
-        var newOperation = step.Definition.WithSelectionSet(newSelectionSet);
+        OperationDefinitionNode newOperation;
+
+        if (step.Lookup is not null)
+        {
+            FieldNode? lookupFieldNode = null;
+
+            foreach (var selection in step.Definition.SelectionSet.Selections)
+            {
+                if (selection is FieldNode fieldNode && fieldNode.Name.Value == step.Lookup.FieldName)
+                {
+                    lookupFieldNode = fieldNode;
+                    break;
+                }
+            }
+
+            if (lookupFieldNode?.SelectionSet is not {} lookupSelectionSet)
+            {
+                throw new InvalidOperationException(
+                    "Expected to find the lookup field with a selection set in the operation definition");
+            }
+
+            var newLookupSelectionSet = RewriteSelectionSet(lookupSelectionSet, context);
+            var newLookupField = lookupFieldNode.WithSelectionSet(newLookupSelectionSet);
+
+            newOperation = step.Definition.WithSelectionSet(
+                new SelectionSetNode([newLookupField]));
+        }
+        else
+        {
+            var newRootSelectionSet = RewriteSelectionSet(step.Definition.SelectionSet, context);
+
+            newOperation = step.Definition.WithSelectionSet(newRootSelectionSet);
+        }
 
         return step with { Definition = newOperation, Conditions = context.Conditions.ToArray() };
     }
 
     private sealed class Context
     {
-        public SortedSet<ExecutionNodeCondition> Conditions { get; } = [];
+        public HashSet<ExecutionNodeCondition> Conditions { get; } = [];
     }
 
     private static SelectionSetNode RewriteSelectionSet(
@@ -592,10 +623,9 @@ file static class Extensions
 {
     private static readonly Encoding s_encoding = Encoding.UTF8;
 
-    // TODO: Add summary
     public static bool AreAllSelectionsConditional(this OperationPlanStep step)
     {
-        SelectionSetNode selectionSetNode = step.Definition.SelectionSet;
+        var selectionSetNode = step.Definition.SelectionSet;
 
         if (step.Lookup is not null)
         {

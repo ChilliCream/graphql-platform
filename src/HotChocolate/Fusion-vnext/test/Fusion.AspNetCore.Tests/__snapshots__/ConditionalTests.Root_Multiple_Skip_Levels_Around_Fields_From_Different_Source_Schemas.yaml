@@ -24,11 +24,7 @@ request:
 response:
   body: |
     {
-      "errors": [
-        {
-          "message": "Unexpected Execution Error"
-        }
-      ]
+      "data": {}
     }
 sourceSchemas:
   - name: A
@@ -58,3 +54,66 @@ sourceSchemas:
       type Viewer {
         name: String!
       }
+    interactions:
+      - request:
+          document: |
+            query testQuery_03eeda2f_2 {
+              viewer {
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "name": "Viewer"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip1: Boolean!
+          $skip2: Boolean!
+        ) {
+          ... @skip(if: $skip1) {
+            ... @skip(if: $skip2) {
+              productBySlug(slug: "product") {
+                name
+              }
+              viewer {
+                name
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 03eeda2f0b0a096f8dcad71b1d847d5c
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_03eeda2f_1 {
+          productBySlug(slug: "product") {
+            name
+          }
+        }
+      conditions:
+        - variable: $skip2
+          passingValue: false
+        - variable: $skip1
+          passingValue: false
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_03eeda2f_2 {
+          viewer {
+            name
+          }
+        }
