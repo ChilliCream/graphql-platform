@@ -6,6 +6,242 @@ namespace HotChocolate.Fusion;
 // TODO: Test with conditional field that also acts as requirement
 public class ConditionalTests : FusionTestBase
 {
+    #region Shared Path
+
+    [Fact]
+    public async Task SharedPath_Skip_On_Entry_Field()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldA: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldB: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              viewer @skip(if: $skip) {
+                fieldA
+                fieldB
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task SharedPath_Multiple_Skip_Levels_Around_Entry_Field()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldA: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldB: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip1: Boolean!, $skip2: Boolean!) {
+              ... @skip(if: $skip1) {
+                ... @skip(if: $skip2) {
+                  viewer  {
+                    fieldA
+                    fieldB
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip1"] = true, ["skip2"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task SharedPath_Skip_On_Field_Below_Entry_Field()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldA: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldB: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              viewer  {
+                fieldA
+                fieldB @skip(if: $skip)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task SharedPath_Multiple_Skip_Levels_Around_Fields_Below_Entry_Field()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldA: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldB: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip1: Boolean!, $skip2: Boolean!) {
+              viewer {
+                ... @skip(if: $skip1) {
+                  ... @skip(if: $skip2) {
+                    fieldA
+                    fieldB
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip1"] = true, ["skip2"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    #endregion
+
     #region Root
 
     [Fact]
