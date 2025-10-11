@@ -4,19 +4,19 @@ using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Fusion.Rewriters;
 
-public sealed class SelectedValueToSelectionSetRewriterTests
+public sealed class ValueSelectionToSelectionSetRewriterTests
 {
     [Theory]
     [MemberData(nameof(ExamplesData))]
     public void Examples(string typeName, string selectedValue, string selectionSet)
     {
         // arrange
-        var selectedValueNode = new FieldSelectionMapParser(selectedValue).Parse();
+        var valueSelectionNode = new FieldSelectionMapParser(selectedValue).Parse();
 
         // act
         var selectionSetNode =
-            s_selectedValueToSelectionSetRewriter.Rewrite(
-                selectedValueNode,
+            s_valueSelectionToSelectionSetRewriter.Rewrite(
+                valueSelectionNode,
                 s_schema.Types[typeName]);
 
         // assert
@@ -249,5 +249,5 @@ public sealed class SelectedValueToSelectionSetRewriterTests
         """);
 
     private static readonly ValueSelectionToSelectionSetRewriter
-        s_selectedValueToSelectionSetRewriter = new(s_schema);
+        s_valueSelectionToSelectionSetRewriter = new(s_schema);
 }
