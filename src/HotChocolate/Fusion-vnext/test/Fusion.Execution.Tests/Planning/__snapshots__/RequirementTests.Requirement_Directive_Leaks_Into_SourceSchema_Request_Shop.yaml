@@ -149,11 +149,10 @@ nodes:
     schema: b
     operation: |
       query findMe_123456789101112_4(
-        $skip: Boolean = true
         $__fusion_3_id: ID!
       ) {
         productByIdAsync(id: $__fusion_3_id) {
-          quantity @skip(if: $skip)
+          quantity
         }
       }
     source: $.productByIdAsync
@@ -162,8 +161,9 @@ nodes:
       - name: __fusion_3_id
         selectionMap: >-
           id
-    forwardedVariables:
-      - skip
+    conditions:
+      - variable: $skip
+        passingValue: false
     dependencies:
       - id: 2
   - id: 5

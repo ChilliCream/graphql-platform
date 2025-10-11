@@ -26,6 +26,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
         Id = id;
         _selections = selections;
+        _responseNames = selections.Select(t => t.ResponseName).ToArray();
         _conditions = conditions;
     }
 
