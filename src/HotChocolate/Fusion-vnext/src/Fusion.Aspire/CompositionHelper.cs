@@ -74,11 +74,11 @@ internal static class CompositionHelper
             });
         }
 
-        foreach (var schema in sourceSchemas)
+        foreach (var schema in newSourceSchemas)
         {
             if (!sourceSchemaNames.Add(schema.Name))
             {
-                sourceSchemaMap[schema.Name] = new SourceSchemaInfo
+                sourceSchemas[schema.Name] = new SourceSchemaInfo
                 {
                     Name = schema.Name,
                     Schema = schema.Schema,

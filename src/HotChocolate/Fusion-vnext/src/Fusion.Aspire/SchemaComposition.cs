@@ -121,7 +121,7 @@ internal sealed class SchemaComposition(
             if (!referencedResource.HasGraphQLSchema())
             {
                 logger.LogDebug(
-                    "Resource {ResourceName} does not have GraphQL schema, skipping",
+                    "Resource {ResourceName} does not have a GraphQL schema, skipping",
                     referencedResource.Name);
                 continue;
             }
@@ -208,6 +208,8 @@ internal sealed class SchemaComposition(
         IResourceWithEndpoints resource,
         CancellationToken cancellationToken)
     {
+        var sourceSchemaName = resource.GetGraphQLSourceSchemaName() ?? resource.Name;
+
         var schemaUrl = resource.GetGraphQLSchemaUrl();
         if (schemaUrl == null)
         {
@@ -232,7 +234,7 @@ internal sealed class SchemaComposition(
 
         return new SourceSchemaInfo
         {
-            Name = resource.Name,
+            Name = sourceSchemaName,
             ResourceName = resource.Name,
             HttpEndpointUrl = new Uri(schemaUrl),
             Schema = new SourceSchemaText(resource.Name, schemaText),
