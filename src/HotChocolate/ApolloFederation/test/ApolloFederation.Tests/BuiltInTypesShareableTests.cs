@@ -5,10 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.ApolloFederation;
 
-public class BuiltInTypesSharableTests
+public class BuiltInTypesShareableTests
 {
     [Fact]
-    public async Task Ensure_PagingInfo_Is_Sharable()
+    public async Task Ensure_PagingInfo_Is_Shareable()
     {
         // arrange
         var schema = await new ServiceCollection()
@@ -22,7 +22,7 @@ public class BuiltInTypesSharableTests
     }
 
     [Fact]
-    public async Task Ensure_PagingInfo_Is_Sharable_When_Sharable_Already_Registered()
+    public async Task Ensure_PagingInfo_Is_Shareable_When_Shareable_Already_Registered()
     {
         // arrange
         var schema = await new ServiceCollection()

@@ -770,7 +770,7 @@ public class ValuesOfCorrectTypeRuleTests
     }
 
     [Fact]
-    public void BadUnknowEnumIntoEnum()
+    public void BadUnknownEnumIntoEnum()
     {
         ExpectErrors(
             """
