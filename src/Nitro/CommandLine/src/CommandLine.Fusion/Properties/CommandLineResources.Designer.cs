@@ -134,5 +134,11 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ComposeCommand_GlobalObjectIdentification_Disabled", resourceCulture);
             }
         }
+        
+        internal static string ComposeCommand_Error_ConflictingSchemaName {
+            get {
+                return ResourceManager.GetString("ComposeCommand_Error_ConflictingSchemaName", resourceCulture);
+            }
+        }
     }
 }
