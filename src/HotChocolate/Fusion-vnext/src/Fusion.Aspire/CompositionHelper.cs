@@ -39,7 +39,8 @@ internal static class CompositionHelper
         {
             var normalizedSchemaName = StringUtilities.ToConstantCase(newSourceSchema.Name);
 
-            if (normalizedToRealExistingSchemaNameLookup.TryGetValue(normalizedSchemaName, out var existingSchemaName))
+            if (normalizedToRealExistingSchemaNameLookup.TryGetValue(normalizedSchemaName, out var existingSchemaName)
+                && existingSchemaName != newSourceSchema.Name)
             {
                 logger.LogError(
                     $"❌ '{newSourceSchema.Name}' conflicts with the existing source schema name '{existingSchemaName}'. "
