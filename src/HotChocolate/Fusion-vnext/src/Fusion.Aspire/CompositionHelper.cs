@@ -42,9 +42,9 @@ internal static class CompositionHelper
             if (normalizedToRealExistingSchemaNameLookup.TryGetValue(normalizedSchemaName, out var existingSchemaName))
             {
                 logger.LogError(
-                    $"❌ '{newSourceSchema}' conflicts with the existing source schema name '{existingSchemaName}'. "
-                    + $"Either rename '{newSourceSchema}' to '{existingSchemaName}' if they're the same, or "
-                    + $"rename '{newSourceSchema}' to something else if they're different.");
+                    $"❌ '{newSourceSchema.Name}' conflicts with the existing source schema name '{existingSchemaName}'. "
+                    + $"Either rename '{newSourceSchema.Name}' to '{existingSchemaName}' if they're the same, or "
+                    + $"rename '{newSourceSchema.Name}' to something else if they're different.");
                 return false;
             }
         }
