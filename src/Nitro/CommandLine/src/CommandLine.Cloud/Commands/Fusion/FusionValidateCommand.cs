@@ -100,7 +100,7 @@ internal sealed class FusionValidateCommand : Command
                 switch (x.Data?.OnSchemaVersionValidationUpdate)
                 {
                     case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
-                        console.Error("The schema is invalid:");
+                        console.PrintError("The schema is invalid:");
                         console.PrintErrorsAndExit(schemaErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;

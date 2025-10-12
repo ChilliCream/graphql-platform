@@ -71,7 +71,7 @@ public static class CommandLineBuilderExtensions
         {
             context.ExitCode = ExitCodes.Error;
 
-            context.BindingContext.GetRequiredService<IAnsiConsole>().Error(message);
+            context.BindingContext.GetRequiredService<IAnsiConsole>().PrintError(message);
         }
         catch (Exception ex) when (ex is OperationCanceledException or TaskCanceledException)
         {

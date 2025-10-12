@@ -260,7 +260,7 @@ internal static class ConsoleHelpers
                 break;
 
             default:
-                ansiConsole.Error("Unexpected Error");
+                ansiConsole.PrintError("Unexpected Error");
                 break;
         }
     }
