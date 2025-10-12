@@ -52,7 +52,7 @@ public sealed class CreateMockCommand : Command
         const string apiMessage = "For which api do you want to create a mock schema?";
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             await console
                 .Status()

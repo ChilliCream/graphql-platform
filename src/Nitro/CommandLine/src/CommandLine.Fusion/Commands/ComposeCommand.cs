@@ -221,7 +221,7 @@ internal sealed class ComposeCommand : Command
             }
             else
             {
-                console.Out.WriteLine($"❌ The path `{sourceSchemaPath}` does not exist.");
+                console.Error.WriteLine($"❌ The path `{sourceSchemaPath}` does not exist.");
                 return 1;
             }
         }
