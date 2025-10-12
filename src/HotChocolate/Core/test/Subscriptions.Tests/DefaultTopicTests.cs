@@ -16,7 +16,7 @@ public class DefaultTopicTests(ITestOutputHelper outputHelper)
         await sourceStream.DisposeAsync();
 
         SpinWait.SpinUntil(() => sessionMock.AsyncDisposableCalled, TimeSpan.FromSeconds(5));
-        Assert.False(sessionMock.AsyncDisposableCalled);
+        Assert.True(sessionMock.AsyncDisposableCalled);
     }
 
     private sealed class NoOpPubSub(IAsyncDisposable session, ISubscriptionDiagnosticEvents diagnosticEvents)
