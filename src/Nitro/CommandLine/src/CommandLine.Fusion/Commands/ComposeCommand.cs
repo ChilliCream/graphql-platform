@@ -469,7 +469,8 @@ internal sealed class ComposeCommand : Command
         {
             var normalizedSchemaName = StringUtilities.ToConstantCase(newSourceSchemaName);
 
-            if (normalizedToRealExistingSchemaNameLookup.TryGetValue(normalizedSchemaName, out var existingSchemaName))
+            if (normalizedToRealExistingSchemaNameLookup.TryGetValue(normalizedSchemaName, out var existingSchemaName)
+                && existingSchemaName != newSourceSchemaName)
             {
                 compositionLog.Write(
                     new LogEntry(
