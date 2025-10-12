@@ -7,7 +7,6 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning.Partitioners;
 
-// TODO: This needs to properly retain skips around unresolvable
 internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 {
     public SelectionSetPartitionerResult Partition(

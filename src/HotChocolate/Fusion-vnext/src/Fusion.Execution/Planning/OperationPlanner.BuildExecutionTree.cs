@@ -104,9 +104,9 @@ public sealed partial class OperationPlanner
                 // If all the root selections are conditional, we can pull those conditionals
                 // out as conditions onto the execution node.
                 // We can do the same for conditional selections below lookup fields.
-                if (operationPlanStep.AreAllSelectionsConditional())
+                if (operationPlanStep.AreAllProvidedSelectionsConditional())
                 {
-                    var updatedOperationPlanStep = PullOutConditions(operationPlanStep);
+                    var updatedOperationPlanStep = ExtractConditionsAndRewriteSelectionSet(operationPlanStep);
 
                     updatedPlanSteps = updatedPlanSteps.Replace(operationPlanStep, updatedOperationPlanStep);
 
@@ -354,120 +354,6 @@ public sealed partial class OperationPlanner
         }
     }
 
-    private static OperationPlanStep PullOutConditions(OperationPlanStep step)
-    {
-        var context = new Context();
-
-        OperationDefinitionNode newOperation;
-
-        if (step.Lookup is not null)
-        {
-            FieldNode? lookupFieldNode = null;
-
-            foreach (var selection in step.Definition.SelectionSet.Selections)
-            {
-                if (selection is FieldNode fieldNode && fieldNode.Name.Value == step.Lookup.FieldName)
-                {
-                    lookupFieldNode = fieldNode;
-                    break;
-                }
-            }
-
-            if (lookupFieldNode?.SelectionSet is not {} lookupSelectionSet)
-            {
-                throw new InvalidOperationException(
-                    "Expected to find the lookup field with a selection set in the operation definition");
-            }
-
-            var newLookupSelectionSet = RewriteSelectionSet(lookupSelectionSet, context);
-            var newLookupField = lookupFieldNode.WithSelectionSet(newLookupSelectionSet);
-
-            newOperation = step.Definition.WithSelectionSet(
-                new SelectionSetNode([newLookupField]));
-        }
-        else
-        {
-            var newRootSelectionSet = RewriteSelectionSet(step.Definition.SelectionSet, context);
-
-            newOperation = step.Definition.WithSelectionSet(newRootSelectionSet);
-        }
-
-        return step with { Definition = newOperation, Conditions = context.Conditions.ToArray() };
-    }
-
-    private sealed class Context
-    {
-        public HashSet<ExecutionNodeCondition> Conditions { get; } = [];
-    }
-
-    private static SelectionSetNode RewriteSelectionSet(
-        SelectionSetNode selectionSetNode,
-        Context context)
-    {
-        var selections = new List<ISelectionNode>();
-
-        foreach (var selection in selectionSetNode.Selections)
-        {
-            if (selection is FieldNode fieldNode)
-            {
-                var conditions = ExtractConditions(fieldNode.Directives);
-
-                if (conditions is not null)
-                {
-                    var newDirectives = new List<DirectiveNode>(fieldNode.Directives);
-
-                    foreach (var condition in conditions)
-                    {
-                        context.Conditions.Add(condition);
-                        newDirectives.Remove(condition.Directive!);
-                    }
-
-                    fieldNode = fieldNode.WithDirectives(newDirectives);
-                }
-
-                selections.Add(fieldNode);
-            }
-
-            if (selection is InlineFragmentNode inlineFragmentNode)
-            {
-                if (inlineFragmentNode.TypeCondition is null)
-                {
-                    var fragmentSelectionSet = RewriteSelectionSet(inlineFragmentNode.SelectionSet, context);
-
-                    if (fragmentSelectionSet.Selections.Count == 0)
-                    {
-                        continue;
-                    }
-
-                    var conditions = ExtractConditions(inlineFragmentNode.Directives);
-
-                    if (conditions is not null)
-                    {
-                        var newDirectives = new List<DirectiveNode>(inlineFragmentNode.Directives);
-
-                        foreach (var condition in conditions)
-                        {
-                            context.Conditions.Add(condition);
-                            newDirectives.Remove(condition.Directive!);
-                        }
-
-                        if (newDirectives.Count == 0)
-                        {
-                            selections.AddRange(fragmentSelectionSet.Selections);
-                            continue;
-                        }
-
-                        inlineFragmentNode = inlineFragmentNode.WithDirectives(newDirectives);
-                    }
-                }
-
-                selections.Add(inlineFragmentNode);
-            }
-        }
-
-        return new SelectionSetNode(selections);
-    }
-
     private static string[] GetResponseNamesFromPath(
         OperationDefinitionNode operationDefinition,
         SelectionPath path)
@@ -617,13 +503,143 @@ public sealed partial class OperationPlanner
             })
             .Rewrite(operationDefinition, [])!;
     }
+
+    /// <summary>
+    /// Pulls out conditions around the root selection set or the selection set below a lookup field,
+    /// and adds them as conditions to <paramref name="step"/>.
+    /// </summary>
+    private static OperationPlanStep ExtractConditionsAndRewriteSelectionSet(OperationPlanStep step)
+    {
+        var context = new ConditionalSelectionSetRewriterContext();
+
+        OperationDefinitionNode newOperation;
+
+        if (step.Lookup is not null)
+        {
+            FieldNode? lookupFieldNode = null;
+
+            foreach (var selection in step.Definition.SelectionSet.Selections)
+            {
+                if (selection is FieldNode fieldNode && fieldNode.Name.Value == step.Lookup.FieldName)
+                {
+                    lookupFieldNode = fieldNode;
+                    break;
+                }
+            }
+
+            if (lookupFieldNode?.SelectionSet is not {} lookupSelectionSet)
+            {
+                throw new InvalidOperationException(
+                    "Expected to find the lookup field with a selection set in the operation definition");
+            }
+
+            var newLookupSelectionSet = RewriteConditionalSelectionSet(lookupSelectionSet, context);
+            var newLookupField = lookupFieldNode.WithSelectionSet(newLookupSelectionSet);
+
+            newOperation = step.Definition.WithSelectionSet(
+                new SelectionSetNode([newLookupField]));
+        }
+        else
+        {
+            var newRootSelectionSet = RewriteConditionalSelectionSet(step.Definition.SelectionSet, context);
+
+            newOperation = step.Definition.WithSelectionSet(newRootSelectionSet);
+        }
+
+        return step with { Definition = newOperation, Conditions = context.Conditions.ToArray() };
+    }
+
+    private static SelectionSetNode RewriteConditionalSelectionSet(
+        SelectionSetNode selectionSetNode,
+        ConditionalSelectionSetRewriterContext context)
+    {
+        var selections = new List<ISelectionNode>();
+
+        foreach (var selection in selectionSetNode.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode fieldNode:
+                {
+                    var conditions = ExtractConditions(fieldNode.Directives);
+
+                    if (conditions is not null)
+                    {
+                        var newDirectives = new List<DirectiveNode>(fieldNode.Directives);
+
+                        foreach (var condition in conditions)
+                        {
+                            context.Conditions.Add(condition);
+                            newDirectives.Remove(condition.Directive!);
+                        }
+
+                        fieldNode = fieldNode.WithDirectives(newDirectives);
+                    }
+
+                    selections.Add(fieldNode);
+                    break;
+                }
+                case InlineFragmentNode inlineFragmentNode:
+                {
+                    if (inlineFragmentNode.TypeCondition is null)
+                    {
+                        var fragmentSelectionSet = RewriteConditionalSelectionSet(inlineFragmentNode.SelectionSet, context);
+
+                        if (fragmentSelectionSet.Selections.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        var conditions = ExtractConditions(inlineFragmentNode.Directives);
+
+                        if (conditions is not null)
+                        {
+                            var newDirectives = new List<DirectiveNode>(inlineFragmentNode.Directives);
+
+                            foreach (var condition in conditions)
+                            {
+                                context.Conditions.Add(condition);
+                                newDirectives.Remove(condition.Directive!);
+                            }
+
+                            if (newDirectives.Count == 0)
+                            {
+                                selections.AddRange(fragmentSelectionSet.Selections);
+                                continue;
+                            }
+
+                            inlineFragmentNode = inlineFragmentNode.WithDirectives(newDirectives);
+                        }
+                    }
+
+                    selections.Add(inlineFragmentNode);
+                    break;
+                }
+            }
+        }
+
+        return new SelectionSetNode(selections);
+    }
+
+    private sealed class ConditionalSelectionSetRewriterContext
+    {
+        public HashSet<ExecutionNodeCondition> Conditions { get; } = [];
+    }
 }
 
 file static class Extensions
 {
     private static readonly Encoding s_encoding = Encoding.UTF8;
 
-    public static bool AreAllSelectionsConditional(this OperationPlanStep step)
+    /// <summary>
+    /// Checks if an entire selection set, either on the root or below
+    /// a lookup field, is conditional.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c>, if all provided selections on either the root
+    /// or below a lookup field are conditional, otherwise <c>false</c>.
+    /// </returns>
+    public static bool AreAllProvidedSelectionsConditional(this OperationPlanStep step)
     {
         var selectionSetNode = step.Definition.SelectionSet;
 
@@ -640,33 +656,20 @@ file static class Extensions
                 }
             }
 
-            if (lookupFieldNode?.SelectionSet is null)
-            {
-                throw new InvalidOperationException(
-                    "Expected to find the lookup field with a selection set in the operation definition");
-            }
-
-            selectionSetNode = lookupFieldNode.SelectionSet;
+            selectionSetNode = lookupFieldNode?.SelectionSet ?? throw new InvalidOperationException(
+                "Expected to find the lookup field with a selection set in the operation definition");
         }
 
         foreach (var selection in selectionSetNode.Selections)
         {
-            if (selection is FieldNode fieldNode)
+            switch (selection)
             {
-                if (!fieldNode.Directives.Any(d => d.Name.Value is "skip" or "include"))
-                {
+                case FieldNode fieldNode
+                    when !fieldNode.Directives.Any(d => d.Name.Value is "skip" or "include"):
                     return false;
-                }
-
-                continue;
-            }
-
-            if (selection is InlineFragmentNode inlineFragmentNode)
-            {
-                if (!inlineFragmentNode.Directives.Any(d => d.Name.Value is "skip" or "include"))
-                {
+                case InlineFragmentNode inlineFragmentNode
+                    when !inlineFragmentNode.Directives.Any(d => d.Name.Value is "skip" or "include"):
                     return false;
-                }
             }
         }
 

@@ -24,8 +24,6 @@ public sealed class OperationCompiler
 
         _schema = schema;
         _fieldsPool = fieldsPool;
-        // TODO: Get rid of this. Its only purpose is basically resorting, after requirements have been inserted
-        //       We can probably do this more efficiently while planning.
         _documentRewriter = new(schema, removeStaticallyExcludedSelections: true);
         var nonNullStringType = new NonNullType(_schema.Types.GetType<IScalarTypeDefinition>(SpecScalarNames.String));
         _typeNameField = new TypeNameField(nonNullStringType);
