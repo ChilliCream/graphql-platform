@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
-public class AuthorizationPolicyProviderTess(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
+public class AuthorizationPolicyProviderTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     [Fact]
     public async Task Policies_Are_Cached_If_PolicyProvider_Allows_Caching()

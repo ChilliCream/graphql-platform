@@ -2,7 +2,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Directives;
 
-public class SpecedDirectiveTypeTests : TypeTestBase
+public class SpeccedDirectiveTypeTests : TypeTestBase
 {
     [Fact]
     public void EnsureSkipDirectiveIsAvailable()

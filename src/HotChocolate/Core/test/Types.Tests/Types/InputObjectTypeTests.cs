@@ -612,7 +612,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task AnnotationBased_DepreactedInputTypes_NullableFields_Valid()
+    public async Task AnnotationBased_DeprecatedInputTypes_NullableFields_Valid()
     {
         // arrange
         // act
@@ -627,7 +627,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task AnnotationBased_DepreactedInputTypes_NonNullableField_Invalid()
+    public async Task AnnotationBased_DeprecatedInputTypes_NonNullableField_Invalid()
     {
         // arrange
         // act
@@ -643,7 +643,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task CodeFirst_DepreactedInputTypes_NullableFields_Valid()
+    public async Task CodeFirst_DeprecatedInputTypes_NullableFields_Valid()
     {
         // arrange
         // act
@@ -658,7 +658,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task CodeFirst_DepreactedInputTypes_NonNullableField_Invalid()
+    public async Task CodeFirst_DeprecatedInputTypes_NonNullableField_Invalid()
     {
         // arrange
         // act
@@ -678,7 +678,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task SchemaFirst_DepreactedInputTypes_NullableFields_Valid()
+    public async Task SchemaFirst_DeprecatedInputTypes_NullableFields_Valid()
     {
         // arrange
         // act
@@ -698,7 +698,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task SchemaFirst_DepreactedInputTypes_NonNullableField_Invalid()
+    public async Task SchemaFirst_DeprecatedInputTypes_NonNullableField_Invalid()
     {
         // arrange
         // act
