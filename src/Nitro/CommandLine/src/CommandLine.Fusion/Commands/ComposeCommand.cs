@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.CommandLine;
 using System.CommandLine.IO;
 using System.Text;
@@ -5,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Channels;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion;
+using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
@@ -450,11 +452,39 @@ internal sealed class ComposeCommand : Command
             sourceSchemaFiles,
             cancellationToken);
 
-        var sourceSchemaNamesInPackage = new SortedSet<string>(
+        var existingSourceSchemaNames = new SortedSet<string>(
             await archive.GetSourceSchemaNamesAsync(cancellationToken),
             StringComparer.Ordinal);
 
-        foreach (var schemaName in sourceSchemaNamesInPackage)
+        var normalizedToRealExistingSchemaNameLookup =
+            existingSourceSchemaNames.ToDictionary(StringUtilities.ToConstantCase, s => s);
+
+        // During the schema merging process, schema names are converted to upper-case,
+        // before being inserted into the fusion__Schema enum.
+        // This means two different schema names, like some-service and SomeService,
+        // could be uppercased to a conflicting SOME_SERVICE.
+        // To avoid weird errors for the user down the line,
+        // we already validate for collisions here.
+        foreach (var (newSourceSchemaName, _) in sourceSchemas)
+        {
+            var normalizedSchemaName = StringUtilities.ToConstantCase(newSourceSchemaName);
+
+            if (normalizedToRealExistingSchemaNameLookup.TryGetValue(normalizedSchemaName, out var existingSchemaName))
+            {
+                compositionLog.Write(
+                    new LogEntry(
+                        string.Format(
+                            ComposeCommand_Error_ConflictingSchemaName,
+                            newSourceSchemaName,
+                            existingSchemaName),
+                        LogEntryCodes.ConflictingSourceSchemaName));
+
+                ImmutableArray<CompositionError> errors = [new("❌ Composition failed")];
+                return errors;
+            }
+        }
+
+        foreach (var schemaName in existingSourceSchemaNames)
         {
             if (sourceSchemas.ContainsKey(schemaName))
             {

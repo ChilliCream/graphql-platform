@@ -13,7 +13,7 @@ internal static class CompositionHelper
 {
     public static async Task<bool> TryComposeAsync(
         string fusionArchivePath,
-        ImmutableArray<SourceSchemaInfo> sourceSchemas,
+        ImmutableArray<SourceSchemaInfo> newSourceSchemas,
         GraphQLCompositionSettings settings,
         ILogger<SchemaComposition> logger,
         CancellationToken cancellationToken)
@@ -26,11 +26,34 @@ internal static class CompositionHelper
             await archive.GetSourceSchemaNamesAsync(cancellationToken),
             StringComparer.Ordinal);
 
-        var sourceSchemaMap = sourceSchemas.ToDictionary(s => s.Name, StringComparer.Ordinal);
+        var normalizedToRealExistingSchemaNameLookup =
+            sourceSchemaNames.ToDictionary(StringUtilities.ToConstantCase, s => s);
+
+        // During the schema merging process, schema names are converted to upper-case,
+        // before being inserted into the fusion__Schema enum.
+        // This means two different schema names, like some-service and SomeService,
+        // could be uppercased to a conflicting SOME_SERVICE.
+        // To avoid weird errors for the user down the line,
+        // we already validate for collisions here.
+        foreach (var newSourceSchema in newSourceSchemas)
+        {
+            var normalizedSchemaName = StringUtilities.ToConstantCase(newSourceSchema.Name);
+
+            if (normalizedToRealExistingSchemaNameLookup.TryGetValue(normalizedSchemaName, out var existingSchemaName))
+            {
+                logger.LogError(
+                    $"❌ '{newSourceSchema.Name}' conflicts with the existing source schema name '{existingSchemaName}'. "
+                    + $"Either rename '{newSourceSchema.Name}' to '{existingSchemaName}' if they're the same, or "
+                    + $"rename '{newSourceSchema.Name}' to something else if they're different.");
+                return false;
+            }
+        }
+
+        var sourceSchemas = newSourceSchemas.ToDictionary(s => s.Name, StringComparer.Ordinal);
 
         foreach (var schemaName in sourceSchemaNames)
         {
-            if (sourceSchemaMap.ContainsKey(schemaName))
+            if (sourceSchemas.ContainsKey(schemaName))
             {
                 continue;
             }
@@ -43,7 +66,7 @@ internal static class CompositionHelper
 
             var sourceText = await ReadSchemaSourceTextAsync(configuration, cancellationToken);
 
-            sourceSchemaMap.Add(schemaName, new SourceSchemaInfo
+            sourceSchemas.Add(schemaName, new SourceSchemaInfo
             {
                 Name = schemaName,
                 Schema = new SourceSchemaText(schemaName, sourceText),
@@ -66,7 +89,7 @@ internal static class CompositionHelper
 
         var compositionLog = new CompositionLog();
         var schemaComposer = new SchemaComposer(
-            sourceSchemaMap.Values.Select(t => t.Schema),
+            sourceSchemas.Values.Select(t => t.Schema),
             new SchemaComposerOptions
             {
                 EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification
@@ -94,7 +117,7 @@ internal static class CompositionHelper
             var settingsComposer = new SettingsComposer();
             settingsComposer.Compose(
                 buffer,
-                sourceSchemaMap.Values.Select(t => t.SchemaSettings).ToArray(),
+                sourceSchemas.Values.Select(t => t.SchemaSettings).ToArray(),
                 settings.EnvironmentName ?? "Aspire");
 
             var metadata = new ArchiveMetadata
@@ -105,7 +128,7 @@ internal static class CompositionHelper
 
             await archive.SetArchiveMetadataAsync(metadata, cancellationToken);
 
-            foreach (var sourceSchema in sourceSchemaMap.Values)
+            foreach (var sourceSchema in sourceSchemas.Values)
             {
                 await archive.SetSourceSchemaConfigurationAsync(
                     sourceSchema.Name,
