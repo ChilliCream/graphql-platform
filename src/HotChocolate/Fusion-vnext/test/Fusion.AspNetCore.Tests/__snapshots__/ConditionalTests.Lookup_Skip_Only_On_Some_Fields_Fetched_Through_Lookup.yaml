@@ -164,5 +164,7 @@ operationPlan:
         - name: __fusion_1_id
           selectionMap: >-
             id
+      forwardedVariables:
+        - skip
       dependencies:
         - id: 1
