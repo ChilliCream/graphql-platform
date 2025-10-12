@@ -11,7 +11,9 @@ internal static class ConsoleHelpers
     {
         if (result.Errors is { Count: > 0 })
         {
-            console.PrintError(result.Errors[0]);
+            var firstError = result.Errors[0];
+            console.Error.WriteLine($"{firstError.Message} ({firstError.Code})");
+
             throw new ExitException();
         }
     }
@@ -21,7 +23,7 @@ internal static class ConsoleHelpers
     {
         if (result.Data is null)
         {
-            console.PrintError(Errors.BA00001Message, Errors.BA00001);
+            console.Error.WriteLine($"{Errors.BA00001Message} ({Errors.BA00001})");
 
             throw new ExitException();
         }
@@ -65,42 +67,13 @@ internal static class ConsoleHelpers
         }
     }
 
-    private static void PrintError(this IAnsiConsole console, IClientError error)
-    {
-        console.PrintError(error.Message, error.Code);
-    }
-
-    private static void PrintError(this IAnsiConsole console, IError error)
-    {
-        console.PrintError(error.Message);
-    }
-
-    private static void PrintError(this IAnsiConsole console, IOperationsAreNotAllowedError error)
-    {
-        console.PrintError(error.Message);
-    }
-
-    private static void PrintError(this IAnsiConsole console, IConcurrentOperationError error)
-    {
-        console.PrintError(error.Message);
-    }
-
-    private static void PrintError(this IAnsiConsole console, IUnexpectedProcessingError error)
-    {
-        console.PrintError(error.Message);
-    }
-
-    private static void PrintError(this IAnsiConsole console, IProcessingTimeoutError error)
-    {
-        console.PrintError(error.Message);
-    }
-
     private static void PrintError(
         this IAnsiConsole console,
         ISchemaVersionChangeViolationError error)
     {
         var tree = new Tree("");
         tree.AddSchemaChanges(error.Changes.OfType<ISchemaChange>());
+        // TODO: This needs to write to stderr
         console.Write(tree);
     }
 
@@ -110,24 +83,22 @@ internal static class ConsoleHelpers
     {
         var tree = new Tree("");
         tree.AddSchemaChanges(error.Changes.OfType<ISchemaChange>());
+        // TODO: This needs to write to stderr
         console.Write(tree);
-    }
-
-    private static void PrintError(this IAnsiConsole console, ISchemaVersionSyntaxError error)
-    {
-        console.PrintError(error.Message);
     }
 
     private static void PrintError(
         this IAnsiConsole console,
         IStagesHavePublishedDependenciesError error)
     {
-        console.PrintError(error.Message);
-        console.WriteLine();
+        console.Error.WriteLine(error.Message);
+        console.Error.WriteLine();
+
         foreach (var stage in error.Stages)
         {
             if (stage.PublishedSchema?.Version is { Tag: var tag })
             {
+                // TODO: This needs to write to stderr
                 console.ErrorLine(
                     $"The schema {tag.AsHighlight()} is still published to {stage.Name.AsHighlight()}");
             }
@@ -137,6 +108,7 @@ internal static class ConsoleHelpers
                 var tags = string.Join(
                     ',',
                     publishedClient.PublishedVersions.Select(x => x.Version?.Tag));
+                // TODO: This needs to write to stderr
                 console.ErrorLine(
                     $"The client {publishedClient.Client.Name.AsHighlight()} in version {tags.AsHighlight()} is still published to {stage.Name.AsHighlight()}");
             }
@@ -145,9 +117,12 @@ internal static class ConsoleHelpers
 
     private static void PrintError(this IAnsiConsole console, IPersistedQueryValidationError error)
     {
+        // TODO: This needs to write to stderr
         console.WarningLine(
             $"There were errors on client {error.Client?.Name.AsHighlight()} [dim](ID: {error.Client?.Id})[/]");
-        console.PrintError(error.Message);
+
+        console.Error.WriteLine(error.Message);
+
         var node = new Tree("");
         foreach (var query in error.Queries)
         {
@@ -170,6 +145,7 @@ internal static class ConsoleHelpers
             }
         }
 
+        // TODO: This needs to write to stderr
         console.Write(node);
     }
 
@@ -177,10 +153,10 @@ internal static class ConsoleHelpers
         this IAnsiConsole console,
         IInvalidGraphQLSchemaError error)
     {
-        console.ErrorLine(
+        console.Error.ErrorLine(
             "The schema you are trying to publish is invalid. Please fix the following errors:");
 
-        console.PrintError(error.Message);
+        console.Error.WriteLine(error.Message);
 
         var node = new Tree("");
         foreach (var query in error.Errors)
@@ -188,6 +164,7 @@ internal static class ConsoleHelpers
             node.AddNode($"[red]{query.Message.EscapeMarkup()}[/] [grey]{query.Code}[/]");
         }
 
+        // TODO: This needs to write to stderr
         console.Write(node);
     }
 
@@ -196,19 +173,19 @@ internal static class ConsoleHelpers
         switch (error)
         {
             case IOperationsAreNotAllowedError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.Error.WriteLine(err.Message);
                 break;
 
             case IConcurrentOperationError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.Error.WriteLine(err.Message);
                 break;
 
             case IUnexpectedProcessingError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.Error.WriteLine(err.Message);
                 break;
 
             case IProcessingTimeoutError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.Error.WriteLine(err.Message);
                 break;
 
             case ISchemaVersionChangeViolationError err:
@@ -216,7 +193,7 @@ internal static class ConsoleHelpers
                 break;
 
             case ISchemaVersionSyntaxError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.Error.WriteLine(err.Message);
                 break;
 
             case IPersistedQueryValidationError err:
@@ -228,23 +205,23 @@ internal static class ConsoleHelpers
                 break;
 
             case IApiNotFoundError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.Error.WriteLine(err.Message);
                 break;
 
             case IMockSchemaNonUniqueNameError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.Error.WriteLine(err.Message);
                 break;
 
             case IMockSchemaNotFoundError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.Error.WriteLine(err.Message);
                 break;
 
             case IStageNotFoundError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.Error.WriteLine(err.Message);
                 break;
 
             case ISubgraphInvalidError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.Error.WriteLine(err.Message);
                 break;
 
             case IInvalidGraphQLSchemaError err:
@@ -252,7 +229,7 @@ internal static class ConsoleHelpers
                 break;
 
             case IError err:
-                ansiConsole.PrintError(err);
+                ansiConsole.Error.WriteLine(err.Message);
                 break;
 
             case ISchemaChangeViolationError err:
@@ -260,7 +237,7 @@ internal static class ConsoleHelpers
                 break;
 
             default:
-                ansiConsole.PrintError("Unexpected Error");
+                ansiConsole.Error.WriteLine("Unexpected Error");
                 break;
         }
     }

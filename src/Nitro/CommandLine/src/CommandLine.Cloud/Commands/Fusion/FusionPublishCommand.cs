@@ -105,7 +105,7 @@ internal sealed class FusionPublishCommand : Command
         string requestId = null!;
         try
         {
-            if (console.IsHumandReadable())
+            if (console.IsHumanReadable())
             {
                 // begin
                 await console
@@ -197,7 +197,7 @@ internal sealed class FusionPublishCommand : Command
         }
         catch (Exception exception)
         {
-            console.PrintError(exception.Message);
+            console.Error.WriteLine(exception.Message);
 
             if (!string.IsNullOrEmpty(requestId))
             {

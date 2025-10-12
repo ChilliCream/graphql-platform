@@ -45,7 +45,7 @@ internal sealed class FusionValidateCommand : Command
 
         var isValid = false;
 
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             await console
                 .Status()
@@ -100,7 +100,7 @@ internal sealed class FusionValidateCommand : Command
                 switch (x.Data?.OnSchemaVersionValidationUpdate)
                 {
                     case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
-                        console.PrintError("The schema is invalid:");
+                        console.Error.WriteLine("The schema is invalid:");
                         console.PrintErrorsAndExit(schemaErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;

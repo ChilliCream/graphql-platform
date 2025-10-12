@@ -31,7 +31,7 @@ internal sealed class ListEnvironmentCommand : Command
     {
         var workspaceId = context.RequireWorkspaceId();
 
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             return await RenderInteractiveAsync(context, console, client, workspaceId, ct);
         }

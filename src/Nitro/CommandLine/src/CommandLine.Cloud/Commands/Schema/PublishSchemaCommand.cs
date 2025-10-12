@@ -49,7 +49,7 @@ internal sealed class PublishSchemaCommand : Command
 
         var committed = false;
 
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             await console
                 .Status()
@@ -110,7 +110,7 @@ internal sealed class PublishSchemaCommand : Command
                         break;
 
                     case ISchemaVersionPublishFailed { Errors: var schemaErrors }:
-                        console.PrintError("Schema publish failed");
+                        console.Error.WriteLine("Schema publish failed");
                         console.PrintErrorsAndExit(schemaErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;

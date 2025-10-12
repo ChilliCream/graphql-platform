@@ -1,5 +1,4 @@
 using System.CommandLine.Invocation;
-using System.CommandLine.IO;
 
 namespace ChilliCream.Nitro.CommandLine;
 
@@ -36,6 +35,11 @@ public static class ConsoleHelpers
     public static void ErrorLine(this IAnsiConsole console, string message)
     {
         console.MarkupLine(Glyphs.Cross.Space() + message);
+    }
+
+    public static void ErrorLine(this TextWriter textWriter, string message)
+    {
+        textWriter.WriteLine("❌ " + message);
     }
 
     public static void OkQuestion(this IAnsiConsole console, string question, string result)
@@ -119,12 +123,7 @@ public static class ConsoleHelpers
         console.MarkupLine(Glyphs.ExclamationMark.Space() + message);
     }
 
-    public static void PrintError(this IAnsiConsole console, string message, string? code = null)
-    {
-        console.Error.WriteLine(message + (code is not null ? $" ({code})" : ""));
-    }
-
-    public static bool IsHumandReadable(this IAnsiConsole console)
+    public static bool IsHumanReadable(this IAnsiConsole console)
     {
         return console is IExtendedConsole { IsInteractive: true };
     }
