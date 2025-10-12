@@ -47,7 +47,7 @@
     <PackageVersion Include="Npgsql" Version="8.0.4" />
     <PackageVersion Include="OpenTelemetry.Api" Version="1.1.0" />
     <PackageVersion Include="ProjNET" Version="2.0.0" />
-    <PackageVersion Include="RabbitMQ.Client" Version="6.4.0" />
+    <PackageVersion Include="RabbitMQ.Client" Version="7.1.2" />
     <PackageVersion Include="RavenDB.Client" Version="6.0.104" />
     <PackageVersion Include="Snapshooter.Xunit" Version="0.5.4" />
     <PackageVersion Include="Spectre.Console.Json" Version="0.50.0" />
