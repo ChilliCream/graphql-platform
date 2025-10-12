@@ -36,6 +36,8 @@ public sealed class ConnectionTypeInfo
 
     public string Namespace { get; }
 
+    public string? Description => null;
+
     public bool IsPublic => RuntimeType.DeclaredAccessibility == Accessibility.Public;
 
     public INamedTypeSymbol? SchemaSchemaType => null;

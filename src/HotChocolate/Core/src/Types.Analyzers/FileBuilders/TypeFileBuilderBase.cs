@@ -99,11 +99,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             using (Writer.IncreaseIndent())
             {
                 Writer.WriteIndentedLine(
-                    ".Field(thisType.GetMember(\"{0}\", global::{1})[0])",
-                    resolver.Member.Name,
-                    resolver.IsStatic
-                        ? WellKnownTypes.StaticMemberFlags
-                        : WellKnownTypes.InstanceMemberFlags);
+                    ".Field(naming.GetMemberName(\"{0}\", global::HotChocolate.Types.MemberKind.ObjectField))",
+                    resolver.Member.Name);
 
                 if (resolver.Kind is ResolverKind.ConnectionResolver)
                 {
@@ -113,16 +110,16 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                 WriteResolverBindingDescriptor(type, resolver);
 
-                Writer.WriteIndentedLine(".ExtendWith(static (c, r) =>");
+                Writer.WriteIndentedLine(".ExtendWith(static (field, context) =>");
                 Writer.WriteIndentedLine("{");
+
                 using (Writer.IncreaseIndent())
                 {
                     WriteResolverBindingExtendsWith(type, resolver);
                 }
 
                 Writer.WriteIndentedLine("},");
-
-                Writer.WriteIndentedLine("resolvers);");
+                Writer.WriteIndentedLine("(Resolvers: resolvers, ThisType: thisType, TypeInspector: extension.Context.TypeInspector));");
             }
         }
     }
@@ -141,27 +138,28 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
     protected virtual void WriteResolverBindingExtendsWith(IOutputTypeInfo type, Resolver resolver)
     {
+        Writer.WriteIndentedLine("var configuration = field.Configuration;");
+        Writer.WriteIndentedLine("var typeInspector = field.context.TypeInspector;");
+        Writer.WriteIndentedLine("var naming = field.Context.Naming;");
+
         WriteFieldFlags(resolver);
 
         if (resolver.Kind is ResolverKind.ConnectionResolver)
         {
             Writer.WriteIndentedLine(
-                "var pagingOptions = global::{0}.GetPagingOptions(c.Context, null);",
+                "var pagingOptions = global::{0}.GetPagingOptions(field.Context, null);",
                 WellKnownTypes.PagingHelper);
-            Writer.WriteIndentedLine(
-                "c.Configuration.Features.Set(pagingOptions);");
+            Writer.WriteIndentedLine("configuration.Features.Set(pagingOptions);");
         }
 
-        Writer.WriteIndentedLine(
-            "c.Configuration.Resolvers = r.{0}();",
-            resolver.Member.Name);
+        Writer.WriteIndentedLine("configuration.Resolvers = context.Resolvers.{0}();", resolver.Member.Name);
 
         if (resolver.ResultKind is not ResolverResultKind.Pure
             && !resolver.Member.HasPostProcessorAttribute()
             && resolver.Member.IsListType(out var elementType))
         {
             Writer.WriteIndentedLine(
-                "c.Configuration.ResultPostProcessor = global::{0}<{1}>.Default;",
+                "configuration.ResultPostProcessor = global::{0}<{1}>.Default;",
                 WellKnownTypes.ListPostProcessor,
                 elementType);
         }
@@ -169,26 +167,26 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
     protected void WriteFieldFlags(Resolver resolver)
     {
-        Writer.WriteIndentedLine("c.Configuration.SetSourceGeneratorFlags();");
+        Writer.WriteIndentedLine("configuration.SetSourceGeneratorFlags();");
 
         if (resolver.Kind is ResolverKind.ConnectionResolver)
         {
-            Writer.WriteIndentedLine("c.Configuration.SetConnectionFlags();");
+            Writer.WriteIndentedLine("configuration.SetConnectionFlags();");
         }
 
         if ((resolver.Flags & FieldFlags.ConnectionEdgesField) == FieldFlags.ConnectionEdgesField)
         {
-            Writer.WriteIndentedLine("c.Configuration.SetConnectionEdgesFieldFlags();");
+            Writer.WriteIndentedLine("configuration.SetConnectionEdgesFieldFlags();");
         }
 
         if ((resolver.Flags & FieldFlags.ConnectionNodesField) == FieldFlags.ConnectionNodesField)
         {
-            Writer.WriteIndentedLine("c.Configuration.SetConnectionNodesFieldFlags();");
+            Writer.WriteIndentedLine("configuration.SetConnectionNodesFieldFlags();");
         }
 
         if ((resolver.Flags & FieldFlags.TotalCount) == FieldFlags.TotalCount)
         {
-            Writer.WriteIndentedLine("c.Configuration.SetConnectionTotalCountFieldFlags();");
+            Writer.WriteIndentedLine("configuration.SetConnectionTotalCountFieldFlags();");
         }
     }
 
@@ -248,9 +246,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
     public virtual void WriteResolverConstructor(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         var resolverType =
-            type.SchemaSchemaType
-                ?? type.RuntimeType
-                ?? throw new InvalidOperationException("Schema type and runtime type are null.");
+            type.SchemaSchemaType ??
+            type.RuntimeType ?? throw new InvalidOperationException("Schema type and runtime type are null.");
 
         WriteResolverConstructor(
             type,
@@ -950,6 +947,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                         Writer.WriteIndentedLine("};");
                     }
+
                     break;
 
                 case ResolverParameterKind.ConnectionFlags:
@@ -996,6 +994,140 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         return arguments.ToString();
     }
 
+    protected static string GenerateAttributeInstantiation(AttributeData attribute)
+    {
+        if (attribute.AttributeClass == null)
+        {
+            return string.Empty;
+        }
+
+        var className = attribute.AttributeClass.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        var sb = new StringBuilder();
+        sb.Append("new ");
+        sb.Append(className);
+        sb.Append('(');
+
+        // Add constructor arguments
+        var first = true;
+        foreach (var arg in attribute.ConstructorArguments)
+        {
+            if (!first)
+            {
+                sb.Append(", ");
+            }
+
+            sb.Append(FormatTypedConstant(arg));
+            first = false;
+        }
+
+        sb.Append(')');
+
+        // Add named arguments (property initializers)
+        if (attribute.NamedArguments.Length > 0)
+        {
+            sb.Append(" { ");
+
+            first = true;
+            foreach (var namedArg in attribute.NamedArguments)
+            {
+                if (!first)
+                {
+                    sb.Append(", ");
+                }
+
+                sb.Append(namedArg.Key);
+                sb.Append(" = ");
+                sb.Append(FormatTypedConstant(namedArg.Value));
+                first = false;
+            }
+
+            sb.Append(" }");
+        }
+
+        return sb.ToString();
+    }
+
+    private static string FormatTypedConstant(TypedConstant constant)
+    {
+        if (constant.IsNull)
+        {
+            return "null";
+        }
+
+        switch (constant.Kind)
+        {
+            case TypedConstantKind.Primitive:
+                return FormatPrimitive(constant.Value, constant.Type);
+
+            case TypedConstantKind.Enum:
+                var enumType = constant.Type?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                return $"{enumType}.{constant.Value}";
+
+            case TypedConstantKind.Type:
+                var typeArg = ((ITypeSymbol)constant.Value!).ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                return $"typeof({typeArg})";
+
+            case TypedConstantKind.Array:
+                var elements = constant.Values;
+                if (elements.IsDefaultOrEmpty)
+                {
+                    var elementType = ((IArrayTypeSymbol)constant.Type!)?.ElementType
+                        .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    return $"new {elementType}[] {{ }}";
+                }
+
+                var elementStrings = string.Join(", ", elements.Select(FormatTypedConstant));
+                return $"new[] {{ {elementStrings} }}";
+
+            default:
+                return constant.Value?.ToString() ?? "null";
+        }
+    }
+
+    private static string FormatPrimitive(object? value, ITypeSymbol? type)
+    {
+        if (value == null)
+        {
+            return "null";
+        }
+
+        return value switch
+        {
+            string s => $"\"{EscapeString(s)}\"",
+            char c => $"'{EscapeChar(c)}'",
+            bool b => b ? "true" : "false",
+            float f => $"{f}f",
+            double d => $"{d}d",
+            decimal m => $"{m}m",
+            long l => $"{l}L",
+            ulong ul => $"{ul}UL",
+            _ => value.ToString() ?? "null"
+        };
+    }
+
+    private static string EscapeString(string s)
+    {
+        return s.Replace("\\", "\\\\")
+            .Replace("\"", "\\\"")
+            .Replace("\n", "\\n")
+            .Replace("\r", "\\r")
+            .Replace("\t", "\\t");
+    }
+
+    private static string EscapeChar(char c)
+    {
+        return c switch
+        {
+            '\\' => "\\\\",
+            '\'' => "\\'",
+            '\n' => "\\n",
+            '\r' => "\\r",
+            '\t' => "\\t",
+            _ => c.ToString()
+        };
+    }
+
     public void Flush() => Writer.Flush();
 
     private static string ToFullyQualifiedString(
@@ -1003,8 +1135,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         IMethodSymbol resolverMethod,
         ILocalTypeLookup typeLookup)
     {
-        if (type.TypeKind is TypeKind.Error
-            && typeLookup.TryGetTypeName(type, resolverMethod, out var typeDisplayName))
+        if (type.TypeKind is TypeKind.Error && typeLookup.TryGetTypeName(type, resolverMethod, out var typeDisplayName))
         {
             return typeDisplayName;
         }

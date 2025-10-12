@@ -101,19 +101,40 @@ public class ObjectTypeInspector : ISyntaxInspector
 
         if (runtimeType is not null)
         {
-            syntaxInfo = new ObjectTypeInfo(
+            var objectTypeInfo = new ObjectTypeInfo(
                 classSymbol,
                 runtimeType,
                 nodeResolver,
                 possibleType,
-                i == 0
-                    ? []
-                    : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
+                i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
+            syntaxInfo = objectTypeInfo;
+
+            var attributes = classSymbol.GetAttributes();
+            objectTypeInfo.Shareable = attributes.GetShareableScope();
+            objectTypeInfo.Inaccessible = attributes.GetInaccessibleScope();
+            objectTypeInfo.Attributes = attributes.GetUserAttributes();
+
+            if (objectTypeInfo.Shareable is DirectiveScope.Field)
+            {
+                foreach (var resolver in objectTypeInfo.Resolvers)
+                {
+                    resolver.IsShareable = true;
+                }
+            }
+
+            if (objectTypeInfo.Inaccessible is DirectiveScope.Field)
+            {
+                foreach (var resolver in objectTypeInfo.Resolvers)
+                {
+                    resolver.IsInaccessible = true;
+                }
+            }
 
             if (diagnostics.Length > 0)
             {
-                syntaxInfo.AddDiagnosticRange(diagnostics);
+                objectTypeInfo.AddDiagnosticRange(diagnostics);
             }
+
             return true;
         }
 
@@ -121,9 +142,7 @@ public class ObjectTypeInspector : ISyntaxInspector
             classSymbol,
             operationType!.Value,
             possibleType,
-            i == 0
-                ? []
-                : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
+            i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
 
         if (diagnostics.Length > 0)
         {
@@ -338,6 +357,53 @@ file static class Extensions
         }
 
         return false;
+    }
+
+    public static DirectiveScope GetShareableScope(this ImmutableArray<AttributeData> attributes)
+    {
+        foreach (var attribute in attributes)
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(ShareableAttribute))
+            {
+                var isScoped = attribute.ConstructorArguments.Length > 0
+                    && attribute.ConstructorArguments[0].Value is true;
+                return isScoped ? DirectiveScope.Field : DirectiveScope.Type;
+            }
+        }
+
+        return DirectiveScope.None;
+    }
+
+    public static DirectiveScope GetInaccessibleScope(this ImmutableArray<AttributeData> attributes)
+    {
+        foreach (var attribute in attributes)
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(InaccessibleAttribute))
+            {
+                var isScoped = attribute.ConstructorArguments.Length > 0
+                    && attribute.ConstructorArguments[0].Value is true;
+                return isScoped ? DirectiveScope.Field : DirectiveScope.Type;
+            }
+        }
+
+        return DirectiveScope.None;
+    }
+
+    public static ImmutableArray<AttributeData> GetUserAttributes(this ImmutableArray<AttributeData> attributes)
+    {
+        var mutated = attributes;
+
+        foreach (var attribute in attributes)
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(ShareableAttribute)
+                || attribute.AttributeClass.IsOrInheritsFrom(InaccessibleAttribute)
+                || !attribute.AttributeClass.IsOrInheritsFrom(DescriptorAttribute))
+            {
+                mutated = mutated.Remove(attribute);
+            }
+        }
+
+        return mutated;
     }
 
     public static bool Skip(this IMethodSymbol methodSymbol)

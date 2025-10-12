@@ -17,6 +17,8 @@ public sealed class ResolverParameter
 
     public string Name { get; }
 
+    public string? Description { get; set; }
+
     public string? Key { get; }
 
     public ITypeSymbol Type => Parameter.Type;

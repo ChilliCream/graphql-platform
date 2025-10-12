@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 
@@ -34,13 +36,20 @@ internal sealed class FilterContextParameterExpressionBuilder
     public bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(IFilterContext);
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Type == typeof(IFilterContext);
+
     /// <inheritdoc />
     public Expression Build(ParameterExpressionBuilderContext context)
         => Expression.Call(s_getFilterContextMethod, context.ResolverContext);
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public IParameterBinding Create(ParameterDescriptor context)
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)context.GetFilterContext()!;
+    {
+        Debug.Assert(typeof(IFilterContext) == typeof(T));
+        var filterContext = context.GetFilterContext()!;
+        return Unsafe.As<IFilterContext, T>(ref filterContext);
+    }
 }

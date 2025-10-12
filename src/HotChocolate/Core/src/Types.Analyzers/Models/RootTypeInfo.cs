@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -19,11 +20,14 @@ public sealed class RootTypeInfo
         SchemaTypeFullName = schemaType.ToDisplayString();
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
+        Description = schemaType.GetDescription();
     }
 
     public string Name => SchemaSchemaType.Name;
 
     public string Namespace => SchemaSchemaType.ContainingNamespace.ToDisplayString();
+
+    public string? Description { get; }
 
     public bool IsPublic => SchemaSchemaType.DeclaredAccessibility == Accessibility.Public;
 
@@ -46,6 +50,10 @@ public sealed class RootTypeInfo
     public ImmutableArray<Resolver> Resolvers { get; private set; }
 
     public override string OrderByKey => SchemaTypeFullName;
+
+    public DirectiveScope Sharable { get; set; } = DirectiveScope.None;
+
+    public DirectiveScope Inaccessible { get; set; } = DirectiveScope.None;
 
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);

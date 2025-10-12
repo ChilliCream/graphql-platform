@@ -1,19 +1,19 @@
-using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;
 
 namespace HotChocolate.Resolvers;
 
-public sealed class DefaultParameterBindingResolver : IParameterBindingResolver
+public sealed class ParameterBindingResolver
 {
     private readonly IParameterBindingFactory[] _bindings;
     private readonly IParameterBindingFactory _defaultBinding;
 
-    public DefaultParameterBindingResolver(
+    public ParameterBindingResolver(
         IServiceProvider applicationServices,
         IEnumerable<IParameterExpressionBuilder>? customBindingFactories)
     {
         var serviceInspector = applicationServices.GetService<IServiceProviderIsService>();
+        var factories = customBindingFactories?.OfType<IParameterBindingFactory>().ToArray() ?? [];
 
         // explicit internal expression builders will be added first.
         var bindingFactories = new List<IParameterBindingFactory>
@@ -32,10 +32,7 @@ public sealed class DefaultParameterBindingResolver : IParameterBindingResolver
         {
             // then we will add custom parameter expression builder and
             // give the user a chance to override our implicit expression builder.
-            bindingFactories.AddRange(
-                customBindingFactories
-                    .Where(t => !t.IsDefaultHandler)
-                    .OfType<IParameterBindingFactory>());
+            bindingFactories.AddRange(factories.Where(t => !t.IsDefaultHandler));
         }
 
         if (serviceInspector is not null)
@@ -59,28 +56,23 @@ public sealed class DefaultParameterBindingResolver : IParameterBindingResolver
 
         if (customBindingFactories is not null)
         {
-            bindingFactories.AddRange(
-                customBindingFactories
-                    .Where(t => t.IsDefaultHandler)
-                    .OfType<IParameterBindingFactory>());
+            bindingFactories.AddRange(factories.Where(t => t.IsDefaultHandler));
         }
 
         _bindings = [.. bindingFactories];
         _defaultBinding = new ArgumentParameterExpressionBuilder();
     }
 
-    public IParameterBinding GetBinding(ParameterInfo parameter)
+    public IParameterBinding GetBinding(ParameterDescriptor parameter)
     {
-        var context = new ParameterBindingContext(parameter, parameter.Name);
-
         foreach (var binding in _bindings)
         {
             if (binding.CanHandle(parameter))
             {
-                return binding.Create(context);
+                return binding.Create(parameter);
             }
         }
 
-        return _defaultBinding.Create(context);
+        return _defaultBinding.Create(parameter);
     }
 }

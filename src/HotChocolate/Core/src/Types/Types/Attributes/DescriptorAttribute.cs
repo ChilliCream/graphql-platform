@@ -3,7 +3,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types;
 
-public abstract class DescriptorAttribute : Attribute
+public abstract class DescriptorAttribute : Attribute, IDescriptorConfiguration
 {
     /// <summary>
     /// Gets the order in which the attributes shall be applied.
@@ -17,6 +17,12 @@ public abstract class DescriptorAttribute : Attribute
         IDescriptorContext context,
         IDescriptor descriptor,
         ICustomAttributeProvider element);
+
+    void IDescriptorConfiguration.TryConfigure(
+        IDescriptorContext context,
+        IDescriptor descriptor,
+        ICustomAttributeProvider element)
+        => TryConfigure(context, descriptor, element);
 
     /// <summary>
     /// Allows to apply a child attribute withing the context of this attribute.

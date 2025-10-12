@@ -35,7 +35,7 @@ public static class RequestExecutorServiceCollectionExtensions
         services.TryAddSingleton<DefaultRequestContextAccessor>();
         services.TryAddSingleton<IRequestContextAccessor>(sp => sp.GetRequiredService<DefaultRequestContextAccessor>());
         services.TryAddSingleton<AggregateServiceScopeInitializer>();
-        services.TryAddSingleton<IParameterBindingResolver, DefaultParameterBindingResolver>();
+        services.TryAddSingleton<ParameterBindingResolver>();
 
         services.TryAddSingleton(sp =>
         {

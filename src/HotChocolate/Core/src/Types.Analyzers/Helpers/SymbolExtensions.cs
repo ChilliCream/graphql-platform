@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,6 +14,134 @@ public static class SymbolExtensions
     private static readonly SymbolDisplayFormat s_format =
         FullyQualifiedFormat.AddMiscellaneousOptions(
             IncludeNullableReferenceTypeModifier);
+
+    public static MethodDescription GetDescription(this IMethodSymbol method)
+    {
+        var methodDescription = GetDescriptionFromAttribute(method);
+
+        if (methodDescription == null)
+        {
+            var xml = method.GetDocumentationCommentXml();
+            if (!string.IsNullOrEmpty(xml))
+            {
+                try
+                {
+                    var doc = XDocument.Parse(xml);
+                    methodDescription = doc.Descendants("summary")
+                        .FirstOrDefault()?
+                        .Value
+                        .Trim();
+
+                    if (string.IsNullOrEmpty(methodDescription))
+                    {
+                        methodDescription = null;
+                    }
+                }
+                catch
+                {
+                    // Fall through
+                }
+            }
+        }
+
+        var parameters = method.Parameters;
+        var paramDescriptions = ImmutableArray.CreateBuilder<string?>(parameters.Length);
+
+        foreach (var param in parameters)
+        {
+            var paramDescription = GetDescriptionFromAttribute(param);
+
+            if (paramDescription == null && !string.IsNullOrEmpty(method.GetDocumentationCommentXml()))
+            {
+                try
+                {
+                    var doc = XDocument.Parse(method.GetDocumentationCommentXml());
+                    var paramDoc = doc.Descendants("param")
+                        .FirstOrDefault(p => p.Attribute("name")?.Value == param.Name)?
+                        .Value
+                        .Trim();
+
+                    paramDescription = string.IsNullOrEmpty(paramDoc) ? null : paramDoc;
+                }
+                catch
+                {
+                    // Fall through
+                }
+            }
+
+            paramDescriptions.Add(paramDescription);
+        }
+
+        return new MethodDescription(methodDescription, paramDescriptions.ToImmutable());
+    }
+
+    public static string? GetDescription(this IPropertySymbol property)
+    {
+        var description = GetDescriptionFromAttribute(property);
+        if (description != null)
+        {
+            return description;
+        }
+
+        var xml = property.GetDocumentationCommentXml();
+        if (string.IsNullOrEmpty(xml))
+        {
+            return null;
+        }
+
+        try
+        {
+            var doc = XDocument.Parse(xml);
+            var summaryElement = doc.Descendants("summary").FirstOrDefault();
+            var text = summaryElement?.Value.Trim();
+            return string.IsNullOrEmpty(text) ? null : text;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public static string? GetDescription(this INamedTypeSymbol type)
+    {
+        var description = GetDescriptionFromAttribute(type);
+        if (description != null)
+        {
+            return description;
+        }
+
+        var xml = type.GetDocumentationCommentXml();
+        if (string.IsNullOrEmpty(xml))
+        {
+            return null;
+        }
+
+        try
+        {
+            var doc = XDocument.Parse(xml);
+            var summaryElement = doc.Descendants("summary").FirstOrDefault();
+            var text = summaryElement?.Value.Trim();
+            return string.IsNullOrEmpty(text) ? null : text;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string? GetDescriptionFromAttribute(ISymbol symbol)
+    {
+        var attribute = symbol.GetAttributes()
+            .FirstOrDefault(a => a.AttributeClass?.Name == "GraphQLDescriptionAttribute");
+
+        if (attribute?.ConstructorArguments.Length > 0)
+        {
+            var value = attribute.ConstructorArguments[0].Value as string;
+            return string.IsNullOrEmpty(value) ? null : value;
+        }
+
+        return null;
+    }
 
     public static bool IsNullableType(this ITypeSymbol typeSymbol)
         => typeSymbol.IsNullableRefType() || typeSymbol.IsNullableValueType();

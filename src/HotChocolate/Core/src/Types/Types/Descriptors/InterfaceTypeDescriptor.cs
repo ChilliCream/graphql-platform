@@ -53,13 +53,16 @@ public class InterfaceTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.RuntimeType);
-            Configuration.AttributesAreApplied = true;
+                Configuration.RuntimeType,
+                Configuration.RuntimeType,
+                Configuration.Configurations);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         var fields = new Dictionary<string, InterfaceFieldConfiguration>();

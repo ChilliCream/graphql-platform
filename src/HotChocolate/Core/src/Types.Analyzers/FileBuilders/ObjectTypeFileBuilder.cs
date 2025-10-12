@@ -23,18 +23,51 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
 
         using (Writer.IncreaseIndent())
         {
+            if (objectType.Resolvers.Length > 0
+                || objectType.NodeResolver is not null
+                || objectType.Attributes.Length > 0)
+            {
+                Writer.WriteIndentedLine("var extension = descriptor.Extend();");
+                Writer.WriteIndentedLine("var configuration = extension.Configuration;");
+            }
+
             if (objectType.Resolvers.Length > 0 || objectType.NodeResolver is not null)
             {
-                Writer.WriteIndentedLine(
-                    "var thisType = typeof(global::{0});",
-                    objectType.SchemaTypeFullName);
-                Writer.WriteIndentedLine(
-                    "var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;");
+                Writer.WriteIndentedLine("var thisType = typeof(global::{0});", objectType.SchemaTypeFullName);
+                Writer.WriteIndentedLine("var bindingResolver = extension.Context.ParameterBindingResolver;");
+
                 Writer.WriteIndentedLine(
                     objectType.Resolvers.Any(t => t.RequiresParameterBindings)
                         || (objectType.NodeResolver?.RequiresParameterBindings ?? false)
                         ? "var resolvers = new __Resolvers(bindingResolver);"
                         : "var resolvers = new __Resolvers();");
+            }
+
+            if (objectType.Attributes.Length > 0)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("var configurations = configuration.Configurations;");
+
+                foreach (var attribute in objectType.Attributes)
+                {
+                    Writer.WriteIndentedLine(
+                        "configurations = configurations.Add({0});",
+                        GenerateAttributeInstantiation(attribute));
+                }
+
+                Writer.WriteIndentedLine("configuration.Configurations = configurations;");
+            }
+
+            if (objectType.Shareable is DirectiveScope.Type)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor.Directive({0}.Instance);", WellKnownTypes.Shareable);
+            }
+
+            if (objectType.Inaccessible is DirectiveScope.Type)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor.Directive({0}.Instance);", WellKnownTypes.Inaccessible);
             }
 
             if (objectType.NodeResolver is not null)

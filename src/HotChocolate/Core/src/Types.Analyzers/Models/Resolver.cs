@@ -24,9 +24,30 @@ public sealed class Resolver
         Bindings = bindings;
         Kind = kind;
         Flags = flags;
+
+        switch (member)
+        {
+            case IPropertySymbol property:
+                Description = property.GetDescription();
+                break;
+
+            case IMethodSymbol method:
+                var description = method.GetDescription();
+                Description = description.Description;
+                if (description.ParameterDescriptions.Length == parameters.Length)
+                {
+                    for (var i = 0; i < parameters.Length; i++)
+                    {
+                        parameters[i].Description = description.ParameterDescriptions[i];
+                    }
+                }
+                break;
+        }
     }
 
     public string TypeName { get; }
+
+    public string? Description { get; }
 
     public ISymbol Member { get; }
 
@@ -45,6 +66,10 @@ public sealed class Resolver
         => Kind is not ResolverKind.NodeResolver
             && ResultKind is ResolverResultKind.Pure
             && Parameters.All(t => t.IsPure);
+
+    public bool IsShareable { get; set; }
+
+    public bool IsInaccessible { get; set; }
 
     public ResolverKind Kind { get; }
 
