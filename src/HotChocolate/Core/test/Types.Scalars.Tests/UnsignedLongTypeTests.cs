@@ -202,7 +202,7 @@ public class UnsignedLongTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    public async Task UnsignedLongType_Should_BeBoundImplicity_When_Registered()
+    public async Task UnsignedLongType_Should_BeBoundImplicitly_When_Registered()
     {
         // arrange
         // act

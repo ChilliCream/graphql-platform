@@ -205,7 +205,7 @@ public class UnsignedIntTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    public async Task UnsignedIntType_Should_BeBoundImplicity_When_Registered()
+    public async Task UnsignedIntType_Should_BeBoundImplicitly_When_Registered()
     {
         // arrange
         // act
