@@ -38,20 +38,20 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Discussion implements Node {
         id: ID!
         product: Product
       }
-      
+
       type Product {
         id: ID!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }
@@ -93,19 +93,19 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Product {
         id: ID!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }
-      
+
       type Review implements Node {
         id: ID!
         product: Product
@@ -115,16 +115,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Product implements Node {
         id: ID!
         name: String
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }

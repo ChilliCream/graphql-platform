@@ -25,16 +25,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface SomeInterface {
         value: String
       }
-      
+
       type ConcreteTypeA implements SomeInterface {
         value: String
         specificToA: String
       }
-      
+
       type Query {
         someField: SomeInterface
       }
@@ -67,16 +67,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface SomeInterface {
         value: String
       }
-      
+
       type ConcreteTypeB implements SomeInterface {
         value: String
         specificToB: String
       }
-      
+
       type Query {
         anotherField: SomeInterface
       }

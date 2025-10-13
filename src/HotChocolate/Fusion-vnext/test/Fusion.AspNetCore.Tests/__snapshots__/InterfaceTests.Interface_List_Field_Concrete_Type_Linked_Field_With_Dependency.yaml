@@ -40,26 +40,26 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Votable {
         viewerCanVote: Boolean!
       }
-      
+
       type Author {
         id: ID!
       }
-      
+
       type Comment implements Votable {
         id: ID!
         viewerCanVote: Boolean!
       }
-      
+
       type Discussion implements Votable {
         id: ID!
         viewerCanVote: Boolean!
         author: Author
       }
-      
+
       type Query {
         votables: [Votable]
       }
@@ -109,12 +109,12 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Author {
         id: ID!
         displayName: String!
       }
-      
+
       type Query {
         authorById(id: ID!): Author @lookup
       }

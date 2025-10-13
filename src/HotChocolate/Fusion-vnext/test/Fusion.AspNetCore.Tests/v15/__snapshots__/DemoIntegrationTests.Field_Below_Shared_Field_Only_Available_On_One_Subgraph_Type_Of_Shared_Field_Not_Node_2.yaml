@@ -39,25 +39,25 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Product implements Node {
         id: ID!
         subgraph1Only: ProductAvailability
       }
-      
+
       type ProductAvailability implements Node {
         id: ID!
         sharedLinked: ProductAvailabilityMail!
       }
-      
+
       type ProductAvailabilityMail {
         sharedScalar: String!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
         productById(id: ID!): Product @lookup
@@ -102,22 +102,22 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type ProductAvailability implements Node {
         sharedLinked: ProductAvailabilityMail!
         subgraph2Only: Boolean!
         id: ID!
       }
-      
+
       type ProductAvailabilityMail {
         subgraph2Only: Boolean!
         sharedScalar: String!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
         productAvailabilityById(id: ID!): ProductAvailability @lookup
