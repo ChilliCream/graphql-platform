@@ -94,7 +94,8 @@ public static class GeneratorTestHelper
                 NoStore = settings.NoStore,
                 InputRecords = settings.InputRecords,
                 EntityRecords = settings.EntityRecords,
-                RazorComponents = settings.RazorComponents
+                RazorComponents = settings.RazorComponents,
+                OptionalEnum = settings.EnableUnknownEnum
             });
 
         Assert.False(
@@ -283,5 +284,7 @@ public static class GeneratorTestHelper
 
         public RequestStrategyGen RequestStrategy { get; set; } =
             RequestStrategyGen.Default;
+
+        public bool EnableUnknownEnum { get; set; }
     }
 }
