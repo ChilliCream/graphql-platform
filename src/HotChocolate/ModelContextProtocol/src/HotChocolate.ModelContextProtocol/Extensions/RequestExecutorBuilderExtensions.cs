@@ -1,5 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.ModelContextProtocol.Diagnostics;
 using HotChocolate.ModelContextProtocol.Handlers;
 using HotChocolate.ModelContextProtocol.Proxies;
 using HotChocolate.ModelContextProtocol.Storage;
@@ -47,13 +49,26 @@ public static class RequestExecutorBuilderExtensions
                         static sp => new OperationToolFactory(
                             sp.GetRequiredService<ISchemaDefinition>()));
 
+                services.TryAddSingleton<IMcpDiagnosticEvents>(sp =>
+                {
+                    var listeners = sp.GetServices<IMcpDiagnosticEventListener>().ToArray();
+                    return listeners.Length switch
+                    {
+                        0 => new NoopMcpDiagnosticEvents(),
+                        1 => listeners[0],
+                        _ => new AggregateMcpDiagnosticEvents(listeners)
+                    };
+                });
+
                 services
                     .TryAddSingleton(
                         static sp => new ToolStorageObserver(
+                            sp.GetRequiredService<ISchemaDefinition>(),
                             sp.GetRequiredService<ToolRegistry>(),
                             sp.GetRequiredService<OperationToolFactory>(),
                             sp.GetRequiredService<StreamableHttpHandler>(),
-                            sp.GetRequiredService<IOperationToolStorage>()));
+                            sp.GetRequiredService<IOperationToolStorage>(),
+                            sp.GetRequiredService<IMcpDiagnosticEvents>()));
 
                 services
                     .AddSingleton(
@@ -95,6 +110,29 @@ public static class RequestExecutorBuilderExtensions
                 var storageObserver = schema.Services.GetRequiredService<ToolStorageObserver>();
                 await storageObserver.StartAsync(cancellationToken);
             });
+
+        return builder;
+    }
+
+    public static IRequestExecutorBuilder AddMcpDiagnosticEventListener(
+        this IRequestExecutorBuilder builder,
+        IMcpDiagnosticEventListener listener)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(listener);
+
+        builder.ConfigureSchemaServices(s => s.AddSingleton(listener));
+
+        return builder;
+    }
+
+    public static IRequestExecutorBuilder AddMcpDiagnosticEventListener<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IRequestExecutorBuilder builder) where T : class, IMcpDiagnosticEventListener
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.ConfigureSchemaServices(s => s.AddSingleton<IMcpDiagnosticEventListener, T>());
 
         return builder;
     }

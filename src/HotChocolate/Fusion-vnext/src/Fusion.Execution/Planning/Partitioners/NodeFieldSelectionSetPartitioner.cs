@@ -59,8 +59,10 @@ internal sealed class NodeFieldSelectionSetPartitioner(FusionSchemaDefinition sc
 
                     if (field is { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } })
                     {
+                        var nodeField = new NodeField { Field = fieldNode, ParentFragments = context.FragmentPath?.ToArray() };
+
                         context.NodeFields ??= [];
-                        context.NodeFields.Add(fieldNode);
+                        context.NodeFields.Add(nodeField);
                     }
                     else
                     {
@@ -71,9 +73,14 @@ internal sealed class NodeFieldSelectionSetPartitioner(FusionSchemaDefinition sc
                     break;
 
                 case InlineFragmentNode inlineFragmentNode:
+                    context.FragmentPath ??= [];
+                    context.FragmentPath.Push(inlineFragmentNode);
+
                     var fragmentSelectionSet = RewriteSelectionSet(
                         inlineFragmentNode.SelectionSet,
                         context);
+
+                    context.FragmentPath?.Pop();
 
                     if (fragmentSelectionSet is not null)
                     {
@@ -95,6 +102,8 @@ internal sealed class NodeFieldSelectionSetPartitioner(FusionSchemaDefinition sc
 
     private class Context
     {
-        public List<FieldNode>? NodeFields { get; set; }
+        public List<NodeField>? NodeFields { get; set; }
+
+        public Stack<InlineFragmentNode>? FragmentPath { get; set; }
     }
 }

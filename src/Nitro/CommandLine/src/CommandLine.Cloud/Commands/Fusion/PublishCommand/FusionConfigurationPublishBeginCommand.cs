@@ -48,7 +48,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
 
         console.Title("Requesting a deployment slot");
 
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             await console
                 .Status()

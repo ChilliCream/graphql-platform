@@ -105,7 +105,7 @@ internal sealed class FusionPublishCommand : Command
         string requestId = null!;
         try
         {
-            if (console.IsHumandReadable())
+            if (console.IsHumanReadable())
             {
                 // begin
                 await console
@@ -197,7 +197,7 @@ internal sealed class FusionPublishCommand : Command
         }
         catch (Exception exception)
         {
-            console.Error(exception.Message);
+            console.Error.WriteLine(exception.Message);
 
             if (!string.IsNullOrEmpty(requestId))
             {
@@ -319,16 +319,18 @@ internal sealed class FusionPublishCommand : Command
                 enableGlobalObjectIdentification,
                 cancellationToken);
 
+            var writer = new AnsiStreamWriter(result.IsSuccess ? console.Out : console.Error);
+
             ComposeCommand.WriteCompositionLog(
                 compositionLog,
-                new AnsiStreamWriter(console),
+                writer,
                 false);
 
             if (result.IsFailure)
             {
                 foreach (var error in result.Errors)
                 {
-                    console.Error(error.Message);
+                    console.Error.WriteLine(error.Message);
                 }
 
                 return false;
@@ -358,13 +360,13 @@ internal sealed class FusionPublishCommand : Command
         }
     }
 
-    private sealed class AnsiStreamWriter(IAnsiConsole console) : IStandardStreamWriter
+    private sealed class AnsiStreamWriter(TextWriter textWriter) : IStandardStreamWriter
     {
         public void Write(string? value)
         {
             if (!string.IsNullOrEmpty(value))
             {
-                console.Write(value);
+                textWriter.Write(value);
             }
         }
     }

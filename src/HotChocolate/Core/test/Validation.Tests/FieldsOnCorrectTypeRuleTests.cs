@@ -84,7 +84,7 @@ public class FieldsOnCorrectTypeRuleTests
     }
 
     [Fact]
-    public void BadFieldNotDefinedOnFragement()
+    public void BadFieldNotDefinedOnFragment()
     {
         ExpectErrors(
             """
@@ -243,7 +243,7 @@ public class FieldsOnCorrectTypeRuleTests
     }
 
     [Fact]
-    public void DireftFieldSelectionOnUnion()
+    public void DirectFieldSelectionOnUnion()
     {
         ExpectErrors(
             """

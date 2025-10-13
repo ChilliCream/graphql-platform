@@ -37,21 +37,21 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Discussion implements Node {
         id: ID!
         viewerRating: Float!
         product: Product
       }
-      
+
       type Product {
         id: ID!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
         discussionById(id: ID!): Discussion @lookup
@@ -95,16 +95,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Product implements Node {
         id: ID!
         name: String
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }
@@ -175,6 +175,8 @@ operationPlan:
             __typename
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 3
@@ -193,6 +195,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 4

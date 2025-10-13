@@ -179,4 +179,16 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Planning\OperationPlanner.BuildExecutionTree.cs">
+      <DependentUpon>OperationPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Planning\OperationPlanner.ForwardVariableRewriter.cs">
+      <DependentUpon>OperationPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Planning\OperationPlanner.MergeSelectionSetRewriter.cs">
+      <DependentUpon>OperationPlanner.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

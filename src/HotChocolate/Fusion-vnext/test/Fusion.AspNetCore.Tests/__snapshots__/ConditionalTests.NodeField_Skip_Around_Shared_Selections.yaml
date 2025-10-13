@@ -129,6 +129,8 @@ operationPlan:
             id @skip(if: $skip)
           }
         }
+      forwardedVariables:
+        - skip
       dependencies:
         - id: 1
     - id: 3
@@ -147,5 +149,7 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - skip
       dependencies:
         - id: 1

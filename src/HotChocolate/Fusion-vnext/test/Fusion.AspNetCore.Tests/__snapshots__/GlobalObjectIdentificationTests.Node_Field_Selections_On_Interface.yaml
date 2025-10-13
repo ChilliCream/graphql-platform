@@ -29,26 +29,26 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       interface Votable {
         viewerCanVote: Boolean!
       }
-      
+
       type Comment implements Node & Votable {
         id: ID!
         viewerCanVote: Boolean!
       }
-      
+
       type Discussion implements Node & Votable {
         id: ID!
         viewerCanVote: Boolean!
         viewerRating: Float!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }
@@ -116,6 +116,8 @@ operationPlan:
             __typename
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 3
@@ -133,6 +135,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 4
@@ -150,5 +154,7 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1

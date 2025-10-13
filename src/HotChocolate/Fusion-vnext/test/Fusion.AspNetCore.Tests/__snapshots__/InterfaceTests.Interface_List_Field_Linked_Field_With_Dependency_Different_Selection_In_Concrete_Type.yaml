@@ -48,23 +48,23 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Authorable {
         author: Author
       }
-      
+
       type Author {
         id: ID!
       }
-      
+
       type Comment implements Authorable {
         author: Author
       }
-      
+
       type Discussion implements Authorable {
         author: Author
       }
-      
+
       type Query {
         authorables: [Authorable]
       }
@@ -116,13 +116,13 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Author {
         id: ID!
         displayName: String!
         email: String
       }
-      
+
       type Query {
         authorById(id: ID!): Author @lookup
       }

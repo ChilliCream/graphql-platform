@@ -46,7 +46,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
         console.Title("Validating the composition of a fusion configuration");
 
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             return await console
                 .Status()
@@ -93,7 +93,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                 return ExitCodes.Success;
             }
 
-            console.Error("The validation failed:");
+            console.Error.WriteLine("The validation failed:");
             if (failed is not null)
             {
                 console.PrintErrorsAndExit(failed.Errors);
