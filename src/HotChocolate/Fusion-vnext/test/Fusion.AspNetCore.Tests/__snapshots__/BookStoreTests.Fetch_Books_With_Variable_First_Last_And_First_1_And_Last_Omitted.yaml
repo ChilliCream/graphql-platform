@@ -244,6 +244,9 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - first
+        - last
     - id: 2
       type: Operation
       schema: B

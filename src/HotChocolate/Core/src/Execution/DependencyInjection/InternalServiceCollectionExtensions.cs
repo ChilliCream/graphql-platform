@@ -154,7 +154,6 @@ internal static class InternalServiceCollectionExtensions
     {
         services.TryAddSingleton<RequestExecutorManager>();
         services.TryAddSingleton<IRequestExecutorProvider>(sp => sp.GetRequiredService<RequestExecutorManager>());
-        services.TryAddSingleton<IRequestExecutorWarmup>(sp => sp.GetRequiredService<RequestExecutorManager>());
         services.TryAddSingleton<IRequestExecutorEvents>(sp => sp.GetRequiredService<RequestExecutorManager>());
         services.TryAddSingleton<IRequestExecutorManager>(sp => sp.GetRequiredService<RequestExecutorManager>());
         return services;

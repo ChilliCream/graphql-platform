@@ -1,3 +1,4 @@
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using HotChocolate.Types.Composite;
@@ -28,7 +29,7 @@ public class IntrospectionTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               __schema {
@@ -68,7 +69,7 @@ public class IntrospectionTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               __type(name: "String") {
@@ -106,7 +107,7 @@ public class IntrospectionTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               __typename
@@ -142,7 +143,7 @@ public class IntrospectionTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query ($s: Boolean! = true) {
               __typename @skip(if: $s)
@@ -178,7 +179,7 @@ public class IntrospectionTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query ($s: Boolean! = false) {
               __typename @skip(if: $s)
@@ -214,7 +215,7 @@ public class IntrospectionTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               a: __typename
@@ -250,7 +251,7 @@ public class IntrospectionTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               books {
@@ -290,7 +291,7 @@ public class IntrospectionTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               books {
@@ -430,7 +431,7 @@ public class IntrospectionTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(FileResource.Open(fileName + ".graphql"));
+        var request = new OperationRequest(FileResource.Open(fileName + ".graphql"));
 
         using var result = await client.PostAsync(
             request,

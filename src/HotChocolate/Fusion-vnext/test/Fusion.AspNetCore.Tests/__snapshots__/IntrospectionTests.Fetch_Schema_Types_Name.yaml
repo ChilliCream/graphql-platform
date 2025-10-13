@@ -193,6 +193,6 @@ operationPlan:
     - id: 1
       type: Introspection
       selections:
-        - id: 1
+        - id: 2
           responseName: __schema
           fieldName: __schema

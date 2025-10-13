@@ -205,7 +205,7 @@ public class UnsignedShortTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    public async Task UnsignedShortType_Should_BeBoundImplicity_When_Registered()
+    public async Task UnsignedShortType_Should_BeBoundImplicitly_When_Registered()
     {
         // arrange
         // act

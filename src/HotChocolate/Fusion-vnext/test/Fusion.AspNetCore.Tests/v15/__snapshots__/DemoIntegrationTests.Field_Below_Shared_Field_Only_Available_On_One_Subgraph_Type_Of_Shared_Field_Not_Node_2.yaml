@@ -209,6 +209,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - productId
     - id: 2
       type: Operation
       schema: B

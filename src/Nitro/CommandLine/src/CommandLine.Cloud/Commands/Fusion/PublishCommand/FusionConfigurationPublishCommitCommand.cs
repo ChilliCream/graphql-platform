@@ -44,7 +44,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
 
         var committed = false;
 
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             await console
                 .Status()

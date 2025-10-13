@@ -433,6 +433,8 @@ operationPlan:
         - name: __fusion_2_id
           selectionMap: >-
             id
+      forwardedVariables:
+        - arg1
       dependencies:
         - id: 2
     - id: 4
@@ -456,5 +458,7 @@ operationPlan:
         - name: __fusion_3_id
           selectionMap: >-
             id
+      forwardedVariables:
+        - arg2
       dependencies:
         - id: 2

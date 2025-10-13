@@ -1,7 +1,6 @@
-using System.Net.Mime;
+using System.Diagnostics;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
@@ -54,25 +53,75 @@ internal sealed class __Directive : ITypeResolverInterceptor
     public static void Locations(FieldContext context)
     {
         var directiveDef = context.Parent<IDirectiveDefinition>();
+        var locations = directiveDef.Locations.AsEnumerable().ToArray();
+        using var list = context.FieldResult.CreateListValue(locations.Length).EnumerateArray().GetEnumerator();
 
-        // TODO: shall we pool these as well?
-        var list = new RawListFieldResult();
-        context.FieldResult.SetNextValue(list);
-
-        foreach (var location in directiveDef.Locations.AsEnumerable())
+        foreach (var location in locations)
         {
-            var locationSpan = MapLocationToSpan(location);
+            Debug.Assert(list.MoveNext());
 
-            var start = context.Memory.Length;
-            var length = locationSpan.Length + 1;
-            var span = context.Memory.GetSpan(length);
-            span[0] = RawFieldValueType.String;
-
-            locationSpan.CopyTo(span[1..]);
-
-            context.Memory.Advance(length);
-            var segment = context.Memory.GetWrittenMemorySegment(start, length);
-            list.SetNextValue(segment);
+            switch (location)
+            {
+                case DirectiveLocation.Query:
+                    list.Current.SetStringValue(__DirectiveLocation.Query);
+                    break;
+                case DirectiveLocation.Mutation:
+                    list.Current.SetStringValue(__DirectiveLocation.Mutation);
+                    break;
+                case DirectiveLocation.Subscription:
+                    list.Current.SetStringValue(__DirectiveLocation.Subscription);
+                    break;
+                case DirectiveLocation.Field:
+                    list.Current.SetStringValue(__DirectiveLocation.Field);
+                    break;
+                case DirectiveLocation.FragmentDefinition:
+                    list.Current.SetStringValue(__DirectiveLocation.FragmentDefinition);
+                    break;
+                case DirectiveLocation.FragmentSpread:
+                    list.Current.SetStringValue(__DirectiveLocation.FragmentSpread);
+                    break;
+                case DirectiveLocation.InlineFragment:
+                    list.Current.SetStringValue(__DirectiveLocation.InlineFragment);
+                    break;
+                case DirectiveLocation.VariableDefinition:
+                    list.Current.SetStringValue(__DirectiveLocation.VariableDefinition);
+                    break;
+                case DirectiveLocation.Schema:
+                    list.Current.SetStringValue(__DirectiveLocation.Schema);
+                    break;
+                case DirectiveLocation.Scalar:
+                    list.Current.SetStringValue(__DirectiveLocation.Scalar);
+                    break;
+                case DirectiveLocation.Object:
+                    list.Current.SetStringValue(__DirectiveLocation.Object);
+                    break;
+                case DirectiveLocation.FieldDefinition:
+                    list.Current.SetStringValue(__DirectiveLocation.FieldDefinition);
+                    break;
+                case DirectiveLocation.ArgumentDefinition:
+                    list.Current.SetStringValue(__DirectiveLocation.ArgumentDefinition);
+                    break;
+                case DirectiveLocation.Interface:
+                    list.Current.SetStringValue(__DirectiveLocation.Interface);
+                    break;
+                case DirectiveLocation.Union:
+                    list.Current.SetStringValue(__DirectiveLocation.Union);
+                    break;
+                case DirectiveLocation.Enum:
+                    list.Current.SetStringValue(__DirectiveLocation.Enum);
+                    break;
+                case DirectiveLocation.EnumValue:
+                    list.Current.SetStringValue(__DirectiveLocation.EnumValue);
+                    break;
+                case DirectiveLocation.InputObject:
+                    list.Current.SetStringValue(__DirectiveLocation.InputObject);
+                    break;
+                case DirectiveLocation.InputFieldDefinition:
+                    list.Current.SetStringValue(__DirectiveLocation.InputFieldDefinition);
+                    break;
+                default:
+                    throw new NotSupportedException($"Directive location {directiveDef.Locations} is not supported.");
+            }
         }
     }
 
@@ -80,45 +129,23 @@ internal sealed class __Directive : ITypeResolverInterceptor
     {
         var directiveDef = context.Parent<IDirectiveDefinition>();
         var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
-        var list = context.ResultPool.RentObjectListResult();
-        context.FieldResult.SetNextValue(list);
+        var count = includeDeprecated
+            ? directiveDef.Arguments.Count
+            : directiveDef.Arguments.Count(t => !t.IsDeprecated);
+        var list = context.FieldResult.CreateListValue(count);
 
-        foreach (var argument in directiveDef.Arguments)
+        var index = 0;
+        foreach (var element in list.EnumerateArray())
         {
+            var argument = directiveDef.Arguments[index++];
+
             if (!includeDeprecated && argument.IsDeprecated)
             {
                 continue;
             }
 
             context.AddRuntimeResult(argument);
-            list.SetNextValue(context.RentInitializedObjectResult());
+            element.CreateObjectValue(context.Selection, context.IncludeFlags);
         }
-    }
-
-    private static ReadOnlySpan<byte> MapLocationToSpan(DirectiveLocation location)
-    {
-        return location switch
-        {
-            DirectiveLocation.Query => __DirectiveLocation.Query,
-            DirectiveLocation.Mutation => __DirectiveLocation.Mutation,
-            DirectiveLocation.Subscription => __DirectiveLocation.Subscription,
-            DirectiveLocation.Field => __DirectiveLocation.Field,
-            DirectiveLocation.FragmentDefinition => __DirectiveLocation.FragmentDefinition,
-            DirectiveLocation.FragmentSpread => __DirectiveLocation.FragmentSpread,
-            DirectiveLocation.InlineFragment => __DirectiveLocation.InlineFragment,
-            DirectiveLocation.VariableDefinition => __DirectiveLocation.VariableDefinition,
-            DirectiveLocation.Schema => __DirectiveLocation.Schema,
-            DirectiveLocation.Scalar => __DirectiveLocation.Scalar,
-            DirectiveLocation.Object => __DirectiveLocation.Object,
-            DirectiveLocation.FieldDefinition => __DirectiveLocation.FieldDefinition,
-            DirectiveLocation.ArgumentDefinition => __DirectiveLocation.ArgumentDefinition,
-            DirectiveLocation.Interface => __DirectiveLocation.Interface,
-            DirectiveLocation.Union => __DirectiveLocation.Union,
-            DirectiveLocation.Enum => __DirectiveLocation.Enum,
-            DirectiveLocation.EnumValue => __DirectiveLocation.EnumValue,
-            DirectiveLocation.InputObject => __DirectiveLocation.InputObject,
-            DirectiveLocation.InputFieldDefinition => __DirectiveLocation.InputFieldDefinition,
-            _ => throw new NotSupportedException($"Directive location {location} is not supported.")
-        };
     }
 }
