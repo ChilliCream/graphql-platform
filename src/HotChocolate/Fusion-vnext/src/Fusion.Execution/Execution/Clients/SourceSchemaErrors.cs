@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Clients;
@@ -130,7 +131,9 @@ public sealed class SourceSchemaErrors
             {
                 foreach (var property in extensions.EnumerateObject())
                 {
-                    errorBuilder.SetExtension(property.Name, property.Value);
+                    var valueMemory = property.Value.ValueSpan.ToArray();
+
+                    errorBuilder.SetExtension(property.Name, new RawJsonValue(valueMemory));
                 }
             }
 

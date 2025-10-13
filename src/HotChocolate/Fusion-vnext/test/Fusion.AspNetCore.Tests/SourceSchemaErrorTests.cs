@@ -1041,8 +1041,15 @@ public class SourceSchemaErrorTests : FusionTestBase
     {
         public class Query
         {
-            public string SomeField()
-                => throw new InvalidOperationException("Something went wrong");
+            public string SomeField(IResolverContext context)
+            {
+                throw new GraphQLException(
+                    ErrorBuilder.New()
+                        .SetMessage("Something went wrong")
+                        .SetPath(context.Path)
+                        .SetException(new Exception("Some exception"))
+                        .Build());
+            }
         }
     }
 }

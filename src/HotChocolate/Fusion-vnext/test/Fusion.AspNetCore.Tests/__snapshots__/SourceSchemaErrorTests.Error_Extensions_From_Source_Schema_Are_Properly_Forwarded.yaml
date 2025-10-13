@@ -9,12 +9,15 @@ response:
     {
       "errors": [
         {
-          "message": "Unexpected Execution Error",
+          "message": "Something went wrong",
           "path": [
             "someField"
           ],
           "extensions": {
-            "exception": "HotChocolate.Fusion.Text.Json.SourceResultElement"
+            "exception": {
+              "message": "Some exception",
+              "stackTrace": null
+            }
           }
         }
       ]
@@ -41,7 +44,7 @@ sourceSchemas:
               {
                 "errors": [
                   {
-                    "message": "Unexpected Execution Error",
+                    "message": "Something went wrong",
                     "locations": [
                       {
                         "line": 2,
@@ -53,8 +56,8 @@ sourceSchemas:
                     ],
                     "extensions": {
                       "exception": {
-                        "message": "Something went wrong",
-                        "stackTrace": "   at HotChocolate.Fusion.SourceSchemaErrorTests.SourceSchema8.Query.SomeField() in /Users/tobiastengler/src/graphql-platform/src/HotChocolate/Fusion-vnext/test/Fusion.AspNetCore.Tests/SourceSchemaErrorTests.cs:line 1045\n   at lambda_method25(Closure, IResolverContext)\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.\u003C\u003Ec__DisplayClass9_0.\u003C\u003CCreateResolverMiddleware\u003Eb__0\u003Ed.MoveNext() in /Users/tobiastengler/src/graphql-platform/src/HotChocolate/Core/src/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 127\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/tobiastengler/src/graphql-platform/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 139\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/tobiastengler/src/graphql-platform/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 86"
+                        "message": "Some exception",
+                        "stackTrace": null
                       }
                     }
                   }
