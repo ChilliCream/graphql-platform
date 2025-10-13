@@ -887,6 +887,39 @@ public class SourceSchemaErrorTests : FusionTestBase
 
     #endregion
 
+    [Fact]
+    public async Task Error_Extensions_From_Source_Schema_Are_Properly_Forwarded()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b
+                .AddQueryType<SourceSchema8.Query>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              someField
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     public static class SourceSchema1
     {
         public class Query
@@ -1001,6 +1034,15 @@ public class SourceSchemaErrorTests : FusionTestBase
         public record Product(int Id)
         {
             public string? GetName() => "Product " + Id;
+        }
+    }
+
+    public static class SourceSchema8
+    {
+        public class Query
+        {
+            public string SomeField()
+                => throw new InvalidOperationException("Something went wrong");
         }
     }
 }

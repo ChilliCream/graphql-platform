@@ -1,0 +1,79 @@
+title: Error_Extensions_From_Source_Schema_Are_Properly_Forwarded
+request:
+  document: |
+    {
+      someField
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "someField"
+          ],
+          "extensions": {
+            "exception": "HotChocolate.Fusion.Text.Json.SourceResultElement"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        someField: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_5fcd7a62_1 {
+              someField
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Unexpected Execution Error",
+                    "locations": [
+                      {
+                        "line": 2,
+                        "column": 3
+                      }
+                    ],
+                    "path": [
+                      "someField"
+                    ],
+                    "extensions": {
+                      "exception": {
+                        "message": "Something went wrong",
+                        "stackTrace": "   at HotChocolate.Fusion.SourceSchemaErrorTests.SourceSchema8.Query.SomeField() in /Users/tobiastengler/src/graphql-platform/src/HotChocolate/Fusion-vnext/test/Fusion.AspNetCore.Tests/SourceSchemaErrorTests.cs:line 1045\n   at lambda_method25(Closure, IResolverContext)\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.\u003C\u003Ec__DisplayClass9_0.\u003C\u003CCreateResolverMiddleware\u003Eb__0\u003Ed.MoveNext() in /Users/tobiastengler/src/graphql-platform/src/HotChocolate/Core/src/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 127\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/tobiastengler/src/graphql-platform/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 139\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/tobiastengler/src/graphql-platform/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 86"
+                      }
+                    }
+                  }
+                ],
+                "data": null
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          someField
+        }
+      hash: 5fcd7a626721773e96fbf2314c0d132d
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_5fcd7a62_1 {
+          someField
+        }
