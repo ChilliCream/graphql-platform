@@ -58,7 +58,11 @@ internal sealed class __Directive : ITypeResolverInterceptor
 
         foreach (var location in locations)
         {
-            Debug.Assert(list.MoveNext());
+            if (!list.MoveNext())
+            {
+                Debug.Fail("Expected enumerator of list value to be able to advance");
+                break;
+            }
 
             switch (location)
             {
