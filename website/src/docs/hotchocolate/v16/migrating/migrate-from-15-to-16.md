@@ -12,6 +12,32 @@ Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
 
+## Eager initialization by default
+
+Previously, Hot Chocolate would only construct the schema and request executor upon the first request. This deferred initialization could create a performance penalty on initial requests and delayed the discovery of schema errors until runtime.
+
+To address this, we previously offered an `InitializeOnStartup` helper that would initialize the schema and request executor in a blocking hosted service during startup. This ensured everything GraphQL-related was ready before Kestrel began accepting requests.
+
+Since we believe eager initialization is the right default, it's now the standard behavior. This means your schema and request executor are constructed during application startup, before your server begins accepting traffic.
+As a bonus, this tightens your development loop, since schema errors surface immediately when you start debugging rather than only appearing when you send your first request.
+
+If you're currently using `InitializeOnStartup`, you can safely remove it. If you also provided the `warmup` argument to run a task during the initialization, you can migrate that task to the new `AddWarmupTask` API:
+
+```diff
+builder.Services.AddGraphQLServer()
+-   .InitializeOnStartup(warmup: (executor, ct) => { /* ... */ });
++   .AddWarmupTask((executor, ct) => { /* ... */ });
+```
+
+Warmup tasks registered with `AddWarmupTask` run at startup **and** when the schema is updated at runtime by default. Checkout the [documentation](/docs/hotchocolate/v16/server/warmup), if you need your warmup task to only run at startup.
+
+If you need to preserve lazy initialization for specific scenarios (though this is rarely recommended), you can opt out by setting the `LazyInitialization` option to `true`:
+
+```csharp
+builder.Services.AddGraphQLServer()
+    .ModifyOptions(options => options.LazyInitialization = true);
+```
+
 ## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
 
 **Before**
@@ -34,6 +60,36 @@ builder.Services.AddGraphQLServer()
         options.MaxAllowedNodeBatchSize = 100;
         options.EnsureAllNodesCanBeResolved = false;
     });
+```
+
+## IRequestContext
+
+We've removed the `IRequestContext` abstraction in favor of the concrete `RequestContext` class.
+Additionally, all information related to the parsed operation document has been consolidated into a new `OperationDocumentInfo` class, accessible via `RequestContext.OperationDocumentInfo`.
+
+| Before                      | After                                     |
+| --------------------------- | ----------------------------------------- |
+| context.DocumentId          | context.OperationDocumentInfo.Id.Value    |
+| context.Document            | context.OperationDocumentInfo.Document    |
+| context.DocumentHash        | context.OperationDocumentInfo.Hash.Value  |
+| context.ValidationResult    | context.OperationDocumentInfo.IsValidated |
+| context.IsCachedDocument    | context.OperationDocumentInfo.IsCached    |
+| context.IsPersistedDocument | context.OperationDocumentInfo.IsPersisted |
+
+Here's how you would update a custom request middleware implementation:
+
+```diff
+public class CustomRequestMiddleware
+{
+-   public async ValueTask InvokeAsync(IRequestContext context)
++   public async ValueTask InvokeAsync(RequestContext context)
+    {
+-       string documentId = context.DocumentId;
++       string documentId = context.OperationDocumentInfo.Id.Value;
+
+        await _next(context).ConfigureAwait(false);
+    }
+}
 ```
 
 ## Skip/include disallowed on root subscription fields
@@ -114,3 +170,18 @@ In addition, the default output for such errors has been standardized: earlier, 
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
+
+# Noteworthy changes
+
+## RunWithGraphQLCommandsAsync returns exit code
+
+`RunWithGraphQLCommandsAsync` and `RunWithGraphQLCommands` now return exit codes (`Task<int>` and `int` respectively, instead of `Task` and `void`).
+
+We recommend updating your `Program.cs` to return this exit code. This ensures that command failures signal an error to shell scripts, CI/CD pipelines, and other tools:
+
+```diff
+var app = builder.Build();
+
+- await app.RunWithGraphQLCommandsAsync(args);
++ return await app.RunWithGraphQLCommandsAsync(args);
+```

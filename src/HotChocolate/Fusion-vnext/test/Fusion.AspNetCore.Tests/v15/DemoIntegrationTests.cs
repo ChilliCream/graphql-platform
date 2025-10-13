@@ -2971,6 +2971,175 @@ public class DemoIntegrationTests : FusionTestBase
     //     Assert.Null(result.ExpectOperationResult().Errors);
     // }
 
+    [Fact]
+    public async Task Unresolvable_Subgraph_Is_Not_Chosen_If_Data_Is_Available_In_Resolvable_Subgraph()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              product: Product!
+            }
+
+            type Product implements Node {
+              id: ID!
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              test: Test!
+            }
+
+            type Test {
+              id: ID!
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              viewer {
+                product {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Subgraph_Containing_More_Selections_Is_Chosen()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug: Product
+            }
+
+            type Product {
+              id: ID!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              author: Author
+            }
+
+            type Author {
+              name: String!
+            }
+            """);
+
+        var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup
+            }
+
+            type Product {
+              id: ID!
+              author: Author
+            }
+
+            type Author {
+              name: String!
+              rating: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              productBySlug {
+                author {
+                  name
+                  rating
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>
     {
         private GatewayConfiguration _configuration;

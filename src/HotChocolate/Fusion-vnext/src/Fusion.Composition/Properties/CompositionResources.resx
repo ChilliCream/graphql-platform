@@ -213,6 +213,15 @@
   <data name="LogEntryHelper_ExternalOnInterface" xml:space="preserve">
     <value>The interface field '{0}' in schema '{1}' must not be marked as external.</value>
   </data>
+  <data name="LogEntryHelper_ExternalOverrideCollision" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' must not be annotated with the @override directive.</value>
+  </data>
+  <data name="LogEntryHelper_ExternalProvidesCollision" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' must not be annotated with the @provides directive.</value>
+  </data>
+  <data name="LogEntryHelper_ExternalRequireCollision" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' must not have arguments that are annotated with the @require directive.</value>
+  </data>
   <data name="LogEntryHelper_ExternalUnused" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
   </data>
@@ -336,9 +345,6 @@
   <data name="LogEntryHelper_RootSubscriptionUsed" xml:space="preserve">
     <value>The root subscription type in schema '{0}' must be named 'Subscription'.</value>
   </data>
-  <data name="LogEntryHelper_TypeDefinitionInvalid" xml:space="preserve">
-    <value>The type or directive '{0}' in schema '{1}' is incompatible with the built-in type or directive of the same name.</value>
-  </data>
   <data name="LogEntryHelper_TypeKindMismatch" xml:space="preserve">
     <value>The type '{0}' has a different kind in schema '{1}' ({2}) than it does in schema '{3}' ({4}).</value>
   </data>
@@ -413,11 +419,5 @@
   </data>
   <data name="TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType" xml:space="preserve">
     <value>The specified type is not an abstract type.</value>
-  </data>
-  <data name="TypeDefinitionInvalidRule_ArgumentMissing" xml:space="preserve">
-    <value>The argument '{0}' is missing.</value>
-  </data>
-  <data name="TypeDefinitionInvalidRule_ArgumentTypeDifferent" xml:space="preserve">
-    <value>The argument '{0}' has a different type.</value>
   </data>
 </root>

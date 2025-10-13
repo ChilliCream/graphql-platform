@@ -42,13 +42,13 @@ sourceSchemas:
         id: ID!
       }
       
-      type Discussion implements Node @key(fields: "id") {
+      type Discussion implements Node {
         id: ID!
         viewerRating: Float!
         product: Product
       }
       
-      type Product @key(fields: "id") {
+      type Product {
         id: ID!
       }
       
@@ -100,7 +100,7 @@ sourceSchemas:
         id: ID!
       }
       
-      type Product implements Node @key(fields: "id") {
+      type Product implements Node {
         id: ID!
         name: String
       }
@@ -175,6 +175,8 @@ operationPlan:
             __typename
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 3
@@ -193,6 +195,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 4

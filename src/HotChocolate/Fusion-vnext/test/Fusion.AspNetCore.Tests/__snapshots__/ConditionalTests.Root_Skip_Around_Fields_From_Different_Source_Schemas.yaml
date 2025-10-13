@@ -1,0 +1,110 @@
+title: Root_Skip_Around_Fields_From_Different_Source_Schemas
+request:
+  document: |
+    query testQuery(
+      $skip: Boolean!
+    ) {
+      ... @skip(if: $skip) {
+        productBySlug(slug: "product") {
+          name
+        }
+        viewer {
+          name
+        }
+      }
+    }
+  variables: |
+    {
+      "skip": true
+    }
+response:
+  body: |
+    {
+      "data": {}
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: ID!
+        name: String!
+      }
+      
+      type Query {
+        productBySlug(slug: String!): Product
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        viewer: Viewer
+      }
+      
+      type Viewer {
+        name: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_94aeda21_2 {
+              viewer {
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "name": "Viewer"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip: Boolean!
+        ) {
+          ... @skip(if: $skip) {
+            productBySlug(slug: "product") {
+              name
+            }
+            viewer {
+              name
+            }
+          }
+        }
+      name: testQuery
+      hash: 94aeda214eb5ef6506cfe4be360505e6
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_94aeda21_1 {
+          productBySlug(slug: "product") {
+            name
+          }
+        }
+      conditions:
+        - variable: $skip
+          passingValue: false
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_94aeda21_2 {
+          viewer {
+            name
+          }
+        }

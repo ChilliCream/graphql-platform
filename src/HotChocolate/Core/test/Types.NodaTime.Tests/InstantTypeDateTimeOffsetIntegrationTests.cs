@@ -9,7 +9,7 @@ namespace HotChocolate.Types.NodaTime.Tests;
 
 public class InstantTypeDateTimeOffsetIntegrationTests
 {
-    class InstantDateTimeOffsetPattern : IPattern<Instant>
+    private class InstantDateTimeOffsetPattern : IPattern<Instant>
     {
         public ParseResult<Instant> Parse(string text)
         {

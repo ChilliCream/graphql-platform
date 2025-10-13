@@ -34,16 +34,16 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
       
-      type Author @key(fields: "id") {
+      type Author {
         id: ID!
       }
       
-      type Comment implements Votable @key(fields: "id") {
+      type Comment implements Votable {
         id: ID!
         viewerCanVote: Boolean!
       }
       
-      type Discussion implements Votable @key(fields: "id") {
+      type Discussion implements Votable {
         id: ID!
         viewerCanVote: Boolean!
         author: Author
@@ -86,7 +86,7 @@ sourceSchemas:
         query: Query
       }
       
-      type Author @key(fields: "id") {
+      type Author {
         id: ID!
         displayName: String!
       }

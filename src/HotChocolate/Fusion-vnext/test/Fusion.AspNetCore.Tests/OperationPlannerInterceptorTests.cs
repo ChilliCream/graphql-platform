@@ -35,7 +35,7 @@ public class OperationPlannerInterceptorTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
               bookById(id: 1) {
@@ -82,7 +82,7 @@ public class OperationPlannerInterceptorTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
               bookById(id: 1) {

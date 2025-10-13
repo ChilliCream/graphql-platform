@@ -38,12 +38,12 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
       
-      type Comment implements Node & Votable @key(fields: "id") {
+      type Comment implements Node & Votable {
         id: ID!
         viewerCanVote: Boolean!
       }
       
-      type Discussion implements Node & Votable @key(fields: "id") {
+      type Discussion implements Node & Votable {
         id: ID!
         viewerCanVote: Boolean!
         viewerRating: Float!
@@ -116,6 +116,8 @@ operationPlan:
             __typename
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 3
@@ -133,6 +135,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 4
@@ -150,5 +154,7 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1

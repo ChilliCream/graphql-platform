@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HotChocolate.Caching.Memory;
 using HotChocolate.Execution.Relay;
 using HotChocolate.Language;
@@ -8,89 +9,24 @@ namespace HotChocolate.Fusion.Execution;
 public sealed class FusionRequestOptions : ICloneable
 {
     private static readonly TimeSpan s_minExecutionTimeout = TimeSpan.FromMilliseconds(100);
-    private TimeSpan _executionTimeout = TimeSpan.FromSeconds(30);
-    private int _operationExecutionPlanCacheSize = 256;
-    private CacheDiagnostics? _operationExecutionPlanCacheDiagnostics;
-    private int _operationDocumentCacheSize = 256;
-    private bool _collectOperationPlanTelemetry;
-    private ErrorHandlingMode _defaultErrorHandlingMode = ErrorHandlingMode.Propagate;
-    private bool _allowErrorHandlingModeOverride;
-    private PersistedOperationOptions _persistedOperationOptions = new();
     private bool _isReadOnly;
-    private bool _includeExceptionDetails;
 
     /// <summary>
     /// Gets or sets the execution timeout.
-    /// By default, the execution timeout is set to 30 seconds;
+    /// <c>30s</c> by default. <c>100ms</c> is the minimum.
     /// </summary>
     public TimeSpan ExecutionTimeout
     {
-        get => _executionTimeout;
+        get;
         set
         {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
+            ExpectMutableOptions();
 
-            _executionTimeout = value < s_minExecutionTimeout
+            field = value < s_minExecutionTimeout
                 ? s_minExecutionTimeout
                 : value;
         }
-    }
-
-    /// <summary>
-    /// Gets or sets the size of the operation execution plan cache.
-    /// By default, the cache will store up to 256 operation execution plans.
-    /// </summary>
-    public int OperationExecutionPlanCacheSize
-    {
-        get => _operationExecutionPlanCacheSize;
-        set
-        {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
-
-            _operationExecutionPlanCacheSize = value;
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the diagnostics for the operation execution plan cache.
-    /// </summary>
-    public CacheDiagnostics? OperationExecutionPlanCacheDiagnostics
-    {
-        get => _operationExecutionPlanCacheDiagnostics;
-        set
-        {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
-
-            _operationExecutionPlanCacheDiagnostics = value;
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the size of the operation document cache.
-    /// By default, the cache will store up to 256 operation documents.
-    /// </summary>
-    public int OperationDocumentCacheSize
-    {
-        get => _operationDocumentCacheSize;
-        set
-        {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
-
-            _operationDocumentCacheSize = value;
-        }
-    }
+    } = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// Gets or sets whether telemetry data like status and duration
@@ -99,112 +35,68 @@ public sealed class FusionRequestOptions : ICloneable
     /// </summary>
     public bool CollectOperationPlanTelemetry
     {
-        get => _collectOperationPlanTelemetry;
+        get;
         set
         {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
+            ExpectMutableOptions();
 
-            _collectOperationPlanTelemetry = value;
+            field = value;
         }
     }
 
     /// <summary>
-    /// Gets or sets the default error handling mode.
-    /// <see cref="ErrorHandlingMode.Propagate"/> by default.
-    /// </summary>
-    public ErrorHandlingMode DefaultErrorHandlingMode
-    {
-        get => _defaultErrorHandlingMode;
-        set
-        {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
-
-            _defaultErrorHandlingMode = value;
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets whether the <see cref="DefaultErrorHandlingMode"/> can be overriden
+    /// Gets or sets whether the <see cref="FusionOptions.DefaultErrorHandlingMode"/> can be overriden
     /// on a per-request basis.
     /// <c>false</c> by default.
     /// </summary>
     public bool AllowErrorHandlingModeOverride
     {
-        get => _allowErrorHandlingModeOverride;
+        get;
         set
         {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
+            ExpectMutableOptions();
 
-            _allowErrorHandlingModeOverride = value;
+            field = value;
         }
     }
 
     /// <summary>
     /// Gets or sets the persisted operation options.
     /// </summary>
-    /// <exception cref="InvalidOperationException"></exception>
     public PersistedOperationOptions PersistedOperations
-    {
-        get => _persistedOperationOptions;
-        set
-        {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
-
-            ArgumentNullException.ThrowIfNull(value);
-
-            _persistedOperationOptions = value;
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets whether exception details should be included for GraphQL
-    /// errors in the GraphQL response.
-    /// This should only be enabled for development purposes
-    /// and not in production environments.
-    /// <c>false</c> by default.
-    /// </summary>
-    public bool IncludeExceptionDetails
-    {
-        get => _includeExceptionDetails;
-        set
-        {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
-
-            _includeExceptionDetails = value;
-        }
-    }
-
-    /// <summary>
-    /// Specifies the format for Global Object Identifiers.
-    /// </summary>
-    public NodeIdSerializerFormat NodeIdSerializerFormat
     {
         get;
         set
         {
-            if (_isReadOnly)
-            {
-                throw new InvalidOperationException("The request options are read-only.");
-            }
+            ArgumentNullException.ThrowIfNull(value);
+
+            ExpectMutableOptions();
 
             field = value;
         }
-    } = NodeIdSerializerFormat.Base64;
+    } = new();
+
+    /// <summary>
+    /// Gets or sets whether exception details should be included for GraphQL
+    /// errors in the GraphQL response.
+    /// <see cref="Debugger.IsAttached"/> by default.
+    /// </summary>
+    /// <remarks>
+    /// When set to <c>true</c> includes the message and stack trace of exceptions
+    /// in the user-facing GraphQL error.
+    /// Since this could leak security-critical information, this option should only
+    /// be set to <c>true</c> for development purposes and not in production environments.
+    /// </remarks>
+    public bool IncludeExceptionDetails
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = Debugger.IsAttached;
 
     /// <summary>
     /// Clones the request options into a new mutable instance.
@@ -214,20 +106,26 @@ public sealed class FusionRequestOptions : ICloneable
     /// </returns>
     public FusionRequestOptions Clone()
     {
-        var clone = new FusionRequestOptions();
-        clone._executionTimeout = _executionTimeout;
-        clone._operationExecutionPlanCacheSize = _operationExecutionPlanCacheSize;
-        clone._operationExecutionPlanCacheDiagnostics = _operationExecutionPlanCacheDiagnostics;
-        clone._operationDocumentCacheSize = _operationDocumentCacheSize;
-        clone._collectOperationPlanTelemetry = _collectOperationPlanTelemetry;
-        clone._defaultErrorHandlingMode = _defaultErrorHandlingMode;
-        clone._allowErrorHandlingModeOverride = _allowErrorHandlingModeOverride;
-        clone.NodeIdSerializerFormat = NodeIdSerializerFormat;
-        return clone;
+        return new FusionRequestOptions
+        {
+            ExecutionTimeout = ExecutionTimeout,
+            CollectOperationPlanTelemetry = CollectOperationPlanTelemetry,
+            AllowErrorHandlingModeOverride = AllowErrorHandlingModeOverride,
+            PersistedOperations = PersistedOperations,
+            IncludeExceptionDetails = IncludeExceptionDetails
+        };
     }
 
     object ICloneable.Clone() => Clone();
 
     internal void MakeReadOnly()
         => _isReadOnly = true;
+
+    private void ExpectMutableOptions()
+    {
+        if (_isReadOnly)
+        {
+            throw new InvalidOperationException("The request options are read-only.");
+        }
+    }
 }

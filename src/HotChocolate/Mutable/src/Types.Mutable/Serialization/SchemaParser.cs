@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using HotChocolate.Language;
+using static HotChocolate.Types.Mutable.Properties.MutableResources;
 
 namespace HotChocolate.Types.Mutable.Serialization;
 
@@ -77,8 +78,8 @@ public static class SchemaParser
                         continue;
                     }
 
-                    // TODO : parsing error
-                    throw new Exception("duplicate");
+                    throw new SchemaInitializationException(
+                        string.Format(SchemaParser_DuplicateTypeDefinition, typeDef.Name.Value));
                 }
 
                 switch (typeDef)
@@ -112,8 +113,7 @@ public static class SchemaParser
                         break;
 
                     default:
-                        // TODO : parsing error
-                        throw new ArgumentOutOfRangeException(nameof(definition));
+                        throw new InvalidOperationException();
                 }
             }
 
@@ -128,8 +128,10 @@ public static class SchemaParser
                         continue;
                     }
 
-                    // TODO : parsing error
-                    throw new Exception("duplicate");
+                    throw new SchemaInitializationException(
+                        string.Format(
+                            SchemaParser_DuplicateDirectiveDefinition,
+                            directiveDef.Name.Value));
                 }
 
                 schema.DirectiveDefinitions.Add(
@@ -187,8 +189,7 @@ public static class SchemaParser
                         break;
 
                     default:
-                        // TODO : parsing error
-                        throw new ArgumentOutOfRangeException(nameof(definition));
+                        throw new InvalidOperationException();
                 }
             }
         }
@@ -250,8 +251,7 @@ public static class SchemaParser
                         break;
 
                     default:
-                        // TODO : parsing error
-                        throw new ArgumentOutOfRangeException(nameof(definition));
+                        throw new InvalidOperationException();
                 }
             }
         }
@@ -313,8 +313,7 @@ public static class SchemaParser
                         break;
 
                     default:
-                        // TODO : parsing error
-                        throw new ArgumentOutOfRangeException(nameof(definition));
+                        throw new InvalidOperationException();
                 }
             }
         }
@@ -424,14 +423,29 @@ public static class SchemaParser
         {
             if (type.Fields.ContainsName(fieldNode.Name.Value))
             {
-                // todo : parser error
-                throw new Exception("");
+                throw new SchemaInitializationException(
+                    string.Format(
+                        SchemaParser_DuplicateFieldDefinition,
+                        fieldNode.Name.Value,
+                        type.Name));
             }
 
-            var field = new MutableOutputFieldDefinition(fieldNode.Name.Value);
-            field.Description = fieldNode.Description?.Value;
-            field.Type = schema.Types.BuildType(fieldNode.Type).ExpectOutputType();
-            field.DeclaringMember = type;
+            var builtFieldType = schema.Types.BuildType(fieldNode.Type);
+
+            if (builtFieldType is not IOutputType fieldType)
+            {
+                throw new SchemaInitializationException(
+                    string.Format(
+                        SchemaParser_InvalidFieldType,
+                        $"{type.Name}.{fieldNode.Name.Value}"));
+            }
+
+            var field = new MutableOutputFieldDefinition(fieldNode.Name.Value)
+            {
+                Description = fieldNode.Description?.Value,
+                Type = fieldType,
+                DeclaringMember = type
+            };
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 
@@ -445,15 +459,30 @@ public static class SchemaParser
             {
                 if (field.Arguments.ContainsName(argumentNode.Name.Value))
                 {
-                    // todo : parser error
-                    throw new Exception("");
+                    throw new SchemaInitializationException(
+                        string.Format(
+                            SchemaParser_DuplicateArgumentDefinition,
+                            argumentNode.Name.Value,
+                            $"{type.Name}.{field.Name}"));
                 }
 
-                var argument = new MutableInputFieldDefinition(argumentNode.Name.Value);
-                argument.Description = argumentNode.Description?.Value;
-                argument.Type = schema.Types.BuildType(argumentNode.Type).ExpectInputType();
-                argument.DefaultValue = argumentNode.DefaultValue;
-                argument.DeclaringMember = field;
+                var builtArgumentType = schema.Types.BuildType(argumentNode.Type);
+
+                if (builtArgumentType is not IInputType argumentType)
+                {
+                    throw new SchemaInitializationException(
+                        string.Format(
+                            SchemaParser_InvalidArgumentType,
+                            $"{type.Name}.{field.Name}({argumentNode.Name.Value}:)"));
+                }
+
+                var argument = new MutableInputFieldDefinition(argumentNode.Name.Value)
+                {
+                    Description = argumentNode.Description?.Value,
+                    Type = argumentType,
+                    DefaultValue = argumentNode.DefaultValue,
+                    DeclaringMember = field
+                };
 
                 BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
 
@@ -491,15 +520,30 @@ public static class SchemaParser
         {
             if (type.Fields.ContainsName(fieldNode.Name.Value))
             {
-                // todo : parser error
-                throw new Exception("");
+                throw new SchemaInitializationException(
+                    string.Format(
+                        SchemaParser_DuplicateInputObjectFieldDefinition,
+                        fieldNode.Name.Value,
+                        type.Name));
             }
 
-            var field = new MutableInputFieldDefinition(fieldNode.Name.Value);
-            field.Description = fieldNode.Description?.Value;
-            field.Type = schema.Types.BuildType(fieldNode.Type).ExpectInputType();
-            field.DefaultValue = fieldNode.DefaultValue;
-            field.DeclaringMember = type;
+            var builtFieldType = schema.Types.BuildType(fieldNode.Type);
+
+            if (builtFieldType is not IInputType fieldType)
+            {
+                throw new SchemaInitializationException(
+                    string.Format(
+                        SchemaParser_InvalidInputObjectFieldType,
+                        $"{type.Name}.{fieldNode.Name.Value}"));
+            }
+
+            var field = new MutableInputFieldDefinition(fieldNode.Name.Value)
+            {
+                Description = fieldNode.Description?.Value,
+                Type = fieldType,
+                DefaultValue = fieldNode.DefaultValue,
+                DeclaringMember = type
+            };
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 
@@ -536,9 +580,11 @@ public static class SchemaParser
                 continue;
             }
 
-            var value = new MutableEnumValue(enumValue.Name.Value);
-            value.Description = enumValue.Description?.Value;
-            value.DeclaringType = type;
+            var value = new MutableEnumValue(enumValue.Name.Value)
+            {
+                Description = enumValue.Description?.Value,
+                DeclaringType = type
+            };
 
             BuildDirectiveCollection(schema, value.Directives, enumValue.Directives);
 
@@ -570,7 +616,16 @@ public static class SchemaParser
 
         foreach (var objectTypeRef in node.Types)
         {
-            var objectType = (MutableObjectTypeDefinition)schema.Types[objectTypeRef.Name.Value];
+            var memberType = schema.Types[objectTypeRef.Name.Value];
+
+            if (memberType is not MutableObjectTypeDefinition objectType)
+            {
+                throw new SchemaInitializationException(
+                    string.Format(
+                        SchemaParser_InvalidUnionMemberType,
+                        type.Name,
+                        memberType.Name));
+            }
 
             if (type.Types.Contains(objectType))
             {
@@ -630,11 +685,23 @@ public static class SchemaParser
 
         foreach (var argumentNode in node.Arguments)
         {
-            var argument = new MutableInputFieldDefinition(argumentNode.Name.Value);
-            argument.Description = argumentNode.Description?.Value;
-            argument.Type = schema.Types.BuildType(argumentNode.Type).ExpectInputType();
-            argument.DefaultValue = argumentNode.DefaultValue;
-            argument.DeclaringMember = type;
+            var builtArgumentType = schema.Types.BuildType(argumentNode.Type);
+
+            if (builtArgumentType is not IInputType argumentType)
+            {
+                throw new SchemaInitializationException(
+                    string.Format(
+                        SchemaParser_InvalidArgumentType,
+                        $"@{type.Name}({argumentNode.Name.Value}:)"));
+            }
+
+            var argument = new MutableInputFieldDefinition(argumentNode.Name.Value)
+            {
+                Description = argumentNode.Description?.Value,
+                Type = argumentType,
+                DefaultValue = argumentNode.DefaultValue,
+                DeclaringMember = type
+            };
 
             BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
 
@@ -787,7 +854,6 @@ file static class SchemaParserExtensions
                 return missing;
 
             default:
-                // TODO : parsing error
                 throw new ArgumentOutOfRangeException(nameof(typeRef));
         }
     }

@@ -178,16 +178,22 @@ public interface IReadOnlySchemaOptions
     /// <summary>
     /// Specifies the default dependency injection scope for query fields.
     /// </summary>
-    public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; }
+    DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; }
 
     /// <summary>
     /// Specifies the default dependency injection scope for mutation fields.
     /// </summary>
-    public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; }
+    DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; }
 
     /// <summary>
     /// Specifies if the elements of paginated root fields should be published
     /// to the DataLoader promise cache.
     /// </summary>
     bool PublishRootFieldPagesToPromiseCache { get; }
+
+    /// <summary>
+    /// Specifies that the <see cref="IRequestExecutor"/> should be constructed
+    /// laz
+    /// </summary>
+    bool LazyInitialization { get; }
 }

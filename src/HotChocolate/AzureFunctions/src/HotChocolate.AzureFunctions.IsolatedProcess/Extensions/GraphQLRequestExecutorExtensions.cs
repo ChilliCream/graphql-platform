@@ -21,6 +21,6 @@ public static class GraphQLRequestExecutorExtensions
     {
         var context = new AzureHttpContext(requestData);
         await executor.ExecuteAsync(context).ConfigureAwait(false);
-        return context.CreateResponseData();
+        return await context.CreateResponseDataAsync().ConfigureAwait(false);
     }
 }

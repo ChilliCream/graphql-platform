@@ -24,39 +24,31 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
     /// <summary>
     /// Formats an <see cref="IExecutionResult"/> into an SSE stream.
     /// </summary>
-    /// <param name="result"></param>
-    /// <param name="outputStream"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="NotSupportedException"></exception>
     public ValueTask FormatAsync(
         IExecutionResult result,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(outputStream);
+        ArgumentNullException.ThrowIfNull(writer);
 
         return result switch
         {
             IOperationResult operationResult
-                => FormatOperationResultAsync(operationResult, outputStream, cancellationToken),
+                => FormatOperationResultAsync(operationResult, writer, cancellationToken),
             OperationResultBatch resultBatch
-                => FormatResultBatchAsync(resultBatch, outputStream, cancellationToken),
+                => FormatResultBatchAsync(resultBatch, writer, cancellationToken),
             IResponseStream responseStream
-                => FormatResponseStreamAsync(responseStream, outputStream, cancellationToken),
+                => FormatResponseStreamAsync(responseStream, writer, cancellationToken),
             _ => throw new NotSupportedException()
         };
     }
 
     private async ValueTask FormatOperationResultAsync(
         IOperationResult operationResult,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken ct)
     {
-        Exception? exception = null;
-        var writer = outputStream.CreatePipeWriter();
         var scope = Log.FormatOperationResultStart();
 
         try
@@ -67,24 +59,21 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
         catch (Exception ex)
         {
             scope?.AddError(ex);
-            exception = ex;
             throw;
         }
         finally
         {
             scope?.Dispose();
-            await writer.CompleteAsync(exception).ConfigureAwait(false);
         }
     }
 
     private async ValueTask FormatResultBatchAsync(
         OperationResultBatch resultBatch,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken ct)
     {
         Exception? exception = null;
         using var semaphore = new SemaphoreSlim(1, 1);
-        var writer = outputStream.CreatePipeWriter();
         List<Task>? streams = null;
         KeepAliveJob? keepAlive = null;
 
@@ -157,8 +146,6 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
             {
                 await TryWriteCompleteAsync(writer, ct).ConfigureAwait(false);
             }
-
-            await writer.CompleteAsync(exception).ConfigureAwait(false);
         }
 
         // we rethrow any stream exception that happened.
@@ -170,12 +157,11 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
 
     private async ValueTask FormatResponseStreamAsync(
         IResponseStream responseStream,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken ct)
     {
         Exception? exception = null;
         using var semaphore = new SemaphoreSlim(1, 1);
-        var writer = outputStream.CreatePipeWriter();
 
         try
         {
@@ -205,8 +191,6 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
             {
                 await TryWriteCompleteAsync(writer, ct).ConfigureAwait(false);
             }
-
-            await writer.CompleteAsync(exception).ConfigureAwait(false);
         }
     }
 

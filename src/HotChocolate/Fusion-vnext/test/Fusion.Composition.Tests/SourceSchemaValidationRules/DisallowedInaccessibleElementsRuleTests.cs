@@ -100,7 +100,7 @@ public sealed class DisallowedInaccessibleElementsRuleTests
                     type __Type @inaccessible {
                         kind: __TypeKind!
                         name: String
-                        fields(includeDeprecated: Boolean = false): [__Field!]
+                        fields(includeDeprecated: Boolean! = false): [__Field!]
                     }
                     """
                 ],
@@ -115,7 +115,7 @@ public sealed class DisallowedInaccessibleElementsRuleTests
                     type __Type {
                         kind: __TypeKind! @inaccessible
                         name: String
-                        fields(includeDeprecated: Boolean = false): [__Field!]
+                        fields(includeDeprecated: Boolean! = false): [__Field!]
                     }
                     """
                 ],
@@ -130,7 +130,7 @@ public sealed class DisallowedInaccessibleElementsRuleTests
                     type __Type {
                         kind: __TypeKind!
                         name: String
-                        fields(includeDeprecated: Boolean = false @inaccessible): [__Field!]
+                        fields(includeDeprecated: Boolean! = false @inaccessible): [__Field!]
                     }
                     """
                 ],
