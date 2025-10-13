@@ -1,0 +1,210 @@
+title: Interface_List_Field_Concrete_Type_Linked_Field_With_Dependency
+request:
+  document: |
+    query testQuery {
+      votables {
+        viewerCanVote
+        ... on Discussion {
+          author {
+            displayName
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "votables": [
+          {
+            "viewerCanVote": true,
+            "author": {
+              "displayName": "Author: QXV0aG9yOjU="
+            }
+          },
+          {
+            "viewerCanVote": true
+          },
+          {
+            "viewerCanVote": true,
+            "author": {
+              "displayName": "Author: QXV0aG9yOjQ="
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Votable {
+        viewerCanVote: Boolean!
+      }
+      
+      type Author {
+        id: ID!
+      }
+      
+      type Comment implements Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+      
+      type Discussion implements Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+        author: Author
+      }
+      
+      type Query {
+        votables: [Votable]
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_e3932333_1 {
+              votables {
+                __typename
+                viewerCanVote
+                ... on Discussion {
+                  author {
+                    id
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "votables": [
+                    {
+                      "__typename": "Discussion",
+                      "viewerCanVote": true,
+                      "author": {
+                        "id": "QXV0aG9yOjU="
+                      }
+                    },
+                    {
+                      "__typename": "Comment",
+                      "viewerCanVote": true
+                    },
+                    {
+                      "__typename": "Discussion",
+                      "viewerCanVote": true,
+                      "author": {
+                        "id": "QXV0aG9yOjQ="
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        id: ID!
+        displayName: String!
+      }
+      
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_e3932333_2(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                displayName
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "QXV0aG9yOjU="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjQ="
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjU="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjQ="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          votables {
+            __typename @fusion__requirement
+            viewerCanVote
+            ... on Discussion {
+              author {
+                displayName
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: e3932333e1e0b2847e2b27c44448e0b5
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_e3932333_1 {
+          votables {
+            __typename
+            viewerCanVote
+            ... on Discussion {
+              author {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_e3932333_2(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            displayName
+          }
+        }
+      source: $.authorById
+      target: $.votables<Discussion>.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

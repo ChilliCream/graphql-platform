@@ -1,0 +1,278 @@
+title: Object_List_Union_Field_Concrete_Type_Selections_Have_Same_Dependency
+request:
+  document: |
+    query testQuery {
+      postEdges {
+        node {
+          ... on Photo {
+            product {
+              subgraph2
+            }
+          }
+          ... on Discussion {
+            product {
+              subgraph2
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "postEdges": [
+          {
+            "node": {
+              "product": {
+                "subgraph2": "Product: UHJvZHVjdDo3"
+              }
+            }
+          },
+          {
+            "node": {
+              "product": {
+                "subgraph2": "Product: UHJvZHVjdDo4"
+              }
+            }
+          },
+          {
+            "node": {
+              "product": {
+                "subgraph2": "Product: UHJvZHVjdDo5"
+              }
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Discussion {
+        id: ID!
+        product: Product
+      }
+      
+      type Photo {
+        id: ID!
+        product: Product
+      }
+      
+      type PostEdge {
+        node: Post
+      }
+      
+      type Product {
+        id: ID!
+      }
+      
+      type Query {
+        postEdges: [PostEdge]
+      }
+      
+      union Post = Photo | Discussion
+    interactions:
+      - request:
+          document: |
+            query testQuery_ec963286_1 {
+              postEdges {
+                node {
+                  __typename
+                  ... on Photo {
+                    product {
+                      id
+                    }
+                  }
+                  ... on Discussion {
+                    product {
+                      id
+                    }
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "postEdges": [
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "product": {
+                          "id": "UHJvZHVjdDo3"
+                        }
+                      }
+                    },
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "product": {
+                          "id": "UHJvZHVjdDo4"
+                        }
+                      }
+                    },
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "product": {
+                          "id": "UHJvZHVjdDo5"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: ID!
+        subgraph2: String!
+      }
+      
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_ec963286_3(
+              $__fusion_2_id: ID!
+            ) {
+              productById(id: $__fusion_2_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDo3"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDo4"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDo5"
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDo3"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDo4"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDo5"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          postEdges {
+            node {
+              __typename @fusion__requirement
+              ... on Photo {
+                product {
+                  subgraph2
+                  id @fusion__requirement
+                }
+              }
+              ... on Discussion {
+                product {
+                  subgraph2
+                  id @fusion__requirement
+                }
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: ec963286207c06ae16e0e35aba2876f9
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_ec963286_1 {
+          postEdges {
+            node {
+              __typename
+              ... on Photo {
+                product {
+                  id
+                }
+              }
+              ... on Discussion {
+                product {
+                  id
+                }
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_ec963286_2(
+          $__fusion_1_id: ID!
+        ) {
+          productById(id: $__fusion_1_id) {
+            subgraph2
+          }
+        }
+      source: $.productById
+      target: $.postEdges.node<Discussion>.product
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_ec963286_3(
+          $__fusion_2_id: ID!
+        ) {
+          productById(id: $__fusion_2_id) {
+            subgraph2
+          }
+        }
+      source: $.productById
+      target: $.postEdges.node<Photo>.product
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

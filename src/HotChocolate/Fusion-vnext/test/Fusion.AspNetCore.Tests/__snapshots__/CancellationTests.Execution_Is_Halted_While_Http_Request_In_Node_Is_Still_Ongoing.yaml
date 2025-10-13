@@ -1,0 +1,121 @@
+title: Execution_Is_Halted_While_Http_Request_In_Node_Is_Still_Ongoing
+request:
+  document: |
+    {
+      topProduct {
+        id
+      }
+      reviews {
+        id
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Could not resolve reviews",
+          "path": [
+            "reviews"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: Int!
+      }
+      
+      type Query {
+        topProduct: Product
+      }
+    isTimingOut: true
+    interactions:
+      - request:
+          document: |
+            query Op_512ba6dc_1 {
+              topProduct {
+                id
+              }
+            }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        reviews: [Review!]
+      }
+      
+      type Review {
+        id: Int!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_512ba6dc_2 {
+              reviews {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Could not resolve reviews",
+                    "locations": [
+                      {
+                        "line": 2,
+                        "column": 3
+                      }
+                    ],
+                    "path": [
+                      "reviews"
+                    ]
+                  }
+                ],
+                "data": {
+                  "reviews": null
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          topProduct {
+            id
+          }
+          reviews {
+            id
+          }
+        }
+      hash: 512ba6dc13ede1ded2da8cd00532a486
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_512ba6dc_1 {
+          topProduct {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_512ba6dc_2 {
+          reviews {
+            id
+          }
+        }

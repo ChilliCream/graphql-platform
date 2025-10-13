@@ -23,11 +23,14 @@ public sealed partial class BatchDispatcher
 
         lock (_enqueuedBatches)
         {
-            _enqueuedBatches.Add(batch);
-            Interlocked.Increment(ref _openBatches);
-            Interlocked.Increment(ref _enqueueVersion);
-            _lastEnqueued = Stopwatch.GetTimestamp();
+            if (!_enqueuedBatches.Add(batch))
+            {
+                throw new ArgumentException("The batch was already enqueued before.");
+            }
         }
+
+        Interlocked.Increment(ref _openBatches);
+        Volatile.Write(ref _lastEnqueued, Stopwatch.GetTimestamp());
 
         Send(BatchDispatchEventType.Enqueued);
     }

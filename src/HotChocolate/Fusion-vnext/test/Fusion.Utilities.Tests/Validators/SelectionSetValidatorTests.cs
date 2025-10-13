@@ -1,7 +1,7 @@
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
-using HotChocolate.Types.Mutable.Serialization;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.Validators;
@@ -13,7 +13,8 @@ public sealed class SelectionSetValidatorTests
     public void Examples_Valid(string schemaText, string fieldCoordinateText)
     {
         // arrange
-        var schema = SchemaParser.Parse(schemaText);
+        var sourceSchemaParser = new SourceSchemaParser([new SourceSchemaText("A", schemaText)], new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value.Single();
         var fieldCoordinate = SchemaCoordinate.Parse(fieldCoordinateText);
 
         if (!schema.TryGetMember(fieldCoordinate, out var member)
@@ -43,7 +44,8 @@ public sealed class SelectionSetValidatorTests
         string[] errorMessages)
     {
         // arrange
-        var schema = SchemaParser.Parse(schemaText);
+        var sourceSchemaParser = new SourceSchemaParser([new SourceSchemaText("A", schemaText)], new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value.Single();
         var fieldCoordinate = SchemaCoordinate.Parse(fieldCoordinateText);
 
         if (!schema.TryGetMember(fieldCoordinate, out var member)

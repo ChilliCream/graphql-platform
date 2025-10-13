@@ -260,6 +260,54 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry ExternalOverrideCollision(
+        MutableOutputFieldDefinition externalField,
+        ITypeDefinition type,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ExternalOverrideCollision, coordinate, schema.Name),
+            LogEntryCodes.ExternalOverrideCollision,
+            LogSeverity.Error,
+            coordinate,
+            externalField,
+            schema);
+    }
+
+    public static LogEntry ExternalProvidesCollision(
+        MutableOutputFieldDefinition externalField,
+        ITypeDefinition type,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ExternalProvidesCollision, coordinate, schema.Name),
+            LogEntryCodes.ExternalProvidesCollision,
+            LogSeverity.Error,
+            coordinate,
+            externalField,
+            schema);
+    }
+
+    public static LogEntry ExternalRequireCollision(
+        MutableOutputFieldDefinition externalField,
+        ITypeDefinition type,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name, externalField.Name);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_ExternalRequireCollision, coordinate, schema.Name),
+            LogEntryCodes.ExternalRequireCollision,
+            LogSeverity.Error,
+            coordinate,
+            externalField,
+            schema);
+    }
+
     public static LogEntry ExternalUnused(
         MutableOutputFieldDefinition externalField,
         ITypeDefinition type,
@@ -443,7 +491,7 @@ internal static class LogEntryHelper
             schema);
     }
 
-    public static LogEntry IsInvalidField(
+    public static LogEntry IsInvalidFields(
         Directive isDirective,
         string argumentName,
         string fieldName,
@@ -454,8 +502,8 @@ internal static class LogEntryHelper
         var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
 
         return new LogEntry(
-            string.Format(LogEntryHelper_IsInvalidField, coordinate, sourceSchema.Name),
-            LogEntryCodes.IsInvalidField,
+            string.Format(LogEntryHelper_IsInvalidFields, coordinate, sourceSchema.Name),
+            LogEntryCodes.IsInvalidFields,
             LogSeverity.Error,
             coordinate,
             isDirective,
@@ -583,13 +631,14 @@ internal static class LogEntryHelper
         ImmutableArray<string> errors)
     {
         return new LogEntry(
-            string.Format(LogEntryHelper_KeyInvalidFields, typeName, schema.Name),
+            string.Format(LogEntryHelper_KeyInvalidFields, typeName, schema.Name)
+                + $"{Environment.NewLine}- "
+                + string.Join($"{Environment.NewLine}- ", errors),
             LogEntryCodes.KeyInvalidFields,
             LogSeverity.Error,
             new SchemaCoordinate(typeName),
             keyDirective,
-            schema,
-            errors);
+            schema);
     }
 
     public static LogEntry KeyInvalidFieldsType(
@@ -979,21 +1028,6 @@ internal static class LogEntryHelper
             severity: LogSeverity.Error,
             member: schema,
             schema: schema);
-    }
-
-    public static LogEntry TypeDefinitionInvalid(
-        INameProvider member,
-        MutableSchemaDefinition schema,
-        string? details = null)
-    {
-        return new LogEntry(
-            string.Format(LogEntryHelper_TypeDefinitionInvalid, member.Name, schema.Name),
-            LogEntryCodes.TypeDefinitionInvalid,
-            LogSeverity.Error,
-            new SchemaCoordinate(member.Name),
-            member,
-            schema,
-            details);
     }
 
     public static LogEntry TypeKindMismatch(

@@ -1,0 +1,157 @@
+title: Interface_Field_Concrete_Type_With_Dependency
+request:
+  document: |
+    query testQuery {
+      votable {
+        viewerCanVote
+        ... on Discussion {
+          viewerRating
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "votable": {
+          "viewerCanVote": true,
+          "viewerRating": 123.456
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Votable {
+        viewerCanVote: Boolean!
+      }
+      
+      type Comment implements Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+      
+      type Discussion implements Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+      
+      type Query {
+        votable: Votable
+        discussionById(id: ID!): Discussion @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_4a61c641_1 {
+              votable {
+                __typename
+                viewerCanVote
+                ... on Discussion {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "votable": {
+                    "__typename": "Discussion",
+                    "viewerCanVote": true,
+                    "id": "RGlzY3Vzc2lvbjox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Discussion {
+        id: ID!
+        viewerRating: Float!
+      }
+      
+      type Query {
+        discussionById(id: ID!): Discussion @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_4a61c641_2(
+              $__fusion_1_id: ID!
+            ) {
+              discussionById(id: $__fusion_1_id) {
+                viewerRating
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "discussionById": {
+                    "viewerRating": 123.456
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          votable {
+            __typename @fusion__requirement
+            viewerCanVote
+            ... on Discussion {
+              viewerRating
+              id @fusion__requirement
+            }
+          }
+        }
+      name: testQuery
+      hash: 4a61c641179c756fb55bfa3dd9de6101
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_4a61c641_1 {
+          votable {
+            __typename
+            viewerCanVote
+            ... on Discussion {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_4a61c641_2(
+          $__fusion_1_id: ID!
+        ) {
+          discussionById(id: $__fusion_1_id) {
+            viewerRating
+          }
+        }
+      source: $.discussionById
+      target: $.votable<Discussion>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

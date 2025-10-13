@@ -1,0 +1,99 @@
+title: Interface_Field_Concrete_Type
+request:
+  document: |
+    query testQuery {
+      votable {
+        viewerCanVote
+        ... on Discussion {
+          title
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "votable": {
+          "viewerCanVote": true,
+          "title": "Discussion: RGlzY3Vzc2lvbjox"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Votable {
+        viewerCanVote: Boolean!
+      }
+      
+      type Comment implements Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+      
+      type Discussion implements Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+        title: String!
+      }
+      
+      type Query {
+        votable: Votable
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_f4fa964e_1 {
+              votable {
+                __typename
+                viewerCanVote
+                ... on Discussion {
+                  title
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "votable": {
+                    "__typename": "Discussion",
+                    "viewerCanVote": true,
+                    "title": "Discussion: RGlzY3Vzc2lvbjox"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          votable {
+            __typename @fusion__requirement
+            viewerCanVote
+            ... on Discussion {
+              title
+            }
+          }
+        }
+      name: testQuery
+      hash: f4fa964e3e634b9d478c346b9237723e
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_f4fa964e_1 {
+          votable {
+            __typename
+            viewerCanVote
+            ... on Discussion {
+              title
+            }
+          }
+        }

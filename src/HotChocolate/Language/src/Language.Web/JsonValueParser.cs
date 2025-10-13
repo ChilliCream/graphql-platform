@@ -222,8 +222,8 @@ public ref struct JsonValueParser
             case JsonTokenType.String:
             {
                 var segment = reader.HasValueSequence
-                    ? WriteValue(reader.ValueSequence.Slice(1, reader.ValueSequence.Length - 2))
-                    : WriteValue(reader.ValueSpan.Slice(1, reader.ValueSpan.Length - 2));
+                    ? WriteValue(reader.ValueSequence)
+                    : WriteValue(reader.ValueSpan);
                 return new StringValueNode(null, segment, false);
             }
 

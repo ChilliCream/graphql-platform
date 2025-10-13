@@ -12,8 +12,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using Moq;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers;
 
 public class ResolverCompilerTests
@@ -24,11 +22,12 @@ public class ResolverCompilerTests
     public async Task Compile_TaskObjMethod_NoParams_SourceResolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ObjectTaskResolver))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -42,11 +41,12 @@ public class ResolverCompilerTests
     public async Task Compile_TaskStringMethod_NoParams_SourceResolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.StringTaskResolver))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -60,11 +60,12 @@ public class ResolverCompilerTests
     public async Task Compile_TaskStringMethod_WithParams_SourceResolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.StringTaskResolverWithArg))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -79,11 +80,12 @@ public class ResolverCompilerTests
     public async Task Compile_ObjMethod_NoParams_SourceResolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ObjectResolver))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -97,11 +99,12 @@ public class ResolverCompilerTests
     public async Task Compile_StringMethod_NoParams_SourceResolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.StringResolver))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -115,11 +118,12 @@ public class ResolverCompilerTests
     public async Task Compile_StringMethod_WithParams_SourceResolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.StringResolverWithArg))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -134,11 +138,12 @@ public class ResolverCompilerTests
     public async Task Compile_StringValueNodeMethod_WithParams_SourceResolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.StringValueNodeResolverWithArg))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -154,11 +159,12 @@ public class ResolverCompilerTests
     public async Task Compile_OptionalStringMethod_WithParams_SourceResolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.OptionalStringResolverWithArg))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -174,11 +180,12 @@ public class ResolverCompilerTests
     public async Task Compile_ObjTaskProperty_SourceResolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetProperty("ObjectTaskStringProp")!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -192,11 +199,12 @@ public class ResolverCompilerTests
     public async Task Compile_StringTaskProperty_SourceResolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetProperty("StringTaskResolverProp")!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -210,11 +218,12 @@ public class ResolverCompilerTests
     public async Task Compile_StringProperty_SourceResolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetProperty("StringProp")!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -228,11 +237,12 @@ public class ResolverCompilerTests
     public async Task Compile_TaskObjMethod_NoParams_Resolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ObjectTaskResolver))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver =
             compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -247,11 +257,12 @@ public class ResolverCompilerTests
     public async Task Compile_TaskStringMethod_NoParams_Resolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.StringTaskResolver))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver =
             compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -266,11 +277,12 @@ public class ResolverCompilerTests
     public async Task Compile_TaskStringMethod_WithParams_Resolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.StringTaskResolverWithArg))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver =
             compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -286,11 +298,12 @@ public class ResolverCompilerTests
     public async Task Compile_ObjMethod_NoParams_Resolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ObjectResolver))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver =
             compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -305,11 +318,12 @@ public class ResolverCompilerTests
     public async Task Compile_StringMethod_NoParams_Resolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.StringResolver))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver =
             compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -324,11 +338,12 @@ public class ResolverCompilerTests
     public async Task Compile_StringMethod_WithParams_Resolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.StringResolverWithArg))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver =
             compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -344,11 +359,12 @@ public class ResolverCompilerTests
     public async Task Compile_ObjTaskProperty_Resolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetProperty("ObjectTaskStringProp")!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver =
             compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -363,11 +379,12 @@ public class ResolverCompilerTests
     public async Task Compile_StringTaskProperty_Resolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetProperty("StringTaskResolverProp")!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver =
             compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -382,11 +399,12 @@ public class ResolverCompilerTests
     public async Task Compile_StringProperty_Resolver()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetProperty("StringProp")!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver =
             compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -401,11 +419,12 @@ public class ResolverCompilerTests
     public async Task Compile_Arguments_CancellationToken()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithCancellationToken))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -420,11 +439,12 @@ public class ResolverCompilerTests
     public async Task Compile_Arguments_ResolverContext()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithResolverContext))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -438,11 +458,12 @@ public class ResolverCompilerTests
     public async Task Compile_Arguments_FieldSelection()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithFieldSelection))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -460,11 +481,12 @@ public class ResolverCompilerTests
     public async Task Compile_Arguments_Selection()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithSelection))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
         var pure = compiler.CompileResolve(member, type).PureResolver!;
 
@@ -486,11 +508,12 @@ public class ResolverCompilerTests
     public async Task Compile_Arguments_FieldSyntax()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithFieldSyntax))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
         var pure = compiler.CompileResolve(member, type).PureResolver!;
 
@@ -521,11 +544,12 @@ public class ResolverCompilerTests
     public async Task Compile_Arguments_ObjectType()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithObjectType))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -546,11 +570,12 @@ public class ResolverCompilerTests
     public async Task Compile_Arguments_Operation()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithOperationDefinition))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -580,11 +605,12 @@ public class ResolverCompilerTests
     public async Task Compile_Arguments_ObjectField()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithObjectField))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -610,11 +636,12 @@ public class ResolverCompilerTests
     public async Task Compile_Arguments_IOutputField()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithOutputField))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -640,11 +667,12 @@ public class ResolverCompilerTests
     public async Task Compile_Arguments_Document()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithDocument))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -663,11 +691,12 @@ public class ResolverCompilerTests
     public async Task Compile_Arguments_Schema()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithSchema))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -687,11 +716,12 @@ public class ResolverCompilerTests
     public async Task Compile_Arguments_Service()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithService))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -708,12 +738,13 @@ public class ResolverCompilerTests
     public async Task Compile_GetGlobalState_With_Key()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetGlobalStateWithKey))!;
         var contextData = new Dictionary<string, object?> { { "foo", "bar" } };
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -728,12 +759,13 @@ public class ResolverCompilerTests
     public async Task Compile_GetGlobalState()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetGlobalState))!;
         var contextData = new Dictionary<string, object?> { { "foo", "bar" } };
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -748,12 +780,13 @@ public class ResolverCompilerTests
     public async Task Compile_GetGlobalState_State_Does_Not_Exist()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetGlobalState))!;
         var contextData = new Dictionary<string, object?>();
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -768,12 +801,13 @@ public class ResolverCompilerTests
     public async Task Compile_GetGlobalState_With_Default_Abc()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetGlobalStateWithDefaultAbc))!;
         var contextData = new Dictionary<string, object?>();
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -788,12 +822,13 @@ public class ResolverCompilerTests
     public async Task Compile_GetGlobalState_With_Default()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetGlobalStateWithDefault))!;
         var contextData = new Dictionary<string, object?>();
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -808,12 +843,13 @@ public class ResolverCompilerTests
     public async Task Compile_GetGlobalState_Nullable()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetGlobalStateNullable))!;
         var contextData = new Dictionary<string, object?>();
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -828,12 +864,13 @@ public class ResolverCompilerTests
     public async Task Compile_SetGlobalState()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.SetGlobalState))!;
         var contextData = new Dictionary<string, object?>();
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -850,13 +887,14 @@ public class ResolverCompilerTests
     public async Task Compile_SetGlobalState_Generic()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.SetGlobalStateGeneric))!;
 
         var contextData = new Dictionary<string, object?>();
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -873,13 +911,14 @@ public class ResolverCompilerTests
     public async Task Compile_GetScopedState_With_Key()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetScopedStateWithKey))!;
         var contextData = new Dictionary<string, object?> { { "foo", "bar" } }
             .ToImmutableDictionary();
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -894,6 +933,7 @@ public class ResolverCompilerTests
     public async Task Compile_GetScopedState()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetScopedState))!;
 
@@ -901,7 +941,7 @@ public class ResolverCompilerTests
             .ToImmutableDictionary();
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -916,13 +956,14 @@ public class ResolverCompilerTests
     public async Task Compile_GetScopedState_State_Does_Not_Exist()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetScopedState))!;
         var contextData =
             ImmutableDictionary<string, object?>.Empty;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -937,6 +978,7 @@ public class ResolverCompilerTests
     public async Task Compile_GetScopedState_With_Default_Abc()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetScopedStateWithDefaultAbc))!;
 
@@ -944,7 +986,7 @@ public class ResolverCompilerTests
             ImmutableDictionary<string, object?>.Empty;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -959,6 +1001,7 @@ public class ResolverCompilerTests
     public async Task Compile_GetScopedState_With_Default()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetScopedStateWithDefault))!;
 
@@ -966,7 +1009,7 @@ public class ResolverCompilerTests
             ImmutableDictionary<string, object?>.Empty;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -981,6 +1024,7 @@ public class ResolverCompilerTests
     public async Task Compile_GetScopedState_Nullable()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetScopedStateNullable))!;
 
@@ -988,7 +1032,7 @@ public class ResolverCompilerTests
             ImmutableDictionary<string, object?>.Empty;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -1003,6 +1047,7 @@ public class ResolverCompilerTests
     public async Task Compile_SetScopedState()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.SetScopedState))!;
 
@@ -1010,7 +1055,7 @@ public class ResolverCompilerTests
             ImmutableDictionary<string, object?>.Empty;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -1029,6 +1074,7 @@ public class ResolverCompilerTests
     public async Task Compile_SetScopedState_Generic()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.SetScopedStateGeneric))!;
 
@@ -1036,7 +1082,7 @@ public class ResolverCompilerTests
             ImmutableDictionary<string, object?>.Empty;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -1055,13 +1101,14 @@ public class ResolverCompilerTests
     public async Task Compile_GetLocalState_With_Key()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetLocalStateWithKey))!;
         var contextData = new Dictionary<string, object?> { { "foo", "bar" } }
             .ToImmutableDictionary();
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -1076,13 +1123,14 @@ public class ResolverCompilerTests
     public async Task Compile_GetLocalState()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetLocalState))!;
         var contextData = new Dictionary<string, object?> { { "foo", "bar" } }
             .ToImmutableDictionary();
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -1097,13 +1145,14 @@ public class ResolverCompilerTests
     public async Task Compile_GetLocalState_State_Does_Not_Exist()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetLocalState))!;
         var contextData =
             ImmutableDictionary<string, object?>.Empty;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -1118,13 +1167,14 @@ public class ResolverCompilerTests
     public async Task Compile_GetLocalState_With_Default_Abc()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetLocalStateWithDefaultAbc))!;
         var contextData =
             ImmutableDictionary<string, object?>.Empty;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -1139,13 +1189,14 @@ public class ResolverCompilerTests
     public async Task Compile_GetLocalState_With_Default()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetLocalStateWithDefault))!;
         var contextData =
             ImmutableDictionary<string, object?>.Empty;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -1160,6 +1211,7 @@ public class ResolverCompilerTests
     public async Task Compile_SetLocalState()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.SetLocalState))!;
 
@@ -1167,7 +1219,7 @@ public class ResolverCompilerTests
             ImmutableDictionary<string, object?>.Empty;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -1186,6 +1238,7 @@ public class ResolverCompilerTests
     public async Task Compile_SetLocalState_Generic()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.SetLocalStateGeneric))!;
 
@@ -1193,7 +1246,7 @@ public class ResolverCompilerTests
             ImmutableDictionary<string, object?>.Empty;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -1212,6 +1265,7 @@ public class ResolverCompilerTests
     public async Task Compile_GetClaimsPrincipal()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetClaimsPrincipal))!;
 
@@ -1221,7 +1275,7 @@ public class ResolverCompilerTests
         };
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -1236,13 +1290,14 @@ public class ResolverCompilerTests
     public async Task Compile_GetClaimsPrincipal_ClaimsNotExists()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetClaimsPrincipal))!;
 
         var contextData = new Dictionary<string, object?>();
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -1258,13 +1313,14 @@ public class ResolverCompilerTests
     public async Task Compile_GetNullableClaimsPrincipal_ClaimsNotExists()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetNullableClaimsPrincipal))!;
 
         var contextData = new Dictionary<string, object?>();
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
@@ -1280,11 +1336,12 @@ public class ResolverCompilerTests
     public async Task Compile_Arguments_Path()
     {
         // arrange
+        var typeInspector = new DefaultTypeInspector();
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetPath))!;
 
         // act
-        var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
+        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert

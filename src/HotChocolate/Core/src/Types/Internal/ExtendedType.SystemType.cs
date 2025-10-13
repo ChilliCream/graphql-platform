@@ -1,6 +1,6 @@
 namespace HotChocolate.Internal;
 
-internal sealed partial class ExtendedType
+public sealed partial class ExtendedType
 {
     private static class SystemType
     {

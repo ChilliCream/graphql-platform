@@ -3,8 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class InputObjectTypeTests : TypeTestBase
@@ -614,7 +612,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task AnnotationBased_DepreactedInputTypes_NullableFields_Valid()
+    public async Task AnnotationBased_DeprecatedInputTypes_NullableFields_Valid()
     {
         // arrange
         // act
@@ -629,7 +627,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task AnnotationBased_DepreactedInputTypes_NonNullableField_Invalid()
+    public async Task AnnotationBased_DeprecatedInputTypes_NonNullableField_Invalid()
     {
         // arrange
         // act
@@ -645,7 +643,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task CodeFirst_DepreactedInputTypes_NullableFields_Valid()
+    public async Task CodeFirst_DeprecatedInputTypes_NullableFields_Valid()
     {
         // arrange
         // act
@@ -660,7 +658,7 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task CodeFirst_DepreactedInputTypes_NonNullableField_Invalid()
+    public async Task CodeFirst_DeprecatedInputTypes_NonNullableField_Invalid()
     {
         // arrange
         // act
@@ -680,18 +678,19 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task SchemaFirst_DepreactedInputTypes_NullableFields_Valid()
+    public async Task SchemaFirst_DeprecatedInputTypes_NullableFields_Valid()
     {
         // arrange
         // act
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
-            .AddDocumentFromString(@"
-                    input Foo {
-                        bar: String @deprecated(reason: ""reason"")
-                    }
-                ")
+            .AddDocumentFromString(
+                """
+                input Foo {
+                    bar: String @deprecated(reason: "reason")
+                }
+                """)
             .BuildSchemaAsync();
 
         // assert
@@ -699,18 +698,19 @@ public class InputObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task SchemaFirst_DepreactedInputTypes_NonNullableField_Invalid()
+    public async Task SchemaFirst_DeprecatedInputTypes_NonNullableField_Invalid()
     {
         // arrange
         // act
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
-            .AddDocumentFromString(@"
-                    input Foo {
-                        bar: String! @deprecated(reason: ""reason"")
-                    }
-                ")
+            .AddDocumentFromString(
+                """
+                input Foo {
+                    bar: String! @deprecated(reason: "reason")
+                }
+                """)
             .BuildSchemaAsync();
 
         // assert
@@ -794,7 +794,7 @@ public class InputObjectTypeTests : TypeTestBase
 
     public interface IDoesNotWork
     {
-        public double? Member { get; set; }
+        double? Member { get; set; }
     }
 
     public class SimpleInput

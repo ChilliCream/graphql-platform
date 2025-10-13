@@ -13,11 +13,13 @@
 
   <ItemGroup>
     <Using Include="CookieCrumble" />
+    <Using Include="CookieCrumble.HotChocolate" />
     <Using Include="CookieCrumble.Xunit3" />
     <Using Include="Xunit" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate\CookieCrumble.HotChocolate.csproj" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Xunit3\CookieCrumble.Xunit3.csproj" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate.Language\CookieCrumble.HotChocolate.Language.csproj" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Analyzers\CookieCrumble.Analyzers.csproj" OutputItemType="Analyzer" />

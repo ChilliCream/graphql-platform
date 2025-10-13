@@ -1,0 +1,168 @@
+title: Subgraph_Containing_More_Selections_Is_Chosen
+request:
+  document: |
+    {
+      productBySlug {
+        author {
+          name
+          rating
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productBySlug": {
+          "author": {
+            "name": "Author: QXV0aG9yOjE=",
+            "rating": 123
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: ID!
+      }
+      
+      type Query {
+        productBySlug: Product
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_40bd37df_1 {
+              productBySlug {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productBySlug": {
+                    "id": "UHJvZHVjdDox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        name: String!
+      }
+      
+      type Product {
+        id: ID!
+        author: Author
+      }
+      
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        name: String!
+        rating: Int!
+      }
+      
+      type Product {
+        id: ID!
+        author: Author
+      }
+      
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_40bd37df_2(
+              $__fusion_1_id: ID!
+            ) {
+              productById(id: $__fusion_1_id) {
+                author {
+                  name
+                  rating
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "UHJvZHVjdDox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "author": {
+                      "name": "Author: QXV0aG9yOjE=",
+                      "rating": 123
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          productBySlug {
+            author {
+              name
+              rating
+            }
+            id @fusion__requirement
+          }
+        }
+      hash: 40bd37dfc9c3a0f05e5aebe75b3d61e4
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_40bd37df_1 {
+          productBySlug {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: C
+      operation: |
+        query Op_40bd37df_2(
+          $__fusion_1_id: ID!
+        ) {
+          productById(id: $__fusion_1_id) {
+            author {
+              name
+              rating
+            }
+          }
+        }
+      source: $.productById
+      target: $.productBySlug
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

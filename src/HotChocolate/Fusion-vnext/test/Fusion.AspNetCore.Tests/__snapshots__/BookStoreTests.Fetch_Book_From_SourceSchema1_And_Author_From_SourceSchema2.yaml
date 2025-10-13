@@ -1,0 +1,222 @@
+title: Fetch_Book_From_SourceSchema1_And_Author_From_SourceSchema2
+request:
+  document: |
+    {
+      bookById(id: 1) {
+        title
+        author {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "bookById": {
+          "title": "C# in Depth",
+          "author": {
+            "name": "Jon Skeet"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        id: Int!
+      }
+      
+      type Book {
+        id: Int!
+        title: String!
+        author: Author!
+      }
+      
+      "A connection to a list of items."
+      type BooksConnection {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [BooksEdge!]
+        "A flattened list of the nodes."
+        nodes: [Book!]
+      }
+      
+      "An edge in a connection."
+      type BooksEdge {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: Book!
+      }
+      
+      "Information about pagination in a connection."
+      type PageInfo {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+      
+      type Query {
+        bookById(id: Int!): Book! @lookup
+        books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
+        formatTitle(title: String!): String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_b15d3abc_1 {
+              bookById(id: 1) {
+                title
+                author {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "title": "C# in Depth",
+                    "author": {
+                      "id": 1
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        books: [Book!]!
+        id: Int!
+        name: String!
+      }
+      
+      "A connection to a list of items."
+      type AuthorsConnection {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [AuthorsEdge!]
+        "A flattened list of the nodes."
+        nodes: [Author!]
+      }
+      
+      "An edge in a connection."
+      type AuthorsEdge {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: Author!
+      }
+      
+      type Book {
+        idAndTitle(title: String! @require(field: "title")): String!
+        id: Int!
+        author: Author!
+      }
+      
+      "Information about pagination in a connection."
+      type PageInfo {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+      
+      type Query {
+        bookById(id: Int!): Book! @internal @lookup
+        authorById(id: Int!): Author! @internal @lookup
+        authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_b15d3abc_2(
+              $__fusion_1_id: Int!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                name
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Jon Skeet"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          bookById(id: 1) {
+            title
+            author {
+              name
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: b15d3abcfc052f2e05a146d4d7097160
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_b15d3abc_1 {
+          bookById(id: 1) {
+            title
+            author {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_b15d3abc_2(
+          $__fusion_1_id: Int!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            name
+          }
+        }
+      source: $.authorById
+      target: $.bookById.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

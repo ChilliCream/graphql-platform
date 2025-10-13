@@ -21,7 +21,7 @@ public sealed class DefaultHttpRequestParserTests
             }
             """;
 
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
         // act
         var parser = new DefaultHttpRequestParser(

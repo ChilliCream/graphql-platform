@@ -1,0 +1,276 @@
+title: Union_List_Concrete_Type_Selections_Have_Dependency_To_Same_Subgraph
+request:
+  document: |
+    query testQuery {
+      posts {
+        ... on Photo {
+          product {
+            subgraph2
+          }
+        }
+        ... on Discussion {
+          author {
+            subgraph2
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "posts": [
+          {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDo2"
+            }
+          },
+          {
+            "author": {
+              "subgraph2": "Author: QXV0aG9yOjU="
+            }
+          },
+          {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDo0"
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        id: ID!
+      }
+      
+      type Discussion {
+        id: ID!
+        author: Author
+      }
+      
+      type Photo {
+        id: ID!
+        product: Product
+      }
+      
+      type Product {
+        id: ID!
+      }
+      
+      type Query {
+        posts: [Post]
+      }
+      
+      union Post = Photo | Discussion
+    interactions:
+      - request:
+          document: |
+            query testQuery_5f4670e8_1 {
+              posts {
+                __typename
+                ... on Photo {
+                  product {
+                    id
+                  }
+                }
+                ... on Discussion {
+                  author {
+                    id
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "posts": [
+                    {
+                      "__typename": "Photo",
+                      "product": {
+                        "id": "UHJvZHVjdDo2"
+                      }
+                    },
+                    {
+                      "__typename": "Discussion",
+                      "author": {
+                        "id": "QXV0aG9yOjU="
+                      }
+                    },
+                    {
+                      "__typename": "Photo",
+                      "product": {
+                        "id": "UHJvZHVjdDo0"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Author {
+        id: ID!
+        subgraph2: String!
+      }
+      
+      type Product {
+        id: ID!
+        subgraph2: String!
+      }
+      
+      type Query {
+        productById(id: ID!): Product @lookup
+        authorById(id: ID!): Author @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_5f4670e8_2(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "QXV0aG9yOjU="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "subgraph2": "Author: QXV0aG9yOjU="
+                  }
+                }
+              }
+      - request:
+          document: |
+            query testQuery_5f4670e8_3(
+              $__fusion_2_id: ID!
+            ) {
+              productById(id: $__fusion_2_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDo2"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDo0"
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDo2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDo0"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          posts {
+            __typename @fusion__requirement
+            ... on Photo {
+              product {
+                subgraph2
+                id @fusion__requirement
+              }
+            }
+            ... on Discussion {
+              author {
+                subgraph2
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 5f4670e8910662aebec5f35dcb7ea523
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_5f4670e8_1 {
+          posts {
+            __typename
+            ... on Photo {
+              product {
+                id
+              }
+            }
+            ... on Discussion {
+              author {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_5f4670e8_2(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            subgraph2
+          }
+        }
+      source: $.authorById
+      target: $.posts<Discussion>.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_5f4670e8_3(
+          $__fusion_2_id: ID!
+        ) {
+          productById(id: $__fusion_2_id) {
+            subgraph2
+          }
+        }
+      source: $.productById
+      target: $.posts<Photo>.product
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

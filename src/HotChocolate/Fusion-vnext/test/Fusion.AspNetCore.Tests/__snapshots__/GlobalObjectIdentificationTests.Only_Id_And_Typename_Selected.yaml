@@ -1,0 +1,86 @@
+title: Only_Id_And_Typename_Selected
+request:
+  document: |
+    {
+      node(id: "RGlzY3Vzc2lvbjox") {
+        id
+        __typename
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "id": "RGlzY3Vzc2lvbjox",
+          "__typename": "Discussion"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Discussion implements Node {
+        id: ID!
+        title: String!
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_e41649ee_2 {
+              node(id: "RGlzY3Vzc2lvbjox") {
+                id
+                __typename
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "id": "RGlzY3Vzc2lvbjox",
+                    "__typename": "Discussion"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            id
+            __typename
+          }
+        }
+      hash: e41649ee31cd981b466ba95313d9c143
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "RGlzY3Vzc2lvbjox"
+      responseName: node
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query Op_e41649ee_2 {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            id
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1

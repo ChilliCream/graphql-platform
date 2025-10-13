@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Text.Json;
+using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -34,7 +35,7 @@ public sealed class SourceSchemaErrors
     /// <exception cref="InvalidOperationException">
     /// Thrown when an error path contains unsupported element types (only strings and integer are supported).
     /// </exception>
-    public static SourceSchemaErrors? From(JsonElement json)
+    public static SourceSchemaErrors? From(SourceResultElement json)
     {
         if (json.ValueKind != JsonValueKind.Array)
         {
@@ -100,7 +101,7 @@ public sealed class SourceSchemaErrors
         return new SourceSchemaErrors { RootErrors = rootErrors?.ToImmutableArray() ?? [], Trie = root };
     }
 
-    private static IError? CreateError(JsonElement jsonError)
+    private static IError? CreateError(SourceResultElement jsonError)
     {
         if (jsonError.ValueKind is not JsonValueKind.Object)
         {
@@ -139,13 +140,13 @@ public sealed class SourceSchemaErrors
         return null;
     }
 
-    private static Path CreatePathFromJson(JsonElement errorSubPath)
+    private static Path CreatePathFromJson(SourceResultElement errorSubPath)
     {
         var path = Path.Root;
 
-        for (var i = 0; i < errorSubPath.GetArrayLength(); i++)
+        foreach (var item in errorSubPath.EnumerateArray())
         {
-            path = errorSubPath[i] switch
+            path = item switch
             {
                 { ValueKind: JsonValueKind.String } nameElement => path.Append(nameElement.GetString()!),
                 { ValueKind: JsonValueKind.Number } indexElement => path.Append(indexElement.GetInt32()),

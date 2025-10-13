@@ -1,0 +1,155 @@
+title: Resolve_Sequence_Second_Service_Offline_SubField_Nullable_Parent_Nullable
+request:
+  document: |
+    {
+      product {
+        id
+        brand {
+          id
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "product": {
+          "id": "UHJvZHVjdDox",
+          "brand": {
+            "id": "QnJhbmQ6Mg==",
+            "name": null
+          }
+        }
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "product",
+            "brand",
+            "name"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Brand {
+        id: ID!
+      }
+      
+      type Product {
+        id: ID!
+        brand: Brand
+      }
+      
+      type Query {
+        product: Product
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_e358ecef_1 {
+              product {
+                id
+                brand {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "id": "UHJvZHVjdDox",
+                    "brand": {
+                      "id": "QnJhbmQ6Mg=="
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Brand {
+        id: ID!
+        name: String
+      }
+      
+      type Query {
+        brandById(id: ID!): Brand @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_e358ecef_2(
+              $__fusion_1_id: ID!
+            ) {
+              brandById(id: $__fusion_1_id) {
+                name
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "QnJhbmQ6Mg=="
+            }
+        response:
+          statusCode: 500
+operationPlan:
+  operation:
+    - document: |
+        {
+          product {
+            id
+            brand {
+              id
+              id @fusion__requirement
+              name
+            }
+          }
+        }
+      hash: e358ecef0b90dbe58021a2df1c597e63
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_e358ecef_1 {
+          product {
+            id
+            brand {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_e358ecef_2(
+          $__fusion_1_id: ID!
+        ) {
+          brandById(id: $__fusion_1_id) {
+            name
+          }
+        }
+      source: $.brandById
+      target: $.product.brand
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

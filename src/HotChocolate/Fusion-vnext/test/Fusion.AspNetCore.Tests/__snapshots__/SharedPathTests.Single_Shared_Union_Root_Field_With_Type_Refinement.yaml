@@ -1,0 +1,204 @@
+title: Single_Shared_Union_Root_Field_With_Type_Refinement
+request:
+  document: |
+    {
+      union {
+        ... on Review {
+          schema1
+          schema2
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "union": {
+          "schema1": "schema1",
+          "schema2": "schema2"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface IInterface {
+        id: Int!
+      }
+      
+      type Product implements IInterface {
+        id: Int!
+        schema1: String!
+        shared: SharedProduct
+      }
+      
+      type Query {
+        productById(id: Int!): Product @lookup
+        viewer: Viewer!
+        schema1: String!
+        interface: IInterface!
+        unsharedInterface: IInterface!
+        union: IUnion!
+        topReview: Review!
+      }
+      
+      type Review implements IInterface {
+        id: Int!
+        schema1: String!
+      }
+      
+      type SharedProduct {
+        schema1: String!
+        shared2: SharedProduct2
+      }
+      
+      type SharedProduct2 {
+        schema1: String!
+      }
+      
+      type Viewer {
+        schema1: String!
+        settings: ViewerSettings!
+      }
+      
+      type ViewerSettings {
+        schema1: String!
+      }
+      
+      union IUnion = Product | Review
+    interactions:
+      - request:
+          document: |
+            query Op_55b9106f_1 {
+              union {
+                __typename
+                ... on Review {
+                  schema1
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "union": {
+                    "__typename": "Review",
+                    "schema1": "schema1"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface IInterface {
+        id: Int!
+      }
+      
+      type Product implements IInterface {
+        id: Int!
+        schema2: String!
+        shared: SharedProduct
+      }
+      
+      type Query {
+        product(id: Int!): Product @lookup
+        viewer: Viewer!
+        schema2: String!
+        interface: IInterface!
+        union: IUnion!
+        topReview: Review!
+      }
+      
+      type Review implements IInterface {
+        id: Int!
+        schema2: String!
+      }
+      
+      type SharedProduct {
+        schema2: String!
+        shared2: SharedProduct2
+      }
+      
+      type SharedProduct2 {
+        schema2: String!
+      }
+      
+      type Viewer {
+        schema2: String!
+        settings: ViewerSettings!
+      }
+      
+      type ViewerSettings {
+        schema2: String!
+      }
+      
+      union IUnion = Product | Review
+    interactions:
+      - request:
+          document: |
+            query Op_55b9106f_2 {
+              union {
+                __typename
+                ... on Review {
+                  schema2
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "union": {
+                    "__typename": "Review",
+                    "schema2": "schema2"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          union {
+            __typename @fusion__requirement
+            ... on Review {
+              schema1
+              schema2
+            }
+          }
+        }
+      hash: 55b9106f0dc9ff30e58f924088ee5f0d
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_55b9106f_1 {
+          union {
+            __typename
+            ... on Review {
+              schema1
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_55b9106f_2 {
+          union {
+            __typename
+            ... on Review {
+              schema2
+            }
+          }
+        }

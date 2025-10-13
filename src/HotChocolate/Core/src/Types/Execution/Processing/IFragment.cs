@@ -11,7 +11,7 @@ public interface IFragment : IOptionalSelection
     /// <summary>
     /// Gets the internal fragment identifier.
     /// </summary>
-    public int Id { get; }
+    int Id { get; }
 
     /// <summary>
     /// Gets the type condition.

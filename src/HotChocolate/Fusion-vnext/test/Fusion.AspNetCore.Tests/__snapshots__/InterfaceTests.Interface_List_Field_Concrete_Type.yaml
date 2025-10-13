@@ -1,0 +1,119 @@
+title: Interface_List_Field_Concrete_Type
+request:
+  document: |
+    query testQuery {
+      votables {
+        viewerCanVote
+        ... on Discussion {
+          title
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "votables": [
+          {
+            "viewerCanVote": true,
+            "title": "Discussion: RGlzY3Vzc2lvbjox"
+          },
+          {
+            "viewerCanVote": true
+          },
+          {
+            "viewerCanVote": true,
+            "title": "Discussion: RGlzY3Vzc2lvbjoz"
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Votable {
+        viewerCanVote: Boolean!
+      }
+      
+      type Comment implements Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+      
+      type Discussion implements Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+        title: String!
+      }
+      
+      type Query {
+        votables: [Votable]
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_00fdde4e_1 {
+              votables {
+                __typename
+                viewerCanVote
+                ... on Discussion {
+                  title
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "votables": [
+                    {
+                      "__typename": "Discussion",
+                      "viewerCanVote": true,
+                      "title": "Discussion: RGlzY3Vzc2lvbjox"
+                    },
+                    {
+                      "__typename": "Comment",
+                      "viewerCanVote": true
+                    },
+                    {
+                      "__typename": "Discussion",
+                      "viewerCanVote": true,
+                      "title": "Discussion: RGlzY3Vzc2lvbjoz"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          votables {
+            __typename @fusion__requirement
+            viewerCanVote
+            ... on Discussion {
+              title
+            }
+          }
+        }
+      name: testQuery
+      hash: 00fdde4e326e6921b2781d072a80cb83
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_00fdde4e_1 {
+          votables {
+            __typename
+            viewerCanVote
+            ... on Discussion {
+              title
+            }
+          }
+        }

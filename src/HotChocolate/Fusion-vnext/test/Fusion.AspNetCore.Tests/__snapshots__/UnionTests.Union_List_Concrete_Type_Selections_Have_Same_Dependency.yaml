@@ -1,0 +1,266 @@
+title: Union_List_Concrete_Type_Selections_Have_Same_Dependency
+request:
+  document: |
+    query testQuery {
+      posts {
+        ... on Photo {
+          product {
+            subgraph2
+          }
+        }
+        ... on Discussion {
+          product {
+            subgraph2
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "posts": [
+          {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDo2"
+            }
+          },
+          {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDo1"
+            }
+          },
+          {
+            "product": {
+              "subgraph2": "Product: UHJvZHVjdDo0"
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Discussion {
+        id: ID!
+        product: Product
+      }
+      
+      type Photo {
+        id: ID!
+        product: Product
+      }
+      
+      type Product {
+        id: ID!
+      }
+      
+      type Query {
+        posts: [Post]
+      }
+      
+      union Post = Photo | Discussion
+    interactions:
+      - request:
+          document: |
+            query testQuery_9b3b2942_1 {
+              posts {
+                __typename
+                ... on Photo {
+                  product {
+                    id
+                  }
+                }
+                ... on Discussion {
+                  product {
+                    id
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "posts": [
+                    {
+                      "__typename": "Photo",
+                      "product": {
+                        "id": "UHJvZHVjdDo2"
+                      }
+                    },
+                    {
+                      "__typename": "Discussion",
+                      "product": {
+                        "id": "UHJvZHVjdDo1"
+                      }
+                    },
+                    {
+                      "__typename": "Photo",
+                      "product": {
+                        "id": "UHJvZHVjdDo0"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: ID!
+        subgraph2: String!
+      }
+      
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_9b3b2942_2(
+              $__fusion_1_id: ID!
+            ) {
+              productById(id: $__fusion_1_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "UHJvZHVjdDo1"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDo1"
+                  }
+                }
+              }
+      - request:
+          document: |
+            query testQuery_9b3b2942_3(
+              $__fusion_2_id: ID!
+            ) {
+              productById(id: $__fusion_2_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDo2"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDo0"
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDo2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDo0"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          posts {
+            __typename @fusion__requirement
+            ... on Photo {
+              product {
+                subgraph2
+                id @fusion__requirement
+              }
+            }
+            ... on Discussion {
+              product {
+                subgraph2
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 9b3b2942c1fefa10ff166b89f628b2b4
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_9b3b2942_1 {
+          posts {
+            __typename
+            ... on Photo {
+              product {
+                id
+              }
+            }
+            ... on Discussion {
+              product {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_9b3b2942_2(
+          $__fusion_1_id: ID!
+        ) {
+          productById(id: $__fusion_1_id) {
+            subgraph2
+          }
+        }
+      source: $.productById
+      target: $.posts<Discussion>.product
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_9b3b2942_3(
+          $__fusion_2_id: ID!
+        ) {
+          productById(id: $__fusion_2_id) {
+            subgraph2
+          }
+        }
+      source: $.productById
+      target: $.posts<Photo>.product
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

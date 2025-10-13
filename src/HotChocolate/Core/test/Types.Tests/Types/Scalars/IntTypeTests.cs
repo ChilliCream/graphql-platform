@@ -53,7 +53,7 @@ public class IntTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.IsInstanceOfType(null));
+            () => type.IsInstanceOfType(null!));
     }
 
     [Fact]
@@ -160,7 +160,7 @@ public class IntTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.ParseLiteral(null));
+            () => type.ParseLiteral(null!));
     }
 
     [Fact]
@@ -237,7 +237,7 @@ public class IntTypeTests
     {
         // arrange
         var type = new IntType();
-        object input = null;
+        object input = null!;
 
         // act
         object output = type.ParseValue(input);

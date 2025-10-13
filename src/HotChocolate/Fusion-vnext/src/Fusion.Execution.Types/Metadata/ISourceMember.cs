@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Types.Metadata;
 /// <remarks>
 /// In a federated GraphQL setup, a single composite type system member (type, field, directive, etc.)
 /// may be present in multiple source schemas, potentially with different characteristics in each.
-/// The source member metadata capture the  source-specific properties and metadata for how the composite
+/// The source member metadata capture the source-specific properties and metadata for how the composite
 /// member is defined in one particular source schema, enabling proper query planning and execution.
 /// </remarks>
 public interface ISourceMember

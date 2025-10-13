@@ -1,0 +1,235 @@
+title: Shared_Parent_Field_Below_Type_With_Lookup_With_Type_Refinement
+request:
+  document: |
+    {
+      unsharedInterface {
+        ... on Product {
+          shared {
+            schema1
+            schema2
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "unsharedInterface": {
+          "shared": {
+            "schema1": "schema1",
+            "schema2": "schema2"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface IInterface {
+        id: Int!
+      }
+      
+      type Product implements IInterface {
+        id: Int!
+        schema1: String!
+        shared: SharedProduct
+      }
+      
+      type Query {
+        productById(id: Int!): Product @lookup
+        viewer: Viewer!
+        schema1: String!
+        interface: IInterface!
+        unsharedInterface: IInterface!
+        union: IUnion!
+        topReview: Review!
+      }
+      
+      type Review implements IInterface {
+        id: Int!
+        schema1: String!
+      }
+      
+      type SharedProduct {
+        schema1: String!
+        shared2: SharedProduct2
+      }
+      
+      type SharedProduct2 {
+        schema1: String!
+      }
+      
+      type Viewer {
+        schema1: String!
+        settings: ViewerSettings!
+      }
+      
+      type ViewerSettings {
+        schema1: String!
+      }
+      
+      union IUnion = Product | Review
+    interactions:
+      - request:
+          document: |
+            query Op_c8e1a8bf_1 {
+              unsharedInterface {
+                __typename
+                ... on Product {
+                  shared {
+                    schema1
+                  }
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "unsharedInterface": {
+                    "__typename": "Product",
+                    "shared": {
+                      "schema1": "schema1"
+                    },
+                    "id": 2
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface IInterface {
+        id: Int!
+      }
+      
+      type Product implements IInterface {
+        id: Int!
+        schema2: String!
+        shared: SharedProduct
+      }
+      
+      type Query {
+        product(id: Int!): Product @lookup
+        viewer: Viewer!
+        schema2: String!
+        interface: IInterface!
+        union: IUnion!
+        topReview: Review!
+      }
+      
+      type Review implements IInterface {
+        id: Int!
+        schema2: String!
+      }
+      
+      type SharedProduct {
+        schema2: String!
+        shared2: SharedProduct2
+      }
+      
+      type SharedProduct2 {
+        schema2: String!
+      }
+      
+      type Viewer {
+        schema2: String!
+        settings: ViewerSettings!
+      }
+      
+      type ViewerSettings {
+        schema2: String!
+      }
+      
+      union IUnion = Product | Review
+    interactions:
+      - request:
+          document: |
+            query Op_c8e1a8bf_2(
+              $__fusion_1_id: Int!
+            ) {
+              product(id: $__fusion_1_id) {
+                shared {
+                  schema2
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 2
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "shared": {
+                      "schema2": "schema2"
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          unsharedInterface {
+            __typename @fusion__requirement
+            ... on Product {
+              shared {
+                schema1
+                schema2
+              }
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: c8e1a8bf80f58ee07e449b1d627a32e5
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_c8e1a8bf_1 {
+          unsharedInterface {
+            __typename
+            ... on Product {
+              shared {
+                schema1
+              }
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_c8e1a8bf_2(
+          $__fusion_1_id: Int!
+        ) {
+          product(id: $__fusion_1_id) {
+            shared {
+              schema2
+            }
+          }
+        }
+      source: $.product
+      target: $.unsharedInterface<Product>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
