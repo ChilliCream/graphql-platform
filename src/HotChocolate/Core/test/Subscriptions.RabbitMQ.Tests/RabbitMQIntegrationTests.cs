@@ -1,16 +1,17 @@
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
+using Squadron;
 using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.RabbitMQ;
 
-public class RabbitMQIntegrationTests : SubscriptionIntegrationTestBase, IClassFixture<RMQFixture>
+public class RabbitMQIntegrationTests : SubscriptionIntegrationTestBase, IClassFixture<RabbitMQResource>
 {
-    private readonly RMQFixture _rmqFixture;
+    private readonly RabbitMQResource _rabbitMQResource;
 
-    public RabbitMQIntegrationTests(RMQFixture rmqFixture, ITestOutputHelper output) : base(output)
+    public RabbitMQIntegrationTests(RabbitMQResource rabbitMQResource, ITestOutputHelper output) : base(output)
     {
-        _rmqFixture = rmqFixture;
+        _rabbitMQResource = rabbitMQResource;
     }
 
     [Fact]
@@ -53,7 +54,8 @@ public class RabbitMQIntegrationTests : SubscriptionIntegrationTestBase, IClassF
         // register subscription provider
         graphqlBuilder.AddRabbitMQSubscriptions(new()
         {
-            Uri = new(_rmqFixture.Container!.GetConnectionString())
+            HostName = _rabbitMQResource.Instance.Address,
+            Port = _rabbitMQResource.Instance.HostPort
         });
     }
 }

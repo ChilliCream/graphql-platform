@@ -58,6 +58,7 @@
     <PackageVersion Include="Squadron.Mongo" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.Nats" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.PostgreSql" Version="0.25.0-preview.2" />
+    <PackageVersion Include="Squadron.RabbitMQ" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.RavenDB" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.Redis" Version="0.25.0-preview.2" />
     <PackageVersion Include="StackExchange.Redis" Version="2.6.80" />
@@ -66,8 +67,7 @@
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.13.1" />
     <PackageVersion Include="System.Linq.Async" Version="6.0.3" />
     <PackageVersion Include="System.Reactive" Version="6.0.0" />
-    <PackageVersion Include="Testcontainers" Version="4.7.0" />
-    <PackageVersion Include="Testcontainers.RabbitMq" Version="4.7.0" />
+    <PackageVersion Include="Testcontainers" Version="4.6.0" />
     <PackageVersion Include="TUnit" Version="0.25.21" />
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.core" Version="2.9.3" />

@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging" />
-    <PackageReference Include="Testcontainers.RabbitMq" />
+    <PackageReference Include="Squadron.RabbitMQ" />
   </ItemGroup>
 
 </Project>
