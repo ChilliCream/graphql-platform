@@ -505,6 +505,7 @@ public static class SchemaParser
         InputObjectTypeDefinitionNode node)
     {
         type.Description = node.Description?.Value;
+        type.IsOneOf = node.Directives.Any(d => d.Name.Value == BuiltIns.OneOf.Name);
         ExtendInputObjectType(schema, type, node);
     }
 

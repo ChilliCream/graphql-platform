@@ -49,39 +49,38 @@ internal sealed class NodeFieldSelectionSetPartitioner(FusionSchemaDefinition sc
         {
             switch (selection)
             {
-                case FieldNode fieldNode when schema.QueryType.Fields.TryGetField(fieldNode.Name.Value, out var field)
-                    && field is { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } }:
-                    var directives = new List<DirectiveNode>(fieldNode.Directives);
-                    foreach (var fragment in context.FragmentPath)
+                case FieldNode fieldNode:
+                    var field = schema.QueryType.Fields[fieldNode.Name.Value];
+
+                    if (field.IsIntrospectionField)
                     {
-                        directives.AddRange(fragment.Directives);
+                        continue;
                     }
 
-                    context.NodeFields ??= [];
-                    context.NodeFields.Add(fieldNode.WithDirectives(directives));
-                    break;
+                    if (field is { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } })
+                    {
+                        var nodeField = new NodeField { Field = fieldNode, ParentFragments = context.FragmentPath?.ToArray() };
 
-                case FieldNode:
-                    selections ??= [];
-                    selections.Add(selection);
+                        context.NodeFields ??= [];
+                        context.NodeFields.Add(nodeField);
+                    }
+                    else
+                    {
+                        selections ??= [];
+                        selections.Add(selection);
+                    }
+
                     break;
 
                 case InlineFragmentNode inlineFragmentNode:
-                    var hasDirectives = inlineFragmentNode.Directives.Any();
-
-                    if (hasDirectives)
-                    {
-                        context.FragmentPath.Push(inlineFragmentNode);
-                    }
+                    context.FragmentPath ??= [];
+                    context.FragmentPath.Push(inlineFragmentNode);
 
                     var fragmentSelectionSet = RewriteSelectionSet(
                         inlineFragmentNode.SelectionSet,
                         context);
 
-                    if (hasDirectives)
-                    {
-                        context.FragmentPath.Pop();
-                    }
+                    context.FragmentPath?.Pop();
 
                     if (fragmentSelectionSet is not null)
                     {
@@ -103,13 +102,8 @@ internal sealed class NodeFieldSelectionSetPartitioner(FusionSchemaDefinition sc
 
     private class Context
     {
-        /// <summary>
-        /// Gets the fragment path.
-        /// This is pushed to whenever we enter an inline fragment with directives,
-        /// in order to preserve those.
-        /// </summary>
-        public List<InlineFragmentNode> FragmentPath { get; } = [];
+        public List<NodeField>? NodeFields { get; set; }
 
-        public List<FieldNode>? NodeFields { get; set; }
+        public Stack<InlineFragmentNode>? FragmentPath { get; set; }
     }
 }

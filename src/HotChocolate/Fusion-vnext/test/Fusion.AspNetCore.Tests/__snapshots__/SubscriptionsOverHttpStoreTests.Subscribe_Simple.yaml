@@ -42,15 +42,15 @@ sourceSchemas:
         query: Query
         subscription: Subscription
       }
-      
+
       type Book @key(fields: "id") {
         id: Int!
       }
-      
+
       type Query {
         foo: String!
       }
-      
+
       type Subscription {
         onBookCreated: Book!
       }
@@ -93,12 +93,12 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Book {
         id: Int!
         title: String!
       }
-      
+
       type Query {
         bookById(id: Int!): Book! @internal @lookup
       }

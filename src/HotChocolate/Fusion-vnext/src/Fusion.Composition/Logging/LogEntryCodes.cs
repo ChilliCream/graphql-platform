@@ -2,6 +2,7 @@ namespace HotChocolate.Fusion.Logging;
 
 public static class LogEntryCodes
 {
+    public const string ConflictingSourceSchemaName = "CONFLICTING_SOURCE_SCHEMA_NAME";
     public const string DisallowedInaccessible = "DISALLOWED_INACCESSIBLE";
     public const string EmptyMergedEnumType = "EMPTY_MERGED_ENUM_TYPE";
     public const string EmptyMergedInputObjectType = "EMPTY_MERGED_INPUT_OBJECT_TYPE";
@@ -13,6 +14,9 @@ public static class LogEntryCodes
     public const string ExternalArgumentDefaultMismatch = "EXTERNAL_ARGUMENT_DEFAULT_MISMATCH";
     public const string ExternalMissingOnBase = "EXTERNAL_MISSING_ON_BASE";
     public const string ExternalOnInterface = "EXTERNAL_ON_INTERFACE";
+    public const string ExternalOverrideCollision = "EXTERNAL_OVERRIDE_COLLISION";
+    public const string ExternalProvidesCollision = "EXTERNAL_PROVIDES_COLLISION";
+    public const string ExternalRequireCollision = "EXTERNAL_REQUIRE_COLLISION";
     public const string ExternalUnused = "EXTERNAL_UNUSED";
     public const string FieldArgumentTypesNotMergeable = "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE";
     public const string FieldWithMissingRequiredArgument = "FIELD_WITH_MISSING_REQUIRED_ARGUMENT";

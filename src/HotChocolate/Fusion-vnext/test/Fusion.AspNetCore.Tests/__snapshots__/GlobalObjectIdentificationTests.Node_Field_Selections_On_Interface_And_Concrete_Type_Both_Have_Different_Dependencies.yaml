@@ -22,20 +22,16 @@ request:
     }
   variables: |
     {
-      "id": "SXRlbTE6MQ=="
+      "id": "SXRlbTI6MQ=="
     }
 response:
   body: |
     {
       "data": {
         "node": {
-          "__typename": "Item1",
-          "id": "SXRlbTE6MQ==",
+          "__typename": "Item2",
+          "id": "SXRlbTI6MQ==",
           "products": [
-            {
-              "id": "UHJvZHVjdDox",
-              "name": "Product: UHJvZHVjdDox"
-            },
             {
               "id": "UHJvZHVjdDoy",
               "name": "Product: UHJvZHVjdDoy"
@@ -43,8 +39,15 @@ response:
             {
               "id": "UHJvZHVjdDoz",
               "name": "Product: UHJvZHVjdDoz"
+            },
+            {
+              "id": "UHJvZHVjdDo0",
+              "name": "Product: UHJvZHVjdDo0"
             }
-          ]
+          ],
+          "singularProduct": {
+            "name": "Product: UHJvZHVjdDox"
+          }
         }
       }
     }
@@ -54,45 +57,48 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       interface ProductList {
         products: [Product]
       }
-      
+
       type Item1 implements Node & ProductList {
         id: ID!
         products: [Product]
       }
-      
+
       type Item2 implements Node & ProductList {
         id: ID!
         products: [Product]
         singularProduct: Product
       }
-      
+
       type Product implements Node {
         id: ID!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
           document: |
-            query testQuery_f7a0a31d_6(
+            query testQuery_f7a0a31d_3(
               $id: ID!
             ) {
               node(id: $id) {
                 __typename
-                ... on Item1 {
+                ... on Item2 {
                   __typename
                   id
                   products {
+                    id
+                  }
+                  singularProduct {
                     id
                   }
                 }
@@ -100,7 +106,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "id": "SXRlbTE6MQ=="
+              "id": "SXRlbTI6MQ=="
             }
         response:
           results:
@@ -108,19 +114,22 @@ sourceSchemas:
               {
                 "data": {
                   "node": {
-                    "__typename": "Item1",
-                    "id": "SXRlbTE6MQ==",
+                    "__typename": "Item2",
+                    "id": "SXRlbTI6MQ==",
                     "products": [
-                      {
-                        "id": "UHJvZHVjdDox"
-                      },
                       {
                         "id": "UHJvZHVjdDoy"
                       },
                       {
                         "id": "UHJvZHVjdDoz"
+                      },
+                      {
+                        "id": "UHJvZHVjdDo0"
                       }
-                    ]
+                    ],
+                    "singularProduct": {
+                      "id": "UHJvZHVjdDox"
+                    }
                   }
                 }
               }
@@ -129,26 +138,26 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Product implements Node {
         id: ID!
         name: String
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
           document: |
-            query testQuery_f7a0a31d_7(
-              $__fusion_3_id: ID!
+            query testQuery_f7a0a31d_4(
+              $__fusion_1_id: ID!
             ) {
-              node(id: $__fusion_3_id) {
+              node(id: $__fusion_1_id) {
                 __typename
                 ... on Product {
                   name
@@ -156,17 +165,9 @@ sourceSchemas:
               }
             }
           variables: |
-            [
-              {
-                "__fusion_3_id": "UHJvZHVjdDox"
-              },
-              {
-                "__fusion_3_id": "UHJvZHVjdDoy"
-              },
-              {
-                "__fusion_3_id": "UHJvZHVjdDoz"
-              }
-            ]
+            {
+              "__fusion_1_id": "UHJvZHVjdDox"
+            }
         response:
           results:
             - |
@@ -178,6 +179,32 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          document: |
+            query testQuery_f7a0a31d_5(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoz"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDo0"
+              }
+            ]
+        response:
+          results:
             - |
               {
                 "data": {
@@ -193,6 +220,15 @@ sourceSchemas:
                   "node": {
                     "__typename": "Product",
                     "name": "Product: UHJvZHVjdDoz"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDo0"
                   }
                 }
               }
@@ -243,6 +279,8 @@ operationPlan:
             id
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 3
@@ -266,6 +304,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 4
@@ -330,6 +370,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 7

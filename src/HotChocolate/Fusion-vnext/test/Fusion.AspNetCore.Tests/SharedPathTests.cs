@@ -28,7 +28,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 viewer {
@@ -67,7 +67,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query($skip: Boolean!) {
                 viewer {
@@ -109,7 +109,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 interface {
@@ -150,7 +150,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 union {
@@ -191,7 +191,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 viewer {
@@ -232,7 +232,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 viewer {
@@ -278,7 +278,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 viewer {
@@ -322,7 +322,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 productById(id: 1) {
@@ -363,7 +363,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 productById(id: 1) {
@@ -407,7 +407,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 unsharedInterface {
@@ -450,7 +450,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 productById(id: 1) {
@@ -493,7 +493,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 productById(id: 1) {
@@ -538,7 +538,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 productById(id: 1) {

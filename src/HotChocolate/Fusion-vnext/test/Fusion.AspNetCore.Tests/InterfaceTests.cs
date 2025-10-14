@@ -1,3 +1,4 @@
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Fusion;
@@ -41,7 +42,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votable {
@@ -93,7 +94,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -108,7 +109,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               authorable {
@@ -163,7 +164,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -178,7 +179,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               authorable {
@@ -239,7 +240,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
               email: String
@@ -255,7 +256,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               authorable {
@@ -295,13 +296,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               title: String!
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -315,7 +316,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votable {
@@ -351,12 +352,12 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -369,7 +370,7 @@ public class InterfaceTests : FusionTestBase
               discussionById(id: ID!): Discussion @lookup @shareable
             }
 
-            type Discussion @key(fields: "id") {
+            type Discussion {
               id: ID!
               viewerRating: Float!
             }
@@ -384,7 +385,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votable {
@@ -419,13 +420,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               author: Author
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -442,7 +443,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -457,7 +458,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votable {
@@ -526,7 +527,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               someField {
@@ -593,7 +594,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               someField {
@@ -663,7 +664,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             {
               someField {
@@ -701,13 +702,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               viewerRating: Float!
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -721,7 +722,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votables {
@@ -773,7 +774,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -788,7 +789,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               authorables {
@@ -843,7 +844,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -858,7 +859,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               authorables {
@@ -919,7 +920,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
               email: String
@@ -935,7 +936,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               authorables {
@@ -975,13 +976,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               title: String!
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -995,7 +996,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votables {
@@ -1031,12 +1032,12 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -1049,7 +1050,7 @@ public class InterfaceTests : FusionTestBase
               discussionById(id: ID!): Discussion @lookup @shareable
             }
 
-            type Discussion @key(fields: "id") {
+            type Discussion {
               id: ID!
               viewerRating: Float!
             }
@@ -1064,7 +1065,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votables {
@@ -1099,13 +1100,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               author: Author
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -1122,7 +1123,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -1137,7 +1138,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               votables {
@@ -1202,7 +1203,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -1217,7 +1218,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1278,7 +1279,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -1293,7 +1294,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1359,7 +1360,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
               email: String
@@ -1375,7 +1376,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1420,13 +1421,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               title: String!
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -1440,7 +1441,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1482,12 +1483,12 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -1500,7 +1501,7 @@ public class InterfaceTests : FusionTestBase
               discussionById(id: ID!): Discussion @lookup @shareable
             }
 
-            type Discussion @key(fields: "id") {
+            type Discussion {
               id: ID!
               viewerRating: Float!
             }
@@ -1515,7 +1516,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               wrappers {
@@ -1556,13 +1557,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable @key(fields: "id") {
+            type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               author: Author
             }
 
-            type Comment implements Votable @key(fields: "id") {
+            type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -1579,7 +1580,7 @@ public class InterfaceTests : FusionTestBase
               authorById(id: ID!): Author @lookup
             }
 
-            type Author @key(fields: "id") {
+            type Author {
               id: ID!
               displayName: String!
             }
@@ -1594,7 +1595,7 @@ public class InterfaceTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new OperationRequest(
             """
             query testQuery {
               wrappers {

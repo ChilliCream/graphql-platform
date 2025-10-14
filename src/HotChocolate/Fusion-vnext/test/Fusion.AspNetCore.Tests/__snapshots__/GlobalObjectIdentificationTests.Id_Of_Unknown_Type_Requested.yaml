@@ -32,16 +32,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Discussion implements Node {
         id: ID!
         title: String!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup @shareable
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
@@ -51,21 +51,21 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Discussion implements Node {
         id: ID!
         commentCount: Int!
       }
-      
+
       type Product implements Node {
         id: ID!
         name: String!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup @shareable
         discussionById(id: ID!): Discussion @lookup @internal

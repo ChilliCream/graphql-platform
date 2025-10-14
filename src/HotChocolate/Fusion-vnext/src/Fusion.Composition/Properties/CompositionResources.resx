@@ -213,6 +213,15 @@
   <data name="LogEntryHelper_ExternalOnInterface" xml:space="preserve">
     <value>The interface field '{0}' in schema '{1}' must not be marked as external.</value>
   </data>
+  <data name="LogEntryHelper_ExternalOverrideCollision" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' must not be annotated with the @override directive.</value>
+  </data>
+  <data name="LogEntryHelper_ExternalProvidesCollision" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' must not be annotated with the @provides directive.</value>
+  </data>
+  <data name="LogEntryHelper_ExternalRequireCollision" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' must not have arguments that are annotated with the @require directive.</value>
+  </data>
   <data name="LogEntryHelper_ExternalUnused" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
   </data>

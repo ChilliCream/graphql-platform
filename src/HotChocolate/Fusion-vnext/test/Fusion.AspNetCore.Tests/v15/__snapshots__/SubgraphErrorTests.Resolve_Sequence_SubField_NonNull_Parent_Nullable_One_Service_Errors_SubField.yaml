@@ -36,16 +36,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Brand @key(fields: "id") {
         id: ID!
       }
-      
+
       type Product {
         id: ID!
         brand: Brand
       }
-      
+
       type Query {
         product: Product
       }
@@ -78,12 +78,12 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Brand {
         id: ID!
         name: String! @error
       }
-      
+
       type Query {
         brandById(id: ID!): Brand @lookup
       }

@@ -37,6 +37,11 @@ public static class ConsoleHelpers
         console.MarkupLine(Glyphs.Cross.Space() + message);
     }
 
+    public static void ErrorLine(this TextWriter textWriter, string message)
+    {
+        textWriter.WriteLine("❌ " + message);
+    }
+
     public static void OkQuestion(this IAnsiConsole console, string question, string result)
     {
         console.MarkupLine(
@@ -118,27 +123,7 @@ public static class ConsoleHelpers
         console.MarkupLine(Glyphs.ExclamationMark.Space() + message);
     }
 
-    // TODO: This should write to stderr, but AnsiConsole can't easily do that atm.
-    public static void Error(this IAnsiConsole console, string message)
-    {
-        console.MarkupLine($"[red bold]{message}[/]");
-    }
-
-    // TODO: This should write to stderr, but AnsiConsole can't easily do that atm.
-    public static void PrintError(this IAnsiConsole console, string message, string? code = null)
-    {
-        if (code is not null)
-        {
-            console.MarkupLineInterpolated(
-                $"[red][bold]Error[/]: {message}[/][grey] ({code})[/]");
-        }
-        else
-        {
-            console.MarkupLineInterpolated($"[red][bold]Error[/]: {message}[/]");
-        }
-    }
-
-    public static bool IsHumandReadable(this IAnsiConsole console)
+    public static bool IsHumanReadable(this IAnsiConsole console)
     {
         return console is IExtendedConsole { IsInteractive: true };
     }

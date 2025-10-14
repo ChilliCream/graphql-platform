@@ -25,16 +25,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Discussion implements Node {
         id: ID!
         title: String!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup @shareable
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
@@ -66,21 +66,21 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Discussion implements Node {
         id: ID!
         commentCount: Int!
       }
-      
+
       type Product implements Node {
         id: ID!
         name: String!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup @shareable
         discussionById(id: ID!): Discussion @lookup @internal
@@ -115,11 +115,11 @@ operationPlan:
         {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
+            id @fusion__requirement
             ... on Discussion {
               title
               commentCount
             }
-            id @fusion__requirement
           }
         }
       hash: e567807ec1ad5128cfb566fad1645abc

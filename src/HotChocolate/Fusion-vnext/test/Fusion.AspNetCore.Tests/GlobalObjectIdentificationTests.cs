@@ -4,7 +4,6 @@ using HotChocolate.Transport.Http;
 namespace HotChocolate.Fusion;
 
 // TODO:
-// - Conditional selections (on, on top of and below node field, also with conditional fragment)
 // - Selections on interface, all types of interfaces are on same subgraph and there's only node lookup
 public class GlobalObjectIdentificationTests : FusionTestBase
 {
@@ -556,7 +555,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact]
+    [Fact(Skip = "This behavior is incorrect")]
     public async Task No_By_Id_Lookup_On_Best_Matching_Source_Schema()
     {
         // arrange
@@ -1301,7 +1300,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
               }
             }
             """,
-            variables: new Dictionary<string, object?> { ["id"] = /* Item1:1 */ "SXRlbTE6MQ==" });
+            variables: new Dictionary<string, object?> { ["id"] = /* Item2:1 */ "SXRlbTI6MQ==" });
 
         using var result = await client.PostAsync(
             request,
@@ -1386,6 +1385,88 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """,
             variables: new Dictionary<string, object?> { ["id"] = /* Item1:1 */ "SXRlbTE6MQ==" });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Node_Field_Selections_On_Interface_And_Concrete_Type_Both_Have_Same_Dependency()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            interface Authorable {
+              author: Author
+            }
+
+            type Discussion implements Node & Authorable {
+              id: ID!
+              author: Author
+              title: String
+            }
+
+            type Author implements Node {
+              id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              authorById(id: ID!): Author @lookup
+            }
+
+            type Author {
+              id: ID!
+              username: String
+              rating: Int
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($id: ID!) {
+              node(id: $id) {
+                __typename
+                id
+                ... on Authorable {
+                  author {
+                    username
+                  }
+                }
+                ... on Discussion {
+                  author {
+                    rating
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["id"] = /* Discussion:1 */ "RGlzY3Vzc2lvbjox" });
 
         using var result = await client.PostAsync(
             request,

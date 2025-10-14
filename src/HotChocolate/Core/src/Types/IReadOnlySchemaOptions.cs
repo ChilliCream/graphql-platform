@@ -190,4 +190,10 @@ public interface IReadOnlySchemaOptions
     /// to the DataLoader promise cache.
     /// </summary>
     bool PublishRootFieldPagesToPromiseCache { get; }
+
+    /// <summary>
+    /// Specifies that the <see cref="IRequestExecutor"/> should be constructed
+    /// laz
+    /// </summary>
+    bool LazyInitialization { get; }
 }

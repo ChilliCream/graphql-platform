@@ -37,21 +37,21 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Discussion implements Node {
         id: ID!
         title: String!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
         viewer: Viewer
       }
-      
+
       type Viewer {
         username: String
       }
@@ -138,6 +138,8 @@ operationPlan:
             __typename
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 3
@@ -155,6 +157,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 4

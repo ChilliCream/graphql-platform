@@ -1839,7 +1839,7 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task AnotationBased_DeprecatedArgument_Should_BeDeprecated()
+    public async Task AnnotationBased_DeprecatedArgument_Should_BeDeprecated()
     {
         // arrangt
         // act
@@ -1853,7 +1853,7 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task AnotationBased_DeprecatedArgument_NonNullableIsDeprecated_Throw()
+    public async Task AnnotationBased_DeprecatedArgument_NonNullableIsDeprecated_Throw()
     {
         // arrange
         // act
