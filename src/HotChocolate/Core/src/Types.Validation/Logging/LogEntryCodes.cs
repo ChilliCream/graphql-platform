@@ -25,4 +25,6 @@ internal static class LogEntryCodes
     public const string InputObjectCycle = "HCV0018";
     public const string InputObjectDefaultValueCycle = "HCV0019";
     public const string DirectiveMissingLocation = "HCV0020";
+    public const string UndefinedFieldType = "HCV0021";
+    public const string UndefinedArgumentType = "HCV0022";
 }
