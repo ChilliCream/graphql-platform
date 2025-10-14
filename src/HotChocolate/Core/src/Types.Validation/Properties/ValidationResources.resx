@@ -84,4 +84,10 @@
   <data name="LogEntryHelper_SelfImplementation" xml:space="preserve">
     <value>The Interface type '{0}' may not implement itself.</value>
   </data>
+  <data name="LogEntryHelper_UndefinedArgumentType" xml:space="preserve">
+    <value>The type '{0}' of argument '{1}' is not defined in the schema.</value>
+  </data>
+  <data name="LogEntryHelper_UndefinedFieldType" xml:space="preserve">
+    <value>The type '{0}' of field '{1}' is not defined in the schema.</value>
+  </data>
 </root>

@@ -46,6 +46,7 @@ public sealed class SchemaValidator
         _rules.Add(new NonEmptyObjectTypeRule());
         _rules.Add(new NonEmptyUnionTypeRule());
         _rules.Add(new NoSelfImplementationRule());
+        _rules.Add(new TypeIsDefinedRule());
         _rules.Add(new ValidDeprecationRule());
         _rules.Add(new ValidImplementationsRule());
         _rules.Add(new ValidNameRule());

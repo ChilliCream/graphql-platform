@@ -256,5 +256,23 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("LogEntryHelper_SelfImplementation", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; of argument &apos;{1}&apos; is not defined in the schema..
+        /// </summary>
+        internal static string LogEntryHelper_UndefinedArgumentType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_UndefinedArgumentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; of field &apos;{1}&apos; is not defined in the schema..
+        /// </summary>
+        internal static string LogEntryHelper_UndefinedFieldType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_UndefinedFieldType", resourceCulture);
+            }
+        }
     }
 }

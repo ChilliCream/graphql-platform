@@ -315,6 +315,32 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry UndefinedArgumentType(IInputValueDefinition argument)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_UndefinedArgumentType,
+                argument.Type.NamedType().Name,
+                argument.Coordinate)
+            .SetCode(LogEntryCodes.UndefinedArgumentType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(argument)
+            .Build();
+    }
+
+    public static LogEntry UndefinedFieldType(IFieldDefinition field)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_UndefinedFieldType,
+                field.Type.NamedType().Name,
+                field.Coordinate)
+            .SetCode(LogEntryCodes.UndefinedFieldType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .Build();
+    }
+
     private static TypeKind GetTypeSystemMemberKind(ITypeSystemMember member)
     {
         return member switch
