@@ -80,9 +80,9 @@ namespace HotChocolate.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The Directive definition &apos;@{0}&apos; must include at least one DirectiveLocation..
         /// </summary>
-        internal static string LogEntryHelper_DirectiveMissingLocation {
+        internal static string LogEntryHelper_DirectiveDefinitionMissingLocation {
             get {
-                return ResourceManager.GetString("LogEntryHelper_DirectiveMissingLocation", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_DirectiveDefinitionMissingLocation", resourceCulture);
             }
         }
         
