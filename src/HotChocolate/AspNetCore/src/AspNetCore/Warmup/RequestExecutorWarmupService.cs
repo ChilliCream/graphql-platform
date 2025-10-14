@@ -14,7 +14,7 @@ internal sealed class RequestExecutorWarmupService(
         foreach (var schemaName in provider.SchemaNames)
         {
             var setup = await executorOptionsMonitor.GetAsync(schemaName, cancellationToken);
-            var options = RequestExecutorManager.CreateSchemaOptions(setup);
+            var options = CreateSchemaOptions(setup);
 
             if (!options.LazyInitialization)
             {
@@ -31,5 +31,17 @@ internal sealed class RequestExecutorWarmupService(
     private async Task WarmupAsync(string schemaName, CancellationToken cancellationToken)
     {
         await provider.GetExecutorAsync(schemaName, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static SchemaOptions CreateSchemaOptions(RequestExecutorSetup setup)
+    {
+        var options = new SchemaOptions();
+
+        foreach (var configure in setup.SchemaOptionModifiers)
+        {
+            configure(options);
+        }
+
+        return options;
     }
 }
