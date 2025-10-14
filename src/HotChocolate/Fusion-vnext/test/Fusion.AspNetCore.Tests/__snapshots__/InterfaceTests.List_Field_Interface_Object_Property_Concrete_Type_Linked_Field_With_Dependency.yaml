@@ -56,7 +56,7 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
 
-      type Author {
+      type Author @key(fields: "id") {
         id: ID!
       }
 

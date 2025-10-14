@@ -48,12 +48,12 @@ sourceSchemas:
         product: Product
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         id: ID!
       }
 
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
         discussionById(id: ID!): Discussion @lookup
       }
     interactions:
@@ -106,7 +106,7 @@ sourceSchemas:
       }
 
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:

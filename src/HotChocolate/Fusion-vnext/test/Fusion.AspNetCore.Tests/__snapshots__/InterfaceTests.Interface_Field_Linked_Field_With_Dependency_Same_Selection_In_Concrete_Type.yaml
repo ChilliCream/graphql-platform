@@ -38,7 +38,7 @@ sourceSchemas:
         author: Author
       }
 
-      type Author {
+      type Author @key(fields: "id") {
         id: ID!
       }
 

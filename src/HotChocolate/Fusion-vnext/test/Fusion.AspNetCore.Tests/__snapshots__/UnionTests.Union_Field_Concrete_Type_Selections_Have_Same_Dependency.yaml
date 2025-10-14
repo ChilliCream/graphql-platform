@@ -43,7 +43,7 @@ sourceSchemas:
         product: Product
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         id: ID!
       }
 

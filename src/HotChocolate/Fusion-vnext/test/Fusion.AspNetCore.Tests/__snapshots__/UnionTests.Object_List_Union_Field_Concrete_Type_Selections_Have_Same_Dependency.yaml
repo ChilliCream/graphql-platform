@@ -67,7 +67,7 @@ sourceSchemas:
         node: Post
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         id: ID!
       }
 

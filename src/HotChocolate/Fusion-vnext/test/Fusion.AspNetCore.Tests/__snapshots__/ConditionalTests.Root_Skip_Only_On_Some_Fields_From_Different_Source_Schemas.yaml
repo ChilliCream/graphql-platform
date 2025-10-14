@@ -30,12 +30,12 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         id: ID!
         name: String!
       }
-      
+
       type Query {
         productBySlug(slug: String!): Product
       }
@@ -44,11 +44,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
         viewer: Viewer
       }
-      
+
       type Viewer {
         name: String!
       }

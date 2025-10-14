@@ -48,7 +48,7 @@ sourceSchemas:
         subgraph1: String
       }
 
-      type Photo {
+      type Photo @key(fields: "id") {
         id: ID!
       }
 

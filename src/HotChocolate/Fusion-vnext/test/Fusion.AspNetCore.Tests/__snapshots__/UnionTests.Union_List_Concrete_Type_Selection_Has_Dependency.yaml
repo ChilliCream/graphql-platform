@@ -45,7 +45,7 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
+      type Author @key(fields: "id") {
         id: ID!
       }
 
@@ -59,7 +59,7 @@ sourceSchemas:
         product: Product
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         id: ID!
       }
 

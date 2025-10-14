@@ -26,7 +26,7 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
         field: String
       }

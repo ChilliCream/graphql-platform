@@ -34,18 +34,18 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         id: ID!
         name: String!
         review: Review
       }
-      
+
       type Query {
         productBySlug(slug: String!): Product
       }
-      
-      type Review {
+
+      type Review @key(fields: "id") {
         id: ID!
       }
     interactions:
@@ -77,11 +77,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
         reviewById(id: ID!): Review @lookup
       }
-      
+
       type Review {
         id: ID!
         title: String!

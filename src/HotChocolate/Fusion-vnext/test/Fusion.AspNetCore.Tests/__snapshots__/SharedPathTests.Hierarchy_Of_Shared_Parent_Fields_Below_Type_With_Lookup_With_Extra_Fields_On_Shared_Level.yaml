@@ -36,24 +36,24 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface {
+      interface IInterface @key(fields: "id") {
         id: Int!
       }
 
       type Product implements IInterface {
         id: Int!
         schema1: String!
-        shared: SharedProduct
+        shared: SharedProduct @shareable
       }
 
       type Query {
         productById(id: Int!): Product @lookup
-        viewer: Viewer!
+        viewer: Viewer! @shareable
         schema1: String!
-        interface: IInterface!
+        interface: IInterface! @shareable
         unsharedInterface: IInterface!
-        union: IUnion!
-        topReview: Review!
+        union: IUnion! @shareable
+        topReview: Review! @shareable
       }
 
       type Review implements IInterface {
@@ -63,7 +63,7 @@ sourceSchemas:
 
       type SharedProduct {
         schema1: String!
-        shared2: SharedProduct2
+        shared2: SharedProduct2 @shareable
       }
 
       type SharedProduct2 {
@@ -72,7 +72,7 @@ sourceSchemas:
 
       type Viewer {
         schema1: String!
-        settings: ViewerSettings!
+        settings: ViewerSettings! @shareable
       }
 
       type ViewerSettings {
@@ -116,23 +116,23 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface {
+      interface IInterface @key(fields: "id") {
         id: Int!
       }
 
       type Product implements IInterface {
         id: Int!
         schema2: String!
-        shared: SharedProduct
+        shared: SharedProduct @shareable
       }
 
       type Query {
         product(id: Int!): Product @lookup
-        viewer: Viewer!
+        viewer: Viewer! @shareable
         schema2: String!
-        interface: IInterface!
-        union: IUnion!
-        topReview: Review!
+        interface: IInterface! @shareable
+        union: IUnion! @shareable
+        topReview: Review! @shareable
       }
 
       type Review implements IInterface {
@@ -142,7 +142,7 @@ sourceSchemas:
 
       type SharedProduct {
         schema2: String!
-        shared2: SharedProduct2
+        shared2: SharedProduct2 @shareable
       }
 
       type SharedProduct2 {
@@ -151,7 +151,7 @@ sourceSchemas:
 
       type Viewer {
         schema2: String!
-        settings: ViewerSettings!
+        settings: ViewerSettings! @shareable
       }
 
       type ViewerSettings {
