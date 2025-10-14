@@ -155,12 +155,9 @@ internal sealed partial class RequestExecutorManager
             await _optionsMonitor.GetAsync(schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
-        var options = CreateSchemaOptions(setup);
-        var schemaBuilder = SchemaBuilder.New(options);
-
         var context = new ConfigurationContext(
             schemaName,
-            schemaBuilder,
+            setup.SchemaBuilder ?? SchemaBuilder.New(),
             _applicationServices);
 
         var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, context.SchemaName);
@@ -247,18 +244,6 @@ internal sealed partial class RequestExecutorManager
             await Task.Delay(registeredExecutor.EvictionTimeout).ConfigureAwait(false);
             await registeredExecutor.DisposeAsync().ConfigureAwait(false);
         }
-    }
-
-    internal static SchemaOptions CreateSchemaOptions(RequestExecutorSetup setup)
-    {
-        var options = new SchemaOptions();
-
-        foreach (var configure in setup.SchemaOptionModifiers)
-        {
-            configure(options);
-        }
-
-        return options;
     }
 
     private async Task<ServiceProvider> CreateSchemaServicesAsync(
