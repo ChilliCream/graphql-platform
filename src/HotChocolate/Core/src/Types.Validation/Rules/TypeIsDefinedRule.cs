@@ -19,6 +19,12 @@ public sealed class TypeIsDefinedRule
     {
         var field = @event.Field;
         var fieldType = field.Type.AsTypeDefinition();
+
+        if (fieldType.IsIntrospectionType)
+        {
+            return;
+        }
+
         var isSpecType =
             fieldType is IScalarTypeDefinition scalarType
             && SpecScalarNames.IsSpecScalar(scalarType.Name);
@@ -37,6 +43,12 @@ public sealed class TypeIsDefinedRule
     {
         var argument = @event.Argument;
         var argumentType = argument.Type.AsTypeDefinition();
+
+        if (argumentType.IsIntrospectionType)
+        {
+            return;
+        }
+
         var isSpecType =
             argumentType is IScalarTypeDefinition scalarType
             && SpecScalarNames.IsSpecScalar(scalarType.Name);
