@@ -18,6 +18,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CompositionLogExtensions_EntryMessageWithSchemaName" xml:space="preserve">
+    <value>{0} (Schema: '{1}')</value>
+  </data>
   <data name="ErrorHelper_PostMergeValidationFailed" xml:space="preserve">
     <value>Post-merge validation failed.</value>
   </data>
