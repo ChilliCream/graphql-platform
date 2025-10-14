@@ -10,18 +10,18 @@ namespace HotChocolate.Rules;
 /// <seealso href="https://spec.graphql.org/September2025/#sec-Type-System.Directives.Type-Validation">
 /// Specification
 /// </seealso>
-public sealed class DirectiveIncludesLocationRule : IValidationEventHandler<DirectiveEvent>
+public sealed class DirectiveDefinitionIncludesLocationRule : IValidationEventHandler<DirectiveDefinitionEvent>
 {
     /// <summary>
     /// Checks that the directive definition includes at least one location.
     /// </summary>
-    public void Handle(DirectiveEvent @event, ValidationContext context)
+    public void Handle(DirectiveDefinitionEvent @event, ValidationContext context)
     {
-        var directive = @event.Directive;
+        var directiveDefinition = @event.DirectiveDefinition;
 
-        if (directive.Locations == 0)
+        if (directiveDefinition.Locations == 0)
         {
-            context.Log.Write(DirectiveMissingLocation(directive));
+            context.Log.Write(DirectiveDefinitionMissingLocation(directiveDefinition));
         }
     }
 }

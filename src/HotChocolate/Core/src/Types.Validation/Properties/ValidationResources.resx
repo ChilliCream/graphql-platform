@@ -24,7 +24,7 @@
   <data name="LogEntryHelper_ArgumentNotImplemented" xml:space="preserve">
     <value>The field '{0}' must define the argument '{1}' to match the field defined in interface '{2}'.</value>
   </data>
-  <data name="LogEntryHelper_DirectiveMissingLocation" xml:space="preserve">
+  <data name="LogEntryHelper_DirectiveDefinitionMissingLocation" xml:space="preserve">
     <value>The Directive definition '@{0}' must include at least one DirectiveLocation.</value>
   </data>
   <data name="LogEntryHelper_EmptyEnumType" xml:space="preserve">

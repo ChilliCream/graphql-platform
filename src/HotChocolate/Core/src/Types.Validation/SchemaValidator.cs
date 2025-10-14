@@ -37,7 +37,7 @@ public sealed class SchemaValidator
     /// </summary>
     public void AddDefaultRules()
     {
-        _rules.Add(new DirectiveIncludesLocationRule());
+        _rules.Add(new DirectiveDefinitionIncludesLocationRule());
         _rules.Add(new NoInputObjectCycleRule());
         _rules.Add(new NoInputObjectDefaultValueCycleRule());
         _rules.Add(new NonEmptyEnumTypeRule());
@@ -146,12 +146,12 @@ public sealed class SchemaValidator
             }
         }
 
-        foreach (var directive in schema.DirectiveDefinitions)
+        foreach (var directiveDefinition in schema.DirectiveDefinitions)
         {
-            PublishEvent(new DirectiveEvent(directive), context);
-            PublishEvent(new NamedMemberEvent(directive), context);
+            PublishEvent(new DirectiveDefinitionEvent(directiveDefinition), context);
+            PublishEvent(new NamedMemberEvent(directiveDefinition), context);
 
-            foreach (var argument in directive.Arguments)
+            foreach (var argument in directiveDefinition.Arguments)
             {
                 PublishEvent(new ArgumentEvent(argument), context);
                 PublishEvent(new InputValueEvent(argument), context);

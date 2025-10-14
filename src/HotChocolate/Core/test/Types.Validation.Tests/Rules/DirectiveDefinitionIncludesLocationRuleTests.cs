@@ -3,7 +3,7 @@ using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Types.Validation.Rules;
 
-public sealed class DirectiveIncludesLocationRuleTests : RuleTestBase<DirectiveIncludesLocationRule>
+public sealed class DirectiveDefinitionIncludesLocationRuleTests : RuleTestBase<DirectiveDefinitionIncludesLocationRule>
 {
     [Fact]
     public void Validate_DirectiveWithLocation_Succeeds()

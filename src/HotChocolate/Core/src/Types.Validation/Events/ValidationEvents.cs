@@ -14,9 +14,9 @@ public sealed record ArgumentEvent(IInputValueDefinition Argument) : IValidation
 public sealed record ComplexTypeEvent(IComplexTypeDefinition ComplexType) : IValidationEvent;
 
 /// <summary>
-/// Represents an event that is triggered when a directive is encountered during schema validation.
+/// Represents an event that is triggered when a directive definition is encountered during schema validation.
 /// </summary>
-public sealed record DirectiveEvent(IDirectiveDefinition Directive) : IValidationEvent;
+public sealed record DirectiveDefinitionEvent(IDirectiveDefinition DirectiveDefinition) : IValidationEvent;
 
 /// <summary>
 /// Represents an event that is triggered when an Enum type is encountered during schema validation.

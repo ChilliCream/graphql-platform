@@ -44,13 +44,13 @@ internal static class LogEntryHelper
             .Build();
     }
 
-    public static LogEntry DirectiveMissingLocation(IDirectiveDefinition directive)
+    public static LogEntry DirectiveDefinitionMissingLocation(IDirectiveDefinition directiveDefinition)
     {
         return LogEntryBuilder.New()
-            .SetMessage(LogEntryHelper_DirectiveMissingLocation, directive.Name)
-            .SetCode(LogEntryCodes.DirectiveMissingLocation)
+            .SetMessage(LogEntryHelper_DirectiveDefinitionMissingLocation, directiveDefinition.Name)
+            .SetCode(LogEntryCodes.DirectiveDefinitionMissingLocation)
             .SetSeverity(LogSeverity.Error)
-            .SetTypeSystemMember(directive)
+            .SetTypeSystemMember(directiveDefinition)
             .SetSpecifiedBy(TypeKind.Directive)
             .Build();
     }
