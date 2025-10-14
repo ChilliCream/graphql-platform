@@ -60,6 +60,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} (Schema: &apos;{1}&apos;).
+        /// </summary>
+        internal static string CompositionLogExtensions_EntryMessageWithSchemaName {
+            get {
+                return ResourceManager.GetString("CompositionLogExtensions_EntryMessageWithSchemaName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Post-merge validation failed..
         /// </summary>
         internal static string ErrorHelper_PostMergeValidationFailed {

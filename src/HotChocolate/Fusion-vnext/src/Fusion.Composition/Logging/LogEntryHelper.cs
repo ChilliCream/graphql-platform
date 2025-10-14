@@ -467,12 +467,13 @@ internal static class LogEntryHelper
             schema);
     }
 
-    public static LogEntry InvalidGraphQL(string exceptionMessage)
+    public static LogEntry InvalidGraphQL(string exceptionMessage, MutableSchemaDefinition schema)
     {
         return new LogEntry(
             string.Format(LogEntryHelper_InvalidGraphQL, exceptionMessage),
             LogEntryCodes.InvalidGraphQL,
-            severity: LogSeverity.Error);
+            severity: LogSeverity.Error,
+            schema: schema);
     }
 
     public static LogEntry InvalidShareableUsage(
