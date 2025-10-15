@@ -54,17 +54,12 @@ public class FusionRequestExecutorProxyTests : FusionTestBase
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<FusionRequestExecutorManager>();
-        var updated = false;
 
         var proxy = new TestProxy(manager, manager, ISchemaDefinition.DefaultName);
-        proxy.ExecutorUpdated += () =>
-        {
-            updated = true;
-            executorUpdatedResetEvent.Set();
-        };
+        proxy.ExecutorUpdated += () => executorUpdatedResetEvent.Set();
 
         // act
-        var a = await proxy.GetExecutorAsync(CancellationToken.None);
+        var a = await proxy.GetExecutorAsync(cts.Token);
 
         configProvider.UpdateConfiguration(
             CreateFusionConfiguration(
@@ -75,11 +70,10 @@ public class FusionRequestExecutorProxyTests : FusionTestBase
                 """));
 
         executorUpdatedResetEvent.Wait(cts.Token);
-        var b = await proxy.GetExecutorAsync(CancellationToken.None);
+        var b = await proxy.GetExecutorAsync(cts.Token);
 
         // assert
         Assert.NotSame(a, b);
-        Assert.True(updated);
     }
 
     private class TestProxy(

@@ -41,14 +41,8 @@ public class RequestExecutorProxyTests
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<RequestExecutorManager>();
-        var updated = false;
-
         var proxy = new TestProxy(manager, manager, ISchemaDefinition.DefaultName);
-        proxy.ExecutorUpdated += () =>
-        {
-            updated = true;
-            executorUpdatedResetEvent.Set();
-        };
+        proxy.ExecutorUpdated += () => executorUpdatedResetEvent.Set();
 
         // act
         var a = await proxy.GetExecutorAsync(CancellationToken.None);
@@ -58,7 +52,6 @@ public class RequestExecutorProxyTests
 
         // assert
         Assert.NotSame(a, b);
-        Assert.True(updated);
     }
 
     private class TestProxy(

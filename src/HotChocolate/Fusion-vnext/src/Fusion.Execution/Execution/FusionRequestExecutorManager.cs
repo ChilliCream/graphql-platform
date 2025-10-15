@@ -34,20 +34,11 @@ internal sealed class FusionRequestExecutorManager
     , IRequestExecutorEvents
     , IAsyncDisposable
 {
-    private readonly object _lock = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreBySchema = new();
     private readonly ConcurrentDictionary<string, RequestExecutorRegistration> _registry = [];
     private readonly IOptionsMonitor<FusionGatewaySetup> _optionsMonitor;
+    private readonly EventObservable _events = new();
     private readonly IServiceProvider _applicationServices;
-    private readonly Channel<RequestExecutorEvent> _executorEvents =
-        Channel.CreateBounded<RequestExecutorEvent>(
-            new BoundedChannelOptions(1)
-            {
-                FullMode = BoundedChannelFullMode.Wait,
-                SingleReader = true,
-                SingleWriter = false
-            });
-    private ImmutableArray<ObserverSession> _observers = [];
 
     private bool _disposed;
     private ulong _version;
@@ -65,8 +56,6 @@ internal sealed class FusionRequestExecutorManager
         var schemaNames = _applicationServices.GetService<IEnumerable<SchemaName>>()?
             .Select(x => x.Value).Distinct().Order().ToImmutableArray();
         SchemaNames = schemaNames ?? [];
-
-        NotifyObserversAsync().FireAndForget();
     }
 
     public ImmutableArray<string> SchemaNames { get; }
@@ -84,7 +73,7 @@ internal sealed class FusionRequestExecutorManager
     public IDisposable Subscribe(IObserver<RequestExecutorEvent> observer)
     {
         ArgumentNullException.ThrowIfNull(observer);
-        return new ObserverSession(this, observer);
+        return _events.Subscribe(observer);
     }
 
     private async ValueTask<IRequestExecutor> GetOrCreateRequestExecutorAsync(
@@ -108,6 +97,9 @@ internal sealed class FusionRequestExecutorManager
 
             registration = await CreateInitialRegistrationAsync(schemaName, cancellationToken).ConfigureAwait(false);
             _registry.TryAdd(schemaName, registration);
+
+            _events.RaiseEvent(RequestExecutorEvent.Created(registration.Executor));
+
             return registration.Executor;
         }
         finally
@@ -119,11 +111,11 @@ internal sealed class FusionRequestExecutorManager
     private SemaphoreSlim GetSemaphoreForSchema(string schemaName)
         => _semaphoreBySchema.GetOrAdd(schemaName, _ => new SemaphoreSlim(1, 1));
 
-    private async ValueTask EvictExecutorAsync(FusionRequestExecutor executor, CancellationToken cancellationToken)
+    private void EvictExecutor(FusionRequestExecutor executor)
     {
         try
         {
-            await _executorEvents.WriteEvictedAsync(executor, cancellationToken);
+            _events.RaiseEvent(RequestExecutorEvent.Evicted(executor));
         }
         finally
         {
@@ -154,8 +146,6 @@ internal sealed class FusionRequestExecutorManager
         var executor = CreateRequestExecutor(schemaName, configuration);
 
         await WarmupExecutorAsync(executor, true, cancellationToken).ConfigureAwait(false);
-
-        await _executorEvents.WriteCreatedAsync(executor, cancellationToken).ConfigureAwait(false);
 
         return new RequestExecutorRegistration(
             this,
@@ -536,50 +526,26 @@ internal sealed class FusionRequestExecutorManager
         return next;
     }
 
-    private async Task NotifyObserversAsync()
-    {
-        await foreach (var eventArgs in _executorEvents.Reader.ReadAllAsync().ConfigureAwait(false))
-        {
-            foreach (var observer in _observers)
-            {
-                observer.OnNext(eventArgs);
-            }
-        }
-    }
-
     public async ValueTask DisposeAsync()
     {
-        if (_disposed)
+        if (!_disposed)
         {
-            return;
+            _disposed = true;
+
+            foreach (var registration in _registry.Values)
+            {
+                await registration.DisposeAsync().ConfigureAwait(false);
+            }
+
+            foreach (var semaphore in _semaphoreBySchema.Values)
+            {
+                semaphore.Dispose();
+            }
+
+            _events.Dispose();
+            _registry.Clear();
+            _semaphoreBySchema.Clear();
         }
-
-        _disposed = true;
-
-        _executorEvents.Writer.TryComplete(new Exception("Completed"));
-
-        foreach (var registration in _registry.Values)
-        {
-            await registration.DisposeAsync().ConfigureAwait(false);
-        }
-
-        while (_executorEvents.Reader.TryRead(out _))
-        {
-        }
-
-        foreach (var session in _observers)
-        {
-            session.OnCompleted();
-        }
-
-        foreach (var semaphore in _semaphoreBySchema.Values)
-        {
-            semaphore.Dispose();
-        }
-
-        _semaphoreBySchema.Clear();
-
-        _observers = [];
     }
 
     private sealed class RequestExecutorAccessor
@@ -660,11 +626,11 @@ internal sealed class FusionRequestExecutorManager
 
                 await _manager.WarmupExecutorAsync(nextExecutor, false, _cancellationToken).ConfigureAwait(false);
 
-                await _manager._executorEvents.WriteCreatedAsync(nextExecutor, _cancellationToken).ConfigureAwait(false);
-
                 Executor = nextExecutor;
 
-                await _manager.EvictExecutorAsync(previousExecutor, _cancellationToken);
+                _manager._events.RaiseEvent(RequestExecutorEvent.Created(nextExecutor));
+
+                _manager.EvictExecutor(previousExecutor);
 
                 configuration.Dispose();
             }
@@ -698,58 +664,87 @@ internal sealed class FusionRequestExecutorManager
         }
     }
 
-    private sealed class ObserverSession : IDisposable
+    private sealed class EventObservable : IObservable<RequestExecutorEvent>, IDisposable
     {
-        private readonly FusionRequestExecutorManager _manager;
-        private readonly IObserver<RequestExecutorEvent> _observer;
+#if NET9_0_OR_GREATER
+        private readonly Lock _sync = new();
+#else
+        private readonly object _sync = new();
+#endif
+        private readonly List<Subscription> _subscriptions = [];
         private bool _disposed;
 
-        public ObserverSession(
-            FusionRequestExecutorManager manager,
-            IObserver<RequestExecutorEvent> observer)
+        public IDisposable Subscribe(IObserver<RequestExecutorEvent> observer)
         {
-            _manager = manager;
-            _observer = observer;
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            ArgumentNullException.ThrowIfNull(observer);
 
-            lock (_manager._lock)
+            var subscription = new Subscription(this, observer);
+
+            lock (_sync)
             {
-                _manager._observers = _manager._observers.Add(this);
+                _subscriptions.Add(subscription);
+            }
+
+            return subscription;
+        }
+
+        public void RaiseEvent(RequestExecutorEvent eventMessage)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+
+            lock (_sync)
+            {
+                foreach (var subscription in _subscriptions)
+                {
+                    subscription.Observer.OnNext(eventMessage);
+                }
             }
         }
 
-        public void OnNext(RequestExecutorEvent value)
+        private void Unsubscribe(Subscription subscription)
         {
-            if (_disposed)
+            lock (_sync)
             {
-                return;
+                _subscriptions.Remove(subscription);
             }
-
-            _observer.OnNext(value);
-        }
-
-        public void OnCompleted()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _observer.OnCompleted();
         }
 
         public void Dispose()
         {
-            if (_disposed)
+            if (!_disposed)
             {
-                return;
-            }
+                lock (_sync)
+                {
+                    foreach (var subscription in _subscriptions)
+                    {
+                        subscription.Observer.OnCompleted();
+                    }
 
-            lock (_manager._lock)
+                    _subscriptions.Clear();
+                }
+
+                _disposed = true;
+            }
+        }
+
+        private sealed class Subscription(
+            EventObservable parent,
+            IObserver<RequestExecutorEvent> observer)
+            : IDisposable
+        {
+            private bool _disposed;
+
+            public IObserver<RequestExecutorEvent> Observer { get; } = observer;
+
+            public void Dispose()
             {
-                _manager._observers = _manager._observers.Remove(this);
+                if (!_disposed)
+                {
+                    parent.Unsubscribe(this);
+                    _disposed = true;
+                }
             }
-
-            _disposed = true;
         }
     }
 
@@ -796,26 +791,5 @@ internal sealed class FusionRequestExecutorManager
                     .Add(StackTraceProperty, exception.StackTrace);
             }
         }
-    }
-}
-
-file static class Extensions
-{
-    public static async ValueTask WriteCreatedAsync(
-        this Channel<RequestExecutorEvent> executorEvents,
-        FusionRequestExecutor executor,
-        CancellationToken cancellationToken)
-    {
-        var eventArgs = RequestExecutorEvent.Created(executor);
-        await executorEvents.Writer.WriteAsync(eventArgs, cancellationToken).ConfigureAwait(false);
-    }
-
-    public static async ValueTask WriteEvictedAsync(
-        this Channel<RequestExecutorEvent> executorEvents,
-        FusionRequestExecutor executor,
-        CancellationToken cancellationToken)
-    {
-        var eventArgs = RequestExecutorEvent.Evicted(executor);
-        await executorEvents.Writer.WriteAsync(eventArgs, cancellationToken).ConfigureAwait(false);
     }
 }
