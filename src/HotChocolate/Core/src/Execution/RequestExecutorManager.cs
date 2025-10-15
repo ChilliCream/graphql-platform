@@ -197,10 +197,7 @@ internal sealed partial class RequestExecutorManager
             registeredExecutor.Executor);
 
         _events.RaiseEvent(
-            new RequestExecutorEvent(
-                RequestExecutorEventType.Created,
-                schemaName,
-                registeredExecutor.Executor));
+            RequestExecutorEvent.Created(registeredExecutor.Executor));
 
         return registeredExecutor;
     }
@@ -219,11 +216,7 @@ internal sealed partial class RequestExecutorManager
 
         try
         {
-            _events.RaiseEvent(
-                new RequestExecutorEvent(
-                    RequestExecutorEventType.Evicted,
-                    schemaName,
-                    previousExecutor.Executor));
+            _events.RaiseEvent(RequestExecutorEvent.Evicted(previousExecutor.Executor));
         }
         finally
         {

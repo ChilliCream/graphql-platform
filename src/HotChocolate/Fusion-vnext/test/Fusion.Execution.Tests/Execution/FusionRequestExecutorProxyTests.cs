@@ -1,9 +1,9 @@
-using HotChocolate.StarWars;
+using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Execution;
+namespace HotChocolate.Fusion.Execution;
 
-public class RequestExecutorProxyTests
+public class FusionRequestExecutorProxyTests : FusionTestBase
 {
     [Fact]
     public async Task Ensure_Executor_Is_Cached()
@@ -11,12 +11,17 @@ public class RequestExecutorProxyTests
         // arrange
         var manager =
             new ServiceCollection()
-                .AddGraphQL()
-                .AddStarWarsRepositories()
-                .AddStarWarsTypes()
+                .AddGraphQLGateway()
+                .AddInMemoryConfiguration(
+                    ComposeSchemaDocument(
+                        """
+                        type Query {
+                          field: String!
+                        }
+                        """))
                 .Services
                 .BuildServiceProvider()
-                .GetRequiredService<RequestExecutorManager>();
+                .GetRequiredService<FusionRequestExecutorManager>();
 
         // act
         var proxy = new RequestExecutorProxy(manager, manager, ISchemaDefinition.DefaultName);
@@ -33,14 +38,22 @@ public class RequestExecutorProxyTests
         // arrange
         var executorUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var configProvider = new TestFusionConfigurationProvider(
+            CreateFusionConfiguration(
+                """
+                type Query {
+                  field: String!
+                }
+                """));
+
         var manager =
             new ServiceCollection()
-                .AddGraphQL()
-                .AddStarWarsRepositories()
-                .AddStarWarsTypes()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
                 .Services
                 .BuildServiceProvider()
-                .GetRequiredService<RequestExecutorManager>();
+                .GetRequiredService<FusionRequestExecutorManager>();
         var updated = false;
 
         var proxy = new TestProxy(manager, manager, ISchemaDefinition.DefaultName);
@@ -52,7 +65,15 @@ public class RequestExecutorProxyTests
 
         // act
         var a = await proxy.GetExecutorAsync(CancellationToken.None);
-        manager.EvictExecutor();
+
+        configProvider.UpdateConfiguration(
+            CreateFusionConfiguration(
+                """
+                type Query {
+                  field2: String!
+                }
+                """));
+
         executorUpdatedResetEvent.Wait(cts.Token);
         var b = await proxy.GetExecutorAsync(CancellationToken.None);
 

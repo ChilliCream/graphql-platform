@@ -50,6 +50,7 @@ internal sealed class FusionRequestExecutorManager
     private ImmutableArray<ObserverSession> _observers = [];
 
     private bool _disposed;
+    private ulong _version;
 
     public FusionRequestExecutorManager(
         IOptionsMonitor<FusionGatewaySetup> optionsMonitor,
@@ -107,7 +108,6 @@ internal sealed class FusionRequestExecutorManager
 
             registration = await CreateInitialRegistrationAsync(schemaName, cancellationToken).ConfigureAwait(false);
             _registry.TryAdd(schemaName, registration);
-            await _executorEvents.WriteCreatedAsync(registration.Executor, cancellationToken).ConfigureAwait(false);
             return registration.Executor;
         }
         finally
@@ -121,9 +121,14 @@ internal sealed class FusionRequestExecutorManager
 
     private async ValueTask EvictExecutorAsync(FusionRequestExecutor executor, CancellationToken cancellationToken)
     {
-        await _executorEvents.WriteEvictedAsync(executor, cancellationToken);
-
-        EvictRequestExecutorAsync(executor).FireAndForget();
+        try
+        {
+            await _executorEvents.WriteEvictedAsync(executor, cancellationToken);
+        }
+        finally
+        {
+            EvictRequestExecutorAsync(executor).FireAndForget();
+        }
     }
 
     private static async Task EvictRequestExecutorAsync(FusionRequestExecutor previousExecutor)
@@ -150,6 +155,8 @@ internal sealed class FusionRequestExecutorManager
 
         await WarmupExecutorAsync(executor, true, cancellationToken).ConfigureAwait(false);
 
+        await _executorEvents.WriteCreatedAsync(executor, cancellationToken).ConfigureAwait(false);
+
         return new RequestExecutorRegistration(
             this,
             documentProvider,
@@ -161,6 +168,13 @@ internal sealed class FusionRequestExecutorManager
         string schemaName,
         FusionConfiguration configuration)
     {
+        ulong version;
+
+        unchecked
+        {
+            version = ++_version;
+        }
+
         var setup = _optionsMonitor.Get(schemaName);
 
         var options = CreateOptions(setup);
@@ -179,7 +193,7 @@ internal sealed class FusionRequestExecutorManager
         var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
 
         var contextPool = schemaServices.GetRequiredService<ObjectPool<PooledRequestContext>>();
-        var executor = new FusionRequestExecutor(schema, _applicationServices, pipeline, contextPool, 0);
+        var executor = new FusionRequestExecutor(schema, _applicationServices, pipeline, contextPool, version);
         var requestExecutorAccessor = schemaServices.GetRequiredService<RequestExecutorAccessor>();
         requestExecutorAccessor.RequestExecutor = executor;
 
@@ -645,6 +659,8 @@ internal sealed class FusionRequestExecutorManager
                 var nextExecutor = _manager.CreateRequestExecutor(Executor.Schema.Name, configuration);
 
                 await _manager.WarmupExecutorAsync(nextExecutor, false, _cancellationToken).ConfigureAwait(false);
+
+                await _manager._executorEvents.WriteCreatedAsync(nextExecutor, _cancellationToken).ConfigureAwait(false);
 
                 Executor = nextExecutor;
 
