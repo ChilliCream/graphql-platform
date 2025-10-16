@@ -10,10 +10,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Transport;
-using HotChocolate.Transport.Http;
-using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -86,13 +83,15 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 };
 
             case 1:
-                // TODO: We need to rewrite the variables here
                 var variableValues = originalRequest.Variables[0].Values;
-                return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText, variableValues))
+                return new GraphQLHttpRequest(CreateSingleRequest(
+                    operationSourceText,
+                    variableValues,
+                    originalRequest.HasFiles))
                 {
                     Uri = _configuration.BaseAddress,
                     Accept = defaultAccept,
-                    EnableFileUploads = true
+                    EnableFileUploads = originalRequest.HasFiles
                 };
 
             default:
@@ -106,16 +105,17 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
     private static OperationRequest CreateSingleRequest(
         string operationSourceText,
-        ObjectValueNode? variables = null)
+        ObjectValueNode? variables = null,
+        bool hasFiles = false)
     {
-        if (variables is not null)
+        if (hasFiles && variables is not null)
         {
             var newFields = new ObjectFieldNode[variables.Fields.Count];
 
             for (var i = 0; i < variables.Fields.Count; i++)
             {
                 var field = variables.Fields[i];
-                var newValue = ReformatVariableRewriter.Rewrite(field.Value);
+                var newValue = FileVariableRewriter.Rewrite(field.Value);
                 newFields[i] = new ObjectFieldNode(field.Name.Value, newValue);
             }
 
@@ -285,33 +285,5 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             new("application/jsonl") { CharSet = "utf-8" },
             new("text/event-stream") { CharSet = "utf-8" }
         ];
-    }
-}
-
-internal sealed class ReformatVariableRewriter : SyntaxRewriter<ReformatVariableRewriter>
-{
-    private static readonly ReformatVariableRewriter s_instance = new();
-
-    public static IValueNode Rewrite(IValueNode node)
-    {
-        if (s_instance.Rewrite(node, s_instance) is IValueNode rewritten)
-        {
-            return rewritten;
-        }
-
-        return NullValueNode.Default;
-    }
-
-    protected override IValueNode? RewriteCustomValue(IValueNode node, ReformatVariableRewriter context)
-    {
-        if (node is FileValueNode fileValueNode)
-        {
-            return new FileReferenceNode(
-                fileValueNode.Value.OpenReadStream,
-                fileValueNode.Value.Name,
-                fileValueNode.Value.ContentType);
-        }
-
-        return node;
     }
 }

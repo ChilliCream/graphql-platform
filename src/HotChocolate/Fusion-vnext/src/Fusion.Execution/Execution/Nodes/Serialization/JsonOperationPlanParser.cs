@@ -218,6 +218,9 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var conditions = TryParseConditions(nodeElement);
 
+        var hasFiles = nodeElement.TryGetProperty("hasFiles", out var hasFilesElement)
+            && hasFilesElement.ValueKind == JsonValueKind.True;
+
         var node = new OperationExecutionNode(
             id,
             new OperationSourceText(
@@ -231,7 +234,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             requirements?.ToArray() ?? [],
             forwardedVariables ?? [],
             responseNames ?? [],
-            conditions);
+            conditions,
+            hasFiles);
 
         return (node, dependencies, null, null);
     }

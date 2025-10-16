@@ -146,3 +146,4 @@ operationPlan:
         }
       forwardedVariables:
         - files
+      hasFiles: true

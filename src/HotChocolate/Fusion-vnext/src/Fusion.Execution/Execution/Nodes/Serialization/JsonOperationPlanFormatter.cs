@@ -200,6 +200,11 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteEndArray();
         }
 
+        if (node.HasFiles)
+        {
+            jsonWriter.WriteBoolean("hasFiles", true);
+        }
+
         if (node.Dependencies.Length > 0)
         {
             jsonWriter.WritePropertyName("dependencies");

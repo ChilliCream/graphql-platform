@@ -163,6 +163,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Unindent();
         }
 
+        if (node.HasFiles)
+        {
+            writer.WriteLine("hasFiles: true");
+        }
+
         if (node.Dependencies.Length > 0)
         {
             writer.WriteLine("dependencies:");

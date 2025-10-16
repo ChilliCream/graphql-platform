@@ -122,3 +122,4 @@ operationPlan:
         }
       forwardedVariables:
         - input
+      hasFiles: true

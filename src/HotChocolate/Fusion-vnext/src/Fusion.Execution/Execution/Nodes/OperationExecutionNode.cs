@@ -13,6 +13,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly string[] _forwardedVariables;
     private readonly string[] _responseNames;
     private readonly ExecutionNodeCondition[] _conditions;
+    private readonly bool _hasFiles;
     private readonly OperationSourceText _operation;
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
@@ -27,7 +28,8 @@ public sealed class OperationExecutionNode : ExecutionNode
         OperationRequirement[] requirements,
         string[] forwardedVariables,
         string[] responseNames,
-        ExecutionNodeCondition[] conditions)
+        ExecutionNodeCondition[] conditions,
+        bool hasFiles)
     {
         Id = id;
         _operation = operation;
@@ -38,6 +40,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         _forwardedVariables = forwardedVariables;
         _responseNames = responseNames;
         _conditions = conditions;
+        _hasFiles = hasFiles;
     }
 
     /// <inheritdoc />
@@ -86,6 +89,11 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// </summary>
     public ReadOnlySpan<string> ForwardedVariables => _forwardedVariables;
 
+    /// <summary>
+    /// TODO
+    /// </summary>
+    public bool HasFiles => _hasFiles;
+
     protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
@@ -100,14 +108,15 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
 
-        // TODO: This needs to be updated
+        // TODO: This needs to be skipped in case we're dealing with a file reference
         context.TrackVariableValueSets(this, variables);
 
         var request = new SourceSchemaClientRequest
         {
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
-            Variables = variables
+            Variables = variables,
+            HasFiles = true
         };
 
         var client = context.GetClient(schemaName, _operation.Type);

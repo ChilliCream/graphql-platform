@@ -10,4 +10,6 @@ public sealed class SourceSchemaClientRequest
     public required string OperationSourceText { get; init; }
 
     public ImmutableArray<VariableValues> Variables { get; init; } = [];
+
+    public bool HasFiles { get; init; }
 }
