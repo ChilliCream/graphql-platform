@@ -1,0 +1,103 @@
+title: Upload_List_Of_Files
+request:
+  document: |
+    query(
+      $files: [Upload!]!
+    ) {
+      multiUpload(files: $files) {
+        fileName
+        contentType
+        content
+      }
+    }
+  variables: |
+    {
+      "files": [
+        {
+          "FileName": "test.txt",
+          "ContentType": "text/plain"
+        },
+        {
+          "FileName": "test2.pdf",
+          "ContentType": "application/pdf"
+        }
+      ]
+    }
+response:
+  body: |
+    {
+      "data": {
+        "multiUpload": [
+          {
+            "fileName": "test.txt",
+            "contentType": "text/plain",
+            "content": "abc"
+          },
+          {
+            "fileName": "test2.pdf",
+            "contentType": "application/pdf",
+            "content": "def"
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type FileUploadResult {
+        fileName: String!
+        contentType: String
+        content: String!
+      }
+
+      type Query {
+        singleUpload(file: Upload!): FileUploadResult!
+        singleUploadWithInput(input: FileInput!): FileUploadResult!
+        multiUpload(files: [Upload!]!): [FileUploadResult!]!
+        multiUploadWithInput(input: FilesInput!): [FileUploadResult!]!
+      }
+
+      input FileInput {
+        file: Upload!
+      }
+
+      input FilesInput {
+        files: [Upload!]!
+      }
+
+      "The `Upload` scalar type represents a file upload."
+      scalar Upload
+operationPlan:
+  operation:
+    - document: |
+        query(
+          $files: [Upload!]!
+        ) {
+          multiUpload(files: $files) {
+            fileName
+            contentType
+            content
+          }
+        }
+      hash: c3581bf2cf7060a7017061aeff52e0e0
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_c3581bf2_1(
+          $files: [Upload!]!
+        ) {
+          multiUpload(files: $files) {
+            fileName
+            contentType
+            content
+          }
+        }
+      forwardedVariables:
+        - files

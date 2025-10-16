@@ -53,39 +53,39 @@ public abstract partial class FusionTestBase : IDisposable
             {
                 gatewayBuilder.AddHttpClientConfiguration(
                     name,
-                    new Uri("http://localhost:5000/graphql"),
-                    onBeforeSend: (context, node, request) =>
-                    {
-                        if (request.Content == null)
-                        {
-                            return;
-                        }
-
-                        var originalStream = request.Content.ReadAsStream();
-
-                        var document = JsonDocument.Parse(originalStream);
-
-                        document.RootElement.TryGetProperty("query", out var queryProperty);
-                        document.RootElement.TryGetProperty("variables", out var variablesProperty);
-
-                        if (originalStream.CanSeek)
-                        {
-                            originalStream.Position = 0;
-                        }
-
-                        GetSourceSchemaInteraction(context, node).Request =
-                            new SourceSchemaInteraction.SourceSchemaRequest
-                            {
-                                Query = queryProperty,
-                                Variables = variablesProperty
-                            };
-                    },
-                    onAfterReceive: (context, node, response)
-                        => GetSourceSchemaInteraction(context, node).StatusCode = response.StatusCode,
-                    onSourceSchemaResult: (context, node, result)
-                        => GetSourceSchemaInteraction(context, node)
-                            // We have to do this here, otherwise the result will have already been disposed
-                            .Results.Add(SerializeSourceSchemaResult(result)));
+                    new Uri("http://localhost:5000/graphql"));
+                // onBeforeSend: (context, node, request) =>
+                // {
+                //     if (request.Content == null)
+                //     {
+                //         return;
+                //     }
+                //
+                //     var originalStream = request.Content.ReadAsStream();
+                //
+                //     var document = JsonDocument.Parse(originalStream);
+                //
+                //     document.RootElement.TryGetProperty("query", out var queryProperty);
+                //     document.RootElement.TryGetProperty("variables", out var variablesProperty);
+                //
+                //     if (originalStream.CanSeek)
+                //     {
+                //         originalStream.Position = 0;
+                //     }
+                //
+                //     GetSourceSchemaInteraction(context, node).Request =
+                //         new SourceSchemaInteraction.SourceSchemaRequest
+                //         {
+                //             Query = queryProperty,
+                //             Variables = variablesProperty
+                //         };
+                // },
+                // onAfterReceive: (context, node, response)
+                //     => GetSourceSchemaInteraction(context, node).StatusCode = response.StatusCode,
+                // onSourceSchemaResult: (context, node, result)
+                //     => GetSourceSchemaInteraction(context, node)
+                //         // We have to do this here, otherwise the result will have already been disposed
+                //         .Results.Add(SerializeSourceSchemaResult(result)));
             }
         }
 
@@ -148,15 +148,15 @@ public abstract partial class FusionTestBase : IDisposable
 
         return new Gateway(gatewayTestServer, sourceSchemas, interactions);
 
-        SourceSchemaInteraction GetSourceSchemaInteraction(OperationPlanContext context, ExecutionNode node)
-        {
-            var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
-                ? staticSchemaName
-                : context.GetDynamicSchemaName(node);
-
-            var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
-            return schemaInteractions.GetOrAdd(node.Id, _ => new SourceSchemaInteraction());
-        }
+        // SourceSchemaInteraction GetSourceSchemaInteraction(OperationPlanContext context, ExecutionNode node)
+        // {
+        //     var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
+        //         ? staticSchemaName
+        //         : context.GetDynamicSchemaName(node);
+        //
+        //     var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
+        //     return schemaInteractions.GetOrAdd(node.Id, _ => new SourceSchemaInteraction());
+        // }
     }
 
     public void Dispose()

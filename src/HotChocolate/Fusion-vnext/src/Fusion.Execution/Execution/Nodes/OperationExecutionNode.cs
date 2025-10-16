@@ -100,6 +100,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
 
+        // TODO: This needs to be updated
         context.TrackVariableValueSets(this, variables);
 
         var request = new SourceSchemaClientRequest

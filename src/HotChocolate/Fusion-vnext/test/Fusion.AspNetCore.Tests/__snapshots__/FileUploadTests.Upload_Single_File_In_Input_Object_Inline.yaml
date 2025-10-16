@@ -1,0 +1,90 @@
+title: Upload_Single_File_In_Input_Object_Inline
+request:
+  document: |
+    query(
+      $file: Upload!
+    ) {
+      singleUploadWithInput(input: { file: $file }) {
+        fileName
+        contentType
+        content
+      }
+    }
+  variables: |
+    {
+      "file": {
+        "FileName": "test.txt",
+        "ContentType": "text/plain"
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "singleUploadWithInput": {
+          "fileName": "test.txt",
+          "contentType": "text/plain",
+          "content": "abc"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type FileUploadResult {
+        fileName: String!
+        contentType: String
+        content: String!
+      }
+
+      type Query {
+        singleUpload(file: Upload!): FileUploadResult!
+        singleUploadWithInput(input: FileInput!): FileUploadResult!
+        multiUpload(files: [Upload!]!): [FileUploadResult!]!
+        multiUploadWithInput(input: FilesInput!): [FileUploadResult!]!
+      }
+
+      input FileInput {
+        file: Upload!
+      }
+
+      input FilesInput {
+        files: [Upload!]!
+      }
+
+      "The `Upload` scalar type represents a file upload."
+      scalar Upload
+operationPlan:
+  operation:
+    - document: |
+        query(
+          $file: Upload!
+        ) {
+          singleUploadWithInput(input: { file: $file }) {
+            fileName
+            contentType
+            content
+          }
+        }
+      hash: d4f37e75f5be5227df60ad8090e010c9
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_d4f37e75_1(
+          $file: Upload!
+        ) {
+          singleUploadWithInput(input: { file: $file }) {
+            fileName
+            contentType
+            content
+          }
+        }
+      forwardedVariables:
+        - file

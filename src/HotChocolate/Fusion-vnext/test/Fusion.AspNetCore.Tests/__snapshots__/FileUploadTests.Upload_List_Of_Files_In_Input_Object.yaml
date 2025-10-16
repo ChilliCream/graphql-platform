@@ -1,0 +1,105 @@
+title: Upload_List_Of_Files_In_Input_Object
+request:
+  document: |
+    query(
+      $input: FilesInput!
+    ) {
+      multiUploadWithInput(input: $input) {
+        fileName
+        contentType
+        content
+      }
+    }
+  variables: |
+    {
+      "input": {
+        "files": [
+          {
+            "FileName": "test.txt",
+            "ContentType": "text/plain"
+          },
+          {
+            "FileName": "test2.pdf",
+            "ContentType": "application/pdf"
+          }
+        ]
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "multiUploadWithInput": [
+          {
+            "fileName": "test.txt",
+            "contentType": "text/plain",
+            "content": "abc"
+          },
+          {
+            "fileName": "test2.pdf",
+            "contentType": "application/pdf",
+            "content": "abc"
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type FileUploadResult {
+        fileName: String!
+        contentType: String
+        content: String!
+      }
+
+      type Query {
+        singleUpload(file: Upload!): FileUploadResult!
+        singleUploadWithInput(input: FileInput!): FileUploadResult!
+        multiUpload(files: [Upload!]!): [FileUploadResult!]!
+        multiUploadWithInput(input: FilesInput!): [FileUploadResult!]!
+      }
+
+      input FileInput {
+        file: Upload!
+      }
+
+      input FilesInput {
+        files: [Upload!]!
+      }
+
+      "The `Upload` scalar type represents a file upload."
+      scalar Upload
+operationPlan:
+  operation:
+    - document: |
+        query(
+          $input: FilesInput!
+        ) {
+          multiUploadWithInput(input: $input) {
+            fileName
+            contentType
+            content
+          }
+        }
+      hash: 35bf24eabe1193731dfd6b881cc18684
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_35bf24ea_1(
+          $input: FilesInput!
+        ) {
+          multiUploadWithInput(input: $input) {
+            fileName
+            contentType
+            content
+          }
+        }
+      forwardedVariables:
+        - input
