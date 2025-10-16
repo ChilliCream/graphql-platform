@@ -21,16 +21,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 internal static class InternalServiceCollectionExtensions
 {
-    internal static IServiceCollection TryAddRequestExecutorFactoryOptionsMonitor(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton<IRequestExecutorOptionsMonitor>(
-            sp => new DefaultRequestExecutorOptionsMonitor(
-                sp.GetRequiredService<IOptionsMonitor<RequestExecutorSetup>>(),
-                sp.GetServices<IRequestExecutorOptionsProvider>()));
-        return services;
-    }
-
     internal static IServiceCollection TryAddVariableCoercion(
         this IServiceCollection services)
     {
