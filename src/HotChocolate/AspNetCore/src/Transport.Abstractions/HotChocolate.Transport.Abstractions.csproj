@@ -16,6 +16,7 @@
     <InternalsVisibleTo Include="HotChocolate.Transport.Sockets" />
     <InternalsVisibleTo Include="HotChocolate.Transport.Sockets.Client" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore.Tests" />
   </ItemGroup>
 
   <ItemGroup>

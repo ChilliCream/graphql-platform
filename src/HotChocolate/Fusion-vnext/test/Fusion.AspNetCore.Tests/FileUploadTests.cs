@@ -41,17 +41,19 @@ public class FileUploadTests : FusionTestBase
                 ["file"] = new FileReference(() => stream, "test.txt", "text/plain")
             });
 
+        RawRequest? rawRequest = null;
         var request = new GraphQLHttpRequest(operation, new Uri("http://localhost:5000/graphql"))
         {
             Method = GraphQLHttpMethod.Post,
-            EnableFileUploads = true
+            EnableFileUploads = true,
+            OnMessageCreated = (_, request, _) => rawRequest = GetRawRequest(request)
         };
 
         // act
         var result = await client.SendAsync(request);
 
         // assert
-        await MatchSnapshotAsync(gateway, operation, result);
+        await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
     }
 
     [Fact]
@@ -90,17 +92,19 @@ public class FileUploadTests : FusionTestBase
                 }
             });
 
+        RawRequest? rawRequest = null;
         var request = new GraphQLHttpRequest(operation, new Uri("http://localhost:5000/graphql"))
         {
             Method = GraphQLHttpMethod.Post,
-            EnableFileUploads = true
+            EnableFileUploads = true,
+            OnMessageCreated = (_, request, _) => rawRequest = GetRawRequest(request)
         };
 
         // act
         var result = await client.SendAsync(request);
 
         // assert
-        await MatchSnapshotAsync(gateway, operation, result);
+        await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
     }
 
     [Fact]
@@ -136,17 +140,19 @@ public class FileUploadTests : FusionTestBase
                 ["file"] = new FileReference(() => stream, "test.txt", "text/plain")
             });
 
+        RawRequest? rawRequest = null;
         var request = new GraphQLHttpRequest(operation, new Uri("http://localhost:5000/graphql"))
         {
             Method = GraphQLHttpMethod.Post,
-            EnableFileUploads = true
+            EnableFileUploads = true,
+            OnMessageCreated = (_, request, _) => rawRequest = GetRawRequest(request)
         };
 
         // act
         var result = await client.SendAsync(request);
 
         // assert
-        await MatchSnapshotAsync(gateway, operation, result);
+        await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
     }
 
     [Fact]
@@ -187,17 +193,19 @@ public class FileUploadTests : FusionTestBase
                 }
             });
 
+        RawRequest? rawRequest = null;
         var request = new GraphQLHttpRequest(operation, new Uri("http://localhost:5000/graphql"))
         {
             Method = GraphQLHttpMethod.Post,
-            EnableFileUploads = true
+            EnableFileUploads = true,
+            OnMessageCreated = (_, request, _) => rawRequest = GetRawRequest(request)
         };
 
         // act
         var result = await client.SendAsync(request);
 
         // assert
-        await MatchSnapshotAsync(gateway, operation, result);
+        await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
     }
 
     [Fact]
@@ -241,17 +249,19 @@ public class FileUploadTests : FusionTestBase
                 }
             });
 
+        RawRequest? rawRequest = null;
         var request = new GraphQLHttpRequest(operation, new Uri("http://localhost:5000/graphql"))
         {
             Method = GraphQLHttpMethod.Post,
-            EnableFileUploads = true
+            EnableFileUploads = true,
+            OnMessageCreated = (_, request, _) => rawRequest = GetRawRequest(request)
         };
 
         // act
         var result = await client.SendAsync(request);
 
         // assert
-        await MatchSnapshotAsync(gateway, operation, result);
+        await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
     }
 
     [Fact]
@@ -292,17 +302,45 @@ public class FileUploadTests : FusionTestBase
                 }
             });
 
+        RawRequest? rawRequest = null;
         var request = new GraphQLHttpRequest(operation, new Uri("http://localhost:5000/graphql"))
         {
             Method = GraphQLHttpMethod.Post,
-            EnableFileUploads = true
+            EnableFileUploads = true,
+            OnMessageCreated = (_, request, _) => rawRequest = GetRawRequest(request)
         };
 
         // act
         var result = await client.SendAsync(request);
 
         // assert
-        await MatchSnapshotAsync(gateway, operation, result);
+        await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
+    }
+
+    private static RawRequest GetRawRequest(HttpRequestMessage requestMessage)
+    {
+        if (requestMessage.Content is not {} content)
+        {
+            throw new InvalidOperationException("Expected content to not be null.");
+        }
+
+        if (requestMessage.Content.Headers.ContentType is not { } contentType)
+        {
+            throw new InvalidOperationException("Expected Content-Type header to not be null.");
+        }
+
+        var bodyStream = new MemoryStream();
+        var originalStream = content.ReadAsStream();
+
+        originalStream.CopyTo(bodyStream);
+        bodyStream.Position = 0;
+
+        if (originalStream.CanSeek)
+        {
+            originalStream.Position = 0;
+        }
+
+        return new RawRequest { Body = bodyStream, ContentType = contentType };
     }
 
     public static class SourceSchema1

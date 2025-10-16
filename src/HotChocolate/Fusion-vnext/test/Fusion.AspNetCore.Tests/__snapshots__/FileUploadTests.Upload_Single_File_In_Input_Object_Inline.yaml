@@ -1,22 +1,24 @@
 title: Upload_Single_File_In_Input_Object_Inline
 request:
-  document: |
-    query(
-      $file: Upload!
-    ) {
-      singleUploadWithInput(input: { file: $file }) {
-        fileName
-        contentType
-        content
-      }
-    }
-  variables: |
-    {
-      "file": {
-        "FileName": "test.txt",
-        "ContentType": "text/plain"
-      }
-    }
+  rawRequest: 
+    contentType: multipart/form-data; boundary="f56524ab-5626-4955-b296-234a097b44f6"
+    body: |
+      --f56524ab-5626-4955-b296-234a097b44f6
+      Content-Type: application/json; charset=utf-8
+      Content-Disposition: form-data; name=operations
+
+      {"query":"query ($file: Upload!) {\n  singleUploadWithInput(input: { file: $file }) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"file":null}}
+      --f56524ab-5626-4955-b296-234a097b44f6
+      Content-Type: application/json; charset=utf-8
+      Content-Disposition: form-data; name=map
+
+      {"0":["variables.file"]}
+      --f56524ab-5626-4955-b296-234a097b44f6
+      Content-Type: text/plain
+      Content-Disposition: form-data; name=0; filename=test.txt; filename*=utf-8''test.txt
+
+      abc
+      --f56524ab-5626-4955-b296-234a097b44f6--
 response:
   body: |
     {

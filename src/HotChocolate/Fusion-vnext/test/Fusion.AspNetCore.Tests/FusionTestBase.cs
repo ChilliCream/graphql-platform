@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -61,17 +62,17 @@ public abstract partial class FusionTestBase : IDisposable
                 //         return;
                 //     }
                 //
-                //     var originalStream = request.Content.ReadAsStream();
-                //
-                //     var document = JsonDocument.Parse(originalStream);
-                //
-                //     document.RootElement.TryGetProperty("query", out var queryProperty);
-                //     document.RootElement.TryGetProperty("variables", out var variablesProperty);
-                //
-                //     if (originalStream.CanSeek)
-                //     {
-                //         originalStream.Position = 0;
-                //     }
+                //     // var originalStream = request.Content.ReadAsStream();
+                //     //
+                //     // var document = JsonDocument.Parse(originalStream);
+                //     //
+                //     // document.RootElement.TryGetProperty("query", out var queryProperty);
+                //     // document.RootElement.TryGetProperty("variables", out var variablesProperty);
+                //     //
+                //     // if (originalStream.CanSeek)
+                //     // {
+                //     //     originalStream.Position = 0;
+                //     // }
                 //
                 //     GetSourceSchemaInteraction(context, node).Request =
                 //         new SourceSchemaInteraction.SourceSchemaRequest

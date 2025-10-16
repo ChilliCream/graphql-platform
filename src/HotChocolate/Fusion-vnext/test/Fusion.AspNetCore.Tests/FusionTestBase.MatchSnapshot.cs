@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
@@ -9,6 +10,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;
+using HotChocolate.Transport.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
 using OperationResult = HotChocolate.Transport.OperationResult;
@@ -21,7 +23,8 @@ public abstract partial class FusionTestBase
         Gateway gateway,
         OperationRequest request,
         GraphQLHttpResponse response,
-        string? postFix = null)
+        string? postFix = null,
+        RawRequest? rawRequest = null)
     {
         var snapshot = new Snapshot(postFix, ".yaml");
 
@@ -44,7 +47,7 @@ public abstract partial class FusionTestBase
 
         writer.WriteLine("request:");
         writer.Indent();
-        WriteOperationRequest(writer, request);
+        WriteOperationRequest(writer, request, rawRequest);
         writer.Unindent();
 
         WriteResults(writer, results);
@@ -332,11 +335,61 @@ public abstract partial class FusionTestBase
         WriteMultilineString(writer, cleanedSchema);
     }
 
-    private static void WriteOperationRequest(CodeWriter writer, OperationRequest request)
+    private static void WriteOperationRequest(
+        CodeWriter writer,
+        OperationRequest request,
+        RawRequest? rawRequest)
     {
         if (request.OnError is not null && request.OnError != ErrorHandlingMode.Propagate)
         {
             writer.WriteLine("onError: {0}", request.OnError);
+        }
+
+        if (rawRequest is not null)
+        {
+            writer.WriteLine("rawRequest: ");
+            writer.Indent();
+
+            var contentType = rawRequest.ContentType;
+            var streamReader = new StreamReader(rawRequest.Body);
+            var rawRequestString = streamReader.ReadToEnd();
+
+            // The multipart boundary is random, so we need to change it to a fixed value for the snapshots
+            if (contentType.MediaType?.StartsWith("multipart/", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                var boundary = contentType.Parameters
+                    .FirstOrDefault(
+                        p => p.Name.Equals("boundary", StringComparison.OrdinalIgnoreCase))
+                    ?.Value?.Trim('"');
+
+                if (!string.IsNullOrEmpty(boundary))
+                {
+                    const string staticBoundaryValue = "f56524ab-5626-4955-b296-234a097b44f6";
+
+                    var normalizedContentType = $"{contentType.MediaType}; boundary=\"{staticBoundaryValue}\"";
+
+                    writer.WriteLine("contentType: {0}", normalizedContentType);
+
+                    rawRequestString = rawRequestString.Replace($"--{boundary}", $"--{staticBoundaryValue}");
+                }
+                else
+                {
+                    writer.WriteLine("contentType: {0}", contentType.MediaType);
+                }
+            }
+            else
+            {
+                writer.WriteLine("contentType: {0}", contentType.MediaType!);
+            }
+
+            writer.WriteLine("body: |");
+            writer.Indent();
+
+            WriteMultilineString(writer, rawRequestString);
+
+            writer.Unindent();
+            writer.Unindent();
+            return;
         }
 
         writer.WriteLine("document: |");
@@ -410,5 +463,12 @@ public abstract partial class FusionTestBase
         }
 
         return true;
+    }
+
+    protected class RawRequest
+    {
+        public required MemoryStream Body { get; init; }
+
+        public required MediaTypeHeaderValue ContentType { get; init; }
     }
 }
