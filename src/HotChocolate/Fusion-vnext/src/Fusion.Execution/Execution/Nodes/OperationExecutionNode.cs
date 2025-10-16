@@ -90,7 +90,8 @@ public sealed class OperationExecutionNode : ExecutionNode
     public ReadOnlySpan<string> ForwardedVariables => _forwardedVariables;
 
     /// <summary>
-    /// TODO
+    /// Gets whether this operation contains one or more variables
+    /// that contain the Upload scalar.
     /// </summary>
     public bool HasFiles => _hasFiles;
 
@@ -108,7 +109,6 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
 
-        // TODO: This needs to be skipped in case we're dealing with a file reference
         context.TrackVariableValueSets(this, variables);
 
         var request = new SourceSchemaClientRequest
@@ -116,7 +116,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
             Variables = variables,
-            HasFiles = true
+            HasFiles = _hasFiles
         };
 
         var client = context.GetClient(schemaName, _operation.Type);

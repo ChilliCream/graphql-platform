@@ -5,6 +5,8 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
+using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
@@ -339,6 +341,11 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         foreach (var field in node.Fields)
         {
+            if (field.Value is FileValueNode or FileReferenceNode)
+            {
+                continue;
+            }
+
             jsonWriter.WritePropertyName(field.Name.Value);
             WriteValueNode(jsonWriter, field.Value);
         }
