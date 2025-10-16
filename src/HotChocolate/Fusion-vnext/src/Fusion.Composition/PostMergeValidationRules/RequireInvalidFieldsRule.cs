@@ -36,7 +36,7 @@ internal sealed class RequireInvalidFieldsRule : IEventHandler<SchemaEvent>
 
         var validator = new FieldSelectionMapValidator(schema);
 
-        foreach (var (sourceArgument, sourceField, sourceType, sourceSchema) in sourceArgumentGroup)
+        foreach (var (sourceArgument, _, sourceType, sourceSchema) in sourceArgumentGroup)
         {
             var requireDirective = sourceArgument.Directives[Require].First();
             var fieldArgumentValue = (string)requireDirective.Arguments[Field].Value!;
@@ -64,9 +64,7 @@ internal sealed class RequireInvalidFieldsRule : IEventHandler<SchemaEvent>
                 context.Log.Write(
                     RequireInvalidFields(
                         requireDirective,
-                        sourceArgument.Name,
-                        sourceField.Name,
-                        sourceType.Name,
+                        sourceArgument,
                         sourceSchema,
                         errors));
             }

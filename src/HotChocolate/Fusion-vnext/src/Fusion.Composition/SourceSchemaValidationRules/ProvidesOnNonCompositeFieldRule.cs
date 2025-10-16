@@ -21,7 +21,7 @@ internal sealed class ProvidesOnNonCompositeFieldRule : IEventHandler<OutputFiel
 {
     public void Handle(OutputFieldEvent @event, CompositionContext context)
     {
-        var (field, type, schema) = @event;
+        var (field, _, schema) = @event;
 
         if (field.HasProvidesDirective())
         {
@@ -29,7 +29,7 @@ internal sealed class ProvidesOnNonCompositeFieldRule : IEventHandler<OutputFiel
 
             if (fieldType is not MutableComplexTypeDefinition)
             {
-                context.Log.Write(ProvidesOnNonCompositeField(field, type, schema));
+                context.Log.Write(ProvidesOnNonCompositeField(field, schema));
             }
         }
     }

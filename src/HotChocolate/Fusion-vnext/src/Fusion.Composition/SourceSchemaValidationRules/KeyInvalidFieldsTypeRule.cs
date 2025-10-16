@@ -20,6 +20,6 @@ internal sealed class KeyInvalidFieldsTypeRule : IEventHandler<KeyFieldsInvalidT
     {
         var (keyDirective, type, schema) = @event;
 
-        context.Log.Write(KeyInvalidFieldsType(keyDirective, type.Name, schema));
+        context.Log.Write(KeyInvalidFieldsType(keyDirective, type, schema));
     }
 }

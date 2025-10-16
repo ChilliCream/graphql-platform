@@ -46,27 +46,18 @@ internal sealed class DisallowedInaccessibleElementsRule
         // Introspection fields must be accessible.
         if (type.IsIntrospectionType && field.HasInaccessibleDirective())
         {
-            context.Log.Write(
-                DisallowedInaccessibleIntrospectionField(
-                    field,
-                    type.Name,
-                    schema));
+            context.Log.Write(DisallowedInaccessibleIntrospectionField(field, schema));
         }
     }
 
     public void Handle(FieldArgumentEvent @event, CompositionContext context)
     {
-        var (argument, field, type, schema) = @event;
+        var (argument, _, type, schema) = @event;
 
         // Introspection arguments must be accessible.
         if (type.IsIntrospectionType && argument.HasInaccessibleDirective())
         {
-            context.Log.Write(
-                DisallowedInaccessibleIntrospectionArgument(
-                    argument,
-                    field.Name,
-                    type.Name,
-                    schema));
+            context.Log.Write(DisallowedInaccessibleIntrospectionArgument(argument, schema));
         }
     }
 
@@ -77,11 +68,7 @@ internal sealed class DisallowedInaccessibleElementsRule
         // Built-in directive arguments must be accessible.
         if (BuiltIns.IsBuiltInDirective(directive.Name) && argument.HasInaccessibleDirective())
         {
-            context.Log.Write(
-                DisallowedInaccessibleDirectiveArgument(
-                    argument,
-                    directive.Name,
-                    schema));
+            context.Log.Write(DisallowedInaccessibleDirectiveArgument(argument, schema));
         }
     }
 }

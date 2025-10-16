@@ -16,17 +16,18 @@ internal static class CompositionLogExtensions
         foreach (var entry in validationLog)
         {
             log.Write(
-                new LogEntry(
-                    string.Format(
+                LogEntryBuilder.New()
+                    .SetMessage(
                         CompositionLogExtensions_EntryMessageWithSchemaName,
                         entry.Message,
-                        schema.Name),
-                    entry.Code,
-                    MapLogSeverity(entry.Severity),
-                    entry.Coordinate,
-                    entry.TypeSystemMember,
-                    schema,
-                    entry.Extensions));
+                        schema.Name)
+                    .SetCode(entry.Code)
+                    .SetSeverity(MapLogSeverity(entry.Severity))
+                    .SetCoordinate(entry.Coordinate)
+                    .SetTypeSystemMember(entry.TypeSystemMember)
+                    .SetSchema(schema)
+                    .SetExtensions(entry.Extensions)
+                    .Build());
         }
     }
 
