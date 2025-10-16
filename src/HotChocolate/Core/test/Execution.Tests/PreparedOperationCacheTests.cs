@@ -24,4 +24,42 @@ public class PreparedOperationCacheTests
         // assert
         Assert.Equal(cacheCapacity, operationCache.Capacity);
     }
+
+    [Fact]
+    public async Task Operation_Cache_Should_Be_Scoped_To_Executor()
+    {
+        // arrange
+        var executorEvictedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var manager = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d => d.Field("foo").Resolve(""))
+            .Services.BuildServiceProvider()
+            .GetRequiredService<RequestExecutorManager>();
+
+        manager.Subscribe(new RequestExecutorEventObserver(@event =>
+        {
+            if (@event.Type == RequestExecutorEventType.Evicted)
+            {
+                executorEvictedResetEvent.Set();
+            }
+        }));
+
+        // act
+        var firstExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+        var firstOperationCache = firstExecutor.Schema.Services
+            .GetRequiredService<IPreparedOperationCache>();
+
+        manager.EvictExecutor();
+        executorEvictedResetEvent.Wait(cts.Token);
+
+        var secondExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+        var secondOperationCache = secondExecutor.Schema.Services
+            .GetRequiredService<IPreparedOperationCache>();
+
+        // assert
+        Assert.NotSame(secondExecutor, firstExecutor);
+        Assert.NotSame(secondOperationCache, firstOperationCache);
+    }
 }

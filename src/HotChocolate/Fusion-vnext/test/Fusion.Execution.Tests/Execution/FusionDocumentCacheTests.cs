@@ -1,10 +1,10 @@
+using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Execution;
+namespace HotChocolate.Fusion.Execution;
 
-public class DocumentCacheTests
+public class FusionDocumentCacheTests : FusionTestBase
 {
     [Fact]
     public async Task Document_Cache_Should_Have_Configured_Capacity()
@@ -13,9 +13,15 @@ public class DocumentCacheTests
         const int cacheCapacity = 517;
         var services = new ServiceCollection();
         services
-            .AddGraphQL()
+            .AddGraphQLGateway()
             .ModifyOptions(o => o.OperationDocumentCacheSize = cacheCapacity)
-            .AddQueryType(d => d.Field("foo").Resolve(""));
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                      field: String!
+                    }
+                    """));
         var executor = await services.BuildServiceProvider().GetRequestExecutorAsync();
 
         // act
@@ -32,14 +38,23 @@ public class DocumentCacheTests
         var executorEvictedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
+        var configProvider = new TestFusionConfigurationProvider(
+            CreateFusionConfiguration(
+                """
+                type Query {
+                  field1: String!
+                }
+                """));
+
         var services =
             new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType(d => d.Field("foo").Resolve(""))
+                .AddHttpClient()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
                 .Services
                 .BuildServiceProvider();
 
-        var manager = services.GetRequiredService<RequestExecutorManager>();
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         manager.Subscribe(new RequestExecutorEventObserver(@event =>
         {
@@ -55,7 +70,13 @@ public class DocumentCacheTests
 
         await firstExecutor.ExecuteAsync("{ __typename }", cts.Token);
 
-        manager.EvictExecutor();
+        configProvider.UpdateConfiguration(
+            CreateFusionConfiguration(
+                """
+                type Query {
+                  field2: String!
+                }
+                """));
         executorEvictedResetEvent.Wait(cts.Token);
 
         var secondExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
@@ -73,15 +94,27 @@ public class DocumentCacheTests
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
-        var services = new ServiceCollection();
+        var services = new ServiceCollection().AddHttpClient();
         services
-            .AddGraphQL("a")
-            .AddQueryType(d => d.Field("foo").Resolve(""));
+            .AddGraphQLGateway("a")
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                      fieldA: String!
+                    }
+                    """));
         services
-            .AddGraphQL("b")
-            .AddQueryType(d => d.Field("foo").Resolve(""));
+            .AddGraphQLGateway("b")
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                      fieldB: String!
+                    }
+                    """));
 
-        var manager = services.BuildServiceProvider().GetRequiredService<RequestExecutorManager>();
+        var manager = services.BuildServiceProvider().GetRequiredService<FusionRequestExecutorManager>();
 
         // act
         var executorA = await manager.GetExecutorAsync("a", cts.Token);
