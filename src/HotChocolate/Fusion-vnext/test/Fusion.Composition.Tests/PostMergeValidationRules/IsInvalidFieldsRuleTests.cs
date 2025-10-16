@@ -1,251 +1,224 @@
-using System.Collections.Immutable;
-using HotChocolate.Fusion.Logging;
-using HotChocolate.Fusion.Options;
-using static HotChocolate.Fusion.CompositionTestHelper;
-
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
-public sealed class IsInvalidFieldsRuleTests
+public sealed class IsInvalidFieldsRuleTests : RuleTestBase
 {
-    private static readonly object s_rule = new IsInvalidFieldsRule();
-    private static readonly ImmutableArray<object> s_rules = [s_rule];
-    private readonly CompositionLog _log = new();
+    protected override object Rule { get; } = new IsInvalidFieldsRule();
 
-    [Theory]
-    [MemberData(nameof(ValidExamplesData))]
-    public void Examples_Valid(string[] sdl)
+    // In the following example, the @is directive's "field" argument is a valid field selection map
+    // and satisfies the rule.
+    [Fact]
+    public void Validate_IsValidFields_Succeeds()
     {
-        // arrange
-        var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(
-            schemas,
-            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
-        var mergeResult = merger.Merge();
-        var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
-
-        // act
-        var result = validator.Validate();
-
-        // assert
-        Assert.True(result.IsSuccess);
-        Assert.True(_log.IsEmpty);
-    }
-
-    [Theory]
-    [MemberData(nameof(InvalidExamplesData))]
-    public void Examples_Invalid(string[] sdl, string[] errorMessages)
-    {
-        // arrange
-        var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(
-            schemas,
-            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
-        var mergeResult = merger.Merge();
-        var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
-
-        // act
-        var result = validator.Validate();
-
-        // assert
-        Assert.True(result.IsFailure);
-        Assert.Equal(errorMessages, _log.Select(e => e.Message).ToArray());
-        Assert.True(_log.All(e => e.Code == "IS_INVALID_FIELDS"));
-        Assert.True(_log.All(e => e.Severity == LogSeverity.Error));
-    }
-
-    public static TheoryData<string[]> ValidExamplesData()
-    {
-        return new TheoryData<string[]>
-        {
-            // In the following example, the @is directive’s "field" argument is a valid field
-            // selection map and satisfies the rule.
-            {
-                [
-                    """
-                    # Schema A
-                    type Query {
-                        personById(id: ID! @is(field: "id")): Person @lookup
-                    }
-
-                    type Person {
-                        id: ID!
-                        name: String
-                    }
-                    """
-                ]
-            },
-            {
-                [
-                    """
-                    # Schema A
-                    type Query {
-                        personByName(name: String! @is(field: "name")): Person @lookup
-                    }
-
-                    type Person {
-                        id: ID!
-                    }
-                    """,
-                    """
-                    # Schema B
-                    type Person {
-                        id: ID!
-                        name: String!
-                    }
-                    """
-                ]
+        AssertValid(
+        [
+            """
+            # Schema A
+            type Query {
+                personById(id: ID! @is(field: "id")): Person @lookup
             }
-        };
+
+            type Person {
+                id: ID!
+                name: String
+            }
+            """
+        ]);
     }
 
-    public static TheoryData<string[], string[]> InvalidExamplesData()
+    // In this example, the "field" argument references a field from another source schema.
+    [Fact]
+    public void Validate_IsValidFieldsAcrossSchemas_Succeeds()
     {
-        return new TheoryData<string[], string[]>
-        {
-            // In this example, the @is directive references a field ("unknownField") that does
-            // not exist on the return type ("Person"), causing an IS_INVALID_FIELDS error.
-            {
-                [
-                    """
-                    # Schema A
-                    type Query {
-                        personById(id: ID! @is(field: "unknownField")): Person @lookup
-                    }
-
-                    type Person {
-                        id: ID!
-                        name: String
-                    }
-                    """
-                ],
-                [
-                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' "
-                    + "specifies an invalid field selection against the composed schema."
-                ]
-            },
-            // In this example, the @is directive references a field ("unknownField") with a
-            // selection set, that does not exist on the return type ("Person"), causing an
-            // IS_INVALID_FIELDS error.
-            {
-                [
-                    """
-                    # Schema A
-                    type Query {
-                        personById(id: ID! @is(field: "unknownField.something")): Person @lookup
-                    }
-
-                    type Person {
-                        id: ID!
-                        name: String
-                    }
-                    """
-                ],
-                [
-                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' "
-                    + "specifies an invalid field selection against the composed schema."
-                ]
-            },
-            // In this example, the @is directive references a field ("id") via a missing concrete
-            // type ("SpecialPerson"), causing an IS_INVALID_FIELDS error.
-            {
-                [
-                    """
-                    # Schema A
-                    type Query {
-                        personById(id: ID! @is(field: "<SpecialPerson>.id")): Person @lookup
-                    }
-
-                    interface Person {
-                        id: ID!
-                        name: String
-                    }
-                    """
-                ],
-                [
-                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' "
-                    + "specifies an invalid field selection against the composed schema."
-                ]
-            },
-            // Type of argument does not match field type.
-            {
-                [
-                    """
-                    # Schema A
-                    type Query {
-                        personById(id: Int! @is(field: "id")): Person @lookup
-                    }
-
-                    type Person {
-                        id: ID!
-                        name: String
-                    }
-                    """
-                ],
-                [
-                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' "
-                    + "specifies an invalid field selection against the composed schema."
-                ]
-            },
-            // List output type, Singular input type.
-            {
-                [
-                    """
-                    # Schema A
-                    type Query {
-                        personsById(id: ID! @is(field: "id")): [Person!]! @lookup
-                    }
-
-                    type Person {
-                        id: ID!
-                        name: String
-                    }
-                    """
-                ],
-                [
-                    "The @is directive on argument 'Query.personsById(id:)' in schema 'A' "
-                    + "specifies an invalid field selection against the composed schema."
-                ]
-            },
-            // Singular output type, List input type.
-            {
-                [
-                    """
-                    # Schema A
-                    type Query {
-                        personByIds(ids: [ID!]! @is(field: "id")): Person! @lookup
-                    }
-
-                    type Person {
-                        id: ID!
-                        name: String
-                    }
-                    """
-                ],
-                [
-                    "The @is directive on argument 'Query.personByIds(ids:)' in schema 'A' "
-                    + "specifies an invalid field selection against the composed schema."
-                ]
-            },
-            // List output type, List input type (valid for Fusion v1 batch lookups).
-            {
-                [
-                    """
-                    # Schema A
-                    type Query {
-                        personsByIds(ids: [ID!]! @is(field: "id")): [Person!]! @lookup
-                    }
-
-                    type Person {
-                        id: ID!
-                        name: String
-                    }
-                    """
-                ],
-                [
-                    "The @is directive on argument 'Query.personsByIds(ids:)' in schema 'A' "
-                    + "specifies an invalid field selection against the composed schema."
-                ]
+        AssertValid(
+        [
+            """
+            # Schema A
+            type Query {
+                personByName(name: String! @is(field: "name")): Person @lookup
             }
-        };
+
+            type Person {
+                id: ID!
+            }
+            """,
+            """
+            # Schema B
+            type Person {
+                id: ID!
+                name: String!
+            }
+            """
+        ]);
+    }
+
+    // In this example, the @is directive references a field ("unknownField") that does not exist on
+    // the return type ("Person"), causing an IS_INVALID_FIELDS error.
+    [Fact]
+    public void Validate_IsInvalidFields_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                # Schema A
+                type Query {
+                    personById(id: ID! @is(field: "unknownField")): Person @lookup
+                }
+
+                type Person {
+                    id: ID!
+                    name: String
+                }
+                """
+            ],
+            [
+                "The @is directive on argument 'Query.personById(id:)' in schema 'A' specifies an "
+                + "invalid field selection against the composed schema."
+            ]);
+    }
+
+    // In this example, the @is directive references a field ("unknownField") with a selection set,
+    // that does not exist on the return type ("Person"), causing an IS_INVALID_FIELDS error.
+    [Fact]
+    public void Validate_IsInvalidFieldsWithSelectionSet_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                # Schema A
+                type Query {
+                    personById(id: ID! @is(field: "unknownField.something")): Person @lookup
+                }
+
+                type Person {
+                    id: ID!
+                    name: String
+                }
+                """
+            ],
+            [
+                "The @is directive on argument 'Query.personById(id:)' in schema 'A' specifies an "
+                + "invalid field selection against the composed schema."
+            ]);
+    }
+
+    // In this example, the @is directive references a field ("id") via a missing concrete type
+    // ("SpecialPerson"), causing an IS_INVALID_FIELDS error.
+    [Fact]
+    public void Validate_IsInvalidFieldsMissingConcreteType_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                # Schema A
+                type Query {
+                    personById(id: ID! @is(field: "<SpecialPerson>.id")): Person @lookup
+                }
+
+                interface Person {
+                    id: ID!
+                    name: String
+                }
+                """
+            ],
+            [
+                "The @is directive on argument 'Query.personById(id:)' in schema 'A' specifies an "
+                + "invalid field selection against the composed schema."
+            ]);
+    }
+
+    // Type of argument does not match field type.
+    [Fact]
+    public void Validate_IsInvalidFieldsTypeMismatch_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                # Schema A
+                type Query {
+                    personById(id: Int! @is(field: "id")): Person @lookup
+                }
+
+                type Person {
+                    id: ID!
+                    name: String
+                }
+                """
+            ],
+            [
+                "The @is directive on argument 'Query.personById(id:)' in schema 'A' specifies an "
+                + "invalid field selection against the composed schema."
+            ]);
+    }
+
+    // List output type, singular input type.
+    [Fact]
+    public void Validate_IsInvalidFieldsListVsSingular_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                # Schema A
+                type Query {
+                    personsById(id: ID! @is(field: "id")): [Person!]! @lookup
+                }
+
+                type Person {
+                    id: ID!
+                    name: String
+                }
+                """
+            ],
+            [
+                "The @is directive on argument 'Query.personsById(id:)' in schema 'A' specifies an "
+                + "invalid field selection against the composed schema."
+            ]);
+    }
+
+    // Singular output type, List input type.
+    [Fact]
+    public void Validate_IsInvalidFieldsSingularVsList_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                # Schema A
+                type Query {
+                    personByIds(ids: [ID!]! @is(field: "id")): Person! @lookup
+                }
+
+                type Person {
+                    id: ID!
+                    name: String
+                }
+                """
+            ],
+            [
+                "The @is directive on argument 'Query.personByIds(ids:)' in schema 'A' specifies "
+                + "an invalid field selection against the composed schema."
+            ]);
+    }
+
+    // List output type, List input type (valid for Fusion v1 batch lookups).
+    [Fact]
+    public void Validate_IsInvalidFieldsListVsList_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                # Schema A
+                type Query {
+                    personsByIds(ids: [ID!]! @is(field: "id")): [Person!]! @lookup
+                }
+
+                type Person {
+                    id: ID!
+                    name: String
+                }
+                """
+            ],
+            [
+                "The @is directive on argument 'Query.personsByIds(ids:)' in schema 'A' specifies "
+                + "an invalid field selection against the composed schema."
+            ]);
     }
 }
