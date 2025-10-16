@@ -20,11 +20,11 @@ internal sealed class LookupReturnsNonNullableTypeRule : IEventHandler<OutputFie
 {
     public void Handle(OutputFieldEvent @event, CompositionContext context)
     {
-        var (field, type, schema) = @event;
+        var (field, _, schema) = @event;
 
         if (field.HasLookupDirective() && field.Type is NonNullType)
         {
-            context.Log.Write(LookupReturnsNonNullableType(field, type, schema));
+            context.Log.Write(LookupReturnsNonNullableType(field, schema));
         }
     }
 }

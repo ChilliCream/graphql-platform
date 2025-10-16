@@ -17,14 +17,8 @@ internal sealed class IsInvalidSyntaxRule : IEventHandler<IsFieldInvalidSyntaxEv
 {
     public void Handle(IsFieldInvalidSyntaxEvent @event, CompositionContext context)
     {
-        var (isDirective, argument, field, type, schema) = @event;
+        var (isDirective, argument, _, _, schema) = @event;
 
-        context.Log.Write(
-            IsInvalidSyntax(
-                isDirective,
-                argument.Name,
-                field.Name,
-                type.Name,
-                schema));
+        context.Log.Write(IsInvalidSyntax(isDirective, argument, schema));
     }
 }

@@ -56,9 +56,7 @@ internal sealed class IsInvalidFieldsRule : IEventHandler<SchemaEvent>
                 context.Log.Write(
                     IsInvalidFields(
                         isDirective,
-                        sourceArgument.Name,
-                        sourceField.Name,
-                        sourceType.Name,
+                        sourceArgument,
                         sourceSchema,
                         errors));
             }

@@ -18,9 +18,8 @@ internal sealed class ProvidesInvalidFieldsTypeRule : IEventHandler<ProvidesFiel
 {
     public void Handle(ProvidesFieldsInvalidTypeEvent @event, CompositionContext context)
     {
-        var (providesDirective, field, type, schema) = @event;
+        var (providesDirective, field, _, schema) = @event;
 
-        context.Log.Write(
-            ProvidesInvalidFieldsType(providesDirective, field.Name, type.Name, schema));
+        context.Log.Write(ProvidesInvalidFieldsType(providesDirective, field, schema));
     }
 }
