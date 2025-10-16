@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -54,39 +55,43 @@ public abstract partial class FusionTestBase : IDisposable
             {
                 gatewayBuilder.AddHttpClientConfiguration(
                     name,
-                    new Uri("http://localhost:5000/graphql"));
-                // onBeforeSend: (context, node, request) =>
-                // {
-                //     if (request.Content == null)
-                //     {
-                //         return;
-                //     }
-                //
-                //     // var originalStream = request.Content.ReadAsStream();
-                //     //
-                //     // var document = JsonDocument.Parse(originalStream);
-                //     //
-                //     // document.RootElement.TryGetProperty("query", out var queryProperty);
-                //     // document.RootElement.TryGetProperty("variables", out var variablesProperty);
-                //     //
-                //     // if (originalStream.CanSeek)
-                //     // {
-                //     //     originalStream.Position = 0;
-                //     // }
-                //
-                //     GetSourceSchemaInteraction(context, node).Request =
-                //         new SourceSchemaInteraction.SourceSchemaRequest
-                //         {
-                //             Query = queryProperty,
-                //             Variables = variablesProperty
-                //         };
-                // },
-                // onAfterReceive: (context, node, response)
-                //     => GetSourceSchemaInteraction(context, node).StatusCode = response.StatusCode,
-                // onSourceSchemaResult: (context, node, result)
-                //     => GetSourceSchemaInteraction(context, node)
-                //         // We have to do this here, otherwise the result will have already been disposed
-                //         .Results.Add(SerializeSourceSchemaResult(result)));
+                    new Uri("http://localhost:5000/graphql"),
+                    onBeforeSend: (context, node, request) =>
+                    {
+                        if (request.Content is not {} content)
+                        {
+                            throw new InvalidOperationException("Expected content to not be null.");
+                        }
+
+                        if (request.Content.Headers.ContentType is not { } contentType)
+                        {
+                            throw new InvalidOperationException("Expected Content-Type header to not be null.");
+                        }
+
+                        var bodyStream = new MemoryStream();
+                        var originalStream = content.ReadAsStream();
+
+                        originalStream.CopyTo(bodyStream);
+                        bodyStream.Position = 0;
+
+                        if (originalStream.CanSeek)
+                        {
+                            originalStream.Position = 0;
+                        }
+
+                        GetSourceSchemaInteraction(context, node).Request
+                            = new SourceSchemaInteraction.RawSourceSchemaRequest
+                            {
+                                Body = bodyStream,
+                                ContentType = contentType
+                            };
+                    },
+                    onAfterReceive: (context, node, response)
+                        => GetSourceSchemaInteraction(context, node).StatusCode = response.StatusCode,
+                    onSourceSchemaResult: (context, node, result)
+                        => GetSourceSchemaInteraction(context, node)
+                            // We have to do this here, otherwise the result will have already been disposed
+                            .Results.Add(SerializeSourceSchemaResult(result)));
             }
         }
 
@@ -149,15 +154,15 @@ public abstract partial class FusionTestBase : IDisposable
 
         return new Gateway(gatewayTestServer, sourceSchemas, interactions);
 
-        // SourceSchemaInteraction GetSourceSchemaInteraction(OperationPlanContext context, ExecutionNode node)
-        // {
-        //     var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
-        //         ? staticSchemaName
-        //         : context.GetDynamicSchemaName(node);
-        //
-        //     var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
-        //     return schemaInteractions.GetOrAdd(node.Id, _ => new SourceSchemaInteraction());
-        // }
+        SourceSchemaInteraction GetSourceSchemaInteraction(OperationPlanContext context, ExecutionNode node)
+        {
+            var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
+                ? staticSchemaName
+                : context.GetDynamicSchemaName(node);
+
+            var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
+            return schemaInteractions.GetOrAdd(node.Id, _ => new SourceSchemaInteraction());
+        }
     }
 
     public void Dispose()
@@ -202,17 +207,16 @@ public abstract partial class FusionTestBase : IDisposable
 
     protected class SourceSchemaInteraction
     {
-        public SourceSchemaRequest? Request { get; set; }
+        public RawSourceSchemaRequest? Request { get; set; }
 
         public List<string> Results { get; } = [];
 
         public HttpStatusCode? StatusCode { get; set; }
 
-        public sealed class SourceSchemaRequest
+        public sealed class RawSourceSchemaRequest
         {
-            public JsonElement Query { get; init; }
-
-            public JsonElement Variables { get; init; }
+            public required MemoryStream Body { get; init; }
+            public required MediaTypeHeaderValue ContentType { get; init; }
         }
     }
 

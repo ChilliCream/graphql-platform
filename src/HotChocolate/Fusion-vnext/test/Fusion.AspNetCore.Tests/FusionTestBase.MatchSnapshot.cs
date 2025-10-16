@@ -10,7 +10,6 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;
-using HotChocolate.Transport.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
 using OperationResult = HotChocolate.Transport.OperationResult;
@@ -228,28 +227,49 @@ public abstract partial class FusionTestBase
 
             foreach (var (_, interaction) in interactions.OrderBy(x => x.Key))
             {
-                writer.WriteLine("- request:");
-                writer.Indent();
-                writer.Indent();
-                writer.WriteLine("document: |");
-                writer.Indent();
+                var request = interaction.Request!;
 
-                var query = interaction.Request!.Query.GetString()!;
-                // Ensure consistent formatting
-                var document = Utf8GraphQLParser.Parse(query).ToString(indented: true);
-
-                WriteMultilineString(writer, document);
-                writer.Unindent();
-
-                if (interaction.Request!.Variables.ValueKind != JsonValueKind.Undefined)
+                if (request.ContentType.MediaType?.StartsWith("multipart/", StringComparison.OrdinalIgnoreCase) == true)
                 {
-                    writer.WriteLine("variables: |");
+                    writer.WriteLine("- rawRequest:");
                     writer.Indent();
-                    WriteFormattedJson(writer, interaction.Request.Variables);
+                    writer.Indent();
+
+                    WriteMultipartRequest(writer, request.ContentType, request.Body);
+
                     writer.Unindent();
                 }
+                else
+                {
+                    writer.WriteLine("- request:");
+                    writer.Indent();
+                    writer.Indent();
+                    writer.WriteLine("document: |");
+                    writer.Indent();
 
-                writer.Unindent();
+                    var jsonBody = JsonDocument.Parse(request.Body);
+
+                    jsonBody.RootElement.TryGetProperty("query", out var queryProperty);
+                    jsonBody.RootElement.TryGetProperty("variables", out var variablesProperty);
+
+                    var query = queryProperty.GetString()!;
+
+                    // Ensure consistent formatting
+                    var document = Utf8GraphQLParser.Parse(query).ToString(indented: true);
+
+                    WriteMultilineString(writer, document);
+                    writer.Unindent();
+
+                    if (variablesProperty.ValueKind != JsonValueKind.Undefined)
+                    {
+                        writer.WriteLine("variables: |");
+                        writer.Indent();
+                        WriteFormattedJson(writer, variablesProperty);
+                        writer.Unindent();
+                    }
+
+                    writer.Unindent();
+                }
 
                 if (interaction.StatusCode.HasValue)
                 {
@@ -351,44 +371,21 @@ public abstract partial class FusionTestBase
             writer.Indent();
 
             var contentType = rawRequest.ContentType;
-            var streamReader = new StreamReader(rawRequest.Body);
-            var rawRequestString = streamReader.ReadToEnd();
 
-            // The multipart boundary is random, so we need to change it to a fixed value for the snapshots
             if (contentType.MediaType?.StartsWith("multipart/", StringComparison.OrdinalIgnoreCase) == true)
             {
-                var boundary = contentType.Parameters
-                    .FirstOrDefault(
-                        p => p.Name.Equals("boundary", StringComparison.OrdinalIgnoreCase))
-                    ?.Value?.Trim('"');
-
-                if (!string.IsNullOrEmpty(boundary))
-                {
-                    const string staticBoundaryValue = "f56524ab-5626-4955-b296-234a097b44f6";
-
-                    var normalizedContentType = $"{contentType.MediaType}; boundary=\"{staticBoundaryValue}\"";
-
-                    writer.WriteLine("contentType: {0}", normalizedContentType);
-
-                    rawRequestString = rawRequestString.Replace($"--{boundary}", $"--{staticBoundaryValue}");
-                }
-                else
-                {
-                    writer.WriteLine("contentType: {0}", contentType.MediaType);
-                }
+                WriteMultipartRequest(writer, contentType, rawRequest.Body);
             }
             else
             {
-                writer.WriteLine("contentType: {0}", contentType.MediaType!);
+                var streamReader = new StreamReader(rawRequest.Body);
+                var rawRequestString = streamReader.ReadToEnd();
+
+                WriteRawRequest(writer, contentType.MediaType!, rawRequestString);
             }
 
-            writer.WriteLine("body: |");
-            writer.Indent();
-
-            WriteMultilineString(writer, rawRequestString);
-
             writer.Unindent();
-            writer.Unindent();
+
             return;
         }
 
@@ -444,6 +441,44 @@ public abstract partial class FusionTestBase
             writer.WriteLine(line);
             line = reader.ReadLine();
         }
+    }
+
+    private static void WriteMultipartRequest(
+        CodeWriter writer,
+        MediaTypeHeaderValue contentType,
+        MemoryStream body)
+    {
+        var streamReader = new StreamReader(body);
+        var rawRequestString = streamReader.ReadToEnd();
+        var contentTypeString = contentType.MediaType!;
+
+        var boundary = contentType.Parameters
+            .FirstOrDefault(
+                p => p.Name.Equals("boundary", StringComparison.OrdinalIgnoreCase))
+            ?.Value?.Trim('"');
+
+        // The multipart boundary is random, so we need to change it to a fixed value for the snapshots
+        if (!string.IsNullOrEmpty(boundary))
+        {
+            const string staticBoundaryValue = "f56524ab-5626-4955-b296-234a097b44f6";
+
+            contentTypeString = $"{contentType.MediaType}; boundary=\"{staticBoundaryValue}\"";
+
+            rawRequestString = rawRequestString.Replace($"--{boundary}", $"--{staticBoundaryValue}");
+        }
+
+        WriteRawRequest(writer, contentTypeString, rawRequestString);
+    }
+
+    private static void WriteRawRequest(CodeWriter writer, string contentType, string body)
+    {
+        writer.WriteLine("contentType: {0}", contentType);
+        writer.WriteLine("body: |");
+        writer.Indent();
+
+        WriteMultilineString(writer, body);
+
+        writer.Unindent();
     }
 
     private static readonly FrozenSet<string> s_testDirectives = new HashSet<string> { "null", "error", "returns" }
