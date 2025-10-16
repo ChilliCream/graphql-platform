@@ -19,7 +19,7 @@ internal sealed class ProvidesInvalidFieldsRule : IEventHandler<ProvidesFieldsEv
 {
     public void Handle(ProvidesFieldsEvent @event, CompositionContext context)
     {
-        var (selectionSet, providesDirective, field, type, schema) = @event;
+        var (selectionSet, providesDirective, field, _, schema) = @event;
 
         var validator = new SelectionSetValidator(schema);
         var errors = validator.Validate(selectionSet, field.Type.AsTypeDefinition());
@@ -29,8 +29,7 @@ internal sealed class ProvidesInvalidFieldsRule : IEventHandler<ProvidesFieldsEv
             context.Log.Write(
                 ProvidesInvalidFields(
                     providesDirective,
-                    field.Name,
-                    type.Name,
+                    field,
                     schema,
                     errors));
         }

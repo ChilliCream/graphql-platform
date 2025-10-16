@@ -60,7 +60,6 @@ internal sealed class ImplementedByInaccessibleRule
                     context.Log.Write(
                         ImplementedByInaccessible(
                             field,
-                            type.Name,
                             interfaceField.Name,
                             interfaceType.Name,
                             schema));

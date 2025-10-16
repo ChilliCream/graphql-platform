@@ -17,7 +17,7 @@ internal sealed class ProvidesDirectiveInFieldsArgumentRule : IEventHandler<Prov
 {
     public void Handle(ProvidesFieldNodeEvent @event, CompositionContext context)
     {
-        var (fieldNode, fieldNamePath, providesDirective, field, type, schema) = @event;
+        var (fieldNode, fieldNamePath, providesDirective, field, _, schema) = @event;
 
         if (fieldNode.Directives.Count != 0)
         {
@@ -25,8 +25,7 @@ internal sealed class ProvidesDirectiveInFieldsArgumentRule : IEventHandler<Prov
                 ProvidesDirectiveInFieldsArgument(
                     fieldNamePath,
                     providesDirective,
-                    field.Name,
-                    type.Name,
+                    field,
                     schema));
         }
     }

@@ -31,7 +31,7 @@ internal sealed class KeyFieldsSelectInvalidTypeRule : IEventHandler<KeyFieldEve
                     keyField.Name,
                     keyFieldDeclaringType.Name,
                     keyDirective,
-                    type.Name,
+                    type,
                     schema));
         }
     }

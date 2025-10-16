@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Logging;
@@ -9,63 +10,47 @@ namespace HotChocolate.Fusion.Logging;
 public sealed record LogEntry
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="LogEntry"/> record with the specified values.
-    /// </summary>
-    public LogEntry(
-        string message,
-        string code,
-        LogSeverity severity = LogSeverity.Error,
-        SchemaCoordinate? coordinate = null,
-        ITypeSystemMember? member = null,
-        ISchemaDefinition? schema = null,
-        object? extension = null)
-    {
-        ArgumentNullException.ThrowIfNull(message);
-        ArgumentNullException.ThrowIfNull(code);
-
-        Message = message;
-        Code = code;
-        Severity = severity;
-        Coordinate = coordinate;
-        Member = member;
-        Schema = schema;
-        Extension = extension;
-    }
-
-    /// <summary>
     /// Gets the message associated with this log entry.
     /// </summary>
-    public string Message { get; }
+    public string Message { get; set; } = null!;
 
     /// <summary>
     /// Gets the code associated with this log entry.
     /// </summary>
-    public string Code { get; }
+    public string Code { get; set; } = null!;
 
     /// <summary>
     /// Gets the severity of this log entry.
     /// </summary>
-    public LogSeverity Severity { get; }
+    public LogSeverity Severity { get; set; }
 
     /// <summary>
     /// Gets the schema coordinate associated with this log entry.
     /// </summary>
-    public SchemaCoordinate? Coordinate { get; }
+    public SchemaCoordinate? Coordinate { get; set; }
 
     /// <summary>
     /// Gets the type system member associated with this log entry.
     /// </summary>
-    public ITypeSystemMember? Member { get; }
+    public ITypeSystemMember? TypeSystemMember { get; set; }
 
     /// <summary>
     /// Gets the schema associated with this log entry.
     /// </summary>
-    public ISchemaDefinition? Schema { get; }
+    public ISchemaDefinition? Schema { get; set; }
 
     /// <summary>
-    /// Gets the extension object associated with this log entry.
+    /// Gets the extensions associated with this log entry.
     /// </summary>
-    public object? Extension { get; }
+    public ImmutableDictionary<string, object?> Extensions { get; set; }
+#if NET10_0_OR_GREATER
+        = [];
+#else
+        = ImmutableDictionary<string, object?>.Empty;
+#endif
 
+    /// <summary>
+    /// Returns a string representation of the log entry.
+    /// </summary>
     public override string ToString() => Message;
 }

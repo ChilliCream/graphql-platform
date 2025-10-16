@@ -47,7 +47,7 @@ internal sealed class KeyInvalidFieldsRule : IEventHandler<SchemaEvent>
                 context.Log.Write(
                     KeyInvalidFields(
                         sourceKeyDirective,
-                        sourceComplexType.Name,
+                        sourceComplexType,
                         sourceSchema,
                         errors));
             }

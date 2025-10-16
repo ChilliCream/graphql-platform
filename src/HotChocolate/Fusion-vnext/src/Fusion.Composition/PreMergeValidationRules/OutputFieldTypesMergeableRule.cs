@@ -15,7 +15,7 @@ internal sealed class OutputFieldTypesMergeableRule : IEventHandler<OutputFieldG
 {
     public void Handle(OutputFieldGroupEvent @event, CompositionContext context)
     {
-        var (_, fieldGroup, typeName) = @event;
+        var fieldGroup = @event.FieldGroup;
 
         for (var i = 0; i < fieldGroup.Length - 1; i++)
         {
@@ -29,7 +29,6 @@ internal sealed class OutputFieldTypesMergeableRule : IEventHandler<OutputFieldG
                 context.Log.Write(
                     OutputFieldTypesNotMergeable(
                         fieldInfoA.Field,
-                        typeName,
                         fieldInfoA.Schema,
                         fieldInfoB.Schema));
             }

@@ -20,11 +20,11 @@ internal sealed class ExternalOverrideCollisionRule : IEventHandler<OutputFieldE
 {
     public void Handle(OutputFieldEvent @event, CompositionContext context)
     {
-        var (field, type, schema) = @event;
+        var (field, _, schema) = @event;
 
         if (field.HasExternalDirective() && field.HasOverrideDirective())
         {
-            context.Log.Write(ExternalOverrideCollision(field, type, schema));
+            context.Log.Write(ExternalOverrideCollision(field, schema));
         }
     }
 }
