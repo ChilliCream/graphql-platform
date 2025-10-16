@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Execution.Configuration;
 
+// TODO: Do we still need this?
 internal sealed class DefaultRequestExecutorOptionsMonitor(
     IOptionsMonitor<RequestExecutorSetup> optionsMonitor,
     IEnumerable<IRequestExecutorOptionsProvider> optionsProviders)

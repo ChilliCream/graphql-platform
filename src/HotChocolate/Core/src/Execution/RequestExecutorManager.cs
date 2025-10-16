@@ -172,7 +172,7 @@ internal sealed partial class RequestExecutorManager
         }
 
         var schemaServices =
-            await CreateSchemaServicesAsync(context, setup, options, typeModuleChangeMonitor, cancellationToken)
+            await CreateSchemaServicesAsync(context, setup, typeModuleChangeMonitor, cancellationToken)
                 .ConfigureAwait(false);
 
         var registeredExecutor = new RegisteredExecutor(
@@ -242,7 +242,6 @@ internal sealed partial class RequestExecutorManager
     private async Task<ServiceProvider> CreateSchemaServicesAsync(
         ConfigurationContext context,
         RequestExecutorSetup setup,
-        SchemaOptions schemaOptions,
         TypeModuleChangeMonitor typeModuleChangeMonitor,
         CancellationToken cancellationToken)
     {
@@ -269,7 +268,6 @@ internal sealed partial class RequestExecutorManager
 
         serviceCollection.AddSingleton(new SchemaVersionInfo(version));
 
-        serviceCollection.AddSingleton(schemaOptions);
         serviceCollection.AddSingleton(executorOptions);
         serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
             static sp => sp.GetRequiredService<RequestExecutorOptions>());
@@ -285,7 +283,7 @@ internal sealed partial class RequestExecutorManager
         serviceCollection.AddSingleton<IPreparedOperationCache>(
             static sp =>
             {
-                var options = sp.GetRequiredService<SchemaOptions>();
+                var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
                 return new DefaultPreparedOperationCache(options.PreparedOperationCacheSize);
             });
 
@@ -294,12 +292,6 @@ internal sealed partial class RequestExecutorManager
             static sp => sp.GetRootServiceProvider().GetRequiredService<ParserOptions>());
         serviceCollection.AddSingleton(
             static sp => sp.GetRootServiceProvider().GetRequiredService<IDocumentHashProvider>());
-        serviceCollection.AddSingleton<IDocumentCache>(
-            static sp =>
-            {
-                var options = sp.GetRequiredService<SchemaOptions>();
-                return new DefaultDocumentCache(options.OperationDocumentCacheSize);
-            });
 
         serviceCollection.TryAddDiagnosticEvents();
         serviceCollection.TryAddOperationExecutors();

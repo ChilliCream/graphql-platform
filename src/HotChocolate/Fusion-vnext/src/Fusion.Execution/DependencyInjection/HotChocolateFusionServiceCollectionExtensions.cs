@@ -95,10 +95,11 @@ public static class HotChocolateFusionServiceCollectionExtensions
             });
 
         return builder.ConfigureSchemaServices(
-            static (sp, s) => s.AddSingleton<IDocumentCache>(schemaServices =>
-            {
-                var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
-                return sp.GetRequiredKeyedService<IDocumentCache>(schemaName);
-            }));
+            static (applicationServices, s) =>
+                s.AddSingleton<IDocumentCache>(schemaServices =>
+                {
+                    var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
+                    return applicationServices.GetRequiredKeyedService<IDocumentCache>(schemaName);
+                }));
     }
 }

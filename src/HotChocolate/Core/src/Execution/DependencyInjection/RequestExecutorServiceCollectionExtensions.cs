@@ -155,6 +155,8 @@ public static class RequestExecutorServiceCollectionExtensions
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
         builder.TryAddTypeInterceptor<RequirementsTypeInterceptor>();
 
+        builder.AddDocumentCache();
+
         if (!services.Any(t =>
             t.ServiceType == typeof(SchemaName)
             && t.ImplementationInstance is SchemaName s

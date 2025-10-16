@@ -40,8 +40,8 @@ builder.Services.AddGraphQLServer()
 
 ## Cache size configuration
 
-Previously, configuring document and operation cache sizes required calling methods directly on IServiceCollection rather than using the standard IRequestExecutorBuilder pattern. We've now consolidated cache configuration with other GraphQL options for consistency.
-If you're currently using AddOperationCache or AddDocumentCache, update your code as follows:
+Previously, configuring document and operation cache sizes required calling methods directly on `IServiceCollection` rather than using the standard `IRequestExecutorBuilder` pattern. We've now consolidated cache configuration with other GraphQL options for consistency.
+If you're currently using `AddOperationCache` or `AddDocumentCache`, update your code as follows:
 
 ```diff
 -builder.Services.AddDocumentCache(200);
