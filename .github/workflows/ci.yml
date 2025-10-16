@@ -148,7 +148,7 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.x
+          dotnet-version: 10.0.100-rc.1.25451.107
 
       - name: Generate Test Matrix
         run: dotnet run --project ./.build -- GenerateMatrix
@@ -181,7 +181,7 @@ jobs:
           dotnet-version: |
             8.x
             9.x
-            10.x
+            10.0.100-rc.1.25451.107
 
       - name: Run Build
         id: run-build
@@ -252,7 +252,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           name: graphql-platform
-          files: './output/download/coverage-*/*/coverage.opencover.xml'
+          files: "./output/download/coverage-*/*/coverage.opencover.xml"
           disable_search: true
           flags: unittests
           fail_ci_if_error: true
