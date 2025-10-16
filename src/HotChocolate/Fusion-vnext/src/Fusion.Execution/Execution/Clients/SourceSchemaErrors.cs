@@ -131,7 +131,7 @@ public sealed class SourceSchemaErrors
             {
                 foreach (var property in extensions.EnumerateObject())
                 {
-                    var valueMemory = property.Value.ValueSpan.ToArray();
+                    var valueMemory = property.Value.GetRawValueAsMemory();
 
                     errorBuilder.SetExtension(property.Name, new RawJsonValue(valueMemory));
                 }
