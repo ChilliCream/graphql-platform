@@ -155,12 +155,9 @@ internal sealed partial class RequestExecutorManager
             await _optionsMonitor.GetAsync(schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
-        var options = CreateSchemaOptions(setup);
-        var schemaBuilder = SchemaBuilder.New(options);
-
         var context = new ConfigurationContext(
             schemaName,
-            schemaBuilder,
+            setup.SchemaBuilder ?? SchemaBuilder.New(),
             _applicationServices);
 
         var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, context.SchemaName);
@@ -200,10 +197,7 @@ internal sealed partial class RequestExecutorManager
             registeredExecutor.Executor);
 
         _events.RaiseEvent(
-            new RequestExecutorEvent(
-                RequestExecutorEventType.Created,
-                schemaName,
-                registeredExecutor.Executor));
+            RequestExecutorEvent.Created(registeredExecutor.Executor));
 
         return registeredExecutor;
     }
@@ -222,11 +216,7 @@ internal sealed partial class RequestExecutorManager
 
         try
         {
-            _events.RaiseEvent(
-                new RequestExecutorEvent(
-                    RequestExecutorEventType.Evicted,
-                    schemaName,
-                    previousExecutor.Executor));
+            _events.RaiseEvent(RequestExecutorEvent.Evicted(previousExecutor.Executor));
         }
         finally
         {
@@ -247,18 +237,6 @@ internal sealed partial class RequestExecutorManager
             await Task.Delay(registeredExecutor.EvictionTimeout).ConfigureAwait(false);
             await registeredExecutor.DisposeAsync().ConfigureAwait(false);
         }
-    }
-
-    internal static SchemaOptions CreateSchemaOptions(RequestExecutorSetup setup)
-    {
-        var options = new SchemaOptions();
-
-        foreach (var configure in setup.SchemaOptionModifiers)
-        {
-            configure(options);
-        }
-
-        return options;
     }
 
     private async Task<ServiceProvider> CreateSchemaServicesAsync(
@@ -662,7 +640,11 @@ internal sealed partial class RequestExecutorManager
 
     private sealed class EventObservable : IObservable<RequestExecutorEvent>, IDisposable
     {
+#if NET9_0_OR_GREATER
+        private readonly Lock _sync = new();
+#else
         private readonly object _sync = new();
+#endif
         private readonly List<Subscription> _subscriptions = [];
         private bool _disposed;
 
