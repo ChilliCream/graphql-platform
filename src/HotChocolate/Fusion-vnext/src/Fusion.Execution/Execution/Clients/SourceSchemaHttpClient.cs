@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
@@ -87,11 +83,11 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 return new GraphQLHttpRequest(CreateSingleRequest(
                     operationSourceText,
                     variableValues,
-                    originalRequest.HasFiles))
+                    originalRequest.RequiresFileUpload))
                 {
                     Uri = _configuration.BaseAddress,
                     Accept = defaultAccept,
-                    EnableFileUploads = originalRequest.HasFiles
+                    EnableFileUploads = originalRequest.RequiresFileUpload
                 };
 
             default:
@@ -106,20 +102,11 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     private static OperationRequest CreateSingleRequest(
         string operationSourceText,
         ObjectValueNode? variables = null,
-        bool hasFiles = false)
+        bool requiresFileUpload = false)
     {
-        if (hasFiles && variables is not null)
+        if (requiresFileUpload && variables is not null)
         {
-            var newFields = new ObjectFieldNode[variables.Fields.Count];
-
-            for (var i = 0; i < variables.Fields.Count; i++)
-            {
-                var field = variables.Fields[i];
-                var newValue = FileVariableRewriter.Rewrite(field.Value);
-                newFields[i] = new ObjectFieldNode(field.Name.Value, newValue);
-            }
-
-            variables = new ObjectValueNode(newFields);
+            variables = RewriteFileReferencesInVariables(variables);
         }
 
         return new OperationRequest(
@@ -162,6 +149,20 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         _disposed = true;
 
         return ValueTask.CompletedTask;
+    }
+
+    private static ObjectValueNode RewriteFileReferencesInVariables(ObjectValueNode variables)
+    {
+        var newFields = new ObjectFieldNode[variables.Fields.Count];
+
+        for (var i = 0; i < variables.Fields.Count; i++)
+        {
+            var field = variables.Fields[i];
+            var newValue = FileVariableRewriter.Rewrite(field.Value);
+            newFields[i] = new ObjectFieldNode(field.Name.Value, newValue);
+        }
+
+        return new ObjectValueNode(newFields);
     }
 
     private sealed class Response(

@@ -202,9 +202,9 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteEndArray();
         }
 
-        if (node.HasFiles)
+        if (node.RequiresFileUpload)
         {
-            jsonWriter.WriteBoolean("hasFiles", true);
+            jsonWriter.WriteBoolean("requiresFileUpload", true);
         }
 
         if (node.Dependencies.Length > 0)

@@ -11,5 +11,5 @@ public sealed class SourceSchemaClientRequest
 
     public ImmutableArray<VariableValues> Variables { get; init; } = [];
 
-    public bool HasFiles { get; init; }
+    public bool RequiresFileUpload { get; init; }
 }

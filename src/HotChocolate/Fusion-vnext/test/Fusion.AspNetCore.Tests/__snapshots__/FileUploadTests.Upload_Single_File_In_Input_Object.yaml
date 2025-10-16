@@ -122,4 +122,4 @@ operationPlan:
         }
       forwardedVariables:
         - input
-      hasFiles: true
+      requiresFileUpload: true

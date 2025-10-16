@@ -13,7 +13,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly string[] _forwardedVariables;
     private readonly string[] _responseNames;
     private readonly ExecutionNodeCondition[] _conditions;
-    private readonly bool _hasFiles;
+    private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
@@ -29,7 +29,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         string[] forwardedVariables,
         string[] responseNames,
         ExecutionNodeCondition[] conditions,
-        bool hasFiles)
+        bool requiresFileUpload)
     {
         Id = id;
         _operation = operation;
@@ -40,7 +40,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         _forwardedVariables = forwardedVariables;
         _responseNames = responseNames;
         _conditions = conditions;
-        _hasFiles = hasFiles;
+        _requiresFileUpload = requiresFileUpload;
     }
 
     /// <inheritdoc />
@@ -93,7 +93,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// Gets whether this operation contains one or more variables
     /// that contain the Upload scalar.
     /// </summary>
-    public bool HasFiles => _hasFiles;
+    public bool RequiresFileUpload => _requiresFileUpload;
 
     protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
@@ -116,7 +116,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
             Variables = variables,
-            HasFiles = _hasFiles
+            RequiresFileUpload = _requiresFileUpload
         };
 
         var client = context.GetClient(schemaName, _operation.Type);

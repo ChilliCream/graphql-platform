@@ -262,7 +262,7 @@ public sealed partial class OperationPlanner
                         }
                     }
 
-                    var hasFiles = hasUploadScalar
+                    var requiresFileUpload = hasUploadScalar
                         && DoVariablesContainUploadScalar(operationStep.Definition.VariableDefinitions, schema);
 
                     var node = new OperationExecutionNode(
@@ -275,7 +275,7 @@ public sealed partial class OperationPlanner
                         variables?.Count > 0 ? variables.ToArray() : [],
                         GetResponseNamesFromPath(operationStep.Definition, operationStep.Source),
                         operationStep.Conditions,
-                        hasFiles);
+                        requiresFileUpload);
 
                     completedNodes.Add(step.Id, node);
                 }

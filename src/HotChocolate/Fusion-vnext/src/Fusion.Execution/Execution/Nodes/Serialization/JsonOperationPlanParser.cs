@@ -218,8 +218,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var conditions = TryParseConditions(nodeElement);
 
-        var hasFiles = nodeElement.TryGetProperty("hasFiles", out var hasFilesElement)
-            && hasFilesElement.ValueKind == JsonValueKind.True;
+        var requiresFileUpload = nodeElement.TryGetProperty("requiresFileUpload", out var requiresFileUploadElement)
+            && requiresFileUploadElement.ValueKind == JsonValueKind.True;
 
         var node = new OperationExecutionNode(
             id,
@@ -235,7 +235,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             forwardedVariables ?? [],
             responseNames ?? [],
             conditions,
-            hasFiles);
+            requiresFileUpload);
 
         return (node, dependencies, null, null);
     }
