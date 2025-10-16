@@ -229,21 +229,18 @@ public abstract partial class FusionTestBase
             {
                 var request = interaction.Request!;
 
+                writer.WriteLine("- request:");
+                writer.Indent();
+                writer.Indent();
+
                 if (request.ContentType.MediaType?.StartsWith("multipart/", StringComparison.OrdinalIgnoreCase) == true)
                 {
-                    writer.WriteLine("- rawRequest:");
-                    writer.Indent();
-                    writer.Indent();
-
                     WriteMultipartRequest(writer, request.ContentType, request.Body);
 
                     writer.Unindent();
                 }
                 else
                 {
-                    writer.WriteLine("- request:");
-                    writer.Indent();
-                    writer.Indent();
                     writer.WriteLine("document: |");
                     writer.Indent();
 
@@ -367,9 +364,6 @@ public abstract partial class FusionTestBase
 
         if (rawRequest is not null)
         {
-            writer.WriteLine("rawRequest: ");
-            writer.Indent();
-
             var contentType = rawRequest.ContentType;
 
             if (contentType.MediaType?.StartsWith("multipart/", StringComparison.OrdinalIgnoreCase) == true)
@@ -383,8 +377,6 @@ public abstract partial class FusionTestBase
 
                 WriteRawRequest(writer, contentType.MediaType!, rawRequestString);
             }
-
-            writer.Unindent();
 
             return;
         }

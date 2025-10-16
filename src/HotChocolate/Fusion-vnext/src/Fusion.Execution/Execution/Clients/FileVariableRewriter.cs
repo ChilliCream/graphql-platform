@@ -5,6 +5,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
+/// <summary>
+/// Rewrites <see cref="FileValueNode"/> variable values to <see cref="FileReferenceNode"/>.
+/// </summary>
 internal sealed class FileVariableRewriter : SyntaxRewriter<FileVariableRewriter>
 {
     private static readonly FileVariableRewriter s_instance = new();
