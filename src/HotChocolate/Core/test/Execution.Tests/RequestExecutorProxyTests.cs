@@ -42,7 +42,7 @@ public class RequestExecutorProxyTests
                 .BuildServiceProvider()
                 .GetRequiredService<RequestExecutorManager>();
         var proxy = new TestProxy(manager, manager, ISchemaDefinition.DefaultName);
-        proxy.ExecutorUpdated += () => executorUpdatedResetEvent.Set();
+        proxy.ExecutorUpdated += executorUpdatedResetEvent.Set;
 
         // act
         var a = await proxy.GetExecutorAsync(CancellationToken.None);

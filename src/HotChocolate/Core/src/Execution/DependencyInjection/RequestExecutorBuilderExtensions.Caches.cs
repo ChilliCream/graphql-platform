@@ -24,7 +24,7 @@ public static partial class RequestExecutorBuilderExtensions
 
         return builder.ConfigureSchemaServices(
             static (applicationServices, s) =>
-                s.AddSingleton<IDocumentCache>(schemaServices =>
+                s.AddSingleton(schemaServices =>
                 {
                     var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
                     return applicationServices.GetRequiredKeyedService<IDocumentCache>(schemaName);

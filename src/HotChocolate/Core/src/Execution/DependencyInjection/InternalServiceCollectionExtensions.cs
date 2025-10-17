@@ -1,8 +1,6 @@
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Caching;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
@@ -14,7 +12,6 @@ using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
-using Microsoft.Extensions.Options;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;

@@ -568,7 +568,7 @@ public abstract class FusionTestBase : IDisposable
 
     protected sealed class TestFusionConfigurationProvider(FusionConfiguration initialConfig) : IFusionConfigurationProvider
     {
-        private List<IObserver<FusionConfiguration>> _observers = [];
+        private readonly List<IObserver<FusionConfiguration>> _observers = [];
 
         public IDisposable Subscribe(IObserver<FusionConfiguration> observer)
         {
