@@ -3,8 +3,10 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -33,11 +35,14 @@ public static class HotChocolateFusionServiceCollectionExtensions
     private static void AddRequestExecutorManager(
         IServiceCollection services)
     {
-        services.TryAddSingleton<FusionRequestExecutorManager>();
+        services.TryAddSingleton(
+            static sp => new FusionRequestExecutorManager(
+                sp.GetRequiredService<IOptionsMonitor<FusionGatewaySetup>>(),
+                sp));
         services.TryAddSingleton<IRequestExecutorProvider>(
-            sp => sp.GetRequiredService<FusionRequestExecutorManager>());
+            static sp => sp.GetRequiredService<FusionRequestExecutorManager>());
         services.TryAddSingleton<IRequestExecutorEvents>(
-            sp => sp.GetRequiredService<FusionRequestExecutorManager>());
+            static sp => sp.GetRequiredService<FusionRequestExecutorManager>());
     }
 
     private static void AddSourceSchemaScope(
@@ -48,100 +53,53 @@ public static class HotChocolateFusionServiceCollectionExtensions
                 sp.GetRequiredService<IHttpClientFactory>()));
     }
 
-    private static void AddResultObjectPools(
+    // TODO : REVIEW IF THIS IS STILL NEEDED
+    internal static void AddResultObjectPools(
         IServiceCollection services,
         FusionMemoryPoolOptions options)
     {
-        services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
-
+        services.TryAddSingleton<ObjectPoolProvider>(static _ => new DefaultObjectPoolProvider());
         services.TryAddSingleton(options);
-
-        services.TryAddSingleton(static provider =>
-        {
-            var options = provider.GetRequiredService<FusionMemoryPoolOptions>();
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultDataBatchPoolPolicy<ObjectResult>(
-                options.ObjectBatchSize,
-                options.DefaultObjectCapacity,
-                options.MaxAllowedObjectCapacity));
-        });
-
-        services.TryAddSingleton(static provider =>
-        {
-            var options = provider.GetRequiredService<FusionMemoryPoolOptions>();
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultDataBatchPoolPolicy<LeafFieldResult>(options.LeafFieldBatchSize));
-        });
-
-        services.TryAddSingleton(static provider =>
-        {
-            var options = provider.GetRequiredService<FusionMemoryPoolOptions>();
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultDataBatchPoolPolicy<ListFieldResult>(options.ListFieldBatchSize));
-        });
-
-        services.TryAddSingleton(static provider =>
-        {
-            var options = provider.GetRequiredService<FusionMemoryPoolOptions>();
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultDataBatchPoolPolicy<ObjectFieldResult>(options.ObjectFieldBatchSize));
-        });
-
-        services.TryAddSingleton(static provider =>
-        {
-            var options = provider.GetRequiredService<FusionMemoryPoolOptions>();
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultDataBatchPoolPolicy<ObjectListResult>(
-                options.ListBatchSize,
-                options.DefaultListCapacity,
-                options.MaxAllowedListCapacity));
-        });
-
-        services.TryAddSingleton(static provider =>
-        {
-            var options = provider.GetRequiredService<FusionMemoryPoolOptions>();
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultDataBatchPoolPolicy<NestedListResult>(
-                options.ListBatchSize,
-                options.DefaultListCapacity,
-                options.MaxAllowedListCapacity));
-        });
-
-        services.TryAddSingleton(static provider =>
-        {
-            var options = provider.GetRequiredService<FusionMemoryPoolOptions>();
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultDataBatchPoolPolicy<LeafListResult>(
-                options.ListBatchSize,
-                options.DefaultListCapacity,
-                options.MaxAllowedListCapacity));
-        });
-
-        services.TryAddSingleton(static provider =>
-        {
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultPoolSessionPolicy(
-                provider.GetRequiredService<ObjectPool<ResultDataBatch<ObjectResult>>>(),
-                provider.GetRequiredService<ObjectPool<ResultDataBatch<LeafFieldResult>>>(),
-                provider.GetRequiredService<ObjectPool<ResultDataBatch<ListFieldResult>>>(),
-                provider.GetRequiredService<ObjectPool<ResultDataBatch<ObjectFieldResult>>>(),
-                provider.GetRequiredService<ObjectPool<ResultDataBatch<ObjectListResult>>>(),
-                provider.GetRequiredService<ObjectPool<ResultDataBatch<NestedListResult>>>(),
-                provider.GetRequiredService<ObjectPool<ResultDataBatch<LeafListResult>>>()));
-        });
-
-        services.TryAddScoped(static provider =>
-            new ResultPoolSessionHolder(provider.GetRequiredService<ObjectPool<ResultPoolSession>>()));
-
-        services.TryAddScoped(static provider => provider.GetRequiredService<ResultPoolSessionHolder>().Session);
     }
 
     private static DefaultFusionGatewayBuilder CreateBuilder(
         IServiceCollection services,
         string name)
     {
+        if (!services.Any(x =>
+            x.ServiceType == typeof(SchemaName)
+                && x.ImplementationInstance is SchemaName s
+                && s.Value.Equals(name, StringComparison.Ordinal)))
+        {
+            services.AddSingleton(new SchemaName(name));
+        }
+
         var builder = new DefaultFusionGatewayBuilder(services, name);
+        builder.AddDocumentCache();
         builder.UseDefaultPipeline();
         return builder;
+    }
+
+    private static IFusionGatewayBuilder AddDocumentCache(this IFusionGatewayBuilder builder)
+    {
+        builder.Services.TryAddKeyedSingleton<IDocumentCache>(
+            builder.Name,
+            static (sp, schemaName) =>
+            {
+                var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<FusionGatewaySetup>>();
+                var setup = optionsMonitor.Get((string)schemaName!);
+
+                var options = FusionRequestExecutorManager.CreateOptions(setup);
+
+                return new DefaultDocumentCache(options.OperationDocumentCacheSize);
+            });
+
+        return builder.ConfigureSchemaServices(
+            static (applicationServices, s) =>
+                s.AddSingleton(schemaServices =>
+                {
+                    var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
+                    return applicationServices.GetRequiredKeyedService<IDocumentCache>(schemaName);
+                }));
     }
 }

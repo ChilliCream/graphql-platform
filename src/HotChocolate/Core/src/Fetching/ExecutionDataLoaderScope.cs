@@ -87,8 +87,8 @@ internal sealed class ExecutionDataLoaderScope(
             : IServiceProviderIsService
         {
             public bool IsService(Type serviceType)
-                => typeof(IBatchDispatcher) == serviceType ||
-                    innerIsServiceInspector.IsService(serviceType);
+                => typeof(IBatchDispatcher) == serviceType
+                    || innerIsServiceInspector.IsService(serviceType);
         }
     }
 }

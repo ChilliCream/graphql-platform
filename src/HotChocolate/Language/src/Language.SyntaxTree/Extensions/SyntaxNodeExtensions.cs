@@ -28,8 +28,8 @@ public static class SyntaxNodeExtensions
             return true;
         }
 
-        if (type.Kind is SyntaxKind.NonNullType &&
-            ((NonNullTypeNode)type).Type.Kind is SyntaxKind.ListType)
+        if (type.Kind is SyntaxKind.NonNullType
+            && ((NonNullTypeNode)type).Type.Kind is SyntaxKind.ListType)
         {
             return true;
         }

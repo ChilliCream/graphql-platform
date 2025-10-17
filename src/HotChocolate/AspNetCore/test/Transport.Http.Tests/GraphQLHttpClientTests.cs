@@ -415,6 +415,60 @@ public class GraphQLHttpClientTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Post_GraphQL_Query_With_OnError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .UseRequest(next => async context =>
+                {
+                    context.ContextData["mode"] = context.Request.ErrorHandlingMode;
+
+                    await next(context);
+                })
+                .UseDefaultPipeline()
+                .AddQueryType(desc =>
+                {
+                    desc.Name("Query");
+
+                    desc.Field("errorHandlingMode")
+                        .Resolve(ctx => (ErrorHandlingMode?)ctx.ContextData["mode"]);
+                }),
+            app => app
+                .UseRouting()
+                .UseEndpoints(e => e.MapGraphQL()));
+        var httpClient = server.CreateClient();
+        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        const string query =
+            """
+            query {
+              errorHandlingMode
+            }
+            """;
+
+        // act
+        var response = await client.PostAsync(
+            new OperationRequest(query, onError: ErrorHandlingMode.Halt),
+            cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "errorHandlingMode": "HALT"
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Get_GraphQL_Query_With_RequestUri()
     {
         // arrange
@@ -697,6 +751,60 @@ public class GraphQLHttpClientTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Get_GraphQL_Query_With_OnError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .UseRequest(next => async context =>
+                {
+                    context.ContextData["mode"] = context.Request.ErrorHandlingMode;
+
+                    await next(context);
+                })
+                .UseDefaultPipeline()
+                .AddQueryType(desc =>
+                {
+                    desc.Name("Query");
+
+                    desc.Field("errorHandlingMode")
+                        .Resolve(ctx => (ErrorHandlingMode?)ctx.ContextData["mode"]);
+                }),
+            app => app
+                .UseRouting()
+                .UseEndpoints(e => e.MapGraphQL()));
+        var httpClient = server.CreateClient();
+        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        const string query =
+            """
+            query {
+              errorHandlingMode
+            }
+            """;
+
+        // act
+        var response = await client.GetAsync(
+            new OperationRequest(query, onError: ErrorHandlingMode.Halt),
+            cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "errorHandlingMode": "HALT"
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Post_Subscription_Over_SSE()
     {
         // arrange
@@ -881,8 +989,10 @@ public class GraphQLHttpClientTests : ServerTestBase
         await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
-    [Fact]
-    public async Task Post_GraphQL_FileUpload()
+    [Theory]
+    [InlineData((string?)null)]
+    [InlineData("application/pdf")]
+    public async Task Post_GraphQL_FileUpload(string? contentType)
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5000));
@@ -895,12 +1005,16 @@ public class GraphQLHttpClientTests : ServerTestBase
         var operation = new OperationRequest(
             """
             query ($upload: Upload!) {
-              singleUpload(file: $upload)
+              singleInfoUpload(file: $upload) {
+                name
+                content
+                contentType
+              }
             }
             """,
             variables: new Dictionary<string, object?>
             {
-                ["upload"] = new FileReference(() => stream, "test.txt")
+                ["upload"] = new FileReference(() => stream, "test.txt", contentType)
             });
 
         var requestUri = new Uri(CreateUrl("/upload"));
@@ -917,17 +1031,23 @@ public class GraphQLHttpClientTests : ServerTestBase
         // assert
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
-            """
+            $$$"""
             {
               "data": {
-                "singleUpload": "abc"
+                "singleInfoUpload": {
+                  "name": "test.txt",
+                  "content": "abc",
+                  "contentType": "{{{contentType}}}"
+                }
               }
             }
             """);
     }
 
-    [Fact]
-    public async Task Post_GraphQL_FileUpload_With_ObjectValueNode()
+    [Theory]
+    [InlineData((string?)null)]
+    [InlineData("application/pdf")]
+    public async Task Post_GraphQL_FileUpload_With_ObjectValueNode(string? contentType)
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5000));
@@ -940,15 +1060,20 @@ public class GraphQLHttpClientTests : ServerTestBase
         var operation = new OperationRequest(
             """
             query ($upload: Upload!) {
-              singleUpload(file: $upload)
+              singleInfoUpload(file: $upload) {
+                name
+                content
+                contentType
+              }
             }
             """,
+            null,
             null,
             null,
             variables: new ObjectValueNode(
                 new ObjectFieldNode(
                     "upload",
-                    new FileReferenceNode(() => stream, "test.txt"))),
+                    new FileReferenceNode(() => stream, "test.txt", contentType))),
             extensions: null);
 
         var requestUri = new Uri(CreateUrl("/upload"));
@@ -965,13 +1090,85 @@ public class GraphQLHttpClientTests : ServerTestBase
         // assert
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
+            $$$"""
+               {
+                 "data": {
+                   "singleInfoUpload": {
+                     "name": "test.txt",
+                     "content": "abc",
+                     "contentType": "{{{contentType}}}"
+                   }
+                 }
+               }
+               """);
+    }
+
+    [Fact]
+    public async Task Post_Subscription_Over_JsonLines()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var testServer = CreateStarWarsServer();
+        var httpClient = testServer.CreateClient();
+        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
+
+        var subscriptionRequest = new GraphQLHttpRequest(
+            new OperationRequest(
+                """
+                subscription {
+                  onReview(episode: JEDI) {
+                    stars
+                  }
+                }
+                """))
+        {
+            Method = GraphQLHttpMethod.Post,
+            Accept = GraphQLHttpRequest.GraphQLOverHttp
+        };
+
+        var mutationRequest = new OperationRequest(
             """
-            {
-              "data": {
-                "singleUpload": "abc"
-              }
+            mutation CreateReviewForEpisode(
+                $ep: Episode!, $review: ReviewInput!) {
+                createReview(episode: $ep, review: $review) {
+                    stars
+                    commentary
+                }
             }
-            """);
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["ep"] = "JEDI",
+                ["review"] = new Dictionary<string, object?>
+                {
+                    ["stars"] = 5,
+                    ["commentary"] = "This is a great movie!"
+                }
+            });
+
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        // act
+        var subscriptionResponse = await client.SendAsync(subscriptionRequest, cts.Token);
+        var mutationResponse = await client.PostAsync(mutationRequest, cts.Token);
+
+        mutationResponse.EnsureSuccessStatusCode();
+
+        // assert
+        await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync().WithCancellation(cts.Token))
+        {
+            result.MatchInlineSnapshot(
+                """
+                {
+                  "data": {
+                    "onReview": {
+                      "stars": 5
+                    }
+                  }
+                }
+                """);
+            break;
+        }
     }
 
     private class CustomHttpClientHandler(HttpStatusCode? httpStatusCode = null) : HttpClientHandler

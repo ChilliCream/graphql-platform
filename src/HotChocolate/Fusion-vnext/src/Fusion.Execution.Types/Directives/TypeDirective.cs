@@ -5,7 +5,7 @@ directive @fusion__type(
     schema: fusion__Schema!
 ) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
 */
-internal sealed class TypeDirective(string schemaName)
+internal sealed class TypeDirective(SchemaKey schemaKey)
 {
-    public string SchemaName { get; } = schemaName;
+    public SchemaKey SchemaKey { get; } = schemaKey;
 }

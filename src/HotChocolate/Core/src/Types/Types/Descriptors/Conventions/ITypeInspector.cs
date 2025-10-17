@@ -2,8 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Internal;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>
@@ -35,6 +33,17 @@ public interface ITypeInspector : IConvention
         bool includeIgnored = false,
         bool includeStatic = false,
         bool allowObject = false);
+
+    /// <summary>
+    /// Gets the parameters of <paramref name="method"/> in a thread-safe manner.
+    /// </summary>
+    /// <param name="method">
+    /// The method to get the parameters from.
+    /// </param>
+    /// <returns>
+    /// The parameters of the <paramref name="method"/>.
+    /// </returns>
+    ParameterInfo[] GetParameters(MethodInfo method);
 
     /// <summary>
     /// Defines if a member shall be ignored. This method interprets ignore attributes.

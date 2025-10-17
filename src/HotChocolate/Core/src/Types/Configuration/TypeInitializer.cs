@@ -12,8 +12,6 @@ using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class TypeInitializer
@@ -131,7 +129,7 @@ internal sealed class TypeInitializer
             throw new SchemaException(errors);
         }
 
-        // lets tell the type interceptors what types we have initialized.
+        // let's tell the type interceptors what types we have initialized.
         _interceptor.OnTypesInitialized();
         _interceptor.OnAfterDiscoverTypes();
     }
@@ -155,7 +153,7 @@ internal sealed class TypeInitializer
                     {
                         var typeRef = interfaceType.TypeReference;
                         ((ObjectType)objectType.Type).Configuration!.Interfaces.Add(typeRef);
-                        objectType.Dependencies.Add(new(typeRef, Completed));
+                        objectType.Dependencies.Add(new TypeDependency(typeRef, Completed));
                     }
                 }
             }
@@ -169,7 +167,7 @@ internal sealed class TypeInitializer
                     {
                         var typeRef = interfaceType.TypeReference;
                         ((InterfaceType)implementing.Type).Configuration!.Interfaces.Add(typeRef);
-                        implementing.Dependencies.Add(new(typeRef, Completed));
+                        implementing.Dependencies.Add(new TypeDependency(typeRef, Completed));
                     }
                 }
             }

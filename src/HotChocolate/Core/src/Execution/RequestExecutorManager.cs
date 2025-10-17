@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Threading.Channels;
 using HotChocolate.Collections.Immutable;
@@ -19,21 +18,20 @@ using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
+using Microsoft.Extensions.Options;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution;
 
 internal sealed partial class RequestExecutorManager
-    : IRequestExecutorProvider
+    : IRequestExecutorManager
     , IRequestExecutorEvents
-    , IRequestExecutorWarmup
-    , IDisposable
+    , IAsyncDisposable
 {
     private readonly CancellationTokenSource _cts = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreBySchema = new();
     private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
-    private readonly FrozenDictionary<string, WarmupSchemaTask[]> _warmupTasksBySchema;
-    private readonly IRequestExecutorOptionsMonitor _optionsMonitor;
+    private readonly IOptionsMonitor<RequestExecutorSetup> _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
     private readonly EventObservable _events = new();
     private readonly ChannelWriter<string> _executorEvictionChannelWriter;
@@ -41,8 +39,7 @@ internal sealed partial class RequestExecutorManager
     private bool _disposed;
 
     public RequestExecutorManager(
-        IRequestExecutorOptionsMonitor optionsMonitor,
-        IEnumerable<WarmupSchemaTask> warmupSchemaTasks,
+        IOptionsMonitor<RequestExecutorSetup> optionsMonitor,
         IServiceProvider serviceProvider)
     {
         ArgumentNullException.ThrowIfNull(optionsMonitor);
@@ -51,17 +48,17 @@ internal sealed partial class RequestExecutorManager
         _optionsMonitor = optionsMonitor;
         _applicationServices = serviceProvider;
 
-        _warmupTasksBySchema = warmupSchemaTasks
-            .GroupBy(t => t.SchemaName)
-            .ToFrozenDictionary(g => g.Key, g => g.ToArray());
-
         var executorEvictionChannel = Channel.CreateUnbounded<string>();
         _executorEvictionChannelWriter = executorEvictionChannel.Writer;
 
         ConsumeExecutorEvictionsAsync(executorEvictionChannel.Reader, _cts.Token).FireAndForget();
 
-        _optionsMonitor.OnChange(EvictRequestExecutor);
+        var schemaNames = _applicationServices.GetService<IEnumerable<SchemaName>>()?
+            .Select(x => x.Value).Distinct().Order().ToImmutableArray();
+        SchemaNames = schemaNames ?? [];
     }
+
+    public ImmutableArray<string> SchemaNames { get; }
 
     public async ValueTask<IRequestExecutor> GetExecutorAsync(
         string? schemaName = null,
@@ -87,6 +84,11 @@ internal sealed partial class RequestExecutorManager
                 return re.Executor;
             }
 
+            if (!SchemaNames.Contains(schemaName))
+            {
+                throw new InvalidOperationException($"The requested schema '{schemaName}' does not exist.");
+            }
+
             var registeredExecutor = await CreateRequestExecutorAsync(schemaName, true, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -98,10 +100,9 @@ internal sealed partial class RequestExecutorManager
         }
     }
 
-    public void EvictRequestExecutor(string? schemaName = null)
+    public void EvictExecutor(string? schemaName = null)
     {
         schemaName ??= ISchemaDefinition.DefaultName;
-
         _executorEvictionChannelWriter.TryWrite(schemaName);
     }
 
@@ -150,9 +151,7 @@ internal sealed partial class RequestExecutorManager
         bool isInitialCreation,
         CancellationToken cancellationToken)
     {
-        var setup =
-            await _optionsMonitor.GetAsync(schemaName, cancellationToken)
-                .ConfigureAwait(false);
+        var setup = _optionsMonitor.Get(schemaName);
 
         var context = new ConfigurationContext(
             schemaName,
@@ -179,25 +178,15 @@ internal sealed partial class RequestExecutorManager
             schemaServices,
             schemaServices.GetRequiredService<IExecutionDiagnosticEvents>(),
             setup,
-            typeModuleChangeMonitor);
+            typeModuleChangeMonitor,
+            setup.EvictionTimeout);
 
         var executor = registeredExecutor.Executor;
 
         await OnRequestExecutorCreatedAsync(context, executor, setup, cancellationToken)
             .ConfigureAwait(false);
 
-        if (_warmupTasksBySchema.TryGetValue(schemaName, out var warmupTasks))
-        {
-            if (!isInitialCreation)
-            {
-                warmupTasks = [.. warmupTasks.Where(t => t.KeepWarm)];
-            }
-
-            foreach (var warmupTask in warmupTasks)
-            {
-                await warmupTask.ExecuteAsync(executor, cancellationToken).ConfigureAwait(false);
-            }
-        }
+        await WarmupExecutorAsync(executor, isInitialCreation, cancellationToken).ConfigureAwait(false);
 
         _executors[schemaName] = registeredExecutor;
 
@@ -206,10 +195,7 @@ internal sealed partial class RequestExecutorManager
             registeredExecutor.Executor);
 
         _events.RaiseEvent(
-            new RequestExecutorEvent(
-                RequestExecutorEventType.Created,
-                schemaName,
-                registeredExecutor.Executor));
+            RequestExecutorEvent.Created(registeredExecutor.Executor));
 
         return registeredExecutor;
     }
@@ -221,18 +207,14 @@ internal sealed partial class RequestExecutorManager
         previousExecutor.TypeModuleChangeMonitor.Dispose();
 
         // This will hot swap the request executor.
-        await CreateRequestExecutorAsync(schemaName, false, CancellationToken.None)
+        await CreateRequestExecutorAsync(schemaName, isInitialCreation: false, CancellationToken.None)
             .ConfigureAwait(false);
 
         previousExecutor.DiagnosticEvents.ExecutorEvicted(schemaName, previousExecutor.Executor);
 
         try
         {
-            _events.RaiseEvent(
-                new RequestExecutorEvent(
-                    RequestExecutorEventType.Evicted,
-                    schemaName,
-                    previousExecutor.Executor));
+            _events.RaiseEvent(RequestExecutorEvent.Evicted(previousExecutor.Executor));
         }
         finally
         {
@@ -250,12 +232,12 @@ internal sealed partial class RequestExecutorManager
         {
             // we will give the request executor some grace period to finish all requests
             // in the pipeline.
-            await Task.Delay(TimeSpan.FromMinutes(5));
-            registeredExecutor.Dispose();
+            await Task.Delay(registeredExecutor.EvictionTimeout).ConfigureAwait(false);
+            await registeredExecutor.DisposeAsync().ConfigureAwait(false);
         }
     }
 
-    private async Task<IServiceProvider> CreateSchemaServicesAsync(
+    private async Task<ServiceProvider> CreateSchemaServicesAsync(
         ConfigurationContext context,
         RequestExecutorSetup setup,
         TypeModuleChangeMonitor typeModuleChangeMonitor,
@@ -286,26 +268,28 @@ internal sealed partial class RequestExecutorManager
 
         serviceCollection.AddSingleton(executorOptions);
         serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
-            static s => s.GetRequiredService<RequestExecutorOptions>());
+            static sp => sp.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IErrorHandlerOptionsAccessor>(
-            static s => s.GetRequiredService<RequestExecutorOptions>());
+            static sp => sp.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IRequestTimeoutOptionsAccessor>(
-            static s => s.GetRequiredService<RequestExecutorOptions>());
+            static sp => sp.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IPersistedOperationOptionsAccessor>(
-            static s => s.GetRequiredService<RequestExecutorOptions>());
+            static sp => sp.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton(
-            static s => s.GetRequiredService<RequestExecutorOptions>().PersistedOperations);
+            static sp => sp.GetRequiredService<RequestExecutorOptions>().PersistedOperations);
 
-        serviceCollection.AddSingleton<IPreparedOperationCache>(static sp => new DefaultPreparedOperationCache(
-            sp.GetRootServiceProvider().GetRequiredService<PreparedOperationCacheOptions>().Capacity));
+        serviceCollection.AddSingleton<IPreparedOperationCache>(
+            static sp =>
+            {
+                var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
+                return new DefaultPreparedOperationCache(options.PreparedOperationCacheSize);
+            });
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
         serviceCollection.AddSingleton(
             static sp => sp.GetRootServiceProvider().GetRequiredService<ParserOptions>());
         serviceCollection.AddSingleton(
             static sp => sp.GetRootServiceProvider().GetRequiredService<IDocumentHashProvider>());
-        serviceCollection.AddSingleton(
-            static sp => sp.GetRootServiceProvider().GetRequiredService<IDocumentCache>());
 
         serviceCollection.TryAddDiagnosticEvents();
         serviceCollection.TryAddOperationExecutors();
@@ -514,16 +498,16 @@ internal sealed partial class RequestExecutorManager
         return next;
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (!_disposed)
         {
             // this will stop the eviction processor.
-            _cts.Cancel();
+            await _cts.CancelAsync();
 
             foreach (var executor in _executors.Values)
             {
-                executor.Dispose();
+                await executor.DisposeAsync();
             }
 
             foreach (var semaphore in _semaphoreBySchema.Values)
@@ -541,17 +525,18 @@ internal sealed partial class RequestExecutorManager
 
     private sealed class RegisteredExecutor(
         IRequestExecutor executor,
-        IServiceProvider services,
+        ServiceProvider services,
         IExecutionDiagnosticEvents diagnosticEvents,
         RequestExecutorSetup setup,
-        TypeModuleChangeMonitor typeModuleChangeMonitor)
-        : IDisposable
+        TypeModuleChangeMonitor typeModuleChangeMonitor,
+        TimeSpan evictionTimeout)
+        : IAsyncDisposable
     {
         private bool _disposed;
 
         public IRequestExecutor Executor { get; } = executor;
 
-        public IServiceProvider Services { get; } = services;
+        public ServiceProvider Services { get; } = services;
 
         public IExecutionDiagnosticEvents DiagnosticEvents { get; } = diagnosticEvents;
 
@@ -559,15 +544,13 @@ internal sealed partial class RequestExecutorManager
 
         public TypeModuleChangeMonitor TypeModuleChangeMonitor { get; } = typeModuleChangeMonitor;
 
-        public void Dispose()
-        {
-            if (_disposed)
-            {
-                if (Services is IDisposable d)
-                {
-                    d.Dispose();
-                }
+        public TimeSpan EvictionTimeout { get; } = evictionTimeout;
 
+        public async ValueTask DisposeAsync()
+        {
+            if (!_disposed)
+            {
+                await Services.DisposeAsync();
                 TypeModuleChangeMonitor.Dispose();
                 _disposed = true;
             }
@@ -587,7 +570,7 @@ internal sealed partial class RequestExecutorManager
         }
     }
 
-    private sealed class TypeModuleChangeMonitor(RequestExecutorManager resolver, string schemaName) : IDisposable
+    private sealed class TypeModuleChangeMonitor(RequestExecutorManager manager, string schemaName) : IDisposable
     {
         private readonly List<ITypeModule> _typeModules = [];
         private bool _disposed;
@@ -616,7 +599,7 @@ internal sealed partial class RequestExecutorManager
             => new TypeModuleEnumerable(_typeModules, context);
 
         private void EvictRequestExecutor(object? sender, EventArgs args)
-            => resolver.EvictRequestExecutor(schemaName);
+            => manager.EvictExecutor(schemaName);
 
         public void Dispose()
         {
@@ -657,7 +640,11 @@ internal sealed partial class RequestExecutorManager
 
     private sealed class EventObservable : IObservable<RequestExecutorEvent>, IDisposable
     {
+#if NET9_0_OR_GREATER
+        private readonly Lock _sync = new();
+#else
         private readonly object _sync = new();
+#endif
         private readonly List<Subscription> _subscriptions = [];
         private bool _disposed;
 
@@ -767,12 +754,10 @@ internal sealed partial class RequestExecutorManager
                     }
 
                     case { } d when !d.ContainsKey("exception"):
-                    {
                         var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
                         builder.AddRange(d);
                         builder.Add(ExceptionProperty, CreateExceptionInfo(error.Exception));
                         return error.WithExtensions(builder.ToImmutable());
-                    }
 
                     default:
                     {

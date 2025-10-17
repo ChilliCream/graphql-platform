@@ -17,7 +17,7 @@ public sealed partial class SyntaxSerializer
             writer.Write(node.Operation.ToString().ToLowerInvariant());
         }
 
-        if (node.Name is { })
+        if (node.Name is not null)
         {
             writer.WriteSpace();
             writer.WriteName(node.Name);
@@ -72,7 +72,7 @@ public sealed partial class SyntaxSerializer
 
         writer.WriteType(node.Type);
 
-        if (node.DefaultValue is { })
+        if (node.DefaultValue is not null)
         {
             writer.Write(" = ");
             writer.WriteValue(node.DefaultValue);
@@ -229,7 +229,7 @@ public sealed partial class SyntaxSerializer
 
         writer.Write("...");
 
-        if (node.TypeCondition is { })
+        if (node.TypeCondition is not null)
         {
             writer.WriteSpace();
             writer.Write(Keywords.On);

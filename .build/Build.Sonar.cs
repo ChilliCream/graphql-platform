@@ -54,14 +54,14 @@ partial class Build
 
     SonarScannerBeginSettings SonarBeginPrSettings(SonarScannerBeginSettings settings) =>
         SonarBeginBaseSettings(settings)
-            .SetProcessArgumentConfigurator(t => t
-                .Add("/o:{0}", "chillicream")
-                .Add("/d:sonar.pullrequest.provider={0}", "github")
-                .Add("/d:sonar.pullrequest.github.repository={0}", GitHubRepository)
-                .Add("/d:sonar.pullrequest.key={0}", GitHubPRNumber)
-                .Add("/d:sonar.pullrequest.branch={0}", GitHubHeadRef)
-                .Add("/d:sonar.pullrequest.base={0}", GitHubBaseRef)
-                .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "false"))
+            .SetProcessAdditionalArguments(
+                "/o:{0}", "chillicream",
+                "/d:sonar.pullrequest.provider={0}", "github",
+                "/d:sonar.pullrequest.github.repository={0}", GitHubRepository,
+                "/d:sonar.pullrequest.key={0}", GitHubPRNumber,
+                "/d:sonar.pullrequest.branch={0}", GitHubHeadRef,
+                "/d:sonar.pullrequest.base={0}", GitHubBaseRef,
+                "/d:sonar.cs.roslyn.ignoreIssues={0}", "false")
             .SetFramework(Net50);
 
     SonarScannerBeginSettings SonarBeginFullSettings(SonarScannerBeginSettings settings) =>
@@ -77,10 +77,11 @@ partial class Build
             .SetLogin(SonarToken)
             .AddOpenCoverPaths(TestResultDirectory / "*.xml")
             .SetVSTestReports(TestResultDirectory / "*.trx")
-            .AddSourceExclusions("**/Generated/**/*.*,**/*.Designer.cs,**/*.generated.cs,**/*.js,**/*.html,**/*.css,**/Sample/**/*.*,**/Samples.*/**/*.*,**/*Tools.*/**/*.*,**/Program.Dev.cs, **/Program.cs,**/*.ts,**/*.tsx,**/*EventSource.cs,**/*EventSources.cs,**/*.Samples.cs,**/*Tests.*/**/*.*,**/*Test.*/**/*.*")
-            .SetProcessArgumentConfigurator(t => t
-                .Add("/o:{0}", "chillicream")
-                .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "false"));
+            .AddSourceExclusions(
+                "**/Generated/**/*.*,**/*.Designer.cs,**/*.generated.cs,**/*.js,**/*.html,**/*.css,**/Sample/**/*.*,**/Samples.*/**/*.*,**/*Tools.*/**/*.*,**/Program.Dev.cs, **/Program.cs,**/*.ts,**/*.tsx,**/*EventSource.cs,**/*EventSources.cs,**/*.Samples.cs,**/*Tests.*/**/*.*,**/*Test.*/**/*.*")
+            .SetProcessAdditionalArguments(
+                "/o:{0}", "chillicream",
+                "/d:sonar.cs.roslyn.ignoreIssues={0}", "false");
 
     SonarScannerBeginSettings SonarBaseSettings(SonarScannerBeginSettings settings) =>
         settings

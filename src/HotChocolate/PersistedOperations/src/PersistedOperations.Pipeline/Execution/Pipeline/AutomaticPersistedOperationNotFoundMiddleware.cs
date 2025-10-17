@@ -13,7 +13,9 @@ internal sealed class AutomaticPersistedOperationNotFoundMiddleware
                 { ExecutionContextData.HttpStatusCode, 400 }
             });
     private readonly RequestDelegate _next;
+#pragma warning disable IDE0052 // WIP
     private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
+#pragma warning restore IDE0052
 
     private AutomaticPersistedOperationNotFoundMiddleware(
         RequestDelegate next,
@@ -34,10 +36,7 @@ internal sealed class AutomaticPersistedOperationNotFoundMiddleware
             return _next(context);
         }
 
-        var error = PersistedOperationNotFound();
         var result = s_errorResult;
-
-        _diagnosticEvents.ExecutionError(context, ErrorKind.RequestError, [error]);
         context.Result = result;
         return default;
     }

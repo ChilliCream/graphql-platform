@@ -4,8 +4,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
 
-#nullable  enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class TypeRegistry
@@ -41,8 +39,8 @@ internal sealed class TypeRegistry
             return true;
         }
 
-        if (typeReference is ExtendedTypeReference extendedTypeRef &&
-            _runtimeTypeRefs.TryGetValue(extendedTypeRef, out var reference))
+        if (typeReference is ExtendedTypeReference extendedTypeRef
+            && _runtimeTypeRefs.TryGetValue(extendedTypeRef, out var reference))
         {
             return _typeRegister.ContainsKey(reference);
         }
@@ -56,8 +54,8 @@ internal sealed class TypeRegistry
     {
         ArgumentNullException.ThrowIfNull(typeRef);
 
-        if (typeRef is ExtendedTypeReference clrTypeRef &&
-            _runtimeTypeRefs.TryGetValue(clrTypeRef, out var internalRef))
+        if (typeRef is ExtendedTypeReference clrTypeRef
+            && _runtimeTypeRefs.TryGetValue(clrTypeRef, out var internalRef))
         {
             typeRef = internalRef;
         }
@@ -107,8 +105,8 @@ internal sealed class TypeRegistry
 
         foreach (var typeReference in registeredType.References)
         {
-            if (_typeRegister.TryGetValue(typeReference, out var current) &&
-                !ReferenceEquals(current, registeredType))
+            if (_typeRegister.TryGetValue(typeReference, out var current)
+                && !ReferenceEquals(current, registeredType))
             {
                 if (current.IsInferred && !registeredType.IsInferred)
                 {
@@ -133,21 +131,21 @@ internal sealed class TypeRegistry
 
         if (!registeredType.IsExtension)
         {
-            if (registeredType.IsNamedType &&
-                registeredType.Type is ITypeConfigurationProvider { Configuration: { } typeDef } &&
-                !_nameRefs.ContainsKey(typeDef.Name))
+            if (registeredType.IsNamedType
+                && registeredType.Type is ITypeConfigurationProvider { Configuration: { } typeDef }
+                && !_nameRefs.ContainsKey(typeDef.Name))
             {
                 _nameRefs.Add(typeDef.Name, registeredType.References[0]);
             }
-            else if (registeredType.Kind == TypeKind.Scalar &&
-                registeredType.Type is ScalarType scalar &&
-                !_nameRefs.ContainsKey(scalar.Name))
+            else if (registeredType.Kind == TypeKind.Scalar
+                && registeredType.Type is ScalarType scalar
+                && !_nameRefs.ContainsKey(scalar.Name))
             {
                 _nameRefs.Add(scalar.Name, registeredType.References[0]);
             }
-            else if (registeredType.Kind == TypeKind.Directive &&
-                registeredType.Type is DirectiveType directive &&
-                !_nameRefs.ContainsKey(directive.Configuration!.Name))
+            else if (registeredType.Kind == TypeKind.Directive
+                && registeredType.Type is DirectiveType directive
+                && !_nameRefs.ContainsKey(directive.Configuration!.Name))
             {
                 _nameRefs.Add(directive.Configuration.Name, registeredType.References[0]);
             }
@@ -178,9 +176,9 @@ internal sealed class TypeRegistry
             return;
         }
 
-        if (TryGetTypeRef(typeName, out var typeRef) &&
-            TryGetType(typeRef, out var type) &&
-            !ReferenceEquals(type, registeredType))
+        if (TryGetTypeRef(typeName, out var typeRef)
+            && TryGetType(typeRef, out var type)
+            && !ReferenceEquals(type, registeredType))
         {
             throw TypeInitializer_DuplicateTypeName(registeredType.Type, type.Type);
         }

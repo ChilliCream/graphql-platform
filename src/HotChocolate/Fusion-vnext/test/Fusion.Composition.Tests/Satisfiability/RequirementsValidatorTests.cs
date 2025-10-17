@@ -69,7 +69,7 @@ public sealed class RequirementsValidatorTests
         var requirementsValidator = new RequirementsValidator(schema);
         var selectedValue = new FieldSelectionMapParser("specialField").Parse();
         var selectionSet =
-            new SelectedValueToSelectionSetRewriter(schema).SelectedValueToSelectionSet(
+            new ValueSelectionToSelectionSetRewriter(schema).Rewrite(
                 selectedValue,
                 productByIdField.Type.AsTypeDefinition());
         var parentPathItem = new SatisfiabilityPathItem(productByIdField, queryType, "A");

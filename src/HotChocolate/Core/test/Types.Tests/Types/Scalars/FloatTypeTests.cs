@@ -1,4 +1,3 @@
-using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 
@@ -67,7 +66,7 @@ public class FloatTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.IsInstanceOfType(null));
+            () => type.IsInstanceOfType(null!));
     }
 
     [Fact]
@@ -204,7 +203,7 @@ public class FloatTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.ParseLiteral(null));
+            () => type.ParseLiteral(null!));
     }
 
     [Fact]
@@ -281,7 +280,7 @@ public class FloatTypeTests
     {
         // arrange
         var type = new FloatType();
-        object input = null;
+        object input = null!;
 
         // act
         object output = type.ParseValue(input);

@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Buffers;
 using System.Collections;
 using HotChocolate.Language;
@@ -38,7 +36,6 @@ public sealed class InputParser
 
         var path = Path.Root.Append(field.Name);
         var runtimeValue = ParseLiteralInternal(value, field.Type, path, 0, true, field);
-        runtimeValue = FormatValue(field, runtimeValue);
 
         // Caller doesn't care, but to ensure specificity, we set the field's runtime type
         // to make sure it's at least converted to the right type.
@@ -48,7 +45,7 @@ public sealed class InputParser
             targetType = field.RuntimeType;
         }
 
-        return ConvertValue(targetType, runtimeValue);
+        return FormatAndConvertValue(field, path, value.Location, runtimeValue, false, false, targetType);
     }
 
     public object? ParseLiteral(IValueNode value, IType type, Path? path = null)
@@ -237,21 +234,14 @@ public sealed class InputParser
                             }
                         }
 
-                        var value = ParseLiteralInternal(
+                        var value = ParseAndFormatAndConvertLiteral(
                             literal,
-                            field.Type,
                             fieldPath,
                             stack,
                             defaults,
-                            field);
-                        value = FormatValue(field, value);
-                        value = ConvertValue(field.RuntimeType, value);
-
-                        if (field.IsOptional)
-                        {
-                            value = new Optional(value, true);
-                        }
-
+                            field,
+                            field.IsOptional,
+                            true);
                         fieldValues[field.Index] = value;
                         processed[field.Index] = true;
                         processedCount++;
@@ -314,7 +304,7 @@ public sealed class InputParser
 
             var error = ErrorBuilder.FromError(ex.Errors[0])
                 .SetPath(path)
-                .SetFieldCoordinate(field.Coordinate)
+                .SetCoordinate(field.Coordinate)
                 .SetExtension("fieldType", type.Name)
                 .Build();
 
@@ -372,27 +362,20 @@ public sealed class InputParser
                     var literal = fieldValue.Value;
                     var fieldPath = path.Append(field.Name);
 
-                    if (literal.Kind is SyntaxKind.NullValue &&
-                        field.Type.Kind is TypeKind.NonNull)
+                    if (literal.Kind is SyntaxKind.NullValue
+                        && field.Type.Kind is TypeKind.NonNull)
                     {
                         throw NonNullInputViolation(type, fieldPath, field);
                     }
 
-                    var value = ParseLiteralInternal(
+                    var value = ParseAndFormatAndConvertLiteral(
                         literal,
-                        field.Type,
                         fieldPath,
                         stack,
                         defaults,
-                        field);
-                    value = FormatValue(field, value);
-                    value = ConvertValue(field.RuntimeType, value);
-
-                    if (field.IsOptional)
-                    {
-                        value = new Optional(value, true);
-                    }
-
+                        field,
+                        field.IsOptional,
+                        true);
                     fieldValues[field.Index] = value;
                     processed[field.Index] = true;
                     processedCount++;
@@ -545,13 +528,7 @@ public sealed class InputParser
                     }
 
                     var value = Deserialize(fieldValue, field.Type, fieldPath, field);
-                    value = FormatValue(field, value);
-                    value = ConvertValue(field.RuntimeType, value);
-
-                    if (field.IsOptional)
-                    {
-                        value = new Optional(value, true);
-                    }
+                    value = FormatAndConvertValue(field, path, null, value, field.IsOptional, true);
 
                     fieldValues[i] = value;
                     consumed++;
@@ -581,8 +558,8 @@ public sealed class InputParser
             return type.CreateInstance(fieldValues);
         }
 
-        if (type.RuntimeType != typeof(object) &&
-            type.RuntimeType.IsInstanceOfType(resultValue))
+        if (type.RuntimeType != typeof(object)
+            && type.RuntimeType.IsInstanceOfType(resultValue))
         {
             return resultValue;
         }
@@ -619,7 +596,7 @@ public sealed class InputParser
 
             var error = ErrorBuilder.FromError(ex.Errors[0])
                 .SetPath(path)
-                .SetFieldCoordinate(field.Coordinate)
+                .SetCoordinate(field.Coordinate)
                 .SetExtension("fieldType", type.Name)
                 .Build();
 
@@ -629,8 +606,6 @@ public sealed class InputParser
 
     private object? CreateDefaultValue(InputField field, Path path, int stack)
     {
-        object? value;
-
         if (field.DefaultValue is null || field.DefaultValue.Kind == SyntaxKind.NullValue)
         {
             if (field.Type.Kind == TypeKind.NonNull)
@@ -638,7 +613,7 @@ public sealed class InputParser
                 throw RequiredInputFieldIsMissing(field, path);
             }
 
-            value = null;
+            object? value = null;
 
             // if the type is nullable but the runtime type is a non-nullable value
             // we will create a default instance and assign that instead.
@@ -652,33 +627,11 @@ public sealed class InputParser
                 : value;
         }
 
-        try
-        {
-            value = ParseLiteralInternal(
-                field.DefaultValue,
-                field.Type,
-                path,
-                stack,
-                false,
-                field);
-        }
-        catch (SerializationException ex)
-        {
-            throw new SerializationException(ex.Errors[0].WithPath(path), ex.Type, path);
-        }
-
-        value = FormatValue(field, value);
-        value = ConvertValue(field.RuntimeType, value);
-
-        return field.IsOptional
-            ? new Optional(value, false)
-            : value;
+        return ParseAndFormatAndConvertLiteral(field.DefaultValue, path, stack, false, field, field.IsOptional, false);
     }
 
     private object? CreateDefaultValue(DirectiveArgument field, Path path, int stack)
     {
-        object? value;
-
         if (field.DefaultValue is null || field.DefaultValue.Kind == SyntaxKind.NullValue)
         {
             if (field.Type.Kind == TypeKind.NonNull)
@@ -686,7 +639,7 @@ public sealed class InputParser
                 throw RequiredInputFieldIsMissing(field, path);
             }
 
-            value = null;
+            object? value = null;
 
             // if the type is nullable but the runtime type is a non-nullable value
             // we will create a default instance and assign that instead.
@@ -700,27 +653,50 @@ public sealed class InputParser
                 : value;
         }
 
-        try
+        return ParseAndFormatAndConvertLiteral(field.DefaultValue, path, stack, false, field, field.IsOptional, false);
+    }
+
+    private object? ParseAndFormatAndConvertLiteral(
+        IValueNode literal,
+        Path fieldPath,
+        int stack,
+        bool defaults,
+        IInputValueInfo field,
+        bool isOptional,
+        bool optionalHasValue)
+    {
+        var value = ParseLiteralInternal(
+            literal,
+            field.Type,
+            fieldPath,
+            stack,
+            defaults,
+            field);
+        return FormatAndConvertValue(field, fieldPath, literal.Location, value, isOptional, optionalHasValue);
+    }
+
+    private object? FormatAndConvertValue(
+        IInputValueInfo inputValueInfo,
+        Path fieldPath,
+        Language.Location? location,
+        object? value,
+        bool isOptional,
+        bool optionalHasValue,
+        Type? requestedType = null)
+    {
+        value = FormatValue(inputValueInfo, value);
+        value = ConvertValue(requestedType ?? inputValueInfo.RuntimeType, value, out var conversionException);
+        if (conversionException != null)
         {
-            value = ParseLiteralInternal(
-                field.DefaultValue,
-                field.Type,
-                path,
-                stack,
-                false,
-                field);
-        }
-        catch (SerializationException ex)
-        {
-            throw new SerializationException(ex.Errors[0].WithPath(path), ex.Type, path);
+            throw InvalidTypeConversion(inputValueInfo.Type, inputValueInfo, fieldPath, location, conversionException);
         }
 
-        value = FormatValue(field, value);
-        value = ConvertValue(field.RuntimeType, value);
+        if (isOptional)
+        {
+            value = new Optional(value, optionalHasValue);
+        }
 
-        return field.IsOptional
-            ? new Optional(value, false)
-            : value;
+        return value;
     }
 
     private static object? FormatValue(IInputValueInfo field, object? value)
@@ -728,8 +704,9 @@ public sealed class InputParser
             ? value
             : field.Formatter.Format(value);
 
-    private object? ConvertValue(Type requestedType, object? value)
+    private object? ConvertValue(Type requestedType, object? value, out Exception? conversionException)
     {
+        conversionException = null;
         if (value is null)
         {
             return null;
@@ -740,7 +717,7 @@ public sealed class InputParser
             return value;
         }
 
-        if (_converter.TryConvert(value.GetType(), requestedType, value, out var converted))
+        if (_converter.TryConvert(value.GetType(), requestedType, value, out var converted, out conversionException))
         {
             return converted;
         }
@@ -748,7 +725,8 @@ public sealed class InputParser
         // Create from this the required argument value.
         // This, however, comes with a performance impact of traversing the dictionary structure
         // and creating from this the object.
-        if (value is IReadOnlyDictionary<string, object> or IReadOnlyList<object>)
+        if (conversionException is null
+            && value is IReadOnlyDictionary<string, object> or IReadOnlyList<object>)
         {
             return _dictToObjConverter.Convert(value, requestedType);
         }

@@ -32,8 +32,8 @@ public class FragmentSpreadTargetDefinedRuleTests
         // assert
         Assert.Collection(context.Errors,
             t => Assert.Equal(
-                "The specified fragment `undefinedFragment` " +
-                "does not exist.",
+                "The specified fragment `undefinedFragment` "
+                + "does not exist.",
                 t.Message));
         context.Errors.MatchSnapshot();
     }

@@ -40,9 +40,9 @@ public class InitCommandHandler : CommandHandler<InitCommandArguments>
             accessToken?.Token,
             accessToken?.Scheme,
             CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values),
-            arguments.TypeDepth.HasValue() &&
-            int.TryParse(arguments.TypeDepth.Value(), out var typeDepth) &&
-            typeDepth >= 3 ? typeDepth : 6);
+            arguments.TypeDepth.HasValue()
+            && int.TryParse(arguments.TypeDepth.Value(), out var typeDepth)
+            && typeDepth >= 3 ? typeDepth : 6);
 
         if (arguments.FromFile.HasValue())
         {

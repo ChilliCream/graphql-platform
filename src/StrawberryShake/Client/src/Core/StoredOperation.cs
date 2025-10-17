@@ -42,9 +42,8 @@ internal class StoredOperation<T>
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        var updated = LastResult is null or { Data: null } ||
-            result.Data is null ||
-            !result.Data.Equals(LastResult?.Data);
+        var updated = LastResult is null or { Data: null }
+            || result.Data?.Equals(LastResult?.Data) != true;
         LastResult = result;
         LastModified = DateTime.UtcNow;
 

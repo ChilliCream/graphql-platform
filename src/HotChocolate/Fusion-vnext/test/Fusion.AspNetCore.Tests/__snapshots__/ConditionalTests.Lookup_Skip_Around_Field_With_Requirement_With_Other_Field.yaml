@@ -1,0 +1,187 @@
+title: Lookup_Skip_Around_Field_With_Requirement_With_Other_Field
+request:
+  document: |
+    query testQuery(
+      $skip: Boolean!
+    ) {
+      productBySlug(slug: "product") {
+        ... @skip(if: $skip) {
+          dimension
+          price
+        }
+      }
+    }
+  variables: |
+    {
+      "skip": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productBySlug": {}
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: ID!
+      }
+      
+      type Query {
+        productBySlug(slug: String!): Product
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_c97c6b3f_1(
+              $skip: Boolean!
+            ) {
+              productBySlug(slug: "product") {
+                ... @skip(if: $skip) {
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "skip": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productBySlug": {}
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: ID!
+        size: Int!
+      }
+      
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Product {
+        id: ID!
+        dimension(size: Int! @require(field: "size")): String
+        price: Int!
+      }
+      
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip: Boolean!
+        ) {
+          productBySlug(slug: "product") {
+            ... @skip(if: $skip) {
+              dimension
+              price
+              id @fusion__requirement
+              size @fusion__requirement
+            }
+          }
+        }
+      name: testQuery
+      hash: c97c6b3fae77c6bc3656d8e0a796d9ac
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_c97c6b3f_1(
+          $skip: Boolean!
+        ) {
+          productBySlug(slug: "product") {
+            ... @skip(if: $skip) {
+              id
+            }
+          }
+        }
+      forwardedVariables:
+        - skip
+    - id: 2
+      type: Operation
+      schema: C
+      operation: |
+        query testQuery_c97c6b3f_2(
+          $__fusion_1_id: ID!
+        ) {
+          productById(id: $__fusion_1_id) {
+            price
+          }
+        }
+      source: $.productById
+      target: $.productBySlug
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: C
+      operation: |
+        query testQuery_c97c6b3f_3(
+          $__fusion_2_size: Int!
+          $__fusion_3_id: ID!
+        ) {
+          productById(id: $__fusion_3_id) {
+            dimension(size: $__fusion_2_size)
+          }
+        }
+      source: $.productById
+      target: $.productBySlug
+      requirements:
+        - name: __fusion_2_size
+          selectionMap: >-
+            size
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+        - id: 4
+    - id: 4
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_c97c6b3f_4(
+          $__fusion_4_id: ID!
+        ) {
+          productById(id: $__fusion_4_id) {
+            size
+          }
+        }
+      source: $.productById
+      target: $.productBySlug
+      requirements:
+        - name: __fusion_4_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

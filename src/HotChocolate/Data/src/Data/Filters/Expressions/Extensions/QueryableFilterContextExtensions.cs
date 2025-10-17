@@ -25,10 +25,10 @@ public static class QueryableFilterVisitorContextExtensions
         this QueryableFilterContext context,
         [NotNullWhen(true)] out LambdaExpression? expression)
     {
-        if (context.Scopes.TryPeekElement(out var scope) &&
-            scope is QueryableScope closure &&
-            closure.Level.TryPeekElement(out var levels) &&
-            levels.TryPeekElement(out var level))
+        if (context.Scopes.TryPeekElement(out var scope)
+            && scope is QueryableScope closure
+            && closure.Level.TryPeekElement(out var levels)
+            && levels.TryPeekElement(out var level))
         {
             expression = Expression.Lambda(level, closure.Parameter);
             return true;
@@ -49,10 +49,10 @@ public static class QueryableFilterVisitorContextExtensions
         this QueryableFilterContext context,
         [NotNullWhen(true)] out Expression<T>? expression)
     {
-        if (context.Scopes.TryPeekElement(out var scope) &&
-            scope is QueryableScope closure &&
-            closure.Level.TryPeekElement(out var levels) &&
-            levels.TryPeekElement(out var level))
+        if (context.Scopes.TryPeekElement(out var scope)
+            && scope is QueryableScope closure
+            && closure.Level.TryPeekElement(out var levels)
+            && levels.TryPeekElement(out var level))
         {
             expression = Expression.Lambda<T>(level, closure.Parameter);
             return true;

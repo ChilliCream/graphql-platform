@@ -108,8 +108,8 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
         while (reader.Read())
         {
-            if (reader.TokenType == JsonTokenType.PropertyName &&
-                reader.ValueTextEquals(Utf8MessageProperties.TypeProp))
+            if (reader.TokenType == JsonTokenType.PropertyName
+                && reader.ValueTextEquals(Utf8MessageProperties.TypeProp))
             {
                 reader.Read();
 

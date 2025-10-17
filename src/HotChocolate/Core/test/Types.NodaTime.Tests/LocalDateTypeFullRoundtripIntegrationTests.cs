@@ -25,7 +25,7 @@ public class LocalDateTypeFullRoundtripIntegrationTests
     [Fact]
     public void ParsesVariable()
     {
-        IExecutionResult? result = _testExecutor
+        var result = _testExecutor
             .Execute(
                 OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
@@ -38,7 +38,7 @@ public class LocalDateTypeFullRoundtripIntegrationTests
     [Fact]
     public void DoesntParseAnIncorrectVariable()
     {
-        IExecutionResult? result = _testExecutor
+        var result = _testExecutor
             .Execute(
                 OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")

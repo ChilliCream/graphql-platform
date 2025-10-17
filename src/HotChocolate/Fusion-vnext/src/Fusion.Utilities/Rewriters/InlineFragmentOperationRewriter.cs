@@ -2,19 +2,23 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Fusion.FusionUtilitiesResources;
 
 namespace HotChocolate.Fusion.Rewriters;
 
 public sealed class InlineFragmentOperationRewriter(
     ISchemaDefinition schema,
-    bool removeStaticallyExcludedSelections = false)
+    bool removeStaticallyExcludedSelections = false,
+    bool ignoreMissingTypeSystemMembers = false)
 {
+    private List<ISelectionNode>? _selections;
+
     private static readonly FieldNode s_typeNameField =
         new FieldNode(
             null,
             new NameNode(IntrospectionFieldNames.TypeName),
             null,
-            [new DirectiveNode("fusion_internal")],
+            [new DirectiveNode("fusion__empty")],
             ImmutableArray<ArgumentNode>.Empty,
             null);
 
@@ -55,7 +59,6 @@ public sealed class InlineFragmentOperationRewriter(
                     {
                         context.AddField(field);
                     }
-
                     break;
 
                 case InlineFragmentNode inlineFragment:
@@ -63,7 +66,6 @@ public sealed class InlineFragmentOperationRewriter(
                     {
                         CollectInlineFragment(inlineFragment, context);
                     }
-
                     break;
 
                 case FragmentSpreadNode fragmentSpread:
@@ -71,7 +73,6 @@ public sealed class InlineFragmentOperationRewriter(
                     {
                         CollectFragmentSpread(fragmentSpread, context);
                     }
-
                     break;
             }
         }
@@ -114,16 +115,22 @@ public sealed class InlineFragmentOperationRewriter(
 
                 if (mergedField.SelectionSet is not null)
                 {
-                    mergedField = mergedField.WithSelectionSet(
-                        new SelectionSetNode(field.SelectMany(t => t.SelectionSet!.Selections).ToList()));
+                    ctx.Observer.OnMerge(field);
+                    var temp = Interlocked.Exchange(ref _selections, null) ?? [];
+                    temp.AddRange(field.SelectMany(t => t.SelectionSet!.Selections));
+                    var selections = temp.ToArray();
+                    temp.Clear();
+                    Interlocked.Exchange(ref _selections, temp);
+                    mergedField = mergedField.WithSelectionSet(new SelectionSetNode(selections));
                 }
 
                 if (removeStaticallyExcludedSelections)
                 {
-                    mergedField = mergedField.WithDirectives(
-                        RemoveStaticIncludeConditions(mergedField.Directives));
+                    var directives = RemoveStaticIncludeConditions(mergedField.Directives);
+                    mergedField = mergedField.WithDirectives(directives);
                 }
 
+                ctx.Observer.OnMerge(field.Key, mergedField);
                 RewriteField(mergedField, ctx);
             }
         }
@@ -142,8 +149,27 @@ public sealed class InlineFragmentOperationRewriter(
         }
         else
         {
-            var field = ((IComplexTypeDefinition)context.Type).Fields[fieldNode.Name.Value];
-            var fieldContext = context.Branch(field.Type.AsTypeDefinition());
+            var type = (IComplexTypeDefinition)context.Type;
+            ITypeDefinition fieldType;
+
+            if (type.Fields.TryGetField(fieldNode.Name.Value, out var field))
+            {
+                fieldType = field.Type.AsTypeDefinition();
+            }
+            else if (ignoreMissingTypeSystemMembers)
+            {
+                fieldType = new MissingType("__MissingType__");
+            }
+            else
+            {
+                throw new RewriterException(
+                    string.Format(
+                        InlineFragmentOperationRewriter_FieldDoesNotExistOnType,
+                        fieldNode.Name.Value,
+                        type.Name));
+            }
+
+            var fieldContext = context.Branch(fieldType);
 
             CollectSelections(fieldNode.SelectionSet, fieldContext);
             RewriteSelections(fieldContext);
@@ -160,6 +186,8 @@ public sealed class InlineFragmentOperationRewriter(
                 RewriteArguments(fieldNode.Arguments),
                 newSelectionSetNode);
 
+            context.Observer.OnMerge(fieldNode, newFieldNode);
+
             if (context.Visited.Add(newFieldNode))
             {
                 context.Selections.Add(newFieldNode);
@@ -169,8 +197,7 @@ public sealed class InlineFragmentOperationRewriter(
 
     private void CollectInlineFragment(InlineFragmentNode inlineFragment, Context context)
     {
-        if ((inlineFragment.TypeCondition is null
-                || inlineFragment.TypeCondition.Name.Value.Equals(context.Type.Name, StringComparison.Ordinal))
+        if ((inlineFragment.TypeCondition?.Name.Value.Equals(context.Type.Name, StringComparison.Ordinal) != false)
             && inlineFragment.Directives.Count == 0)
         {
             CollectSelections(inlineFragment.SelectionSet, context);
@@ -182,9 +209,30 @@ public sealed class InlineFragmentOperationRewriter(
 
     private void RewriteInlineFragment(InlineFragmentNode inlineFragment, Context context)
     {
-        var typeCondition = inlineFragment.TypeCondition is null
-            ? context.Type
-            : schema.Types[inlineFragment.TypeCondition.Name.Value];
+        ITypeDefinition? typeCondition;
+        if (inlineFragment.TypeCondition is null)
+        {
+            typeCondition = context.Type;
+        }
+        else
+        {
+            var typeName = inlineFragment.TypeCondition.Name.Value;
+
+            if (!schema.Types.TryGetType(typeName, out typeCondition))
+            {
+                if (ignoreMissingTypeSystemMembers)
+                {
+                    typeCondition = new MissingType("__MissingType__");
+                }
+                else
+                {
+                    throw new RewriterException(string.Format(
+                        InlineFragmentOperationRewriter_InvalidTypeConditionOnInlineFragment,
+                        context.Type.Name,
+                        typeName));
+                }
+            }
+        }
 
         var inlineFragmentContext = context.Branch(typeCondition);
 
@@ -201,6 +249,7 @@ public sealed class InlineFragmentOperationRewriter(
             RewriteDirectives(inlineFragment.Directives),
             newSelectionSetNode);
 
+        context.Observer.OnMerge(inlineFragment, newInlineFragment);
         context.Selections.Add(newInlineFragment);
     }
 
@@ -209,7 +258,22 @@ public sealed class InlineFragmentOperationRewriter(
         Context context)
     {
         var fragmentDefinition = context.GetFragmentDefinition(fragmentSpread.Name.Value);
-        var typeCondition = schema.Types[fragmentDefinition.TypeCondition.Name.Value];
+        var typeName = fragmentDefinition.TypeCondition.Name.Value;
+
+        if (!schema.Types.TryGetType(typeName, out var typeCondition))
+        {
+            if (ignoreMissingTypeSystemMembers)
+            {
+                typeCondition = new MissingType("__MissingType__");
+            }
+            else
+            {
+                throw new RewriterException(string.Format(
+                    InlineFragmentOperationRewriter_InvalidTypeConditionOnFragment,
+                    fragmentSpread.Name,
+                    typeName));
+            }
+        }
 
         if (fragmentSpread.Directives.Count == 0
             && typeCondition.IsAssignableFrom(context.Type))
@@ -241,6 +305,8 @@ public sealed class InlineFragmentOperationRewriter(
             new NamedTypeNode(typeCondition.Name),
             RewriteDirectives(fragmentSpread.Directives),
             selectionSet);
+
+        context.Observer.OnMerge(fragmentDefinition.SelectionSet, inlineFragment.SelectionSet);
 
         if (context.Visited.Add(inlineFragment))
         {
@@ -523,9 +589,13 @@ public sealed class InlineFragmentOperationRewriter(
 
     public readonly ref struct Context(
         ITypeDefinition type,
-        Dictionary<string, FragmentDefinitionNode> fragments)
+        Dictionary<string, FragmentDefinitionNode> fragments,
+        ISelectionSetMergeObserver? mergeObserver = null)
     {
         public ITypeDefinition Type { get; } = type;
+
+        public ISelectionSetMergeObserver Observer { get; } =
+            mergeObserver ?? NoopSelectionSetMergeObserver.Instance;
 
         public ImmutableArray<ISelectionNode>.Builder Selections { get; } =
             ImmutableArray.CreateBuilder<ISelectionNode>();
@@ -535,7 +605,16 @@ public sealed class InlineFragmentOperationRewriter(
         public Dictionary<string, List<FieldNode>> Fields { get; } = new(StringComparer.Ordinal);
 
         public FragmentDefinitionNode GetFragmentDefinition(string name)
-            => fragments[name];
+        {
+            if (!fragments.TryGetValue(name, out var fragment))
+            {
+                throw new RewriterException(string.Format(
+                    InlineFragmentOperationRewriter_FragmentDoesNotExist,
+                    name));
+            }
+
+            return fragment;
+        }
 
         public void AddField(FieldNode field)
         {
@@ -561,7 +640,7 @@ public sealed class InlineFragmentOperationRewriter(
         }
 
         public Context Branch(ITypeDefinition type)
-            => new(type, fragments);
+            => new(type, fragments, Observer);
     }
 
     private sealed class FieldComparer : IEqualityComparer<FieldNode>

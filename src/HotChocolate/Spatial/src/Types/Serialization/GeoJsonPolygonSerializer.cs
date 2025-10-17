@@ -28,8 +28,8 @@ internal class GeoJsonPolygonSerializer
             ringsCoordinates = new object[listObj.Count];
             for (var i = 0; i < listObj.Count; i++)
             {
-                if (listObj[i] is IList ringCoordinateObject &&
-                    ringCoordinateObject.TryConvertToCoordinates(out var ringCoordinate))
+                if (listObj[i] is IList ringCoordinateObject
+                    && ringCoordinateObject.TryConvertToCoordinates(out var ringCoordinate))
                 {
                     ringsCoordinates[i] = ringCoordinate;
                 }
@@ -79,8 +79,8 @@ internal class GeoJsonPolygonSerializer
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        if (runtimeValue is not Polygon geometry ||
-            !TrySerializeCoordinates(type, geometry, out var serialized))
+        if (runtimeValue is not Polygon geometry
+            || !TrySerializeCoordinates(type, geometry, out var serialized))
         {
             throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
         }

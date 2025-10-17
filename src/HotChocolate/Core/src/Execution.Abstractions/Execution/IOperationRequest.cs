@@ -29,6 +29,11 @@ public interface IOperationRequest : IExecutionRequest
     string? OperationName { get; }
 
     /// <summary>
+    /// Gets the requested error handling mode.
+    /// </summary>
+    ErrorHandlingMode? ErrorHandlingMode { get; }
+
+    /// <summary>
     /// Gets the GraphQL request extension data.
     /// </summary>
     IReadOnlyDictionary<string, object?>? Extensions { get; }

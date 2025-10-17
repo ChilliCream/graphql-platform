@@ -23,23 +23,23 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
             var options = GetOptions(context);
 
-            if (options.EnableGetRequests &&
+            if (options.EnableGetRequests
 
                 // Verify that the request is relevant to this middleware.
-                (context.Request.Query.ContainsKey(QueryKey) ||
-                    context.Request.Query.ContainsKey(QueryIdKey) ||
-                    context.Request.Query.ContainsKey(ExtensionsKey)) &&
+                && (context.Request.Query.ContainsKey(QueryKey)
+                    || context.Request.Query.ContainsKey(QueryIdKey)
+                    || context.Request.Query.ContainsKey(ExtensionsKey))
 
                 // Allow ALL GET requests if we do NOT enforce preflight
                 // requests on HTTP GraphQL GET requests
-                (!options.EnforceGetRequestsPreflightHeader ||
+                && (!options.EnforceGetRequestsPreflightHeader
 
                     // Allow HTTP GraphQL GET requests if the preflight header is set.
-                    context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight) ||
+                    || context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight)
 
                     // Allow HTTP GraphQL GET requests if the content type is set to
                     // application/json.
-                    context.ParseContentType() is RequestContentType.Json))
+                    || context.ParseContentType() is RequestContentType.Json))
             {
                 using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGet))
                 {

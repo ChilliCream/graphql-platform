@@ -35,7 +35,7 @@ public class WarmupRequestTests
         // assert 1
         Assert.IsType<WarmupExecutionResult>(warmupResult);
 
-        var documentCache = executor.Schema.Services.GetCombinedServices().GetRequiredService<IDocumentCache>();
+        var documentCache = executor.Schema.Services.GetRequiredService<IDocumentCache>();
         var operationCache = executor.Schema.Services.GetRequiredService<IPreparedOperationCache>();
 
         Assert.True(documentCache.TryGetDocument(documentId, out _));
@@ -60,15 +60,12 @@ public class WarmupRequestTests
         // arrange
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .ConfigureSchemaServices(services =>
-            {
-                services.AddSingleton(_ => new Mock<IOperationDocumentStorage>().Object);
-            })
+            .ConfigureSchemaServices(
+                services =>
+                    services.AddSingleton(_ => new Mock<IOperationDocumentStorage>().Object))
             .AddQueryType<Query>()
-            .ModifyRequestOptions(options =>
-            {
-                options.PersistedOperations.OnlyAllowPersistedDocuments = true;
-            })
+            .ModifyRequestOptions(
+                options => options.PersistedOperations.OnlyAllowPersistedDocuments = true)
             .UsePersistedOperationPipeline()
             .BuildRequestExecutorAsync();
 
@@ -85,7 +82,7 @@ public class WarmupRequestTests
         // assert
         Assert.IsType<WarmupExecutionResult>(warmupResult);
 
-        var provider = executor.Schema.Services.GetCombinedServices();
+        var provider = executor.Schema.Services;
         var documentCache = provider.GetRequiredService<IDocumentCache>();
         var operationCache = provider.GetRequiredService<IPreparedOperationCache>();
 

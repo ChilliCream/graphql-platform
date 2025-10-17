@@ -9,7 +9,9 @@ namespace HotChocolate.Fusion.Configuration;
 
 internal sealed class FusionGatewaySetup
 {
-    public Func<IServiceProvider, IFusionSchemaDocumentProvider>? DocumentProvider { get; set; }
+    public Func<IServiceProvider, IFusionConfigurationProvider>? DocumentProvider { get; set; }
+
+    public List<Action<FusionOptions>> OptionsModifiers { get; } = [];
 
     public List<Action<FusionRequestOptions>> RequestOptionsModifiers { get; } = [];
 

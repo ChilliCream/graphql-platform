@@ -35,8 +35,8 @@ public class DirectivesAreDefinedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The specified directive `foo` " +
-                "is not supported by the current schema.",
+                "The specified directive `foo` "
+                + "is not supported by the current schema.",
                 t.Message));
     }
 
@@ -50,8 +50,8 @@ public class DirectivesAreDefinedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The specified directive is not valid in the " +
-                "current location.", t.Message));
+                "The specified directive is not valid in the "
+                + "current location.", t.Message));
     }
 
     [Fact]
@@ -265,7 +265,7 @@ public class DirectivesAreDefinedRuleTests
     }
 
     [Fact]
-    public void WithMisplacedDirectivesOnFragemnt()
+    public void WithMisplacedDirectivesOnFragment()
     {
         ExpectErrors(
             """

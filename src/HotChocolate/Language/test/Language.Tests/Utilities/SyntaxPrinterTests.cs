@@ -102,8 +102,8 @@ public class SyntaxPrinterTests
     {
         // arrange
         const string query =
-            "query Foo($bar: [String!]!) { foo(s: \"String\") " +
-            "{ bar @foo { baz @foo @bar } } }";
+            "query Foo($bar: [String!]!) { foo(s: \"String\") "
+            + "{ bar @foo { baz @foo @bar } } }";
 
         var queryDocument = Utf8GraphQLParser.Parse(query);
 

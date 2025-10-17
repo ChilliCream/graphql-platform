@@ -1322,6 +1322,28 @@ public class AnnotationBasedMutations
             exception?.Errors[0].Message);
     }
 
+    [Theory]
+    [InlineData(typeof(MutationWithVoidResult))]
+    [InlineData(typeof(MutationWithTaskResult))]
+    [InlineData(typeof(MutationWithValueTaskResult))]
+    public async Task Mutation_NotReturningValue_ThrowsSchemaException(Type mutationType)
+    {
+        // arrange
+        async Task Act() =>
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType(mutationType)
+                .BuildSchemaAsync();
+
+        // act & assert
+        var exception =
+            (SchemaException?)(await Assert.ThrowsAsync<SchemaException>(Act)).Errors[0].Exception;
+
+        Assert.Equal(
+            "The mutation field 'DoSomething' must return a value.",
+            exception?.Errors[0].Message);
+    }
+
     public class ExplicitMutation
     {
         public FieldResult<int, ExplicitCustomError> DoSomething(int status)
@@ -1832,12 +1854,12 @@ public class AnnotationBasedMutations
 
     public interface IInterfaceError
     {
-        public string Name { get; }
+        string Name { get; }
     }
 
     public interface IInterfaceError2
     {
-        public string Name { get; }
+        string Name { get; }
     }
 
     public class ErrorWithInterface : IInterfaceError, IInterfaceError2
@@ -1849,7 +1871,27 @@ public class AnnotationBasedMutations
 
     public interface IErrorInterface
     {
-        public string Message { get; }
+        string Message { get; }
+    }
+
+    public class MutationWithVoidResult
+    {
+        [UseMutationConvention]
+        public void DoSomething()
+        {
+        }
+    }
+
+    public class MutationWithTaskResult
+    {
+        [UseMutationConvention]
+        public Task DoSomething() => Task.CompletedTask;
+    }
+
+    public class MutationWithValueTaskResult
+    {
+        [UseMutationConvention]
+        public ValueTask DoSomething() => ValueTask.CompletedTask;
     }
 
     public class CustomNamingConvention : DefaultNamingConventions

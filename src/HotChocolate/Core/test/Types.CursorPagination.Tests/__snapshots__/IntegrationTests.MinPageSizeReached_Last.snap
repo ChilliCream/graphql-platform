@@ -13,7 +13,7 @@
       ],
       "extensions": {
         "code": "HC0079",
-        "fieldCoordinate": "Query.letters",
+        "coordinate": "Query.letters",
         "requestedItems": -1
       }
     }

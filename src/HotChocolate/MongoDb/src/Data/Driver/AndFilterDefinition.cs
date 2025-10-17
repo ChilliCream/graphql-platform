@@ -71,14 +71,14 @@ public sealed class AndFilterDefinition : MongoDbFilterDefinition
         else if (document.Contains(clause.Name))
         {
             var existingClause = document.GetElement(clause.Name);
-            if (existingClause.Value is BsonDocument existingClauseValue &&
-                clause.Value is BsonDocument clauseValue)
+            if (existingClause.Value is BsonDocument existingClauseValue
+                && clause.Value is BsonDocument clauseValue)
             {
                 var clauseOperator = clauseValue.ElementCount > 0
                     ? clauseValue.GetElement(0).Name
                     : null;
-                if (clauseValue.Names.Any(existingClauseValue.Contains) ||
-                    s_operatorsThatCannotBeCombined.Contains(clauseOperator))
+                if (clauseValue.Names.Any(existingClauseValue.Contains)
+                    || s_operatorsThatCannotBeCombined.Contains(clauseOperator))
                 {
                     PromoteFilterToDollarForm(document, clause);
                 }

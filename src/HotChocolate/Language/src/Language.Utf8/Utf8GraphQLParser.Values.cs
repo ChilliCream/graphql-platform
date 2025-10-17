@@ -82,7 +82,6 @@ public ref partial struct Utf8GraphQLParser
     /// Defines if only constant values are allowed;
     /// otherwise, variables are allowed.
     /// </param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ListValueNode ParseList(bool isConstant)
     {
         var start = Start();
@@ -169,7 +168,6 @@ public ref partial struct Utf8GraphQLParser
         );
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IValueNode ParseScalarValue()
     {
         if (TokenHelper.IsString(ref _reader))
@@ -214,7 +212,6 @@ public ref partial struct Utf8GraphQLParser
         throw Unexpected(kind);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IValueNode ParseEnumValue()
     {
         var start = Start();

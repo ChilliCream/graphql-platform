@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Globalization;
 using System.Reflection;
 using HotChocolate.Language;
@@ -273,7 +275,7 @@ internal static class ThrowHelper
             .SetMessage(ThrowHelper_OneOfFieldIsNull, field.Name, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
             .SetPath(path)
-            .SetFieldCoordinate(field.Coordinate);
+            .SetCoordinate(field.Coordinate);
 
         return new(builder.Build(), type, path);
     }
@@ -290,7 +292,7 @@ internal static class ThrowHelper
 
         if (field is not null)
         {
-            builder.SetFieldCoordinate(field.Coordinate);
+            builder.SetCoordinate(field.Coordinate);
         }
 
         return new(builder.Build(), type, path);
@@ -587,5 +589,27 @@ internal static class ThrowHelper
                 .SetTypeSystemObject((TypeSystemObject)namedType)
                 .SetExtension("type", type.Print())
                 .Build());
+    }
+
+    public static SerializationException InvalidTypeConversion(
+        ITypeSystemMember type,
+        IInputValueInfo inputField,
+        Path inputFieldPath,
+        Language.Location? location,
+        Exception conversionException)
+    {
+        var builder = ErrorBuilder.New()
+            .SetMessage(ThrowHelper_InvalidTypeConversion, inputField.Name)
+            .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+            .TryAddLocation(location)
+            .SetException(conversionException)
+            .SetCoordinate(inputField.Coordinate);
+
+        if (inputFieldPath.Length > 1)
+        {
+            builder.SetInputPath(inputFieldPath);
+        }
+
+        return new(builder.Build(), type);
     }
 }

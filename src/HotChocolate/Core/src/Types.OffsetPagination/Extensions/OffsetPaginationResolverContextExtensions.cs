@@ -17,8 +17,8 @@ internal static class OffsetPaginationResolverContextExtensions
     {
         // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
         // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
-        if (context.Selection.Type is ObjectType objectType &&
-            context.Selection.SyntaxNode.SelectionSet is not null)
+        if (context.Selection.Type is ObjectType objectType
+            && context.Selection.SyntaxNode.SelectionSet is not null)
         {
             var selections = context.GetSelections(objectType, null, true);
 

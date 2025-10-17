@@ -1,133 +1,130 @@
-using System.Collections.Immutable;
-using HotChocolate.Fusion.Logging;
-using static HotChocolate.Fusion.CompositionTestHelper;
-
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class KeyDirectiveInFieldsArgumentRuleTests
+public sealed class KeyDirectiveInFieldsArgumentRuleTests : RuleTestBase
 {
-    private static readonly object s_rule = new KeyDirectiveInFieldsArgumentRule();
-    private static readonly ImmutableArray<object> s_rules = [s_rule];
-    private readonly CompositionLog _log = new();
+    protected override object Rule { get; } = new KeyDirectiveInFieldsArgumentRule();
 
-    [Theory]
-    [MemberData(nameof(ValidExamplesData))]
-    public void Examples_Valid(string[] sdl)
+    // In this example, the "fields" argument of the @key directive does not include any directive
+    // applications, satisfying the rule.
+    [Fact]
+    public void Validate_KeyNoDirectiveInFieldsArgument_Succeeds()
     {
-        // arrange
-        var schemas = CreateSchemaDefinitions(sdl);
-        var validator = new SourceSchemaValidator(schemas, s_rules, _log);
-
-        // act
-        var result = validator.Validate();
-
-        // assert
-        Assert.True(result.IsSuccess);
-        Assert.True(_log.IsEmpty);
-    }
-
-    [Theory]
-    [MemberData(nameof(InvalidExamplesData))]
-    public void Examples_Invalid(string[] sdl, string[] errorMessages)
-    {
-        // arrange
-        var schemas = CreateSchemaDefinitions(sdl);
-        var validator = new SourceSchemaValidator(schemas, s_rules, _log);
-
-        // act
-        var result = validator.Validate();
-
-        // assert
-        Assert.True(result.IsFailure);
-        Assert.Equal(errorMessages, _log.Select(e => e.Message).ToArray());
-        Assert.True(_log.All(e => e.Code == "KEY_DIRECTIVE_IN_FIELDS_ARG"));
-        Assert.True(_log.All(e => e.Severity == LogSeverity.Error));
-    }
-
-    public static TheoryData<string[]> ValidExamplesData()
-    {
-        return new TheoryData<string[]>
-        {
-            // In this example, the "fields" argument of the @key directive does not include any
-            // directive applications, satisfying the rule.
-            {
-                [
-                    """
-                    type User @key(fields: "id name") {
-                        id: ID!
-                        name: String
-                    }
-                    """
-                ]
+        AssertValid(
+        [
+            """
+            type User @key(fields: "id name") {
+                id: ID!
+                name: String
             }
-        };
+            """
+        ]);
     }
 
-    public static TheoryData<string[], string[]> InvalidExamplesData()
+    // In this example, the "fields" argument of the @key directive includes a directive application
+    // @lowercase, which is not allowed.
+    [Fact]
+    public void Validate_KeyDirectiveInFieldsArgument_Fails()
     {
-        return new TheoryData<string[], string[]>
-        {
-            // In this example, the "fields" argument of the @key directive includes a directive
-            // application @lowercase, which is not allowed.
-            {
-                [
-                    """
-                    directive @lowercase on FIELD_DEFINITION
+        AssertInvalid(
+            [
+                """
+                directive @lowercase on FIELD_DEFINITION
 
-                    type User @key(fields: "id name @lowercase") {
-                        id: ID!
-                        name: String
-                    }
-                    """
-                ],
-                [
-                    "A @key directive on type 'User' in schema 'A' references field 'name', " +
-                    "which must not include directive applications."
-                ]
-            },
-            // In this example, the "fields" argument includes a directive application @lowercase
-            // nested inside the selection set, which is also invalid.
-            {
-                [
-                    """
-                    directive @lowercase on FIELD_DEFINITION
+                type User @key(fields: "id name @lowercase") {
+                    id: ID!
+                    name: String
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' references field 'name', which must not include directive applications.",
+                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARG",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
 
-                    type User @key(fields: "id name { firstName @lowercase }") {
-                        id: ID!
-                        name: FullName
-                    }
+    // In this example, the "fields" argument includes a directive application @lowercase nested
+    // inside the selection set, which is also invalid.
+    [Fact]
+    public void Validate_KeyDirectiveInFieldsArgumentNested_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                directive @lowercase on FIELD_DEFINITION
 
-                    type FullName {
-                        firstName: String
-                        lastName: String
-                    }
-                    """
-                ],
-                [
-                    "A @key directive on type 'User' in schema 'A' references field " +
-                    "'name.firstName', which must not include directive applications."
-                ]
-            },
-            // Multiple keys.
-            {
-                [
-                    """
-                    directive @example on FIELD_DEFINITION
+                type User @key(fields: "id name { firstName @lowercase }") {
+                    id: ID!
+                    name: FullName
+                }
 
-                    type User @key(fields: "id @example") @key(fields: "name @example") {
-                        id: ID!
-                        name: String
-                    }
-                    """
-                ],
-                [
-                    "A @key directive on type 'User' in schema 'A' references field 'id', " +
-                    "which must not include directive applications.",
+                type FullName {
+                    firstName: String
+                    lastName: String
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' references field 'name.firstName', which must not include directive applications.",
+                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARG",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
 
-                    "A @key directive on type 'User' in schema 'A' references field 'name', " +
-                    "which must not include directive applications."
-                ]
-            }
-        };
+    // Multiple keys.
+    [Fact]
+    public void Validate_KeyDirectiveInFieldsArgumentMultipleKeys_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                directive @example on FIELD_DEFINITION
+
+                type User @key(fields: "id @example") @key(fields: "name @example") {
+                    id: ID!
+                    name: String
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' references field 'id', which must not include directive applications.",
+                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARG",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' references field 'name', which must not include directive applications.",
+                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARG",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
     }
 }

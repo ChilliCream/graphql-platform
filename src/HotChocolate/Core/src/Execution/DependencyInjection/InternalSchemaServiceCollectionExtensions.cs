@@ -35,7 +35,7 @@ public static class InternalSchemaServiceCollectionExtensions
             var listeners = sp.GetServices<IExecutionDiagnosticEventListener>().ToArray();
             return listeners.Length switch
             {
-                0 => new NoopExecutionDiagnosticEvents(),
+                0 => NoopExecutionDiagnosticEvents.Instance,
                 1 => listeners[0],
                 _ => new AggregateExecutionDiagnosticEvents(listeners)
             };

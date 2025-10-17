@@ -8,8 +8,8 @@ public class DirectiveParserTests
     public void ParseUniqueDirective()
     {
         // arrange
-        const string text = "directive @skip(if: Boolean!) " +
-            "on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT";
+        const string text = "directive @skip(if: Boolean!) "
+            + "on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT";
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
         // assert
@@ -26,8 +26,8 @@ public class DirectiveParserTests
     public void ParseRepeatableDirective()
     {
         // arrange
-        const string text = "directive @skip(if: Boolean!) repeatable " +
-            "on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT";
+        const string text = "directive @skip(if: Boolean!) repeatable "
+            + "on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT";
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
         // assert
@@ -44,12 +44,14 @@ public class DirectiveParserTests
     public void ParseDescription()
     {
         // arrange
-        const string text = @"
-            """"""
+        const string text =
+            // lang=graphql
+            """"
+            """
             Description
-            """"""
-            directive @foo(bar:String!) on FIELD_DEFINITION
-            ";
+            """
+            directive @foo(bar: String!) on FIELD_DEFINITION
+            """";
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
         // assert

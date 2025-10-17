@@ -24,10 +24,7 @@ public class FooBarContext(string connectionString) : DbContext
                 .HasForeignKey("BarId");
         });
 
-        modelBuilder.Entity<Bar>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-        });
+        modelBuilder.Entity<Bar>(entity => entity.HasKey(e => e.Id));
     }
 }
 

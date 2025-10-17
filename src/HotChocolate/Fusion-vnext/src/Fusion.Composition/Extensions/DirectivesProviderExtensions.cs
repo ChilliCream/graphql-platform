@@ -31,6 +31,14 @@ internal static class DirectivesProviderExtensions
         return null;
     }
 
+    public static bool ExistsInSchema(this IDirectivesProvider type, string schemaName)
+    {
+        return type.Directives.AsEnumerable().Any(
+            d =>
+                d.Name == WellKnownDirectiveNames.FusionType
+                && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
+    }
+
     public static bool HasExternalDirective(this IDirectivesProvider type)
     {
         return type.Directives.ContainsName(WellKnownDirectiveNames.External);
@@ -39,11 +47,6 @@ internal static class DirectivesProviderExtensions
     public static bool HasFusionInaccessibleDirective(this IDirectivesProvider type)
     {
         return type.Directives.ContainsName(WellKnownDirectiveNames.FusionInaccessible);
-    }
-
-    public static bool HasFusionRequiresDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.FusionRequires);
     }
 
     public static bool HasInaccessibleDirective(this IDirectivesProvider type)

@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
@@ -16,11 +14,7 @@ public class SemanticNonNullTests
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-                o.EnsureAllNodesCanBeResolved = false;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<QueryWithTypeWithId>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -62,10 +56,7 @@ public class SemanticNonNullTests
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<QueryWithPagination>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();

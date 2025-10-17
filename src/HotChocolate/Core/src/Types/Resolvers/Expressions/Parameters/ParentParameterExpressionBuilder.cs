@@ -3,8 +3,6 @@ using System.Reflection;
 using HotChocolate.Internal;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 /// <summary>
@@ -21,8 +19,8 @@ internal sealed class ParentParameterExpressionBuilder
     private static readonly MethodInfo s_getParentMethod = ContextType.GetMethods().First(IsParentMethod);
 
     private static bool IsParentMethod(MethodInfo method)
-        => method.Name.Equals(Parent, StringComparison.Ordinal) &&
-           method.IsGenericMethod;
+        => method.Name.Equals(Parent, StringComparison.Ordinal)
+            && method.IsGenericMethod;
 
     public ArgumentKind Kind => ArgumentKind.Source;
 

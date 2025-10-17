@@ -27,7 +27,21 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
     /// The field name.
     /// </param>
     public FieldNode(string name)
-        : this(null, new NameNode(name), null, Array.Empty<DirectiveNode>(), Array.Empty<ArgumentNode>(), null)
+        : this(null, new NameNode(name), null, [], [], null)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="FieldNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The field name.
+    /// </param>
+    /// <param name="selectionSet">
+    /// The fields selection set.
+    /// </param>
+    public FieldNode(string name, SelectionSetNode? selectionSet)
+        : this(null, new NameNode(name), null, [], [], selectionSet)
     {
     }
 

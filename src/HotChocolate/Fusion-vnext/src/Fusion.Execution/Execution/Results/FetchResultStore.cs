@@ -1,64 +1,84 @@
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-#if NET8_0
-using System.Text;
-#endif
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
-// we must make this thread-safe
 internal sealed class FetchResultStore : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
-    private readonly ResultPoolSession _resultPoolSession;
-    private readonly ValueCompletion _valueCompletion;
+    private readonly ISchemaDefinition _schema;
+    private readonly IErrorHandler _errorHandler;
     private readonly Operation _operation;
-    private readonly ObjectResult _root;
+    private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly ulong _includeFlags;
-
-    private readonly ImmutableArray<IError> _errors = [];
-
-    // TODO : attach resources to result object.
     private readonly ConcurrentStack<IDisposable> _memory = [];
-    private bool _isInitialized;
+    private CompositeResultDocument _result;
+    private ValueCompletion _valueCompletion;
+    private bool _disposed;
 
     public FetchResultStore(
         ISchemaDefinition schema,
-        ResultPoolSession resultPoolSession,
+        IErrorHandler errorHandler,
         Operation operation,
+        ErrorHandlingMode errorHandlingMode,
         ulong includeFlags)
     {
         ArgumentNullException.ThrowIfNull(schema);
-        ArgumentNullException.ThrowIfNull(resultPoolSession);
         ArgumentNullException.ThrowIfNull(operation);
 
-        _resultPoolSession = resultPoolSession;
-        _valueCompletion = new ValueCompletion(schema, resultPoolSession, ErrorHandling.Propagate, 32, includeFlags);
+        _schema = schema;
+        _errorHandler = errorHandler;
         _operation = operation;
-        _root = resultPoolSession.RentObjectResult();
+        _errorHandlingMode = errorHandlingMode;
         _includeFlags = includeFlags;
+
+        _result = new CompositeResultDocument(operation, includeFlags);
+
+        _valueCompletion = new ValueCompletion(
+            _schema,
+            _result,
+            _errorHandler,
+            _errorHandlingMode,
+            maxDepth: 32);
     }
 
-    public ObjectResult Data => _root;
+    public void Reset()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-    public ImmutableArray<IError> Errors => _errors;
+        _result = new CompositeResultDocument(_operation, _includeFlags);
 
-    public IEnumerable<IDisposable> MemoryOwners => _memory;
+        _valueCompletion = new ValueCompletion(
+            _schema,
+            _result,
+            _errorHandler,
+            _errorHandlingMode,
+            maxDepth: 32);
+    }
+
+    public CompositeResultDocument Result => _result;
+
+    public ConcurrentStack<IDisposable> MemoryOwners => _memory;
 
     public bool AddPartialResults(
         SelectionPath sourcePath,
-        ReadOnlySpan<SourceSchemaResult> results)
+        ReadOnlySpan<SourceSchemaResult> results,
+        ReadOnlySpan<string> responseNames)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(sourcePath);
 
         if (results.Length == 0)
@@ -68,13 +88,16 @@ internal sealed class FetchResultStore : IDisposable
                 nameof(results));
         }
 
-        var startElements = ArrayPool<JsonElement>.Shared.Rent(results.Length);
-        var startElementsSpan = startElements.AsSpan()[..results.Length];
+        var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
+        var errorTries = ArrayPool<ErrorTrie?>.Shared.Rent(results.Length);
+        var dataElementsSpan = dataElements.AsSpan()[..results.Length];
+        var errorTriesSpan = errorTries.AsSpan()[..results.Length];
 
         try
         {
             ref var result = ref MemoryMarshal.GetReference(results);
-            ref var startElement = ref MemoryMarshal.GetReference(startElements);
+            ref var dataElement = ref MemoryMarshal.GetReference(dataElementsSpan);
+            ref var errorTrie = ref MemoryMarshal.GetReference(errorTriesSpan);
             ref var end = ref Unsafe.Add(ref result, results.Length);
 
             while (Unsafe.IsAddressLessThan(ref result, ref end))
@@ -82,59 +105,158 @@ internal sealed class FetchResultStore : IDisposable
                 // we need to track the result objects as they used rented memory.
                 _memory.Push(result);
 
-                startElement = GetStartElement(sourcePath, result.Data);
+                if (result.Errors?.RootErrors is { Length: > 0 } rootErrors)
+                {
+                    _result.Errors.AddRange(rootErrors);
+                }
+
+                dataElement = GetDataElement(sourcePath, result.Data);
+                errorTrie = GetErrorTrie(sourcePath, result.Errors?.Trie);
+
                 result = ref Unsafe.Add(ref result, 1)!;
-                startElement = ref Unsafe.Add(ref startElement, 1);
+                dataElement = ref Unsafe.Add(ref dataElement, 1);
+                errorTrie = ref Unsafe.Add(ref errorTrie, 1)!;
             }
 
-            return SaveSafe(results, startElementsSpan);
+            return SaveSafe(results, dataElementsSpan, errorTriesSpan, responseNames);
         }
         finally
         {
-            ArrayPool<JsonElement>.Shared.Return(startElements);
+            ArrayPool<SourceResultElement>.Shared.Return(dataElements);
+            ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
         }
+    }
+
+    /// <summary>
+    /// Adds partial root data to the result document.
+    /// </summary>
+    /// <param name="document">
+    /// The document that contains partial results that need to be merged into the `Data` segment of the result.
+    /// </param>
+    /// <param name="responseNames">
+    /// The names of the root fields the document provides data for.
+    /// </param>
+    /// <returns>
+    /// true if the result was integrated.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="document"/> is null.
+    /// </exception>
+    public bool AddPartialResults(SourceResultDocument document, ReadOnlySpan<string> responseNames)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(document);
+
+        _lock.EnterWriteLock();
+
+        try
+        {
+            var partial = document.Root;
+            var data = _result.Data;
+
+            return _valueCompletion.BuildResult(
+                partial,
+                data, errorTrie: null, responseNames: responseNames);
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+    }
+
+    public bool AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
+    {
+        _lock.EnterWriteLock();
+
+        try
+        {
+            ref var path = ref MemoryMarshal.GetReference(paths);
+            ref var end = ref Unsafe.Add(ref path, paths.Length);
+            var resultData = _result.Data;
+
+            while (Unsafe.IsAddressLessThan(ref path, ref end))
+            {
+                if (resultData.IsInvalidated)
+                {
+                    return false;
+                }
+
+                var element = path.IsRoot ? resultData : GetStartObjectResult(path);
+                if (element.IsNullOrInvalidated)
+                {
+                    goto AddErrors_Next;
+                }
+
+                var canExecutionContinue =
+                    _valueCompletion.BuildErrorResult(
+                        element,
+                        responseNames,
+                        error,
+                        path);
+                if (!canExecutionContinue)
+                {
+                    resultData.Invalidate();
+                    return false;
+                }
+
+AddErrors_Next:
+                path = ref Unsafe.Add(ref path, 1)!;
+            }
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+
+        return true;
     }
 
     private bool SaveSafe(
         ReadOnlySpan<SourceSchemaResult> results,
-        ReadOnlySpan<JsonElement> startElements)
+        ReadOnlySpan<SourceResultElement> dataElements,
+        ReadOnlySpan<ErrorTrie?> errorTries,
+        ReadOnlySpan<string> responseNames)
     {
         _lock.EnterWriteLock();
 
         try
         {
             ref var result = ref MemoryMarshal.GetReference(results);
-            ref var startElement = ref MemoryMarshal.GetReference(startElements);
+            ref var data = ref MemoryMarshal.GetReference(dataElements);
+            ref var errorTrie = ref MemoryMarshal.GetReference(errorTries);
             ref var end = ref Unsafe.Add(ref result, results.Length);
+            var resultData = _result.Data;
 
             while (Unsafe.IsAddressLessThan(ref result, ref end))
             {
-                if (result.Path.IsRoot)
+                if (resultData.IsNullOrInvalidated)
                 {
-                    var selectionSet = _operation.RootSelectionSet;
-
-                    if (!_isInitialized)
-                    {
-                        _root.Initialize(_resultPoolSession, selectionSet, _includeFlags);
-                        _isInitialized = true;
-                    }
-
-                    if (!_valueCompletion.BuildResult(selectionSet, result, startElement, _root))
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    var startResult = GetStartObjectResult(result.Path);
-                    if (!_valueCompletion.BuildResult(startResult.SelectionSet, result, startElement, startResult))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
 
+                var element = result.Path.IsRoot ? resultData : GetStartObjectResult(result.Path);
+                if (element.IsNullOrInvalidated)
+                {
+                    goto SaveSafe_Next;
+                }
+
+                var canExecutionContinue =
+                    _valueCompletion.BuildResult(
+                        data,
+                        element,
+                        errorTrie,
+                        responseNames);
+
+                if (!canExecutionContinue)
+                {
+                    resultData.Invalidate();
+                    return false;
+                }
+
+SaveSafe_Next:
                 result = ref Unsafe.Add(ref result, 1)!;
-                startElement = ref Unsafe.Add(ref startElement, 1);
+                data = ref Unsafe.Add(ref data, 1);
+                errorTrie = ref Unsafe.Add(ref errorTrie, 1)!;
             }
         }
         finally
@@ -150,51 +272,77 @@ internal sealed class FetchResultStore : IDisposable
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(selectionSet);
+        ArgumentNullException.ThrowIfNull(requestVariables);
+
+        if (requiredData.Length == 0)
+        {
+            throw new ArgumentException(
+                "The required data span must contain at least one requirement.",
+                nameof(requiredData));
+        }
+
         _lock.EnterReadLock();
 
         try
         {
-            var current = new List<ObjectResult> { _root };
-            var next = new List<ObjectResult>();
+            var current = new List<CompositeResultElement> { _result.Data };
+            var next = new List<CompositeResultElement>();
 
-            for (var i = selectionSet.Segments.Length - 1; i >= 0; i--)
+            for (var i = 0; i < selectionSet.Segments.Length; i++)
             {
                 var segment = selectionSet.Segments[i];
-                foreach (var result in current)
+
+                foreach (var element in current)
                 {
                     if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
                     {
-                        if (result.TryGetValue(IntrospectionFieldNames.TypeName, out var value) &&
-                            value is LeafFieldResult leaf &&
-                            (leaf.Value.GetString()?.Equals(segment.Name) ?? false))
+                        if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
+                            && value.ValueKind is JsonValueKind.String
+                            && value.TextEqualsHelper(segment.Name, isPropertyName: false))
                         {
-                            next.Add(result);
+                            next.Add(element);
                         }
                     }
                     else if (segment.Kind is SelectionPathSegmentKind.Field)
                     {
-                        if (result.TryGetValue(segment.Name, out var value) && !value.HasNullValue)
+                        if (!element.TryGetProperty(segment.Name, out var value))
                         {
-                            if (value is ListFieldResult listField)
-                            {
-                                // TODO : "We need to unroll the values"
-                                throw new Exception("We need to unroll the values");
-                            }
-
-                            if (value is ObjectFieldResult objectField)
-                            {
-                                next.Add(objectField.Value!);
-                                continue;
-                            }
-
-                            // TODO : Better error
-                            throw new NotSupportedException("Must be list or object.");
+                            continue;
                         }
+
+                        var valueKind = value.ValueKind;
+
+                        if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+                        {
+                            continue;
+                        }
+
+                        if (valueKind is JsonValueKind.Array)
+                        {
+                            next.AddRange(UnrollLists(value));
+                            continue;
+                        }
+
+                        if (valueKind is JsonValueKind.Object)
+                        {
+                            next.Add(value);
+                            continue;
+                        }
+
+                        // TODO : Better error
+                        throw new NotSupportedException("Must be list or object.");
                     }
                 }
 
                 (next, current) = (current, next);
                 next.Clear();
+
+                if (current.Count == 0)
+                {
+                    return [];
+                }
             }
 
             PooledArrayWriter? buffer = null;
@@ -221,6 +369,11 @@ internal sealed class FetchResultStore : IDisposable
                 Array.Resize(ref variableValueSets, nextIndex);
             }
 
+            if (buffer is not null)
+            {
+                _memory.Push(buffer);
+            }
+
             return variableValueSets is not null
                 ? ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets)
                 : [];
@@ -231,18 +384,23 @@ internal sealed class FetchResultStore : IDisposable
         }
     }
 
-    public ObjectValueNode? MapRequirements(
-        ObjectResult result,
-        IReadOnlyList<ObjectFieldNode> requestVariables,
-        ReadOnlySpan<OperationRequirement> requiredData,
+    private ObjectValueNode? MapRequirements(
+        CompositeResultElement result,
+        IReadOnlyList<ObjectFieldNode> forwardedVariables,
+        ReadOnlySpan<OperationRequirement> requirements,
         ref PooledArrayWriter? buffer)
     {
-        var fields = new List<ObjectFieldNode>(requestVariables.Count + requiredData.Length);
-        fields.AddRange(requestVariables);
+        var fields = new List<ObjectFieldNode>(forwardedVariables.Count + requirements.Length);
+        fields.AddRange(forwardedVariables);
 
-        foreach (var requirement in requiredData)
+        foreach (var requirement in requirements)
         {
             var field = MapRequirement(result, requirement.Key, requirement.Map, ref buffer);
+
+            if (field is null)
+            {
+                return null;
+            }
 
             if (field.Value.Kind == SyntaxKind.NullValue && requirement.Type.Kind == SyntaxKind.NonNullType)
             {
@@ -255,133 +413,51 @@ internal sealed class FetchResultStore : IDisposable
         return new ObjectValueNode(fields);
     }
 
-    // TODO : we need a separate utility for this that is properly implemented.
-    private ObjectFieldNode MapRequirement(
-        ObjectResult result,
+    private ObjectFieldNode? MapRequirement(
+        CompositeResultElement result,
         string key,
-        FieldPath path,
+        IValueSelectionNode path,
         ref PooledArrayWriter? buffer)
     {
-        var current = result;
-
-        foreach (var segment in path.Reverse())
-        {
-            if (current.TryGetValue(segment.Name, out var value))
-            {
-                if (value.HasNullValue)
-                {
-                    return new ObjectFieldNode(key, NullValueNode.Default);
-                }
-
-                if (value is ObjectFieldResult objectField)
-                {
-                    current = objectField.Value!;
-                }
-
-                if (value is LeafFieldResult leaf)
-                {
-                    return new ObjectFieldNode(key, MapValue(leaf.Value, ref buffer));
-                }
-
-                throw new NotSupportedException("Must be list or object.");
-            }
-        }
-
-        throw new InvalidOperationException("The path segment does not exist in the data.");
+        var value = ResultDataMapper.Map(result, path, _schema, ref buffer);
+        return value is null ? null : new ObjectFieldNode(key, value);
     }
 
-    private IValueNode MapValue(JsonElement value, ref PooledArrayWriter? buffer)
+    private static IEnumerable<CompositeResultElement> UnrollLists(CompositeResultElement list)
     {
-        if (value.ValueKind == JsonValueKind.Object)
+        foreach (var element in list.EnumerateArray())
         {
-            // TODO : Implement proper converter
-            throw new NotSupportedException();
-        }
+            var elementValueKind = element.ValueKind;
 
-        if (value.ValueKind == JsonValueKind.Array)
-        {
-            // TODO : Implement proper converter
-            throw new NotSupportedException();
-        }
-
-        if (value.ValueKind == JsonValueKind.Number)
-        {
-            // TODO : Exponential notation is not supported yet.
-            var rawValue = GetRawValue(value);
-
-            if (rawValue.IndexOf((byte)'.') > -1)
+            if (elementValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             {
-                buffer ??= CreateRentedBuffer();
+                continue;
+            }
 
-                var start = buffer.Length;
-                var length = rawValue.Length;
-                buffer.Write(rawValue);
-
-                return new FloatValueNode(buffer.GetWrittenMemorySegment(start, length), FloatFormat.FixedPoint);
+            if (elementValueKind is JsonValueKind.Array)
+            {
+                foreach (var nestedElement in UnrollLists(element))
+                {
+                    yield return nestedElement;
+                }
             }
             else
             {
-                buffer ??= CreateRentedBuffer();
-
-                var start = buffer.Length;
-                var length = rawValue.Length;
-                var d = buffer.GetSpan(rawValue.Length);
-                rawValue.CopyTo(d);
-                buffer.Advance(rawValue.Length);
-
-                return new IntValueNode(buffer.GetWrittenMemorySegment(start, length));
+                yield return element;
             }
         }
-
-        if (value.ValueKind == JsonValueKind.String)
-        {
-            var rawValue = GetRawValue(value);
-
-            buffer ??= CreateRentedBuffer();
-
-            var start = buffer.Length;
-            var length = rawValue.Length;
-            buffer.Write(rawValue);
-
-            return new StringValueNode(null, buffer.GetWrittenMemorySegment(start, length), false);
-        }
-
-        if (value.ValueKind == JsonValueKind.True)
-        {
-            return BooleanValueNode.True;
-        }
-
-        if (value.ValueKind == JsonValueKind.False)
-        {
-            return BooleanValueNode.False;
-        }
-
-        if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-        {
-            return NullValueNode.Default;
-        }
-
-        throw new NotSupportedException();
     }
 
-    // TODO : Create Polyfill
-    private static ReadOnlySpan<byte> GetRawValue(JsonElement value)
+    public PooledArrayWriter CreateRentedBuffer()
     {
-#if NET9_0_OR_GREATER
-        return JsonMarshal.GetRawUtf8Value(value);
-#else
-        return Encoding.UTF8.GetBytes(value.GetRawText());
-#endif
-    }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-    private PooledArrayWriter CreateRentedBuffer()
-    {
         var buffer = new PooledArrayWriter();
         _memory.Push(buffer);
         return buffer;
     }
 
-    private static JsonElement GetStartElement(SelectionPath sourcePath, JsonElement data)
+    private static SourceResultElement GetDataElement(SelectionPath sourcePath, SourceResultElement data)
     {
         if (sourcePath.IsRoot)
         {
@@ -390,79 +466,108 @@ internal sealed class FetchResultStore : IDisposable
 
         var current = data;
 
-        for (var i = sourcePath.Segments.Length - 1; i >= 0; i--)
+        for (var i = 0; i < sourcePath.Segments.Length; i++)
         {
-            var segment = sourcePath.Segments[i];
-            if (current.ValueKind != JsonValueKind.Object ||
-                !current.TryGetProperty(segment.Name, out current))
+            if (current.ValueKind != JsonValueKind.Object)
             {
-                throw new InvalidOperationException(
-                    $"The path segment '{segment.Name}' does not exist in the data.");
+                return default;
+            }
+
+            var segment = sourcePath.Segments[i];
+
+            switch (segment.Kind)
+            {
+                case SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field:
+                    if (!current.TryGetProperty(segment.Name, out current))
+                    {
+                        return default;
+                    }
+
+                    break;
+
+                case SelectionPathSegmentKind.InlineFragment:
+                    if (!current.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeNameProperty)
+                            || typeNameProperty.ValueKind != JsonValueKind.String)
+                    {
+                        return default;
+                    }
+
+                    var typeName = typeNameProperty.GetString()!;
+
+                    if (typeName != segment.Name)
+                    {
+                        return default;
+                    }
+
+                    break;
+
+                default:
+                    throw new NotImplementedException($"Segment kind {segment.Kind} is not supported.");
             }
         }
 
         return current;
     }
 
-    private ObjectResult GetStartObjectResult(Path path)
+    private static ErrorTrie? GetErrorTrie(SelectionPath sourcePath, ErrorTrie? errors)
     {
-        var result = GetStartResult(path);
-
-        if (result is ObjectResult objectResult)
+        if (errors is null || sourcePath.IsRoot)
         {
-            return objectResult;
+            return errors;
         }
 
-        throw new InvalidOperationException(
-            $"The path segment '{path}' does not exist in the data.");
-    }
+        var current = errors;
 
-    private ResultData? GetStartResult(Path path)
-    {
-        if (path.IsRoot)
+        for (var i = 0; i < sourcePath.Segments.Length; i++)
         {
-            return _root;
-        }
+            var segment = sourcePath.Segments[i];
 
-        var parent = path.Parent;
-        var result = GetStartResult(parent);
-
-        if (result is ObjectResult objectResult && path is NamePathSegment nameSegment)
-        {
-            if (!objectResult.TryGetValue(nameSegment.Name, out var field))
+            if (!current.TryGetValue(segment.Name, out current))
             {
                 return null;
             }
-
-            return field switch
-            {
-                ObjectFieldResult objectFieldResult => objectFieldResult.Value,
-                ListFieldResult listFieldResult => listFieldResult.Value,
-                null => null,
-                _ => throw new InvalidOperationException($"The path segment '{parent}' does not exist in the data.")
-            };
         }
 
-        if (path is IndexerPathSegment indexSegment)
-        {
-            switch (result)
-            {
-                case NestedListResult listResult:
-                    if (listResult.Items.Count <= indexSegment.Index)
-                    {
-                        throw new InvalidOperationException(
-                            $"The path segment '{indexSegment}' does not exist in the data.");
-                    }
-                    return listResult.Items[indexSegment.Index];
+        return current;
+    }
 
-                case ObjectListResult listResult:
-                    if (listResult.Items.Count <= indexSegment.Index)
-                    {
-                        throw new InvalidOperationException(
-                            $"The path segment '{indexSegment}' does not exist in the data.");
-                    }
-                    return listResult.Items[indexSegment.Index];
+    private CompositeResultElement GetStartObjectResult(Path path)
+    {
+        var result = GetStartResult(path);
+        Debug.Assert(result.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
+        return result.ValueKind is JsonValueKind.Object or JsonValueKind.Null ? result : default;
+    }
+
+    private CompositeResultElement GetStartResult(Path path)
+    {
+        if (path.IsRoot)
+        {
+            return _result.Data;
+        }
+
+        var parent = path.Parent;
+        var element = GetStartResult(parent);
+        var elementKind = element.ValueKind;
+
+        if (elementKind is JsonValueKind.Null)
+        {
+            return element;
+        }
+
+        if (elementKind is JsonValueKind.Object && path is NamePathSegment nameSegment)
+        {
+            return element.TryGetProperty(nameSegment.Name, out var field) ? field : default;
+        }
+
+        if (elementKind is JsonValueKind.Array && path is IndexerPathSegment indexSegment)
+        {
+            if (element.GetArrayLength() <= indexSegment.Index)
+            {
+                throw new InvalidOperationException(
+                    $"The path segment '{indexSegment}' does not exist in the data.");
             }
+
+            return element[indexSegment.Index];
         }
 
         throw new InvalidOperationException(
@@ -471,7 +576,18 @@ internal sealed class FetchResultStore : IDisposable
 
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
         _lock.Dispose();
-        _memory.Clear();
+
+        while (_memory.TryPop(out var memory))
+        {
+            memory.Dispose();
+        }
     }
 }

@@ -27,8 +27,8 @@ internal sealed class CompleteMessage : IDataMessage
 
         while (reader.Read())
         {
-            if (reader.TokenType == JsonTokenType.PropertyName &&
-                reader.ValueTextEquals(Utf8MessageProperties.IdProp))
+            if (reader.TokenType == JsonTokenType.PropertyName
+                && reader.ValueTextEquals(Utf8MessageProperties.IdProp))
             {
                 reader.Read();
 

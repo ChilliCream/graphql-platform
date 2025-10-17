@@ -80,8 +80,8 @@ public partial class DocumentAnalyzer
             detected = false;
             foreach (var namedInputType in analyzer.InputTypes)
             {
-                if (namedInputType is not ITypeDefinition { Name: { } typeName } ||
-                    namesOfInputTypesWithUploadScalar.Contains(typeName))
+                if (namedInputType is not ITypeDefinition { Name: { } typeName }
+                    || namesOfInputTypesWithUploadScalar.Contains(typeName))
                 {
                     continue;
                 }

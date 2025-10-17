@@ -36,8 +36,8 @@ internal sealed class EnumTypeUsageAnalyzer(Schema schema) : SyntaxWalker<object
 
     protected override ISyntaxVisitorAction Enter(VariableDefinitionNode node, object? context)
     {
-        if (schema.Types.TryGetType<ITypeDefinition>(node.Type.NamedType().Name.Value, out var type) &&
-            type is IInputType inputType)
+        if (schema.Types.TryGetType<ITypeDefinition>(node.Type.NamedType().Name.Value, out var type)
+            && type is IInputType inputType)
         {
             VisitInputType(inputType);
         }
@@ -49,8 +49,8 @@ internal sealed class EnumTypeUsageAnalyzer(Schema schema) : SyntaxWalker<object
     {
         var currentType = _typeContext.Peek();
 
-        if (currentType is IComplexTypeDefinition complexType &&
-            complexType.Fields.TryGetField(node.Name.Value, out var field))
+        if (currentType is IComplexTypeDefinition complexType
+            && complexType.Fields.TryGetField(node.Name.Value, out var field))
         {
             var fieldType = field.Type.NamedType();
             if (fieldType is IInputType inputType)
@@ -142,7 +142,7 @@ internal sealed class EnumTypeUsageAnalyzer(Schema schema) : SyntaxWalker<object
 
     private void VisitInputObjectType(InputObjectType type)
     {
-        foreach (InputField field in type.Fields)
+        foreach (var field in type.Fields)
         {
             VisitInputType(field.Type);
         }

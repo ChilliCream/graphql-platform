@@ -157,7 +157,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             flags |= RequestFlags.AllowStreams;
         }
 
-        if (acceptMediaType.Kind is EventStream or All)
+        if (acceptMediaType.Kind is ApplicationGraphQLStream or EventStream or ApplicationJsonLines or All)
         {
             flags = RequestFlags.AllowAll;
         }
@@ -224,7 +224,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
                 OnWriteResponseHeaders(operationResult, format, response.Headers);
 
-                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                await format.Formatter.FormatAsync(result, response.BodyWriter, cancellationToken);
                 break;
             }
 
@@ -238,7 +238,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 OnWriteResponseHeaders(resultBatch, format, response.Headers);
                 await response.Body.FlushAsync(cancellationToken);
 
-                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                await format.Formatter.FormatAsync(result, response.BodyWriter, cancellationToken);
                 break;
             }
 
@@ -252,7 +252,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 OnWriteResponseHeaders(responseStream, format, response.Headers);
                 await response.Body.FlushAsync(cancellationToken);
 
-                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                await format.Formatter.FormatAsync(result, response.BodyWriter, cancellationToken);
                 break;
             }
 
@@ -443,7 +443,10 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         // if we are sending a response stream with the multipart/mixed header or
         // with a text/event-stream response content-type, we as well will just
         // respond with an OK status code.
-        if (format.Kind is ResponseContentType.MultiPartMixed or ResponseContentType.EventStream)
+        if (format.Kind is ResponseContentType.MultiPartMixed
+            or ResponseContentType.EventStream
+            or ResponseContentType.GraphQLResponseStream
+            or ResponseContentType.JsonLines)
         {
             return HttpStatusCode.OK;
         }

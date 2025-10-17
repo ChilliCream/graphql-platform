@@ -5,8 +5,6 @@ using static HotChocolate.Types.Interceptors.FlagEnumInterceptorTests.FlagsEnum;
 
 namespace HotChocolate.Types.Interceptors;
 
-#nullable enable
-
 public class FlagEnumInterceptorTests
 {
     [Fact]

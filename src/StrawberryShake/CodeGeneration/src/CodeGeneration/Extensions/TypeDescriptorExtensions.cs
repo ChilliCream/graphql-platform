@@ -11,8 +11,8 @@ public static class TypeDescriptorExtensions
         typeDescriptor.Kind == TypeKind.Entity;
 
     public static bool IsData(this ITypeDescriptor typeDescriptor) =>
-        typeDescriptor.Kind == TypeKind.Data ||
-        typeDescriptor.Kind == TypeKind.AbstractData;
+        typeDescriptor.Kind == TypeKind.Data
+        || typeDescriptor.Kind == TypeKind.AbstractData;
 
     public static bool ContainsEntity(this ITypeDescriptor typeDescriptor)
     {
@@ -36,14 +36,14 @@ public static class TypeDescriptorExtensions
             ListTypeDescriptor d => d.InnerType.IsOrContainsEntity(),
 
             InterfaceTypeDescriptor d =>
-                d.IsEntity() ||
-                d.Properties.Any(p =>
-                    p.Type.IsEntity() || p.Type.IsOrContainsEntity()) ||
-                d.ImplementedBy.Any(x => x.IsOrContainsEntity()),
+                d.IsEntity()
+                || d.Properties.Any(p =>
+                    p.Type.IsEntity() || p.Type.IsOrContainsEntity())
+                || d.ImplementedBy.Any(x => x.IsOrContainsEntity()),
 
             ComplexTypeDescriptor d =>
-                d.IsEntity() ||
-                d.Properties.Any(p => p.Type.IsEntity() || p.Type.IsOrContainsEntity()),
+                d.IsEntity()
+                || d.Properties.Any(p => p.Type.IsEntity() || p.Type.IsOrContainsEntity()),
 
             NonNullTypeDescriptor d => d.InnerType.IsOrContainsEntity(),
 
@@ -61,8 +61,8 @@ public static class TypeDescriptorExtensions
         typeDescriptor is NonNullTypeDescriptor;
 
     public static bool IsList(this ITypeDescriptor typeDescriptor) =>
-        typeDescriptor is ListTypeDescriptor ||
-        typeDescriptor is NonNullTypeDescriptor { InnerType: ListTypeDescriptor };
+        typeDescriptor is ListTypeDescriptor
+        || typeDescriptor is NonNullTypeDescriptor { InnerType: ListTypeDescriptor };
 
     public static ITypeDescriptor InnerType(this ITypeDescriptor typeDescriptor)
     {

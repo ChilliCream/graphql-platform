@@ -1,40 +1,51 @@
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using HotChocolate.Execution;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public sealed class Operation
+public sealed class Operation : IOperation
 {
 #if NET9_0_OR_GREATER
     private readonly Lock _sync = new();
 #else
     private readonly object _sync = new();
 #endif
-    private readonly ConcurrentDictionary<(ulong, string), SelectionSet> _selectionSets = [];
+    private readonly ConcurrentDictionary<(int, string), SelectionSet> _selectionSets = [];
     private readonly OperationCompiler _compiler;
     private readonly IncludeConditionCollection _includeConditions;
-    private uint _lastId;
+    private readonly OperationFeatureCollection _features;
+    private object[] _elementsById;
+    private int _lastId;
 
     internal Operation(
         string id,
+        string hash,
         OperationDefinitionNode definition,
         IObjectTypeDefinition rootType,
         ISchemaDefinition schema,
         SelectionSet rootSelectionSet,
         OperationCompiler compiler,
         IncludeConditionCollection includeConditions,
-        uint lastId)
+        int lastId,
+        object[] elementsById)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(hash);
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentNullException.ThrowIfNull(rootType);
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(rootSelectionSet);
+        ArgumentNullException.ThrowIfNull(compiler);
         ArgumentNullException.ThrowIfNull(includeConditions);
+        ArgumentNullException.ThrowIfNull(elementsById);
 
         Id = id;
+        Hash = hash;
         Definition = definition;
         RootType = rootType;
         Schema = schema;
@@ -42,7 +53,9 @@ public sealed class Operation
         _compiler = compiler;
         _includeConditions = includeConditions;
         _lastId = lastId;
+        _elementsById = elementsById;
 
+        _features = new OperationFeatureCollection();
         rootSelectionSet.Seal(this);
     }
 
@@ -50,6 +63,11 @@ public sealed class Operation
     /// Gets the internal unique identifier for this operation.
     /// </summary>
     public string Id { get; }
+
+    /// <summary>
+    /// Gets the hash of the original operation document.
+    /// </summary>
+    public string Hash { get; }
 
     /// <summary>
     /// Gets the name of the operation.
@@ -79,6 +97,34 @@ public sealed class Operation
     /// </returns>
     public SelectionSet RootSelectionSet { get; }
 
+    ISelectionSet IOperation.RootSelectionSet
+        => RootSelectionSet;
+
+    /// <inheritdoc cref="IFeatureProvider"/>
+    public IFeatureCollection Features => _features;
+
+    /// <summary>
+    /// Gets the selection set for the specified <paramref name="selection"/>
+    /// if the selections named return type is an object type.
+    /// </summary>
+    /// <param name="selection">
+    /// The selection set for which the selection set shall be resolved.
+    /// </param>
+    /// <returns>
+    /// Returns the selection set for the specified <paramref name="selection"/> and
+    /// the named return type of the selection.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// - The specified <paramref name="selection"/> has no selection set.
+    /// - The specified <paramref name="selection"/> returns an abstract named type.
+    /// </exception>
+    public SelectionSet GetSelectionSet(Selection selection)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+        var typeContext = selection.Field.Type.NamedType<IObjectTypeDefinition>();
+        return GetSelectionSet(selection, typeContext);
+    }
+
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/> and
     /// <paramref name="typeContext"/>.
@@ -98,6 +144,9 @@ public sealed class Operation
     /// </exception>
     public SelectionSet GetSelectionSet(Selection selection, IObjectTypeDefinition typeContext)
     {
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(typeContext);
+
         var key = (selection.Id, typeContext.Name);
 
         if (!_selectionSets.TryGetValue(key, out var selectionSet))
@@ -111,13 +160,29 @@ public sealed class Operation
                             selection,
                             typeContext,
                             _includeConditions,
+                            ref _elementsById,
                             ref _lastId);
                     selectionSet.Seal(this);
+                    _selectionSets.TryAdd(key, selectionSet);
                 }
             }
         }
 
         return selectionSet;
+    }
+
+    ISelectionSet IOperation.GetSelectionSet(ISelection selection, IObjectTypeDefinition typeContext)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(typeContext);
+
+        if (selection is not Selection internalSelection)
+        {
+            throw new InvalidOperationException(
+                $"Only selections of the type {typeof(Selection).FullName} are supported.");
+        }
+
+        return GetSelectionSet(internalSelection, typeContext);
     }
 
     /// <summary>
@@ -138,6 +203,9 @@ public sealed class Operation
 
         return Schema.GetPossibleTypes(selection.Field.Type.NamedType());
     }
+
+    IEnumerable<IObjectTypeDefinition> IOperation.GetPossibleTypes(ISelection selection)
+        => Schema.GetPossibleTypes(selection.Field.Type.NamedType());
 
     /// <summary>
     /// Creates the include flags for the specified variable values.
@@ -163,4 +231,10 @@ public sealed class Operation
 
         return includeFlags;
     }
+
+    internal Selection GetSelectionById(int id)
+        => Unsafe.As<Selection>(Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_elementsById), id));
+
+    internal SelectionSet GetSelectionSetById(int id)
+        => Unsafe.As<SelectionSet>(Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_elementsById), id));
 }

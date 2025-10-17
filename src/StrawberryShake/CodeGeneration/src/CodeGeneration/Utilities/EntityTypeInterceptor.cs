@@ -58,9 +58,9 @@ internal sealed class EntityTypeInterceptor : TypeInterceptor
 
         foreach (var selection in pattern.Selections.OfType<FieldNode>())
         {
-            if (selection.SelectionSet is null &&
-                outputType.Fields.TryGetField(selection.Name.Value, out var field) &&
-                field.Type.NamedType().IsLeafType())
+            if (selection.SelectionSet is null
+                && outputType.Fields.TryGetField(selection.Name.Value, out var field)
+                && field.Type.NamedType().IsLeafType())
             {
                 continue;
             }

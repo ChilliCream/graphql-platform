@@ -1,0 +1,439 @@
+title: BatchExecutionState_With_Multiple_Variable_Values
+request:
+  document: |
+    {
+      userBySlug(slug: "me") {
+        feedbacks {
+          edges {
+            node {
+              feedback {
+                buyer {
+                  relativeUrl
+                  displayName
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "userBySlug": {
+          "feedbacks": {
+            "edges": [
+              {
+                "node": {
+                  "feedback": {
+                    "buyer": {
+                      "relativeUrl": "User: VXNlcjoxMw==",
+                      "displayName": "User: VXNlcjoxMw=="
+                    }
+                  }
+                }
+              },
+              {
+                "node": {
+                  "feedback": {
+                    "buyer": {
+                      "relativeUrl": "User: VXNlcjoxMg==",
+                      "displayName": "User: VXNlcjoxMg=="
+                    }
+                  }
+                }
+              },
+              {
+                "node": {
+                  "feedback": {
+                    "buyer": {
+                      "relativeUrl": "User: VXNlcjoxMQ==",
+                      "displayName": "User: VXNlcjoxMQ=="
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup
+        nodes(ids: [ID!]!): [Node]!
+      }
+
+      type User implements Node {
+        id: ID!
+        displayName: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_595ce2b9_4(
+              $__fusion_3_id: ID!
+            ) {
+              node(id: $__fusion_3_id) {
+                __typename
+                ... on User {
+                  displayName
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_3_id": "VXNlcjoxMw=="
+              },
+              {
+                "__fusion_3_id": "VXNlcjoxMg=="
+              },
+              {
+                "__fusion_3_id": "VXNlcjoxMQ=="
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "displayName": "User: VXNlcjoxMw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "displayName": "User: VXNlcjoxMg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "displayName": "User: VXNlcjoxMQ=="
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup
+        nodes(ids: [ID!]!): [Node]!
+        userBySlug(slug: String!): User
+      }
+
+      type User implements Node {
+        relativeUrl: String!
+        id: ID!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_595ce2b9_1 {
+              userBySlug(slug: "me") {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userBySlug": {
+                    "id": "VXNlcjox"
+                  }
+                }
+              }
+      - request:
+          document: |
+            query Op_595ce2b9_3(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on User {
+                  relativeUrl
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "VXNlcjoxMw=="
+              },
+              {
+                "__fusion_2_id": "VXNlcjoxMg=="
+              },
+              {
+                "__fusion_2_id": "VXNlcjoxMQ=="
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "relativeUrl": "User: VXNlcjoxMw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "relativeUrl": "User: VXNlcjoxMg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "relativeUrl": "User: VXNlcjoxMQ=="
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type FeedbacksConnection {
+        edges: [FeedbacksEdge!]
+      }
+
+      type FeedbacksEdge {
+        node: ResaleFeedback!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup
+        nodes(ids: [ID!]!): [Node]!
+      }
+
+      type ResaleFeedback implements Node {
+        feedback: ResaleSurveyFeedback
+        id: ID!
+      }
+
+      type ResaleSurveyFeedback {
+        buyer: User
+      }
+
+      type User implements Node {
+        id: ID!
+        feedbacks: FeedbacksConnection
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_595ce2b9_2(
+              $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on User {
+                  feedbacks {
+                    edges {
+                      node {
+                        feedback {
+                          buyer {
+                            id
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "feedbacks": {
+                      "edges": [
+                        {
+                          "node": {
+                            "feedback": {
+                              "buyer": {
+                                "id": "VXNlcjoxMw=="
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "node": {
+                            "feedback": {
+                              "buyer": {
+                                "id": "VXNlcjoxMg=="
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "node": {
+                            "feedback": {
+                              "buyer": {
+                                "id": "VXNlcjoxMQ=="
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          userBySlug(slug: "me") {
+            feedbacks {
+              edges {
+                node {
+                  feedback {
+                    buyer {
+                      relativeUrl
+                      displayName
+                      id @fusion__requirement
+                    }
+                  }
+                }
+              }
+            }
+            id @fusion__requirement
+          }
+        }
+      hash: 595ce2b9cc1d2b098614fb4f4733426b
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query Op_595ce2b9_1 {
+          userBySlug(slug: "me") {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: C
+      operation: |
+        query Op_595ce2b9_2(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on User {
+              feedbacks {
+                edges {
+                  node {
+                    feedback {
+                      buyer {
+                        id
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.userBySlug
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_595ce2b9_3(
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on User {
+              relativeUrl
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.userBySlug.feedbacks.edges.node.feedback.buyer
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2
+    - id: 4
+      type: Operation
+      schema: A
+      operation: |
+        query Op_595ce2b9_4(
+          $__fusion_3_id: ID!
+        ) {
+          node(id: $__fusion_3_id) {
+            __typename
+            ... on User {
+              displayName
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.userBySlug.feedbacks.edges.node.feedback.buyer
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2

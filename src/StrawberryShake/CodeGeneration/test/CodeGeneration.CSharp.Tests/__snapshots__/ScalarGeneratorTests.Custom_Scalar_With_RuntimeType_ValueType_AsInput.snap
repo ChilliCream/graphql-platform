@@ -189,90 +189,7 @@ namespace Foo.Bar
 
         public static SetPersonQueryDocument Instance { get; } = new SetPersonQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x71,
-            0x75,
-            0x65,
-            0x72,
-            0x79,
-            0x20,
-            0x53,
-            0x65,
-            0x74,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x28,
-            0x24,
-            0x65,
-            0x6d,
-            0x61,
-            0x69,
-            0x6c,
-            0x3a,
-            0x20,
-            0x45,
-            0x6d,
-            0x61,
-            0x69,
-            0x6c,
-            0x21,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x70,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x73,
-            0x65,
-            0x74,
-            0x45,
-            0x6d,
-            0x61,
-            0x69,
-            0x6c,
-            0x28,
-            0x65,
-            0x6d,
-            0x61,
-            0x69,
-            0x6c,
-            0x3a,
-            0x20,
-            0x24,
-            0x65,
-            0x6d,
-            0x61,
-            0x69,
-            0x6c,
-            0x29,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query SetPerson($email: Email!) { person { __typename setEmail(email: $email) } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "969f32b130bc0037d5f598a45e088f8bc7690fc8");
 
         public override global::System.String ToString()
@@ -304,14 +221,14 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<ISetPersonResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _emailFormatter;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public SetPersonQuery(global::StrawberryShake.IOperationExecutor<ISetPersonResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _emailFormatter = serializerResolver.GetInputValueFormatter("Email");
         }
 
-        private SetPersonQuery(global::StrawberryShake.IOperationExecutor<ISetPersonResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter emailFormatter)
+        private SetPersonQuery(global::StrawberryShake.IOperationExecutor<ISetPersonResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter emailFormatter)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;
@@ -634,6 +551,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::Foo.Bar.State.FooClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.SetPersonQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.ISetPersonQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IFooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>("FooClient", services, serviceCollection);

@@ -1,9 +1,9 @@
-﻿schema {
+schema {
   query: Query
 }
 
 type FooObsolete {
-  bar: String @deprecated(reason: "Baz")
+  bar: String! @deprecated(reason: "Baz")
 }
 
 type Query {

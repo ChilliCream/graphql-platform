@@ -202,7 +202,7 @@ public class LocalTimeTypeIntegrationTests
     }
 
     [Fact]
-    public async Task Ensure_Schema_First_Obverride_Is_Lazy()
+    public async Task Ensure_Schema_First_Override_Is_Lazy()
     {
         var schema = await new ServiceCollection()
             .AddGraphQL()

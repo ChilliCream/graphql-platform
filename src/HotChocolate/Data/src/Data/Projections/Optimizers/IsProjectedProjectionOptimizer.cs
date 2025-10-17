@@ -7,8 +7,8 @@ namespace HotChocolate.Data.Projections.Handlers;
 public class IsProjectedProjectionOptimizer : IProjectionOptimizer
 {
     public bool CanHandle(ISelection field) =>
-        field.DeclaringType is ObjectType objectType &&
-        objectType.Features.Get<ProjectionTypeFeature>()?.AlwaysProjectedFields.Length > 0;
+        field.DeclaringType is ObjectType objectType
+        && objectType.Features.Get<ProjectionTypeFeature>()?.AlwaysProjectedFields.Length > 0;
 
     public Selection RewriteSelection(
         SelectionSetOptimizerContext context,
@@ -26,15 +26,15 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
             var alwaysProjectedField = feature.AlwaysProjectedFields[i];
 
             // if the field is already in the selection set we do not need to project it
-            if (context.Selections.TryGetValue(alwaysProjectedField, out var field) &&
-                field.Field.Name == alwaysProjectedField)
+            if (context.Selections.TryGetValue(alwaysProjectedField, out var field)
+                && field.Field.Name == alwaysProjectedField)
             {
                 continue;
             }
 
             // if the field is already added as an alias we do not need to add it
-            if (context.Selections.TryGetValue(alias, out field) &&
-                field.Field.Name == alwaysProjectedField)
+            if (context.Selections.TryGetValue(alias, out field)
+                && field.Field.Name == alwaysProjectedField)
             {
                 continue;
             }

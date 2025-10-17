@@ -9,7 +9,7 @@ public class RequestExecutorProxyTests
     public async Task Ensure_Executor_Is_Cached()
     {
         // arrange
-        var resolver =
+        var manager =
             new ServiceCollection()
                 .AddGraphQL()
                 .AddStarWarsRepositories()
@@ -19,7 +19,7 @@ public class RequestExecutorProxyTests
                 .GetRequiredService<RequestExecutorManager>();
 
         // act
-        var proxy = new RequestExecutorProxy(resolver, resolver, ISchemaDefinition.DefaultName);
+        var proxy = new RequestExecutorProxy(manager, manager, ISchemaDefinition.DefaultName);
         var a = await proxy.GetExecutorAsync(CancellationToken.None);
         var b = await proxy.GetExecutorAsync(CancellationToken.None);
 
@@ -33,7 +33,7 @@ public class RequestExecutorProxyTests
         // arrange
         var executorUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var resolver =
+        var manager =
             new ServiceCollection()
                 .AddGraphQL()
                 .AddStarWarsRepositories()
@@ -41,27 +41,17 @@ public class RequestExecutorProxyTests
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<RequestExecutorManager>();
-        var evicted = false;
-        var updated = false;
-
-        var proxy = new TestProxy(resolver, resolver, ISchemaDefinition.DefaultName);
-        proxy.ExecutorEvicted += () =>
-        {
-            evicted = true;
-            executorUpdatedResetEvent.Set();
-        };
-        proxy.ExecutorUpdated += () => updated = true;
+        var proxy = new TestProxy(manager, manager, ISchemaDefinition.DefaultName);
+        proxy.ExecutorUpdated += executorUpdatedResetEvent.Set;
 
         // act
         var a = await proxy.GetExecutorAsync(CancellationToken.None);
-        resolver.EvictRequestExecutor();
+        manager.EvictExecutor();
         executorUpdatedResetEvent.Wait(cts.Token);
         var b = await proxy.GetExecutorAsync(CancellationToken.None);
 
         // assert
         Assert.NotSame(a, b);
-        Assert.True(evicted);
-        Assert.True(updated);
     }
 
     private class TestProxy(
@@ -70,19 +60,13 @@ public class RequestExecutorProxyTests
         string schemaName)
         : RequestExecutorProxy(executorProvider, executorEvents, schemaName)
     {
-        public event Action? ExecutorEvicted;
         public event Action? ExecutorUpdated;
 
-        protected override void OnRequestExecutorUpdated(IRequestExecutor? executor)
+        protected override void OnAfterRequestExecutorSwapped(
+            IRequestExecutor newExecutor,
+            IRequestExecutor oldExecutor)
         {
-            if (executor is null)
-            {
-                ExecutorEvicted?.Invoke();
-            }
-            else
-            {
-                ExecutorUpdated?.Invoke();
-            }
+            ExecutorUpdated?.Invoke();
         }
     }
 }

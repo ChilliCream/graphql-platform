@@ -7,8 +7,16 @@ interface Node {
   id: ID!
 }
 
+type BlogPage implements Node {
+  id: ID!
+}
+
 type City @authorize(policy: "READ_CITY", apply: AFTER_RESOLVER) {
   value: String
+}
+
+type Order implements Node @authorize {
+  id: ID!
 }
 
 type Person implements Node @authorize(policy: "READ_PERSON", apply: AFTER_RESOLVER) {
@@ -18,7 +26,7 @@ type Person implements Node @authorize(policy: "READ_PERSON", apply: AFTER_RESOL
 
 type Query @foo @authorize(policy: "QUERY", apply: VALIDATION) @authorize(policy: "QUERY2") {
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node @cost(weight: "10") @authorize(policy: "READ_NODE", apply: VALIDATION)
+  node("ID of the object." id: ID!): Node @lookup @cost(weight: "10") @authorize(policy: "READ_NODE", apply: VALIDATION)
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]! @cost(weight: "10") @authorize(policy: "READ_NODE", apply: VALIDATION)
   null: String @authorize(policy: "NULL", apply: AFTER_RESOLVER)
@@ -56,3 +64,10 @@ directive @authorize("The name of the authorization policy that determines acces
 directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
 
 directive @foo on OBJECT
+
+"""
+The @lookup directive is used within a source schema to specify output fields
+that can be used by the distributed GraphQL executor to resolve an entity by
+a stable key.
+"""
+directive @lookup on FIELD_DEFINITION

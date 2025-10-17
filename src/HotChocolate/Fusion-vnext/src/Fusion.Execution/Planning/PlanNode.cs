@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Planning;
 /// The <see cref="Backlog"/> represents the pieces of work that are still to be planned
 /// to have a complete execution plan for the <see cref="OperationDefinition"/>.
 /// </summary>
-public sealed record PlanNode
+internal sealed record PlanNode
 {
     /// <summary>
     /// The previous plan node.
@@ -27,6 +27,11 @@ public sealed record PlanNode
     public required OperationDefinitionNode InternalOperationDefinition { get; init; }
 
     /// <summary>
+    /// Gets the first 8 characters of the hash of the original operation document.
+    /// </summary>
+    public required string ShortHash { get; init; }
+
+    /// <summary>
     /// The source schema against which the next <see cref="WorkItem"/> is planned.
     /// </summary>
     public required string SchemaName { get; init; }
@@ -34,27 +39,59 @@ public sealed record PlanNode
     /// <summary>
     /// The index of the selection set.
     /// </summary>
-    public required ISelectionSetIndex SelectionSetIndex { get; init; }
+    public required ISelectionSetIndex SelectionSetIndex
+    {
+        get;
+        init
+        {
+            if (value is SelectionSetIndexBuilder builder)
+            {
+                field = builder.Build();
+            }
+            else
+            {
+                field = value;
+            }
+        }
+    }
 
-    public required ImmutableStack<WorkItem> Backlog { get; init; }
+    public required ImmutableStack<WorkItem> Backlog
+    {
+        get;
+        init
+        {
+            field = value;
+            BacklogCost = value.Sum(t => t.Cost);
+        }
+    }
 
-    public ImmutableList<PlanStep> Steps { get; init; } = [];
+    public ImmutableList<PlanStep> Steps
+    {
+        get;
+        init
+        {
+            field = value;
+            PathCost = value.OfType<OperationPlanStep>().Count() * 10.0;
+        }
+    } = [];
 
     public uint LastRequirementId { get; init; }
 
-    public double PathCost { get; init; }
+    public double PathCost { get; private set; }
 
-    public double BacklogCost { get; init; }
+    public double BacklogCost { get; private set; }
 
-    public double TotalCost => PathCost + BacklogCost;
+    public double ResolutionCost { get; init; }
 
-    public string? CreateOperationName(int stepId)
+    public double TotalCost => PathCost + BacklogCost + ResolutionCost;
+
+    public string CreateOperationName(int stepId)
     {
         if (OperationDefinition.Name is null)
         {
-            return null;
+            return $"Op_{ShortHash}_{stepId}";
         }
 
-        return $"{OperationDefinition.Name.Value}_{stepId}";
+        return $"{OperationDefinition.Name.Value}_{ShortHash}_{stepId}";
     }
 }

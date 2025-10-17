@@ -43,7 +43,7 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: sp =>
                 sp.AddGraphQLServer()
-                    .ConfigureSchemaServices( s =>
+                    .ConfigureSchemaServices(s =>
                             s.RemoveAll<ITimeProvider>()
                             .AddSingleton<ITimeProvider, StaticTimeProvider>()));
         var url = TestServerExtensions.CreateUrl(path);
@@ -54,6 +54,8 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        response.Headers.Remove("ETag");
+        response.Content.Headers.ContentLength = null;
 
         response.MatchMarkdownSnapshot();
     }
@@ -69,7 +71,7 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: sp =>
                 sp.AddGraphQLServer()
-                    .ConfigureSchemaServices( s =>
+                    .ConfigureSchemaServices(s =>
                         s.RemoveAll<ITimeProvider>()
                             .AddSingleton<ITimeProvider, StaticTimeProvider>())
                     .ModifyPagingOptions(o => o.RequirePagingBoundaries = true));
@@ -81,6 +83,8 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        response.Headers.Remove("ETag");
+        response.Content.Headers.ContentLength = null;
 
         response.MatchMarkdownSnapshot();
     }

@@ -1,4 +1,3 @@
-using System.Text;
 using HotChocolate.Buffers;
 using static HotChocolate.Language.SyntaxComparison;
 

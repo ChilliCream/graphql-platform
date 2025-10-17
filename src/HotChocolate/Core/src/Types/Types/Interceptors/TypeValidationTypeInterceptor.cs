@@ -2,8 +2,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types.Interceptors;
 
 internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
@@ -45,8 +43,8 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext context,
         InputObjectTypeConfiguration? definition)
     {
-        if (definition is { RuntimeType: { } runtimeType } &&
-            IsTypeSystemType(definition.RuntimeType))
+        if (definition is { RuntimeType: { } runtimeType }
+            && IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);
             definition.RuntimeType = typeof(object);
@@ -59,8 +57,8 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext context,
         DirectiveTypeConfiguration? definition)
     {
-        if (definition is { RuntimeType: { } runtimeType } &&
-            IsTypeSystemType(definition.RuntimeType))
+        if (definition is { RuntimeType: { } runtimeType }
+            && IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);
             definition.RuntimeType = typeof(object);
@@ -72,8 +70,8 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext context,
         UnionTypeConfiguration? definition)
     {
-        if (definition is { RuntimeType: { } runtimeType } &&
-            IsTypeSystemType(definition.RuntimeType))
+        if (definition is { RuntimeType: { } runtimeType }
+            && IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);
             definition.RuntimeType = typeof(object);
@@ -85,8 +83,8 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext context,
         ObjectTypeConfiguration definition)
     {
-        if (definition is { RuntimeType: { } runtimeType } &&
-            IsTypeSystemType(definition.RuntimeType))
+        if (definition is { RuntimeType: { } runtimeType }
+            && IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);
             definition.RuntimeType = typeof(object);
@@ -100,8 +98,8 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext context,
         InterfaceTypeConfiguration? definition)
     {
-        if (definition is { RuntimeType: { } runtimeType } &&
-            IsTypeSystemType(definition.RuntimeType))
+        if (definition is { RuntimeType: { } runtimeType }
+            && IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);
             definition.RuntimeType = typeof(object);

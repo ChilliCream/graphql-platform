@@ -9,8 +9,8 @@ public class QueryableProjectionScalarHandler
     : QueryableProjectionHandlerBase
 {
     public override bool CanHandle(ISelection selection) =>
-        selection.Field.Member is { } &&
-        selection.SelectionSet is null;
+        selection.Field.Member is { }
+        && selection.SelectionSet is null;
 
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
@@ -34,9 +34,9 @@ public class QueryableProjectionScalarHandler
     {
         var field = selection.Field;
 
-        if (context.Scopes.Count > 0 &&
-            context.Scopes.Peek() is QueryableProjectionScope closure &&
-            field.Member is PropertyInfo member)
+        if (context.Scopes.Count > 0
+            && context.Scopes.Peek() is QueryableProjectionScope closure
+            && field.Member is PropertyInfo member)
         {
             var instance = closure.Instance.Peek();
 

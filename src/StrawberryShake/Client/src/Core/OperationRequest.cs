@@ -165,10 +165,10 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
             return true;
         }
 
-        return Id == other.Id &&
-            Name == other.Name &&
-            Document.Equals(other.Document) &&
-            ComparisonHelper.DictionaryEqual(Variables, other.Variables);
+        return Id == other.Id
+            && Name == other.Name
+            && Document.Equals(other.Document)
+            && ComparisonHelper.DictionaryEqual(Variables, other.Variables);
     }
 
     public override bool Equals(object? obj)
@@ -212,9 +212,9 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         unchecked
         {
             var hash =
-                (Id?.GetHashCode() ?? 0) * 397 ^
-                Name.GetHashCode() * 397 ^
-                Document.GetHashCode() * 397;
+                (Id?.GetHashCode() ?? 0) * 397
+                ^ Name.GetHashCode() * 397
+                ^ Document.GetHashCode() * 397;
 
             foreach (var variable in Variables)
             {

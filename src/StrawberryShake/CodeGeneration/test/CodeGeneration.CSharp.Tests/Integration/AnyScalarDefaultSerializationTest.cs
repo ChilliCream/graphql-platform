@@ -19,10 +19,7 @@ public class AnyScalarDefaultSerializationTest : ServerTestBase
         // arrange
         using var cts = new CancellationTokenSource(20_000);
         using var host = TestServerHelper.CreateServer(
-            builder =>
-            {
-                builder.AddTypeExtension<QueryResolvers>();
-            },
+            builder => builder.AddTypeExtension<QueryResolvers>(),
             out var port);
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddHttpClient(
@@ -37,7 +34,7 @@ public class AnyScalarDefaultSerializationTest : ServerTestBase
             services.GetRequiredService<AnyScalarDefaultSerializationClient>();
 
         // act
-        IOperationResult<IGetJsonResult> result = await client.GetJson.ExecuteAsync(cts.Token);
+        var result = await client.GetJson.ExecuteAsync(cts.Token);
 
         // assert
         Assert.Empty(result.Errors);

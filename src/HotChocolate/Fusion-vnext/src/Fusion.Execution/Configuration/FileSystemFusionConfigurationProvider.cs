@@ -1,14 +1,19 @@
+using System.Buffers;
 using System.Collections.Immutable;
 using System.IO.Hashing;
 using System.IO.Pipelines;
+using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Threading.Channels;
 using HotChocolate.Buffers;
+using HotChocolate.Fusion.Packaging;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using IOPath = System.IO.Path;
 
 namespace HotChocolate.Fusion.Configuration;
 
-public class FileSystemFusionConfigurationProvider : IFusionSchemaDocumentProvider
+public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvider
 {
 #if NET9_0_OR_GREATER
     private readonly Lock _syncRoot = new();
@@ -17,11 +22,22 @@ public class FileSystemFusionConfigurationProvider : IFusionSchemaDocumentProvid
 #endif
     private readonly string _fileName;
     private readonly FileSystemWatcher _watcher;
-    private readonly SemaphoreSlim _semaphore;
+
+    private readonly Channel<bool> _schemaUpdateEvents =
+        Channel.CreateBounded<bool>(
+            new BoundedChannelOptions(1)
+            {
+                FullMode = BoundedChannelFullMode.DropNewest,
+                SingleReader = true,
+                SingleWriter = false
+            });
+
     private readonly CancellationTokenSource _cts;
-    private readonly CancellationToken _ct;
     private ImmutableArray<ObserverSession> _sessions = [];
+    private readonly bool _isPackage;
     private ulong _schemaDocumentHash;
+    private ulong _settingsHash;
+    private ulong _packageHash;
     private bool _disposed;
 
     public FileSystemFusionConfigurationProvider(string fileName)
@@ -38,29 +54,27 @@ public class FileSystemFusionConfigurationProvider : IFusionSchemaDocumentProvid
             throw new FileNotFoundException("The file must contain a path.", fileName);
         }
 
-        _semaphore = new SemaphoreSlim(1, 1);
+        _isPackage = IOPath.GetExtension(fileName)?.ToLowerInvariant() is ".far";
         _cts = new CancellationTokenSource();
-        _ct = _cts.Token;
 
         _watcher = new FileSystemWatcher
         {
             Path = directory,
             Filter = "*.*",
-
             NotifyFilter =
-                NotifyFilters.FileName |
-                NotifyFilters.DirectoryName |
-                NotifyFilters.Attributes |
-                NotifyFilters.CreationTime |
-                NotifyFilters.LastWrite |
-                NotifyFilters.Size
+                NotifyFilters.FileName
+                | NotifyFilters.DirectoryName
+                | NotifyFilters.Attributes
+                | NotifyFilters.CreationTime
+                | NotifyFilters.LastWrite
+                | NotifyFilters.Size
         };
 
         _watcher.Created += (_, e) =>
         {
             if (fullPath.Equals(e.FullPath, StringComparison.Ordinal))
             {
-                BeginLoadSchemaDocument();
+                _schemaUpdateEvents.Writer.TryWrite(true);
             }
         };
 
@@ -68,19 +82,22 @@ public class FileSystemFusionConfigurationProvider : IFusionSchemaDocumentProvid
         {
             if (fullPath.Equals(e.FullPath, StringComparison.Ordinal))
             {
-                BeginLoadSchemaDocument();
+                _schemaUpdateEvents.Writer.TryWrite(true);
             }
         };
 
         _watcher.EnableRaisingEvents = true;
-        BeginLoadSchemaDocument();
+        _schemaUpdateEvents.Writer.TryWrite(true);
+
+        SchemaUpdateProcessorAsync(_cts.Token).FireAndForget();
     }
 
-    public DocumentNode? SchemaDocument { get; private set; }
+    public FusionConfiguration? Configuration { get; private set; }
 
-    public IDisposable Subscribe(IObserver<DocumentNode> observer)
+    public IDisposable Subscribe(IObserver<FusionConfiguration> observer)
     {
         ArgumentNullException.ThrowIfNull(observer);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         var session = new ObserverSession(this, observer);
 
@@ -89,11 +106,11 @@ public class FileSystemFusionConfigurationProvider : IFusionSchemaDocumentProvid
             _sessions = _sessions.Add(session);
         }
 
-        var schemaDocument = SchemaDocument;
+        var configuration = Configuration;
 
-        if (schemaDocument is not null)
+        if (configuration is not null)
         {
-            observer.OnNext(SchemaDocument!);
+            observer.OnNext(configuration);
         }
 
         return session;
@@ -107,61 +124,118 @@ public class FileSystemFusionConfigurationProvider : IFusionSchemaDocumentProvid
         }
     }
 
-    private void BeginLoadSchemaDocument()
-        => LoadSchemaDocumentAsync(_ct).FireAndForget();
-
-    private async Task LoadSchemaDocumentAsync(CancellationToken cancellationToken)
+    private async Task SchemaUpdateProcessorAsync(CancellationToken ct)
     {
-        await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var defaultSettings = JsonDocument.Parse("{ }");
+        var defaultSettingsHash = XxHash64.HashToUInt64(JsonMarshal.GetRawUtf8Value(defaultSettings.RootElement));
 
-        try
+        await foreach (var _ in _schemaUpdateEvents.Reader.ReadAllAsync(ct))
         {
-            using var buffer = new PooledArrayWriter();
-            await using var fileStream = File.OpenRead(_fileName);
-            var pipeReader = PipeReader.Create(fileStream);
-
-            while (true)
+            try
             {
-                var result = await pipeReader.ReadAsync(cancellationToken).ConfigureAwait(false);
-                var readBuffer = result.Buffer;
+                var settings = new JsonDocumentOwner(defaultSettings, EmptyMemoryOwner.Instance);
+                DocumentNode schema;
+                ulong settingsHash;
+                ulong schemaHash;
 
-                foreach (var segment in readBuffer)
+                if (_isPackage)
                 {
-                    var span = segment.Span;
-                    span.CopyTo(buffer.GetSpan(span.Length));
-                    buffer.Advance(span.Length);
+                    await using (var fileStream = File.OpenRead(_fileName))
+                    {
+                        var hash = new XxHash64();
+                        await hash.AppendAsync(fileStream, ct);
+                        var packageHash = hash.GetCurrentHashAsUInt64();
+
+                        if (packageHash == _packageHash)
+                        {
+                            continue;
+                        }
+
+                        _packageHash = packageHash;
+                    }
+
+                    using var archive = FusionArchive.Open(_fileName);
+                    using var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0), ct);
+
+                    if (config is null)
+                    {
+                        // ignore and wait for next update
+                        continue;
+                    }
+
+                    await using var stream = await config.OpenReadSchemaAsync(ct);
+                    (schema, schemaHash) = await ReadSchemaDocumentAsync(stream, ct);
+                    var settingsSpan = JsonMarshal.GetRawUtf8Value(config.Settings.RootElement);
+                    var buffer = new PooledArrayWriter(settingsSpan.Length);
+                    buffer.Write(settingsSpan);
+                    settingsHash = XxHash64.HashToUInt64(settingsSpan);
+                    settings = new JsonDocumentOwner(JsonDocument.Parse(buffer.WrittenMemory), buffer);
+                }
+                else
+                {
+                    await using var stream = File.OpenRead(_fileName);
+                    (schema, schemaHash) = await ReadSchemaDocumentAsync(stream, ct);
+                    settingsHash = defaultSettingsHash;
                 }
 
-                pipeReader.AdvanceTo(readBuffer.End);
-
-                if (result.IsCompleted)
+                if (_schemaDocumentHash == schemaHash && _settingsHash == settingsHash)
                 {
-                    break;
+                    settings.Dispose();
+                    continue;
                 }
+
+                _settingsHash = settingsHash;
+                _schemaDocumentHash = schemaHash;
+                NotifyObservers(new FusionConfiguration(schema, settings));
             }
-
-            await pipeReader.CompleteAsync().ConfigureAwait(false);
-
-            var hash = XxHash64.HashToUInt64(buffer.WrittenSpan);
-
-            if (_schemaDocumentHash != hash)
+            catch
             {
-                _schemaDocumentHash = hash;
-
-                var schemaDocument = Utf8GraphQLParser.Parse(buffer.WrittenSpan);
-                SchemaDocument = schemaDocument;
-                NotifyObservers(schemaDocument);
+                // ignore and wait for next update
             }
-        }
-        finally
-        {
-            _semaphore.Release();
         }
     }
 
-    private void NotifyObservers(DocumentNode schemaDocument)
+    private async ValueTask<(DocumentNode, ulong)> ReadSchemaDocumentAsync(Stream stream, CancellationToken ct)
     {
-        var sessions = _sessions;
+        using var buffer = new PooledArrayWriter();
+        var pipeReader = PipeReader.Create(stream);
+
+        while (true)
+        {
+            var result = await pipeReader.ReadAsync(ct).ConfigureAwait(false);
+            var readBuffer = result.Buffer;
+
+            foreach (var segment in readBuffer)
+            {
+                var span = segment.Span;
+                span.CopyTo(buffer.GetSpan(span.Length));
+                buffer.Advance(span.Length);
+            }
+
+            pipeReader.AdvanceTo(readBuffer.End);
+
+            if (result.IsCompleted)
+            {
+                break;
+            }
+        }
+
+        await pipeReader.CompleteAsync().ConfigureAwait(false);
+
+        var hash = XxHash64.HashToUInt64(buffer.WrittenSpan);
+        var document = Utf8GraphQLParser.Parse(buffer.WrittenSpan);
+        return (document, hash);
+    }
+
+    private void NotifyObservers(FusionConfiguration configuration)
+    {
+        ImmutableArray<ObserverSession> sessions;
+
+        lock (_syncRoot)
+        {
+            sessions = _sessions;
+            Configuration = configuration;
+        }
 
         if (sessions.IsEmpty)
         {
@@ -170,7 +244,7 @@ public class FileSystemFusionConfigurationProvider : IFusionSchemaDocumentProvid
 
         foreach (var session in sessions)
         {
-            session.Notify(schemaDocument);
+            session.Notify(configuration);
         }
     }
 
@@ -187,8 +261,6 @@ public class FileSystemFusionConfigurationProvider : IFusionSchemaDocumentProvid
         _watcher.Dispose();
 
         _cts.Cancel();
-
-        _semaphore.Dispose();
         _cts.Dispose();
 
         foreach (var session in _sessions)
@@ -196,31 +268,28 @@ public class FileSystemFusionConfigurationProvider : IFusionSchemaDocumentProvid
             session.Complete();
         }
 
+        // drain events
+        while (_schemaUpdateEvents.Reader.TryRead(out _))
+        {
+        }
+
         return ValueTask.CompletedTask;
     }
 
-    private sealed class ObserverSession : IDisposable
+    private sealed class ObserverSession(
+        FileSystemFusionConfigurationProvider provider,
+        IObserver<FusionConfiguration> observer)
+        : IDisposable
     {
-        private readonly FileSystemFusionConfigurationProvider _provider;
-        private readonly IObserver<DocumentNode> _observer;
-
-        public ObserverSession(
-            FileSystemFusionConfigurationProvider provider,
-            IObserver<DocumentNode> observer)
-        {
-            _observer = observer;
-            _provider = provider;
-        }
-
-        public void Notify(DocumentNode schemaDocument)
+        public void Notify(FusionConfiguration schemaDocument)
         {
             try
             {
-                _observer.OnNext(schemaDocument);
+                observer.OnNext(schemaDocument);
             }
             catch (Exception ex)
             {
-                _observer.OnError(ex);
+                observer.OnError(ex);
             }
         }
 
@@ -228,7 +297,7 @@ public class FileSystemFusionConfigurationProvider : IFusionSchemaDocumentProvid
         {
             try
             {
-                _observer.OnCompleted();
+                observer.OnCompleted();
             }
             catch
             {
@@ -238,6 +307,17 @@ public class FileSystemFusionConfigurationProvider : IFusionSchemaDocumentProvid
         }
 
         public void Dispose()
-            => _provider.Unsubscribe(this);
+            => provider.Unsubscribe(this);
+    }
+
+    private sealed class EmptyMemoryOwner : IMemoryOwner<byte>
+    {
+        public static readonly EmptyMemoryOwner Instance = new();
+
+        public Memory<byte> Memory => default;
+
+        public void Dispose()
+        {
+        }
     }
 }

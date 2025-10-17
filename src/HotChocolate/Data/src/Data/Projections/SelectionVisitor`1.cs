@@ -23,8 +23,8 @@ public class SelectionVisitor<TContext>
             }
         }
 
-        if (result.Kind == SelectionVisitorActionKind.Continue ||
-            result.Kind == SelectionVisitorActionKind.SkipAndLeave)
+        if (result.Kind == SelectionVisitorActionKind.Continue
+            || result.Kind == SelectionVisitorActionKind.SkipAndLeave)
         {
             localContext = OnBeforeLeave(field, localContext);
             result = Leave(field, localContext);
@@ -64,14 +64,14 @@ public class SelectionVisitor<TContext>
         var result = Enter(selection, localContext);
         localContext = OnAfterEnter(selection, localContext, result);
 
-        if (result.Kind == SelectionVisitorActionKind.Continue &&
-            VisitChildren(selection, context).Kind == SelectionVisitorActionKind.Break)
+        if (result.Kind == SelectionVisitorActionKind.Continue
+            && VisitChildren(selection, context).Kind == SelectionVisitorActionKind.Break)
         {
             return Break;
         }
 
-        if (result.Kind == SelectionVisitorActionKind.Continue ||
-            result.Kind == SelectionVisitorActionKind.SkipAndLeave)
+        if (result.Kind == SelectionVisitorActionKind.Continue
+            || result.Kind == SelectionVisitorActionKind.SkipAndLeave)
         {
             localContext = OnBeforeLeave(selection, localContext);
             result = Leave(selection, localContext);

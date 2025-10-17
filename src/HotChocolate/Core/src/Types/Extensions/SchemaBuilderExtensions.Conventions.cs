@@ -5,8 +5,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Utilities.ThrowHelper;
 
-#nullable enable
-
 // ReSharper disable once CheckNamespace
 namespace HotChocolate;
 

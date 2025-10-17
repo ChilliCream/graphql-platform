@@ -81,6 +81,11 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         }
     }
 
+    // TODO : we have to fix this properly before we release 16.
+    // the issue is that we at some point introduced the HotChocolate Transport and this does not really fit
+    // together with strawberry shakes transport abstraction.
+    // what we need to do is to rewire the transport, ideally we get rid of the generic response and
+    // simplify the client structure.
     private static JsonDocument? ParseResult(HotChocolate.Transport.OperationResult? result)
     {
         if (result is null)
@@ -99,10 +104,10 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         // handle the transport errors our self.
         // Strawberry Shake only outputs the exceptions though if there is no error in the errors
         // field
-        if (result.Errors.ValueKind is not JsonValueKind.Array ||
-            result.Errors.GetArrayLength() != 1 ||
-            !result.Errors[0].TryGetProperty("message", out var message) ||
-            message.GetString() is not "Internal Execution Error")
+        if (result.Errors.ValueKind is not JsonValueKind.Array
+            || result.Errors.GetArrayLength() != 1
+            || !result.Errors[0].TryGetProperty("message", out var message)
+            || message.GetString() is not "Internal Execution Error")
         {
             WriteProperty(writer, "errors", result.Errors);
         }
@@ -112,7 +117,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
 
         writer.Flush();
 
-        return JsonDocument.Parse(buffer.WrittenMemory);
+        return JsonDocument.Parse(buffer.WrittenMemory.ToArray());
     }
 
     private static void WriteProperty(Utf8JsonWriter writer, string propertyName, JsonElement value)
@@ -148,7 +153,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         jsonWriter.WriteEndObject();
         jsonWriter.Flush();
 
-        return JsonDocument.Parse(bufferWriter.GetWrittenMemory());
+        return JsonDocument.Parse(bufferWriter.GetWrittenMemory().ToArray());
     }
 
     public static ResponseEnumerable Create(

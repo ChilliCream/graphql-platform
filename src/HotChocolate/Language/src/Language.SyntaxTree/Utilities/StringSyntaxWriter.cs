@@ -5,7 +5,6 @@ namespace HotChocolate.Language.Utilities;
 public class StringSyntaxWriter : ISyntaxWriter
 {
     private static readonly StringSyntaxWriterPool s_pool = new();
-    private readonly StringBuilder _stringBuilder = new();
     private int _indent;
 
     public static StringSyntaxWriter Rent()
@@ -18,7 +17,7 @@ public class StringSyntaxWriter : ISyntaxWriter
         s_pool.Return(writer);
     }
 
-    internal StringBuilder StringBuilder => _stringBuilder;
+    internal StringBuilder StringBuilder { get; } = new();
 
     public void Indent()
     {
@@ -35,19 +34,19 @@ public class StringSyntaxWriter : ISyntaxWriter
 
     public void Write(char c)
     {
-        _stringBuilder.Append(c);
+        StringBuilder.Append(c);
     }
 
     public void Write(string s)
     {
-        _stringBuilder.Append(s);
+        StringBuilder.Append(s);
     }
 
     public void WriteIndent(bool condition = true)
     {
         if (condition && _indent > 0)
         {
-            _stringBuilder.Append(' ', 2 * _indent);
+            StringBuilder.Append(' ', 2 * _indent);
         }
     }
 
@@ -55,7 +54,7 @@ public class StringSyntaxWriter : ISyntaxWriter
     {
         if (condition)
         {
-            _stringBuilder.AppendLine();
+            StringBuilder.AppendLine();
         }
     }
 
@@ -63,17 +62,17 @@ public class StringSyntaxWriter : ISyntaxWriter
     {
         if (condition)
         {
-            _stringBuilder.Append(' ');
+            StringBuilder.Append(' ');
         }
     }
 
     public void Clear()
     {
-        _stringBuilder.Clear();
+        StringBuilder.Clear();
     }
 
     public override string ToString()
     {
-        return _stringBuilder.ToString();
+        return StringBuilder.ToString();
     }
 }

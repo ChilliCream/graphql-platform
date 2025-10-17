@@ -13,7 +13,6 @@ public class MutableScalarTypeDefinition(string name)
     : INamedTypeSystemMemberDefinition<MutableScalarTypeDefinition>
     , IScalarTypeDefinition
     , IMutableTypeDefinition
-    , IFeatureProvider
 {
     private DirectiveCollection? _directives;
 
@@ -32,6 +31,9 @@ public class MutableScalarTypeDefinition(string name)
 
     /// <inheritdoc />
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
+    /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
+    public bool IsIntrospectionType { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this scalar type is a spec scalar.
@@ -76,6 +78,28 @@ public class MutableScalarTypeDefinition(string name)
         }
 
         return false;
+    }
+
+    public Uri? SpecifiedBy
+    {
+        get
+        {
+            var specifiedBy = Directives.FirstOrDefault("specifiedBy");
+
+            if (specifiedBy is null)
+            {
+                return null;
+            }
+
+            var url = specifiedBy.Arguments.First(t => t.Name.Equals("url", StringComparison.Ordinal));
+
+            if (url.Value is not StringValueNode urlValue)
+            {
+                throw new InvalidOperationException("The specified URL is not a valid URI.");
+            }
+
+            return new Uri(urlValue.Value);
+        }
     }
 
     /// <inheritdoc />

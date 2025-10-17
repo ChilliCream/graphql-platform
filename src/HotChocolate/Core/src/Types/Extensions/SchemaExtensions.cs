@@ -1,9 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using TypeThrowHelper = HotChocolate.Utilities.ThrowHelper;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -296,5 +295,19 @@ public static class SchemaExtensions
         }
 
         throw TypeThrowHelper.Schema_GetMember_TypeNotFound(coordinate);
+    }
+
+    /// <summary>
+    /// Gets the <see cref="IReadOnlySchemaOptions"/> of the <paramref name="schema"/>.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema to get the options for.
+    /// </param>
+    /// <returns>
+    /// The schema options.
+    /// </returns>
+    internal static IReadOnlySchemaOptions GetOptions(this ISchemaDefinition schema)
+    {
+        return schema.Features.GetRequired<IReadOnlySchemaOptions>();
     }
 }

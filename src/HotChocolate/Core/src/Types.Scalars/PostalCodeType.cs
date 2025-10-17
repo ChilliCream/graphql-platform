@@ -191,8 +191,8 @@ public class PostalCodeType : StringType
             return true;
         }
 
-        if (runtimeValue is string s &&
-            ValidatePostCode(s))
+        if (runtimeValue is string s
+            && ValidatePostCode(s))
         {
             resultValue = s;
             return true;
@@ -211,8 +211,8 @@ public class PostalCodeType : StringType
             return true;
         }
 
-        if (resultValue is string s &&
-            ValidatePostCode(s))
+        if (resultValue is string s
+            && ValidatePostCode(s))
         {
             runtimeValue = s;
             return true;
@@ -255,18 +255,18 @@ public class PostalCodeType : StringType
         public const string UK =
             "(^(GIR|[A-Z][0-9][A-Z0-9]??|[A-Z]{2}[0-9][A-Z0-9]??)[ ]??([0-9][A-Z]{2})$)";
         public const string DE =
-            "(\\b((?:0[1-46-9][0-9]{3})|(?:[1-357-9][0-9]{4})|(?:[4][0-24-9]" +
-            "[0-9]{3})|(?:[6][013-9][0-9]{3}))\\b)";
+            "(\\b((?:0[1-46-9][0-9]{3})|(?:[1-357-9][0-9]{4})|(?:[4][0-24-9]"
+            + "[0-9]{3})|(?:[6][013-9][0-9]{3}))\\b)";
         public const string CA =
-            "(^([ABCEGHJKLMNPRSTVXY][0-9][ABCEGHJKLMNPRSTVWXYZ]) {0,1}" +
-            "([0-9][ABCEGHJKLMNPRSTVWXYZ][0-9])$)";
+            "(^([ABCEGHJKLMNPRSTVXY][0-9][ABCEGHJKLMNPRSTVWXYZ]) {0,1}"
+            + "([0-9][ABCEGHJKLMNPRSTVWXYZ][0-9])$)";
         public const string FR =
             "(^([Ff]-)?((2[ABab])|[0-9]{2})[0-9]{3}$)";
         public const string IT =
             "(^([VIvi]-)?[0-9]{5}$)";
         public const string AU =
-            "(^(0[289][0-9]{2})|([1345689][0-9]{3})|(2[0-8][0-9]{2})|(290[0-9])|" +
-            "(291[0-4])|(7[0-4][0-9]{2})|(7[8-9][0-9]{2})$)";
+            "(^(0[289][0-9]{2})|([1345689][0-9]{3})|(2[0-8][0-9]{2})|(290[0-9])|"
+            + "(291[0-4])|(7[0-4][0-9]{2})|(7[8-9][0-9]{2})$)";
         public const string NL =
             "(^[1-9][0-9]{3}\\s?([a-zA-Z]{2})?$)";
         public const string ES =

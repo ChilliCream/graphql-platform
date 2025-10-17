@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Reflection;
 using HotChocolate.Resolvers;
 
@@ -19,7 +21,7 @@ public interface IParameterBindingFactory : IParameterHandler
 
 public interface IParameterBindingResolver
 {
-    public IParameterBinding GetBinding(ParameterInfo parameter);
+    IParameterBinding GetBinding(ParameterInfo parameter);
 }
 
 public readonly ref struct ParameterBindingContext(ParameterInfo parameter, string argumentName)

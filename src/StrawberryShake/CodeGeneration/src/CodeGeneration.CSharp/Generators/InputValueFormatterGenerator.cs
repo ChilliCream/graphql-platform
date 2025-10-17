@@ -75,8 +75,8 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
             else
             {
                 throw new InvalidOperationException(
-                    $"Serializer for property {descriptor.Name}.{property.Name} " +
-                    "could not be created. GraphQLTypeName was empty");
+                    $"Serializer for property {descriptor.Name}.{property.Name} "
+                    + "could not be created. GraphQLTypeName was empty");
             }
         }
 

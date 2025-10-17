@@ -233,8 +233,8 @@ internal partial class MiddlewareContext
                 parentContext.Services.GetService<ITypeConverter>() ??
                 DefaultTypeConverter.Default;
 
-            if (value is T castedValue ||
-                _typeConverter.TryConvert(value, out castedValue))
+            if (value is T castedValue
+                || _typeConverter.TryConvert(value, out castedValue, out var conversionException))
             {
                 return castedValue;
             }
@@ -270,7 +270,11 @@ internal partial class MiddlewareContext
 
             // we are unable to convert the argument to the request type.
             throw ResolverContext_CannotConvertArgument(
-                _selection.SyntaxNode, Path, argument.Name, typeof(T));
+                _selection.SyntaxNode,
+                Path,
+                argument.Name,
+                typeof(T),
+                conversionException);
         }
     }
 }

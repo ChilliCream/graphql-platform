@@ -1,13 +1,11 @@
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Struct)]
+    AttributeTargets.Class
+    | AttributeTargets.Struct)]
 public sealed class InputObjectTypeAttribute
     : InputObjectTypeDescriptorAttribute
     , ITypeAttribute

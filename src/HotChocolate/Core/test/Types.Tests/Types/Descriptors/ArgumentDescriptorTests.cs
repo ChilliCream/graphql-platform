@@ -245,14 +245,14 @@ public class ArgumentDescriptorTests
     [Fact]
     public void Type_Syntax_Type_Null()
     {
-        void Error() => ArgumentDescriptor.New(Context, "foo").Type((string)null);
+        void Error() => ArgumentDescriptor.New(Context, "foo").Type((string)null!);
         Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]
     public void Type_Syntax_Descriptor_Null()
     {
-        void Error() => default(ArgumentDescriptor).Type("foo");
+        void Error() => default(ArgumentDescriptor)!.Type("foo");
         Assert.Throws<ArgumentNullException>(Error);
     }
 }

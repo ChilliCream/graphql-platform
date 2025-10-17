@@ -22,9 +22,9 @@ public sealed class IndexerPathSegment : Path
 
     /// <inheritdoc />
     public override bool Equals(Path? other)
-        => base.Equals(other) &&
-            other is IndexerPathSegment indexer &&
-            Index.Equals(indexer.Index);
+        => base.Equals(other)
+            && other is IndexerPathSegment indexer
+            && Index.Equals(indexer.Index);
 
     /// <inheritdoc />
     public override int GetHashCode()

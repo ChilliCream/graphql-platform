@@ -6,8 +6,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
-#nullable enable
-
 namespace HotChocolate.Types.Introspection;
 
 [Introspection]
@@ -82,7 +80,7 @@ internal sealed class __Directive : ObjectType<DirectiveType>
         public static object Locations(IResolverContext context)
         {
             var locations = context.Parent<DirectiveType>().Locations;
-            return locations.AsEnumerable();
+            return DirectiveLocationUtils.AsEnumerable(locations);
         }
 
         public static object Arguments(IResolverContext context)

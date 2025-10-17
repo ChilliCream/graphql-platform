@@ -79,11 +79,9 @@ public class InMemoryConnection : IInMemoryConnection
             switch (executionResult)
             {
                 case HotChocolate.Execution.IOperationResult queryResult:
-                {
                     queryResult.WriteTo(writer);
                     yield return new Response<JsonDocument>(Parse(writer.GetWrittenMemory()), null);
                     break;
-                }
 
                 case HotChocolate.Execution.ResponseStream streamResult:
                 {
@@ -100,13 +98,11 @@ public class InMemoryConnection : IInMemoryConnection
                 break;
 
                 default:
-                {
                     var ex = new GraphQLClientException(InMemoryConnection_InvalidResponseFormat);
                     yield return new Response<JsonDocument>(
                         ResponseHelper.CreateBodyFromException(ex),
                         ex);
                     yield break;
-                }
             }
         }
     }

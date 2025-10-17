@@ -284,15 +284,10 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
     {
         var errors = new List<SatisfiabilityError>();
 
-        // Get the list of union types that contain the current type.
-        var unionTypes =
-            schema.Types.OfType<MutableUnionTypeDefinition>().Where(u => u.Types.Contains(type));
-
-        // Get the list of lookups for the current type in the destination schema.
         var lookupDirectives =
-            type.GetFusionLookupDirectives(transitionToSchemaName, unionTypes).ToImmutableArray();
+            schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
 
-        if (!lookupDirectives.Any())
+        if (!lookupDirectives.Any() && !CanTransitionToSchemaThroughPath(context.Path, transitionToSchemaName))
         {
             errors.Add(
                 new SatisfiabilityError(
@@ -342,6 +337,39 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
         }
 
         return [.. errors];
+    }
+
+    /// <summary>
+    /// We check whether the path we're currently on exists one-to-one
+    /// on the given schema or whether a type on the path has a lookup
+    /// on the given schema.
+    /// </summary>
+    private bool CanTransitionToSchemaThroughPath(
+        SatisfiabilityPath path,
+        string schemaName)
+    {
+        foreach (var pathItem in path)
+        {
+            var lookupDirectives =
+                schema.GetPossibleFusionLookupDirectives(
+                    pathItem.Type,
+                    schemaName);
+
+            var hasLookups = lookupDirectives.Count > 0;
+            var fieldExists = pathItem.Field.ExistsInSchema(schemaName);
+
+            if (hasLookups && fieldExists)
+            {
+                return true;
+            }
+
+            if (!fieldExists)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 

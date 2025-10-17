@@ -61,8 +61,8 @@ public partial class TypeMapperGenerator
         ComplexTypeDescriptor complexTypeDescriptor,
         Func<ObjectTypeDescriptor, IfBuilder> generator)
     {
-        if (complexTypeDescriptor is not InterfaceTypeDescriptor interfaceTypeDescriptor ||
-            !interfaceTypeDescriptor.ImplementedBy.Any())
+        if (complexTypeDescriptor is not InterfaceTypeDescriptor interfaceTypeDescriptor
+            || !interfaceTypeDescriptor.ImplementedBy.Any())
         {
             return;
         }

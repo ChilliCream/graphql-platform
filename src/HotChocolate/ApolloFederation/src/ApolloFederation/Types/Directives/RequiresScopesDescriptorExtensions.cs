@@ -35,10 +35,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -70,9 +67,7 @@ public static class RequiresScopesDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -85,10 +80,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -102,9 +94,7 @@ public static class RequiresScopesDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -117,10 +107,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -134,9 +121,7 @@ public static class RequiresScopesDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -149,10 +134,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -166,9 +148,7 @@ public static class RequiresScopesDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -181,10 +161,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -198,9 +175,7 @@ public static class RequiresScopesDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }

@@ -104,8 +104,9 @@ public class RavenQueryableTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
-                foos(first: 2 after: ""MQ=="") {
+            """
+            {
+                foos(first: 2, after: "MQ==") {
                     edges {
                         node {
                             bar
@@ -123,7 +124,8 @@ public class RavenQueryableTests
                         endCursor
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         await Snapshot.Create().AddResult(result).MatchAsync();

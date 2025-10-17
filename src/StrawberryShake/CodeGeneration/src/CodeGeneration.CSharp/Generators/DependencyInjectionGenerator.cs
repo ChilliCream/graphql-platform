@@ -90,8 +90,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             addClientMethod
                 .AddParameter(Profile)
                 .SetType(CreateProfileEnumReference(descriptor))
-                .SetDefault(CreateProfileEnumReference(descriptor) + "." +
-                            descriptor.TransportProfiles[0].Name);
+                .SetDefault(CreateProfileEnumReference(descriptor) + "."
+                    + descriptor.TransportProfiles[0].Name);
         }
 
         foreach (var profile in descriptor.TransportProfiles)
@@ -225,6 +225,11 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 (builder, operation) =>
                     builder.AddCode(ForwardSingletonToClientServiceProvider(
                         operation.RuntimeType.ToString())))
+            .ForEach(
+                descriptor.Operations,
+                (builder, operation) =>
+                    builder.AddCode(ForwardSingletonToClientServiceProvider(
+                        operation.InterfaceType.ToString())))
             .AddEmptyLine()
             .AddCode(ForwardSingletonToClientServiceProvider(
                 descriptor.ClientDescriptor.RuntimeType.ToString()))
@@ -488,9 +493,9 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         foreach (var scalar in
                  descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
-            if (scalar.RuntimeType.Equals(stringTypeInfo) &&
-                scalar.SerializationType.Equals(stringTypeInfo) &&
-                !BuiltInScalarNames.IsBuiltInScalar(scalar.Name))
+            if (scalar.RuntimeType.Equals(stringTypeInfo)
+                && scalar.SerializationType.Equals(stringTypeInfo)
+                && !BuiltInScalarNames.IsBuiltInScalar(scalar.Name))
             {
                 body.AddMethodCall()
                     .SetMethodName(AddSingleton)

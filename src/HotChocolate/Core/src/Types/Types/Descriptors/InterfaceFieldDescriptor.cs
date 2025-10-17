@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -54,7 +52,7 @@ public class InterfaceFieldDescriptor
 
         if (member is MethodInfo m)
         {
-            _parameterInfos = m.GetParameters();
+            _parameterInfos = context.TypeInspector.GetParameters(m);
             Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
         }
     }
@@ -243,7 +241,7 @@ public class InterfaceFieldDescriptor
 
             if (propertyOrMethod is MethodInfo m)
             {
-                _parameterInfos = m.GetParameters();
+                _parameterInfos = Context.TypeInspector.GetParameters(m);
                 Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
             }
 

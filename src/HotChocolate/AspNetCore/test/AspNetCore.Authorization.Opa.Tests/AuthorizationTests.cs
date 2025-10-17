@@ -69,8 +69,8 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             SetUpHttpContext + (Action<HttpContext>)(c =>
             {
                 c.Request.Headers["Authorization"] =
-                    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lI" +
-                    "iwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+                    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lI"
+                    + "iwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
             }));
 
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
@@ -105,9 +105,9 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             SetUpHttpContext + (Action<HttpContext>)(c =>
             {
                 c.Request.Headers["Authorization"] =
-                    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lI" +
-                    "iwiaWF0IjoxNTE2MjM5MDIyLCJiaXJ0aGRhdGUiOiIxNy0xMS0yMDAwIn0.p88IUnrabPMh6LVi4DIYsDeZozjfj4Ofwg" +
-                    "jXBglnxac";
+                    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lI"
+                    + "iwiaWF0IjoxNTE2MjM5MDIyLCJiaXJ0aGRhdGUiOiIxNy0xMS0yMDAwIn0.p88IUnrabPMh6LVi4DIYsDeZozjfj4Ofwg"
+                    + "jXBglnxac";
             }));
 
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
@@ -149,9 +149,9 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
                 // as a result Base64 representation is not the one as expected by Rego rule
                 // See policies/has_age_defined.rego file for details
                 c.Request.Headers["Authorization"] =
-                    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9." +
-                    "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJiaXJ0aGRhdGUiOiIxNy0x" +
-                    "MS0yMDAwIn0.01Hb6X-HXl9ASf3X82Mt63RMpZ4SVJZT9hTI2dYet-k";
+                    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9."
+                    + "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJiaXJ0aGRhdGUiOiIxNy0x"
+                    + "MS0yMDAwIn0.01Hb6X-HXl9ASf3X82Mt63RMpZ4SVJZT9hTI2dYet-k";
             }));
 
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");

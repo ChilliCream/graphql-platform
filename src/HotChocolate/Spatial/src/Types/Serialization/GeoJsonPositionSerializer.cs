@@ -24,8 +24,8 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
                 return false;
             }
 
-            if (listValueNode.Items[0] is IFloatValueLiteral &&
-                listValueNode.Items[1] is IFloatValueLiteral)
+            if (listValueNode.Items[0] is IFloatValueLiteral
+                && listValueNode.Items[1] is IFloatValueLiteral)
             {
                 if (numberOfItems == 2)
                 {
@@ -60,16 +60,16 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
                 throw ThrowHelper.PositionScalar_InvalidPositionObject(null!);
             }
 
-            if (list.Items[0] is IFloatValueLiteral x &&
-                list.Items[1] is IFloatValueLiteral y)
+            if (list.Items[0] is IFloatValueLiteral x
+                && list.Items[1] is IFloatValueLiteral y)
             {
                 if (list.Items.Count == 2)
                 {
                     return new Coordinate(x.ToDouble(), y.ToDouble());
                 }
 
-                if (list.Items.Count == 3 &&
-                    list.Items[2] is IFloatValueLiteral z)
+                if (list.Items.Count == 3
+                    && list.Items[2] is IFloatValueLiteral z)
                 {
                     return new CoordinateZ(x.ToDouble(), y.ToDouble(), z.ToDouble());
                 }
@@ -208,9 +208,9 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
             x = Convert.ToDouble(list[0]);
             y = Convert.ToDouble(list[1]);
         }
-        catch (Exception ex) when (ex is FormatException ||
-            ex is InvalidCastException ||
-            ex is OverflowException)
+        catch (Exception ex) when (ex is FormatException
+            || ex is InvalidCastException
+            || ex is OverflowException)
         {
             value = null;
             return false;
@@ -240,9 +240,9 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
             value = new CoordinateZ(x, y, z);
             return true;
         }
-        catch (Exception ex) when (ex is FormatException ||
-            ex is InvalidCastException ||
-            ex is OverflowException)
+        catch (Exception ex) when (ex is FormatException
+            || ex is InvalidCastException
+            || ex is OverflowException)
         {
             value = null;
             return false;

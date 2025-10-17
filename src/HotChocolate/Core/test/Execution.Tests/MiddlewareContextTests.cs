@@ -161,9 +161,9 @@ public class MiddlewareContextTests
 
                                             foreach (var argumentValue in current.Values)
                                             {
-                                                if (argumentValue.Type.ToRuntimeType() ==
-                                                    typeof(string) &&
-                                                    argumentValue
+                                                if (argumentValue.Type.ToRuntimeType()
+                                                    == typeof(string)
+                                                    && argumentValue
                                                         .ValueLiteral is StringValueNode sv)
                                                 {
                                                     sv = sv.WithValue(sv.Value.Trim());
@@ -397,14 +397,16 @@ public class MiddlewareContextTests
             .Create()
             .Add(result)
             .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
+                """
+                {
+                  "data": {
+                    "abc": "abc"
                   },
-                  ""extensions"": {
-                    ""abc"": 1
+                  "extensions": {
+                    "abc": 1
                   }
-                }");
+                }
+                """);
     }
 
     [Fact]
@@ -432,14 +434,16 @@ public class MiddlewareContextTests
             .Create()
             .Add(result)
             .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
+                """
+                {
+                  "data": {
+                    "abc": "abc"
                   },
-                  ""extensions"": {
-                    ""abc"": 2
+                  "extensions": {
+                    "abc": 2
                   }
-                }");
+                }
+                """);
     }
 
     [Fact]
@@ -470,14 +474,16 @@ public class MiddlewareContextTests
             .Create()
             .Add(result)
             .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
+                """
+                {
+                  "data": {
+                    "abc": "abc"
                   },
-                  ""extensions"": {
-                    ""abc"": 6
+                  "extensions": {
+                    "abc": 6
                   }
-                }");
+                }
+                """);
     }
 
     [Fact]
@@ -504,14 +510,16 @@ public class MiddlewareContextTests
             .Create()
             .Add(result)
             .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
+                """
+                {
+                  "data": {
+                    "abc": "abc"
                   },
-                  ""extensions"": {
-                    ""abc"": 1
+                  "extensions": {
+                    "abc": 1
                   }
-                }");
+                }
+                """);
     }
 
     [Fact]
@@ -538,16 +546,18 @@ public class MiddlewareContextTests
             .Create()
             .Add(result)
             .MatchInline(
-                @"{
-                  ""data"": {
-                    ""abc"": ""abc""
+                """
+                {
+                  "data": {
+                    "abc": "abc"
                   },
-                  ""extensions"": {
-                    ""abc"": {
-                      ""someField"": ""def""
+                  "extensions": {
+                    "abc": {
+                      "someField": "def"
                     }
                   }
-                }");
+                }
+                """);
     }
 
     [Fact]
@@ -593,22 +603,24 @@ public class MiddlewareContextTests
                 .Create()
                 .AddResult(queryResult)
                 .MatchInline(
-                    @"{
-                      ""incremental"": [
+                    """
+                    {
+                      "incremental": [
                         {
-                          ""data"": {
-                            ""abc"": ""abc""
+                          "data": {
+                            "abc": "abc"
                           },
-                          ""extensions"": {
-                            ""abc"": {
-                              ""someField"": ""def""
+                          "extensions": {
+                            "abc": {
+                              "someField": "def"
                             }
                           },
-                          ""path"": []
+                          "path": []
                         }
                       ],
-                      ""hasNext"": false
-                    }");
+                      "hasNext": false
+                    }
+                    """);
         }
     }
 

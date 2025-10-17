@@ -10,8 +10,6 @@ using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
 using static HotChocolate.Properties.TypeResources;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public class ObjectFieldDescriptor
@@ -64,7 +62,7 @@ public class ObjectFieldDescriptor
 
         if (member is MethodInfo m)
         {
-            _parameterInfos = m.GetParameters();
+            _parameterInfos = context.TypeInspector.GetParameters(m);
             Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
             Configuration.ResultType = m.ReturnType;
         }
@@ -174,7 +172,7 @@ public class ObjectFieldDescriptor
 
                 if (subscribeMember is MethodInfo subscribeMethod)
                 {
-                    var subscribeParameters = subscribeMethod.GetParameters();
+                    var subscribeParameters = Context.TypeInspector.GetParameters(subscribeMethod);
                     var parameterLength = _parameterInfos.Length + subscribeParameters.Length;
                     var parameters = new ParameterInfo[parameterLength];
 
@@ -399,7 +397,7 @@ public class ObjectFieldDescriptor
 
             if (propertyOrMethod is MethodInfo m)
             {
-                _parameterInfos = m.GetParameters();
+                _parameterInfos = Context.TypeInspector.GetParameters(m);
                 Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
             }
 

@@ -1,4 +1,3 @@
-#nullable enable
 using HotChocolate.Language;
 
 namespace HotChocolate;

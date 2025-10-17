@@ -1,0 +1,185 @@
+title: Subscribe_Simple
+request:
+  document: |
+    subscription {
+      onBookCreated {
+        id
+        title
+      }
+    }
+responseStream:
+  - body: |
+      {
+        "data": {
+          "onBookCreated": {
+            "id": 1,
+            "title": "Foo"
+          }
+        }
+      }
+  - body: |
+      {
+        "data": {
+          "onBookCreated": {
+            "id": 2,
+            "title": "Bar"
+          }
+        }
+      }
+  - body: |
+      {
+        "data": {
+          "onBookCreated": {
+            "id": 3,
+            "title": "Baz"
+          }
+        }
+      }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+        subscription: Subscription
+      }
+
+      type Book {
+        id: Int!
+      }
+
+      type Query {
+        foo: String!
+      }
+
+      type Subscription {
+        onBookCreated: Book!
+      }
+    interactions:
+      - request:
+          document: |
+            subscription Op_a6fc02fc_1 {
+              onBookCreated {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "onBookCreated": {
+                    "id": 1
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "onBookCreated": {
+                    "id": 2
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "onBookCreated": {
+                    "id": 3
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+      }
+
+      type Query {
+        bookById(id: Int!): Book! @internal @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_a6fc02fc_2(
+              $__fusion_1_id: Int!
+            ) {
+              bookById(id: $__fusion_1_id) {
+                title
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 3
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "title": "Foo"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "title": "Bar"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "title": "Baz"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        subscription {
+          onBookCreated {
+            id
+            id @fusion__requirement
+            title
+          }
+        }
+      hash: a6fc02fcd58c513d69d75983869b251f
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        subscription Op_a6fc02fc_1 {
+          onBookCreated {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_a6fc02fc_2(
+          $__fusion_1_id: Int!
+        ) {
+          bookById(id: $__fusion_1_id) {
+            title
+          }
+        }
+      source: $.bookById
+      target: $.onBookCreated
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -15,8 +15,8 @@ internal static class RootValueResolver
         ObjectType rootType,
         ref object? cachedValue)
     {
-        if (context.ContextData.TryGetValue(WellKnownContextData.InitialValue, out var o) &&
-            o is not null)
+        if (context.ContextData.TryGetValue(WellKnownContextData.InitialValue, out var o)
+            && o is not null)
         {
             return o;
         }
@@ -37,9 +37,9 @@ internal static class RootValueResolver
             // if the request services did not provide a rootValue and the runtime
             // representation is an instantiable class we will create a singleton ourselves
             // and store it as cached value in order to reuse it.
-            if (rootValue is null &&
-                !rootType.RuntimeType.IsAbstract &&
-                !rootType.RuntimeType.IsInterface)
+            if (rootValue is null
+                && !rootType.RuntimeType.IsAbstract
+                && !rootType.RuntimeType.IsInterface)
             {
                 try
                 {

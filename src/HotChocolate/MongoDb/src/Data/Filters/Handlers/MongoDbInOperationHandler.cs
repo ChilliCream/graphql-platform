@@ -23,8 +23,8 @@ public class MongoDbInOperationHandler
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration)
     {
-        return fieldConfiguration is FilterOperationFieldConfiguration operationField &&
-            operationField.Id is DefaultFilterOperations.In;
+        return fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id is DefaultFilterOperations.In;
     }
 
     /// <inheritdoc />

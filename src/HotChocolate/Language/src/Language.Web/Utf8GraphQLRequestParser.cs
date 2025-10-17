@@ -42,6 +42,7 @@ public ref partial struct Utf8GraphQLRequestParser
                     request.DocumentId,
                     null,
                     operationName ?? request.OperationName,
+                    request.ErrorHandlingMode,
                     request.Variables,
                     request.Extensions
                 );
@@ -179,6 +180,7 @@ public ref partial struct Utf8GraphQLRequestParser
             request.DocumentId,
             request.DocumentHash,
             request.OperationName,
+            request.ErrorHandlingMode,
             request.Variables,
             request.Extensions
         );
@@ -233,61 +235,55 @@ public ref partial struct Utf8GraphQLRequestParser
 
         switch (fieldName[0])
         {
-            case I:
-                if (fieldName.SequenceEqual(IdProperty))
-                {
-                    request.DocumentId = ParseOperationId();
-                }
-
+            case I when fieldName.SequenceEqual(IdProperty):
+            case D when fieldName.SequenceEqual(DocumentIdProperty):
+                request.DocumentId = ParseOperationId();
                 break;
 
-            case D:
-                if (fieldName.SequenceEqual(DocumentIdProperty))
+            case Q when fieldName.SequenceEqual(QueryProperty):
+                var isNullOrEmpty = IsNullToken() || _reader.Value.Length == 0;
+                request.ContainsDocument = !isNullOrEmpty;
+
+                if (request.ContainsDocument && _reader.Kind != TokenKind.String)
                 {
-                    request.DocumentId = ParseOperationId();
+                    throw ThrowHelper.QueryMustBeStringOrNull(_reader);
                 }
 
+                request.DocumentBody = _reader.Value;
+                _reader.MoveNext();
                 break;
 
-            case Q:
-                if (fieldName.SequenceEqual(QueryProperty))
-                {
-                    var isNullOrEmpty = IsNullToken() || _reader.Value.Length == 0;
-                    request.ContainsDocument = !isNullOrEmpty;
+            case O when fieldName.SequenceEqual(OperationNameProperty):
+                request.OperationName = ParseStringOrNull();
+                break;
 
-                    if (request.ContainsDocument && _reader.Kind != TokenKind.String)
+            case O when fieldName.SequenceEqual(OnErrorProperty):
+                var rawErrorHandlingMode = ParseStringOrNull();
+
+                if (rawErrorHandlingMode is not null)
+                {
+                    if (rawErrorHandlingMode.Equals("PROPAGATE", StringComparison.OrdinalIgnoreCase))
                     {
-                        throw ThrowHelper.QueryMustBeStringOrNull(_reader);
+                        request.ErrorHandlingMode = ErrorHandlingMode.Propagate;
                     }
-
-                    request.DocumentBody = _reader.Value;
-                    _reader.MoveNext();
+                    else if (rawErrorHandlingMode.Equals("NULL", StringComparison.OrdinalIgnoreCase))
+                    {
+                        request.ErrorHandlingMode = ErrorHandlingMode.Null;
+                    }
+                    else if (rawErrorHandlingMode.Equals("HALT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        request.ErrorHandlingMode = ErrorHandlingMode.Halt;
+                    }
                 }
 
                 break;
 
-            case O:
-                if (fieldName.SequenceEqual(OperationNameProperty))
-                {
-                    request.OperationName = ParseStringOrNull();
-                }
-
+            case V when fieldName.SequenceEqual(VariablesProperty):
+                request.Variables = ParseVariables();
                 break;
 
-            case V:
-                if (fieldName.SequenceEqual(VariablesProperty))
-                {
-                    request.Variables = ParseVariables();
-                }
-
-                break;
-
-            case E:
-                if (fieldName.SequenceEqual(ExtensionsProperty))
-                {
-                    request.Extensions = ParseObjectOrNull();
-                }
-
+            case E when fieldName.SequenceEqual(ExtensionsProperty):
+                request.Extensions = ParseObjectOrNull();
                 break;
 
             default:
@@ -326,7 +322,7 @@ public ref partial struct Utf8GraphQLRequestParser
                     var hasPayload = !IsNullToken();
                     var end = SkipValue();
                     message.Payload = hasPayload
-                        ? _reader.GraphQLData.Slice(start, end - start)
+                        ? _reader.SourceText.Slice(start, end - start)
                         : default;
                 }
 
@@ -354,7 +350,7 @@ public ref partial struct Utf8GraphQLRequestParser
 
             if (_useCache)
             {
-                if (request.DocumentId.HasValue 
+                if (request.DocumentId.HasValue
                     && _cache!.TryGetDocument(request.DocumentId.Value.Value, out var cachedDocument))
                 {
                     document = cachedDocument.Body;

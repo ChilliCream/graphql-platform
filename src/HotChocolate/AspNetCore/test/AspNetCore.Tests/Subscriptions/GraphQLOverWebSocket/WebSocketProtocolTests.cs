@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using HotChocolate.AspNetCore.Formatters;
-using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -401,15 +400,17 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"
+                        Query =
+                            """
                             mutation {
-                                createReview(episode:NEW_HOPE review: {
-                                    commentary: ""foo""
-                                    stars: 5
-                                }) {
+                                createReview(
+                                    episode: NEW_HOPE
+                                    review: { commentary: "foo", stars: 5 }
+                                ) {
                                     stars
                                 }
-                            }"
+                            }
+                            """
                     });
 
                 await WaitForMessage(webSocket, Messages.Next, ct);
@@ -420,15 +421,17 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"
-                    mutation {
-                        createReview(episode:NEW_HOPE review: {
-                            commentary: ""foo""
-                            stars: 5
-                        }) {
-                            stars
-                        }
-                    }"
+                        Query =
+                            """
+                            mutation {
+                                createReview(
+                                    episode: NEW_HOPE
+                                    review: { commentary: "foo", stars: 5 }
+                                ) {
+                                    stars
+                                }
+                            }
+                            """
                     });
 
                 // assert
@@ -465,15 +468,17 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"
-                    mutation {
-                        createReview(episode:NEW_HOPE review: {
-                            commentary: ""foo""
-                            stars: 5
-                        }) {
-                            stars
-                        }
-                    }"
+                        Query =
+                            """
+                            mutation {
+                                createReview(
+                                    episode: NEW_HOPE
+                                    review: { commentary: "foo", stars: 5 }
+                                ) {
+                                    stars
+                                }
+                            }
+                            """
                     });
 
                 await WaitForMessage(webSocket, Messages.Next, ct);
@@ -533,15 +538,17 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"
+                        Query =
+                            """
                             mutation {
-                                createReview(episode:NEW_HOPE review: {
-                                    commentary: ""foo""
-                                    stars: 5
-                                }) {
+                                createReview(
+                                    episode: NEW_HOPE
+                                    review: { commentary: "foo", stars: 5 }
+                                ) {
                                     stars
                                 }
-                            }"
+                            }
+                            """
                     });
 
                 for (var i = 0; i < 100; i++)

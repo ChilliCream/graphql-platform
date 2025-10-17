@@ -1,22 +1,29 @@
 using System.Diagnostics;
-using HotChocolate.Fusion.Execution;
+using HotChocolate.Execution;
+using HotChocolate.Features;
+using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static System.Threading.CancellationTokenSource;
 
-namespace HotChocolate.Execution.Pipeline;
+namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal sealed class TimeoutMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly FusionSchemaDefinition _schema;
     private readonly TimeSpan _timeout;
 
     private TimeoutMiddleware(
         RequestDelegate next,
+        FusionSchemaDefinition schema,
         FusionRequestOptions options)
     {
+        ArgumentNullException.ThrowIfNull(next);
+        ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(options);
 
-        _next = next ?? throw new ArgumentNullException(nameof(next));
+        _next = next;
+        _schema = schema;
         _timeout = options.ExecutionTimeout;
     }
 
@@ -32,9 +39,8 @@ internal sealed class TimeoutMiddleware
         using var timeout = new CancellationTokenSource(_timeout);
 
         // We do not dispose the combined token in this middleware at all times.
-        // The dispose is handled in the finally block.
-        var combined = CreateLinkedTokenSource(
-            context.RequestAborted, timeout.Token);
+        // The `Dispose` is handled in the finally block.
+        var combined = CreateLinkedTokenSource(context.RequestAborted, timeout.Token, _schema.GetCancellationToken());
 
         try
         {
@@ -85,8 +91,9 @@ internal sealed class TimeoutMiddleware
         => new RequestMiddlewareConfiguration(
             (fc, next) =>
             {
+                var schema = (FusionSchemaDefinition)fc.Schema;
                 var options = fc.SchemaServices.GetRequiredService<FusionRequestOptions>();
-                var middleware = new TimeoutMiddleware(next, options);
+                var middleware = new TimeoutMiddleware(next, schema, options);
                 return context => middleware.InvokeAsync(context);
             },
             nameof(TimeoutMiddleware));

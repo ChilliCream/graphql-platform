@@ -36,9 +36,8 @@ internal sealed class EnumTypeDefaultValueInaccessibleRule
         {
             context.Log.Write(
                 EnumTypeDefaultValueInaccessible(
-                    new SchemaCoordinate(type.Name, field.Name, argument.Name),
-                    inaccessibleCoordinate!.Value,
                     argument,
+                    inaccessibleCoordinate!.Value,
                     schema));
         }
     }
@@ -58,9 +57,8 @@ internal sealed class EnumTypeDefaultValueInaccessibleRule
         {
             context.Log.Write(
                 EnumTypeDefaultValueInaccessible(
-                    new SchemaCoordinate(inputType.Name, inputField.Name),
-                    inaccessibleCoordinate!.Value,
                     inputField,
+                    inaccessibleCoordinate!.Value,
                     schema));
         }
     }

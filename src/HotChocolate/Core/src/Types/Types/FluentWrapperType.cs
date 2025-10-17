@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public abstract class FluentWrapperType : IOutputType, IInputType

@@ -1,12 +1,12 @@
-using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Metadata;
 
 namespace HotChocolate.Fusion.Planning;
 
-public sealed record OperationWorkItem(
+internal sealed record OperationWorkItem(
     OperationWorkItemKind Kind,
     SelectionSet SelectionSet,
     Lookup? Lookup = null,
-    string? RequirementKey = null)
+    string? FromSchema = null)
     : WorkItem
 {
     public static OperationWorkItem CreateRoot(SelectionSet selectionSet)

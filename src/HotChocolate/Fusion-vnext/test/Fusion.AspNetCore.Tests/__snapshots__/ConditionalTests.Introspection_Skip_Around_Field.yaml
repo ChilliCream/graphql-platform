@@ -1,0 +1,58 @@
+title: Introspection_Skip_Around_Field
+request:
+  document: |
+    query testQuery(
+      $skip: Boolean!
+    ) {
+      ... @skip(if: $skip) {
+        __typename
+        __type(name: "Query") {
+          name
+        }
+      }
+    }
+  variables: |
+    {
+      "skip": true
+    }
+response:
+  body: |
+    {
+      "data": {}
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        field: String
+      }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip: Boolean!
+        ) {
+          ... @skip(if: $skip) {
+            __typename
+            __type(name: "Query") {
+              name
+            }
+          }
+        }
+      name: testQuery
+      hash: af9d13953a7086c7b2d349841173dbe9
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: __typename
+          fieldName: __typename
+        - id: 3
+          responseName: __type
+          fieldName: __type

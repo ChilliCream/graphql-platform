@@ -45,6 +45,17 @@ internal static class PathHelper
         return path;
     }
 
+    public static Path CreatePathFromSelection(IReadOnlyList<Selection> selections, int depth)
+    {
+        var path = Path.Root;
+        for (var j = 0; j < depth; j++)
+        {
+            path = path.Append(selections[j].ResponseName);
+        }
+
+        return path;
+    }
+
     private static Path CreatePath(ResultData parent, object segmentValue)
     {
         var segments = ArrayPool<object>.Shared.Rent(InitialPathLength);
@@ -108,7 +119,6 @@ internal static class PathHelper
             switch (p)
             {
                 case ObjectResult o:
-                {
                     var field = o[i];
 
                     if (!field.IsInitialized)
@@ -119,7 +129,6 @@ internal static class PathHelper
                     segments[segment++] = field.Name;
                     current = o;
                     break;
-                }
 
                 case ListResult l:
                     segments[segment++] = i;

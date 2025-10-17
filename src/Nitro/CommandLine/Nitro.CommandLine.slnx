@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CommandLine.Cloud/Nitro.CommandLine.Cloud.csproj" />
+    <Project Path="src/CommandLine.Core/Nitro.CommandLine.Core.csproj" />
+    <Project Path="src/CommandLine.Fusion.Compatibility/Nitro.CommandLine.Fusion.Compatibility.csproj" />
+    <Project Path="src/CommandLine.Fusion/Nitro.CommandLine.Fusion.csproj" />
+    <Project Path="src/CommandLine/Nitro.CommandLine.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/CommandLine.Fusion.Tests/Nitro.CommandLine.Fusion.Tests.csproj" />
+  </Folder>
+</Solution>

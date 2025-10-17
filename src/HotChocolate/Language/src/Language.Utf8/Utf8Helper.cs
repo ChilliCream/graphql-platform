@@ -66,9 +66,9 @@ internal static class Utf8Helper
                                 {
                                     throw new Utf8EncodingException("Unexpected low surrogate.");
                                 }
-                                var fullUnicode = ((highSurrogate.Value - 0xD800) << 10) +
-                                    (unicodeDecimal - 0xDC00) +
-                                    0x10000;
+                                var fullUnicode = ((highSurrogate.Value - 0xD800) << 10)
+                                    + (unicodeDecimal - 0xDC00)
+                                    + 0x10000;
                                 UnescapeUtf8Hex(fullUnicode, ref writePosition, unescapedString);
                                 highSurrogate = null;
                             }
@@ -107,9 +107,11 @@ internal static class Utf8Helper
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int UnescapeUtf8Hex(byte a, byte b, byte c, byte d)
         => (HexToDecimal(a) << 12) | (HexToDecimal(b) << 8) | (HexToDecimal(c) << 4) | HexToDecimal(d);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void UnescapeUtf8Hex(
         int unicodeDecimal,
         ref int writePosition,

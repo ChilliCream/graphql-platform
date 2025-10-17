@@ -2,8 +2,6 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public class ScalarTypeDescriptor
@@ -21,8 +19,8 @@ public class ScalarTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (!Configuration.AttributesAreApplied &&
-            Configuration.RuntimeType != typeof(object))
+        if (!Configuration.AttributesAreApplied
+            && Configuration.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,

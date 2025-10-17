@@ -66,7 +66,7 @@ internal static class TypeResourceHelper
     public static string Type_Name_IsNotValid(string typeName)
     {
         var name = typeName ?? "null";
-        return $"`{name}` is not a valid " +
-            "GraphQL type name.";
+        return $"`{name}` is not a valid "
+            + "GraphQL type name.";
     }
 }

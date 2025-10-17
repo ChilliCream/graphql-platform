@@ -37,8 +37,8 @@ public partial class CachePolicy
             {
                 foreach (var operationVersion in storeAccessor.OperationStore.GetAll())
                 {
-                    if (operationVersion.Subscribers == 0 &&
-                        time - operationVersion.LastModified >= timeToLive)
+                    if (operationVersion.Subscribers == 0
+                        && time - operationVersion.LastModified >= timeToLive)
                     {
                         storeAccessor.OperationStore.Remove(operationVersion.Request);
                     }

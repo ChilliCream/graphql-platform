@@ -1,9 +1,0 @@
-schema @schemaName(value: "Schema2") {
-  query: Query
-}
-
-type Query {
-  schema2Field: Int!
-}
-
-directive @schemaName(value: String!) on SCHEMA

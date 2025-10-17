@@ -1,54 +1,64 @@
-using System.Text.Json;
+using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
 public sealed class SourceSchemaResult : IDisposable
 {
-    private readonly IDisposable? _resource;
+    private static ReadOnlySpan<byte> DataProperty => "data"u8;
+    private static ReadOnlySpan<byte> ErrorsProperty => "errors"u8;
+    private static ReadOnlySpan<byte> ExtensionsProperty => "extensions"u8;
+    private readonly SourceResultDocument _document;
 
-    public SourceSchemaResult(Path path, JsonDocument document)
+    public SourceSchemaResult(
+        Path path,
+        SourceResultDocument document,
+        FinalMessage final = FinalMessage.Undefined)
     {
-        _resource = document;
+        ArgumentNullException.ThrowIfNull(path);
+        ArgumentNullException.ThrowIfNull(document);
+
+        _document = document;
         Path = path;
-
-        var root = document.RootElement;
-        if (root.ValueKind != JsonValueKind.Object)
-        {
-            return;
-        }
-
-        if (root.TryGetProperty("data", out var data))
-        {
-            Data = data;
-        }
-
-        if (root.TryGetProperty("errors", out var errors))
-        {
-            Errors = errors;
-        }
-
-        if (root.TryGetProperty("extensions", out var extensions))
-        {
-            Extensions = extensions;
-        }
-    }
-
-    public SourceSchemaResult(Path path, IDisposable resource, JsonElement data, JsonElement errors, JsonElement extensions)
-    {
-        _resource = resource;
-        Path = path;
-        Data = data;
-        Errors = errors;
-        Extensions = extensions;
+        Final = final;
     }
 
     public Path Path { get; }
 
-    public JsonElement Data { get; }
+    public SourceResultElement Data
+    {
+        get
+        {
+            _document.Root.TryGetProperty(DataProperty, out var data);
+            return data;
+        }
+    }
 
-    public JsonElement Errors { get; }
+    public SourceSchemaErrors? Errors
+        => _document.Root.TryGetProperty(ErrorsProperty, out var errors)
+            ? SourceSchemaErrors.From(errors)
+            : null;
 
-    public JsonElement Extensions { get; }
+    internal SourceResultElement RawErrors
+    {
+        get
+        {
+            _document.Root.TryGetProperty(ErrorsProperty, out var errors);
+            return errors;
+        }
+    }
 
-    public void Dispose() => _resource?.Dispose();
+    public bool HasErrors => _document.Root.TryGetProperty(ErrorsProperty, out _);
+
+    public SourceResultElement Extensions
+    {
+        get
+        {
+            _document.Root.TryGetProperty(ExtensionsProperty, out var extensions);
+            return extensions;
+        }
+    }
+
+    public FinalMessage Final { get; }
+
+    public void Dispose() => _document.Dispose();
 }

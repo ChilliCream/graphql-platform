@@ -294,9 +294,9 @@ internal static class ClassBuilderExtensions
                 INamedTypeDescriptor when isNullable =>
                     ConditionBuilder
                         .New()
-                        .Set($"({propertyName} is null && {other}.{propertyName} is null) ||" +
-                             $"{propertyName} != null && {propertyName}.{nameof(Equals)}(" +
-                             $"{other}.{propertyName})"),
+                        .Set($"({propertyName} is null && {other}.{propertyName} is null) ||"
+                            + $"{propertyName} != null && {propertyName}.{nameof(Equals)}("
+                            + $"{other}.{propertyName})"),
                 INamedTypeDescriptor =>
                     MethodCallBuilder
                         .Inline()

@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;

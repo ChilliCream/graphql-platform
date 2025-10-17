@@ -19,8 +19,8 @@ public class RavenEnumNotInHandler : RavenComparableNotInHandler
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration)
     {
-        return context.Type is IEnumOperationFilterInputType &&
-            fieldConfiguration is FilterOperationFieldConfiguration operationField &&
-            operationField.Id == Operation;
+        return context.Type is IEnumOperationFilterInputType
+            && fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id == Operation;
     }
 }

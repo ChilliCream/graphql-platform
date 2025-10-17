@@ -177,7 +177,7 @@ public sealed class ArgumentNodeTests
         var argument = new ArgumentNode(null, name, value);
 
         // act
-        ISyntaxNode[] nodes = argument.GetNodes().ToArray();
+        var nodes = argument.GetNodes().ToArray();
 
         // assert
         Assert.Collection(nodes,

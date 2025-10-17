@@ -22,9 +22,9 @@ public sealed class NamePathSegment : Path
 
     /// <inheritdoc />
     public override bool Equals(Path? other)
-        => base.Equals(other) &&
-            other is NamePathSegment name &&
-            Name.Equals(name.Name, Ordinal);
+        => base.Equals(other)
+            && other is NamePathSegment name
+            && Name.Equals(name.Name, Ordinal);
 
     /// <inheritdoc />
     public override int GetHashCode()

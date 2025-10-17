@@ -40,14 +40,14 @@ public class ProductType : ObjectType<Product>
         string package,
         Data repository)
         => repository.Products.FirstOrDefault(
-            t => (t.Sku?.Equals(sku) ?? false) &&
-                 (t.Package?.Equals(package) ?? false));
+            t => (t.Sku?.Equals(sku) ?? false)
+                && (t.Package?.Equals(package) ?? false));
 
     private static Product? GetProductByVariation(
         string sku,
         [Map("variation.id")] string variationId,
         Data repository)
         => repository.Products.FirstOrDefault(
-            t => (t.Sku?.Equals(sku) ?? false) &&
-                 (t.Variation?.Id.Equals(variationId) ?? false));
+            t => (t.Sku?.Equals(sku) ?? false)
+                && (t.Variation?.Id.Equals(variationId) ?? false));
 }

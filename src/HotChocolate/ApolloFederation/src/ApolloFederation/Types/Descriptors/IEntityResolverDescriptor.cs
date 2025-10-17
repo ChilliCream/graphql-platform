@@ -6,7 +6,7 @@ namespace HotChocolate.ApolloFederation.Types;
 /// <summary>
 /// The entity descriptor allows to specify a reference resolver.
 /// </summary>
-public interface IEntityResolverDescriptor
+public interface IEntityResolverDescriptor<out TTypeDescriptor>
 {
     /// <summary>
     /// Resolve an entity from its representation.
@@ -17,13 +17,13 @@ public interface IEntityResolverDescriptor
     /// <returns>
     /// Returns the descriptor for configuration chaining.
     /// </returns>
-    IObjectTypeDescriptor ResolveReferenceWith(MethodInfo method);
+    TTypeDescriptor ResolveReferenceWith(MethodInfo method);
 }
 
 /// <summary>
 /// The entity descriptor allows to specify a reference resolver.
 /// </summary>
-public interface IEntityResolverDescriptor<TEntity>
+public interface IEntityResolverDescriptor<TEntity, out TTypeDescriptor>
 {
     /// <summary>
     /// Resolve an entity from its representation.
@@ -34,7 +34,7 @@ public interface IEntityResolverDescriptor<TEntity>
     /// <returns>
     /// Returns the descriptor for configuration chaining.
     /// </returns>
-    IObjectTypeDescriptor ResolveReferenceWith(
+    TTypeDescriptor ResolveReferenceWith(
         Expression<Func<TEntity, object?>> method);
 
     /// <summary>
@@ -46,5 +46,5 @@ public interface IEntityResolverDescriptor<TEntity>
     /// <returns>
     /// Returns the descriptor for configuration chaining.
     /// </returns>
-    IObjectTypeDescriptor ResolveReferenceWith(MethodInfo method);
+    TTypeDescriptor ResolveReferenceWith(MethodInfo method);
 }

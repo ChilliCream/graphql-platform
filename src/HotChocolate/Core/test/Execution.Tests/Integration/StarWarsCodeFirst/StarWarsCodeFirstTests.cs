@@ -64,13 +64,14 @@ public class StarWarsCodeFirstTests
     public async Task GraphQLOrgFieldArgumentExample1()
     {
         await ExpectValid(
-                @"
-                {
-                    human(id: ""1000"") {
-                        name
-                        height
-                    }
-                }")
+            """
+            {
+                human(id: "1000") {
+                    name
+                    height
+                }
+            }
+            """)
             .MatchSnapshotAsync();
     }
 
@@ -78,13 +79,14 @@ public class StarWarsCodeFirstTests
     public async Task GraphQLOrgFieldArgumentExample2()
     {
         await ExpectValid(
-                @"
-                {
-                    human(id: ""1000"") {
-                        name
-                        height(unit: FOOT)
-                    }
-                }")
+            """
+            {
+                human(id: "1000") {
+                    name
+                    height(unit: FOOT)
+                }
+            }
+            """)
             .MatchSnapshotAsync();
     }
 
@@ -348,7 +350,7 @@ public class StarWarsCodeFirstTests
                 }",
                 configure: c =>
                 {
-                    c.AddInputParser(options => { options.IgnoreAdditionalInputFields = true; });
+                    c.AddInputParser(options => options.IgnoreAdditionalInputFields = true);
                     AddDefaultConfiguration(c);
                 },
                 request: r => r
@@ -913,7 +915,7 @@ public class StarWarsCodeFirstTests
                 AddDefaultConfiguration(c);
                 c.AddMaxExecutionDepthRule(3, allowRequestOverrides: true);
             },
-            request: r => { r.SetMaximumAllowedExecutionDepth(100); });
+            request: r => r.SetMaximumAllowedExecutionDepth(100));
     }
 
     [Fact]
@@ -963,7 +965,7 @@ public class StarWarsCodeFirstTests
                 AddDefaultConfiguration(c);
                 c.AddMaxExecutionDepthRule(3, allowRequestOverrides: true);
             },
-            request: r => { r.SkipExecutionDepthAnalysis(); });
+            request: r => r.SkipExecutionDepthAnalysis());
     }
 
     // this test ensures that overridden depth validations are not cached.
@@ -1235,9 +1237,9 @@ public class StarWarsCodeFirstTests
     }
 
     [Fact]
-    public async Task Ensure_Benchmark_Query_GetTwoHerosWithFriendsQuery()
+    public async Task Ensure_Benchmark_Query_GetTwoHeroesWithFriendsQuery()
     {
-        var query = FileResource.Open("GetTwoHerosWithFriendsQuery.graphql");
+        var query = FileResource.Open("GetTwoHeroesWithFriendsQuery.graphql");
         await ExpectValid(query).MatchSnapshotAsync();
     }
 

@@ -1136,16 +1136,16 @@ public partial class SyntaxVisitor<TContext>
             return Break;
         }
 
-        if (_options.VisitNames &&
-            node.MemberName is not null &&
-            Visit(node.MemberName, node, context).IsBreak())
+        if (_options.VisitNames
+            && node.MemberName is not null
+            && Visit(node.MemberName, node, context).IsBreak())
         {
             return Break;
         }
 
-        if (_options.VisitNames &&
-            node.ArgumentName is not null &&
-            Visit(node.ArgumentName, node, context).IsBreak())
+        if (_options.VisitNames
+            && node.ArgumentName is not null
+            && Visit(node.ArgumentName, node, context).IsBreak())
         {
             return Break;
         }

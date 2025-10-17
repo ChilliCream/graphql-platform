@@ -53,8 +53,8 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         var connection = session.Connection;
         var connected = connection.IsConnected;
 
-        if (connected && message.IsSingleSegment &&
-            message.First.Equals(Utf8MessageBodies.KeepAlive))
+        if (connected && message.IsSingleSegment
+            && message.First.Equals(Utf8MessageBodies.KeepAlive))
         {
             // received a simple ping, we do not need to answer to this message.
             return;
@@ -73,8 +73,8 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
             return;
         }
 
-        if (!root.TryGetProperty(Utf8MessageProperties.Type, out var type) ||
-            type.ValueKind is not JsonValueKind.String)
+        if (!root.TryGetProperty(Utf8MessageProperties.Type, out var type)
+            || type.ValueKind is not JsonValueKind.String)
         {
             await connection.CloseAsync(
                 Apollo_OnReceive_TypePropMissing,
@@ -152,9 +152,9 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
             }
             catch (GraphQLRequestException ex)
             {
-                if (!root.TryGetProperty(Id, out idProp) ||
-                    idProp.ValueKind is not JsonValueKind.String ||
-                    string.IsNullOrEmpty(idProp.GetString()))
+                if (!root.TryGetProperty(Id, out idProp)
+                    || idProp.ValueKind is not JsonValueKind.String
+                    || string.IsNullOrEmpty(idProp.GetString()))
                 {
                     await connection.CloseAsync(
                         Apollo_OnReceive_InvalidMessageType,
@@ -171,9 +171,9 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
             }
             catch (SyntaxException ex)
             {
-                if (!root.TryGetProperty(Id, out idProp) ||
-                    idProp.ValueKind is not JsonValueKind.String ||
-                    string.IsNullOrEmpty(idProp.GetString()))
+                if (!root.TryGetProperty(Id, out idProp)
+                    || idProp.ValueKind is not JsonValueKind.String
+                    || string.IsNullOrEmpty(idProp.GetString()))
                 {
                     await connection.CloseAsync(
                         Apollo_OnReceive_InvalidMessageType,
@@ -201,9 +201,9 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 
         if (connected && type.ValueEquals(Utf8Messages.Stop))
         {
-            if (root.TryGetProperty(Utf8MessageProperties.Id, out idProp) &&
-                idProp.ValueKind is JsonValueKind.String &&
-                idProp.GetString() is { Length: > 0 }
+            if (root.TryGetProperty(Utf8MessageProperties.Id, out idProp)
+                && idProp.ValueKind is JsonValueKind.String
+                && idProp.GetString() is { Length: > 0 }
                 id)
             {
                 session.Operations.Complete(id);
@@ -332,16 +332,16 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         JsonElement messageElement,
         [NotNullWhen(true)] out DataStartMessage? message)
     {
-        if (!messageElement.TryGetProperty(Id, out var idProp) ||
-            idProp.ValueKind is not JsonValueKind.String ||
-            string.IsNullOrEmpty(idProp.GetString()))
+        if (!messageElement.TryGetProperty(Id, out var idProp)
+            || idProp.ValueKind is not JsonValueKind.String
+            || string.IsNullOrEmpty(idProp.GetString()))
         {
             message = null;
             return false;
         }
 
-        if (!messageElement.TryGetProperty(Payload, out var payloadProp) ||
-            payloadProp.ValueKind is not JsonValueKind.Object)
+        if (!messageElement.TryGetProperty(Payload, out var payloadProp)
+            || payloadProp.ValueKind is not JsonValueKind.Object)
         {
             message = null;
             return false;

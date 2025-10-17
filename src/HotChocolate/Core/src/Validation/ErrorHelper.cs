@@ -13,8 +13,8 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(
-                "The following variables were not used: " +
-                $"{string.Join(", ", unusedVariables)}.")
+                "The following variables were not used: "
+                + $"{string.Join(", ", unusedVariables)}.")
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SpecifiedBy("sec-All-Variables-Used")
@@ -28,11 +28,29 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(
-                "The following variables were not declared: " +
-                $"{string.Join(", ", usedVariables)}.")
+                "The following variables were not declared: "
+                + $"{string.Join(", ", usedVariables)}.")
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SpecifiedBy("sec-All-Variable-Uses-Defined")
+            .Build();
+    }
+
+    public static IError OneOfVariableIsNotCompatible(
+        this DocumentValidatorContext context,
+        VariableNode variable,
+        VariableDefinitionNode variableDefinition)
+    {
+        var variableName = variableDefinition.Variable.Name.Value;
+
+        return ErrorBuilder.New()
+            .SetMessage(
+                Resources.ErrorHelper_OneOfVariableIsNotCompatible,
+                variableName)
+            .AddLocation(variable)
+            .SetPath(context.CreateErrorPath())
+            .SetExtension("variable", variableName)
+            .SpecifiedBy("sec-All-Variable-Usages-are-Allowed")
             .Build();
     }
 
@@ -649,7 +667,7 @@ internal static class ErrorHelper
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SetExtension(nameof(type), type.Name)
-            .SpecifiedBy("sec-OneOf-Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed", rfc: 825)
             .Build();
 
     public static IError OneOfVariablesMustBeNonNull(
@@ -665,8 +683,8 @@ internal static class ErrorHelper
                 fieldCoordinate.Name)
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
-            .SetFieldCoordinate(fieldCoordinate)
-            .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .SetCoordinate(fieldCoordinate)
+            .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed", rfc: 825)
             .Build();
 
     public static IError SkipAndIncludeNotAllowedOnSubscriptionRootField(

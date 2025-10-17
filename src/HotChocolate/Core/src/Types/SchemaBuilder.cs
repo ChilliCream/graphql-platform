@@ -10,8 +10,6 @@ using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate;
 
 /// <summary>
@@ -38,6 +36,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         typeInterceptors.TryAdd(new MiddlewareValidationTypeInterceptor());
         typeInterceptors.TryAdd(new SemanticNonNullTypeInterceptor());
         typeInterceptors.TryAdd(new StoreGlobalPagingOptionsTypeInterceptor());
+        typeInterceptors.TryAdd(new StoreGlobalSchemaOptionsTypeInterceptor());
 
         Features.Set(typeInterceptors);
     }

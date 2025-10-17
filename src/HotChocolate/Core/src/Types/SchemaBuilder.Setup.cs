@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Validation;

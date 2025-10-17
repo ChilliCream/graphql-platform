@@ -7,7 +7,7 @@
         "gender"
       ],
       "extensions": {
-        "fieldCoordinate": "UserInput.gender",
+        "coordinate": "UserInput.gender",
         "fieldType": "GenderEnum"
       }
     }

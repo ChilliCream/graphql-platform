@@ -1,8 +1,6 @@
 using HotChocolate.Features;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types.Relay;
 
 internal static class RelayHelper

@@ -42,8 +42,8 @@ public class DocumentValidatorVisitor : SyntaxWalker<DocumentValidatorContext>
     {
         for (var i = 0; i < node.Definitions.Count; i++)
         {
-            if (node.Definitions[i].Kind != SyntaxKind.FragmentDefinition &&
-                Visit(node.Definitions[i], node, context).IsBreak())
+            if (node.Definitions[i].Kind != SyntaxKind.FragmentDefinition
+                && Visit(node.Definitions[i], node, context).IsBreak())
             {
                 return Break;
             }
