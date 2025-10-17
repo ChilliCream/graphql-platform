@@ -72,8 +72,17 @@ public sealed class NonNullInputFieldIsInaccessibleRuleTests : RuleTestBase
                 """
             ],
             [
-                "The non-null input field 'BookFilter.age' in schema 'A' must be accessible in the "
-                + "composed schema."
+                """
+                {
+                    "message": "The non-null input field 'BookFilter.age' in schema 'A' must be accessible in the composed schema.",
+                    "code": "NON_NULL_INPUT_FIELD_IS_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "BookFilter.age",
+                    "member": "age",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -97,8 +106,17 @@ public sealed class NonNullInputFieldIsInaccessibleRuleTests : RuleTestBase
                 """
             ],
             [
-                "The non-null input field 'BookFilter.age' in schema 'A' must be accessible in the "
-                + "composed schema."
+                """
+                {
+                    "message": "The non-null input field 'BookFilter.age' in schema 'A' must be accessible in the composed schema.",
+                    "code": "NON_NULL_INPUT_FIELD_IS_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "BookFilter.age",
+                    "member": "age",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

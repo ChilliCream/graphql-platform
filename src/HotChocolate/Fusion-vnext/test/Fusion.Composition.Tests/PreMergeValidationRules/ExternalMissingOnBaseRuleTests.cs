@@ -50,8 +50,17 @@ public sealed class ExternalMissingOnBaseRuleTests : RuleTestBase
                 """
             ],
             [
-                "The external field 'Product.name' in schema 'B' is not defined (non-external) in "
-                + "any other schema."
+                """
+                {
+                    "message": "The external field 'Product.name' in schema 'B' is not defined (non-external) in any other schema.",
+                    "code": "EXTERNAL_MISSING_ON_BASE",
+                    "severity": "Error",
+                    "coordinate": "Product.name",
+                    "member": "name",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -77,11 +86,28 @@ public sealed class ExternalMissingOnBaseRuleTests : RuleTestBase
                 """
             ],
             [
-                "The external field 'Product.name' in schema 'A' is not defined (non-external) in "
-                + "any other schema.",
-
-                "The external field 'Product.name' in schema 'B' is not defined (non-external) in "
-                + "any other schema."
+                """
+                {
+                    "message": "The external field 'Product.name' in schema 'A' is not defined (non-external) in any other schema.",
+                    "code": "EXTERNAL_MISSING_ON_BASE",
+                    "severity": "Error",
+                    "coordinate": "Product.name",
+                    "member": "name",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The external field 'Product.name' in schema 'B' is not defined (non-external) in any other schema.",
+                    "code": "EXTERNAL_MISSING_ON_BASE",
+                    "severity": "Error",
+                    "coordinate": "Product.name",
+                    "member": "name",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

@@ -79,7 +79,17 @@ public sealed class EmptyMergedEnumTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "The merged enum type 'DeliveryStatus' is empty."
+                """
+                {
+                    "message": "The merged enum type 'DeliveryStatus' is empty.",
+                    "code": "EMPTY_MERGED_ENUM_TYPE",
+                    "severity": "Error",
+                    "coordinate": "DeliveryStatus",
+                    "member": "DeliveryStatus",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

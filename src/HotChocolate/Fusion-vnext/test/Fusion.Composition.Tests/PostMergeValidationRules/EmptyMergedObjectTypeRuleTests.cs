@@ -100,7 +100,17 @@ public sealed class EmptyMergedObjectTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "The merged object type 'Author' is empty."
+                """
+                {
+                    "message": "The merged object type 'Author' is empty.",
+                    "code": "EMPTY_MERGED_OBJECT_TYPE",
+                    "severity": "Error",
+                    "coordinate": "Author",
+                    "member": "Author",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

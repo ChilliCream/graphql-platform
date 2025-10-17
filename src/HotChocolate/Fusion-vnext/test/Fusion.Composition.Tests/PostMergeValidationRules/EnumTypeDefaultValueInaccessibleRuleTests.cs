@@ -75,11 +75,28 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests : RuleTestBase
                 """
             ],
             [
-                "The default value of 'Query.field(arg:)' references the inaccessible enum value "
-                + "'Enum1.FOO'.",
-
-                "The default value of 'Input1.field' references the inaccessible enum value "
-                + "'Enum1.FOO'."
+                """
+                {
+                    "message": "The default value of 'Query.field(arg:)' references the inaccessible enum value 'Enum1.FOO'.",
+                    "code": "ENUM_TYPE_DEFAULT_VALUE_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "Query.field(arg:)",
+                    "member": "arg",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The default value of 'Input1.field' references the inaccessible enum value 'Enum1.FOO'.",
+                    "code": "ENUM_TYPE_DEFAULT_VALUE_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "Input1.field",
+                    "member": "field",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -112,11 +129,28 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests : RuleTestBase
                 """
             ],
             [
-                "The default value of 'Query.field(arg:)' references the inaccessible enum value "
-                + "'Enum1.FOO'.",
-
-                "The default value of 'Input1.field2' references the inaccessible enum value "
-                + "'Enum1.FOO'."
+                """
+                {
+                    "message": "The default value of 'Query.field(arg:)' references the inaccessible enum value 'Enum1.FOO'.",
+                    "code": "ENUM_TYPE_DEFAULT_VALUE_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "Query.field(arg:)",
+                    "member": "arg",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The default value of 'Input1.field2' references the inaccessible enum value 'Enum1.FOO'.",
+                    "code": "ENUM_TYPE_DEFAULT_VALUE_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "Input1.field2",
+                    "member": "field2",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -144,11 +178,28 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests : RuleTestBase
                 """
             ],
             [
-                "The default value of 'Query.field(arg:)' references the inaccessible enum value "
-                + "'Enum1.FOO'.",
-
-                "The default value of 'Input1.field' references the inaccessible enum value "
-                + "'Enum1.FOO'."
+                """
+                {
+                    "message": "The default value of 'Query.field(arg:)' references the inaccessible enum value 'Enum1.FOO'.",
+                    "code": "ENUM_TYPE_DEFAULT_VALUE_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "Query.field(arg:)",
+                    "member": "arg",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The default value of 'Input1.field' references the inaccessible enum value 'Enum1.FOO'.",
+                    "code": "ENUM_TYPE_DEFAULT_VALUE_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "Input1.field",
+                    "member": "field",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

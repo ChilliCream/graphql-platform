@@ -85,8 +85,17 @@ public sealed class OutputFieldTypesMergeableRuleTests : RuleTestBase
                 """
             ],
             [
-                "The output field 'User.birthdate' has a different type shape in schema 'A' than "
-                + "it does in schema 'B'."
+                """
+                {
+                    "message": "The output field 'User.birthdate' has a different type shape in schema 'A' than it does in schema 'B'.",
+                    "code": "OUTPUT_FIELD_TYPES_NOT_MERGEABLE",
+                    "severity": "Error",
+                    "coordinate": "User.birthdate",
+                    "member": "birthdate",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -114,8 +123,17 @@ public sealed class OutputFieldTypesMergeableRuleTests : RuleTestBase
                 """
             ],
             [
-                "The output field 'User.tags' has a different type shape in schema 'A' than it "
-                + "does in schema 'B'."
+                """
+                {
+                    "message": "The output field 'User.tags' has a different type shape in schema 'A' than it does in schema 'B'.",
+                    "code": "OUTPUT_FIELD_TYPES_NOT_MERGEABLE",
+                    "severity": "Error",
+                    "coordinate": "User.tags",
+                    "member": "tags",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -142,11 +160,28 @@ public sealed class OutputFieldTypesMergeableRuleTests : RuleTestBase
                 """
             ],
             [
-                "The output field 'User.birthdate' has a different type shape in schema 'A' than "
-                + "it does in schema 'B'.",
-
-                "The output field 'User.birthdate' has a different type shape in schema 'B' than "
-                + "it does in schema 'C'."
+                """
+                {
+                    "message": "The output field 'User.birthdate' has a different type shape in schema 'A' than it does in schema 'B'.",
+                    "code": "OUTPUT_FIELD_TYPES_NOT_MERGEABLE",
+                    "severity": "Error",
+                    "coordinate": "User.birthdate",
+                    "member": "birthdate",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The output field 'User.birthdate' has a different type shape in schema 'B' than it does in schema 'C'.",
+                    "code": "OUTPUT_FIELD_TYPES_NOT_MERGEABLE",
+                    "severity": "Error",
+                    "coordinate": "User.birthdate",
+                    "member": "birthdate",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

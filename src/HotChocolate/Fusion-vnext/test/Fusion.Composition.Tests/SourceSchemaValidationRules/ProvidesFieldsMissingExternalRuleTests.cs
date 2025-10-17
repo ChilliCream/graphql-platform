@@ -48,8 +48,17 @@ public sealed class ProvidesFieldsMissingExternalRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @provides directive on field 'Order.buyer' in schema 'A' references field "
-                + "'User.address', which must be marked as external."
+                """
+                {
+                    "message": "The @provides directive on field 'Order.buyer' in schema 'A' references field 'User.address', which must be marked as external.",
+                    "code": "PROVIDES_FIELDS_MISSING_EXTERNAL",
+                    "severity": "Error",
+                    "coordinate": "Order.buyer",
+                    "member": "provides",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -76,11 +85,28 @@ public sealed class ProvidesFieldsMissingExternalRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @provides directive on field 'Order.buyer' in schema 'A' references field "
-                + "'User.info', which must be marked as external.",
-
-                "The @provides directive on field 'Order.buyer' in schema 'A' references field "
-                + "'UserInfo.address', which must be marked as external."
+                """
+                {
+                    "message": "The @provides directive on field 'Order.buyer' in schema 'A' references field 'User.info', which must be marked as external.",
+                    "code": "PROVIDES_FIELDS_MISSING_EXTERNAL",
+                    "severity": "Error",
+                    "coordinate": "Order.buyer",
+                    "member": "provides",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The @provides directive on field 'Order.buyer' in schema 'A' references field 'UserInfo.address', which must be marked as external.",
+                    "code": "PROVIDES_FIELDS_MISSING_EXTERNAL",
+                    "severity": "Error",
+                    "coordinate": "Order.buyer",
+                    "member": "provides",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

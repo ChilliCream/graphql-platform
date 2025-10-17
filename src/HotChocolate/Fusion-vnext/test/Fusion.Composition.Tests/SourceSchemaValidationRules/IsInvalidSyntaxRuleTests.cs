@@ -43,8 +43,17 @@ public sealed class IsInvalidSyntaxRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @is directive on argument 'Query.product(id:)' in schema 'A' contains invalid "
-                + "syntax in the 'field' argument."
+                """
+                {
+                    "message": "The @is directive on argument 'Query.product(id:)' in schema 'A' contains invalid syntax in the 'field' argument.",
+                    "code": "IS_INVALID_SYNTAX",
+                    "severity": "Error",
+                    "coordinate": "Query.product(id:)",
+                    "member": "is",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

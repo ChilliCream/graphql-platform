@@ -50,8 +50,17 @@ public sealed class ProvidesInvalidFieldsTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @provides directive on field 'Product.details' in schema 'A' must specify a "
-                + "string value for the 'fields' argument."
+                """
+                {
+                    "message": "The @provides directive on field 'Product.details' in schema 'A' must specify a string value for the 'fields' argument.",
+                    "code": "PROVIDES_INVALID_FIELDS_TYPE",
+                    "severity": "Error",
+                    "coordinate": "Product.details",
+                    "member": "provides",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

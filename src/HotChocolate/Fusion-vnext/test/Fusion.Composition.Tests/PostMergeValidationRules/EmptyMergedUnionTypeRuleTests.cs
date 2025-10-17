@@ -108,7 +108,17 @@ public sealed class EmptyMergedUnionTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "The merged union type 'SearchResult' is empty."
+                """
+                {
+                    "message": "The merged union type 'SearchResult' is empty.",
+                    "code": "EMPTY_MERGED_UNION_TYPE",
+                    "severity": "Error",
+                    "coordinate": "SearchResult",
+                    "member": "SearchResult",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

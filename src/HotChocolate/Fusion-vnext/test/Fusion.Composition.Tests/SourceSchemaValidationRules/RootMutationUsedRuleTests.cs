@@ -49,7 +49,16 @@ public sealed class RootMutationUsedRuleTests : RuleTestBase
                 """
             ],
             [
-                "The root mutation type in schema 'A' must be named 'Mutation'."
+                """
+                {
+                    "message": "The root mutation type in schema 'A' must be named 'Mutation'.",
+                    "code": "ROOT_MUTATION_USED",
+                    "severity": "Error",
+                    "member": "A",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -62,7 +71,16 @@ public sealed class RootMutationUsedRuleTests : RuleTestBase
                 "scalar Mutation"
             ],
             [
-                "The root mutation type in schema 'A' must be named 'Mutation'."
+                """
+                {
+                    "message": "The root mutation type in schema 'A' must be named 'Mutation'.",
+                    "code": "ROOT_MUTATION_USED",
+                    "severity": "Error",
+                    "member": "A",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

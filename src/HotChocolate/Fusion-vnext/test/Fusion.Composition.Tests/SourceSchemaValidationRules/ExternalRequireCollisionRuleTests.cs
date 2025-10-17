@@ -53,8 +53,17 @@ public sealed class ExternalRequireCollisionRuleTests : RuleTestBase
                 """
             ],
             [
-                "The external field 'Book.title' in schema 'B' must not have arguments that are "
-                + "annotated with the @require directive."
+                """
+                {
+                    "message": "The external field 'Book.title' in schema 'B' must not have arguments that are annotated with the @require directive.",
+                    "code": "EXTERNAL_REQUIRE_COLLISION",
+                    "severity": "Error",
+                    "coordinate": "Book.title",
+                    "member": "title",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

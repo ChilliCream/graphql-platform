@@ -78,7 +78,17 @@ public sealed class EmptyMergedInterfaceTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "The merged interface type 'Product' is empty."
+                """
+                {
+                    "message": "The merged interface type 'Product' is empty.",
+                    "code": "EMPTY_MERGED_INTERFACE_TYPE",
+                    "severity": "Error",
+                    "coordinate": "Product",
+                    "member": "Product",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

@@ -43,8 +43,17 @@ public sealed class IsInvalidFieldTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @is directive on argument 'Query.personById(id:)' in schema 'A' must specify "
-                + "a string value for the 'field' argument."
+                """
+                {
+                    "message": "The @is directive on argument 'Query.personById(id:)' in schema 'A' must specify a string value for the 'field' argument.",
+                    "code": "IS_INVALID_FIELD_TYPE",
+                    "severity": "Error",
+                    "coordinate": "Query.personById(id:)",
+                    "member": "is",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

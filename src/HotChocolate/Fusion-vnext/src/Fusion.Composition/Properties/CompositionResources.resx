@@ -366,6 +366,9 @@
   <data name="ProvidesMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @provides directive indicates that a field can provide certain subfields of its return type from the same source schema, without requiring an additional resolution step elsewhere.</value>
   </data>
+  <data name="RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema" xml:space="preserve">
+    <value>The required field '{0}' must not be defined in schema '{1}'.</value>
+  </data>
   <data name="RequirementsValidator_CycleDetected" xml:space="preserve">
     <value>Cycle detected in requirement: {0} -&gt; {1}.</value>
   </data>

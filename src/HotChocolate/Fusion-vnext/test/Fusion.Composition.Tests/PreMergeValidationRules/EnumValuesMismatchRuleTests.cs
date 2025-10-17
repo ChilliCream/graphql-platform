@@ -87,8 +87,28 @@ public sealed class EnumValuesMismatchRuleTests : RuleTestBase
                 """
             ],
             [
-                "The enum type 'Genre' in schema 'A' must define the value 'SCIENCE_FICTION'.",
-                "The enum type 'Genre' in schema 'B' must define the value 'FANTASY'."
+                """
+                {
+                    "message": "The enum type 'Genre' in schema 'A' must define the value 'SCIENCE_FICTION'.",
+                    "code": "ENUM_VALUES_MISMATCH",
+                    "severity": "Error",
+                    "coordinate": "Genre",
+                    "member": "Genre",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The enum type 'Genre' in schema 'B' must define the value 'FANTASY'.",
+                    "code": "ENUM_VALUES_MISMATCH",
+                    "severity": "Error",
+                    "coordinate": "Genre",
+                    "member": "Genre",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

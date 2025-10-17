@@ -76,8 +76,17 @@ public sealed class FieldWithMissingRequiredArgumentRuleTests : RuleTestBase
                 """
             ],
             [
-                "The argument 'Query.books(author:)' must be defined as required in schema 'B'. "
-                + "Arguments marked with @require are treated as non-required."
+                """
+                {
+                    "message": "The argument 'Query.books(author:)' must be defined as required in schema 'B'. Arguments marked with @require are treated as non-required.",
+                    "code": "FIELD_WITH_MISSING_REQUIRED_ARGUMENT",
+                    "severity": "Error",
+                    "coordinate": "Query.books(author:)",
+                    "member": "books",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -109,8 +118,17 @@ public sealed class FieldWithMissingRequiredArgumentRuleTests : RuleTestBase
                 """
             ],
             [
-                "The argument 'Collection.books(author:)' must be defined as required in schema "
-                + "'A'. Arguments marked with @require are treated as non-required."
+                """
+                {
+                    "message": "The argument 'Collection.books(author:)' must be defined as required in schema 'A'. Arguments marked with @require are treated as non-required.",
+                    "code": "FIELD_WITH_MISSING_REQUIRED_ARGUMENT",
+                    "severity": "Error",
+                    "coordinate": "Collection.books(author:)",
+                    "member": "books",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

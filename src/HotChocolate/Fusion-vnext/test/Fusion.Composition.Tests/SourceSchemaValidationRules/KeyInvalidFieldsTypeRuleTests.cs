@@ -39,8 +39,17 @@ public sealed class KeyInvalidFieldsTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'User' in schema 'A' must specify a string value for the "
-                + "'fields' argument."
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' must specify a string value for the 'fields' argument.",
+                    "code": "KEY_INVALID_FIELDS_TYPE",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -57,11 +66,28 @@ public sealed class KeyInvalidFieldsTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'User' in schema 'A' must specify a string value for the "
-                + "'fields' argument.",
-
-                "A @key directive on type 'User' in schema 'A' must specify a string value for the "
-                + "'fields' argument."
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' must specify a string value for the 'fields' argument.",
+                    "code": "KEY_INVALID_FIELDS_TYPE",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' must specify a string value for the 'fields' argument.",
+                    "code": "KEY_INVALID_FIELDS_TYPE",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

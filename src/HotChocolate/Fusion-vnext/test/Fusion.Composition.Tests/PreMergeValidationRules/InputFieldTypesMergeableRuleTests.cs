@@ -91,8 +91,17 @@ public sealed class InputFieldTypesMergeableRuleTests : RuleTestBase
                 """
             ],
             [
-                "The input field 'AuthorInput.birthdate' has a different type shape in schema 'A' "
-                + "than it does in schema 'B'."
+                """
+                {
+                    "message": "The input field 'AuthorInput.birthdate' has a different type shape in schema 'A' than it does in schema 'B'.",
+                    "code": "INPUT_FIELD_TYPES_NOT_MERGEABLE",
+                    "severity": "Error",
+                    "coordinate": "AuthorInput.birthdate",
+                    "member": "birthdate",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -114,8 +123,17 @@ public sealed class InputFieldTypesMergeableRuleTests : RuleTestBase
                 """
             ],
             [
-                "The input field 'AuthorInput.birthdate' has a different type shape in schema 'A' "
-                + "than it does in schema 'B'."
+                """
+                {
+                    "message": "The input field 'AuthorInput.birthdate' has a different type shape in schema 'A' than it does in schema 'B'.",
+                    "code": "INPUT_FIELD_TYPES_NOT_MERGEABLE",
+                    "severity": "Error",
+                    "coordinate": "AuthorInput.birthdate",
+                    "member": "birthdate",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

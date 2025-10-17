@@ -38,8 +38,17 @@ public sealed class InvalidShareableUsageRuleTests : RuleTestBase
                 """
             ],
             [
-                "The interface field 'InventoryItem.sku' in schema 'A' must not be marked as "
-                + "shareable."
+                """
+                {
+                    "message": "The interface field 'InventoryItem.sku' in schema 'A' must not be marked as shareable.",
+                    "code": "INVALID_SHAREABLE_USAGE",
+                    "severity": "Error",
+                    "coordinate": "InventoryItem.sku",
+                    "member": "sku",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }
