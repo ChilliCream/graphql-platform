@@ -26,7 +26,7 @@
             "Kind": "Name",
             "Location": {
               "Start": 13,
-              "End": 22,
+              "End": 20,
               "Line": 1,
               "Column": 14
             },
@@ -60,7 +60,7 @@
                   "Kind": "Name",
                   "Location": {
                     "Start": 23,
-                    "End": 35,
+                    "End": 33,
                     "Line": 1,
                     "Column": 24
                   },
