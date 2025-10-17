@@ -1392,12 +1392,19 @@ public sealed partial class OperationPlanner
                                 if (seenSelections.Add(fieldWithDirective))
                                 {
                                     var insertIndex = newSelections.Count;
-                                    var fieldName = field.Name.Value;
+                                    var responseName =  field.Alias?.Value ?? field.Name.Value;
 
                                     for (var i = newSelections.Count - 1; i >= 0; i--)
                                     {
-                                        if (newSelections[i] is FieldNode existingField
-                                            && existingField.Name.Value.Equals(fieldName, StringComparison.Ordinal))
+                                        if (newSelections[i] is not FieldNode existingField)
+                                        {
+                                            continue;
+                                        }
+
+                                        var responseNameToCompare =
+                                            existingField.Alias?.Value ?? existingField.Name.Value;
+
+                                        if (responseNameToCompare.Equals(responseName, StringComparison.Ordinal))
                                         {
                                             insertIndex = i + 1;
                                             break;

@@ -1126,7 +1126,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
     /// Compares fields just by their alias, name and directives,
     /// and inline fragments just by their type condition and directives.
     /// </summary>
-    public sealed class ShallowSyntaxNodeComparer : IEqualityComparer<ISyntaxNode>
+    internal sealed class ShallowSyntaxNodeComparer : IEqualityComparer<ISyntaxNode>
     {
         public bool Equals(ISyntaxNode? x, ISyntaxNode? y)
         {
