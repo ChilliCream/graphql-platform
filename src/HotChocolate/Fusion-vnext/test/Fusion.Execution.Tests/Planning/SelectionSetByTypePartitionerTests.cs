@@ -676,9 +676,7 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
     private static SelectionSetByTypePartitionerResult Partition(FusionSchemaDefinition schema, DocumentNode document)
     {
         var rewriter = new DocumentRewriter(schema);
-        var operation = rewriter.RewriteDocument(document).Definitions
-            .OfType<OperationDefinitionNode>()
-            .Single();
+        var operation = rewriter.RewriteOperation(document);
         var index = SelectionSetIndexer.Create(operation);
 
         var nodeField = operation.SelectionSet.Selections

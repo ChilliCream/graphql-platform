@@ -31,17 +31,17 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         id: ID!
         name: String!
         review: Review
       }
-      
+
       type Query {
         productBySlug(slug: String!): Product
       }
-      
+
       type Review {
         id: ID!
       }
@@ -74,11 +74,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
         reviewById(id: ID!): Review @lookup
       }
-      
+
       type Review {
         id: ID!
         title: String!
@@ -92,8 +92,8 @@ operationPlan:
           productBySlug(slug: "product") {
             name
             review {
-              id @fusion__requirement
               title @skip(if: $skip)
+              id @fusion__requirement
             }
           }
         }

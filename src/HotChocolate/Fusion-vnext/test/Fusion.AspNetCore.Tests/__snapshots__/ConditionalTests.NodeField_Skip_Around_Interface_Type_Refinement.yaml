@@ -35,27 +35,27 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       interface Votable {
         viewerCanVote: Boolean!
       }
-      
+
       type Author implements Node & Votable {
         id: ID!
         username: String
         viewerCanVote: Boolean!
       }
-      
+
       type Discussion implements Node & Votable {
         id: ID!
         title: String
         viewerCanVote: Boolean!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }
