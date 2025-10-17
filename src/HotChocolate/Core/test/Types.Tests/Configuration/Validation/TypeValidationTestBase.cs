@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace HotChocolate.Configuration.Validation;
@@ -17,7 +18,7 @@ public abstract class TypeValidationTestBase
             .Create();
     }
 
-    public static void ExpectError(string schema, params Action<ISchemaError>[] errorAssert)
+    public static void ExpectError([StringSyntax("graphql")] string schema, params Action<ISchemaError>[] errorAssert)
     {
         try
         {

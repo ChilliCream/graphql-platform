@@ -25,20 +25,20 @@ internal static class MiddlewareFactory
     internal static Func<RequestDelegate, RequestDelegate> CreateWebSocketSubscriptionMiddleware(
         HttpRequestExecutorProxy executor)
     {
-        return next => context =>
+        return next =>
         {
             var middleware = new WebSocketSubscriptionMiddleware(next, executor);
-            return middleware.InvokeAsync(context);
+            return context => middleware.InvokeAsync(context);
         };
     }
 
     internal static Func<RequestDelegate, RequestDelegate> CreateHttpPostMiddleware(
         HttpRequestExecutorProxy executor)
     {
-        return next => context =>
+        return next =>
         {
             var middleware = new HttpPostMiddleware(next, executor);
-            return middleware.InvokeAsync(context);
+            return context => middleware.InvokeAsync(context);
         };
     }
 
@@ -46,20 +46,20 @@ internal static class MiddlewareFactory
         HttpRequestExecutorProxy executor,
         IOptions<FormOptions> formOptions)
     {
-        return next => context =>
+        return next =>
         {
             var middleware = new HttpMultipartMiddleware(next, executor, formOptions);
-            return middleware.InvokeAsync(context);
+            return context => middleware.InvokeAsync(context);
         };
     }
 
     internal static Func<RequestDelegate, RequestDelegate> CreateHttpGetMiddleware(
         HttpRequestExecutorProxy executor)
     {
-        return next => context =>
+        return next =>
         {
             var middleware = new HttpGetMiddleware(next, executor);
-            return middleware.InvokeAsync(context);
+            return context => middleware.InvokeAsync(context);
         };
     }
 
@@ -68,10 +68,10 @@ internal static class MiddlewareFactory
         PathString path,
         MiddlewareRoutingType routingType)
     {
-        return next => context =>
+        return next =>
         {
             var middleware = new HttpGetSchemaMiddleware(next, executor, path, routingType);
-            return middleware.InvokeAsync(context);
+            return context => middleware.InvokeAsync(context);
         };
     }
 }

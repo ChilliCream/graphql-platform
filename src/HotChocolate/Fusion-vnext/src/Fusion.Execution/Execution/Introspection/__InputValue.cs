@@ -53,7 +53,7 @@ internal sealed class __InputValue : ITypeResolverInterceptor
     {
         var field = context.Parent<IInputValueDefinition>();
         context.AddRuntimeResult(field.Type);
-        context.FieldResult.SetNextValue(context.RentInitializedObjectResult());
+        context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
     }
 
     public static void IsDeprecated(FieldContext context)

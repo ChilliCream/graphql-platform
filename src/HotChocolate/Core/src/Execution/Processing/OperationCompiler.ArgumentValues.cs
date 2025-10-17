@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -9,8 +10,7 @@ public sealed partial class OperationCompiler
 {
     private ArgumentMap? CoerceArgumentValues(
         ObjectField field,
-        FieldNode selection,
-        string responseName)
+        FieldNode selection)
     {
         if (field.Arguments.Count == 0)
         {
@@ -26,13 +26,7 @@ public sealed partial class OperationCompiler
                 argumentValue.Name.Value,
                 out var argument))
             {
-                arguments[argument.Name] =
-                    CreateArgumentValue(
-                        responseName,
-                        argument,
-                        argumentValue,
-                        argumentValue.Value,
-                        false);
+                arguments[argument.Name] = CreateArgumentValue(argument, argumentValue, argumentValue.Value, false);
             }
         }
 
@@ -41,13 +35,8 @@ public sealed partial class OperationCompiler
             var argument = field.Arguments[i];
             if (!arguments.ContainsKey(argument.Name))
             {
-                arguments[argument.Name] =
-                    CreateArgumentValue(
-                        responseName,
-                        argument,
-                        null,
-                        argument.DefaultValue ?? NullValueNode.Default,
-                        true);
+                var value = argument.DefaultValue ?? NullValueNode.Default;
+                arguments[argument.Name] = CreateArgumentValue(argument, null, value, true);
             }
         }
 
@@ -55,7 +44,6 @@ public sealed partial class OperationCompiler
     }
 
     private ArgumentValue CreateArgumentValue(
-        string responseName,
         Argument argument,
         ArgumentNode? argumentValue,
         IValueNode value,
@@ -73,7 +61,6 @@ public sealed partial class OperationCompiler
                 argument,
                 ErrorHelper.ArgumentNonNullError(
                     argumentValue,
-                    responseName,
                     validationResult));
         }
 
@@ -91,16 +78,9 @@ public sealed partial class OperationCompiler
             }
             catch (SerializationException ex)
             {
-                if (argumentValue is not null)
-                {
-                    return new ArgumentValue(
-                        argument,
-                        ErrorHelper.ArgumentValueIsInvalid(argumentValue, responseName, ex));
-                }
-
                 return new ArgumentValue(
                     argument,
-                    ErrorHelper.ArgumentDefaultValueIsInvalid(responseName, ex));
+                    ErrorHelper.ArgumentValueIsInvalid(argumentValue, ex));
             }
         }
 
@@ -140,6 +120,7 @@ public sealed partial class OperationCompiler
         Schema schema,
         ObjectField field,
         FieldNode selection,
+        Path? path,
         HashSet<string> processed,
         List<FieldMiddleware> pipelineComponents)
     {
@@ -152,7 +133,7 @@ public sealed partial class OperationCompiler
 
         // if we have selection directives we will inspect them and try to build a
         // pipeline from them if they have middleware components.
-        BuildDirectivePipeline(schema, selection, processed, pipelineComponents);
+        BuildDirectivePipeline(schema, selection, path, processed, pipelineComponents);
 
         // if we found middleware components on the selection directives we will build a new
         // pipeline.
@@ -200,6 +181,7 @@ public sealed partial class OperationCompiler
     private static void BuildDirectivePipeline(
         Schema schema,
         FieldNode selection,
+        Path? path,
         HashSet<string> processed,
         List<FieldMiddleware> pipelineComponents)
     {
@@ -210,10 +192,23 @@ public sealed partial class OperationCompiler
                 && directiveType.Middleware is not null
                 && (directiveType.IsRepeatable || processed.Add(directiveType.Name)))
             {
-                var directive = new Directive(
-                    directiveType,
-                    directiveNode,
-                    directiveType.Parse(directiveNode));
+                Debug.Assert(path != null, "path should not be null if a directive is present.");
+                Directive directive;
+                try
+                {
+                    directive = new Directive(
+                        directiveType,
+                        directiveNode,
+                        directiveType.Parse(directiveNode));
+                }
+                catch (SerializationException ex)
+                {
+                    throw new SerializationException(
+                        ErrorBuilder.FromError(ex.Errors[0]).SetPath(path).TryAddLocation(directiveNode).Build(),
+                        ex.Type,
+                        path);
+                }
+
                 var directiveMiddleware = directiveType.Middleware;
                 pipelineComponents.Add(next => directiveMiddleware(next, directive));
             }

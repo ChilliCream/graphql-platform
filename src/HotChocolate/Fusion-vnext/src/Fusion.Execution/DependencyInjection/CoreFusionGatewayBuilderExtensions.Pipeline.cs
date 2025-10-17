@@ -261,7 +261,6 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseDocumentValidation()
             .UseOperationPlanCache()
             .UseOperationPlan()
-            .UseOperationExecution()
             .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
             .UseOperationExecution();

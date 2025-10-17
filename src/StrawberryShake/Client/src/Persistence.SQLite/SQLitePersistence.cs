@@ -42,7 +42,7 @@ public class SQLitePersistence : IDisposable
 
     public async Task InitializeAsync()
     {
-        using var connection = new SqliteConnection(_connectionString);
+        await using var connection = new SqliteConnection(_connectionString);
         var database = new DatabaseHelper();
 
         await connection.OpenAsync().ConfigureAwait(false);
@@ -136,7 +136,7 @@ public class SQLitePersistence : IDisposable
                 || !_queue.Reader.Completion.IsCompleted)
             {
                 var update = await _queue.Reader.ReadAsync(cancellationToken);
-                using var connection = new SqliteConnection(_connectionString);
+                await using var connection = new SqliteConnection(_connectionString);
                 await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 if (update is EntityUpdate entityUpdate)

@@ -4,11 +4,15 @@
     <AssemblyName>HotChocolate.Fusion.Execution</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
     <LangVersion>preview</LangVersion>
+    <DefineConstants>$(DefineConstants);FUSION</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Tests.Shared" />
     <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Caching\src\Caching.Memory\HotChocolate.Caching.Memory.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Operation.Abstractions\HotChocolate.Execution.Operation.Abstractions.csproj" />
@@ -28,9 +32,163 @@
     <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
     <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Pipeline\HotChocolate.PersistedOperations.Pipeline.csproj" />
     <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities.Base36\HotChocolate.Utilities.Base36.csproj" />
     <ProjectReference Include="..\Fusion.Execution.Types\HotChocolate.Fusion.Execution.Types.csproj" />
     <ProjectReference Include="..\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
     <ProjectReference Include="..\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\DefaultGraphQLHttpClient.cs">
+      <Link>Transport\Http\DefaultGraphQLHttpClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\GraphQLHttpClient.cs">
+      <Link>Transport\Http\GraphQLHttpClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\GraphQLHttpClientExtensions.cs">
+      <Link>Transport\Http\GraphQLHttpClientExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\GraphQLHttpMethod.cs">
+      <Link>Transport\Http\GraphQLHttpMethod.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\GraphQLHttpRequest.cs">
+      <Link>Transport\Http\GraphQLHttpRequest.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\GraphQLHttpResponse.cs">
+      <Link>Transport\Http\GraphQLHttpResponse.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\GraphQLHttpSingleResultEnumerable.cs">
+      <Link>Transport\Http\GraphQLHttpSingleResultEnumerable.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\GraphQLHttpStreamException.cs">
+      <Link>Transport\Http\GraphQLHttpStreamException.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\HttpRequestHeadersExtensions.cs">
+      <Link>Transport\Http\HttpRequestHeadersExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\HttpTransportUtilities.cs">
+      <Link>Transport\Http\HttpTransportUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\OnHttpRequestMessageCreated.cs">
+      <Link>Transport\Http\OnHttpRequestMessageCreated.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\OnHttpResponseMessageReceived.cs">
+      <Link>Transport\Http\OnHttpResponseMessageReceived.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\JsonLines\JsonLinesReader.cs">
+      <Link>Transport\Http\JsonLines\JsonLinesReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseEventData.cs">
+      <Link>Transport\Http\Sse\SseEventData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseEventParser.cs">
+      <Link>Transport\Http\Sse\SseEventParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseEventType.cs">
+      <Link>Transport\Http\Sse\SseEventType.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseReader.cs">
+      <Link>Transport\Http\Sse\SseReader.cs</Link>
+    </Compile>
+
+    <Compile Update="Text\Json\SourceResultElement.ObjectEnumerator.cs">
+      <DependentUpon>SourceResultElement.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\SourceResultElement.ArrayEnumerator.cs">
+      <DependentUpon>SourceResultElement.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\CompositeResultDocument.WriteTo.cs">
+      <DependentUpon>CompositeResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\CompositeResultDocument.Cursor.cs">
+      <DependentUpon>CompositeResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\CompositeResultDocument.DbRow.cs">
+      <DependentUpon>CompositeResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\CompositeResultDocument.MetaDb.cs">
+      <DependentUpon>CompositeResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\CompositeResultDocument.Text.cs">
+      <DependentUpon>CompositeResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\CompositeResultDocument.TryGetProperty.cs">
+      <DependentUpon>CompositeResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\CompositeResultDocument.TryGetValue.cs">
+      <DependentUpon>CompositeResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\CompositeResultElement.ArrayEnumerator.cs">
+      <DependentUpon>CompositeResultElement.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\SourceResultDocument.DbRow.cs">
+      <DependentUpon>SourceResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\SourceResultDocument.MetaDb.cs">
+      <DependentUpon>SourceResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\CompositeResultElement.ObjectEnumerator.cs">
+      <DependentUpon>CompositeResultElement.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\SourceResultDocument.Parse.cs">
+      <DependentUpon>SourceResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\SourceResultDocument.Text.cs">
+      <DependentUpon>SourceResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\SourceResultDocument.TryGetProperty.cs">
+      <DependentUpon>SourceResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\SourceResultDocument.TryGetValue.cs">
+      <DependentUpon>SourceResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\SourceResultDocument.Cursor.cs">
+      <DependentUpon>SourceResultDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\SourceResultDocumentBuilder.MetaDb.cs">
+      <DependentUpon>SourceResultDocumentBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\SourceResultElementBuilder.cs">
+      <DependentUpon>SourceResultDocumentBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Text\Json\SourceResultElementBuilder.ArrayEnumerator.cs">
+      <DependentUpon>SourceResultDocumentBuilder.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\FusionExecutionResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FusionExecutionResources.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Properties\FusionExecutionResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FusionExecutionResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\HttpResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <Link>Transport\Http\HttpResources.Designer.cs</Link>
+      <DependentUpon>HttpResources.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="..\..\..\AspNetCore\src\Transport.Http\HttpResources.resx">
+      <Link>Transport\Http\HttpResources.resx</Link>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>HttpResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Planning\OperationPlanner.BuildExecutionTree.cs">
+      <DependentUpon>OperationPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Planning\OperationPlanner.ForwardVariableRewriter.cs">
+      <DependentUpon>OperationPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Planning\OperationPlanner.MergeSelectionSetRewriter.cs">
+      <DependentUpon>OperationPlanner.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

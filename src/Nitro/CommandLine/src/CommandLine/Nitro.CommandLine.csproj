@@ -13,8 +13,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.CommandLine\HotChocolate.Fusion.CommandLine.csproj" />
     <ProjectReference Include="..\CommandLine.Cloud\Nitro.CommandLine.Cloud.csproj" />
+    <ProjectReference Include="..\CommandLine.Fusion\Nitro.CommandLine.Fusion.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,132 @@
+title: SourceSchema_Request_Fails_For_Lookup_NonNull
+request:
+  document: |
+    {
+      topProduct {
+        price
+        name
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "topProduct",
+            "name"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Product {
+        id: Int!
+        price: Float!
+      }
+
+      type Query {
+        topProduct: Product!
+        nullableTopProduct: Product
+        topProducts: [Product!]!
+        productById(id: Int!): Product @lookup @internal
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_e24d93b6_1 {
+              topProduct {
+                price
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "topProduct": {
+                    "price": 13.99,
+                    "id": 1
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Product {
+        name: String!
+        id: Int!
+      }
+
+      type Query {
+        productById(id: Int!): Product @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_e24d93b6_2(
+              $__fusion_1_id: Int!
+            ) {
+              productById(id: $__fusion_1_id) {
+                name
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          statusCode: 500
+operationPlan:
+  operation:
+    - document: |
+        {
+          topProduct {
+            price
+            name
+            id @fusion__requirement
+          }
+        }
+      hash: e24d93b6245cedd878fff4452f5f16b9
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_e24d93b6_1 {
+          topProduct {
+            price
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_e24d93b6_2(
+          $__fusion_1_id: Int!
+        ) {
+          productById(id: $__fusion_1_id) {
+            name
+          }
+        }
+      source: $.productById
+      target: $.topProduct
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

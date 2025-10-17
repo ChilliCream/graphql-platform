@@ -989,11 +989,11 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Oneof Input Object `{0}` must only have nullable fields without default values. Edit your type and make the field{1} `{2}` nullable and remove any defaults..
+        ///   Looks up a localized string similar to OneOf Input Object `{0}` must only have nullable fields without default values. Edit your type and make the field{1} `{2}` nullable and remove any defaults..
         /// </summary>
-        internal static string ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults {
+        internal static string ErrorHelper_OneOfInputObjectMustHaveNullableFieldsWithoutDefaults {
             get {
-                return ResourceManager.GetString("ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_OneOfInputObjectMustHaveNullableFieldsWithoutDefaults", resourceCulture);
             }
         }
         
@@ -1547,7 +1547,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `@oneOf` directive is used within the type system definition language to indicate that an input object is a oneof input object..
+        ///   Looks up a localized string similar to The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object..
         /// </summary>
         internal static string OneOfDirectiveType_Description {
             get {
@@ -2420,6 +2420,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The value provided for `{0}` is not in a valid format..
+        /// </summary>
+        internal static string ThrowHelper_InvalidTypeConversion {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidTypeConversion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The {0}-directive is missing the if-argument..
         /// </summary>
         internal static string ThrowHelper_MissingDirectiveIfArgument {
@@ -2474,7 +2483,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to `null` was set to the field `{0}`of the Oneof Input Object `{1}`. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null..
+        ///   Looks up a localized string similar to `null` was set to the field `{0}`of the OneOf Input Object `{1}`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null..
         /// </summary>
         internal static string ThrowHelper_OneOfFieldIsNull {
             get {
@@ -2483,7 +2492,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to More than one field of the Oneof Input Object `{0}` is set. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null..
+        ///   Looks up a localized string similar to More than one field of the OneOf Input Object `{0}` is set. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null..
         /// </summary>
         internal static string ThrowHelper_OneOfMoreThanOneFieldSet {
             get {
@@ -2492,7 +2501,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Oneof Input Objects `{0}` require that exactly one field must be supplied and that field must not be `null`. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null..
+        ///   Looks up a localized string similar to The OneOf Input Objects `{0}` require that exactly one field must be supplied and that field must not be `null`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null..
         /// </summary>
         internal static string ThrowHelper_OneOfNoFieldSet {
             get {

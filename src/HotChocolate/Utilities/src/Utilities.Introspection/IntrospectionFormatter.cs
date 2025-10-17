@@ -317,8 +317,16 @@ internal static class IntrospectionFormatter
     }
 
     private static IReadOnlyList<DirectiveNode> CreateDeprecatedDirective(
-        bool isDeprecated, string deprecationReason)
+        bool isDeprecated,
+        string deprecationReason)
     {
+        const string defaultReason = "No longer supported.";
+
+        if (string.IsNullOrEmpty(deprecationReason))
+        {
+            deprecationReason = defaultReason;
+        }
+
         if (isDeprecated)
         {
             return new List<DirectiveNode>

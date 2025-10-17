@@ -1,0 +1,73 @@
+title: NodeField_Skip_On_NodeField
+request:
+  document: |
+    query testQuery(
+      $skip: Boolean!
+    ) {
+      node(id: "RGlzY3Vzc2lvbjox") @skip(if: $skip) {
+        __typename
+      }
+    }
+  variables: |
+    {
+      "skip": true
+    }
+response:
+  body: |
+    {
+      "data": {}
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Discussion implements Node {
+        id: ID!
+        title: String
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip: Boolean!
+        ) {
+          node(id: "RGlzY3Vzc2lvbjox") @skip(if: $skip) {
+            __typename
+          }
+        }
+      name: testQuery
+      hash: 8330925c615c3e7b08f3f278eea0c7a6
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "RGlzY3Vzc2lvbjox"
+      responseName: node
+      fallback: 2
+      conditions:
+        - variable: $skip
+          passingValue: false
+    - id: 2
+      type: Operation
+      operation: |
+        query testQuery_8330925c_2 {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            __typename
+          }
+        }
+      conditions:
+        - variable: $skip
+          passingValue: false
+      dependencies:
+        - id: 1

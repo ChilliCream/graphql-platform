@@ -123,7 +123,16 @@ internal sealed partial class SubscriptionExecutor
         {
             if (!_disposed)
             {
-                await _sourceStream.DisposeAsync().ConfigureAwait(false);
+                try
+                {
+                    await _sourceStream.DisposeAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    // We ignore any errors during disposal, so we can still
+                    // gracefully dispose the subscription scope.
+                }
+
                 _subscriptionScope?.Dispose();
                 _disposed = true;
             }

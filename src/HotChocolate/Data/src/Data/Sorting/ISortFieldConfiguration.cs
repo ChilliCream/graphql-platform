@@ -11,9 +11,9 @@ public interface ISortFieldConfiguration
     , IIgnoreConfiguration
     , IHasScope
 {
-    public MemberInfo? Member { get; }
+    MemberInfo? Member { get; }
 
-    public ISortFieldHandler? Handler { get; }
+    ISortFieldHandler? Handler { get; }
 
-    public Expression? Expression { get; }
+    Expression? Expression { get; }
 }

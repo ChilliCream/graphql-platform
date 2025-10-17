@@ -27,7 +27,7 @@ internal sealed class KeyFieldsHasArgumentsRule : IEventHandler<KeyFieldEvent>
                     keyField.Name,
                     keyFieldDeclaringType.Name,
                     keyDirective,
-                    type.Name,
+                    type,
                     schema));
         }
     }
