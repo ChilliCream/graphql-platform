@@ -2,8 +2,10 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -56,28 +58,32 @@ public abstract partial class FusionTestBase : IDisposable
                     new Uri("http://localhost:5000/graphql"),
                     onBeforeSend: (context, node, request) =>
                     {
-                        if (request.Content == null)
+                        if (request.Content is not {} content)
                         {
-                            return;
+                            throw new InvalidOperationException("Expected content to not be null.");
                         }
 
-                        var originalStream = request.Content.ReadAsStream();
+                        if (request.Content.Headers.ContentType is not { } contentType)
+                        {
+                            throw new InvalidOperationException("Expected Content-Type header to not be null.");
+                        }
 
-                        var document = JsonDocument.Parse(originalStream);
+                        var bodyStream = new MemoryStream();
+                        var originalStream = content.ReadAsStream();
 
-                        document.RootElement.TryGetProperty("query", out var queryProperty);
-                        document.RootElement.TryGetProperty("variables", out var variablesProperty);
+                        originalStream.CopyTo(bodyStream);
+                        bodyStream.Position = 0;
 
                         if (originalStream.CanSeek)
                         {
                             originalStream.Position = 0;
                         }
 
-                        GetSourceSchemaInteraction(context, node).Request =
-                            new SourceSchemaInteraction.SourceSchemaRequest
+                        GetSourceSchemaInteraction(context, node).Request
+                            = new SourceSchemaInteraction.RawSourceSchemaRequest
                             {
-                                Query = queryProperty,
-                                Variables = variablesProperty
+                                Body = bodyStream,
+                                ContentType = contentType
                             };
                     },
                     onAfterReceive: (context, node, response)
@@ -201,17 +207,16 @@ public abstract partial class FusionTestBase : IDisposable
 
     protected class SourceSchemaInteraction
     {
-        public SourceSchemaRequest? Request { get; set; }
+        public RawSourceSchemaRequest? Request { get; set; }
 
         public List<string> Results { get; } = [];
 
         public HttpStatusCode? StatusCode { get; set; }
 
-        public sealed class SourceSchemaRequest
+        public sealed class RawSourceSchemaRequest
         {
-            public JsonElement Query { get; init; }
-
-            public JsonElement Variables { get; init; }
+            public required MemoryStream Body { get; init; }
+            public required MediaTypeHeaderValue ContentType { get; init; }
         }
     }
 

@@ -431,12 +431,6 @@ internal sealed class FusionRequestExecutorManager
     {
         services.AddSingleton<IDocumentHashProvider>(static _ => new MD5DocumentHashProvider(HashFormat.Hex));
         services.AddSingleton(static sp => sp.GetRequiredService<ISchemaDefinition>().GetParserOptions());
-        services.AddSingleton<IDocumentCache>(
-            static sp =>
-            {
-                var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
-                return new DefaultDocumentCache(options.OperationDocumentCacheSize);
-            });
     }
 
     private void AddDocumentValidator(

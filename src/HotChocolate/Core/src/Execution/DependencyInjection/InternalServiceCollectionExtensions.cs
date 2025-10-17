@@ -21,16 +21,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 internal static class InternalServiceCollectionExtensions
 {
-    internal static IServiceCollection TryAddRequestExecutorFactoryOptionsMonitor(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton<IRequestExecutorOptionsMonitor>(
-            sp => new DefaultRequestExecutorOptionsMonitor(
-                sp.GetRequiredService<IOptionsMonitor<RequestExecutorSetup>>(),
-                sp.GetServices<IRequestExecutorOptionsProvider>()));
-        return services;
-    }
-
     internal static IServiceCollection TryAddVariableCoercion(
         this IServiceCollection services)
     {
@@ -156,16 +146,6 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddSingleton<IRequestExecutorProvider>(sp => sp.GetRequiredService<RequestExecutorManager>());
         services.TryAddSingleton<IRequestExecutorEvents>(sp => sp.GetRequiredService<RequestExecutorManager>());
         services.TryAddSingleton<IRequestExecutorManager>(sp => sp.GetRequiredService<RequestExecutorManager>());
-        return services;
-    }
-
-    internal static IServiceCollection TryAddDefaultCaches(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton(_ => new PreparedOperationCacheOptions { Capacity = 256 });
-        services.TryAddSingleton<IDocumentCache>(
-            sp => new DefaultDocumentCache(
-                sp.GetRequiredService<PreparedOperationCacheOptions>().Capacity));
         return services;
     }
 

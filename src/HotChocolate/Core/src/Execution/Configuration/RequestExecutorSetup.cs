@@ -134,4 +134,16 @@ public sealed class RequestExecutorSetup
             options.DefaultPipelineFactory = DefaultPipelineFactory;
         }
     }
+
+    internal SchemaOptions CreateSchemaOptions()
+    {
+        var options = new SchemaOptions();
+
+        foreach (var configure in SchemaOptionModifiers)
+        {
+            configure(options);
+        }
+
+        return options;
+    }
 }

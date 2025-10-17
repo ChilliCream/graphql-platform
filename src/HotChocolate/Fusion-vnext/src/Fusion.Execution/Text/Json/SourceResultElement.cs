@@ -358,7 +358,7 @@ public readonly partial struct SourceResultElement
 
     /// <summary>Gets the current JSON number as an <see cref="int"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="int"/>.</exception>
-    public int GetInt32() => TryGetInt32(out var value)  ? value : throw ThrowHelper.FormatException();
+    public int GetInt32() => TryGetInt32(out var value) ? value : throw ThrowHelper.FormatException();
 
     /// <summary>Tries to get the current JSON number as a <see cref="uint"/> without throwing.</summary>
     public bool TryGetUInt32(out uint value)
@@ -466,6 +466,12 @@ public readonly partial struct SourceResultElement
     {
         CheckValidInstance();
         return _parent.GetRawValue(_cursor, includeQuotes: true);
+    }
+
+    public ReadOnlyMemory<byte> GetRawValueAsMemory()
+    {
+        CheckValidInstance();
+        return _parent.GetRawValueAsMemory(_cursor);
     }
 
     internal ReadOnlySpan<byte> ValueSpan
