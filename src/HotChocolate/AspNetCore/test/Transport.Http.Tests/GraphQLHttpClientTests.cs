@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Language;

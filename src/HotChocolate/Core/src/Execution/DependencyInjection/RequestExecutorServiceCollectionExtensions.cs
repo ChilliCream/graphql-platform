@@ -1,7 +1,6 @@
 using GreenDonut;
 using HotChocolate;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;

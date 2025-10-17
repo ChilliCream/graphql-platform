@@ -14,7 +14,7 @@ public static class GraphQLServerHelper
     {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseTestServer();
-         builder.Logging.ClearProviders();
+        builder.Logging.ClearProviders();
 
         builder
             .AddGraphQL()

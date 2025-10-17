@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.IO.Pipelines;
 
 namespace HotChocolate.Execution;
 

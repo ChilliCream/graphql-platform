@@ -509,7 +509,7 @@ public readonly partial struct SourceResultElement
         if (TokenType == JsonTokenType.Null)
         {
 #pragma warning disable CA2265
-            return utf8Text.Slice(0, 0) == default;
+            return utf8Text[..0] == default;
 #pragma warning restore CA2265
         }
         return TextEqualsHelper(utf8Text, isPropertyName: false, shouldUnescape: true);
@@ -523,7 +523,7 @@ public readonly partial struct SourceResultElement
         if (TokenType == JsonTokenType.Null)
         {
 #pragma warning disable CA2265
-            return text.Slice(0, 0) == default;
+            return text[..0] == default;
 #pragma warning restore CA2265
         }
         return TextEqualsHelper(text, isPropertyName: false);

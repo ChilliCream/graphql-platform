@@ -1,4 +1,3 @@
-using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
