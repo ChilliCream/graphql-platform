@@ -1,40 +1,61 @@
-using System;
-using System.Collections.Generic;
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
-using HotChocolate.Fusion;
-using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
-using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
-using Microsoft.Extensions.ObjectPool;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Execution;
 
-[MemoryDiagnoser]
-[SimpleJob(RuntimeMoniker.Net10_0, warmupCount: 3, iterationCount: 1000)]
-[MarkdownExporter]
-public class PlanningBenchmark
+// If one of these tests fails, when fixing, you also need to update the
+// FusionBenchmarkBase.cs in Fusion.Execution.Benchmarks.
+public class FusionBenchmarkTests : FusionTestBase
 {
-    private const string Id = "123456789101112";
-
-    private DocumentRewriter _documentRewriter = null!;
-    private OperationPlanner _planner = null!;
-
-    private DocumentNode _simpleQueryWithRequirements = null!;
-    private DocumentNode _complexDocument = null!;
-    private DocumentNode _conditionalRedundancyDocument = null!;
-
-    [GlobalSetup]
-    public void GlobalSetup()
+    [Fact]
+    public void Simple_Query_With_Requirements()
     {
-        _simpleQueryWithRequirements = CreateSimpleQueryWithRequirementsDocument();
-        _complexDocument = CreateComplexDocument();
-        _conditionalRedundancyDocument = CreateConditionalRedundancyDocument();
+        // arrange
+        var schema = CreateSchema();
 
+        var doc = CreateSimpleQueryWithRequirementsDocument().ToString();
+
+        // act
+        var plan = PlanOperation(schema, doc);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Complex_Query()
+    {
+        // arrange
+        var schema = CreateSchema();
+
+        var doc = CreateComplexDocument().ToString();
+
+        // act
+        var plan = PlanOperation(schema, doc);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Conditional_Redundancy_Query()
+    {
+        // arrange
+        var schema = CreateSchema();
+
+        var doc = CreateConditionalRedundancyDocument().ToString();
+
+        // act
+        var plan = PlanOperation(schema, doc);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    private FusionSchemaDefinition CreateSchema()
+    {
         var sourceSchemas = CreateSourceSchemas();
 
         var compositionLog = new CompositionLog();
@@ -51,39 +72,7 @@ public class PlanningBenchmark
         }
 
         var compositeSchemaDoc = result.Value.ToSyntaxNode();
-        var schema = FusionSchemaDefinition.Create(compositeSchemaDoc);
-
-        var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
-        var operationCompiler = new OperationCompiler(schema, pool);
-
-        _documentRewriter = new DocumentRewriter(schema);
-        _planner = new OperationPlanner(schema, operationCompiler);
-    }
-
-    [Benchmark]
-    public OperationPlan Plan_Simple_Query_With_Requirements()
-    {
-        return Plan(_simpleQueryWithRequirements);
-    }
-
-    [Benchmark]
-    public OperationPlan Plan_Complex_Query()
-    {
-        return Plan(_complexDocument);
-    }
-
-    [Benchmark]
-    public OperationPlan Plan_ConditionalRedundancy_Query()
-    {
-        return Plan(_conditionalRedundancyDocument);
-    }
-
-    private OperationPlan Plan(DocumentNode document)
-    {
-        var operation = _documentRewriter.RewriteOperation(document);
-
-        return _planner.CreatePlan(Id, Id, Id, operation);
+        return FusionSchemaDefinition.Create(compositeSchemaDoc);
     }
 
     private List<SourceSchemaText> CreateSourceSchemas()

@@ -1,83 +1,18 @@
+using System;
+using System.Collections.Generic;
+using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Execution;
+namespace Fusion.Execution.Benchmarks;
 
-// If one of these tests fails, when fixing, you also need to update the benchmarks
-// in PlanningBenchmark.cs in the Fusion.Execution.Benchmarks project.
-public class PlanningBenchmarkTests : FusionTestBase
+public abstract class FusionBenchmarkBase
 {
-    [Fact]
-    public void Simple_Query_With_Requirements()
+    protected static FusionSchemaDefinition CreateFusionSchema()
     {
-        // arrange
-        var schema = CreateSchema();
-
-        var doc = CreateSimpleQueryWithRequirementsDocument().ToString();
-
-        // act
-        var plan = PlanOperation(schema, doc);
-
-        // assert
-        MatchSnapshot(plan);
-    }
-
-    [Fact]
-    public void Complex_Query()
-    {
-        // arrange
-        var schema = CreateSchema();
-
-        var doc = CreateComplexDocument().ToString();
-
-        // act
-        var plan = PlanOperation(schema, doc);
-
-        // assert
-        MatchSnapshot(plan);
-    }
-
-    [Fact]
-    public void Conditional_Redundancy_Query()
-    {
-        // arrange
-        var schema = CreateSchema();
-
-        var doc = CreateConditionalRedundancyDocument().ToString();
-
-        // act
-        var plan = PlanOperation(schema, doc);
-
-        // assert
-        MatchSnapshot(plan);
-    }
-
-    private FusionSchemaDefinition CreateSchema()
-    {
-        var sourceSchemas = CreateSourceSchemas();
-
-        var compositionLog = new CompositionLog();
-        var composerOptions = new SchemaComposerOptions
-        {
-            EnableGlobalObjectIdentification = true
-        };
-        var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
-        var result = composer.Compose();
-
-        if (!result.IsSuccess)
-        {
-            throw new InvalidOperationException(result.Errors[0].Message);
-        }
-
-        var compositeSchemaDoc = result.Value.ToSyntaxNode();
-        return FusionSchemaDefinition.Create(compositeSchemaDoc);
-    }
-
-    private List<SourceSchemaText> CreateSourceSchemas()
-    {
-        return [
+        List<SourceSchemaText> sourceSchemas = [
             new SourceSchemaText(
                 "products",
                 """
@@ -242,9 +177,22 @@ public class PlanningBenchmarkTests : FusionTestBase
                 }
                 """)
         ];
+
+        var compositionLog = new CompositionLog();
+        var composerOptions = new SchemaComposerOptions { EnableGlobalObjectIdentification = true };
+        var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
+        var result = composer.Compose();
+
+        if (!result.IsSuccess)
+        {
+            throw new InvalidOperationException(result.Errors[0].Message);
+        }
+
+        var compositeSchemaDoc = result.Value.ToSyntaxNode();
+        return FusionSchemaDefinition.Create(compositeSchemaDoc);
     }
 
-    private DocumentNode CreateSimpleQueryWithRequirementsDocument()
+    protected static DocumentNode CreateSimpleQueryWithRequirementsDocument()
     {
         return Utf8GraphQLParser.Parse(
             """
@@ -265,7 +213,7 @@ public class PlanningBenchmarkTests : FusionTestBase
             """);
     }
 
-    private DocumentNode CreateComplexDocument()
+    protected static DocumentNode CreateComplexDocument()
     {
        return Utf8GraphQLParser.Parse(
            """
@@ -613,7 +561,7 @@ public class PlanningBenchmarkTests : FusionTestBase
            """);
     }
 
-    private DocumentNode CreateConditionalRedundancyDocument()
+    protected static DocumentNode CreateConditionalRedundancyDocument()
     {
         return Utf8GraphQLParser.Parse(
             """
