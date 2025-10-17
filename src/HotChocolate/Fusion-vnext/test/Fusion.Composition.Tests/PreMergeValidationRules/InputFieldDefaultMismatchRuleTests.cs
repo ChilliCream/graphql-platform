@@ -122,8 +122,17 @@ public sealed class InputFieldDefaultMismatchRuleTests : RuleTestBase
                 """
             ],
             [
-                "The default value '10' of input field 'BookFilter.minPageCount' in schema 'A' "
-                + "differs from the default value of '20' in schema 'B'."
+                """
+                {
+                    "message": "The default value '10' of input field 'BookFilter.minPageCount' in schema 'A' differs from the default value of '20' in schema 'B'.",
+                    "code": "INPUT_FIELD_DEFAULT_MISMATCH",
+                    "severity": "Error",
+                    "coordinate": "BookFilter.minPageCount",
+                    "member": "minPageCount",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -153,8 +162,17 @@ public sealed class InputFieldDefaultMismatchRuleTests : RuleTestBase
                 """
             ],
             [
-                "The default value '10' of input field 'BookFilter.minPageCount' in schema 'A' "
-                + "differs from the default value of '20' in schema 'C'."
+                """
+                {
+                    "message": "The default value '10' of input field 'BookFilter.minPageCount' in schema 'A' differs from the default value of '20' in schema 'C'.",
+                    "code": "INPUT_FIELD_DEFAULT_MISMATCH",
+                    "severity": "Error",
+                    "coordinate": "BookFilter.minPageCount",
+                    "member": "minPageCount",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -184,11 +202,28 @@ public sealed class InputFieldDefaultMismatchRuleTests : RuleTestBase
                 """
             ],
             [
-                "The default value '10' of input field 'BookFilter.minPageCount' in schema 'A' "
-                + "differs from the default value of '20' in schema 'B'.",
-
-                "The default value '20' of input field 'BookFilter.minPageCount' in schema 'B' "
-                + "differs from the default value of '30' in schema 'C'."
+                """
+                {
+                    "message": "The default value '10' of input field 'BookFilter.minPageCount' in schema 'A' differs from the default value of '20' in schema 'B'.",
+                    "code": "INPUT_FIELD_DEFAULT_MISMATCH",
+                    "severity": "Error",
+                    "coordinate": "BookFilter.minPageCount",
+                    "member": "minPageCount",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The default value '20' of input field 'BookFilter.minPageCount' in schema 'B' differs from the default value of '30' in schema 'C'.",
+                    "code": "INPUT_FIELD_DEFAULT_MISMATCH",
+                    "severity": "Error",
+                    "coordinate": "BookFilter.minPageCount",
+                    "member": "minPageCount",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

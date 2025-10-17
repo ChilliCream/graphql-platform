@@ -120,8 +120,17 @@ public sealed class InterfaceFieldNoImplementationRuleTests : RuleTestBase
                 """
             ],
             [
-                "The merged object type 'GuestUser' must implement the field 'email' on interface "
-                + "'User'."
+                """
+                {
+                    "message": "The merged object type 'GuestUser' must implement the field 'email' on interface 'User'.",
+                    "code": "INTERFACE_FIELD_NO_IMPLEMENTATION",
+                    "severity": "Error",
+                    "coordinate": "GuestUser",
+                    "member": "GuestUser",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

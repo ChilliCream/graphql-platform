@@ -1104,6 +1104,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The required field &apos;{0}&apos; must not be defined in schema &apos;{1}&apos;..
+        /// </summary>
+        internal static string RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema {
+            get {
+                return ResourceManager.GetString("RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cycle detected in requirement: {0} -&gt; {1}..
         /// </summary>
         internal static string RequirementsValidator_CycleDetected {

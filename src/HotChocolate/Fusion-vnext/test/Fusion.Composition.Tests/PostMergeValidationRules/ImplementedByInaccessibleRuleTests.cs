@@ -105,8 +105,17 @@ public sealed class ImplementedByInaccessibleRuleTests : RuleTestBase
                 """
             ],
             [
-                "The field 'User.id' implementing interface field 'Node.id' is inaccessible in the "
-                + "composed schema."
+                """
+                {
+                    "message": "The field 'User.id' implementing interface field 'Node.id' is inaccessible in the composed schema.",
+                    "code": "IMPLEMENTED_BY_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "User.id",
+                    "member": "id",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -128,8 +137,17 @@ public sealed class ImplementedByInaccessibleRuleTests : RuleTestBase
                 """
             ],
             [
-                "The field 'User.id' implementing interface field 'Node.id' is inaccessible in the "
-                + "composed schema."
+                """
+                {
+                    "message": "The field 'User.id' implementing interface field 'Node.id' is inaccessible in the composed schema.",
+                    "code": "IMPLEMENTED_BY_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "User.id",
+                    "member": "id",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

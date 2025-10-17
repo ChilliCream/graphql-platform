@@ -39,8 +39,17 @@ public sealed class ProvidesInvalidSyntaxRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @provides directive on field 'User.address' in schema 'A' contains invalid "
-                + "syntax in the 'fields' argument."
+                """
+                {
+                    "message": "The @provides directive on field 'User.address' in schema 'A' contains invalid syntax in the 'fields' argument.",
+                    "code": "PROVIDES_INVALID_SYNTAX",
+                    "severity": "Error",
+                    "coordinate": "User.address",
+                    "member": "provides",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

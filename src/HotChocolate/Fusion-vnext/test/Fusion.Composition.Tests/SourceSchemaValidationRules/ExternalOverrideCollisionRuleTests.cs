@@ -52,8 +52,17 @@ public sealed class ExternalOverrideCollisionRuleTests : RuleTestBase
                 """
             ],
             [
-                "The external field 'Payment.amount' in schema 'B' must not be annotated with the "
-                + "@override directive."
+                """
+                {
+                    "message": "The external field 'Payment.amount' in schema 'B' must not be annotated with the @override directive.",
+                    "code": "EXTERNAL_OVERRIDE_COLLISION",
+                    "severity": "Error",
+                    "coordinate": "Payment.amount",
+                    "member": "amount",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

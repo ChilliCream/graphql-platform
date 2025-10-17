@@ -37,8 +37,17 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'User' in schema 'A' references field 'name', which must "
-                + "not include directive applications."
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' references field 'name', which must not include directive applications.",
+                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARG",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -64,8 +73,17 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'User' in schema 'A' references field 'name.firstName', "
-                + "which must not include directive applications."
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' references field 'name.firstName', which must not include directive applications.",
+                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARG",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -85,11 +103,28 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'User' in schema 'A' references field 'id', which must "
-                + "not include directive applications.",
-
-                "A @key directive on type 'User' in schema 'A' references field 'name', which must "
-                + "not include directive applications."
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' references field 'id', which must not include directive applications.",
+                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARG",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' references field 'name', which must not include directive applications.",
+                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARG",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

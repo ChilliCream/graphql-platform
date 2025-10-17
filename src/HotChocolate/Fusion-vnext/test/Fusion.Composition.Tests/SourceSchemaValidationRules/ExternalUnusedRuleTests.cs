@@ -132,8 +132,17 @@ public sealed class ExternalUnusedRuleTests : RuleTestBase
                 """
             ],
             [
-                "The external field 'Product.name' in schema 'A' is not referenced by a @provides "
-                + "directive in the schema."
+                """
+                {
+                    "message": "The external field 'Product.name' in schema 'A' is not referenced by a @provides directive in the schema.",
+                    "code": "EXTERNAL_UNUSED",
+                    "severity": "Error",
+                    "coordinate": "Product.name",
+                    "member": "name",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -156,8 +165,17 @@ public sealed class ExternalUnusedRuleTests : RuleTestBase
                 """
             ],
             [
-                "The external field 'Product.title' in schema 'A' is not referenced by a @provides "
-                + "directive in the schema."
+                """
+                {
+                    "message": "The external field 'Product.title' in schema 'A' is not referenced by a @provides directive in the schema.",
+                    "code": "EXTERNAL_UNUSED",
+                    "severity": "Error",
+                    "coordinate": "Product.title",
+                    "member": "title",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -187,11 +205,28 @@ public sealed class ExternalUnusedRuleTests : RuleTestBase
                 """
             ],
             [
-                "The external field 'Product.sku' in schema 'A' is not referenced by a @provides "
-                + "directive in the schema.",
-
-                "The external field 'ProductVariation.size' in schema 'A' is not referenced by a "
-                + "@provides directive in the schema."
+                """
+                {
+                    "message": "The external field 'Product.sku' in schema 'A' is not referenced by a @provides directive in the schema.",
+                    "code": "EXTERNAL_UNUSED",
+                    "severity": "Error",
+                    "coordinate": "Product.sku",
+                    "member": "sku",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The external field 'ProductVariation.size' in schema 'A' is not referenced by a @provides directive in the schema.",
+                    "code": "EXTERNAL_UNUSED",
+                    "severity": "Error",
+                    "coordinate": "ProductVariation.size",
+                    "member": "size",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -238,11 +273,28 @@ public sealed class ExternalUnusedRuleTests : RuleTestBase
                 """"
             ],
             [
-                "The external field 'Book.author' in schema 'A' is not referenced by a @provides "
-                + "directive in the schema.",
-
-                "The external field 'Clothing.size' in schema 'A' is not referenced by a @provides "
-                + "directive in the schema."
+                """
+                {
+                    "message": "The external field 'Book.author' in schema 'A' is not referenced by a @provides directive in the schema.",
+                    "code": "EXTERNAL_UNUSED",
+                    "severity": "Error",
+                    "coordinate": "Book.author",
+                    "member": "author",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The external field 'Clothing.size' in schema 'A' is not referenced by a @provides directive in the schema.",
+                    "code": "EXTERNAL_UNUSED",
+                    "severity": "Error",
+                    "coordinate": "Clothing.size",
+                    "member": "size",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

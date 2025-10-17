@@ -42,7 +42,17 @@ public sealed class LookupReturnsNonNullableTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "The lookup field 'Query.userById' in schema 'A' should return a nullable type."
+                """
+                {
+                    "message": "The lookup field 'Query.userById' in schema 'A' should return a nullable type.",
+                    "code": "LOOKUP_RETURNS_NON_NULLABLE_TYPE",
+                    "severity": "Warning",
+                    "coordinate": "Query.userById",
+                    "member": "userById",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

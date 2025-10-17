@@ -43,8 +43,17 @@ public sealed class IsInvalidUsageRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @is directive on argument 'Query.personById(id:)' in schema 'A' is invalid "
-                + "because the declaring field is not a lookup field."
+                """
+                {
+                    "message": "The @is directive on argument 'Query.personById(id:)' in schema 'A' is invalid because the declaring field is not a lookup field.",
+                    "code": "IS_INVALID_USAGE",
+                    "severity": "Error",
+                    "coordinate": "Query.personById(id:)",
+                    "member": "is",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

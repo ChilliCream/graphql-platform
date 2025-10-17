@@ -482,6 +482,7 @@ internal static class LogEntryHelper
             .SetTypeSystemMember(isDirective)
             .SetSchema(sourceSchema)
             .SetExtension("errors", errors)
+            .SetExtensionsFormatter(ErrorFormatter)
             .Build();
     }
 
@@ -604,20 +605,15 @@ internal static class LogEntryHelper
         MutableSchemaDefinition schema,
         ImmutableArray<string> errors)
     {
-        var message =
-            string.Format(
-                LogEntryHelper_KeyInvalidFields,
-                type.Name,
-                schema.Name)
-            + $"{Environment.NewLine}- " + string.Join($"{Environment.NewLine}- ", errors);
-
         return LogEntryBuilder.New()
-            .SetMessage(message)
+            .SetMessage(LogEntryHelper_KeyInvalidFields, type.Name, schema.Name)
             .SetCode(LogEntryCodes.KeyInvalidFields)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
             .SetTypeSystemMember(keyDirective)
             .SetSchema(schema)
+            .SetExtension("errors", errors)
+            .SetExtensionsFormatter(ErrorFormatter)
             .Build();
     }
 
@@ -854,6 +850,7 @@ internal static class LogEntryHelper
             .SetTypeSystemMember(providesDirective)
             .SetSchema(schema)
             .SetExtension("errors", errors)
+            .SetExtensionsFormatter(ErrorFormatter)
             .Build();
     }
 
@@ -942,6 +939,7 @@ internal static class LogEntryHelper
             .SetTypeSystemMember(requireDirective)
             .SetSchema(sourceSchema)
             .SetExtension("errors", errors)
+            .SetExtensionsFormatter(ErrorFormatter)
             .Build();
     }
 
@@ -1032,5 +1030,11 @@ internal static class LogEntryHelper
             .SetTypeSystemMember(type)
             .SetSchema(schemaA)
             .Build();
+    }
+
+    private static string ErrorFormatter(ImmutableDictionary<string, object?> extensions)
+    {
+        var errors = (IEnumerable<string>)extensions["errors"]!;
+        return "- " + string.Join($"{Environment.NewLine}- ", errors);
     }
 }

@@ -49,7 +49,16 @@ public sealed class RootSubscriptionUsedRuleTests : RuleTestBase
                 """
             ],
             [
-                "The root subscription type in schema 'A' must be named 'Subscription'."
+                """
+                {
+                    "message": "The root subscription type in schema 'A' must be named 'Subscription'.",
+                    "code": "ROOT_SUBSCRIPTION_USED",
+                    "severity": "Error",
+                    "member": "A",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -62,7 +71,16 @@ public sealed class RootSubscriptionUsedRuleTests : RuleTestBase
                 "scalar Subscription"
             ],
             [
-                "The root subscription type in schema 'A' must be named 'Subscription'."
+                """
+                {
+                    "message": "The root subscription type in schema 'A' must be named 'Subscription'.",
+                    "code": "ROOT_SUBSCRIPTION_USED",
+                    "severity": "Error",
+                    "member": "A",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

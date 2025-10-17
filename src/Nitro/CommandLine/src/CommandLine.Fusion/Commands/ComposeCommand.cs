@@ -605,9 +605,17 @@ internal sealed class ComposeCommand : Command
 
             var message = $"{emoji} [{abbreviatedSeverity}] {FormatMultilineMessage(entry.Message)} ({entry.Code})";
 
+            if (entry.ExtensionsFormatter is not null)
+            {
+                message +=
+                    Environment.NewLine
+                    + "   "
+                    + FormatMultilineMessage(entry.ExtensionsFormatter.Invoke(entry.Extensions));
+            }
+
             if (writeAsGraphQLComments)
             {
-                message = $"# {message}";
+                message = $"# {message.Replace(Environment.NewLine, Environment.NewLine + "# ")}";
             }
 
             writer.WriteLine(message);

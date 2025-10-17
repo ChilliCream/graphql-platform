@@ -52,8 +52,17 @@ public sealed class ExternalProvidesCollisionRuleTests : RuleTestBase
                 """
             ],
             [
-                "The external field 'Invoice.description' in schema 'B' must not be annotated with "
-                + "the @provides directive."
+                """
+                {
+                    "message": "The external field 'Invoice.description' in schema 'B' must not be annotated with the @provides directive.",
+                    "code": "EXTERNAL_PROVIDES_COLLISION",
+                    "severity": "Error",
+                    "coordinate": "Invoice.description",
+                    "member": "description",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

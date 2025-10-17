@@ -45,8 +45,17 @@ public sealed class RequireInvalidSyntaxRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @require directive on argument 'User.profile(name:)' in schema 'A' contains "
-                + "invalid syntax in the 'field' argument."
+                """
+                {
+                    "message": "The @require directive on argument 'User.profile(name:)' in schema 'A' contains invalid syntax in the 'field' argument.",
+                    "code": "REQUIRE_INVALID_SYNTAX",
+                    "severity": "Error",
+                    "coordinate": "User.profile(name:)",
+                    "member": "require",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

@@ -36,8 +36,17 @@ public sealed class KeyFieldsHasArgumentsRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'User' in schema 'A' references field 'User.tags', which "
-                + "must not have arguments."
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' references field 'User.tags', which must not have arguments.",
+                    "code": "KEY_FIELDS_HAS_ARGS",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -59,8 +68,17 @@ public sealed class KeyFieldsHasArgumentsRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'User' in schema 'A' references field 'UserInfo.tags', "
-                + "which must not have arguments."
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' references field 'UserInfo.tags', which must not have arguments.",
+                    "code": "KEY_FIELDS_HAS_ARGS",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -78,11 +96,28 @@ public sealed class KeyFieldsHasArgumentsRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'User' in schema 'A' references field 'User.id', which "
-                + "must not have arguments.",
-
-                "A @key directive on type 'User' in schema 'A' references field 'User.tags', which "
-                + "must not have arguments."
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' references field 'User.id', which must not have arguments.",
+                    "code": "KEY_FIELDS_HAS_ARGS",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "A @key directive on type 'User' in schema 'A' references field 'User.tags', which must not have arguments.",
+                    "code": "KEY_FIELDS_HAS_ARGS",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

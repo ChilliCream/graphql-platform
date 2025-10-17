@@ -67,8 +67,19 @@ public sealed class KeyInvalidFieldsRuleTests : RuleTestBase
             ],
             [
                 """
-                A @key directive on type 'Product' in schema 'A' specifies an invalid field selection against the composed schema.
-                - The field 'id' does not exist on the type 'Product'.
+                {
+                    "message": "A @key directive on type 'Product' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "KEY_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Product",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The field 'id' does not exist on the type 'Product'."
+                        ]
+                    }
+                }
                 """
             ]);
     }
@@ -87,9 +98,20 @@ public sealed class KeyInvalidFieldsRuleTests : RuleTestBase
             ],
             [
                 """
-                A @key directive on type 'Product' in schema 'A' specifies an invalid field selection against the composed schema.
-                - The field 'id' does not exist on the type 'Product'.
-                - The field 'name' does not exist on the type 'Product'.
+                {
+                    "message": "A @key directive on type 'Product' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "KEY_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Product",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The field 'id' does not exist on the type 'Product'.",
+                            "The field 'name' does not exist on the type 'Product'."
+                        ]
+                    }
+                }
                 """
             ]);
     }

@@ -95,7 +95,17 @@ public sealed class NoQueriesRuleTests : RuleTestBase
                 """
             ],
             [
-                "The merged query type has no accessible fields."
+                """
+                {
+                    "message": "The merged query type has no accessible fields.",
+                    "code": "NO_QUERIES",
+                    "severity": "Error",
+                    "coordinate": "Query",
+                    "member": "Query",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

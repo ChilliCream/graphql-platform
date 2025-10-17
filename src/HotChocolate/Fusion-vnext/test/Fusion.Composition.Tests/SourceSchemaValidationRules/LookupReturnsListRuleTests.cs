@@ -42,7 +42,17 @@ public sealed class LookupReturnsListRuleTests : RuleTestBase
                 """
             ],
             [
-                "The lookup field 'Query.usersByIds' in schema 'A' must not return a list."
+                """
+                {
+                    "message": "The lookup field 'Query.usersByIds' in schema 'A' must not return a list.",
+                    "code": "LOOKUP_RETURNS_LIST",
+                    "severity": "Error",
+                    "coordinate": "Query.usersByIds",
+                    "member": "usersByIds",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -64,7 +74,17 @@ public sealed class LookupReturnsListRuleTests : RuleTestBase
                 """
             ],
             [
-                "The lookup field 'Query.usersByIds' in schema 'A' must not return a list."
+                """
+                {
+                    "message": "The lookup field 'Query.usersByIds' in schema 'A' must not return a list.",
+                    "code": "LOOKUP_RETURNS_LIST",
+                    "severity": "Error",
+                    "coordinate": "Query.usersByIds",
+                    "member": "usersByIds",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

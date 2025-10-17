@@ -71,8 +71,21 @@ public sealed class IsInvalidFieldsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @is directive on argument 'Query.personById(id:)' in schema 'A' specifies an "
-                + "invalid field selection against the composed schema."
+                """
+                {
+                    "message": "The @is directive on argument 'Query.personById(id:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "IS_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Query.personById(id:)",
+                    "member": "is",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The field 'unknownField' does not exist on the type 'Person'."
+                        ]
+                    }
+                }
+                """
             ]);
     }
 
@@ -96,8 +109,21 @@ public sealed class IsInvalidFieldsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @is directive on argument 'Query.personById(id:)' in schema 'A' specifies an "
-                + "invalid field selection against the composed schema."
+                """
+                {
+                    "message": "The @is directive on argument 'Query.personById(id:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "IS_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Query.personById(id:)",
+                    "member": "is",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The field 'unknownField' does not exist on the type 'Person'."
+                        ]
+                    }
+                }
+                """
             ]);
     }
 
@@ -121,8 +147,21 @@ public sealed class IsInvalidFieldsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @is directive on argument 'Query.personById(id:)' in schema 'A' specifies an "
-                + "invalid field selection against the composed schema."
+                """
+                {
+                    "message": "The @is directive on argument 'Query.personById(id:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "IS_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Query.personById(id:)",
+                    "member": "is",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The type condition in path '<SpecialPerson>.id' is invalid. Type 'SpecialPerson' does not exist."
+                        ]
+                    }
+                }
+                """
             ]);
     }
 
@@ -145,8 +184,21 @@ public sealed class IsInvalidFieldsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @is directive on argument 'Query.personById(id:)' in schema 'A' specifies an "
-                + "invalid field selection against the composed schema."
+                """
+                {
+                    "message": "The @is directive on argument 'Query.personById(id:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "IS_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Query.personById(id:)",
+                    "member": "is",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The field 'id' is of type 'ID!' instead of the expected input type 'Int!'."
+                        ]
+                    }
+                }
+                """
             ]);
     }
 
@@ -169,8 +221,21 @@ public sealed class IsInvalidFieldsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @is directive on argument 'Query.personsById(id:)' in schema 'A' specifies an "
-                + "invalid field selection against the composed schema."
+                """
+                {
+                    "message": "The @is directive on argument 'Query.personsById(id:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "IS_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Query.personsById(id:)",
+                    "member": "is",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "Expected the parent type of field 'id' to be a complex type but received '[Person!]!'."
+                        ]
+                    }
+                }
+                """
             ]);
     }
 
@@ -193,8 +258,21 @@ public sealed class IsInvalidFieldsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @is directive on argument 'Query.personByIds(ids:)' in schema 'A' specifies "
-                + "an invalid field selection against the composed schema."
+                """
+                {
+                    "message": "The @is directive on argument 'Query.personByIds(ids:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "IS_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Query.personByIds(ids:)",
+                    "member": "is",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The field 'id' is of type 'ID!' instead of the expected input type '[ID!]!'."
+                        ]
+                    }
+                }
+                """
             ]);
     }
 
@@ -217,8 +295,21 @@ public sealed class IsInvalidFieldsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @is directive on argument 'Query.personsByIds(ids:)' in schema 'A' specifies "
-                + "an invalid field selection against the composed schema."
+                """
+                {
+                    "message": "The @is directive on argument 'Query.personsByIds(ids:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "IS_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Query.personsByIds(ids:)",
+                    "member": "is",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "Expected the parent type of field 'id' to be a complex type but received '[Person!]!'."
+                        ]
+                    }
+                }
+                """
             ]);
     }
 }

@@ -50,8 +50,17 @@ public sealed class TypeKindMismatchRuleTests : RuleTestBase
                 """
             ],
             [
-                "The type 'User' has a different kind in schema 'A' (Object) than it does in "
-                + "schema 'B' (Interface)."
+                """
+                {
+                    "message": "The type 'User' has a different kind in schema 'A' (Object) than it does in schema 'B' (Interface).",
+                    "code": "TYPE_KIND_MISMATCH",
+                    "severity": "Error",
+                    "coordinate": "User",
+                    "member": "User",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }
