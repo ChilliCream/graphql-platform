@@ -18,7 +18,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             ImmutableArray<ArgumentNode>.Empty,
             null);
 
-    public DocumentNode RewriteDocument(DocumentNode document, string? operationName = null)
+    public OperationDefinitionNode RewriteOperation(DocumentNode document, string? operationName = null)
     {
         var operation = document.GetOperation(operationName);
         var operationType = schema.GetOperationType(operation.Operation);
@@ -38,7 +38,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             RewriteDirectives(operation.Directives),
             newSelectionSet);
 
-        return new DocumentNode([newOperation]);
+        return newOperation;
     }
 
     private SelectionSetNode RewriteSelectionSet(
