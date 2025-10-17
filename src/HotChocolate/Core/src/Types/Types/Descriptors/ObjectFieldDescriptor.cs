@@ -371,6 +371,17 @@ public class ObjectFieldDescriptor
         return ResolveWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
     }
 
+    /// <inheritdoc />
+    public IObjectFieldDescriptor ResolveWith(Delegate @delegate)
+    {
+        if (@delegate is null)
+        {
+            throw new ArgumentNullException(nameof(@delegate));
+        }
+
+        return ResolveWithInternal(@delegate.Method, resolverType: null);
+    }
+
     private IObjectFieldDescriptor ResolveWithInternal(
         MemberInfo propertyOrMethod,
         Type? resolverType)
