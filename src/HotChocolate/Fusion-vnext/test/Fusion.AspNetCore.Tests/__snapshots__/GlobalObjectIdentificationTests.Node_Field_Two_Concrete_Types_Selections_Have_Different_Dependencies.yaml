@@ -169,8 +169,8 @@ operationPlan:
             ... on Discussion {
               product {
                 id
-                id @fusion__requirement
                 name
+                id @fusion__requirement
               }
             }
             ... on Review {

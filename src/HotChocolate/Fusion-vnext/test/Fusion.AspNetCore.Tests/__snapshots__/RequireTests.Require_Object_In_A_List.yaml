@@ -306,9 +306,9 @@ operationPlan:
           books {
             nodes {
               title
-              title @fusion__requirement
               estimatedDelivery
               id @fusion__requirement
+              title @fusion__requirement
               dimension @fusion__requirement {
                 width
                 height

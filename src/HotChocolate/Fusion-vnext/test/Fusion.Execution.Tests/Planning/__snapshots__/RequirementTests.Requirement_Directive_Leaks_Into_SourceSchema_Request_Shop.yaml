@@ -6,7 +6,6 @@ operation:
         users {
           nodes {
             id
-            id @fusion__requirement
             birthdate
             reviews {
               nodes {
@@ -16,9 +15,7 @@ operation:
                 }
                 product {
                   id
-                  id @fusion__requirement
                   weight
-                  weight @fusion__requirement
                   deliveryEstimate(zip: "4383")
                   pictureFileName
                   price
@@ -46,15 +43,18 @@ operation:
                       }
                     }
                   }
+                  quantity @skip(if: $skip)
+                  id @fusion__requirement
+                  weight @fusion__requirement
                   dimension @fusion__requirement {
                     length
                     width
                     height
                   }
-                  quantity @skip(if: $skip)
                 }
               }
             }
+            id @fusion__requirement
           }
         }
       }

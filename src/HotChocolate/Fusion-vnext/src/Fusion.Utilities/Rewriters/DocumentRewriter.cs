@@ -868,7 +868,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         public void RecordReferenceInConditionalContext(ISelectionNode selectionNode, Context conditionalContext)
         {
             ReferencesInConditionalContexts ??=
-                new Dictionary<ISelectionNode, List<Context>>(SyntaxNodeComparer.Instance);
+                new Dictionary<ISelectionNode, List<Context>>(ShallowSyntaxNodeComparer.Instance);
 
             if (!ReferencesInConditionalContexts.TryGetValue(selectionNode, out var conditionalContexts))
             {
@@ -1122,7 +1122,11 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
     #region Comparers
 
-    private sealed class SyntaxNodeComparer : IEqualityComparer<ISyntaxNode>
+    /// <summary>
+    /// Compares fields just by their alias, name and directives,
+    /// and inline fragments just by their type condition and directives.
+    /// </summary>
+    public sealed class ShallowSyntaxNodeComparer : IEqualityComparer<ISyntaxNode>
     {
         public bool Equals(ISyntaxNode? x, ISyntaxNode? y)
         {
@@ -1151,10 +1155,10 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 return InlineFragmentNodeComparer.Instance.GetHashCode(inlineFragment);
             }
 
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
-        public static SyntaxNodeComparer Instance { get; } = new();
+        public static ShallowSyntaxNodeComparer Instance { get; } = new();
     }
 
     private sealed class InlineFragmentNodeComparer : IEqualityComparer<InlineFragmentNode>
@@ -1229,10 +1233,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
                 return false;
             }
 
-            return Equals(x.Alias, y.Alias)
-                && x.Name.Equals(y.Name)
-                && Equals(x.Directives, y.Directives)
-                && Equals(x.Arguments, y.Arguments);
+            return Equals(x.Alias, y.Alias) && x.Name.Equals(y.Name) && Equals(x.Directives, y.Directives);
         }
 
         private bool Equals(IReadOnlyList<ISyntaxNode> a, IReadOnlyList<ISyntaxNode> b)
@@ -1259,11 +1260,6 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
             for (var i = 0; i < obj.Directives.Count; i++)
             {
                 hashCode.Add(SyntaxComparer.BySyntax.GetHashCode(obj.Directives[i]));
-            }
-
-            for (var i = 0; i < obj.Arguments.Count; i++)
-            {
-                hashCode.Add(SyntaxComparer.BySyntax.GetHashCode(obj.Arguments[i]));
             }
 
             return hashCode.ToHashCode();

@@ -116,8 +116,8 @@ operationPlan:
           a: createBook(input: { title: "Book1" }) {
             book {
               id
-              id @fusion__requirement
               author
+              id @fusion__requirement
             }
           }
         }

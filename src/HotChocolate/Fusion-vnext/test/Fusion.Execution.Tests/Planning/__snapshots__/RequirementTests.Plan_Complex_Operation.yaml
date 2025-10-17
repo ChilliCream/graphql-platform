@@ -9,7 +9,6 @@ operation:
         users {
           nodes {
             id
-            id @fusion__requirement
             reviews {
               nodes {
                 product {
@@ -24,6 +23,7 @@ operation:
                 }
               }
             }
+            id @fusion__requirement
           }
         }
         node(id: $userId) {

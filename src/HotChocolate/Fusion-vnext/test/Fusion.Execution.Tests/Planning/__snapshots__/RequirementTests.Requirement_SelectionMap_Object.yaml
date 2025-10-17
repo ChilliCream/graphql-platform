@@ -5,12 +5,12 @@ operation:
           brand {
             name
           }
-          brand @fusion__requirement {
-            name
-          }
           nameAndId
           id @fusion__requirement
           name @fusion__requirement
+          brand @fusion__requirement {
+            name
+          }
         }
       }
     hash: 123456789101112

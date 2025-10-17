@@ -152,8 +152,8 @@ operationPlan:
             __typename @fusion__requirement
             author {
               id
-              id @fusion__requirement
               displayName
+              id @fusion__requirement
             }
             ... on Discussion {
               author {

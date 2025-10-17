@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" VersionOverride="0.15.4" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.dotMemory" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" VersionOverride="10.0.0-rc.1.25451.107" />
 
   </ItemGroup>

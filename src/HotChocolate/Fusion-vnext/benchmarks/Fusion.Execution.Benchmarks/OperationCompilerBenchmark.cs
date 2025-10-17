@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Diagnostics.dotMemory;
 using BenchmarkDotNet.Jobs;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Rewriters;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Fusion.Execution.Benchmarks;
 
+[DotMemoryDiagnoser]
 [MemoryDiagnoser]
 [ShortRunJob(RuntimeMoniker.Net10_0)]
 [MarkdownExporter]
@@ -32,8 +34,7 @@ public class OperationCompilerBenchmark : FusionBenchmarkBase
         _complexQuery = documentRewriter.RewriteOperation(CreateComplexDocument());
         _conditionalRedundancyQuery = documentRewriter.RewriteOperation(CreateConditionalRedundancyDocument());
 
-        var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+        var pool = new NoOpObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>();
         _compiler = new OperationCompiler(schema, pool);
     }
 
@@ -53,5 +54,17 @@ public class OperationCompilerBenchmark : FusionBenchmarkBase
     public Operation Compile_ConditionalRedundancy_Query()
     {
         return _compiler.Compile(Id, Id, _conditionalRedundancyQuery);
+    }
+
+    private sealed class NoOpObjectPool<T> : ObjectPool<T> where T : class, new()
+    {
+        public override T Get()
+        {
+            return new T();
+        }
+
+        public override void Return(T obj)
+        {
+        }
     }
 }

@@ -244,8 +244,8 @@ operationPlan:
             ... on ProductList {
               products {
                 id
-                id @fusion__requirement
                 name
+                id @fusion__requirement
               }
             }
             ... on Item2 {

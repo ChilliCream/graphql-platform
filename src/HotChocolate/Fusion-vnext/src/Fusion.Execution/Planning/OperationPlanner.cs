@@ -1368,8 +1368,12 @@ public sealed partial class OperationPlanner
                 if (inlineInternal)
                 {
                     var size = selectionSet.Selections.Count + selectionsToInline.Selections.Count;
-                    var selections = new List<ISelectionNode>(size);
-                    selections.AddRange(originalSelectionSet.Selections);
+                    var newSelections = new List<ISelectionNode>(size);
+                    newSelections.AddRange(originalSelectionSet.Selections);
+
+                    var seenSelections = new HashSet<ISelectionNode>(
+                        originalSelectionSet.Selections,
+                        DocumentRewriter.ShallowSyntaxNodeComparer.Instance);
 
                     foreach (var selection in selectionsToInline.Selections)
                     {
@@ -1378,18 +1382,28 @@ public sealed partial class OperationPlanner
                         switch (selection)
                         {
                             case FieldNode field:
-                                selections.Add(field.WithDirectives(directives));
-                                IndexInternalSelections(field.SelectionSet, index, ref backlog);
+                                var fieldWithDirective = field.WithDirectives(directives);
+
+                                if (seenSelections.Add(fieldWithDirective))
+                                {
+                                    newSelections.Add(fieldWithDirective);
+                                    IndexInternalSelections(field.SelectionSet, index, ref backlog);
+                                }
                                 break;
 
                             case InlineFragmentNode inlineFragment:
-                                selections.Add(inlineFragment.WithDirectives(directives));
-                                IndexInternalSelections(inlineFragment.SelectionSet, index, ref backlog);
+                                var inlineFragmentWithDirective = inlineFragment.WithDirectives(directives);
+
+                                if (seenSelections.Add(inlineFragmentWithDirective))
+                                {
+                                    newSelections.Add(inlineFragmentWithDirective);
+                                    IndexInternalSelections(inlineFragment.SelectionSet, index, ref backlog);
+                                }
                                 break;
                         }
                     }
 
-                    newSelectionSet = new SelectionSetNode(selections);
+                    newSelectionSet = new SelectionSetNode(newSelections);
                 }
                 else
                 {
