@@ -3,9 +3,9 @@ operation:
       {
         productBySlug(slug: "1") {
           id
+          id @fusion__requirement
           name
           estimatedDelivery(postCode: "12345")
-          id @fusion__requirement
           dimension @fusion__requirement {
             height
             width

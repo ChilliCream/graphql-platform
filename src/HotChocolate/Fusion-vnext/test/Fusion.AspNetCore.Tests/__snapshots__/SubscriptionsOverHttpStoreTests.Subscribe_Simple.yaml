@@ -148,8 +148,8 @@ operationPlan:
         subscription {
           onBookCreated {
             id
-            title
             id @fusion__requirement
+            title
           }
         }
       hash: a6fc02fcd58c513d69d75983869b251f

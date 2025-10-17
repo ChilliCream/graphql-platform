@@ -132,8 +132,8 @@ operationPlan:
             id
             brand {
               id
-              name
               id @fusion__requirement
+              name
             }
           }
         }

@@ -271,17 +271,17 @@ operationPlan:
         {
           productsA {
             id
+            id @fusion__requirement
             name
             price
             reviewCount
-            id @fusion__requirement
           }
           productsB {
             id
+            id @fusion__requirement
             name
             price
             reviewCount
-            id @fusion__requirement
           }
         }
       hash: 9ad18dbf86e6234a71614b8d68cbef03

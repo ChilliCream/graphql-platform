@@ -136,8 +136,8 @@ operationPlan:
           viewer {
             product {
               id
-              name
               id @fusion__requirement
+              name
             }
           }
         }

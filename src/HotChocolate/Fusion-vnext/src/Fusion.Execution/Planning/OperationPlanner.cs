@@ -56,7 +56,24 @@ public sealed partial class OperationPlanner
         ArgumentException.ThrowIfNullOrEmpty(shortHash);
         ArgumentNullException.ThrowIfNull(operationDefinition);
 
-        // We first need to create an index to keep track of the logical selections
+        var plan = TryCreatePlan(shortHash, operationDefinition);
+
+        var planSteps = plan?.Steps ?? [];
+        var searchSpace = plan?.SearchSpace ?? 0;
+        var internalOperationDefinition = plan?.InternalOperationDefinition ?? operationDefinition;
+
+        var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
+
+        return BuildExecutionPlan(
+            operation,
+            operationDefinition,
+            planSteps,
+            searchSpace);
+    }
+
+    internal PlanResult? TryCreatePlan(string shortHash, OperationDefinitionNode operationDefinition)
+    {
+         // We first need to create an index to keep track of the logical selections
         // sets before we can branch them. This allows us to inline requirements later
         // into the right place.
         var index = SelectionSetIndexer.Create(operationDefinition);
@@ -69,52 +86,40 @@ public sealed partial class OperationPlanner
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        var internalOperationDefinition = operationDefinition;
-        ImmutableList<PlanStep> planSteps = [];
-        uint searchSpace = 0;
-
-        if (!node.Backlog.IsEmpty)
+        if (node.Backlog.IsEmpty)
         {
-            var possiblePlans = new PriorityQueue<PlanNode, double>();
-
-            foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
-            {
-                possiblePlans.Enqueue(
-                    node with
-                    {
-                        SchemaName = schemaName,
-                        ResolutionCost = resolutionCost
-                    });
-            }
-
-            if (possiblePlans.Count < 1)
-            {
-                possiblePlans.Enqueue(node);
-            }
-
-            var plan = Plan(possiblePlans);
-
-            if (!plan.HasValue)
-            {
-                throw new InvalidOperationException("No possible plan was found.");
-            }
-
-            internalOperationDefinition = plan.Value.InternalOperationDefinition;
-            planSteps = plan.Value.Steps;
-            searchSpace = plan.Value.SearchSpace;
-
-            internalOperationDefinition = AddTypeNameToAbstractSelections(
-                internalOperationDefinition,
-                _schema.GetOperationType(operationDefinition.Operation));
+            return null;
         }
 
-        var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
+        var possiblePlans = new PriorityQueue<PlanNode, double>();
 
-        return BuildExecutionPlan(
-            operation,
-            operationDefinition,
-            planSteps,
-            searchSpace);
+        foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
+        {
+            possiblePlans.Enqueue(
+                node with
+                {
+                    SchemaName = schemaName,
+                    ResolutionCost = resolutionCost
+                });
+        }
+
+        if (possiblePlans.Count < 1)
+        {
+            possiblePlans.Enqueue(node);
+        }
+
+        var result = Plan(possiblePlans);
+
+        if (!result.HasValue)
+        {
+            throw new InvalidOperationException("No possible plan was found.");
+        }
+
+        var rewrittenOperation = AddTypeNameToAbstractSelections(
+            result.Value.InternalOperationDefinition,
+            selectionSet.Type);
+
+        return result.Value with { InternalOperationDefinition = rewrittenOperation };
     }
 
     private (PlanNode Node, SelectionSet First) CreateQueryPlanBase(
@@ -1386,7 +1391,20 @@ public sealed partial class OperationPlanner
 
                                 if (seenSelections.Add(fieldWithDirective))
                                 {
-                                    newSelections.Add(fieldWithDirective);
+                                    var insertIndex = newSelections.Count;
+                                    var fieldName = field.Name.Value;
+
+                                    for (var i = newSelections.Count - 1; i >= 0; i--)
+                                    {
+                                        if (newSelections[i] is FieldNode existingField
+                                            && existingField.Name.Value.Equals(fieldName, StringComparison.Ordinal))
+                                        {
+                                            insertIndex = i + 1;
+                                            break;
+                                        }
+                                    }
+
+                                    newSelections.Insert(insertIndex, fieldWithDirective);
                                     IndexInternalSelections(field.SelectionSet, index, ref backlog);
                                 }
                                 break;
@@ -1566,7 +1584,7 @@ public sealed partial class OperationPlanner
         return false;
     }
 
-    private readonly record struct PlanResult(
+    internal readonly record struct PlanResult(
         OperationDefinitionNode InternalOperationDefinition,
         ImmutableList<PlanStep> Steps,
         uint SearchSpace);

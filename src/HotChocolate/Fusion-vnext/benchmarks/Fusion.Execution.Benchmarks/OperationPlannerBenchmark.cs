@@ -9,8 +9,6 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Fusion.Execution.Benchmarks;
 
-// TODO: It would be great if we could separate the planning from the dependency tree generation and operation compilation.
-
 [MemoryDiagnoser]
 [ShortRunJob(RuntimeMoniker.Net10_0)]
 [MarkdownExporter]
@@ -43,20 +41,20 @@ public class OperationPlannerBenchmark : FusionBenchmarkBase
     }
 
     [Benchmark]
-    public OperationPlan Plan_Simple_Query_With_Requirements()
+    public uint? Plan_Simple_Query_With_Requirements()
     {
-        return _planner.CreatePlan(Id, Id, Id, _simpleQueryWithRequirements);
+        return _planner.TryCreatePlan(Id, _simpleQueryWithRequirements)?.SearchSpace;
     }
 
     [Benchmark]
-    public OperationPlan Plan_Complex_Query()
+    public uint? Plan_Complex_Query()
     {
-        return _planner.CreatePlan(Id, Id, Id, _complexQuery);
+        return _planner.TryCreatePlan(Id, _complexQuery)?.SearchSpace;
     }
 
     [Benchmark]
-    public OperationPlan Plan_ConditionalRedundancy_Query()
+    public uint? Plan_ConditionalRedundancy_Query()
     {
-        return _planner.CreatePlan(Id, Id, Id, _conditionalRedundancyQuery);
+        return _planner.TryCreatePlan(Id, _conditionalRedundancyQuery)?.SearchSpace;
     }
 }

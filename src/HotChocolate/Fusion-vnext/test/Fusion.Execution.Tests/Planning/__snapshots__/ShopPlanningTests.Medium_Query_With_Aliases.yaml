@@ -17,6 +17,7 @@ operation:
                 }
                 product {
                   weight
+                  weight @fusion__requirement
                   deliveryEstimate(zip: "Foo")
                   pictureFileName
                   price
@@ -24,6 +25,7 @@ operation:
                   item {
                     product {
                       weight
+                      weight @fusion__requirement
                       deliveryEstimate(zip: "Foo")
                       pictureFileName
                       reviews {
@@ -37,7 +39,6 @@ operation:
                         }
                       }
                       id @fusion__requirement
-                      weight @fusion__requirement
                       dimension @fusion__requirement {
                         length
                         width
@@ -46,7 +47,6 @@ operation:
                     }
                   }
                   id @fusion__requirement
-                  weight @fusion__requirement
                   dimension @fusion__requirement {
                     length
                     width
@@ -69,6 +69,7 @@ operation:
                 }
                 product {
                   weight
+                  weight @fusion__requirement
                   deliveryEstimate(zip: "Foo")
                   pictureFileName
                   price
@@ -76,6 +77,7 @@ operation:
                   item {
                     product {
                       weight
+                      weight @fusion__requirement
                       deliveryEstimate(zip: "Foo")
                       pictureFileName
                       reviews {
@@ -89,7 +91,6 @@ operation:
                         }
                       }
                       id @fusion__requirement
-                      weight @fusion__requirement
                       dimension @fusion__requirement {
                         length
                         width
@@ -98,7 +99,6 @@ operation:
                     }
                   }
                   id @fusion__requirement
-                  weight @fusion__requirement
                   dimension @fusion__requirement {
                     length
                     width

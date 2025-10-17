@@ -218,8 +218,8 @@ operationPlan:
             __typename @fusion__requirement
             author {
               id
-              displayName
               id @fusion__requirement
+              displayName
             }
             ... on Discussion {
               author {

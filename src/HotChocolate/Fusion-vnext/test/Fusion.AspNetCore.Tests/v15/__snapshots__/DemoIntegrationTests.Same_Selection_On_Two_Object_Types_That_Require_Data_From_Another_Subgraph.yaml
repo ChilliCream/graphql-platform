@@ -173,15 +173,15 @@ operationPlan:
           item1 {
             product {
               id
-              name
               id @fusion__requirement
+              name
             }
           }
           item2 {
             product {
               id
-              name
               id @fusion__requirement
+              name
             }
           }
         }

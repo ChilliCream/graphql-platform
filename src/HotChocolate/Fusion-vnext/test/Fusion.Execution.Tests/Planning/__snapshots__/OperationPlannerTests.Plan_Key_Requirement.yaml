@@ -3,9 +3,9 @@ operation:
       query GetTopProducts {
         topProducts {
           id
+          id @fusion__requirement
           name
           sku @fusion__requirement
-          id @fusion__requirement
           region @fusion__requirement
         }
       }

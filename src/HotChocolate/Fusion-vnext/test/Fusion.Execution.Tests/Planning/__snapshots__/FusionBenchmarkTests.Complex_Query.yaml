@@ -42,8 +42,8 @@ operation:
                           stars
                           author @include(if: $includeReviews) {
                             id
-                            displayName
                             id @fusion__requirement
+                            displayName
                           }
                         }
                       }
@@ -62,6 +62,7 @@ operation:
               description
               price
               id
+              id @fusion__requirement
               averageRating
               reviews(first: 5) @include(if: $includeReviews) {
                 nodes {
@@ -70,15 +71,18 @@ operation:
                   stars
                   author @skip(if: $level1) {
                     id
+                    id @fusion__requirement
                     displayName
                     reviews(first: 3) @include(if: $level2) {
                       nodes {
                         id
+                        id @fusion__requirement
                         body
                         ... @skip(if: $level3) {
                           stars
                           product {
                             id
+                            id @fusion__requirement
                             name
                             ... @include(if: $level4) {
                               price
@@ -88,18 +92,14 @@ operation:
                               }
                               id @fusion__requirement
                             }
-                            id @fusion__requirement
                           }
                           id @fusion__requirement
                         }
-                        id @fusion__requirement
                       }
                     }
-                    id @fusion__requirement
                   }
                 }
               }
-              id @fusion__requirement
             }
           }
         }
@@ -118,15 +118,18 @@ operation:
                 stars
                 author @skip(if: $level1) {
                   id
+                  id @fusion__requirement
                   displayName
                   reviews(first: 2) @include(if: $level2) {
                     nodes {
                       id
+                      id @fusion__requirement
                       body
                       ... @skip(if: $level3) {
                         stars
                         product {
                           id
+                          id @fusion__requirement
                           name
                           ... @include(if: $level4) {
                             price
@@ -146,14 +149,11 @@ operation:
                             }
                             id @fusion__requirement
                           }
-                          id @fusion__requirement
                         }
                         id @fusion__requirement
                       }
-                      id @fusion__requirement
                     }
                   }
-                  id @fusion__requirement
                 }
               }
             }
@@ -163,15 +163,18 @@ operation:
             content
             author {
               id
+              id @fusion__requirement
               displayName
               reviews(first: 2) @include(if: $level3) {
                 nodes {
                   id
+                  id @fusion__requirement
                   body
                   ... @skip(if: $level4) {
                     stars
                     product {
                       id
+                      id @fusion__requirement
                       name
                       ... @include(if: $level5) {
                         price
@@ -181,14 +184,11 @@ operation:
                         }
                         id @fusion__requirement
                       }
-                      id @fusion__requirement
                     }
                     id @fusion__requirement
                   }
-                  id @fusion__requirement
                 }
               }
-              id @fusion__requirement
             }
             publishedAt
             tags
@@ -211,14 +211,17 @@ operation:
                 stars
                 author {
                   id
+                  id @fusion__requirement
                   displayName
                   reviews(first: 3) @skip(if: $level3) {
                     nodes {
                       id
+                      id @fusion__requirement
                       body
                       stars
                       product @include(if: $level4) {
                         id
+                        id @fusion__requirement
                         name
                         ... @skip(if: $level5) {
                           price
@@ -228,12 +231,9 @@ operation:
                           }
                           id @fusion__requirement
                         }
-                        id @fusion__requirement
                       }
-                      id @fusion__requirement
                     }
                   }
-                  id @fusion__requirement
                 }
               }
             }

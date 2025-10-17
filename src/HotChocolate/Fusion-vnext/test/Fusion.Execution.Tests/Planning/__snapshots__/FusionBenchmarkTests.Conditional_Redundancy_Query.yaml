@@ -8,6 +8,7 @@ operation:
       ) {
         productById(id: "1") {
           id
+          id @fusion__requirement
           name
           description
           price
@@ -33,18 +34,18 @@ operation:
                 stars
                 author @include(if: $includeReviews) {
                   id
-                  displayName
                   id @fusion__requirement
+                  displayName
                 }
               }
             }
           }
-          id @fusion__requirement
         }
         products(first: 3) {
           edges {
             node {
               id
+              id @fusion__requirement
               name
               description
               price
@@ -60,7 +61,6 @@ operation:
                   stars
                 }
               }
-              id @fusion__requirement
             }
           }
         }
@@ -71,6 +71,7 @@ operation:
           description
           ... on Product {
             id
+            id @fusion__requirement
             name
             price
             averageRating
@@ -85,7 +86,6 @@ operation:
                 stars
               }
             }
-            id @fusion__requirement
           }
           ... on Article {
             id
@@ -96,8 +96,8 @@ operation:
             tags @include(if: $includeExpensive)
             author @include(if: $includeDetails) {
               id
-              displayName
               id @fusion__requirement
+              displayName
             }
           }
         }
@@ -120,16 +120,16 @@ operation:
                 stars
                 author @include(if: $includeDetails) {
                   id
+                  id @fusion__requirement
                   displayName
                   reviews(first: 2) {
                     nodes {
                       id
+                      id @fusion__requirement
                       body
                       stars
-                      id @fusion__requirement
                     }
                   }
-                  id @fusion__requirement
                 }
               }
             }
