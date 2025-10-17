@@ -10,10 +10,6 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HotChocolate.Fusion.Text.Json;
-using BenchmarkDotNet.Configs;
-using BenchmarkDotNet.Columns;
-using BenchmarkDotNet.Exporters.Csv;
-using BenchmarkDotNet.Exporters;
 
 namespace Fusion.Execution.Benchmarks;
 
@@ -32,16 +28,6 @@ public class GraphQLQueryBenchmark
     private TransportClient _transportClient = null!;
     private TransportGraphQLHttpRequest _transportItemsRequest = null!;
     private TransportGraphQLHttpRequest _transportFewItemsRequest = null!;
-
-    private sealed class PercentilesConfig : ManualConfig
-    {
-        public PercentilesConfig()
-        {
-            AddColumn(StatisticColumn.P95);
-            AddExporter(CsvMeasurementsExporter.Default);
-            AddExporter(RPlotExporter.Default);
-        }
-    }
 
     [GlobalSetup]
     public async Task GlobalSetup()
