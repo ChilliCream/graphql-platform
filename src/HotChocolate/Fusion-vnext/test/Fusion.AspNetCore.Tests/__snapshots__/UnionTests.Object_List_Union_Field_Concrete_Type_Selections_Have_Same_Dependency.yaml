@@ -52,29 +52,29 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Discussion {
         id: ID!
         product: Product
       }
-      
+
       type Photo {
         id: ID!
         product: Product
       }
-      
+
       type PostEdge {
         node: Post
       }
-      
-      type Product @key(fields: "id") {
+
+      type Product {
         id: ID!
       }
-      
+
       type Query {
         postEdges: [PostEdge]
       }
-      
+
       union Post = Photo | Discussion
     interactions:
       - request:
@@ -134,12 +134,12 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
-      type Product @key(fields: "id") {
+
+      type Product {
         id: ID!
         subgraph2: String!
       }
-      
+
       type Query {
         productById(id: ID!): Product @lookup
       }

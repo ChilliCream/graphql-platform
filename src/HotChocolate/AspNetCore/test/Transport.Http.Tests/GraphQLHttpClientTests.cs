@@ -997,12 +997,8 @@ public class GraphQLHttpClientTests : ServerTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5000));
-        var server = CreateStarWarsServer(
-            configureServices: s => s
-                .AddGraphQLServer("test")
-                .AddType<UploadType>()
-                .AddQueryType<UploadTestQuery>());
-        var httpClient = server.CreateClient();
+        using var testServer = CreateStarWarsServer();
+        var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
         var stream = new MemoryStream("abc"u8.ToArray());
@@ -1022,7 +1018,7 @@ public class GraphQLHttpClientTests : ServerTestBase
                 ["upload"] = new FileReference(() => stream, "test.txt", contentType)
             });
 
-        var requestUri = new Uri(CreateUrl("/test"));
+        var requestUri = new Uri(CreateUrl("/upload"));
 
         var request = new GraphQLHttpRequest(operation, requestUri)
         {
@@ -1049,8 +1045,10 @@ public class GraphQLHttpClientTests : ServerTestBase
             """);
     }
 
-    [Fact]
-    public async Task Post_GraphQL_FileUpload_With_ObjectValueNode()
+    [Theory]
+    [InlineData((string?)null)]
+    [InlineData("application/pdf")]
+    public async Task Post_GraphQL_FileUpload_With_ObjectValueNode(string? contentType)
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5000));
@@ -1063,7 +1061,11 @@ public class GraphQLHttpClientTests : ServerTestBase
         var operation = new OperationRequest(
             """
             query ($upload: Upload!) {
-              singleUpload(file: $upload)
+              singleInfoUpload(file: $upload) {
+                name
+                content
+                contentType
+              }
             }
             """,
             null,
@@ -1072,7 +1074,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             variables: new ObjectValueNode(
                 new ObjectFieldNode(
                     "upload",
-                    new FileReferenceNode(() => stream, "test.txt"))),
+                    new FileReferenceNode(() => stream, "test.txt", contentType))),
             extensions: null);
 
         var requestUri = new Uri(CreateUrl("/upload"));
@@ -1089,13 +1091,17 @@ public class GraphQLHttpClientTests : ServerTestBase
         // assert
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "singleUpload": "abc"
-              }
-            }
-            """);
+            $$$"""
+               {
+                 "data": {
+                   "singleInfoUpload": {
+                     "name": "test.txt",
+                     "content": "abc",
+                     "contentType": "{{{contentType}}}"
+                   }
+                 }
+               }
+               """);
     }
 
     [Fact]
@@ -1197,27 +1203,5 @@ public class GraphQLHttpClientTests : ServerTestBase
         [Subscribe(With = nameof(CreateStream))]
         public string OnError([EventMessage] string message)
             => message;
-    }
-
-    public class UploadTestQuery
-    {
-        public async Task<FileInfoOutput> SingleInfoUpload(IFile file)
-        {
-            await using var stream = file.OpenReadStream();
-            using var sr = new StreamReader(stream, Encoding.UTF8);
-            return new FileInfoOutput
-            {
-                Content = await sr.ReadToEndAsync(),
-                ContentType = file.ContentType ?? string.Empty,
-                Name = file.Name
-            };
-        }
-
-        public class FileInfoOutput
-        {
-            public string? Content { get; init; }
-            public string? ContentType { get; init; }
-            public string? Name { get; init; }
-        }
     }
 }

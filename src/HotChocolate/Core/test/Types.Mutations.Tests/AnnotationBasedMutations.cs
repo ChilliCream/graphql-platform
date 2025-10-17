@@ -1854,12 +1854,12 @@ public class AnnotationBasedMutations
 
     public interface IInterfaceError
     {
-        public string Name { get; }
+        string Name { get; }
     }
 
     public interface IInterfaceError2
     {
-        public string Name { get; }
+        string Name { get; }
     }
 
     public class ErrorWithInterface : IInterfaceError, IInterfaceError2
@@ -1871,7 +1871,7 @@ public class AnnotationBasedMutations
 
     public interface IErrorInterface
     {
-        public string Message { get; }
+        string Message { get; }
     }
 
     public class MutationWithVoidResult

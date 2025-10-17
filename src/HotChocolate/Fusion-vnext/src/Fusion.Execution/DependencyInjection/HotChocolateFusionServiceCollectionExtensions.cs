@@ -3,7 +3,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
-using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
@@ -53,95 +53,13 @@ public static class HotChocolateFusionServiceCollectionExtensions
                 sp.GetRequiredService<IHttpClientFactory>()));
     }
 
+    // TODO : REVIEW IF THIS IS STILL NEEDED
     internal static void AddResultObjectPools(
         IServiceCollection services,
         FusionMemoryPoolOptions options)
     {
-        services.TryAddSingleton<ObjectPoolProvider>(
-            static _ => new DefaultObjectPoolProvider());
-
+        services.TryAddSingleton<ObjectPoolProvider>(static _ => new DefaultObjectPoolProvider());
         services.TryAddSingleton(options);
-
-        services.TryAddSingleton(static provider =>
-        {
-            var options = provider.GetRequiredService<FusionMemoryPoolOptions>();
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultDataBatchPoolPolicy<ObjectResult>(
-                options.ObjectBatchSize,
-                options.DefaultObjectCapacity,
-                options.MaxAllowedObjectCapacity));
-        });
-
-        services.TryAddSingleton(static provider =>
-        {
-            var options = provider.GetRequiredService<FusionMemoryPoolOptions>();
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultDataBatchPoolPolicy<LeafFieldResult>(options.LeafFieldBatchSize));
-        });
-
-        services.TryAddSingleton(static provider =>
-        {
-            var options = provider.GetRequiredService<FusionMemoryPoolOptions>();
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultDataBatchPoolPolicy<ListFieldResult>(options.ListFieldBatchSize));
-        });
-
-        services.TryAddSingleton(static provider =>
-        {
-            var options = provider.GetRequiredService<FusionMemoryPoolOptions>();
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultDataBatchPoolPolicy<ObjectFieldResult>(options.ObjectFieldBatchSize));
-        });
-
-        services.TryAddSingleton(static provider =>
-        {
-            var options = provider.GetRequiredService<FusionMemoryPoolOptions>();
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultDataBatchPoolPolicy<ObjectListResult>(
-                options.ListBatchSize,
-                options.DefaultListCapacity,
-                options.MaxAllowedListCapacity));
-        });
-
-        services.TryAddSingleton(static provider =>
-        {
-            var options = provider.GetRequiredService<FusionMemoryPoolOptions>();
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultDataBatchPoolPolicy<NestedListResult>(
-                options.ListBatchSize,
-                options.DefaultListCapacity,
-                options.MaxAllowedListCapacity));
-        });
-
-        services.TryAddSingleton(static provider =>
-        {
-            var options = provider.GetRequiredService<FusionMemoryPoolOptions>();
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultDataBatchPoolPolicy<LeafListResult>(
-                options.ListBatchSize,
-                options.DefaultListCapacity,
-                options.MaxAllowedListCapacity));
-        });
-
-        services.TryAddSingleton(static provider =>
-        {
-            var providerPool = provider.GetRequiredService<ObjectPoolProvider>();
-            return providerPool.Create(new ResultPoolSessionPolicy(
-                provider.GetRequiredService<ObjectPool<ResultDataBatch<ObjectResult>>>(),
-                provider.GetRequiredService<ObjectPool<ResultDataBatch<LeafFieldResult>>>(),
-                provider.GetRequiredService<ObjectPool<ResultDataBatch<ListFieldResult>>>(),
-                provider.GetRequiredService<ObjectPool<ResultDataBatch<ObjectFieldResult>>>(),
-                provider.GetRequiredService<ObjectPool<ResultDataBatch<ObjectListResult>>>(),
-                provider.GetRequiredService<ObjectPool<ResultDataBatch<NestedListResult>>>(),
-                provider.GetRequiredService<ObjectPool<ResultDataBatch<LeafListResult>>>()));
-        });
-
-        services.TryAddScoped(static provider =>
-            new ResultPoolSessionHolder(
-                provider.GetRequiredService<ObjectPool<ResultPoolSession>>()));
-
-        services.TryAddScoped(static provider =>
-            provider.GetRequiredService<ResultPoolSessionHolder>().Session);
     }
 
     private static DefaultFusionGatewayBuilder CreateBuilder(
@@ -157,7 +75,31 @@ public static class HotChocolateFusionServiceCollectionExtensions
         }
 
         var builder = new DefaultFusionGatewayBuilder(services, name);
+        builder.AddDocumentCache();
         builder.UseDefaultPipeline();
         return builder;
+    }
+
+    private static IFusionGatewayBuilder AddDocumentCache(this IFusionGatewayBuilder builder)
+    {
+        builder.Services.TryAddKeyedSingleton<IDocumentCache>(
+            builder.Name,
+            static (sp, schemaName) =>
+            {
+                var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<FusionGatewaySetup>>();
+                var setup = optionsMonitor.Get((string)schemaName!);
+
+                var options = FusionRequestExecutorManager.CreateOptions(setup);
+
+                return new DefaultDocumentCache(options.OperationDocumentCacheSize);
+            });
+
+        return builder.ConfigureSchemaServices(
+            static (applicationServices, s) =>
+                s.AddSingleton<IDocumentCache>(schemaServices =>
+                {
+                    var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
+                    return applicationServices.GetRequiredKeyedService<IDocumentCache>(schemaName);
+                }));
     }
 }

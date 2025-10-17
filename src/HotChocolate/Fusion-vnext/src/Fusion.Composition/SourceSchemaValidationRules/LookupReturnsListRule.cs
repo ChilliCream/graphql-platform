@@ -19,11 +19,11 @@ internal sealed class LookupReturnsListRule : IEventHandler<OutputFieldEvent>
 {
     public void Handle(OutputFieldEvent @event, CompositionContext context)
     {
-        var (field, type, schema) = @event;
+        var (field, _, schema) = @event;
 
         if (field.HasLookupDirective() && field.Type.NullableType() is ListType)
         {
-            context.Log.Write(LookupReturnsList(field, type, schema));
+            context.Log.Write(LookupReturnsList(field, schema));
         }
     }
 }

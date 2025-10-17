@@ -18,6 +18,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CompositionLogExtensions_EntryMessageWithSchemaName" xml:space="preserve">
+    <value>{0} (Schema: '{1}')</value>
+  </data>
   <data name="ErrorHelper_PostMergeValidationFailed" xml:space="preserve">
     <value>Post-merge validation failed.</value>
   </data>
@@ -213,6 +216,15 @@
   <data name="LogEntryHelper_ExternalOnInterface" xml:space="preserve">
     <value>The interface field '{0}' in schema '{1}' must not be marked as external.</value>
   </data>
+  <data name="LogEntryHelper_ExternalOverrideCollision" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' must not be annotated with the @override directive.</value>
+  </data>
+  <data name="LogEntryHelper_ExternalProvidesCollision" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' must not be annotated with the @provides directive.</value>
+  </data>
+  <data name="LogEntryHelper_ExternalRequireCollision" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' must not have arguments that are annotated with the @require directive.</value>
+  </data>
   <data name="LogEntryHelper_ExternalUnused" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
   </data>
@@ -353,6 +365,9 @@
   </data>
   <data name="ProvidesMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @provides directive indicates that a field can provide certain subfields of its return type from the same source schema, without requiring an additional resolution step elsewhere.</value>
+  </data>
+  <data name="RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema" xml:space="preserve">
+    <value>The required field '{0}' must not be defined in schema '{1}'.</value>
   </data>
   <data name="RequirementsValidator_CycleDetected" xml:space="preserve">
     <value>Cycle detected in requirement: {0} -&gt; {1}.</value>

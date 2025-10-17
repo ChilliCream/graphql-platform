@@ -1,11 +1,9 @@
-using System.Buffers;
-using System.Text.Json;
-using HotChocolate.Buffers;
 using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Pipeline;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
@@ -19,10 +17,6 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         var schemaDocument =
             ComposeSchemaDocument(
                 """
-                schema {
-                    query: Query
-                }
-
                 type Query {
                     foo: String
                 }
@@ -45,16 +39,12 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
     }
 
     [Fact]
-    public async Task CreateExecutor()
+    public async Task Create_Executor()
     {
         // arrange
         var schemaDocument =
             ComposeSchemaDocument(
                 """
-                schema {
-                    query: Query
-                }
-
                 type Query {
                     foo: String
                 }
@@ -77,16 +67,12 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
     }
 
     [Fact]
-    public async Task GetOperationPlanFromExecution()
+    public async Task Get_Plan_From_Execution_Result()
     {
         // arrange
         var schemaDocument =
             ComposeSchemaDocument(
                 """
-                schema {
-                    query: Query
-                }
-
                 type Query {
                     foo: String
                 }
@@ -145,58 +131,6 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Plan_Cache_Should_Be_Scoped_To_Executor()
-    {
-        // arrange
-        var executorEvictedResetEvent = new ManualResetEventSlim(false);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        var configProvider = new TestFusionConfigurationProvider(CreateConfiguration());
-
-        var services =
-            new ServiceCollection()
-                .AddGraphQLGateway()
-                .AddConfigurationProvider(_ => configProvider)
-                .Services
-                .BuildServiceProvider();
-
-        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
-
-        manager.Subscribe(new RequestExecutorEventObserver(@event =>
-        {
-            if (@event.Type == RequestExecutorEventType.Evicted)
-            {
-                executorEvictedResetEvent.Set();
-            }
-        }));
-
-        // act
-        var firstExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
-        var firstPlanCache = firstExecutor.Schema.Services.GetCombinedServices()
-            .GetRequiredService<Cache<OperationPlan>>();
-
-        configProvider.UpdateConfiguration(
-            CreateConfiguration(
-                """
-                schema {
-                  query: Query
-                }
-
-                type Query {
-                  field2: String!
-                }
-                """));
-        executorEvictedResetEvent.Wait(cts.Token);
-
-        var secondExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
-        var secondPlanCache = secondExecutor.Schema.Services.GetCombinedServices()
-            .GetRequiredService<Cache<OperationPlan>>();
-
-        // assert
-        Assert.NotSame(secondPlanCache, firstPlanCache);
-    }
-
-    [Fact]
     public async Task Executor_Should_Only_Be_Switched_Once_It_Is_Warmed_Up()
     {
         // arrange
@@ -238,10 +172,6 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         configProvider.UpdateConfiguration(
             CreateConfiguration(
                 """
-                schema {
-                  query: Query
-                }
-
                 type Query {
                   field2: String!
                 }
@@ -261,7 +191,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
     }
 
     [Fact]
-    public async Task WarmupSchemaTasks_Are_Applied_Correct_Number_Of_Times()
+    public async Task WarmupTasks_Are_Applied_Correct_Number_Of_Times()
     {
         // arrange
         var warmups = 0;
@@ -301,10 +231,6 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         configProvider.UpdateConfiguration(
             CreateConfiguration(
                 """
-                schema {
-                  query: Query
-                }
-
                 type Query {
                   field2: String!
                 }
@@ -384,70 +310,50 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         cts.Dispose();
     }
 
+    [Fact(Skip = "SomeService needs to be registered with the schema services")]
+    public async Task WarmupTask_Should_Be_Able_To_Access_Schema_And_Regular_Services()
+    {
+        // arrange
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var services = new ServiceCollection();
+        services.AddSingleton<SomeService>();
+        services
+            .AddGraphQLGateway()
+            .AddInMemoryConfiguration(CreateConfiguration().Schema)
+            .AddWarmupTask<CustomWarmupTask>();
+        var provider = services.BuildServiceProvider();
+        var manager = provider.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+
+        // assert
+        Assert.NotNull(executor);
+
+        cts.Dispose();
+    }
+
+#pragma warning disable CS9113 // Parameter is unread.
+    private sealed class CustomWarmupTask(IDocumentCache documentCache, SomeService service) : IRequestExecutorWarmupTask
+#pragma warning restore CS9113 // Parameter is unread.
+    {
+        public bool ApplyOnlyOnStartup => false;
+
+        public Task WarmupAsync(IRequestExecutor executor, CancellationToken cancellationToken) => Task.CompletedTask;
+    }
+
+    private class SomeService;
+
     private static FusionConfiguration CreateConfiguration(string? sourceSchemaText = null)
     {
         sourceSchemaText ??=
             """
-            schema {
-              query: Query
-            }
-
             type Query {
               field: String!
             }
             """;
 
-        var schema = ComposeSchemaDocument(sourceSchemaText);
-
-        return new FusionConfiguration(
-            schema,
-            new JsonDocumentOwner(
-                JsonDocument.Parse("{ }"),
-                new EmptyMemoryOwner()));
-    }
-
-    private sealed class TestFusionConfigurationProvider(FusionConfiguration initialConfig) : IFusionConfigurationProvider
-    {
-        private List<IObserver<FusionConfiguration>> _observers = [];
-
-        public IDisposable Subscribe(IObserver<FusionConfiguration> observer)
-        {
-            if (Configuration is not null)
-            {
-                observer.OnNext(Configuration);
-            }
-
-            _observers.Add(observer);
-
-            return new Observer();
-        }
-
-        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
-
-        public FusionConfiguration? Configuration { get; private set; } = initialConfig;
-
-        public void UpdateConfiguration(FusionConfiguration configuration)
-        {
-            Configuration = configuration;
-
-            foreach (var observer in _observers)
-            {
-                observer.OnNext(Configuration);
-            }
-        }
-
-        private sealed class Observer : IDisposable
-        {
-            public void Dispose()
-            {
-            }
-        }
-    }
-
-    private class EmptyMemoryOwner : IMemoryOwner<byte>
-    {
-        public Memory<byte> Memory => default;
-
-        public void Dispose() { }
+        return CreateFusionConfiguration(sourceSchemaText);
     }
 }

@@ -618,7 +618,7 @@ public class IdAttributeTests
     {
         [ID] string SomeId { get; }
 
-        [ID] public string? SomeNullableId { get; }
+        [ID] string? SomeNullableId { get; }
 
         [ID] IReadOnlyList<int> SomeIds { get; }
 

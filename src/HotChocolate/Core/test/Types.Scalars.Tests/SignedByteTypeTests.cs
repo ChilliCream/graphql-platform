@@ -205,7 +205,7 @@ public class SignedByteTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    public async Task SignedByteType_Should_BeBoundImplicity_When_Registered()
+    public async Task SignedByteType_Should_BeBoundImplicitly_When_Registered()
     {
         // arrange
         // act

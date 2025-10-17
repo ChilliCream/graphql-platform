@@ -10,6 +10,8 @@ namespace HotChocolate.Fusion.Planning;
 
 public sealed partial class OperationPlanner
 {
+    private const string UploadScalarName = "Upload";
+
     /// <summary>
     /// Builds the actual execution plan from the provided <paramref name="planSteps"/>.
     /// </summary>
@@ -21,7 +23,10 @@ public sealed partial class OperationPlanner
     {
         if (operation.IsIntrospectionOnly())
         {
-            var introspectionNode = new IntrospectionExecutionNode(1, [.. operation.RootSelectionSet.Selections]);
+            var introspectionNode = new IntrospectionExecutionNode(
+                1,
+                [.. operation.RootSelectionSet.Selections],
+                []);
             introspectionNode.Seal();
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
@@ -37,7 +42,13 @@ public sealed partial class OperationPlanner
         var hasVariables = operationDefinition.VariableDefinitions.Count > 0;
 
         planSteps = PrepareSteps(planSteps, operationDefinition, dependencyLookup, branchesLookup, fallbackLookup);
-        BuildExecutionNodes(planSteps, completedSteps, completedNodes, dependencyLookup, hasVariables);
+        BuildExecutionNodes(
+            planSteps,
+            completedSteps,
+            completedNodes,
+            dependencyLookup,
+            _schema,
+            hasVariables);
         BuildDependencyStructure(completedNodes, dependencyLookup, branchesLookup, fallbackLookup);
 
         var rootNodes = planSteps
@@ -54,7 +65,8 @@ public sealed partial class OperationPlanner
         {
             var introspectionNode = new IntrospectionExecutionNode(
                 allNodes.Max(t => t.Id) + 1,
-                operation.GetIntrospectionSelections());
+                operation.GetIntrospectionSelections(),
+                []);
             rootNodes = rootNodes.Add(introspectionNode);
             allNodes = allNodes.Add(introspectionNode);
         }
@@ -97,10 +109,24 @@ public sealed partial class OperationPlanner
                     continue;
                 }
 
+                // If all the root selections are conditional, we can pull those conditionals
+                // out as conditions onto the execution node.
+                // We can do the same for conditional selections below lookup fields.
+                if (operationPlanStep.AreAllProvidedSelectionsConditional())
+                {
+                    var updatedOperationPlanStep = ExtractConditionsAndRewriteSelectionSet(operationPlanStep);
+
+                    updatedPlanSteps = updatedPlanSteps.Replace(operationPlanStep, updatedOperationPlanStep);
+
+                    operationPlanStep = updatedOperationPlanStep;
+                }
+
                 // The operation definition of the current OperationPlanStep do not yet
                 // have variable definitions declared, so we need to traverse the operation definition
                 // and look at what variables and requirements are used within the operation definition.
-                updatedPlanSteps = updatedPlanSteps.Replace(step, AddVariableDefinitions(operationPlanStep));
+                updatedPlanSteps = updatedPlanSteps.Replace(
+                    operationPlanStep,
+                    AddVariableDefinitions(operationPlanStep));
 
                 // Each PlanStep tracks dependant PlanSteps,
                 // so PlanSteps that require data (lookup or field requirements)
@@ -118,7 +144,7 @@ public sealed partial class OperationPlanner
                     dependencies.Add(step.Id);
                 }
             }
-            else if (step is NodePlanStep nodePlanStep)
+            else if (step is NodeFieldPlanStep nodePlanStep)
             {
                 foreach (var (_, dependent) in nodePlanStep.Branches)
                 {
@@ -170,6 +196,7 @@ public sealed partial class OperationPlanner
             }
 
             var rewrittenNode = s_forwardVariableRewriter.Rewrite(step.Definition, forwardVariableContext);
+
             if (rewrittenNode is OperationDefinitionNode rewrittenOperationNode
                 && !ReferenceEquals(rewrittenOperationNode, step.Definition))
             {
@@ -185,8 +212,11 @@ public sealed partial class OperationPlanner
         HashSet<int> completedSteps,
         Dictionary<int, ExecutionNode> completedNodes,
         Dictionary<int, HashSet<int>> dependencyLookup,
+        ISchemaDefinition schema,
         bool hasVariables)
     {
+        var hasUploadScalar = schema.Types.TryGetType(UploadScalarName, out var uploadType)
+            && uploadType.IsScalarType();
         var readySteps = planSteps.Where(t => !dependencyLookup.ContainsKey(t.Id)).ToList();
         List<string>? variables = null;
 
@@ -232,6 +262,9 @@ public sealed partial class OperationPlanner
                         }
                     }
 
+                    var requiresFileUpload = hasUploadScalar
+                        && DoVariablesContainUploadScalar(operationStep.Definition.VariableDefinitions, schema);
+
                     var node = new OperationExecutionNode(
                         operationStep.Id,
                         RemoveEmptyTypeNames(operationStep.Definition).ToSourceText(),
@@ -240,16 +273,19 @@ public sealed partial class OperationPlanner
                         operationStep.Source,
                         requirements,
                         variables?.Count > 0 ? variables.ToArray() : [],
-                        GetResponseNamesFromPath(operationStep.Definition, operationStep.Source));
+                        GetResponseNamesFromPath(operationStep.Definition, operationStep.Source),
+                        operationStep.Conditions,
+                        requiresFileUpload);
 
                     completedNodes.Add(step.Id, node);
                 }
-                else if (step is NodePlanStep nodeStep)
+                else if (step is NodeFieldPlanStep nodeStep)
                 {
                     var node = new NodeFieldExecutionNode(
                         nodeStep.Id,
                         nodeStep.ResponseName,
-                        nodeStep.IdValue);
+                        nodeStep.IdValue,
+                        nodeStep.Conditions);
 
                     completedNodes.Add(step.Id, node);
                 }
@@ -420,6 +456,49 @@ public sealed partial class OperationPlanner
         return current;
     }
 
+    private static bool DoVariablesContainUploadScalar(
+        IReadOnlyList<VariableDefinitionNode> variables,
+        ISchemaDefinition schema)
+    {
+        var inputObjectTypes = new Queue<IInputObjectTypeDefinition>();
+
+        foreach (var variable in variables)
+        {
+            var variableTypeName = variable.Type.NamedType().Name.Value;
+            var variableType = schema.Types[variableTypeName];
+
+            if (variableType is IScalarTypeDefinition { Name: UploadScalarName })
+            {
+                return true;
+            }
+
+            if (variableType is IInputObjectTypeDefinition inputObjectType)
+            {
+                inputObjectTypes.Enqueue(inputObjectType);
+            }
+        }
+
+        while (inputObjectTypes.TryDequeue(out var inputObjectType))
+        {
+            foreach (var field in inputObjectType.Fields)
+            {
+                var fieldType = field.Type.NamedType();
+
+                if (fieldType is IScalarTypeDefinition { Name: UploadScalarName })
+                {
+                    return true;
+                }
+
+                if (fieldType is IInputObjectTypeDefinition nestedInputObjectType)
+                {
+                    inputObjectTypes.Enqueue(nestedInputObjectType);
+                }
+            }
+        }
+
+        return false;
+    }
+
     private static OperationDefinitionNode RemoveEmptyTypeNames(OperationDefinitionNode operationDefinition)
     {
         return (OperationDefinitionNode)SyntaxRewriter.Create<List<bool>>(
@@ -482,11 +561,178 @@ public sealed partial class OperationPlanner
             })
             .Rewrite(operationDefinition, [])!;
     }
+
+    /// <summary>
+    /// Pulls out conditions around the root selection set or the selection set below a lookup field,
+    /// and adds them as conditions to <paramref name="step"/>.
+    /// </summary>
+    private static OperationPlanStep ExtractConditionsAndRewriteSelectionSet(OperationPlanStep step)
+    {
+        var context = new ConditionalSelectionSetRewriterContext();
+
+        OperationDefinitionNode newOperation;
+
+        if (step.Lookup is not null)
+        {
+            FieldNode? lookupFieldNode = null;
+
+            foreach (var selection in step.Definition.SelectionSet.Selections)
+            {
+                if (selection is FieldNode fieldNode && fieldNode.Name.Value == step.Lookup.FieldName)
+                {
+                    lookupFieldNode = fieldNode;
+                    break;
+                }
+            }
+
+            if (lookupFieldNode?.SelectionSet is not {} lookupSelectionSet)
+            {
+                throw new InvalidOperationException(
+                    "Expected to find the lookup field with a selection set in the operation definition");
+            }
+
+            var newLookupSelectionSet = RewriteConditionalSelectionSet(lookupSelectionSet, context);
+            var newLookupField = lookupFieldNode.WithSelectionSet(newLookupSelectionSet);
+
+            newOperation = step.Definition.WithSelectionSet(
+                new SelectionSetNode([newLookupField]));
+        }
+        else
+        {
+            var newRootSelectionSet = RewriteConditionalSelectionSet(step.Definition.SelectionSet, context);
+
+            newOperation = step.Definition.WithSelectionSet(newRootSelectionSet);
+        }
+
+        return step with { Definition = newOperation, Conditions = context.Conditions.ToArray() };
+    }
+
+    private static SelectionSetNode RewriteConditionalSelectionSet(
+        SelectionSetNode selectionSetNode,
+        ConditionalSelectionSetRewriterContext context)
+    {
+        var selections = new List<ISelectionNode>();
+
+        foreach (var selection in selectionSetNode.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode fieldNode:
+                {
+                    var conditions = ExtractConditions(fieldNode.Directives);
+
+                    if (conditions is not null)
+                    {
+                        var newDirectives = new List<DirectiveNode>(fieldNode.Directives);
+
+                        foreach (var condition in conditions)
+                        {
+                            context.Conditions.Add(condition);
+                            newDirectives.Remove(condition.Directive!);
+                        }
+
+                        fieldNode = fieldNode.WithDirectives(newDirectives);
+                    }
+
+                    selections.Add(fieldNode);
+                    break;
+                }
+                case InlineFragmentNode inlineFragmentNode:
+                {
+                    if (inlineFragmentNode.TypeCondition is null)
+                    {
+                        var fragmentSelectionSet = RewriteConditionalSelectionSet(inlineFragmentNode.SelectionSet, context);
+
+                        if (fragmentSelectionSet.Selections.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        var conditions = ExtractConditions(inlineFragmentNode.Directives);
+
+                        if (conditions is not null)
+                        {
+                            var newDirectives = new List<DirectiveNode>(inlineFragmentNode.Directives);
+
+                            foreach (var condition in conditions)
+                            {
+                                context.Conditions.Add(condition);
+                                newDirectives.Remove(condition.Directive!);
+                            }
+
+                            if (newDirectives.Count == 0)
+                            {
+                                selections.AddRange(fragmentSelectionSet.Selections);
+                                continue;
+                            }
+
+                            inlineFragmentNode = inlineFragmentNode.WithDirectives(newDirectives);
+                        }
+                    }
+
+                    selections.Add(inlineFragmentNode);
+                    break;
+                }
+            }
+        }
+
+        return new SelectionSetNode(selections);
+    }
+
+    private sealed class ConditionalSelectionSetRewriterContext
+    {
+        public HashSet<ExecutionNodeCondition> Conditions { get; } = [];
+    }
 }
 
 file static class Extensions
 {
     private static readonly Encoding s_encoding = Encoding.UTF8;
+
+    /// <summary>
+    /// Checks if an entire selection set, either on the root or below
+    /// a lookup field, is conditional.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c>, if all provided selections on either the root
+    /// or below a lookup field are conditional, otherwise <c>false</c>.
+    /// </returns>
+    public static bool AreAllProvidedSelectionsConditional(this OperationPlanStep step)
+    {
+        var selectionSetNode = step.Definition.SelectionSet;
+
+        if (step.Lookup is not null)
+        {
+            FieldNode? lookupFieldNode = null;
+
+            foreach (var selection in selectionSetNode.Selections)
+            {
+                if (selection is FieldNode fieldNode && fieldNode.Name.Value == step.Lookup.FieldName)
+                {
+                    lookupFieldNode = fieldNode;
+                    break;
+                }
+            }
+
+            selectionSetNode = lookupFieldNode?.SelectionSet ?? throw new InvalidOperationException(
+                "Expected to find the lookup field with a selection set in the operation definition");
+        }
+
+        foreach (var selection in selectionSetNode.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode fieldNode
+                    when !fieldNode.Directives.Any(d => d.Name.Value is "skip" or "include"):
+                    return false;
+                case InlineFragmentNode inlineFragmentNode
+                    when !inlineFragmentNode.Directives.Any(d => d.Name.Value is "skip" or "include"):
+                    return false;
+            }
+        }
+
+        return true;
+    }
 
     public static bool IsIntrospectionOnly(this Operation operation)
     {

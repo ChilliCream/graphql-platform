@@ -33,17 +33,17 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface IInterface {
         id: Int!
       }
-      
+
       type Product implements IInterface {
         id: Int!
         schema1: String!
         shared: SharedProduct
       }
-      
+
       type Query {
         productById(id: Int!): Product @lookup
         viewer: Viewer!
@@ -53,30 +53,30 @@ sourceSchemas:
         union: IUnion!
         topReview: Review!
       }
-      
+
       type Review implements IInterface {
         id: Int!
         schema1: String!
       }
-      
+
       type SharedProduct {
         schema1: String!
         shared2: SharedProduct2
       }
-      
+
       type SharedProduct2 {
         schema1: String!
       }
-      
+
       type Viewer {
         schema1: String!
         settings: ViewerSettings!
       }
-      
+
       type ViewerSettings {
         schema1: String!
       }
-      
+
       union IUnion = Product | Review
     interactions:
       - request:
@@ -122,17 +122,17 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface IInterface {
         id: Int!
       }
-      
+
       type Product implements IInterface {
         id: Int!
         schema2: String!
         shared: SharedProduct
       }
-      
+
       type Query {
         product(id: Int!): Product @lookup
         viewer: Viewer!
@@ -141,30 +141,30 @@ sourceSchemas:
         union: IUnion!
         topReview: Review!
       }
-      
+
       type Review implements IInterface {
         id: Int!
         schema2: String!
       }
-      
+
       type SharedProduct {
         schema2: String!
         shared2: SharedProduct2
       }
-      
+
       type SharedProduct2 {
         schema2: String!
       }
-      
+
       type Viewer {
         schema2: String!
         settings: ViewerSettings!
       }
-      
+
       type ViewerSettings {
         schema2: String!
       }
-      
+
       union IUnion = Product | Review
     interactions:
       - request:
@@ -195,11 +195,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
         viewer: Viewer!
       }
-      
+
       type Viewer {
         schema3: String!
       }

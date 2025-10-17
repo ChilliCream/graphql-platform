@@ -41,20 +41,21 @@ internal sealed class __Schema : ITypeResolverInterceptor
 
     public static void Types(FieldContext context)
     {
-        var list = context.ResultPool.RentObjectListResult();
-        context.FieldResult.SetNextValue(list);
+        var list = context.FieldResult.CreateListValue(context.Schema.Types.Count);
 
-        foreach (var type in context.Schema.Types)
+        var i = 0;
+        foreach (var element in list.EnumerateArray())
         {
+            var type = context.Schema.Types[i++];
             context.AddRuntimeResult(type);
-            list.SetNextValue(context.RentInitializedObjectResult());
+            element.CreateObjectValue(context.Selection, context.IncludeFlags);
         }
     }
 
     public static void QueryType(FieldContext context)
     {
         context.AddRuntimeResult(context.Schema.QueryType);
-        context.FieldResult.SetNextValue(context.RentInitializedObjectResult());
+        context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
     }
 
     public static void MutationType(FieldContext context)
@@ -62,7 +63,7 @@ internal sealed class __Schema : ITypeResolverInterceptor
         if (context.Schema.MutationType is not null)
         {
             context.AddRuntimeResult(context.Schema.MutationType);
-            context.FieldResult.SetNextValue(context.RentInitializedObjectResult());
+            context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
         }
     }
 
@@ -71,19 +72,20 @@ internal sealed class __Schema : ITypeResolverInterceptor
         if (context.Schema.SubscriptionType is not null)
         {
             context.AddRuntimeResult(context.Schema.SubscriptionType);
-            context.FieldResult.SetNextValue(context.RentInitializedObjectResult());
+            context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
         }
     }
 
     public static void Directives(FieldContext context)
     {
-        var list = context.ResultPool.RentObjectListResult();
-        context.FieldResult.SetNextValue(list);
+        var list = context.FieldResult.CreateListValue(context.Schema.DirectiveDefinitions.Count);
 
-        foreach (var directiveDefinition in context.Schema.DirectiveDefinitions)
+        var i = 0;
+        foreach (var element in list.EnumerateArray())
         {
-            context.AddRuntimeResult(directiveDefinition);
-            list.SetNextValue(context.RentInitializedObjectResult());
+            var type = context.Schema.DirectiveDefinitions[i++];
+            context.AddRuntimeResult(type);
+            element.CreateObjectValue(context.Selection, context.IncludeFlags);
         }
     }
 }

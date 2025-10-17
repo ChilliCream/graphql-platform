@@ -5,21 +5,18 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
+using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
-public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
+public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null) : OperationPlanFormatter
 {
-    private readonly JsonWriterOptions _writerOptions;
-
-    public JsonOperationPlanFormatter(JsonWriterOptions? options = null)
+    private readonly JsonWriterOptions _writerOptions = options ?? new JsonWriterOptions
     {
-        _writerOptions = options ?? new JsonWriterOptions
-        {
-            Indented = false,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        };
-    }
+        Indented = false,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
 
     public override string Format(OperationPlan plan, OperationPlanTrace? trace = null)
     {
@@ -124,7 +121,7 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
                     break;
 
                 case NodeFieldExecutionNode nodeExecutionNode:
-                    WriteNodeNode(jsonWriter, nodeExecutionNode, nodeTrace);
+                    WriteNodeFieldNode(jsonWriter, nodeExecutionNode, nodeTrace);
                     break;
             }
         }
@@ -191,7 +188,9 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
             jsonWriter.WriteEndArray();
         }
 
-        if (node.Requirements.Length > 0)
+        TryWriteConditions(jsonWriter, node);
+
+        if (node.ForwardedVariables.Length > 0)
         {
             jsonWriter.WriteStartArray("forwardedVariables");
 
@@ -201,6 +200,11 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
             }
 
             jsonWriter.WriteEndArray();
+        }
+
+        if (node.RequiresFileUpload)
+        {
+            jsonWriter.WriteBoolean("requiresFileUpload", true);
         }
 
         if (node.Dependencies.Length > 0)
@@ -243,6 +247,35 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
 
         jsonWriter.WriteEndArray();
 
+        TryWriteConditions(jsonWriter, node);
+
+        TryWriteNodeTrace(jsonWriter, trace);
+
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteNodeFieldNode(Utf8JsonWriter jsonWriter, NodeFieldExecutionNode node, ExecutionNodeTrace? trace)
+    {
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteNumber("id", node.Id);
+        jsonWriter.WriteString("type", node.Type.ToString());
+
+        jsonWriter.WriteString("idValue", node.IdValue.ToString());
+        jsonWriter.WriteString("responseName", node.ResponseName);
+
+        jsonWriter.WriteStartObject("branches");
+
+        foreach (var branch in node.Branches.OrderBy(kvp => kvp.Key))
+        {
+            jsonWriter.WriteNumber(branch.Key, branch.Value.Id);
+        }
+
+        jsonWriter.WriteEndObject();
+
+        jsonWriter.WriteNumber("fallback", node.FallbackQuery.Id);
+
+        TryWriteConditions(jsonWriter, node);
+
         TryWriteNodeTrace(jsonWriter, trace);
 
         jsonWriter.WriteEndObject();
@@ -283,48 +316,38 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         }
     }
 
+    private static void TryWriteConditions(Utf8JsonWriter jsonWriter, ExecutionNode node)
+    {
+        if (node.Conditions.Length > 0)
+        {
+            jsonWriter.WritePropertyName("conditions");
+            jsonWriter.WriteStartArray();
+
+            foreach (var condition in node.Conditions)
+            {
+                jsonWriter.WriteStartObject();
+                jsonWriter.WriteString("variable", "$" + condition.VariableName);
+                jsonWriter.WriteBoolean("passingValue", condition.PassingValue);
+                jsonWriter.WriteEndObject();
+            }
+
+            jsonWriter.WriteEndArray();
+        }
+    }
+
     private static void WriteObjectValueNode(Utf8JsonWriter jsonWriter, ObjectValueNode node)
     {
         jsonWriter.WriteStartObject();
 
         foreach (var field in node.Fields)
         {
-            jsonWriter.WritePropertyName(field.Name.Value);
-            WriteValueNode(jsonWriter, field.Value);
-        }
-
-        jsonWriter.WriteEndObject();
-    }
-
-    private static void WriteNodeNode(Utf8JsonWriter jsonWriter, NodeFieldExecutionNode nodeField, ExecutionNodeTrace? trace)
-    {
-        jsonWriter.WriteStartObject();
-        jsonWriter.WriteNumber("id", nodeField.Id);
-        jsonWriter.WriteString("type", nodeField.Type.ToString());
-
-        jsonWriter.WriteString("idValue", nodeField.IdValue.ToString());
-        jsonWriter.WriteString("responseName", nodeField.ResponseName);
-
-        jsonWriter.WriteStartObject("branches");
-
-        foreach (var branch in nodeField.Branches.OrderBy(kvp => kvp.Key))
-        {
-            jsonWriter.WriteNumber(branch.Key, branch.Value.Id);
-        }
-
-        jsonWriter.WriteEndObject();
-
-        jsonWriter.WriteNumber("fallback", nodeField.FallbackQuery.Id);
-
-        if (trace is not null)
-        {
-            if (!string.IsNullOrEmpty(trace.SpanId))
+            if (field.Value is FileValueNode or FileReferenceNode)
             {
-                jsonWriter.WriteString("spanId", trace.SpanId);
+                continue;
             }
 
-            jsonWriter.WriteNumber("duration", trace.Duration.TotalMilliseconds);
-            jsonWriter.WriteString("status", trace.Status.ToString());
+            jsonWriter.WritePropertyName(field.Name.Value);
+            WriteValueNode(jsonWriter, field.Value);
         }
 
         jsonWriter.WriteEndObject();

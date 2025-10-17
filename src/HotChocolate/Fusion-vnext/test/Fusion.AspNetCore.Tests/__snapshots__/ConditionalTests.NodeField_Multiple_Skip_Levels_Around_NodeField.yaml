@@ -1,0 +1,91 @@
+title: NodeField_Multiple_Skip_Levels_Around_NodeField
+request:
+  document: |
+    query testQuery(
+      $skip1: Boolean!
+      $skip2: Boolean!
+    ) {
+      ... @skip(if: $skip1) {
+        ... @skip(if: $skip2) {
+          __typename
+          node(id: "RGlzY3Vzc2lvbjox") {
+            __typename
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "skip1": true,
+      "skip2": true
+    }
+response:
+  body: |
+    {
+      "data": {}
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      interface Node {
+        id: ID!
+      }
+      
+      type Discussion implements Node {
+        id: ID!
+        title: String
+      }
+      
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip1: Boolean!
+          $skip2: Boolean!
+        ) {
+          ... @skip(if: $skip1) {
+            ... @skip(if: $skip2) {
+              __typename
+              node(id: "RGlzY3Vzc2lvbjox") {
+                __typename
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 77cabf0dee8ded4914c8a472c2afabb0
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "RGlzY3Vzc2lvbjox"
+      responseName: node
+      fallback: 2
+      conditions:
+        - variable: $skip2
+          passingValue: false
+        - variable: $skip1
+          passingValue: false
+    - id: 2
+      type: Operation
+      operation: |
+        query testQuery_77cabf0d_2 {
+          node(id: "RGlzY3Vzc2lvbjox") {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: __typename
+          fieldName: __typename

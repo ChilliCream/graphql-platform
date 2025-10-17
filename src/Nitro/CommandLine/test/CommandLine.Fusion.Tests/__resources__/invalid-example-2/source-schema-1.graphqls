@@ -2,8 +2,8 @@ schema {
   query: Query
 }
 
-type Query @inaccessible {         # Error:   QUERY_ROOT_TYPE_INACCESSIBLE
-  userById(id: ID!): User! @lookup # Warning: LOOKUP_RETURNS_NON_NULLABLE_TYPE
+type Query {
+  userById(id: ID!): User! @lookup @provides(fields: "username email")
 }
 
 type User {

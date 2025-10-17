@@ -1,12 +1,27 @@
+#if FUSION
+using System.Buffers;
+using System.IO.Pipelines;
+using System.Runtime.CompilerServices;
+using HotChocolate.Fusion.Text.Json;
+#else
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
+#if FUSION
+internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<SourceResultDocument>
+#else
 internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<OperationResult>
+#endif
 {
     private static readonly StreamPipeReaderOptions s_options = new(
         pool: MemoryPool<byte>.Shared,
@@ -15,7 +30,11 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
         leaveOpen: true,
         useZeroByteReads: true);
 
+#if FUSION
+    public async IAsyncEnumerator<SourceResultDocument> GetAsyncEnumerator(
+#else
     public async IAsyncEnumerator<OperationResult> GetAsyncEnumerator(
+#endif
         CancellationToken cancellationToken = default)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -52,8 +71,12 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
                     // Skip empty lines
                     if (!IsEmptyLine(line))
                     {
+#if FUSION
+                        yield return ParseDocument(line);
+#else
                         var document = ParseDocument(line);
                         yield return OperationResult.Parse(document);
+#endif
                     }
 
                     // Move past the processed line
@@ -73,6 +96,73 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
         }
     }
 
+#if FUSION
+    private static SourceResultDocument ParseDocument(ReadOnlySequence<byte> lineBuffer)
+    {
+        var requiredSize = (int)lineBuffer.Length;
+
+        // Ceiling division to make sure we end up with the right amount of chunks.
+        var chunksNeeded = (requiredSize + JsonMemory.BufferSize - 1) / JsonMemory.BufferSize;
+        var chunks = JsonMemory.RentRange(chunksNeeded);
+        var chunkIndex = 0;
+        var chunkPosition = 0;
+
+        // Copy lineBuffer data into pre-allocated chunks
+        if (lineBuffer.IsSingleSegment)
+        {
+            var span = lineBuffer.First.Span;
+            WriteBytesToChunks(chunks, ref chunkIndex, ref chunkPosition, span);
+        }
+        else
+        {
+            var position = lineBuffer.Start;
+            while (lineBuffer.TryGet(ref position, out var memory))
+            {
+                WriteBytesToChunks(chunks, ref chunkIndex, ref chunkPosition, memory.Span);
+            }
+        }
+
+        var lastBufferSize = requiredSize % JsonMemory.BufferSize;
+        if (lastBufferSize == 0 && chunks.Length > 0)
+        {
+            lastBufferSize = JsonMemory.BufferSize;
+        }
+
+        return SourceResultDocument.Parse(
+            chunks,
+            lastBufferSize,
+            chunksNeeded,
+            options: default,
+            pooledMemory: true);
+    }
+
+    private static void WriteBytesToChunks(
+        byte[][] chunks,
+        ref int chunkIndex,
+        ref int chunkPosition,
+        ReadOnlySpan<byte> data)
+    {
+        var dataOffset = 0;
+
+        while (dataOffset < data.Length)
+        {
+            if (chunkPosition >= JsonMemory.BufferSize)
+            {
+                chunkPosition = 0;
+                chunkIndex++;
+            }
+
+            var currentChunk = chunks[chunkIndex];
+            var spaceInChunk = JsonMemory.BufferSize - chunkPosition;
+            var bytesToWrite = Math.Min(spaceInChunk, data.Length - dataOffset);
+
+            data.Slice(dataOffset, bytesToWrite).CopyTo(currentChunk.AsSpan(chunkPosition));
+
+            dataOffset += bytesToWrite;
+            chunkPosition += bytesToWrite;
+        }
+    }
+#else
     private static JsonDocumentOwner ParseDocument(ReadOnlySequence<byte> lineBuffer)
     {
         var requiredSize = (int)lineBuffer.Length;
@@ -81,6 +171,7 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
         buffer.Advance(requiredSize);
         return new JsonDocumentOwner(JsonDocument.Parse(buffer.WrittenMemory), buffer);
     }
+#endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsEmptyLine(ReadOnlySequence<byte> lineBuffer)

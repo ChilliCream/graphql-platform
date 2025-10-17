@@ -17,14 +17,8 @@ internal sealed class RequireInvalidFieldTypeRule : IEventHandler<RequireFieldIn
 {
     public void Handle(RequireFieldInvalidTypeEvent @event, CompositionContext context)
     {
-        var (requireDirective, argument, field, type, schema) = @event;
+        var (requireDirective, argument, _, _, schema) = @event;
 
-        context.Log.Write(
-            RequireInvalidFieldType(
-                requireDirective,
-                argument.Name,
-                field.Name,
-                type.Name,
-                schema));
+        context.Log.Write(RequireInvalidFieldType(requireDirective, argument, schema));
     }
 }

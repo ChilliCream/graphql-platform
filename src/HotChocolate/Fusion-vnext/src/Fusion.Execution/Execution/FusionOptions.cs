@@ -35,9 +35,13 @@ public sealed class FusionOptions : ICloneable
         {
             ExpectMutableOptions();
 
-            field = value < 16
-                ? 16
-                : value;
+            if (value < 16)
+            {
+                throw new ArgumentException(
+                    "The size of operation execution plan cache must be at least 16.");
+            }
+
+            field = value;
         }
     } = 256;
 
@@ -66,9 +70,13 @@ public sealed class FusionOptions : ICloneable
         {
             ExpectMutableOptions();
 
-            field = value < 16
-                ? 16
-                : value;
+            if (value < 16)
+            {
+                throw new ArgumentException(
+                    "The size of operation document cache must be at least 16.");
+            }
+
+            field = value;
         }
     } = 256;
 
@@ -92,7 +100,7 @@ public sealed class FusionOptions : ICloneable
     /// <c>false</c> by default.
     /// </summary>
     /// <remarks>
-    /// When set to <c>false</c> the creation of the schema and request executor, as well as
+    /// When set to <c>true</c> the creation of the schema and request executor, as well as
     /// the load of the Fusion configuration, is deferred until the request executor
     /// is first requested.
     /// This can significantly slow down and block initial requests.

@@ -22,7 +22,6 @@ operation:
                   deliveryEstimate(zip: "4383")
                   pictureFileName
                   price
-                  quantity @skip(if: $skip)
                   reviews {
                     nodes {
                       author {
@@ -52,6 +51,7 @@ operation:
                     width
                     height
                   }
+                  quantity @skip(if: $skip)
                 }
               }
             }
@@ -149,11 +149,10 @@ nodes:
     schema: b
     operation: |
       query findMe_123456789101112_4(
-        $skip: Boolean = true
         $__fusion_3_id: ID!
       ) {
         productByIdAsync(id: $__fusion_3_id) {
-          quantity @skip(if: $skip)
+          quantity
         }
       }
     source: $.productByIdAsync
@@ -162,6 +161,9 @@ nodes:
       - name: __fusion_3_id
         selectionMap: >-
           id
+    conditions:
+      - variable: $skip
+        passingValue: false
     dependencies:
       - id: 2
   - id: 5
