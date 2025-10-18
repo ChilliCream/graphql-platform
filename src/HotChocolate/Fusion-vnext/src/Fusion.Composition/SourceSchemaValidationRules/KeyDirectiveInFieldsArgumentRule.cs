@@ -22,7 +22,7 @@ internal sealed class KeyDirectiveInFieldsArgumentRule : IEventHandler<KeyFieldN
         {
             context.Log.Write(
                 KeyDirectiveInFieldsArgument(
-                    type.Name,
+                    type,
                     keyDirective,
                     fieldNamePath,
                     schema));

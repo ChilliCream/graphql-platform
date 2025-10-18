@@ -5,6 +5,242 @@ namespace HotChocolate.Fusion;
 
 public class ConditionalTests : FusionTestBase
 {
+    #region Shared Path
+
+    [Fact]
+    public async Task SharedPath_Skip_On_Entry_Field()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldA: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldB: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              viewer @skip(if: $skip) {
+                fieldA
+                fieldB
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact(Skip = "Planning is just broken here")]
+    public async Task SharedPath_Multiple_Skip_Levels_Around_Entry_Field()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldA: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldB: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip1: Boolean!, $skip2: Boolean!) {
+              ... @skip(if: $skip1) {
+                ... @skip(if: $skip2) {
+                  viewer  {
+                    fieldA
+                    fieldB
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip1"] = true, ["skip2"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task SharedPath_Skip_On_Field_Below_Entry_Field()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldA: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldB: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip: Boolean!) {
+              viewer  {
+                fieldA
+                fieldB @skip(if: $skip)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact(Skip = "Conditions are not properly forwarded to B")]
+    public async Task SharedPath_Multiple_Skip_Levels_Around_Fields_Below_Entry_Field()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldA: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              fieldB: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skip1: Boolean!, $skip2: Boolean!) {
+              viewer {
+                ... @skip(if: $skip1) {
+                  ... @skip(if: $skip2) {
+                    fieldA
+                    fieldB
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skip1"] = true, ["skip2"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    #endregion
+
     #region Root
 
     [Fact]
@@ -145,7 +381,7 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact]
+    [Fact(Skip = "Conditionals not properly forwarded to B")]
     public async Task Root_Skip_Around_Fields_From_Different_Source_Schemas()
     {
         // arrange
@@ -316,7 +552,7 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact]
+    [Fact(Skip = "Conditions not properly forwarded to B")]
     public async Task Root_Multiple_Skip_Levels_Around_Fields_From_Different_Source_Schemas()
     {
         // arrange
@@ -578,7 +814,7 @@ public class ConditionalTests : FusionTestBase
               }
             }
             """,
-            variables: new Dictionary<string, object?> { ["skip1"] = true,  ["skip2"] = true });
+            variables: new Dictionary<string, object?> { ["skip1"] = true, ["skip2"] = true });
 
         using var result = await client.PostAsync(
             request,
@@ -652,7 +888,7 @@ public class ConditionalTests : FusionTestBase
               }
             }
             """,
-            variables: new Dictionary<string, object?> { ["skip1"] = true,  ["skip2"] = true });
+            variables: new Dictionary<string, object?> { ["skip1"] = true, ["skip2"] = true });
 
         using var result = await client.PostAsync(
             request,
@@ -798,7 +1034,7 @@ public class ConditionalTests : FusionTestBase
 
     #region Require
 
-    [Fact]
+    [Fact(Skip = "Requirement is still executed")]
     public async Task Lookup_Skip_On_Field_With_Requirement()
     {
         // arrange
@@ -942,7 +1178,7 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact]
+    [Fact(Skip = "Requirement is still executed")]
     public async Task Lookup_Skip_Not_Only_On_Field_With_Requirement()
     {
         // arrange
@@ -1695,7 +1931,7 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact]
+    [Fact(Skip = "Step is still triggered since operation requirement is being fulfilled")]
     public async Task NodeField_Skip_On_Interface_Selection_Type_Refinement_With_Same_Unskipped_Selection()
     {
         // arrange

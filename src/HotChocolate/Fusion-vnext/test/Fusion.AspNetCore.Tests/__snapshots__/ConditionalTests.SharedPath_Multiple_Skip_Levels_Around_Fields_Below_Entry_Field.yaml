@@ -1,0 +1,149 @@
+title: SharedPath_Multiple_Skip_Levels_Around_Fields_Below_Entry_Field
+request:
+  document: |
+    query testQuery(
+      $skip1: Boolean!
+      $skip2: Boolean!
+    ) {
+      viewer {
+        ... @skip(if: $skip1) {
+          ... @skip(if: $skip2) {
+            fieldA
+            fieldB
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "skip1": true,
+      "skip2": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "viewer": {}
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        viewer: Viewer
+      }
+      
+      type Viewer {
+        fieldA: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_c099bff0_1(
+              $skip1: Boolean!
+              $skip2: Boolean!
+            ) {
+              viewer {
+                ... @skip(if: $skip1) {
+                  ... @skip(if: $skip2) {
+                    fieldA
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "skip1": true,
+              "skip2": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {}
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        viewer: Viewer
+      }
+      
+      type Viewer {
+        fieldB: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_c099bff0_2 {
+              viewer {
+                fieldB
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "fieldB": "Viewer"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip1: Boolean!
+          $skip2: Boolean!
+        ) {
+          viewer {
+            ... @skip(if: $skip1) {
+              ... @skip(if: $skip2) {
+                fieldA
+                fieldB
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: c099bff074b026e46b9754ca9feb8322
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_c099bff0_1(
+          $skip1: Boolean!
+          $skip2: Boolean!
+        ) {
+          viewer {
+            ... @skip(if: $skip1) {
+              ... @skip(if: $skip2) {
+                fieldA
+              }
+            }
+          }
+        }
+      forwardedVariables:
+        - skip1
+        - skip2
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_c099bff0_2 {
+          viewer {
+            fieldB
+          }
+        }

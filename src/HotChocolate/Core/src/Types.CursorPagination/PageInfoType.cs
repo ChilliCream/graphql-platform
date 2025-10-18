@@ -1,5 +1,3 @@
-using HotChocolate.Types.Composite;
-
 namespace HotChocolate.Types.Pagination;
 
 public class PageInfoType : ObjectType<ConnectionPageInfo>

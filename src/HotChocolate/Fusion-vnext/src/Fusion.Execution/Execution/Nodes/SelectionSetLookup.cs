@@ -151,6 +151,6 @@ internal sealed class SelectionLookup
     private readonly struct Entry(int hashCode, Selection selection)
     {
         public readonly int HashCode = hashCode;
-        public readonly Selection Selection = selection;
+        public readonly Selection? Selection = selection;
     }
 }

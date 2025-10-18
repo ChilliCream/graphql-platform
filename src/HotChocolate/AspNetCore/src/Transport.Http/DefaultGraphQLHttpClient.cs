@@ -5,8 +5,8 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
-using HotChocolate.Transport;
 #if FUSION
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 #endif
 using HotChocolate.Transport.Serialization;

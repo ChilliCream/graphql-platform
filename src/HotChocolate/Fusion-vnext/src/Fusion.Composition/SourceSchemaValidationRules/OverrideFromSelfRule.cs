@@ -20,14 +20,14 @@ internal sealed class OverrideFromSelfRule : IEventHandler<OutputFieldEvent>
 {
     public void Handle(OutputFieldEvent @event, CompositionContext context)
     {
-        var (field, type, schema) = @event;
+        var (field, _, schema) = @event;
 
         var overrideDirective = field.Directives[Override].FirstOrDefault();
 
         if (overrideDirective?.Arguments[From] is StringValueNode from
             && from.Value == schema.Name)
         {
-            context.Log.Write(OverrideFromSelf(overrideDirective, field, type, schema));
+            context.Log.Write(OverrideFromSelf(overrideDirective, field, schema));
         }
     }
 }

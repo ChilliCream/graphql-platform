@@ -28,7 +28,7 @@ internal sealed class ListWorkspaceCommand : Command
         IApiClient client,
         CancellationToken ct)
     {
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             return await RenderInteractiveAsync(context, console, client, ct);
         }

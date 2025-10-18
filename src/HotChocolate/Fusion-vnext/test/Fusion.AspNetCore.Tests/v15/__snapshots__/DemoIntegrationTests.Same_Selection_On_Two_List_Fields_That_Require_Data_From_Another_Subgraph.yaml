@@ -67,16 +67,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Product implements Node {
         id: ID!
         name: String!
       }
-      
+
       type Query {
         productsA: [Product]
         productsB: [Product]
@@ -135,17 +135,17 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Product implements Node {
         id: ID!
         price: Float!
         reviewCount: Int!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
         nodes(ids: [ID!]!): [Node]!

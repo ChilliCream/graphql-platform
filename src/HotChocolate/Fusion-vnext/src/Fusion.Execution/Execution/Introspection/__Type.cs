@@ -134,8 +134,13 @@ internal sealed class __Type : ITypeResolverInterceptor
                     continue;
                 }
 
+                if (!list.MoveNext())
+                {
+                    Debug.Fail("Expected enumerator of list value to be able to advance");
+                    break;
+                }
+
                 context.AddRuntimeResult(field);
-                Debug.Assert(list.MoveNext());
                 list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
@@ -193,8 +198,13 @@ internal sealed class __Type : ITypeResolverInterceptor
                     continue;
                 }
 
+                if (!list.MoveNext())
+                {
+                    Debug.Fail("Expected enumerator of list value to be able to advance");
+                    break;
+                }
+
                 context.AddRuntimeResult(value);
-                Debug.Assert(list.MoveNext());
                 list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }
@@ -217,8 +227,13 @@ internal sealed class __Type : ITypeResolverInterceptor
                     continue;
                 }
 
+                if (!list.MoveNext())
+                {
+                    Debug.Fail("Expected enumerator of list value to be able to advance");
+                    break;
+                }
+
                 context.AddRuntimeResult(field);
-                Debug.Assert(list.MoveNext());
                 list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
             }
         }

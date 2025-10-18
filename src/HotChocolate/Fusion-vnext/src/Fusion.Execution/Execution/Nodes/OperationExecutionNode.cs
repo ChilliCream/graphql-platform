@@ -12,6 +12,8 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly OperationRequirement[] _requirements;
     private readonly string[] _forwardedVariables;
     private readonly string[] _responseNames;
+    private readonly ExecutionNodeCondition[] _conditions;
+    private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
@@ -25,7 +27,9 @@ public sealed class OperationExecutionNode : ExecutionNode
         SelectionPath source,
         OperationRequirement[] requirements,
         string[] forwardedVariables,
-        string[] responseNames)
+        string[] responseNames,
+        ExecutionNodeCondition[] conditions,
+        bool requiresFileUpload)
     {
         Id = id;
         _operation = operation;
@@ -35,17 +39,18 @@ public sealed class OperationExecutionNode : ExecutionNode
         _requirements = requirements;
         _forwardedVariables = forwardedVariables;
         _responseNames = responseNames;
+        _conditions = conditions;
+        _requiresFileUpload = requiresFileUpload;
     }
 
-    /// <summary>
-    /// Gets the plan unique node id.
-    /// </summary>
+    /// <inheritdoc />
     public override int Id { get; }
 
-    /// <summary>
-    /// Gets the type of the execution node.
-    /// </summary>
+    /// <inheritdoc />
     public override ExecutionNodeType Type => ExecutionNodeType.Operation;
+
+    /// <inheritdoc />
+    public override ReadOnlySpan<ExecutionNodeCondition> Conditions => _conditions;
 
     /// <summary>
     /// Gets the operation definition that this execution node represents.
@@ -84,6 +89,12 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// </summary>
     public ReadOnlySpan<string> ForwardedVariables => _forwardedVariables;
 
+    /// <summary>
+    /// Gets whether this operation contains one or more variables
+    /// that contain the Upload scalar.
+    /// </summary>
+    public bool RequiresFileUpload => _requiresFileUpload;
+
     protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
@@ -104,7 +115,8 @@ public sealed class OperationExecutionNode : ExecutionNode
         {
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
-            Variables = variables
+            Variables = variables,
+            RequiresFileUpload = _requiresFileUpload
         };
 
         var client = context.GetClient(schemaName, _operation.Type);

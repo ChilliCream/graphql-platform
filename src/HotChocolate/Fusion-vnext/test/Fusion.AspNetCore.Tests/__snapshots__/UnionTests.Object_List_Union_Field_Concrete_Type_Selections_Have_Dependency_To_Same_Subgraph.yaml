@@ -52,33 +52,33 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Author {
         id: ID!
       }
-      
+
       type Discussion {
         id: ID!
         author: Author
       }
-      
+
       type Photo {
         id: ID!
         product: Product
       }
-      
+
       type PostEdge {
         node: Post
       }
-      
+
       type Product {
         id: ID!
       }
-      
+
       type Query {
         postEdges: [PostEdge]
       }
-      
+
       union Post = Photo | Discussion
     interactions:
       - request:
@@ -138,17 +138,17 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Author {
         id: ID!
         subgraph2: String!
       }
-      
+
       type Product {
         id: ID!
         subgraph2: String!
       }
-      
+
       type Query {
         productById(id: ID!): Product @lookup
         authorById(id: ID!): Author @lookup

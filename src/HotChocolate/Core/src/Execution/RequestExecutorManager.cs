@@ -18,6 +18,7 @@ using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
+using Microsoft.Extensions.Options;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution;
@@ -30,7 +31,7 @@ internal sealed partial class RequestExecutorManager
     private readonly CancellationTokenSource _cts = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreBySchema = new();
     private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
-    private readonly IRequestExecutorOptionsMonitor _optionsMonitor;
+    private readonly IOptionsMonitor<RequestExecutorSetup> _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
     private readonly EventObservable _events = new();
     private readonly ChannelWriter<string> _executorEvictionChannelWriter;
@@ -38,7 +39,7 @@ internal sealed partial class RequestExecutorManager
     private bool _disposed;
 
     public RequestExecutorManager(
-        IRequestExecutorOptionsMonitor optionsMonitor,
+        IOptionsMonitor<RequestExecutorSetup> optionsMonitor,
         IServiceProvider serviceProvider)
     {
         ArgumentNullException.ThrowIfNull(optionsMonitor);
@@ -52,7 +53,6 @@ internal sealed partial class RequestExecutorManager
 
         ConsumeExecutorEvictionsAsync(executorEvictionChannel.Reader, _cts.Token).FireAndForget();
 
-        _optionsMonitor.OnChange(EvictExecutor);
         var schemaNames = _applicationServices.GetService<IEnumerable<SchemaName>>()?
             .Select(x => x.Value).Distinct().Order().ToImmutableArray();
         SchemaNames = schemaNames ?? [];
@@ -151,16 +151,11 @@ internal sealed partial class RequestExecutorManager
         bool isInitialCreation,
         CancellationToken cancellationToken)
     {
-        var setup =
-            await _optionsMonitor.GetAsync(schemaName, cancellationToken)
-                .ConfigureAwait(false);
-
-        var options = CreateSchemaOptions(setup);
-        var schemaBuilder = SchemaBuilder.New(options);
+        var setup = _optionsMonitor.Get(schemaName);
 
         var context = new ConfigurationContext(
             schemaName,
-            schemaBuilder,
+            setup.SchemaBuilder ?? SchemaBuilder.New(),
             _applicationServices);
 
         var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, context.SchemaName);
@@ -200,10 +195,7 @@ internal sealed partial class RequestExecutorManager
             registeredExecutor.Executor);
 
         _events.RaiseEvent(
-            new RequestExecutorEvent(
-                RequestExecutorEventType.Created,
-                schemaName,
-                registeredExecutor.Executor));
+            RequestExecutorEvent.Created(registeredExecutor.Executor));
 
         return registeredExecutor;
     }
@@ -222,11 +214,7 @@ internal sealed partial class RequestExecutorManager
 
         try
         {
-            _events.RaiseEvent(
-                new RequestExecutorEvent(
-                    RequestExecutorEventType.Evicted,
-                    schemaName,
-                    previousExecutor.Executor));
+            _events.RaiseEvent(RequestExecutorEvent.Evicted(previousExecutor.Executor));
         }
         finally
         {
@@ -247,18 +235,6 @@ internal sealed partial class RequestExecutorManager
             await Task.Delay(registeredExecutor.EvictionTimeout).ConfigureAwait(false);
             await registeredExecutor.DisposeAsync().ConfigureAwait(false);
         }
-    }
-
-    internal static SchemaOptions CreateSchemaOptions(RequestExecutorSetup setup)
-    {
-        var options = new SchemaOptions();
-
-        foreach (var configure in setup.SchemaOptionModifiers)
-        {
-            configure(options);
-        }
-
-        return options;
     }
 
     private async Task<ServiceProvider> CreateSchemaServicesAsync(
@@ -292,26 +268,28 @@ internal sealed partial class RequestExecutorManager
 
         serviceCollection.AddSingleton(executorOptions);
         serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
-            static s => s.GetRequiredService<RequestExecutorOptions>());
+            static sp => sp.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IErrorHandlerOptionsAccessor>(
-            static s => s.GetRequiredService<RequestExecutorOptions>());
+            static sp => sp.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IRequestTimeoutOptionsAccessor>(
-            static s => s.GetRequiredService<RequestExecutorOptions>());
+            static sp => sp.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IPersistedOperationOptionsAccessor>(
-            static s => s.GetRequiredService<RequestExecutorOptions>());
+            static sp => sp.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton(
-            static s => s.GetRequiredService<RequestExecutorOptions>().PersistedOperations);
+            static sp => sp.GetRequiredService<RequestExecutorOptions>().PersistedOperations);
 
-        serviceCollection.AddSingleton<IPreparedOperationCache>(static sp => new DefaultPreparedOperationCache(
-            sp.GetRootServiceProvider().GetRequiredService<PreparedOperationCacheOptions>().Capacity));
+        serviceCollection.AddSingleton<IPreparedOperationCache>(
+            static sp =>
+            {
+                var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
+                return new DefaultPreparedOperationCache(options.PreparedOperationCacheSize);
+            });
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
         serviceCollection.AddSingleton(
             static sp => sp.GetRootServiceProvider().GetRequiredService<ParserOptions>());
         serviceCollection.AddSingleton(
             static sp => sp.GetRootServiceProvider().GetRequiredService<IDocumentHashProvider>());
-        serviceCollection.AddSingleton(
-            static sp => sp.GetRootServiceProvider().GetRequiredService<IDocumentCache>());
 
         serviceCollection.TryAddDiagnosticEvents();
         serviceCollection.TryAddOperationExecutors();
@@ -662,7 +640,11 @@ internal sealed partial class RequestExecutorManager
 
     private sealed class EventObservable : IObservable<RequestExecutorEvent>, IDisposable
     {
+#if NET9_0_OR_GREATER
+        private readonly Lock _sync = new();
+#else
         private readonly object _sync = new();
+#endif
         private readonly List<Subscription> _subscriptions = [];
         private bool _disposed;
 

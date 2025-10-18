@@ -95,8 +95,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// The <paramref name="builder"/> is <c>null</c>.
     /// </exception>
     public static IFusionGatewayBuilder AddWarmupTask<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-        T>(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder,
         bool skipIf = false)
         where T : class, IRequestExecutorWarmupTask

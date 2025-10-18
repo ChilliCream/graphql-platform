@@ -1,10 +1,11 @@
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace HotChocolate.AspNetCore.Warmup;
 
 internal sealed class RequestExecutorWarmupService(
-    IRequestExecutorOptionsMonitor executorOptionsMonitor,
+    IOptionsMonitor<RequestExecutorSetup> optionsMonitor,
     IRequestExecutorProvider provider) : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -13,8 +14,8 @@ internal sealed class RequestExecutorWarmupService(
 
         foreach (var schemaName in provider.SchemaNames)
         {
-            var setup = await executorOptionsMonitor.GetAsync(schemaName, cancellationToken);
-            var options = RequestExecutorManager.CreateSchemaOptions(setup);
+            var setup = optionsMonitor.Get(schemaName);
+            var options = setup.CreateSchemaOptions();
 
             if (!options.LazyInitialization)
             {

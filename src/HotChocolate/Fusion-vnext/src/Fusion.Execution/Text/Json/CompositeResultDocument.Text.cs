@@ -104,7 +104,7 @@ public sealed partial class CompositeResultDocument
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         // The property name is stored one row before the value
-        Debug.Assert(_metaDb.GetElementTokenType(valueCursor -1) == ElementTokenType.PropertyName);
+        Debug.Assert(_metaDb.GetElementTokenType(valueCursor - 1) == ElementTokenType.PropertyName);
 
         var row = _metaDb.Get(valueCursor);
 

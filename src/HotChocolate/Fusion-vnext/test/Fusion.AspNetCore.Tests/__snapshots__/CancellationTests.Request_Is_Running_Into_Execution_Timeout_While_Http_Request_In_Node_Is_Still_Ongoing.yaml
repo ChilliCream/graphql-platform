@@ -24,11 +24,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         id: Int!
       }
-      
+
       type Query {
         topProduct: Product
       }
