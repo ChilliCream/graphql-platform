@@ -46,7 +46,7 @@ public static class RabbitMQPubSubExtensions
         ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services
-            .AddRabbitMQSubscriptionPublisher(connectionFactory, options)
+            .AddRabbitMQSubscriptionPublisher(connectionFactory, options, rabbitMqSubscriptionOptions)
             .TryAddSingleton<ITopicEventReceiver>(sp => sp.GetRequiredService<RabbitMQPubSub>());
 
         return builder;

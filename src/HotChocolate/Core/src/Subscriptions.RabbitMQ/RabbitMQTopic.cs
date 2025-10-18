@@ -28,8 +28,7 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         _rabbitMqSubscriptionOptions = rabbitMqSubscriptionOptions ?? throw new ArgumentNullException(nameof(rabbitMqSubscriptionOptions));
     }
 
-    protected override async ValueTask<IAsyncDisposable> OnConnectAsync(
-        CancellationToken cancellationToken)
+    protected override async ValueTask<IAsyncDisposable> OnConnectAsync(CancellationToken cancellationToken)
     {
         // We ensure that the processing is not started before the context is fully initialized.
         Debug.Assert(_connection != null);
@@ -37,7 +36,9 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
 
         var channel = await _connection.GetChannelAsync(cancellationToken).ConfigureAwait(false);
 
-        var queueName = _rabbitMqSubscriptionOptions.QueuePrefix + Guid.NewGuid();
+        var queueName = string.IsNullOrEmpty(_rabbitMqSubscriptionOptions.QueuePrefix)
+            ? string.Empty // use server-generated name
+            : _rabbitMqSubscriptionOptions.QueuePrefix + Guid.NewGuid();
 
         await channel.ExchangeDeclareAsync(
             exchange: Name,
@@ -49,7 +50,7 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
             queue: queueName,
             durable: true,
             exclusive: true,
-            autoDelete: false,
+            autoDelete: true,
             cancellationToken: cancellationToken);
         await channel.QueueBindAsync(
             queue: queueName,
