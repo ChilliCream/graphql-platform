@@ -232,7 +232,11 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
                     Thread.Yield();
                 }
             }
+
+            return;
         }
+
+        Thread.Yield();
     }
 
     private void Send(BatchDispatchEventType type)
@@ -252,6 +256,13 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
     private static bool ThreadPoolHasHeadroom()
     {
+#if NET8_0_OR_GREATER
+        if (ThreadPool.PendingWorkItemCount > 0)
+        {
+            return false;
+        }
+#endif
+
         ThreadPool.GetAvailableThreads(out var worker, out _);
         return worker >= 2;
     }
