@@ -190,7 +190,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
                 lastModified = batch.ModifiedTimestamp;
             }
 
-            var batchAgeUs = TicksToUs(now - batch.ModifiedTimestamp);
+            var batchAgeUs = TicksToUs(now - batch.CreatedTimestamp);
             var shouldDispatch = batch.Touch() || batchAgeUs >= maxBatchAgeUs;
 
             if (shouldDispatch)

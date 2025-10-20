@@ -12,7 +12,8 @@ internal sealed class Batch<TKey> : Batch where TKey : notnull
     private Func<Batch<TKey>, CancellationToken, ValueTask> _dispatch = null!;
     private CancellationToken _ct = CancellationToken.None;
     private int _status = Enqueued;
-    private long _timestamp;
+    private long _createdTimestamp;
+    private long _modifiedTimestamp;
 
     public bool IsScheduled { get; set; }
 
@@ -22,7 +23,9 @@ internal sealed class Batch<TKey> : Batch where TKey : notnull
 
     public override BatchStatus Status => (BatchStatus)_status;
 
-    public override long ModifiedTimestamp => _timestamp;
+    public override long CreatedTimestamp => _createdTimestamp;
+
+    public override long ModifiedTimestamp => _modifiedTimestamp;
 
     public override bool Touch()
     {
@@ -36,7 +39,7 @@ internal sealed class Batch<TKey> : Batch where TKey : notnull
         // as long as there are components interacting with this batch its good to
         // keep it in enqueued state.
         Interlocked.Exchange(ref _status, Enqueued);
-        _timestamp = Stopwatch.GetTimestamp();
+        _modifiedTimestamp = Stopwatch.GetTimestamp();
 
         if (_items.TryGetValue(key, out var value))
         {
@@ -62,6 +65,8 @@ internal sealed class Batch<TKey> : Batch where TKey : notnull
         _status = Enqueued;
         _dispatch = dispatch;
         _ct = ct;
+        _createdTimestamp = Stopwatch.GetTimestamp();
+        _modifiedTimestamp = _createdTimestamp;
     }
 
     internal void ClearUnsafe()
@@ -72,5 +77,7 @@ internal sealed class Batch<TKey> : Batch where TKey : notnull
         _status = Enqueued;
         _dispatch = null!;
         _ct = CancellationToken.None;
+        _createdTimestamp = 0;
+        _modifiedTimestamp = 0;
     }
 }
