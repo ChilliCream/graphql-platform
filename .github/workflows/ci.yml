@@ -257,9 +257,166 @@ jobs:
           flags: unittests
           fail_ci_if_error: true
 
+  performance-tests:
+    name: "Performance Tests"
+    needs: check-changes
+    if: needs.check-changes.outputs.src_changes == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          show-progress: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.x
+            9.x
+            10.x
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Restore dependencies
+        run: dotnet restore src/HotChocolate/AspNetCore/benchmarks/k6s/eShop.slnx
+
+      - name: Start AppHost and wait for readiness
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6s/Catalog.AppHost
+        run: |
+          echo "Starting AppHost..."
+          dotnet run > /tmp/apphost.log 2>&1 &
+          APPHOST_PID=$!
+          echo "APPHOST_PID=$APPHOST_PID" >> $GITHUB_ENV
+
+          echo "Waiting for server to be ready..."
+          for i in {1..30}; do
+            if curl -s -o /dev/null -w "%{http_code}" http://localhost:5224/graphql -X POST \
+              -H "Content-Type: application/json" \
+              -d '{"query": "{ __typename }"}' | grep -q "200"; then
+              echo "Server is ready!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+
+      - name: Run performance tests and collect data
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6s
+        run: |
+          chmod +x run-and-collect.sh
+          ./run-and-collect.sh performance-data-current.json
+
+      - name: Stop AppHost
+        if: always()
+        run: |
+          if [ -n "$APPHOST_PID" ]; then
+            kill $APPHOST_PID 2>/dev/null || true
+            wait $APPHOST_PID 2>/dev/null || true
+          fi
+
+      - name: Fetch baseline performance data from main
+        run: |
+          git fetch origin main:main
+          if git show main:src/HotChocolate/AspNetCore/benchmarks/k6s/performance-data.json > baseline-performance.json 2>/dev/null; then
+            echo "Baseline data fetched successfully"
+          else
+            echo "No baseline data found on main branch"
+            echo '{}' > baseline-performance.json
+          fi
+
+      - name: Compare performance and generate report
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6s
+        run: |
+          chmod +x compare-performance.sh
+          ./compare-performance.sh performance-data-current.json ../../../../baseline-performance.json performance-report.md
+
+      - name: Comment PR with performance report
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const reportPath = 'src/HotChocolate/AspNetCore/benchmarks/k6s/performance-report.md';
+
+            let report;
+            try {
+              report = fs.readFileSync(reportPath, 'utf8');
+            } catch (error) {
+              console.error('Failed to read performance report:', error);
+              return;
+            }
+
+            // Find existing performance comment
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.data.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('🚀 Performance Test Results')
+            );
+
+            const commentBody = report;
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody,
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody,
+              });
+            }
+
+      - name: Upload performance data as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-data
+          path: |
+            src/HotChocolate/AspNetCore/benchmarks/k6s/performance-data-current.json
+            src/HotChocolate/AspNetCore/benchmarks/k6s/performance-report.md
+            /tmp/apphost.log
+          retention-days: 30
+
+      - name: Check for performance regression
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6s
+        run: |
+          # Fail the build if there's a significant performance regression
+          if grep -q "⚠️ \*\*Performance regression detected" performance-report.md; then
+            echo "::warning::Performance regression detected! Please review the performance report."
+            # Uncomment the next line to fail the build on regression
+            # exit 1
+          fi
+
   ci-status-check:
     name: "CI Status Check"
-    needs: [library-tests, website-tests]
+    needs: [library-tests, website-tests, performance-tests]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -268,4 +425,5 @@ jobs:
         if: |
           always() &&
           (needs.library-tests.result == 'failure' ||
-           needs.website-tests.result == 'failure')
+           needs.website-tests.result == 'failure' ||
+           needs.performance-tests.result == 'failure')

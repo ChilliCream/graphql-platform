@@ -1,0 +1,37 @@
+{
+  "timestamp": "2025-01-20T00:00:00Z",
+  "tests": {
+    "single-fetch": {
+      "name": "Single Fetch (50 products, names only)",
+      "response_time": {
+        "p50": 45.23,
+        "p95": 180.45,
+        "p99": 450.12,
+        "avg": 89.34
+      },
+      "throughput": {
+        "requests_per_second": 112.45,
+        "total_iterations": 13494
+      },
+      "reliability": {
+        "error_rate": 0.02
+      }
+    },
+    "dataloader": {
+      "name": "DataLoader (50 products with brands)",
+      "response_time": {
+        "p50": 52.10,
+        "p95": 195.30,
+        "p99": 478.90,
+        "avg": 95.20
+      },
+      "throughput": {
+        "requests_per_second": 105.80,
+        "total_iterations": 12696
+      },
+      "reliability": {
+        "error_rate": 0.02
+      }
+    }
+  }
+}

@@ -240,12 +240,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     private static long TicksToUs(long ticks) =>
         ticks * 1_000_000 / Stopwatch.Frequency;
 
-    private static bool ThreadPoolHasHeadroom()
-    {
-        ThreadPool.GetAvailableThreads(out var worker, out _);
-        return worker >= 2;
-    }
-
     public void Dispose()
     {
         if (!_disposed)

@@ -9,6 +9,7 @@
     <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="9.4.1" />
     <PackageVersion Include="Aspire.Hosting.Redis" Version="9.4.1" />
     <PackageVersion Include="Aspire.Hosting" Version="9.4.1" />
+    <PackageVersion Include="Aspire.AppHost.Sdk" Version="1.9.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.23.0" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="1.8.3" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.8.3" />
