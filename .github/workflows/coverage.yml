@@ -6,7 +6,7 @@ on:
       - main
       - main-version-*
     paths:
-      - 'src/**'
+      - "src/**"
 
 concurrency:
   group: main-coverage
@@ -137,7 +137,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           name: graphql-platform
-          files: './output/download/coverage-*/*/coverage.opencover.xml'
+          files: "./output/download/coverage-*/*/coverage.opencover.xml"
           disable_search: true
           flags: unittests
           fail_ci_if_error: true

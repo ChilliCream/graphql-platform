@@ -473,7 +473,7 @@ builder.Services
     .ModifyOptions(o => o.EnableOneOf = true);
 ```
 
-Once activate you can create `Oneof` Input Objects like the following:
+Once activate you can create `OneOf` Input Objects like the following:
 
 <ExampleTabs>
 <Implementation>

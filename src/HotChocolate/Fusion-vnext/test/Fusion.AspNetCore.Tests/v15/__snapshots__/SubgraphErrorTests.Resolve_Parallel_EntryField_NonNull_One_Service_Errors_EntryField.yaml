@@ -1,0 +1,119 @@
+title: Resolve_Parallel_EntryField_NonNull_One_Service_Errors_EntryField
+request:
+  document: |
+    {
+      viewer {
+        name
+      }
+      other {
+        userId
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "other"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        viewer: Viewer!
+      }
+
+      type Viewer {
+        name: String
+      }
+    isTimingOut: true
+    interactions:
+      - request:
+          document: |
+            query Op_6b55933b_1 {
+              viewer {
+                name
+              }
+            }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Other {
+        userId: ID!
+      }
+
+      type Query {
+        other: Other! @error
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_6b55933b_2 {
+              other {
+                userId
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Unexpected Execution Error",
+                    "locations": [
+                      {
+                        "line": 2,
+                        "column": 3
+                      }
+                    ],
+                    "path": [
+                      "other"
+                    ]
+                  }
+                ],
+                "data": null
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          viewer {
+            name
+          }
+          other {
+            userId
+          }
+        }
+      hash: 6b55933be7e98bbac39be61645618631
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_6b55933b_1 {
+          viewer {
+            name
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_6b55933b_2 {
+          other {
+            userId
+          }
+        }

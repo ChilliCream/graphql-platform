@@ -1,5 +1,5 @@
 operation:
-  - document: >-
+  - document: |
       {
         books {
           titleAndId
@@ -8,11 +8,12 @@ operation:
         }
       }
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: >-
+    operation: |
       query Op_123456789101112_1 {
         books {
           id
@@ -22,7 +23,7 @@ nodes:
   - id: 2
     type: Operation
     schema: b
-    operation: >-
+    operation: |
       query Op_123456789101112_2(
         $__fusion_1_id: String!
         $__fusion_2_title: String

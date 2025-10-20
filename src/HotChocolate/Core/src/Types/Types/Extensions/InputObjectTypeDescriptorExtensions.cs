@@ -40,7 +40,7 @@ public static class InputObjectTypeDescriptorExtensions
     }
 
     /// <summary>
-    /// Defines an input object type as a oneof input object type
+    /// Defines an input object type as a OneOf input object type
     /// where only ever one field can hold a value.
     /// </summary>
     /// <param name="descriptor">
@@ -60,7 +60,7 @@ public static class InputObjectTypeDescriptorExtensions
     }
 
     /// <summary>
-    /// Defines an input object type as a oneof input object type
+    /// Defines an input object type as a OneOf input object type
     /// where only ever one field can hold a value.
     /// </summary>
     /// <param name="descriptor">

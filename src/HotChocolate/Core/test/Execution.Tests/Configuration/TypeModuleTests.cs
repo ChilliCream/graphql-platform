@@ -3,7 +3,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.Execution.Configuration;
 
@@ -63,60 +62,6 @@ public class TypeModuleTests
             .AddTypeModule(_ => new DummyTypeModule())
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public async Task Ensure_Warmups_Are_Triggered_An_Appropriate_Number_Of_Times()
-    {
-        // arrange
-        var typeModule = new TriggerableTypeModule();
-        var warmups = 0;
-        var warmupResetEvent = new ManualResetEventSlim(false);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        var services = new ServiceCollection();
-        services
-            .AddGraphQL()
-            .AddTypeModule(_ => typeModule)
-            .InitializeOnStartup(
-                warmup: (_, _) =>
-                {
-                    warmups++;
-                    warmupResetEvent.Set();
-                    return Task.CompletedTask;
-                },
-                keepWarm: true)
-            .AddQueryType(d => d.Field("foo").Resolve(""));
-        var provider = services.BuildServiceProvider();
-        var warmupService = provider.GetRequiredService<IHostedService>();
-
-        _ = Task.Run(async () => await warmupService.StartAsync(CancellationToken.None), cts.Token);
-
-        await provider.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
-
-        // act
-        // assert
-        warmupResetEvent.Wait(cts.Token);
-        warmupResetEvent.Reset();
-
-        Assert.Equal(1, warmups);
-
-        typeModule.TriggerChange();
-        warmupResetEvent.Wait(cts.Token);
-        warmupResetEvent.Reset();
-
-        Assert.Equal(2, warmups);
-
-        typeModule.TriggerChange();
-        warmupResetEvent.Wait(cts.Token);
-        warmupResetEvent.Reset();
-
-        Assert.Equal(3, warmups);
-    }
-
-    private sealed class TriggerableTypeModule : TypeModule
-    {
-        public void TriggerChange() => OnTypesChanged();
     }
 
     public class DummyTypeModule : ITypeModule

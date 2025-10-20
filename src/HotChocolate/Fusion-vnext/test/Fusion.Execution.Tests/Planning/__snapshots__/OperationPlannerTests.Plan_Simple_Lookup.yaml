@@ -1,20 +1,21 @@
 operation:
-  - document: >-
+  - document: |
       query GetTopProducts {
         topProducts {
           id
+          id @fusion__requirement
           name
           price
-          id @fusion__requirement
         }
       }
     name: GetTopProducts
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: >-
+    operation: |
       query GetTopProducts_123456789101112_1 {
         topProducts {
           id
@@ -24,7 +25,7 @@ nodes:
   - id: 2
     type: Operation
     schema: b
-    operation: >-
+    operation: |
       query GetTopProducts_123456789101112_2(
         $__fusion_1_id: ID!
       ) {

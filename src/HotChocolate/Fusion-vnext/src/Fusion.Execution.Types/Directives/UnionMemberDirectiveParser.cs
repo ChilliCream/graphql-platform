@@ -19,7 +19,7 @@ internal static class UnionMemberDirectiveParser
                     continue;
                 }
 
-                temp ??= new Dictionary<string, Dictionary<SchemaKey, ImmutableHashSet<string>.Builder>>();
+                temp ??= [];
 
                 var schemaValue = directive.Arguments.FirstOrDefault(t => t.Name.Value == "schema")?.Value;
                 var memberValue = directive.Arguments.FirstOrDefault(t => t.Name.Value == "member")?.Value;
@@ -38,7 +38,7 @@ internal static class UnionMemberDirectiveParser
 
                 if (!temp.TryGetValue(memberName.Value, out var schemaUnionLookup))
                 {
-                    schemaUnionLookup = new Dictionary<SchemaKey, ImmutableHashSet<string>.Builder>();
+                    schemaUnionLookup = [];
                     temp.Add(memberName.Value, schemaUnionLookup);
                 }
 
@@ -56,7 +56,11 @@ internal static class UnionMemberDirectiveParser
 
         if (temp is null)
         {
+#if NET10_0_OR_GREATER
+            return [];
+#else
             return ImmutableDictionary<string, ImmutableDictionary<SchemaKey, ImmutableHashSet<string>>>.Empty;
+#endif
         }
 
         return temp.ToImmutableDictionary(

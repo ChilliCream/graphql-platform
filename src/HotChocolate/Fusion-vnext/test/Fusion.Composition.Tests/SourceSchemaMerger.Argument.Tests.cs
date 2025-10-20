@@ -199,6 +199,96 @@ public sealed class SourceSchemaMergerArgumentTests
                 scalar DeliveryEstimates
                     @fusion__type(schema: A)
                 """
+            },
+            // Even if an argument is only @deprecated in one source schema,
+            // the composite argument is marked as @deprecated.
+            {
+                [
+                    """"
+                    # Schema A
+                    type Product {
+                        reviews(filter: String @deprecated(reason: "Some reason")): [String]
+                    }
+                    """",
+                    """
+                    # Schema B
+                    type Product {
+                        reviews(filter: String): [String]
+                    }
+                    """
+                ],
+                """
+                type Product
+                  @fusion__type(schema: A)
+                  @fusion__type(schema: B) {
+                  reviews(filter: String
+                    @fusion__inputField(schema: A)
+                    @fusion__inputField(schema: B)
+                    @deprecated(reason: "Some reason")): [String]
+                    @fusion__field(schema: A)
+                    @fusion__field(schema: B)
+                }
+                """
+            },
+            // If the same argument is @deprecated in multiple source schemas,
+            // the first non-null deprecation message is chosen.
+            {
+                [
+                    """"
+                    # Schema A
+                    type Product {
+                        reviews(filter: String @deprecated(reason: "Some reason")): [String]
+                    }
+                    """",
+                    """
+                    # Schema B
+                    type Product {
+                        reviews(filter: String @deprecated(reason: "Another reason")): [String]
+                    }
+                    """
+                ],
+                """
+                type Product
+                  @fusion__type(schema: A)
+                  @fusion__type(schema: B) {
+                  reviews(filter: String
+                    @fusion__inputField(schema: A)
+                    @fusion__inputField(schema: B)
+                    @deprecated(reason: "Some reason")): [String]
+                    @fusion__field(schema: A)
+                    @fusion__field(schema: B)
+                }
+                """
+            },
+            // If the an argument is deprecated without a deprecation reason,
+            // a default reason is inserted to be compatible with the latest spec.
+            {
+                [
+                    """"
+                    # Schema A
+                    type Product {
+                        reviews(filter: String @deprecated): [String]
+                    }
+                    """",
+                    """
+                    # Schema B
+                    type Product {
+                        reviews(filter: String @deprecated): [String]
+                    }
+                    """
+                ],
+                """
+                type Product
+                  @fusion__type(schema: A)
+                  @fusion__type(schema: B) {
+                  reviews(filter: String
+                    @fusion__inputField(schema: A)
+                    @fusion__inputField(schema: B)
+                    @deprecated(reason: "No longer supported.")): [String]
+                    @fusion__field(schema: A)
+                    @fusion__field(schema: B)
+                }
+                """
             }
         };
     }

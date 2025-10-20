@@ -1,9 +1,9 @@
-﻿schema {
+schema {
   query: DummyQuery
 }
 
 type DummyQuery {
-  foo: String
+  foo: String!
 }
 
 enum Foo {

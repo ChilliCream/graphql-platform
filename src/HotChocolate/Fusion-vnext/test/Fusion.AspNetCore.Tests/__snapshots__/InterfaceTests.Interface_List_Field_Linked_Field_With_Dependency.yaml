@@ -1,0 +1,211 @@
+title: Interface_List_Field_Linked_Field_With_Dependency
+request:
+  document: |
+    query testQuery {
+      authorables {
+        author {
+          id
+          displayName
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "authorables": [
+          {
+            "author": {
+              "id": "QXV0aG9yOjY=",
+              "displayName": "Author: QXV0aG9yOjY="
+            }
+          },
+          {
+            "author": {
+              "id": "QXV0aG9yOjU=",
+              "displayName": "Author: QXV0aG9yOjU="
+            }
+          },
+          {
+            "author": {
+              "id": "QXV0aG9yOjQ=",
+              "displayName": "Author: QXV0aG9yOjQ="
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Authorable {
+        author: Author
+      }
+
+      type Author {
+        id: ID!
+      }
+
+      type Comment implements Authorable {
+        author: Author
+      }
+
+      type Discussion implements Authorable {
+        author: Author
+      }
+
+      type Query {
+        authorables: [Authorable]
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_171db7a7_1 {
+              authorables {
+                __typename
+                author {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorables": [
+                    {
+                      "__typename": "Discussion",
+                      "author": {
+                        "id": "QXV0aG9yOjY="
+                      }
+                    },
+                    {
+                      "__typename": "Comment",
+                      "author": {
+                        "id": "QXV0aG9yOjU="
+                      }
+                    },
+                    {
+                      "__typename": "Discussion",
+                      "author": {
+                        "id": "QXV0aG9yOjQ="
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: ID!
+        displayName: String!
+      }
+
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_171db7a7_2(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                displayName
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "QXV0aG9yOjY="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjU="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjQ="
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjY="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjU="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjQ="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          authorables {
+            __typename @fusion__requirement
+            author {
+              id
+              id @fusion__requirement
+              displayName
+            }
+          }
+        }
+      name: testQuery
+      hash: 171db7a79a3d029b568597f040bda466
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_171db7a7_1 {
+          authorables {
+            __typename
+            author {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_171db7a7_2(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            displayName
+          }
+        }
+      source: $.authorById
+      target: $.authorables.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -1102,40 +1102,40 @@ public class IsSelectedTests
 
     public class User
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
-        public string Password { get; set; }
+        public required string Password { get; set; }
 
-        public string PhoneNumber { get; set; }
+        public required string PhoneNumber { get; set; }
 
-        public string Address { get; set; }
+        public required string Address { get; set; }
 
-        public string City { get; set; }
+        public required string City { get; set; }
 
-        public Category Category { get; set; }
-        public List<UserTag> Tags { get; set; }
+        public Category? Category { get; set; }
+        public List<UserTag>? Tags { get; set; }
     }
 
     public class Category
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public Category Next { get; set; }
+        public required Category Next { get; set; }
     }
 
     public class UserTag
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
         public int Value { get; set; }
-        public Audit Audit { get; set; }
+        public required Audit Audit { get; set; }
     }
 
     public class Audit
     {
-        public string EditedBy { get; set; }
-        public string EditedAt { get; set; }
+        public required string EditedBy { get; set; }
+        public required string EditedAt { get; set; }
     }
 
     public record Book(string Title, Author Author);

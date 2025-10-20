@@ -11,13 +11,16 @@ public class EnumTypeSchemaFirstTests
     {
         // arrange
         const string sdl =
-            @"type Query {
-                    hello(greetings: Greetings): Greetings
-                }
+            // lang=graphql
+            """
+            type Query {
+                hello(greetings: Greetings): Greetings
+            }
 
-                enum Greetings {
-                    GOOD @bind(to: ""GoodMorning"")
-                }";
+            enum Greetings {
+                GOOD @bind(to: "GoodMorning")
+            }
+            """;
 
         // act
         // assert
@@ -90,13 +93,16 @@ public class EnumTypeSchemaFirstTests
     {
         // arrange
         const string sdl =
-            @"type Query {
-                    hello(greetings: Greetings): Greetings
-                }
+            // lang=graphql
+            """
+            type Query {
+                hello(greetings: Greetings): Greetings
+            }
 
-                enum Greetings {
-                    GOOD @bind(to: ""GoodMorning"")
-                }";
+            enum Greetings {
+                GOOD @bind(to: "GoodMorning")
+            }
+            """;
 
         // act
         // assert

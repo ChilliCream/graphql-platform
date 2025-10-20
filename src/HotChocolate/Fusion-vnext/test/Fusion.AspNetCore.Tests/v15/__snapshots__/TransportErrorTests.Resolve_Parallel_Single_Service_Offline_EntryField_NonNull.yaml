@@ -1,0 +1,64 @@
+title: Resolve_Parallel_Single_Service_Offline_EntryField_NonNull
+request:
+  document: |
+    {
+      viewer {
+        name
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "viewer"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        viewer: Viewer!
+      }
+
+      type Viewer {
+        name: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_7a17934e_1 {
+              viewer {
+                name
+              }
+            }
+        response:
+          statusCode: 500
+operationPlan:
+  operation:
+    - document: |
+        {
+          viewer {
+            name
+          }
+        }
+      hash: 7a17934e8d91dcce72daf911b3f044f1
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_7a17934e_1 {
+          viewer {
+            name
+          }
+        }

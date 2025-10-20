@@ -1,0 +1,203 @@
+title: Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node
+request:
+  document: |
+    query(
+      $productId: ID!
+    ) {
+      productById(id: $productId) {
+        subgraph1Only {
+          sharedLinked {
+            subgraph2Only
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "productId": "UHJvZHVjdAppMzg2MzE4NTk="
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productById": {
+          "subgraph1Only": {
+            "sharedLinked": {
+              "subgraph2Only": true
+            }
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        subgraph1Only: ProductAvailability
+      }
+
+      type ProductAvailability implements Node {
+        id: ID!
+        sharedLinked: ProductAvailabilityMail!
+      }
+
+      type ProductAvailabilityMail {
+        subgraph1Only: String!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup
+        productById(id: ID!): Product @lookup
+        productAvailabilityById(id: ID!): ProductAvailability @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_8e568844_1(
+              $productId: ID!
+            ) {
+              productById(id: $productId) {
+                subgraph1Only {
+                  sharedLinked {
+                    __typename
+                  }
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "productId": "UHJvZHVjdAppMzg2MzE4NTk="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph1Only": {
+                      "sharedLinked": {
+                        "__typename": "ProductAvailabilityMail"
+                      },
+                      "id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type ProductAvailability implements Node {
+        id: ID!
+        sharedLinked: ProductAvailabilityMail!
+      }
+
+      type ProductAvailabilityMail {
+        subgraph2Only: Boolean!
+      }
+
+      type Query {
+        node("ID of the object." id: ID!): Node @lookup
+        productAvailabilityById(id: ID!): ProductAvailability @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_8e568844_2(
+              $__fusion_1_id: ID!
+            ) {
+              productAvailabilityById(id: $__fusion_1_id) {
+                sharedLinked {
+                  subgraph2Only
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productAvailabilityById": {
+                    "sharedLinked": {
+                      "subgraph2Only": true
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query(
+          $productId: ID!
+        ) {
+          productById(id: $productId) {
+            subgraph1Only {
+              sharedLinked {
+                subgraph2Only
+              }
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: 8e568844d197d7ba0b19ab92d5456732
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_8e568844_1(
+          $productId: ID!
+        ) {
+          productById(id: $productId) {
+            subgraph1Only {
+              sharedLinked {
+                __typename
+              }
+              id
+            }
+          }
+        }
+      forwardedVariables:
+        - productId
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_8e568844_2(
+          $__fusion_1_id: ID!
+        ) {
+          productAvailabilityById(id: $__fusion_1_id) {
+            sharedLinked {
+              subgraph2Only
+            }
+          }
+        }
+      source: $.productAvailabilityById
+      target: $.productById.subgraph1Only
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

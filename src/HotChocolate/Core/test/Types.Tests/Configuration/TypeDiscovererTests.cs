@@ -1,3 +1,5 @@
+#nullable disable
+
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -262,14 +264,14 @@ public class TypeDiscovererTests
 
     public class BarType : ObjectType<Bar>;
 
-    public class Foo
+    public class Foo(Bar bar)
     {
-        public Bar Bar { get; }
+        public Bar Bar { get; } = bar;
     }
 
-    public class Bar
+    public class Bar(string baz)
     {
-        public string Baz { get; }
+        public string Baz { get; } = baz;
     }
 
     public class QueryWithInferError

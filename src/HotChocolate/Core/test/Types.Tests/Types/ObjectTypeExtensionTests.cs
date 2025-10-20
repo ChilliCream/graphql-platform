@@ -10,8 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using static HotChocolate.Types.FieldBindingFlags;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class ObjectTypeExtensionTests

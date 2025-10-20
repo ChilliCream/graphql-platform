@@ -122,7 +122,8 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
         PathSegmentNode node,
         FieldSelectionMapValidatorContext context)
     {
-        if (context.OutputTypes.Peek().NullableType() is IComplexTypeDefinition complexType)
+        var outputType = context.OutputTypes.Peek();
+        if (outputType.NullableType() is IComplexTypeDefinition complexType)
         {
             if (!complexType.Fields.TryGetField(node.FieldName.Value, out var field))
             {
@@ -146,7 +147,7 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
                     context.Errors.Add(
                         string.Format(
                             FieldSelectionMapValidator_FieldMissingTypeCondition,
-                            node.FieldName));
+                            node.FieldName.Value));
 
                     return Break;
                 }
@@ -200,6 +201,16 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
             {
                 context.TerminalTypes.Push(field.Type);
             }
+        }
+        else
+        {
+            context.Errors.Add(
+                string.Format(
+                    FieldSelectionMapValidator_InvalidFieldParentType,
+                    node.FieldName.Value,
+                    outputType));
+
+            return Break;
         }
 
         if (node.TypeName is { } typeName)

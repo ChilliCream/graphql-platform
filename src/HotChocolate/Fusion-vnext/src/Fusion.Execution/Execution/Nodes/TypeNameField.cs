@@ -14,7 +14,7 @@ internal sealed class TypeNameField : IOutputFieldDefinition
         Type = nonNullStringType;
         var features = new FeatureCollection();
         features.Set(new ResolveFieldValue(
-            ctx => ctx.WriteValue(ctx.Selection.DeclaringSelectionSet.DeclaringOperation.RootType.Name)));
+            ctx => ctx.WriteValue(ctx.Selection.DeclaringSelectionSet.Type.Name)));
         Features = features.ToReadOnly();
     }
 

@@ -35,7 +35,7 @@
           "tags": [
             {
               "Key": "graphql.document.id",
-              "Value": "c563b5e7a3e68a1f25847ac7ab07017c"
+              "Value": "dd31323224a6428d4dc301134352aeab"
             },
             {
               "Key": "graphql.document.hash",
@@ -43,7 +43,7 @@
             },
             {
               "Key": "graphql.operation.id",
-              "Value": "_Default-1-c563b5e7a3e68a1f25847ac7ab07017c"
+              "Value": "_Default-1-dd31323224a6428d4dc301134352aeab"
             }
           ],
           "event": [
@@ -64,7 +64,7 @@
               "tags": [
                 {
                   "Key": "graphql.document.id",
-                  "Value": "c563b5e7a3e68a1f25847ac7ab07017c"
+                  "Value": "dd31323224a6428d4dc301134352aeab"
                 },
                 {
                   "Key": "graphql.document.hash",
@@ -84,7 +84,7 @@
               "tags": [
                 {
                   "Key": "graphql.operation.id",
-                  "Value": "c563b5e7a3e68a1f25847ac7ab07017c"
+                  "Value": "dd31323224a6428d4dc301134352aeab"
                 }
               ],
               "event": []

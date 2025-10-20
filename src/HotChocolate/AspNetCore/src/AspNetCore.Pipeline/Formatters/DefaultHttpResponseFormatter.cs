@@ -224,7 +224,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
                 OnWriteResponseHeaders(operationResult, format, response.Headers);
 
-                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                await format.Formatter.FormatAsync(result, response.BodyWriter, cancellationToken);
                 break;
             }
 
@@ -238,7 +238,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 OnWriteResponseHeaders(resultBatch, format, response.Headers);
                 await response.Body.FlushAsync(cancellationToken);
 
-                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                await format.Formatter.FormatAsync(result, response.BodyWriter, cancellationToken);
                 break;
             }
 
@@ -252,7 +252,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 OnWriteResponseHeaders(responseStream, format, response.Headers);
                 await response.Body.FlushAsync(cancellationToken);
 
-                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                await format.Formatter.FormatAsync(result, response.BodyWriter, cancellationToken);
                 break;
             }
 

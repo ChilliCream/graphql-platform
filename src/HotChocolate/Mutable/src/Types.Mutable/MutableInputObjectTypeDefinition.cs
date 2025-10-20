@@ -61,6 +61,12 @@ public class MutableInputObjectTypeDefinition
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IInputObjectTypeDefinition.Fields
         => Fields;
 
+    /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
+    public bool IsIntrospectionType { get; set; }
+
+    /// <inheritdoc />
+    public bool IsOneOf { get; set; }
+
     /// <inheritdoc />
     [field: AllowNull, MaybeNull]
     public IFeatureCollection Features
