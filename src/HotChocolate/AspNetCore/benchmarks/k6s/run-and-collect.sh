@@ -39,28 +39,77 @@ extract_metric() {
 
     # Use jq if available, otherwise use grep/sed
     if command -v jq &> /dev/null; then
-        jq -r ".metrics.\"${metric}\".values.${stat} // 0" "$file"
+        # k6 stores stats directly under the metric, not under .values
+        local value=""
+        case "$stat" in
+            "p(50)")
+                # p50 is stored as "med" in k6
+                value=$(jq -r --arg metric "$metric" '.metrics[$metric].med // null' "$file" 2>/dev/null)
+                ;;
+            "p(95)")
+                value=$(jq -r --arg metric "$metric" '.metrics[$metric]["p(95)"] // null' "$file" 2>/dev/null)
+                ;;
+            "p(99)")
+                value=$(jq -r --arg metric "$metric" '.metrics[$metric]["p(99)"] // null' "$file" 2>/dev/null)
+                ;;
+            "avg")
+                value=$(jq -r --arg metric "$metric" '.metrics[$metric].avg // null' "$file" 2>/dev/null)
+                ;;
+            "rate")
+                value=$(jq -r --arg metric "$metric" '.metrics[$metric].rate // null' "$file" 2>/dev/null)
+                ;;
+            "count")
+                value=$(jq -r --arg metric "$metric" '.metrics[$metric].count // null' "$file" 2>/dev/null)
+                ;;
+        esac
+
+        if [ "$value" == "null" ] || [ -z "$value" ]; then
+            echo "0"
+        else
+            echo "$value"
+        fi
     else
         grep -A 20 "\"${metric}\"" "$file" | grep "\"${stat}\"" | grep -oE '[0-9]+\.[0-9]+' | head -1 || echo "0"
     fi
 }
 
 # Extract metrics from single-fetch test
+# Try tagged metric first, fallback to untagged
 SINGLE_P50=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration{phase:measurement}" "p(50)")
+[ "$SINGLE_P50" == "0" ] && SINGLE_P50=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration" "p(50)")
+
 SINGLE_P95=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration{phase:measurement}" "p(95)")
+[ "$SINGLE_P95" == "0" ] && SINGLE_P95=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration" "p(95)")
+
 SINGLE_P99=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration{phase:measurement}" "p(99)")
+[ "$SINGLE_P99" == "0" ] && SINGLE_P99=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration" "p(99)")
+
 SINGLE_AVG=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration{phase:measurement}" "avg")
+[ "$SINGLE_AVG" == "0" ] && SINGLE_AVG=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration" "avg")
+
 SINGLE_RPS=$(extract_metric /tmp/single-fetch-summary.json "http_reqs" "rate")
 SINGLE_ERROR_RATE=$(extract_metric /tmp/single-fetch-summary.json "http_req_failed{phase:measurement}" "rate")
+[ "$SINGLE_ERROR_RATE" == "0" ] && SINGLE_ERROR_RATE=$(extract_metric /tmp/single-fetch-summary.json "http_req_failed" "rate")
+
 SINGLE_ITERATIONS=$(extract_metric /tmp/single-fetch-summary.json "iterations" "count")
 
 # Extract metrics from dataloader test
 DATALOADER_P50=$(extract_metric /tmp/dataloader-summary.json "http_req_duration{phase:measurement}" "p(50)")
+[ "$DATALOADER_P50" == "0" ] && DATALOADER_P50=$(extract_metric /tmp/dataloader-summary.json "http_req_duration" "p(50)")
+
 DATALOADER_P95=$(extract_metric /tmp/dataloader-summary.json "http_req_duration{phase:measurement}" "p(95)")
+[ "$DATALOADER_P95" == "0" ] && DATALOADER_P95=$(extract_metric /tmp/dataloader-summary.json "http_req_duration" "p(95)")
+
 DATALOADER_P99=$(extract_metric /tmp/dataloader-summary.json "http_req_duration{phase:measurement}" "p(99)")
+[ "$DATALOADER_P99" == "0" ] && DATALOADER_P99=$(extract_metric /tmp/dataloader-summary.json "http_req_duration" "p(99)")
+
 DATALOADER_AVG=$(extract_metric /tmp/dataloader-summary.json "http_req_duration{phase:measurement}" "avg")
+[ "$DATALOADER_AVG" == "0" ] && DATALOADER_AVG=$(extract_metric /tmp/dataloader-summary.json "http_req_duration" "avg")
+
 DATALOADER_RPS=$(extract_metric /tmp/dataloader-summary.json "http_reqs" "rate")
 DATALOADER_ERROR_RATE=$(extract_metric /tmp/dataloader-summary.json "http_req_failed{phase:measurement}" "rate")
+[ "$DATALOADER_ERROR_RATE" == "0" ] && DATALOADER_ERROR_RATE=$(extract_metric /tmp/dataloader-summary.json "http_req_failed" "rate")
+
 DATALOADER_ITERATIONS=$(extract_metric /tmp/dataloader-summary.json "iterations" "count")
 
 # Create JSON output
