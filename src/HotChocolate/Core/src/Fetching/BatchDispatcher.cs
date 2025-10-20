@@ -170,10 +170,17 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
             }
         }
 
+        var now = Stopwatch.GetTimestamp();
+        const long maxBatchAgeUs = 100; // Force dispatch after 100 microseconds
+
         // In each evaluation round, we try to touch all batches in the backlog.
         // If a batch has had no interaction with a DataLoader since the last evaluation
         // (i.e., we can touch it twice without the DataLoader resetting its status),
         // we complete the batch by dispatching it.
+        //
+        // Additionally, if a batch has been waiting longer than maxBatchAgeUs,
+        // we force dispatch it regardless of its status to prevent starvation
+        // under continuous high load.
         //
         // We stop evaluation once we've dispatched MaxParallelBatches or when we have touched all batches.
         while (backlog.TryDequeue(out var batch, out _))
@@ -183,7 +190,10 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
                 lastModified = batch.ModifiedTimestamp;
             }
 
-            if (batch.Touch())
+            var batchAgeUs = TicksToUs(now - batch.ModifiedTimestamp);
+            var shouldDispatch = batch.Touch() || batchAgeUs >= maxBatchAgeUs;
+
+            if (shouldDispatch)
             {
                 lock (_enqueuedBatches)
                 {

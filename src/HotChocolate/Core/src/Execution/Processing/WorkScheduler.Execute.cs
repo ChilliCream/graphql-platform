@@ -217,7 +217,6 @@ RESTART:
 
     public void OnNext(BatchDispatchEventArgs value)
     {
-        // we
         if (value.Type is BatchDispatchEventType.Enqueued
             or BatchDispatchEventType.Dispatched
             or BatchDispatchEventType.CoordinatorCompleted)
