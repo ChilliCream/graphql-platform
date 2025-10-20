@@ -171,7 +171,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         }
 
         var now = Stopwatch.GetTimestamp();
-        const long maxBatchAgeUs = 100; // Force dispatch after 100 microseconds
+        const long maxBatchAgeUs = 10_000; // Force dispatch after 10 milliseconds
 
         // In each evaluation round, we try to touch all batches in the backlog.
         // If a batch has had no interaction with a DataLoader since the last evaluation
