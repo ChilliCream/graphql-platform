@@ -10,6 +10,8 @@ namespace HotChocolate.Fusion.Planning;
 
 public sealed partial class OperationPlanner
 {
+    private const string UploadScalarName = "Upload";
+
     /// <summary>
     /// Builds the actual execution plan from the provided <paramref name="planSteps"/>.
     /// </summary>
@@ -40,7 +42,13 @@ public sealed partial class OperationPlanner
         var hasVariables = operationDefinition.VariableDefinitions.Count > 0;
 
         planSteps = PrepareSteps(planSteps, operationDefinition, dependencyLookup, branchesLookup, fallbackLookup);
-        BuildExecutionNodes(planSteps, completedSteps, completedNodes, dependencyLookup, hasVariables);
+        BuildExecutionNodes(
+            planSteps,
+            completedSteps,
+            completedNodes,
+            dependencyLookup,
+            _schema,
+            hasVariables);
         BuildDependencyStructure(completedNodes, dependencyLookup, branchesLookup, fallbackLookup);
 
         var rootNodes = planSteps
@@ -204,8 +212,11 @@ public sealed partial class OperationPlanner
         HashSet<int> completedSteps,
         Dictionary<int, ExecutionNode> completedNodes,
         Dictionary<int, HashSet<int>> dependencyLookup,
+        ISchemaDefinition schema,
         bool hasVariables)
     {
+        var hasUploadScalar = schema.Types.TryGetType(UploadScalarName, out var uploadType)
+            && uploadType.IsScalarType();
         var readySteps = planSteps.Where(t => !dependencyLookup.ContainsKey(t.Id)).ToList();
         List<string>? variables = null;
 
@@ -251,6 +262,9 @@ public sealed partial class OperationPlanner
                         }
                     }
 
+                    var requiresFileUpload = hasUploadScalar
+                        && DoVariablesContainUploadScalar(operationStep.Definition.VariableDefinitions, schema);
+
                     var node = new OperationExecutionNode(
                         operationStep.Id,
                         RemoveEmptyTypeNames(operationStep.Definition).ToSourceText(),
@@ -260,7 +274,8 @@ public sealed partial class OperationPlanner
                         requirements,
                         variables?.Count > 0 ? variables.ToArray() : [],
                         GetResponseNamesFromPath(operationStep.Definition, operationStep.Source),
-                        operationStep.Conditions);
+                        operationStep.Conditions,
+                        requiresFileUpload);
 
                     completedNodes.Add(step.Id, node);
                 }
@@ -441,6 +456,49 @@ public sealed partial class OperationPlanner
         return current;
     }
 
+    private static bool DoVariablesContainUploadScalar(
+        IReadOnlyList<VariableDefinitionNode> variables,
+        ISchemaDefinition schema)
+    {
+        var inputObjectTypes = new Queue<IInputObjectTypeDefinition>();
+
+        foreach (var variable in variables)
+        {
+            var variableTypeName = variable.Type.NamedType().Name.Value;
+            var variableType = schema.Types[variableTypeName];
+
+            if (variableType is IScalarTypeDefinition { Name: UploadScalarName })
+            {
+                return true;
+            }
+
+            if (variableType is IInputObjectTypeDefinition inputObjectType)
+            {
+                inputObjectTypes.Enqueue(inputObjectType);
+            }
+        }
+
+        while (inputObjectTypes.TryDequeue(out var inputObjectType))
+        {
+            foreach (var field in inputObjectType.Fields)
+            {
+                var fieldType = field.Type.NamedType();
+
+                if (fieldType is IScalarTypeDefinition { Name: UploadScalarName })
+                {
+                    return true;
+                }
+
+                if (fieldType is IInputObjectTypeDefinition nestedInputObjectType)
+                {
+                    inputObjectTypes.Enqueue(nestedInputObjectType);
+                }
+            }
+        }
+
+        return false;
+    }
+
     private static OperationDefinitionNode RemoveEmptyTypeNames(OperationDefinitionNode operationDefinition)
     {
         return (OperationDefinitionNode)SyntaxRewriter.Create<List<bool>>(
@@ -527,7 +585,7 @@ public sealed partial class OperationPlanner
                 }
             }
 
-            if (lookupFieldNode?.SelectionSet is not {} lookupSelectionSet)
+            if (lookupFieldNode?.SelectionSet is not { } lookupSelectionSet)
             {
                 throw new InvalidOperationException(
                     "Expected to find the lookup field with a selection set in the operation definition");

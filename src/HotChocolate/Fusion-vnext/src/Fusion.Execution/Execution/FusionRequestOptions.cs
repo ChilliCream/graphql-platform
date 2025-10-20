@@ -1,7 +1,4 @@
 using System.Diagnostics;
-using HotChocolate.Caching.Memory;
-using HotChocolate.Execution.Relay;
-using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 
 namespace HotChocolate.Fusion.Execution;

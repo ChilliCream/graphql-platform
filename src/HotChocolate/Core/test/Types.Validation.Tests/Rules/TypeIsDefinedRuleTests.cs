@@ -45,6 +45,17 @@ public sealed class TypeIsDefinedRuleTests : RuleTestBase<TypeIsDefinedRule>
     }
 
     [Fact]
+    public void Validate_TypeIsIntrospectionType_Succeeds()
+    {
+        AssertValid(
+            """
+            type Query {
+                __schema: __Schema!
+            }
+            """);
+    }
+
+    [Fact]
     public void Validate_OutputFieldTypeIsUndefined_Fails()
     {
         AssertInvalid(

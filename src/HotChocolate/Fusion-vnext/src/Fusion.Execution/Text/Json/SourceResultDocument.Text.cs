@@ -166,6 +166,30 @@ public sealed partial class SourceResultDocument
         return ReadRawValue(start, endRow.Location - start + endRowLength);
     }
 
+    internal ReadOnlyMemory<byte> GetRawValueAsMemory(Cursor cursor)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var row = _parsedData.Get(cursor);
+
+        if (row.IsSimpleValue)
+        {
+            return ReadRawValueAsMemory(row.Location, row.SizeOrLength);
+        }
+
+        var start = row.Location;
+        var endCursor = GetEndIndex(cursor, includeEndElement: false);
+        var endRow = _parsedData.Get(endCursor);
+        var endRowLength = endRow.SizeOrLength;
+
+        if (endRow.TokenType is JsonTokenType.EndObject or JsonTokenType.StartArray)
+        {
+            endRowLength = 1;
+        }
+
+        return ReadRawValueAsMemory(start, endRow.Location - start + endRowLength);
+    }
+
     internal ValueRange GetRawValuePointer(Cursor cursor, bool includeQuotes)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);

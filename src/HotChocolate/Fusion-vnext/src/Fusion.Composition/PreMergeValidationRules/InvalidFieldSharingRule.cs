@@ -45,11 +45,11 @@ internal sealed class InvalidFieldSharingRule : IEventHandler<ObjectFieldGroupEv
         }
 
         // Remaining fields must be shareable.
-        foreach (var (field, type, schema) in filteredFieldGroup)
+        foreach (var (field, _, schema) in filteredFieldGroup)
         {
             if (!field.GetRequiredSourceFieldMetadata().IsShareable)
             {
-                context.Log.Write(InvalidFieldSharing(field, type.Name, schema));
+                context.Log.Write(InvalidFieldSharing(field, schema));
             }
         }
     }

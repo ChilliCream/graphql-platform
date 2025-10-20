@@ -37,14 +37,14 @@ internal sealed class InvalidShareableUsageRule : IEventHandler<OutputFieldEvent
         // Applying @shareable to interface fields is disallowed.
         if (type is MutableInterfaceTypeDefinition && field.HasShareableDirective())
         {
-            context.Log.Write(InvalidShareableUsage(field, type, schema));
+            context.Log.Write(InvalidShareableUsage(field, schema));
         }
 
         // Subscription root fields cannot be shared.
         if (type.Name == WellKnownTypeNames.Subscription
             && field.GetRequiredSourceFieldMetadata().HasShareableDirective)
         {
-            context.Log.Write(InvalidShareableUsage(field, type, schema));
+            context.Log.Write(InvalidShareableUsage(field, schema));
         }
     }
 }

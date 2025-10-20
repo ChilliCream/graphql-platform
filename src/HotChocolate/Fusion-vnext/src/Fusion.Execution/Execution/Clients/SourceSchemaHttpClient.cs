@@ -80,10 +80,14 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
             case 1:
                 var variableValues = originalRequest.Variables[0].Values;
-                return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText, variableValues))
+                return new GraphQLHttpRequest(CreateSingleRequest(
+                    operationSourceText,
+                    variableValues,
+                    originalRequest.RequiresFileUpload))
                 {
                     Uri = _configuration.BaseAddress,
-                    Accept = defaultAccept
+                    Accept = defaultAccept,
+                    EnableFileUploads = originalRequest.RequiresFileUpload
                 };
 
             default:
@@ -97,8 +101,14 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
     private static OperationRequest CreateSingleRequest(
         string operationSourceText,
-        ObjectValueNode? variables = null)
+        ObjectValueNode? variables = null,
+        bool requiresFileUpload = false)
     {
+        if (requiresFileUpload && variables is not null)
+        {
+            variables = RewriteFileReferencesInVariables(variables);
+        }
+
         return new OperationRequest(
             operationSourceText,
             id: null,
@@ -139,6 +149,20 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         _disposed = true;
 
         return ValueTask.CompletedTask;
+    }
+
+    private static ObjectValueNode RewriteFileReferencesInVariables(ObjectValueNode variables)
+    {
+        var newFields = new ObjectFieldNode[variables.Fields.Count];
+
+        for (var i = 0; i < variables.Fields.Count; i++)
+        {
+            var field = variables.Fields[i];
+            var newValue = FileVariableRewriter.Rewrite(field.Value);
+            newFields[i] = new ObjectFieldNode(field.Name.Value, newValue);
+        }
+
+        return new ObjectValueNode(newFields);
     }
 
     private sealed class Response(

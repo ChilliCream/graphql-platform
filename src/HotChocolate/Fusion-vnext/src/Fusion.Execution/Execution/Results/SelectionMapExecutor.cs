@@ -79,9 +79,29 @@ internal static class ResultDataMapper
                 return NullValueNode.Default;
             }
 
+            if (resultValueKind is JsonValueKind.Array)
+            {
+                var items = new List<IValueNode>();
+                context.Writer ??= new PooledArrayWriter();
+                var parser = new JsonValueParser(buffer: context.Writer);
+
+                foreach (var item in result.EnumerateArray())
+                {
+                    if (item.ValueKind is JsonValueKind.Null)
+                    {
+                        items.Add(NullValueNode.Default);
+                        continue;
+                    }
+
+                    items.Add(parser.Parse(item.GetRawValue(includeQuotes: true)));
+                }
+
+                return new ListValueNode(items);
+            }
+
             context.Writer ??= new PooledArrayWriter();
-            var parser = new JsonValueParser(buffer: context.Writer);
-            return parser.Parse(result.GetRawValue(includeQuotes: true));
+            var scalarParser = new JsonValueParser(buffer: context.Writer);
+            return scalarParser.Parse(result.GetRawValue(includeQuotes: true));
         }
 
         throw new InvalidSelectionMapPathException(node);

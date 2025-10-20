@@ -814,7 +814,7 @@ public class ConditionalTests : FusionTestBase
               }
             }
             """,
-            variables: new Dictionary<string, object?> { ["skip1"] = true,  ["skip2"] = true });
+            variables: new Dictionary<string, object?> { ["skip1"] = true, ["skip2"] = true });
 
         using var result = await client.PostAsync(
             request,
@@ -888,7 +888,7 @@ public class ConditionalTests : FusionTestBase
               }
             }
             """,
-            variables: new Dictionary<string, object?> { ["skip1"] = true,  ["skip2"] = true });
+            variables: new Dictionary<string, object?> { ["skip1"] = true, ["skip2"] = true });
 
         using var result = await client.PostAsync(
             request,

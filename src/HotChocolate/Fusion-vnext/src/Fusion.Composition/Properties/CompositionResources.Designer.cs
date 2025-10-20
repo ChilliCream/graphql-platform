@@ -60,6 +60,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} (Schema: &apos;{1}&apos;).
+        /// </summary>
+        internal static string CompositionLogExtensions_EntryMessageWithSchemaName {
+            get {
+                return ResourceManager.GetString("CompositionLogExtensions_EntryMessageWithSchemaName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Post-merge validation failed..
         /// </summary>
         internal static string ErrorHelper_PostMergeValidationFailed {
@@ -1100,6 +1109,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ProvidesMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("ProvidesMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The required field &apos;{0}&apos; must not be defined in schema &apos;{1}&apos;..
+        /// </summary>
+        internal static string RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema {
+            get {
+                return ResourceManager.GetString("RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema", resourceCulture);
             }
         }
         

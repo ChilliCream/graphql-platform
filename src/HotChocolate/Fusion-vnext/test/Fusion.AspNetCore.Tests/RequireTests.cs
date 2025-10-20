@@ -24,11 +24,17 @@ public class RequireTests : FusionTestBase
             "c",
             b => b.AddQueryType<BookShipping.Query>());
 
+        using var server4 = CreateSourceSchema(
+            "d",
+            b => b.AddQueryType<BookGenre.Query>()
+                .AddType<BookGenre.Query>());
+
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("a", server1),
             ("b", server2),
-            ("c", server3)
+            ("c", server3),
+            ("d", server4)
         ]);
 
         // act
@@ -41,6 +47,59 @@ public class RequireTests : FusionTestBase
                   nodes {
                     title
                     estimatedDelivery
+                  }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Require_Enumerable_In_List()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<BookCatalog.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<BookInventory.Query>());
+
+        using var server3 = CreateSourceSchema(
+            "c",
+            b => b.AddQueryType<BookShipping.Query>());
+        using var server4 = CreateSourceSchema(
+            "d",
+            b => b.AddQueryType<BookGenre.Query>()
+                .AddType<BookGenre.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2),
+            ("c", server3),
+            ("d", server4)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+                books {
+                  nodes {
+                    title
+                    genres {
+                     name
+                    }
                   }
                 }
             }
@@ -132,9 +191,11 @@ public class RequireTests : FusionTestBase
     {
         private static readonly Dictionary<int, Book> s_books = new()
         {
-            { 1, new Book { Id = 1, Title = "The Great Gatsby", Author = new Author { Id = 1 } } },
-            { 2, new Book { Id = 2, Title = "1984", Author = new Author { Id = 2 } } },
-            { 3, new Book { Id = 3, Title = "The Catcher in the Rye", Author = new Author { Id = 3 } } }
+            {
+                1, new Book { Id = 1, Title = "The Great Gatsby", Author = new Author { Id = 1 }, GenreIds = [1, 3] }
+            },
+            { 2, new Book { Id = 2, Title = "1984", Author = new Author { Id = 2 }, GenreIds = [2, 3] } },
+            { 3, new Book { Id = 3, Title = "The Catcher in the Rye", Author = new Author { Id = 3 }, GenreIds = [1] } }
         };
 
         public class Query
@@ -156,6 +217,8 @@ public class RequireTests : FusionTestBase
             public required string Title { get; set; }
 
             public required Author Author { get; set; }
+
+            public required IEnumerable<int> GenreIds { get; set; }
         }
 
         public class Author
@@ -196,6 +259,41 @@ public class RequireTests : FusionTestBase
         }
     }
 
+    public static class BookGenre
+    {
+        private static readonly Dictionary<int, Genre> s_books = new()
+        {
+            { 1, new Genre { Id = 1, Name = "Fiction" } },
+            { 2, new Genre { Id = 2, Name = "Science Fiction" } },
+            { 3, new Genre { Id = 3, Name = "Classic" } }
+        };
+
+        public class Query
+        {
+            [Lookup]
+            [Shareable]
+            public Book? GetBook(int id)
+                => new() { Id = id };
+        }
+
+        public class Genre
+        {
+            public required int Id { get; set; }
+            public required string Name { get; set; }
+        }
+
+        public class Book
+        {
+            public int Id { get; set; }
+
+            public IEnumerable<Genre> Genres(
+                [Require("genreIds")] IEnumerable<int> genreIds)
+            {
+                return genreIds.Select(id => s_books[id]);
+            }
+        }
+    }
+
     public static class BookShipping
     {
         public class Query
@@ -219,7 +317,7 @@ public class RequireTests : FusionTestBase
                       height: dimension.height
                     }
                     """)]
-                 BookDimensionInput dimension)
+                BookDimensionInput dimension)
             {
                 return dimension.Width + dimension.Height;
             }

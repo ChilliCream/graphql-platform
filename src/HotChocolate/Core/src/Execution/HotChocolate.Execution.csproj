@@ -229,6 +229,9 @@
     <Compile Update="RequestExecutorManager.Warmup.cs">
       <DependentUpon>RequestExecutorManager.cs</DependentUpon>
     </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Caches.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

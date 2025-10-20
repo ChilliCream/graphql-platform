@@ -122,13 +122,13 @@ public sealed class SourceSchemaPreprocessorTests
                     name: String
                 }
 
-                type Dog implements Pet {
+                type Dog implements Pet & Animal {
                     id: ID!
                     age: Int
                     name: String
                 }
 
-                type Cat implements Pet {
+                type Cat implements Pet & Animal {
                     id: ID!
                     age: Int
                     name: String
@@ -148,7 +148,7 @@ public sealed class SourceSchemaPreprocessorTests
         schema.ToString().MatchInlineSnapshot(
             // lang=graphql
             """
-            type Cat implements Pet
+            type Cat implements Pet & Animal
                 @key(fields: "name")
                 @key(fields: "id")
                 @key(fields: "age") {
@@ -157,7 +157,7 @@ public sealed class SourceSchemaPreprocessorTests
                 name: String
             }
 
-            type Dog implements Pet
+            type Dog implements Pet & Animal
                 @key(fields: "name")
                 @key(fields: "id")
                 @key(fields: "age") {

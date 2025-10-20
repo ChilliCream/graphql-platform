@@ -33,8 +33,9 @@ public sealed class SchemaComposer
     public CompositionResult<MutableSchemaDefinition> Compose()
     {
         // Parse Source Schemas
+        var parserOptions = _schemaComposerOptions.Parser;
         var (_, isParseFailure, schemas, parseErrors) =
-            new SourceSchemaParser(_sourceSchemas, _log).Parse();
+            new SourceSchemaParser(_sourceSchemas, _log, parserOptions).Parse();
 
         if (isParseFailure)
         {

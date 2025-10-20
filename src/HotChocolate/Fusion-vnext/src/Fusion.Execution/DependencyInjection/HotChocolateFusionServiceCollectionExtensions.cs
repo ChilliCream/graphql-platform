@@ -3,6 +3,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
@@ -74,7 +75,31 @@ public static class HotChocolateFusionServiceCollectionExtensions
         }
 
         var builder = new DefaultFusionGatewayBuilder(services, name);
+        builder.AddDocumentCache();
         builder.UseDefaultPipeline();
         return builder;
+    }
+
+    private static IFusionGatewayBuilder AddDocumentCache(this IFusionGatewayBuilder builder)
+    {
+        builder.Services.TryAddKeyedSingleton<IDocumentCache>(
+            builder.Name,
+            static (sp, schemaName) =>
+            {
+                var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<FusionGatewaySetup>>();
+                var setup = optionsMonitor.Get((string)schemaName!);
+
+                var options = FusionRequestExecutorManager.CreateOptions(setup);
+
+                return new DefaultDocumentCache(options.OperationDocumentCacheSize);
+            });
+
+        return builder.ConfigureSchemaServices(
+            static (applicationServices, s) =>
+                s.AddSingleton(schemaServices =>
+                {
+                    var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
+                    return applicationServices.GetRequiredKeyedService<IDocumentCache>(schemaName);
+                }));
     }
 }

@@ -357,7 +357,9 @@ internal sealed class SourceSchemaMerger
 
         foreach (var fieldGroup in fieldGroupByName)
         {
-            inputObjectType.Fields.Add(MergeInputFields([.. fieldGroup], mergedSchema));
+            var mergedField = MergeInputFields([.. fieldGroup], mergedSchema);
+            mergedField.DeclaringMember = inputObjectType;
+            inputObjectType.Fields.Add(mergedField);
         }
 
         return inputObjectType;
@@ -484,6 +486,7 @@ internal sealed class SourceSchemaMerger
 
             if (mergedField is not null)
             {
+                mergedField.DeclaringMember = interfaceType;
                 interfaceType.Fields.Add(mergedField);
             }
         }
@@ -573,6 +576,7 @@ internal sealed class SourceSchemaMerger
 
             if (mergedField is not null)
             {
+                mergedField.DeclaringMember = objectType;
                 objectType.Fields.Add(mergedField);
             }
         }
@@ -676,6 +680,7 @@ internal sealed class SourceSchemaMerger
 
             if (mergedArgument is not null)
             {
+                mergedArgument.DeclaringMember = outputField;
                 outputField.Arguments.Add(mergedArgument);
             }
         }
