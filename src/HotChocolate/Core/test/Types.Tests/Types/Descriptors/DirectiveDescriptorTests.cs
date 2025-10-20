@@ -53,7 +53,7 @@ public class DirectiveDescriptorTests
         var descriptor = DirectiveTypeDescriptor.New(Context);
 
         // act
-        Action a = () => descriptor.Name(null);
+        Action a = () => descriptor.Name(null!);
 
         // assert
         Assert.Throws<ArgumentException>(a);
@@ -241,11 +241,11 @@ public class DirectiveDescriptorTests
             t => Assert.Equal(DirectiveLocation.EnumValue, t));
     }
 
-    public class CustomDirective
+    public class CustomDirective(string fieldA, string fieldB)
     {
-        public string FieldA { get; }
+        public string FieldA { get; } = fieldA;
 
-        public string FieldB { get; }
+        public string FieldB { get; } = fieldB;
 
         public string Foo() => throw new NotSupportedException();
     }

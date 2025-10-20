@@ -10,22 +10,25 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
 {
     private readonly JsonResultFormatter _payloadFormatter = new(options with { Indented = false });
 
+    /// <summary>
+    /// Formats an <see cref="IExecutionResult"/> into an JSONL stream.
+    /// </summary>
     public ValueTask FormatAsync(
         IExecutionResult result,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(outputStream);
+        ArgumentNullException.ThrowIfNull(writer);
 
         return result switch
         {
             IOperationResult operationResult
-                => FormatOperationResultAsync(operationResult, outputStream, cancellationToken),
+                => FormatOperationResultAsync(operationResult, writer, cancellationToken),
             OperationResultBatch resultBatch
-                => FormatResultBatchAsync(resultBatch, outputStream, cancellationToken),
+                => FormatResultBatchAsync(resultBatch, writer, cancellationToken),
             IResponseStream responseStream
-                => FormatResponseStreamAsync(responseStream, outputStream, cancellationToken),
+                => FormatResponseStreamAsync(responseStream, writer, cancellationToken),
             _ => throw new NotSupportedException()
         };
     }
@@ -35,11 +38,9 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
     /// </summary>
     private async ValueTask FormatOperationResultAsync(
         IOperationResult operationResult,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken ct)
     {
-        Exception? exception = null;
-        var writer = outputStream.CreatePipeWriter();
         var scope = Log.FormatOperationResultStart();
 
         try
@@ -50,13 +51,11 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         catch (Exception ex)
         {
             scope?.AddError(ex);
-            exception = ex;
             throw;
         }
         finally
         {
             scope?.Dispose();
-            await writer.CompleteAsync(exception).ConfigureAwait(false);
         }
     }
 
@@ -65,12 +64,11 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
     /// </summary>
     private async ValueTask FormatResultBatchAsync(
         OperationResultBatch resultBatch,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken ct)
     {
         Exception? exception = null;
         using var semaphore = new SemaphoreSlim(1, 1);
-        var writer = outputStream.CreatePipeWriter();
         List<Task>? streams = null;
         KeepAliveJob? keepAlive = null;
 
@@ -138,7 +136,6 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
             var streamError = await TryCompleteStreamsAsync(streams).ConfigureAwait(false);
             exception ??= streamError;
             keepAlive?.Dispose();
-            await writer.CompleteAsync(exception).ConfigureAwait(false);
         }
 
         // we rethrow any stream exception that happened.
@@ -150,12 +147,10 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
 
     private async ValueTask FormatResponseStreamAsync(
         IResponseStream responseStream,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken ct)
     {
-        Exception? exception = null;
         using var semaphore = new SemaphoreSlim(1, 1);
-        var writer = outputStream.CreatePipeWriter();
 
         try
         {
@@ -167,20 +162,10 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
 
             await writer.FlushAsync(ct).ConfigureAwait(false);
         }
-        catch (OperationCanceledException ex)
+        catch (OperationCanceledException)
         {
             // if the operation was canceled, we do not need to log this
             // and will stop gracefully.
-            exception = ex;
-        }
-        catch (Exception ex)
-        {
-            exception = ex;
-            throw;
-        }
-        finally
-        {
-            await writer.CompleteAsync(exception).ConfigureAwait(false);
         }
     }
 

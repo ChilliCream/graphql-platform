@@ -171,6 +171,14 @@ The `DateTime` scalar will now enforce a specific format. The time and offset ar
 
 Please ensure that your clients are sending date/time strings in the correct format to avoid errors.
 
+You can opt out of the format check with the following code:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddType(new DateTimeType(disableFormatCheck: true));
+```
+
 ## Persisted Queries renamed to Persisted Operations
 
 ### Packages renamed

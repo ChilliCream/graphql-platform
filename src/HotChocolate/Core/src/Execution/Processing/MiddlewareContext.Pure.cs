@@ -234,7 +234,7 @@ internal partial class MiddlewareContext
                 DefaultTypeConverter.Default;
 
             if (value is T castedValue
-                || _typeConverter.TryConvert(value, out castedValue))
+                || _typeConverter.TryConvert(value, out castedValue, out var conversionException))
             {
                 return castedValue;
             }
@@ -270,7 +270,11 @@ internal partial class MiddlewareContext
 
             // we are unable to convert the argument to the request type.
             throw ResolverContext_CannotConvertArgument(
-                _selection.SyntaxNode, Path, argument.Name, typeof(T));
+                _selection.SyntaxNode,
+                Path,
+                argument.Name,
+                typeof(T),
+                conversionException);
         }
     }
 }

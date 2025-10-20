@@ -54,7 +54,7 @@ internal sealed class ExternalUnusedRule : IEventHandler<OutputFieldEvent>
 
             if (!isProvided)
             {
-                context.Log.Write(ExternalUnused(field, type, schema));
+                context.Log.Write(ExternalUnused(field, schema));
             }
         }
     }

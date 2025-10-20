@@ -230,17 +230,17 @@ public class UnionTypeTests
 
     public class Foo : IFooOrBar
     {
-        public string FooField { get; set; }
+        public required string FooField { get; set; }
     }
 
     public class Bar : IFooOrBar
     {
-        public string BarField { get; set; }
+        public required string BarField { get; set; }
     }
 
     public class Baz : IFooOrBar
     {
-        public string BazField { get; set; }
+        public required string BazField { get; set; }
     }
 
     public interface IFooOrBar;

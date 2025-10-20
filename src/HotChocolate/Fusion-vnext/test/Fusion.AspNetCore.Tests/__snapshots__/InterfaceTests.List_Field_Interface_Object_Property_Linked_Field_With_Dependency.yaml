@@ -1,0 +1,230 @@
+title: List_Field_Interface_Object_Property_Linked_Field_With_Dependency
+request:
+  document: |
+    query testQuery {
+      wrappers {
+        authorable {
+          author {
+            displayName
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "wrappers": [
+          {
+            "authorable": {
+              "author": {
+                "displayName": "Author: QXV0aG9yOjc="
+              }
+            }
+          },
+          {
+            "authorable": {
+              "author": {
+                "displayName": "Author: QXV0aG9yOjg="
+              }
+            }
+          },
+          {
+            "authorable": {
+              "author": {
+                "displayName": "Author: QXV0aG9yOjk="
+              }
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Authorable {
+        author: Author
+      }
+
+      type Author {
+        id: ID!
+      }
+
+      type Comment implements Authorable {
+        author: Author
+      }
+
+      type Discussion implements Authorable {
+        author: Author
+      }
+
+      type Query {
+        wrappers: [Wrapper]
+      }
+
+      type Wrapper {
+        authorable: Authorable
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_bdd3c6f6_1 {
+              wrappers {
+                authorable {
+                  __typename
+                  author {
+                    id
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "wrappers": [
+                    {
+                      "authorable": {
+                        "__typename": "Discussion",
+                        "author": {
+                          "id": "QXV0aG9yOjc="
+                        }
+                      }
+                    },
+                    {
+                      "authorable": {
+                        "__typename": "Discussion",
+                        "author": {
+                          "id": "QXV0aG9yOjg="
+                        }
+                      }
+                    },
+                    {
+                      "authorable": {
+                        "__typename": "Discussion",
+                        "author": {
+                          "id": "QXV0aG9yOjk="
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: ID!
+        displayName: String!
+      }
+
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_bdd3c6f6_2(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                displayName
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "QXV0aG9yOjc="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjg="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjk="
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjc="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjg="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjk="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          wrappers {
+            authorable {
+              __typename @fusion__requirement
+              author {
+                displayName
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: bdd3c6f6841e869736d745f400aeb43a
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_bdd3c6f6_1 {
+          wrappers {
+            authorable {
+              __typename
+              author {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_bdd3c6f6_2(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            displayName
+          }
+        }
+      source: $.authorById
+      target: $.wrappers.authorable.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

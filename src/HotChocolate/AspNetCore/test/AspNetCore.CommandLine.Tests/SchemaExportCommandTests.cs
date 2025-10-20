@@ -117,6 +117,28 @@ public class SchemaExportCommandTests : IDisposable
         console.Out.ToString().MatchSnapshot();
     }
 
+    [Fact]
+    public async Task App_Should_Return_ExitCode_1_If_Schema_Is_Invalid()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        // We're intentionally no specifying any fields here to create an invalid schema.
+        services.AddGraphQL().AddQueryType();
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+
+        // act
+        var exitCode = await host.RunWithGraphQLCommandsAsync(["schema", "print"]);
+
+        // assert
+        Assert.Equal(1, exitCode);
+    }
+
     public string CreateSchemaFileName()
     {
         var tempFile = System.IO.Path.GetTempFileName();

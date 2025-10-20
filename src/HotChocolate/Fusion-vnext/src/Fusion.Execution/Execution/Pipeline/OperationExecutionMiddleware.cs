@@ -18,7 +18,6 @@ internal sealed class OperationExecutionMiddleware
 
     public async ValueTask InvokeAsync(
         RequestContext context,
-        ResultPoolSession resultPoolSession,
         RequestDelegate next,
         CancellationToken cancellationToken)
     {
@@ -89,7 +88,6 @@ internal sealed class OperationExecutionMiddleware
                 var middleware = new OperationExecutionMiddleware(diagnosticEvents);
                 return context => middleware.InvokeAsync(
                     context,
-                    context.RequestServices.GetRequiredService<ResultPoolSession>(),
                     next,
                     context.RequestAborted);
             },

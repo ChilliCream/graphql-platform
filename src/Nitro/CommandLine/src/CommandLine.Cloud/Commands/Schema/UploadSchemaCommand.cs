@@ -38,7 +38,7 @@ internal sealed class UploadSchemaCommand : Command
     {
         console.Title($"Upload schema {schemaFile.FullName.EscapeMarkup()}");
 
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             await console
                 .Status()

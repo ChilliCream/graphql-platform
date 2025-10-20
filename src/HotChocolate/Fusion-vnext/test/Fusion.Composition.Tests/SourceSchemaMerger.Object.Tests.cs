@@ -569,6 +569,41 @@ public sealed class SourceSchemaMergerObjectTests
                         @fusion__field(schema: A)
                 }
                 """
+            },
+            // Lookup field and argument have a description
+            {
+                [
+                    """
+                    type Query {
+                        "Fetches a product"
+                        productById("The product id" id: ID!): Product @lookup
+                    }
+
+                    type Product @key(fields: "id") {
+                        id: ID!
+                    }
+                    """
+                ],
+                """
+                schema {
+                  query: Query
+                }
+
+                type Query
+                  @fusion__type(schema: A) {
+                  "Fetches a product"
+                  productById("The product id" id: ID!
+                    @fusion__inputField(schema: A)): Product
+                    @fusion__field(schema: A)
+                }
+
+                type Product
+                  @fusion__type(schema: A)
+                  @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: [ "id" ], path: null, internal: false) {
+                  id: ID!
+                    @fusion__field(schema: A)
+                }
+                """
             }
         };
     }

@@ -12,7 +12,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class FusionSchemaDefinition : ISchemaDefinition
+public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
 {
 #if NET9_0_OR_GREATER
     private readonly Lock _lock = new();
@@ -22,9 +22,11 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     private readonly ConcurrentDictionary<string, ImmutableArray<FusionObjectTypeDefinition>> _possibleTypes = new();
     private readonly ConcurrentDictionary<(string, string?), ImmutableArray<Lookup>> _possibleLookups = new();
     private readonly ConcurrentDictionary<TransitionKey, Lookup> _bestDirectLookup = new();
+    private readonly IServiceProvider _services;
     private ImmutableArray<FusionUnionTypeDefinition> _unionTypes;
     private IFeatureCollection _features;
     private bool _sealed;
+    private bool _disposed;
 
     internal FusionSchemaDefinition(
         string name,
@@ -40,7 +42,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     {
         Name = name;
         Description = description;
-        Services = services;
+        _services = services;
         QueryType = queryType;
         MutationType = mutationType;
         SubscriptionType = subscriptionType;
@@ -85,7 +87,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     /// <summary>
     /// Gets the schema services.
     /// </summary>
-    public IServiceProvider Services { get; }
+    public IServiceProvider Services => _services;
 
     /// <summary>
     /// The type that query operations will be rooted at.
@@ -396,7 +398,9 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 
             var context = new KeyTransitionVisitor.Context
             {
-                CompositeSchema = this, SourceSchema = fromSchema, Types = [type]
+                CompositeSchema = this,
+                SourceSchema = fromSchema,
+                Types = [type]
             };
 
             Lookup? bestLookup = null;
@@ -485,6 +489,24 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => SchemaFormatter.FormatAsDocument(this);
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!_disposed)
+        {
+            if (Features.TryGet(out SchemaCancellationFeature? cancellation))
+            {
+                await cancellation.DisposeAsync().ConfigureAwait(false);
+            }
+
+            if (_services is IAsyncDisposable disposableServices)
+            {
+                await disposableServices.DisposeAsync().ConfigureAwait(false);
+            }
+
+            _disposed = true;
+        }
+    }
 
     private readonly record struct TransitionKey(string TypeName, string From, string To);
 }

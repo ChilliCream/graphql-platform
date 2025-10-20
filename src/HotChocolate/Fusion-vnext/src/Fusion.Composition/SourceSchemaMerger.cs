@@ -24,7 +24,7 @@ namespace HotChocolate.Fusion;
 
 internal sealed class SourceSchemaMerger
 {
-    private static readonly RemoveDirectiveNodesSyntaxRewriter s_removeDirectivesRewriter = new();
+    private static readonly FusionFieldDefinitionSyntaxRewriter s_fieldDefinitionRewriter = new();
     private readonly ImmutableSortedSet<MutableSchemaDefinition> _schemas;
     private readonly FrozenDictionary<MutableSchemaDefinition, string> _schemaConstantNames;
     private readonly SourceSchemaMergerOptions _options;
@@ -166,11 +166,17 @@ internal sealed class SourceSchemaMerger
         var type = MostRestrictiveType(typeA, typeB);
         var description = argumentA.Description ?? argumentB.Description;
         var defaultValue = argumentA.DefaultValue ?? argumentB.DefaultValue;
+        var isDeprecated = argumentA.IsDeprecated || argumentB.IsDeprecated;
+        var deprecationReason = isDeprecated
+            ? argumentA.DeprecationReason ?? argumentB.DeprecationReason
+            : null;
 
         return new MutableInputFieldDefinition(argumentA.Name, type.ExpectInputType())
         {
             DefaultValue = defaultValue,
-            Description = description
+            Description = description,
+            IsDeprecated = isDeprecated,
+            DeprecationReason = deprecationReason
         };
     }
 
@@ -270,13 +276,31 @@ internal sealed class SourceSchemaMerger
         var firstValue = enumValueGroup[0].EnumValue;
         var valueName = firstValue.Name;
         var description = firstValue.Description;
+        var isDeprecated = firstValue.IsDeprecated;
+        var deprecationReason = firstValue.DeprecationReason;
 
         for (var i = 1; i < enumValueGroup.Length; i++)
         {
-            description ??= enumValueGroup[i].EnumValue.Description;
+            var enumValueInfo = enumValueGroup[i];
+            description ??= enumValueInfo.EnumValue.Description;
+
+            if (enumValueInfo.EnumValue.IsDeprecated && !isDeprecated)
+            {
+                isDeprecated = true;
+            }
+
+            if (isDeprecated && string.IsNullOrEmpty(deprecationReason))
+            {
+                deprecationReason = enumValueInfo.EnumValue.DeprecationReason;
+            }
         }
 
-        var enumValue = new MutableEnumValue(valueName) { Description = description };
+        var enumValue = new MutableEnumValue(valueName)
+        {
+            Description = description,
+            IsDeprecated = isDeprecated,
+            DeprecationReason = deprecationReason
+        };
 
         AddFusionEnumValueDirectives(enumValue, enumValueGroup);
 
@@ -333,7 +357,9 @@ internal sealed class SourceSchemaMerger
 
         foreach (var fieldGroup in fieldGroupByName)
         {
-            inputObjectType.Fields.Add(MergeInputFields([.. fieldGroup], mergedSchema));
+            var mergedField = MergeInputFields([.. fieldGroup], mergedSchema);
+            mergedField.DeclaringMember = inputObjectType;
+            inputObjectType.Fields.Add(mergedField);
         }
 
         return inputObjectType;
@@ -356,6 +382,8 @@ internal sealed class SourceSchemaMerger
         var fieldType = firstField.Type;
         var description = firstField.Description;
         var defaultValue = firstField.DefaultValue;
+        var isDeprecated = firstField.IsDeprecated;
+        var deprecationReason = firstField.DeprecationReason;
 
         for (var i = 1; i < inputFieldGroup.Length; i++)
         {
@@ -363,12 +391,24 @@ internal sealed class SourceSchemaMerger
             fieldType = MostRestrictiveType(fieldType, inputFieldInfo.Field.Type).ExpectInputType();
             description ??= inputFieldInfo.Field.Description;
             defaultValue ??= inputFieldInfo.Field.DefaultValue;
+
+            if (inputFieldInfo.Field.IsDeprecated && !isDeprecated)
+            {
+                isDeprecated = true;
+            }
+
+            if (isDeprecated && string.IsNullOrEmpty(deprecationReason))
+            {
+                deprecationReason = inputFieldInfo.Field.DeprecationReason;
+            }
         }
 
         var inputField = new MutableInputFieldDefinition(fieldName)
         {
             DefaultValue = defaultValue,
             Description = description,
+            IsDeprecated = isDeprecated,
+            DeprecationReason = deprecationReason,
             Type = fieldType
                 .ReplaceNamedType(_ => GetOrCreateType(mergedSchema, fieldType))
                 .ExpectInputType()
@@ -446,6 +486,7 @@ internal sealed class SourceSchemaMerger
 
             if (mergedField is not null)
             {
+                mergedField.DeclaringMember = interfaceType;
                 interfaceType.Fields.Add(mergedField);
             }
         }
@@ -535,6 +576,7 @@ internal sealed class SourceSchemaMerger
 
             if (mergedField is not null)
             {
+                mergedField.DeclaringMember = objectType;
                 objectType.Fields.Add(mergedField);
             }
         }
@@ -579,17 +621,31 @@ internal sealed class SourceSchemaMerger
         var fieldName = firstField.Name;
         var fieldType = firstField.Type;
         var description = firstField.Description;
+        var isDeprecated = firstField.IsDeprecated;
+        var deprecationReason = firstField.DeprecationReason;
 
         for (var i = 1; i < fieldGroup.Length; i++)
         {
             var fieldInfo = fieldGroup[i];
             fieldType = LeastRestrictiveType(fieldType, fieldInfo.Field.Type).ExpectOutputType();
             description ??= fieldInfo.Field.Description;
+
+            if (fieldInfo.Field.IsDeprecated && !isDeprecated)
+            {
+                isDeprecated = true;
+            }
+
+            if (isDeprecated && string.IsNullOrEmpty(deprecationReason))
+            {
+                deprecationReason = fieldInfo.Field.DeprecationReason;
+            }
         }
 
         var outputField = new MutableOutputFieldDefinition(fieldName)
         {
             Description = description,
+            IsDeprecated = isDeprecated,
+            DeprecationReason = deprecationReason,
             Type = fieldType
                 .ReplaceNamedType(_ => GetOrCreateType(mergedSchema, fieldType))
                 .ExpectOutputType()
@@ -620,6 +676,7 @@ internal sealed class SourceSchemaMerger
 
             if (mergedArgument is not null)
             {
+                mergedArgument.DeclaringMember = outputField;
                 outputField.Arguments.Add(mergedArgument);
             }
         }
@@ -1011,22 +1068,11 @@ internal sealed class SourceSchemaMerger
         foreach (var (sourceField, sourcePath, sourceSchema) in lookupFieldGroup)
         {
             var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema]);
-            var lookupMap = GetFusionLookupMap(sourceField);
-            var selectedValues = lookupMap.Select(a => new FieldSelectionMapParser(a).Parse());
-            var selectedValueToSelectionSetRewriter =
-                GetSelectedValueToSelectionSetRewriter(sourceSchema);
-            var selectionSets = selectedValues
-                .Select(
-                    s => selectedValueToSelectionSetRewriter.Rewrite(s, type))
-                .ToImmutableArray();
-            var mergedSelectionSet = selectionSets.Length == 1
-                ? selectionSets[0]
-                : GetMergeSelectionSetRewriter(sourceSchema).Merge(selectionSets, type);
-            var keyArgument =
-                mergedSelectionSet.ToString(indented: false).AsSpan()[2..^2].ToString();
+            var lookupMap = sourceField.GetFusionLookupMap();
+            var keyArgument = sourceField.GetKeyFields(lookupMap, sourceSchema);
 
             var fieldArgument =
-                s_removeDirectivesRewriter
+                s_fieldDefinitionRewriter
                     .Rewrite(sourceField.ToSyntaxNode())!
                     .ToString(indented: false);
 
@@ -1048,23 +1094,6 @@ internal sealed class SourceSchemaMerger
                     new ArgumentAssignment(ArgumentNames.Path, pathArgument),
                     new ArgumentAssignment(ArgumentNames.Internal, @internal)));
         }
-    }
-
-    // productById(id: ID!) -> ["id"].
-    // productByIdAndCategoryId(id: ID!, categoryId: Int) -> ["id", "categoryId"].
-    // personByAddressId(id: ID! @is(field: "address.id")) -> ["address.id"].
-    private static List<string> GetFusionLookupMap(MutableOutputFieldDefinition field)
-    {
-        var items = new List<string>();
-
-        foreach (var argument in field.Arguments)
-        {
-            var @is = argument.GetIsFieldSelectionMap();
-
-            items.Add(@is ?? argument.Name);
-        }
-
-        return items;
     }
 
     private void AddFusionRequiresDirectives(
@@ -1111,7 +1140,7 @@ internal sealed class SourceSchemaMerger
                     mergedSelectionSet.ToString(indented: false).AsSpan()[2..^2].ToString();
 
                 var fieldArgument =
-                    s_removeDirectivesRewriter
+                    s_fieldDefinitionRewriter
                         .Rewrite(sourceField.ToSyntaxNode())!
                         .ToString(indented: false);
 

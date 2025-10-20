@@ -127,6 +127,57 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool PublishRootFieldPagesToPromiseCache { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets whether the schema and request executor should be initialized lazily.
+    /// <c>false</c> by default.
+    /// </summary>
+    /// <remarks>
+    /// When set to <c>true</c> the creation of the schema and request executor, as well as
+    /// the load of the Fusion configuration, is deferred until the request executor
+    /// is first requested.
+    /// This can significantly slow down and block initial requests.
+    /// Therefore it is recommended to not use this option for production environments.
+    /// </remarks>
+    public bool LazyInitialization { get; set; }
+
+    /// <summary>
+    /// Gets or sets the size of the prepared operation cache.
+    /// <c>256</c> by default. <c>16</c> is the minimum.
+    /// </summary>
+    public int PreparedOperationCacheSize
+    {
+        get;
+        set
+        {
+            if (value < 16)
+            {
+                throw new ArgumentException(
+                    "The size of prepared operation cache must be at least 16.");
+            }
+
+            field = value;
+        }
+    } = 256;
+
+    /// <summary>
+    /// Gets or sets the size of the operation document cache.
+    /// <c>256</c> by default. <c>16</c> is the minimum.
+    /// </summary>
+    public int OperationDocumentCacheSize
+    {
+        get;
+        set
+        {
+            if (value < 16)
+            {
+                throw new ArgumentException(
+                    "The size of operation document cache must be at least 16.");
+            }
+
+            field = value;
+        }
+    } = 256;
+
+    /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
     /// <param name="options">The read-only options object.</param>
@@ -161,7 +212,10 @@ public class SchemaOptions : IReadOnlySchemaOptions
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
-            DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope
+            DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
+            LazyInitialization = options.LazyInitialization,
+            PreparedOperationCacheSize = options.PreparedOperationCacheSize,
+            OperationDocumentCacheSize = options.OperationDocumentCacheSize
         };
     }
 }

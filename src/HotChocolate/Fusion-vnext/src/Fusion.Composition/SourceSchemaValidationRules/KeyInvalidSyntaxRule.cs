@@ -20,6 +20,6 @@ internal sealed class KeyInvalidSyntaxRule : IEventHandler<KeyFieldsInvalidSynta
     {
         var (keyDirective, type, schema) = @event;
 
-        context.Log.Write(KeyInvalidSyntax(type.Name, keyDirective, schema));
+        context.Log.Write(KeyInvalidSyntax(type, keyDirective, schema));
     }
 }

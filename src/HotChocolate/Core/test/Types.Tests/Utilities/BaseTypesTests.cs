@@ -57,7 +57,7 @@ public class BaseTypesTests
 
     public class Foo
     {
-        public string Bar { get; set; }
+        public required string Bar { get; set; }
     }
 
     public enum FooEnum

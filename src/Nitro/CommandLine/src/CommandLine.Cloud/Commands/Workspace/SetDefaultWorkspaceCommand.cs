@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Cloud.Auth;
 using ChilliCream.Nitro.CommandLine.Cloud.Client;
-using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 using static ChilliCream.Nitro.CommandLine.Cloud.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Cloud;
@@ -53,18 +52,18 @@ internal sealed class SetDefaultWorkspaceCommand : Command
         }
         else
         {
-             var selectedWorkspace = await PagedSelectionPrompt
+            var selectedWorkspace = await PagedSelectionPrompt
                 .New(paginationContainer)
                 .Title(message.AsQuestion())
                 .UseConverter(x => x.Node.Name)
                 .RenderAsync(console, cancellationToken);
 
-             if (selectedWorkspace is null)
-             {
-                 throw Exit("No workspaces was selected as default");
-             }
+            if (selectedWorkspace is null)
+            {
+                throw Exit("No workspaces was selected as default");
+            }
 
-             workspace = new Workspace(selectedWorkspace.Node.Id, selectedWorkspace.Node.Name);
+            workspace = new Workspace(selectedWorkspace.Node.Id, selectedWorkspace.Node.Name);
 
             wasPrompted = true;
         }

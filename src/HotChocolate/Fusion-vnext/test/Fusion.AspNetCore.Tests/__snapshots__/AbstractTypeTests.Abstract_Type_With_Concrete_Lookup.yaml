@@ -1,0 +1,208 @@
+title: Abstract_Type_With_Concrete_Lookup
+request:
+  document: |
+    {
+      abstractType {
+        id
+        ... on Discussion {
+          title
+          commentCount
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "abstractType": {
+          "id": 1,
+          "title": "Discussion 1",
+          "commentCount": 3
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface SharedType {
+        id: Int!
+      }
+
+      type Author implements SharedType {
+        id: Int!
+        name: String!
+      }
+
+      type Discussion implements SharedType {
+        id: Int!
+        title: String!
+      }
+
+      "A connection to a list of items."
+      type InterfaceConnectionConnection {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [InterfaceConnectionEdge!]
+        "A flattened list of the nodes."
+        nodes: [SharedType!]
+      }
+
+      "An edge in a connection."
+      type InterfaceConnectionEdge {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: SharedType!
+      }
+
+      "Information about pagination in a connection."
+      type PageInfo {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+
+      type Product implements SharedType {
+        id: Int!
+      }
+
+      type Query {
+        abstractType: SharedType!
+        otherAbstractType: SharedType!
+        abstractTypes: [SharedType!]!
+        interfaceConnection("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): InterfaceConnectionConnection
+        authorById(id: Int!): Author! @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_bf0deff6_1 {
+              abstractType {
+                __typename
+                id
+                ... on Discussion {
+                  title
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "abstractType": {
+                    "__typename": "Discussion",
+                    "id": 1,
+                    "title": "Discussion 1"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface OtherInterface {
+        id: Int!
+      }
+
+      type Author implements OtherInterface {
+        id: Int!
+        age: Int!
+      }
+
+      type Discussion {
+        id: Int!
+        commentCount: Int!
+      }
+
+      type Query {
+        otherInterface(id: Int!): OtherInterface! @lookup
+        discussionById(id: ID!): Discussion @lookup @internal
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_bf0deff6_2(
+              $__fusion_1_id: ID!
+            ) {
+              discussionById(id: $__fusion_1_id) {
+                commentCount
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "discussionById": {
+                    "commentCount": 3
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          abstractType {
+            __typename @fusion__requirement
+            id
+            ... on Discussion {
+              title
+              commentCount
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: bf0deff65ebc6098ea48ca77515a25c9
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_bf0deff6_1 {
+          abstractType {
+            __typename
+            id
+            ... on Discussion {
+              title
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_bf0deff6_2(
+          $__fusion_1_id: ID!
+        ) {
+          discussionById(id: $__fusion_1_id) {
+            commentCount
+          }
+        }
+      source: $.discussionById
+      target: $.abstractType<Discussion>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

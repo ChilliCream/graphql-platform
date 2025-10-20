@@ -17,13 +17,8 @@ internal sealed class ProvidesInvalidSyntaxRule : IEventHandler<ProvidesFieldsIn
 {
     public void Handle(ProvidesFieldsInvalidSyntaxEvent @event, CompositionContext context)
     {
-        var (providesDirective, field, type, schema) = @event;
+        var (providesDirective, field, _, schema) = @event;
 
-        context.Log.Write(
-            ProvidesInvalidSyntax(
-                providesDirective,
-                field.Name,
-                type.Name,
-                schema));
+        context.Log.Write(ProvidesInvalidSyntax(providesDirective, field, schema));
     }
 }

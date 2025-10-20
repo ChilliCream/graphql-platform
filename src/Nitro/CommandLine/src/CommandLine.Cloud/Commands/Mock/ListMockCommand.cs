@@ -31,7 +31,7 @@ internal sealed class ListMockCommand : Command
         IApiClient client,
         CancellationToken ct)
     {
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             return await RenderInteractiveAsync(context, console, client, ct);
         }

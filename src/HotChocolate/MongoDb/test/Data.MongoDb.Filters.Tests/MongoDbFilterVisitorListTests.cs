@@ -127,21 +127,15 @@ public class MongoDbFilterVisitorListTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
-                            root(where: {
-                                fooNested: {
-                                    some: {
-                                        bar: {
-                                            eq: ""a""
-                                        }
-                                    }
-                                }
-                            }){
-                                fooNested {
-                                    bar
-                                }
+                    """
+                    {
+                        root(where: { fooNested: { some: { bar: { eq: "a" } } } }) {
+                            fooNested {
+                                bar
                             }
-                        }")
+                        }
+                    }
+                    """)
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
@@ -275,17 +269,13 @@ public class MongoDbFilterVisitorListTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
-                        root(where: {
-                            bar: {
-                                some: {
-                                    eq: ""a""
-                                }
-                            }
-                        }){
+                    """
+                    {
+                        root(where: { bar: { some: { eq: "a" } } }) {
                             bar
                         }
-                    }")
+                    }
+                    """)
                 .Build());
 
         var res2 = await tester.ExecuteAsync(

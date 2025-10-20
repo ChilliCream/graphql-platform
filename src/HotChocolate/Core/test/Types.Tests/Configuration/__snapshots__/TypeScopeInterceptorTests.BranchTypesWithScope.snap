@@ -1,22 +1,22 @@
-﻿schema {
+schema {
   query: Foo
 }
 
 type A_Bar {
-  baz: C_Baz
-  someString: String
+  baz: C_Baz!
+  someString: String!
 }
 
 type B_Bar {
-  baz: C_Baz
-  someString: String
+  baz: C_Baz!
+  someString: String!
 }
 
 type C_Baz {
-  someString: String
+  someString: String!
 }
 
 type Foo {
-  bar1: A_Bar
-  bar2: B_Bar
+  bar1: A_Bar!
+  bar2: B_Bar!
 }

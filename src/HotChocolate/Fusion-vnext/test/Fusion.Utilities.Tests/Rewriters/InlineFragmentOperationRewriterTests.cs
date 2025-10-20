@@ -372,7 +372,7 @@ public class InlineFragmentOperationRewriterTests
             """
             {
               productById(id: 1) {
-                __typename @fusion__requirement
+                __typename @fusion__empty
               }
             }
             """);
@@ -590,5 +590,113 @@ public class InlineFragmentOperationRewriterTests
               }
             }
             """);
+    }
+
+    [Fact]
+    public void Missing_Field_Throws_RewriterException()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                unknownField(id: 1) {
+                    ... {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(schemaDefinition);
+        void Action() => rewriter.RewriteDocument(doc, null);
+
+        // assert
+        Assert.Equal(
+            "The field 'unknownField' does not exist on the type 'Query'.",
+            Assert.Throws<RewriterException>(Action).Message);
+    }
+
+    [Fact]
+    public void Missing_Inline_Fragment_Type_Throws_RewriterException()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                ... on UnknownType {
+                    id
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(schemaDefinition);
+        void Action() => rewriter.RewriteDocument(doc, null);
+
+        // assert
+        Assert.Equal(
+            "An inline fragment on type 'Query' has an invalid type condition. The type 'UnknownType' does not exist.",
+            Assert.Throws<RewriterException>(Action).Message);
+    }
+
+    [Fact]
+    public void Missing_Fragment_Type_Throws_RewriterException()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                ...Fragment
+            }
+
+            fragment Fragment on UnknownType {
+                id
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(schemaDefinition);
+        void Action() => rewriter.RewriteDocument(doc, null);
+
+        // assert
+        Assert.Equal(
+            "The fragment 'Fragment' has an invalid type condition. The type 'UnknownType' does not exist.",
+            Assert.Throws<RewriterException>(Action).Message);
+    }
+
+    [Fact]
+    public void Missing_Fragment_Throws_RewriterException()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    ... UnknownFragment
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(schemaDefinition);
+        void Action() => rewriter.RewriteDocument(doc, null);
+
+        // assert
+        Assert.Equal(
+            "A fragment with the name 'UnknownFragment' does not exist.",
+            Assert.Throws<RewriterException>(Action).Message);
     }
 }

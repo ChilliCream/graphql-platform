@@ -4,8 +4,6 @@ using HotChocolate.Tests;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class InputParserTests

@@ -11,6 +11,8 @@ internal sealed class FusionGatewaySetup
 {
     public Func<IServiceProvider, IFusionConfigurationProvider>? DocumentProvider { get; set; }
 
+    public List<Action<FusionOptions>> OptionsModifiers { get; } = [];
+
     public List<Action<FusionRequestOptions>> RequestOptionsModifiers { get; } = [];
 
     public List<Action<FusionParserOptions>> ParserOptionsModifiers { get; } = [];

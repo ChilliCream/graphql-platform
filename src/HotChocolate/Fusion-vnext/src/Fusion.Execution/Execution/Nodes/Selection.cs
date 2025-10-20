@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Text;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -8,10 +9,11 @@ public sealed class Selection : ISelection
 {
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
+    private readonly byte[] _utf8ResponseName;
     private Flags _flags;
 
     public Selection(
-        uint id,
+        int id,
         string responseName,
         IOutputFieldDefinition field,
         FieldSelectionNode[] syntaxNodes,
@@ -38,11 +40,15 @@ public sealed class Selection : ISelection
         {
             _flags |= Flags.Leaf;
         }
+
+        _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
     }
 
-    public uint Id { get; }
+    public int Id { get; }
 
     public string ResponseName { get; }
+
+    internal ReadOnlySpan<byte> Utf8ResponseName => _utf8ResponseName;
 
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
 
@@ -64,7 +70,10 @@ public sealed class Selection : ISelection
 
     IEnumerable<FieldNode> ISelection.GetSyntaxNodes()
     {
-        throw new NotImplementedException();
+        for (var i = 0; i < SyntaxNodes.Length; i++)
+        {
+            yield return SyntaxNodes[i].Node;
+        }
     }
 
     public bool IsIncluded(ulong includeFlags)

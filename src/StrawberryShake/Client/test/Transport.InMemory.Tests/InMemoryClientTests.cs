@@ -204,7 +204,7 @@ public class InMemoryClientTests
     {
         public OperationKind Kind => OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => Encoding.UTF8.GetBytes("{ foo }");
+        public ReadOnlySpan<byte> Body => "{ foo }"u8;
 
         public DocumentHash Hash { get; } = new("MD5", "ABC");
     }

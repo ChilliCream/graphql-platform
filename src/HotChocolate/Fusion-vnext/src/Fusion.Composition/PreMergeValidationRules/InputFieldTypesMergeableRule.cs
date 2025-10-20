@@ -24,7 +24,7 @@ internal sealed class InputFieldTypesMergeableRule : IEventHandler<InputFieldGro
 {
     public void Handle(InputFieldGroupEvent @event, CompositionContext context)
     {
-        var (_, fieldGroup, typeName) = @event;
+        var fieldGroup = @event.FieldGroup;
 
         for (var i = 0; i < fieldGroup.Length - 1; i++)
         {
@@ -38,7 +38,6 @@ internal sealed class InputFieldTypesMergeableRule : IEventHandler<InputFieldGro
                 context.Log.Write(
                     InputFieldTypesNotMergeable(
                         fieldInfoA.Field,
-                        typeName,
                         fieldInfoA.Schema,
                         fieldInfoB.Schema));
             }

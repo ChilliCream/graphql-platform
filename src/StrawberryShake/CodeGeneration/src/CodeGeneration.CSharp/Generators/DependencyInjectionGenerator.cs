@@ -225,6 +225,11 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 (builder, operation) =>
                     builder.AddCode(ForwardSingletonToClientServiceProvider(
                         operation.RuntimeType.ToString())))
+            .ForEach(
+                descriptor.Operations,
+                (builder, operation) =>
+                    builder.AddCode(ForwardSingletonToClientServiceProvider(
+                        operation.InterfaceType.ToString())))
             .AddEmptyLine()
             .AddCode(ForwardSingletonToClientServiceProvider(
                 descriptor.ClientDescriptor.RuntimeType.ToString()))

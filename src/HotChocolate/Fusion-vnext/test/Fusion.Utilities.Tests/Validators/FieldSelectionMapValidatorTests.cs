@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
@@ -67,22 +68,26 @@ public sealed class FieldSelectionMapValidatorTests
     public void FieldReturningUnionTypeDoesNotSpecifyConcreteType()
     {
         // arrange
-        var schema = SchemaParser.Parse(
-            """
-            type Query {
-                mediaById(id: ID!): Media!
-            }
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    mediaById(id: ID!): Media!
+                }
 
-            union Media = Book | Movie
+                union Media = Book | Movie
 
-            type Book {
-                id: ID!
-            }
+                type Book {
+                    id: ID!
+                }
 
-            type Movie {
-                id: ID!
-            }
-            """);
+                type Movie {
+                    id: ID!
+                }
+                """);
+        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value.Single();
         const string fieldSelectionMap = "mediaById.id";
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
         var inputType = schema.QueryType!.Fields["mediaById"].Arguments["id"].Type;
@@ -104,22 +109,26 @@ public sealed class FieldSelectionMapValidatorTests
     public void RequiredSelectedObjectFields_Example1()
     {
         // arrange
-        var schema = SchemaParser.Parse(
-            """
-            type Query {
-                userById(user: UserInput! @is(field: "{ name: name }")): User! @lookup
-            }
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    userById(user: UserInput! @is(field: "{ name: name }")): User! @lookup
+                }
 
-            type User {
-                id: ID
-                name: String
-            }
+                type User {
+                    id: ID
+                    name: String
+                }
 
-            input UserInput {
-                id: ID!
-                name: String!
-            }
-            """);
+                input UserInput {
+                    id: ID!
+                    name: String!
+                }
+                """);
+        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value.Single();
         var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "userById", "user", "is");
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
         var inputType = schema.QueryType!.Fields["userById"].Arguments["user"].Type;
@@ -141,22 +150,26 @@ public sealed class FieldSelectionMapValidatorTests
     public void RequiredSelectedObjectFields_Example2()
     {
         // arrange
-        var schema = SchemaParser.Parse(
-            """
-            type Query {
-                findUser(input: UserInput! @is(field: "{ name: name }")): User! @lookup
-            }
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    findUser(input: UserInput! @is(field: "{ name: name }")): User! @lookup
+                }
 
-            type User {
-                id: ID
-                name: String!
-            }
+                type User {
+                    id: ID
+                    name: String!
+                }
 
-            input UserInput {
-                id: ID
-                name: String
-            }
-            """);
+                input UserInput {
+                    id: ID
+                    name: String
+                }
+                """);
+        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value.Single();
         var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "findUser", "input", "is");
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
         var inputType = schema.QueryType!.Fields["findUser"].Arguments["input"].Type;
@@ -176,21 +189,25 @@ public sealed class FieldSelectionMapValidatorTests
     public void RequiredSelectedObjectFields_Example3()
     {
         // arrange
-        var schema = SchemaParser.Parse(
-            """
-            type Query {
-                findUser(input: UserInput! @is(field: "{ id: id }")): User! @lookup
-            }
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    findUser(input: UserInput! @is(field: "{ id: id }")): User! @lookup
+                }
 
-            type User {
-                id: ID
-            }
+                type User {
+                    id: ID
+                }
 
-            input UserInput {
-                id: ID
-                name: String!
-            }
-            """);
+                input UserInput {
+                    id: ID
+                    name: String!
+                }
+                """);
+        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value.Single();
         var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "findUser", "input", "is");
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
         var inputType = schema.QueryType!.Fields["findUser"].Arguments["input"].Type;
@@ -226,30 +243,34 @@ public sealed class FieldSelectionMapValidatorTests
     public void RequiredSelectedObjectFields_Example4(string fieldSelectionMap, string[] expected)
     {
         // arrange
-        var schema = SchemaParser.Parse(
-            $$"""
-            type Query {
-                person(
-                    by: PersonByInput @is(field: "{{fieldSelectionMap}}")
-                ): Person
-            }
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                $$"""
+                type Query {
+                    person(
+                        by: PersonByInput @is(field: "{{fieldSelectionMap}}")
+                    ): Person
+                }
 
-            type Person {
-                id: ID!
-                name: String
-                address: Address
-            }
+                type Person {
+                    id: ID!
+                    name: String
+                    address: Address
+                }
 
-            type Address {
-                id: ID!
-            }
+                type Address {
+                    id: ID!
+                }
 
-            input PersonByInput @oneOf {
-                id: ID
-                addressId: ID
-                name: String
-            }
-            """);
+                input PersonByInput @oneOf {
+                    id: ID
+                    addressId: ID
+                    name: String
+                }
+                """);
+        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value.Single();
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
         var inputType = schema.QueryType!.Fields["person"].Arguments["by"].Type;
         var outputType = schema.QueryType!.Fields["person"].Type;

@@ -2,7 +2,7 @@ using HotChocolate.Fusion.Types.Metadata;
 
 namespace HotChocolate.Fusion.Planning;
 
-public sealed record FieldRequirementWorkItem(
+internal sealed record FieldRequirementWorkItem(
     FieldSelection Selection,
     int StepId,
     Lookup? Lookup = null)

@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Comparers;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 using static HotChocolate.Fusion.WellKnownTypeNames;
@@ -102,8 +103,9 @@ public sealed class SourceSchemaMergerTests
     public void Merge_WithRequireInputObject_RetainsInputObjectType()
     {
         // arrange
-        var schemaA =
-            SchemaParser.Parse(
+        var sourceSchemaTextA =
+            new SourceSchemaText(
+                "A",
                 """
                 type Query {
                     product: Product
@@ -113,9 +115,9 @@ public sealed class SourceSchemaMergerTests
                     weight: Int!
                 }
                 """);
-        schemaA.Name = "A";
-        var schemaB =
-            SchemaParser.Parse(
+        var sourceSchemaTextB =
+            new SourceSchemaText(
+                "B",
                 """
                 type Product {
                     deliveryEstimate(
@@ -128,11 +130,8 @@ public sealed class SourceSchemaMergerTests
                     weight: Int!
                 }
                 """);
-        schemaB.Name = "B";
-        IEnumerable<MutableSchemaDefinition> schemas = [schemaA, schemaB];
-        var merger = new SourceSchemaMerger(
-            schemas.ToImmutableSortedSet(
-                new SchemaByNameComparer<MutableSchemaDefinition>()));
+        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaTextA, sourceSchemaTextB], new CompositionLog());
+        var merger = new SourceSchemaMerger(sourceSchemaParser.Parse().Value);
 
         // act
         var result = merger.Merge();

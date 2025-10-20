@@ -12,9 +12,12 @@ internal sealed class CodeWriter(StringBuilder sb)
 
     public void WriteLine(string line)
     {
-        for (var i = 0; i < _indent; i++)
+        if (line.Length != 0)
         {
-            sb.Append("  ");
+            for (var i = 0; i < _indent; i++)
+            {
+                sb.Append("  ");
+            }
         }
 
         sb.AppendLine(line);
@@ -22,9 +25,12 @@ internal sealed class CodeWriter(StringBuilder sb)
 
     public void WriteLine(string format, params object[] args)
     {
-        for (var i = 0; i < _indent; i++)
+        if (format.Length != 0)
         {
-            sb.Append("  ");
+            for (var i = 0; i < _indent; i++)
+            {
+                sb.Append("  ");
+            }
         }
 
         sb.AppendFormat(format, args).AppendLine();

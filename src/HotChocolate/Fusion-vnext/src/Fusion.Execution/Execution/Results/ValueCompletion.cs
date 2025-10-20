@@ -1,93 +1,84 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed class ValueCompletion
 {
     private readonly ISchemaDefinition _schema;
-    private readonly ResultPoolSession _resultPoolSession;
-    private readonly ErrorHandlingMode _errorHandling;
+    private readonly CompositeResultDocument _result;
+    private readonly IErrorHandler _errorHandler;
+    private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly int _maxDepth;
-    private readonly ulong _includeFlags;
-    private readonly List<IError> _errors;
 
     public ValueCompletion(
         ISchemaDefinition schema,
-        ResultPoolSession resultPoolSession,
-        ErrorHandlingMode errorHandling,
-        int maxDepth,
-        ulong includeFlags,
-        List<IError> errors)
+        CompositeResultDocument result,
+        IErrorHandler errorHandler,
+        ErrorHandlingMode errorHandlingMode,
+        int maxDepth)
     {
         ArgumentNullException.ThrowIfNull(schema);
-        ArgumentNullException.ThrowIfNull(resultPoolSession);
-        ArgumentNullException.ThrowIfNull(errors);
 
         _schema = schema;
-        _resultPoolSession = resultPoolSession;
-        _errorHandling = errorHandling;
+        _result = result;
+        _errorHandler = errorHandler;
+        _errorHandlingMode = errorHandlingMode;
         _maxDepth = maxDepth;
-        _includeFlags = includeFlags;
-        _errors = errors;
     }
 
     /// <summary>
-    /// Tries to complete the <paramref name="selectionSet"/> from the
-    /// <paramref name="data"/>, checking for errors on the <paramref name="errorTrie"/>.
+    /// Tries to complete the selection set data represented by <paramref name="target"/>.
+    /// <paramref name="source"/>, checking for errors on the <paramref name="errorTrie"/>.
     /// </summary>
     /// <returns>
     /// <c>true</c>, if the execution can continue.
     /// <c>false</c>, if the execution needs to be halted.
     /// </returns>
     public bool BuildResult(
-        SelectionSet selectionSet,
-        JsonElement data,
+        SourceResultElement source,
+        CompositeResultElement target,
         ErrorTrie? errorTrie,
-        ReadOnlySpan<string> responseNames,
-        ObjectResult objectResult)
+        ReadOnlySpan<string> responseNames)
     {
-        if (data is not { ValueKind: JsonValueKind.Object })
+        if (source is not { ValueKind: JsonValueKind.Object })
         {
             var error = errorTrie?.FindFirstError() ??
                 ErrorBuilder.New()
                     .SetMessage("Unexpected Execution Error")
                     .Build();
 
-            return BuildErrorResult(objectResult, responseNames, error, objectResult.Path);
+            return BuildErrorResult(target, responseNames, error, target.Path);
         }
 
-        foreach (var selection in selectionSet.Selections)
+        foreach (var property in source.EnumerateObject())
         {
-            if (!selection.IsIncluded(_includeFlags))
+            if (!target.TryGetProperty(property.NameSpan, out var resultField))
             {
                 continue;
             }
 
-            var fieldResult = objectResult[selection.ResponseName];
+            var selection = resultField.AssertSelection();
+            ErrorTrie? errorTrieForResponseName = null;
+            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
-            if (data.TryGetProperty(selection.ResponseName, out var element))
+            if (!TryCompleteValue(property.Value, resultField, errorTrieForResponseName, selection, selection.Type, 0))
             {
-                ErrorTrie? errorTrieForResponseName = null;
-                errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
-
-                if (!TryCompleteValue(selection, selection.Type, element, errorTrieForResponseName, 0, fieldResult))
+                switch (_errorHandlingMode)
                 {
-                    if (_errorHandling is ErrorHandlingMode.Propagate)
-                    {
-                        var didPropagateToRoot = PropagateNullValues(objectResult);
-
+                    case ErrorHandlingMode.Propagate:
+                        var didPropagateToRoot = PropagateNullValues(resultField);
                         return !didPropagateToRoot;
-                    }
-                    else if (_errorHandling is ErrorHandlingMode.Halt)
-                    {
+
+                    case ErrorHandlingMode.Halt:
                         return false;
-                    }
                 }
             }
         }
@@ -104,37 +95,36 @@ internal sealed class ValueCompletion
     /// <c>false</c>, if the execution needs to be halted.
     /// </returns>
     public bool BuildErrorResult(
-        ObjectResult objectResult,
+        CompositeResultElement target,
         ReadOnlySpan<string> responseNames,
         IError error,
         Path path)
     {
         foreach (var responseName in responseNames)
         {
-            var fieldResult = objectResult[responseName];
-
-            if (fieldResult.Selection.IsInternal || !fieldResult.Selection.IsIncluded(_includeFlags))
+            if (!target.TryGetProperty(responseName, out var fieldResult)
+                || fieldResult.IsInternal)
             {
                 continue;
             }
 
+            var selection = fieldResult.AssertSelection();
             var errorWithPath = ErrorBuilder.FromError(error)
                 .SetPath(path.Append(responseName))
-                .AddLocation(fieldResult.Selection.SyntaxNodes[0].Node)
+                .AddLocation(selection.SyntaxNodes[0].Node)
                 .Build();
+            errorWithPath = _errorHandler.Handle(errorWithPath);
 
-            _errors.Add(errorWithPath);
+            _result.Errors.Add(errorWithPath);
 
-            if (_errorHandling is ErrorHandlingMode.Halt)
+            switch (_errorHandlingMode)
             {
-                return false;
-            }
+                case ErrorHandlingMode.Halt:
+                    return false;
 
-            if (_errorHandling is ErrorHandlingMode.Propagate && fieldResult.Selection.Type.IsNonNullType())
-            {
-                var didPropagateToRoot = PropagateNullValues(objectResult);
-
-                return !didPropagateToRoot;
+                case ErrorHandlingMode.Propagate when selection.Type.Kind is TypeKind.NonNull:
+                    var didPropagateToRoot = PropagateNullValues(fieldResult);
+                    return !didPropagateToRoot;
             }
         }
 
@@ -148,101 +138,123 @@ internal sealed class ValueCompletion
     /// <returns>
     /// <c>true</c>, if the null propagated up to the root.
     /// </returns>
-    private static bool PropagateNullValues(ResultData result)
+    private static bool PropagateNullValues(CompositeResultElement result)
     {
-        if (result.IsInvalidated)
+        var current = result;
+
+        do
         {
-            return result.Parent is null;
-        }
-
-        result.IsInvalidated = true;
-
-        while (result.Parent is not null)
-        {
-            var index = result.ParentIndex;
-            var parent = result.Parent;
-
-            if (parent.IsInvalidated || parent.TrySetValueNull(index))
+            if (current.IsNullable)
             {
+                current.SetNullValue();
                 return false;
             }
 
-            parent.IsInvalidated = true;
-
-            result = parent;
-        }
+            current.Invalidate();
+            current = current.Parent;
+        } while (!current.IsNullOrInvalidated);
 
         return true;
     }
 
+    // TODO: When extracting an error from a path below the current field,
+    //       we should try to use the path of the original error if it's
+    //       part of what was selected.
     private bool TryCompleteValue(
+        SourceResultElement source,
+        CompositeResultElement target,
+        ErrorTrie? errorTrie,
         Selection selection,
         IType type,
-        JsonElement data,
-        ErrorTrie? errorTrie,
-        int depth,
-        ResultData parent)
+        int depth)
     {
-        if (errorTrie?.Error is { } error)
-        {
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(parent.Path)
-                .AddLocation(selection.SyntaxNodes[0].Node)
-                .Build();
-            _errors.Add(errorWithPath);
-
-            if (_errorHandling is ErrorHandlingMode.Halt)
-            {
-                return false;
-            }
-        }
-
         if (type.Kind is TypeKind.NonNull)
         {
-            if (data.IsNullOrUndefined() && _errorHandling is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+            if (source.IsNullOrUndefined())
             {
-                return false;
+                IError error;
+                if (errorTrie?.FindFirstError() is { } errorFromPath)
+                {
+                    error = ErrorBuilder.FromError(errorFromPath)
+                        .SetPath(target.Path)
+                        .AddLocation(selection.SyntaxNodes[0].Node)
+                        .Build();
+                }
+                else
+                {
+                    error = ErrorBuilder.New()
+                        .SetMessage("Cannot return null for non-nullable field.")
+                        .SetCode(ErrorCodes.Execution.NonNullViolation)
+                        .SetPath(target.Path)
+                        .AddLocation(selection.SyntaxNodes[0].Node)
+                        .Build();
+                }
+
+                error = _errorHandler.Handle(error);
+                _result.Errors.Add(error);
+
+                if (_errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                {
+                    return false;
+                }
+
+                return true;
             }
 
             type = type.InnerType();
         }
 
-        if (data.IsNullOrUndefined())
+        if (source.IsNullOrUndefined())
         {
+            // If the value is null, it might've been nulled due to a
+            // down-stream null propagation.
+            // So we try to get an error that is associated with this field
+            // or with a path below it.
+            if (errorTrie?.FindFirstError() is { } error)
+            {
+                var errorWithPath = ErrorBuilder.FromError(error)
+                    .SetPath(target.Path)
+                    .AddLocation(selection.SyntaxNodes[0].Node)
+                    .Build();
+                errorWithPath = _errorHandler.Handle(errorWithPath);
+                _result.Errors.Add(errorWithPath);
+
+                if (_errorHandlingMode is ErrorHandlingMode.Halt)
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
-        if (type.Kind is TypeKind.List)
+        switch (type.Kind)
         {
-            return TryCompleteList(selection, type, data, errorTrie, depth, parent);
-        }
+            case TypeKind.List:
+                return TryCompleteList(source, target, errorTrie, selection, type, depth);
 
-        if (type.Kind is TypeKind.Object)
-        {
-            return TryCompleteObjectValue(selection, type, data, errorTrie, depth, parent);
-        }
+            case TypeKind.Object:
+                return TryCompleteObjectValue(selection, type, source, errorTrie, depth, target);
 
-        if (type.Kind is TypeKind.Interface or TypeKind.Union)
-        {
-            return TryCompleteAbstractValue(selection, type, data, errorTrie, depth, parent);
-        }
+            case TypeKind.Interface or TypeKind.Union:
+                return TryCompleteAbstractValue(source, target, errorTrie, selection, type, depth);
 
-        if (type.Kind is TypeKind.Scalar or TypeKind.Enum)
-        {
-            parent.SetNextValue(data);
-            return true;
-        }
+            case TypeKind.Scalar or TypeKind.Enum:
+                target.SetLeafValue(source);
+                return true;
 
-        throw new NotSupportedException($"The type {type} is not supported.");
+            default:
+                throw new NotSupportedException($"The type {type} is not supported.");
+        }
     }
 
     private bool TryCompleteList(
+        SourceResultElement source,
+        CompositeResultElement target,
+        ErrorTrie? errorTrie,
         Selection selection,
         IType type,
-        JsonElement data,
-        ErrorTrie? errorTrie,
-        int depth,
-        ResultData parent)
+        int depth)
     {
         AssertDepthAllowed(ref depth);
 
@@ -251,133 +263,148 @@ internal sealed class ValueCompletion
         var isLeaf = elementType.IsLeafType();
         var isNested = elementType.IsListType();
 
-        ListResult listResult = isNested
-            ? _resultPoolSession.RentNestedListResult()
-            : isLeaf
-                ? _resultPoolSession.RentLeafListResult()
-                : _resultPoolSession.RentObjectListResult();
-        listResult.Initialize(type);
+        target.SetArrayValue(source.GetArrayLength());
 
-        for (int i = 0, len = data.GetArrayLength(); i < len; ++i)
+        var i = 0;
+        using var enumerator = target.EnumerateArray().GetEnumerator();
+        foreach (var element in source.EnumerateArray())
         {
-            var item = data[i];
+            var success = enumerator.MoveNext();
+            Debug.Assert(success, "The lists must have the same size.");
+
             ErrorTrie? errorTrieForIndex = null;
             errorTrie?.TryGetValue(i, out errorTrieForIndex);
 
             if (errorTrieForIndex?.Error is { } error)
             {
                 var errorWithPath = ErrorBuilder.FromError(error)
-                    .SetPath(parent.Path.Append(i))
+                    .SetPath(target.Path.Append(i))
                     .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
-                _errors.Add(errorWithPath);
+                errorWithPath = _errorHandler.Handle(errorWithPath);
+                _result.Errors.Add(errorWithPath);
 
-                if (_errorHandling is ErrorHandlingMode.Halt)
+                if (_errorHandlingMode is ErrorHandlingMode.Halt)
                 {
                     return false;
                 }
             }
 
-            if (item.IsNullOrUndefined())
+            if (element.IsNullOrUndefined())
             {
-                if (!isNullable && _errorHandling is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                if (!isNullable && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
                 {
                     return false;
                 }
 
-                listResult.SetNextValueNull();
-
-                continue;
+                enumerator.Current.SetNullValue();
+                goto TryCompleteList_MoveNext;
             }
 
-            if (!HandleElement(item, errorTrieForIndex))
+            if (!HandleElement(element, enumerator.Current, errorTrieForIndex))
             {
                 if (!isNullable)
                 {
                     return false;
                 }
 
-                listResult.SetNextValueNull();
+                enumerator.Current.SetNullValue();
+                goto TryCompleteList_MoveNext;
             }
+
+TryCompleteList_MoveNext:
+            i++;
         }
 
-        parent.SetNextValue(listResult);
         return true;
 
-        bool HandleElement(in JsonElement item, ErrorTrie? errorTrieForIndex)
+        bool HandleElement(
+            SourceResultElement sourceElement,
+            CompositeResultElement targetElement,
+            ErrorTrie? errorTrieForIndex)
         {
             if (isNested)
             {
-                return TryCompleteList(selection, elementType, item, errorTrieForIndex, depth, listResult);
+                return TryCompleteList(
+                    sourceElement,
+                    targetElement,
+                    errorTrieForIndex,
+                    selection,
+                    elementType,
+                    depth);
             }
-            else if (isLeaf)
+
+            if (isLeaf)
             {
-                listResult.SetNextValue(item);
+                targetElement.SetLeafValue(sourceElement);
                 return true;
             }
-            else if (elementType.IsAbstractType())
+
+            if (elementType.IsAbstractType())
             {
-                return TryCompleteAbstractValue(selection, elementType, item, errorTrieForIndex, depth, listResult);
+                return TryCompleteAbstractValue(sourceElement,
+                    targetElement, errorTrieForIndex, selection, elementType, depth);
             }
-            else
-            {
-                return TryCompleteObjectValue(selection, elementType, item, errorTrieForIndex, depth, listResult);
-            }
+
+            return TryCompleteObjectValue(
+                selection,
+                elementType,
+                sourceElement,
+                errorTrieForIndex,
+                depth,
+                targetElement);
         }
     }
 
     private bool TryCompleteObjectValue(
-        Selection selection,
+        Selection parentSelection,
         IType type,
-        JsonElement data,
+        SourceResultElement source,
         ErrorTrie? errorTrie,
         int depth,
-        ResultData parent)
+        CompositeResultElement target)
     {
         var namedType = type.NamedType();
         var objectType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
 
-        return TryCompleteObjectValue(selection, objectType, data, errorTrie, depth, parent);
+        return TryCompleteObjectValue(source, target, errorTrie, parentSelection, objectType, depth);
     }
 
     private bool TryCompleteObjectValue(
-        Selection selection,
-        IObjectTypeDefinition objectType,
-        JsonElement data,
+        SourceResultElement source,
+        CompositeResultElement target,
         ErrorTrie? errorTrie,
-        int depth,
-        ResultData parent)
+        Selection parentSelection,
+        IObjectTypeDefinition objectType,
+        int depth)
     {
         AssertDepthAllowed(ref depth);
 
-        var operation = selection.DeclaringSelectionSet.DeclaringOperation;
-        var selectionSet = operation.GetSelectionSet(selection, objectType);
-        var objectResult = _resultPoolSession.RentObjectResult();
-
-        objectResult.Initialize(_resultPoolSession, selectionSet, _includeFlags);
-
-        // we set the value early so that in the error case we can correctly
-        // traverse along the parent path and propagate errors.
-        parent.SetNextValue(objectResult);
-
-        foreach (var field in objectResult.Fields)
+        // if the property value is yet undefined we need to initialize it
+        // with the current selection set.
+        if (target.ValueKind is JsonValueKind.Undefined)
         {
-            var fieldSelection = field.Selection;
+            var operation = parentSelection.DeclaringSelectionSet.DeclaringOperation;
+            var selectionSet = operation.GetSelectionSet(parentSelection, objectType);
+            target.SetObjectValue(selectionSet);
+        }
 
-            if (!fieldSelection.IsIncluded(_includeFlags))
+        foreach (var property in source.EnumerateObject())
+        {
+            if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
             {
                 continue;
             }
 
-            if (data.TryGetProperty(fieldSelection.ResponseName, out var child))
-            {
-                ErrorTrie? errorTrieForResponseName = null;
-                errorTrie?.TryGetValue(fieldSelection.ResponseName, out errorTrieForResponseName);
+            var selection = targetProperty.AssertSelection();
 
-                if (!TryCompleteValue(fieldSelection, fieldSelection.Type, child, errorTrieForResponseName, depth, field))
-                {
-                    return false;
-                }
+            ErrorTrie? errorTrieForResponseName = null;
+            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
+
+            if (!TryCompleteValue(property.Value,
+                targetProperty, errorTrieForResponseName, selection, selection.Type, depth))
+            {
+                return false;
             }
         }
 
@@ -385,22 +412,16 @@ internal sealed class ValueCompletion
     }
 
     private bool TryCompleteAbstractValue(
+        SourceResultElement source,
+        CompositeResultElement target,
+        ErrorTrie? errorTrie,
         Selection selection,
         IType type,
-        JsonElement data,
-        ErrorTrie? errorTrie,
-        int depth,
-        ResultData parent)
-        => TryCompleteObjectValue(
-            selection,
-            GetType(type, data),
-            data,
-            errorTrie,
-            depth,
-            parent);
+        int depth)
+        => TryCompleteObjectValue(source, target, errorTrie, selection, GetType(type, source), depth);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private IObjectTypeDefinition GetType(IType type, JsonElement data)
+    private IObjectTypeDefinition GetType(IType type, SourceResultElement data)
     {
         var namedType = type.NamedType();
 
@@ -409,7 +430,7 @@ internal sealed class ValueCompletion
             return objectType;
         }
 
-        var typeName = data.GetProperty(IntrospectionFieldNames.TypeNameSpan).GetString()!;
+        var typeName = data.GetProperty(IntrospectionFieldNames.TypeNameSpan).AssertString();
         return _schema.Types.GetType<IObjectTypeDefinition>(typeName);
     }
 
@@ -428,6 +449,10 @@ internal sealed class ValueCompletion
 file static class ValueCompletionExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNullOrUndefined(this JsonElement element)
+    public static bool IsNullOrUndefined(this SourceResultElement element)
+        => element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsNullOrUndefined(this CompositeResultElement element)
         => element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
 }
