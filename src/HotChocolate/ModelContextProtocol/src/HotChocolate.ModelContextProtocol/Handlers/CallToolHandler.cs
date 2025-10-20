@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using Json.More;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
@@ -57,6 +58,7 @@ internal static class CallToolHandler
                 .Build();
         var result = await requestExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         var operationResult = result.ExpectOperationResult();
+        var jsonOperationResult = operationResult.ToJson();
 
         return new CallToolResult
         {
@@ -64,8 +66,8 @@ internal static class CallToolHandler
             // For backwards compatibility, a tool that returns structured content SHOULD
             // also return functionally equivalent unstructured content. (For example,
             // serialized JSON can be returned in a TextContent block.)
-            Content = [new TextContentBlock { Text = operationResult.ToJson() }],
-            StructuredContent = JsonNode.Parse(operationResult.ToJson()),
+            Content = [new TextContentBlock { Text = jsonOperationResult }],
+            StructuredContent = JsonNode.Parse(jsonOperationResult),
             IsError = operationResult.Errors?.Any()
         };
     }

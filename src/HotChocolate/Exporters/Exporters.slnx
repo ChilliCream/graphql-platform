@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Exporters.OpenApi/">
+    <Project Path="src/Exporters.OpenApi/HotChocolate.Exporters.OpenApi.csproj" />
+  </Folder>
+  <Folder Name="/test/" />
+  <Folder Name="/test/Exporters.OpenApi.Tests/">
+    <Project Path="test/Exporters.OpenApi.Tests/HotChocolate.Exporters.OpenApi.Tests.csproj" />
+  </Folder>
+</Solution>
