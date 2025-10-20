@@ -13,16 +13,19 @@ public static class GraphQLResourceBuilderExtensions
     /// <param name="builder">The resource builder</param>
     /// <param name="path">The GraphQL endpoint path (defaults to "/graphql/schema.graphql")</param>
     /// <param name="endpointName">The endpoint name to use (defaults to "http")</param>
+    /// <param name="sourceSchemaName">The source schema name (defaults to the resource name)</param>
     /// <returns>The resource builder for chaining</returns>
     public static IResourceBuilder<T> WithGraphQLSchemaEndpoint<T>(
         this IResourceBuilder<T> builder,
         string path = "/graphql/schema.graphql",
-        string endpointName = "http")
+        string endpointName = "http",
+        string? sourceSchemaName = null)
         where T : IResourceWithEndpoints
     {
         builder.WithAnnotation(
             new GraphQLSourceSchemaAnnotation
             {
+                SourceSchemaName = sourceSchemaName,
                 EndpointName = endpointName,
                 SchemaPath = path,
                 Location = SourceSchemaLocationType.SchemaEndpoint
@@ -36,15 +39,18 @@ public static class GraphQLResourceBuilderExtensions
     /// </summary>
     /// <param name="builder">The resource builder</param>
     /// <param name="fileName">The schema file name (defaults to "schema.graphql")</param>
+    /// <param name="sourceSchemaName">The source schema name (defaults to the resource name)</param>
     /// <returns>The resource builder for chaining</returns>
     public static IResourceBuilder<T> WithGraphQLSchemaFile<T>(
         this IResourceBuilder<T> builder,
-        string fileName = "schema.graphqls")
+        string fileName = "schema.graphqls",
+        string? sourceSchemaName = null)
         where T : IResourceWithEndpoints
     {
         builder.WithAnnotation(
             new GraphQLSourceSchemaAnnotation
             {
+                SourceSchemaName = sourceSchemaName,
                 SchemaPath = fileName,
                 Location = SourceSchemaLocationType.ProjectDirectory
             });
@@ -73,6 +79,12 @@ public static class GraphQLResourceBuilderExtensions
             });
 
         return builder;
+    }
+
+    internal static string? GetGraphQLSourceSchemaName(this IResource resource)
+    {
+        var annotation = resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>().FirstOrDefault();
+        return annotation?.SourceSchemaName;
     }
 
     internal static string? GetGraphQLSchemaUrl(this IResourceWithEndpoints resource, string? endpointName = null)

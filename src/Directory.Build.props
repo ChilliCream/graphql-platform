@@ -13,7 +13,7 @@
 
   <PropertyGroup Condition="'$(TreatWarningsAsErrors)' == ''">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsNotAsErrors>NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+    <WarningsNotAsErrors>NU1901;NU1902;NU1903;NU1904;ASPDEPR004;ASPDEPR008</WarningsNotAsErrors>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TreatWarningsAsErrors)' == 'false'">

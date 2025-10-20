@@ -28,7 +28,13 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
 
-        return builder.ConfigureSchema(b => b.ModifyOptions(configure));
+        // We configure the options using the internal SchemaBuilder,
+        // but we also register the modification through the SchemaOptionModifiers,
+        // so we're able to build the schema options without having to construct
+        // the schema.
+        return builder
+            .ConfigureSchema(b => b.ModifyOptions(configure))
+            .Configure(setup => setup.SchemaOptionModifiers.Add(configure));
     }
 
     /// <summary>

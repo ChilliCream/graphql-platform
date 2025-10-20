@@ -1,0 +1,225 @@
+title: Object_List_Union_Field_Concrete_Type_Has_Dependency
+request:
+  document: |
+    query testQuery {
+      postEdges {
+        node {
+          ... on Photo {
+            subgraph2
+          }
+          ... on Discussion {
+            subgraph1
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "postEdges": [
+          {
+            "node": {
+              "subgraph2": "Photo: UGhvdG86Ng=="
+            }
+          },
+          {
+            "node": {
+              "subgraph2": "Photo: UGhvdG86NQ=="
+            }
+          },
+          {
+            "node": {
+              "subgraph2": "Photo: UGhvdG86NA=="
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Discussion {
+        id: ID!
+        subgraph1: String
+      }
+
+      type Photo {
+        id: ID!
+      }
+
+      type PostEdge {
+        node: Post
+      }
+
+      type Query {
+        postEdges: [PostEdge]
+      }
+
+      union Post = Photo | Discussion
+    interactions:
+      - request:
+          document: |
+            query testQuery_30e5fe2d_1 {
+              postEdges {
+                node {
+                  __typename
+                  ... on Photo {
+                    id
+                  }
+                  ... on Discussion {
+                    subgraph1
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "postEdges": [
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "id": "UGhvdG86Ng=="
+                      }
+                    },
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "id": "UGhvdG86NQ=="
+                      }
+                    },
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "id": "UGhvdG86NA=="
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Photo {
+        id: ID!
+        subgraph2: String!
+      }
+
+      type Query {
+        photoById(id: ID!): Photo @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_30e5fe2d_2(
+              $__fusion_1_id: ID!
+            ) {
+              photoById(id: $__fusion_1_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UGhvdG86Ng=="
+              },
+              {
+                "__fusion_1_id": "UGhvdG86NQ=="
+              },
+              {
+                "__fusion_1_id": "UGhvdG86NA=="
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86Ng=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86NQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86NA=="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          postEdges {
+            node {
+              __typename @fusion__requirement
+              ... on Photo {
+                subgraph2
+                id @fusion__requirement
+              }
+              ... on Discussion {
+                subgraph1
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 30e5fe2dd1fb5421622af65e08f7128d
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_30e5fe2d_1 {
+          postEdges {
+            node {
+              __typename
+              ... on Photo {
+                id
+              }
+              ... on Discussion {
+                subgraph1
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_30e5fe2d_2(
+          $__fusion_1_id: ID!
+        ) {
+          photoById(id: $__fusion_1_id) {
+            subgraph2
+          }
+        }
+      source: $.photoById
+      target: $.postEdges.node<Photo>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

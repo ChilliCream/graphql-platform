@@ -4,7 +4,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Internal;
 
-internal sealed partial class ExtendedType
+public sealed partial class ExtendedType
 {
     private static class Members
     {
@@ -28,7 +28,10 @@ internal sealed partial class ExtendedType
             };
         }
 
-        public static ExtendedMethodInfo FromMethod(MethodInfo method, TypeCache cache)
+        public static ExtendedMethodInfo FromMethod(
+            MethodInfo method,
+            ParameterInfo[] parameters,
+            TypeCache cache)
         {
             var helper = new NullableHelper(method.DeclaringType!);
             var context = helper.GetContext(method);
@@ -40,8 +43,8 @@ internal sealed partial class ExtendedType
                     method,
                     cache));
 
-            var parameters = method.GetParameters();
-            var parameterTypes = ImmutableDictionary.CreateBuilder<ParameterInfo, IExtendedType>();
+            var parameterTypes = ImmutableDictionary.CreateBuilder<ParameterInfo, IExtendedType>(
+                ParameterInfoComparer.Instance);
 
             foreach (var parameter in parameters)
             {

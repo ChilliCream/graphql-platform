@@ -41,6 +41,9 @@ public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition
 
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IInputObjectTypeDefinition.Fields => Fields;
 
+    /// <inheritdoc />
+    public bool IsOneOf { get; }
+
     public FusionDirectiveCollection Directives
     {
         get;

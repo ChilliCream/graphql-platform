@@ -5,6 +5,8 @@ accessibilities
 agrc
 Alderaan
 Andi
+ASPDEPR004
+ASPDEPR008
 aspnetcore
 Astromech
 automagically
@@ -18,6 +20,7 @@ BCPROCKS
 bfnrt
 blazor
 blazorwasm
+Brontie
 Browsable
 BSON
 buildtransitive
@@ -111,7 +114,6 @@ NSwag
 ntouches
 nwithin
 oncall
-oneof
 OpenIddict
 opensgid
 OPTOUT

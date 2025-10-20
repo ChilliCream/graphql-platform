@@ -11,28 +11,28 @@ public class OperationDescriptorMapperTests
     {
         // arrange
         var clientModel = await CreateClientModelAsync(
-            @"
-                query GetHero {
-                    hero(episode: NEW_HOPE) {
-                        name
-                        appearsIn
-                    }
+            """
+            query GetHero {
+                hero(episode: NEW_HOPE) {
+                    name
+                    appearsIn
                 }
+            }
 
-                mutation CreateReview {
-                    createReview(episode: NEW_HOPE, review: {stars: 5, commentary: ""splendid""}) {
-                        stars
-                        commentary
-                    }
+            mutation CreateReview {
+                createReview(episode: NEW_HOPE, review: { stars: 5, commentary: "splendid" }) {
+                    stars
+                    commentary
                 }
+            }
 
-                subscription OnReview {
-                    onReview(episode: NEW_HOPE) {
-                        stars
-                        commentary
-                    }
+            subscription OnReview {
+                onReview(episode: NEW_HOPE) {
+                    stars
+                    commentary
                 }
-            ");
+            }
+            """);
 
         // act
         var context = new MapperContext(

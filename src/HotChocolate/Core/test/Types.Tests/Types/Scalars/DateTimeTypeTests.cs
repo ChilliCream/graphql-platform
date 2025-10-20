@@ -24,7 +24,7 @@ public class DateTimeTypeTests
         const string expectedValue = "2018-06-11T08:46:14.000Z";
 
         // act
-        var serializedValue = (string)dateTimeType.Serialize(dateTime);
+        var serializedValue = (string?)dateTimeType.Serialize(dateTime);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
@@ -41,7 +41,7 @@ public class DateTimeTypeTests
         const string expectedValue = "2018-06-11T08:46:14.000+04:00";
 
         // act
-        var serializedValue = (string)dateTimeType.Serialize(dateTime);
+        var serializedValue = (string?)dateTimeType.Serialize(dateTime);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);

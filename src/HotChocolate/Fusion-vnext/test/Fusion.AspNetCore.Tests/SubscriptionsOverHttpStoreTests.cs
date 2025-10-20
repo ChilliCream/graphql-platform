@@ -1,3 +1,4 @@
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using HotChocolate.Types.Composite;
@@ -21,17 +22,16 @@ public class SubscriptionsOverHttpStoreTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema2.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             subscription {
               onBookCreated {
@@ -39,18 +39,14 @@ public class SubscriptionsOverHttpStoreTests : FusionTestBase
                 title
               }
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        var snapshot = new Snapshot();
-
-        await foreach (var response in result.ReadAsResultStreamAsync())
-        {
-            snapshot.Add(response);
-        }
-
-        await snapshot.MatchAsync();
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     public static class SourceSchema1

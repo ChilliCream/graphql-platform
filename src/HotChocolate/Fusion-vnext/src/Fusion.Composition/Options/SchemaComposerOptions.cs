@@ -2,5 +2,9 @@ namespace HotChocolate.Fusion.Options;
 
 public sealed class SchemaComposerOptions
 {
-    public bool EnableGlobalObjectIdentification { get; init; }
+    public required bool EnableGlobalObjectIdentification { get; init; }
+
+    public SourceSchemaParserOptions Parser { get; init; } = new();
+
+    public SourceSchemaPreprocessorOptions Preprocessor { get; init; } = new();
 }

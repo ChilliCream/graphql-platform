@@ -51,6 +51,18 @@
   <data name="FieldSelectionMapValidator_SelectionMissingRequiredFields" xml:space="preserve">
     <value>The selection on input type '{0}' must include all required fields.</value>
   </data>
+  <data name="InlineFragmentOperationRewriter_FieldDoesNotExistOnType" xml:space="preserve">
+    <value>The field '{0}' does not exist on the type '{1}'.</value>
+  </data>
+  <data name="InlineFragmentOperationRewriter_FragmentDoesNotExist" xml:space="preserve">
+    <value>A fragment with the name '{0}' does not exist.</value>
+  </data>
+  <data name="InlineFragmentOperationRewriter_InvalidTypeConditionOnFragment" xml:space="preserve">
+    <value>The fragment '{0}' has an invalid type condition. The type '{1}' does not exist.</value>
+  </data>
+  <data name="InlineFragmentOperationRewriter_InvalidTypeConditionOnInlineFragment" xml:space="preserve">
+    <value>An inline fragment on type '{0}' has an invalid type condition. The type '{1}' does not exist.</value>
+  </data>
   <data name="SelectionSetValidator_FieldDoesNotExistOnType" xml:space="preserve">
     <value>The field '{0}' does not exist on the type '{1}'.</value>
   </data>
@@ -68,5 +80,8 @@
   </data>
   <data name="SelectionSetValidator_UnionFieldInvalidSelections" xml:space="preserve">
     <value>The field '{0}' returns a union type and must only include inline fragment selections.</value>
+  </data>
+  <data name="FieldSelectionMapValidator_InvalidFieldParentType" xml:space="preserve">
+    <value>Expected the parent type of field '{0}' to be a complex type but received '{1}'.</value>
   </data>
 </root>

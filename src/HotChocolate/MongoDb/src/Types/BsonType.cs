@@ -196,7 +196,7 @@ public class BsonType : ScalarType
         var type = mappedValue.GetType();
 
         if (type.IsValueType
-            && Converter.TryConvert(type, typeof(string), mappedValue, out var converted)
+            && Converter.TryConvert(type, typeof(string), mappedValue, out var converted, out _)
             && converted is string c)
         {
             return new StringValueNode(c);
@@ -304,7 +304,7 @@ public class BsonType : ScalarType
                 var type = dotNetValue.GetType();
 
                 if (type.IsValueType
-                    && Converter.TryConvert(type, typeof(string), dotNetValue, out var c)
+                    && Converter.TryConvert(type, typeof(string), dotNetValue, out var c, out _)
                     && c is string casted)
                 {
                     resultValue = casted;

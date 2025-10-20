@@ -1,4 +1,3 @@
-using System.Text;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -10,7 +9,7 @@ public class ByteArrayTypeTests
     {
         // arrange
         var byteArrayType = new ByteArrayType();
-        var byteArray = Encoding.ASCII.GetBytes("value");
+        var byteArray = "value"u8.ToArray();
 
         // act
         var isOfType = byteArrayType.IsInstanceOfType(byteArray);
@@ -56,7 +55,7 @@ public class ByteArrayTypeTests
         var guid = Guid.NewGuid();
 
         // act
-        Action action = () => byteArrayType.IsInstanceOfType(null);
+        Action action = () => byteArrayType.IsInstanceOfType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -68,7 +67,7 @@ public class ByteArrayTypeTests
         // arrange
         var byteArrayType = new ByteArrayType();
 
-        var value = Encoding.ASCII.GetBytes("value");
+        var value = "value"u8.ToArray();
 
         // act
         var serializedValue = byteArrayType.Serialize(value);
@@ -125,7 +124,7 @@ public class ByteArrayTypeTests
     {
         // arrange
         var byteArrayType = new ByteArrayType();
-        var bytes = Encoding.ASCII.GetBytes("value");
+        var bytes = "value"u8.ToArray();
 
         // act
         var success = byteArrayType.TryDeserialize(
@@ -141,7 +140,7 @@ public class ByteArrayTypeTests
     {
         // arrange
         var byteArrayType = new ByteArrayType();
-        var bytes = Encoding.ASCII.GetBytes("value");
+        var bytes = "value"u8.ToArray();
 
         // act
         var success = byteArrayType.TryDeserialize(
@@ -157,7 +156,7 @@ public class ByteArrayTypeTests
     {
         // arrange
         var byteArrayType = new ByteArrayType();
-        var bytes = Encoding.ASCII.GetBytes("value");
+        var bytes = "value"u8.ToArray();
 
         // act
         var success = byteArrayType.TryDeserialize(bytes, out var o);
@@ -186,11 +185,11 @@ public class ByteArrayTypeTests
     {
         // arrange
         var byteArrayType = new ByteArrayType();
-        var expected = Encoding.ASCII.GetBytes("value");
+        var expected = "value"u8.ToArray();
         var literal = new StringValueNode(Convert.ToBase64String(expected));
 
         // act
-        var actual = (byte[])byteArrayType
+        var actual = (byte[]?)byteArrayType
             .ParseLiteral(literal);
 
         // assert
@@ -232,7 +231,7 @@ public class ByteArrayTypeTests
         var byteArrayType = new ByteArrayType();
 
         // act
-        Action action = () => byteArrayType.ParseLiteral(null);
+        Action action = () => byteArrayType.ParseLiteral(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -243,7 +242,7 @@ public class ByteArrayTypeTests
     {
         // arrange
         var byteArrayType = new ByteArrayType();
-        var expected = Encoding.ASCII.GetBytes("value");
+        var expected = "value"u8.ToArray();
         var expectedLiteralValue = Convert.ToBase64String(expected);
 
         // act

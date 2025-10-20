@@ -8,12 +8,12 @@ internal interface IStoredOperation : IDisposable
     /// <summary>
     /// Gets the operation request.
     /// </summary>
-    public OperationRequest Request { get; }
+    OperationRequest Request { get; }
 
     /// <summary>
     /// Gets the last result.
     /// </summary>
-    public IOperationResult? LastResult { get; }
+    IOperationResult? LastResult { get; }
 
     /// <summary>
     /// Gets the entities that were used to create this result.

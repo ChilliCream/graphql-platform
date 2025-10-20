@@ -12,6 +12,7 @@ public sealed class RequestExecutorSetup
     private readonly List<OnConfigureRequestExecutorOptionsAction> _onConfigureRequestExecutorOptionsHooks = [];
     private readonly List<RequestMiddlewareConfiguration> _pipeline = [];
     private readonly List<Action<IList<RequestMiddlewareConfiguration>>> _pipelineModifiers = [];
+    private readonly List<Action<SchemaOptions>> _schemaOptionModifiers = [];
     private readonly List<OnConfigureSchemaServices> _onConfigureSchemaServicesHooks = [];
     private readonly List<OnRequestExecutorCreatedAction> _onRequestExecutorCreatedHooks = [];
     private readonly List<OnRequestExecutorEvictedAction> _onRequestExecutorEvictedHooks = [];
@@ -32,6 +33,11 @@ public sealed class RequestExecutorSetup
     /// Gets or sets the request executor options.
     /// </summary>
     public RequestExecutorOptions? RequestExecutorOptions { get; set; }
+
+    /// <summary>
+    /// Gets or sets the time that the executor manager waits to dispose the schema services.
+    /// </summary>
+    public TimeSpan EvictionTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// Gets the request executor options actions.
@@ -92,6 +98,9 @@ public sealed class RequestExecutorSetup
     public IList<Action<IList<RequestMiddlewareConfiguration>>> PipelineModifiers
         => _pipelineModifiers;
 
+    public IList<Action<SchemaOptions>> SchemaOptionModifiers
+        => _schemaOptionModifiers;
+
     /// <summary>
     /// Gets or sets the default pipeline factory.
     /// </summary>
@@ -116,11 +125,25 @@ public sealed class RequestExecutorSetup
         options._onRequestExecutorEvictedHooks.AddRange(_onRequestExecutorEvictedHooks);
         options._onBuildDocumentValidatorHooks.AddRange(_onBuildDocumentValidatorHooks);
         options._pipelineModifiers.AddRange(_pipelineModifiers);
+        options._schemaOptionModifiers.AddRange(_schemaOptionModifiers);
         options._typeModules.AddRange(_typeModules);
+        options.EvictionTimeout = EvictionTimeout;
 
         if (DefaultPipelineFactory is not null)
         {
             options.DefaultPipelineFactory = DefaultPipelineFactory;
         }
+    }
+
+    internal SchemaOptions CreateSchemaOptions()
+    {
+        var options = new SchemaOptions();
+
+        foreach (var configure in SchemaOptionModifiers)
+        {
+            configure(options);
+        }
+
+        return options;
     }
 }

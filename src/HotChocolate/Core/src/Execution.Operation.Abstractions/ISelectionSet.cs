@@ -7,7 +7,7 @@ public interface ISelectionSet
     /// <summary>
     /// Gets an operation unique selection-set identifier of this selection.
     /// </summary>
-    uint Id { get; }
+    int Id { get; }
 
     /// <summary>
     /// Gets the declaring operation.

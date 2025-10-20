@@ -400,15 +400,17 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"
+                        Query =
+                            """
                             mutation {
-                                createReview(episode:NEW_HOPE review: {
-                                    commentary: ""foo""
-                                    stars: 5
-                                }) {
+                                createReview(
+                                    episode: NEW_HOPE
+                                    review: { commentary: "foo", stars: 5 }
+                                ) {
                                     stars
                                 }
-                            }"
+                            }
+                            """
                     });
 
                 await WaitForMessage(webSocket, Messages.Next, ct);
@@ -419,15 +421,17 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"
-                    mutation {
-                        createReview(episode:NEW_HOPE review: {
-                            commentary: ""foo""
-                            stars: 5
-                        }) {
-                            stars
-                        }
-                    }"
+                        Query =
+                            """
+                            mutation {
+                                createReview(
+                                    episode: NEW_HOPE
+                                    review: { commentary: "foo", stars: 5 }
+                                ) {
+                                    stars
+                                }
+                            }
+                            """
                     });
 
                 // assert
@@ -464,15 +468,17 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"
-                    mutation {
-                        createReview(episode:NEW_HOPE review: {
-                            commentary: ""foo""
-                            stars: 5
-                        }) {
-                            stars
-                        }
-                    }"
+                        Query =
+                            """
+                            mutation {
+                                createReview(
+                                    episode: NEW_HOPE
+                                    review: { commentary: "foo", stars: 5 }
+                                ) {
+                                    stars
+                                }
+                            }
+                            """
                     });
 
                 await WaitForMessage(webSocket, Messages.Next, ct);
@@ -532,15 +538,17 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"
+                        Query =
+                            """
                             mutation {
-                                createReview(episode:NEW_HOPE review: {
-                                    commentary: ""foo""
-                                    stars: 5
-                                }) {
+                                createReview(
+                                    episode: NEW_HOPE
+                                    review: { commentary: "foo", stars: 5 }
+                                ) {
                                     stars
                                 }
-                            }"
+                            }
+                            """
                     });
 
                 for (var i = 0; i < 100; i++)

@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning.Partitioners;
@@ -17,8 +18,8 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
 {
     public SelectionSetByTypePartitionerResult Partition(SelectionSetByTypePartitionerInput input)
     {
-        var context = new Context { SharedType = input.SelectionSet.Type };
         var indexBuilder = input.SelectionSetIndex.ToBuilder();
+        var context = new Context { SharedType = input.SelectionSet.Type, SelectionSetIndexBuilder = indexBuilder };
 
         CollectSelections(input.SelectionSet.Node, input.SelectionSet.Type, context);
 
@@ -100,7 +101,10 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
             return;
         }
 
-        var selectionsWithPath = GetSelectionsWithPath(context.FragmentPath, selections);
+        var selectionsWithPath = GetSelectionsWithPath(
+            context.FragmentPath,
+            selections,
+            context.SelectionSetIndexBuilder);
 
         if (type == context.SharedType)
         {
@@ -117,7 +121,7 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
             {
                 foreach (var possibleType in schema.GetPossibleTypes(type))
                 {
-                    AddSelectionsForConcreteType(context, possibleType, selectionsWithPath);
+                    AddSelectionsForConcreteType(context, possibleType, selectionsWithPath, cloneSelectionSets: true);
                 }
             }
         }
@@ -130,7 +134,8 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
     private void AddSelectionsForConcreteType(
         Context context,
         FusionObjectTypeDefinition type,
-        List<ISelectionNode> selections)
+        List<ISelectionNode> selections,
+        bool cloneSelectionSets = false)
     {
         if (!context.SelectionsByType.TryGetValue(type.Name, out var typeSelections))
         {
@@ -138,18 +143,61 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
             context.SelectionsByType.Add(type.Name, typeSelections);
         }
 
-        typeSelections.AddRange(selections);
+        if (cloneSelectionSets)
+        {
+            var rewrittenSelections = new List<ISelectionNode>(selections.Count);
+
+            foreach (var selection in selections)
+            {
+                var rewrittenSelection = SyntaxRewriter.Create(
+                    node =>
+                    {
+                        if (node is SelectionSetNode selectionSetNode)
+                        {
+                            var newSelectionSet = new SelectionSetNode(selectionSetNode.Selections);
+
+                            // Since we're cloning the selection set,
+                            // we also need to keep track of the original
+                            // selection set the cloned one belongs to,
+                            // so we can later insert requirements in the original one.
+                            context.SelectionSetIndexBuilder.RegisterCloned(
+                                selectionSetNode,
+                                newSelectionSet);
+
+                            return newSelectionSet;
+                        }
+
+                        return node;
+                    }).Rewrite(selection)!;
+
+                rewrittenSelections.Add(rewrittenSelection);
+            }
+
+            typeSelections.AddRange(rewrittenSelections);
+        }
+        else
+        {
+            typeSelections.AddRange(selections);
+        }
     }
 
     private static List<ISelectionNode> GetSelectionsWithPath(
         Stack<InlineFragmentNode> fragmentPath,
-        List<ISelectionNode> selections)
+        List<ISelectionNode> selections,
+        SelectionSetIndexBuilder indexBuilder)
     {
         var start = selections;
 
         foreach (var fragment in fragmentPath)
         {
-            start = [fragment.WithSelectionSet(new SelectionSetNode(start))];
+            var newSelectionSet = new SelectionSetNode(start);
+
+            if (!indexBuilder.IsRegistered(newSelectionSet))
+            {
+                indexBuilder.Register(newSelectionSet);
+            }
+
+            start = [fragment.WithSelectionSet(newSelectionSet)];
         }
 
         return start;
@@ -161,7 +209,7 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
         /// Gets the selections by type.
         /// The key is the type name and the value the selections for that type.
         /// </summary>
-        public Dictionary<string, List<ISelectionNode>> SelectionsByType { get; } = new();
+        public Dictionary<string, List<ISelectionNode>> SelectionsByType { get; } = [];
 
         /// <summary>
         /// Gets the fragment path.
@@ -185,6 +233,8 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
         /// Gets the selections for the <see cref="SharedType" />.
         /// </summary>
         public List<ISelectionNode>? SharedSelections { get; set; }
+
+        public required SelectionSetIndexBuilder SelectionSetIndexBuilder { get; init; }
 
         public bool TryGetParentConcreteType([NotNullWhen(true)] out FusionObjectTypeDefinition? objectType)
         {

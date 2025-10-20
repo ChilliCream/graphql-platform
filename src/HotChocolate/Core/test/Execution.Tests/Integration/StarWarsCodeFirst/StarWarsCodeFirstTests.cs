@@ -64,13 +64,14 @@ public class StarWarsCodeFirstTests
     public async Task GraphQLOrgFieldArgumentExample1()
     {
         await ExpectValid(
-                @"
-                {
-                    human(id: ""1000"") {
-                        name
-                        height
-                    }
-                }")
+            """
+            {
+                human(id: "1000") {
+                    name
+                    height
+                }
+            }
+            """)
             .MatchSnapshotAsync();
     }
 
@@ -78,13 +79,14 @@ public class StarWarsCodeFirstTests
     public async Task GraphQLOrgFieldArgumentExample2()
     {
         await ExpectValid(
-                @"
-                {
-                    human(id: ""1000"") {
-                        name
-                        height(unit: FOOT)
-                    }
-                }")
+            """
+            {
+                human(id: "1000") {
+                    name
+                    height(unit: FOOT)
+                }
+            }
+            """)
             .MatchSnapshotAsync();
     }
 
@@ -1235,9 +1237,9 @@ public class StarWarsCodeFirstTests
     }
 
     [Fact]
-    public async Task Ensure_Benchmark_Query_GetTwoHerosWithFriendsQuery()
+    public async Task Ensure_Benchmark_Query_GetTwoHeroesWithFriendsQuery()
     {
-        var query = FileResource.Open("GetTwoHerosWithFriendsQuery.graphql");
+        var query = FileResource.Open("GetTwoHeroesWithFriendsQuery.graphql");
         await ExpectValid(query).MatchSnapshotAsync();
     }
 

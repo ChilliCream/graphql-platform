@@ -1,0 +1,11 @@
+schema {
+  query: Query
+}
+
+type Query {
+  userById(id: ID!): User! @lookup @provides(fields: "username email")
+}
+
+type User {
+  id: ID!
+}

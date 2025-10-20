@@ -3,9 +3,12 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Rewriters;
 
-public sealed class MergeSelectionSetRewriter(ISchemaDefinition schema)
+public sealed class MergeSelectionSetRewriter(
+    ISchemaDefinition schema,
+    bool ignoreMissingTypeSystemMembers = false)
 {
-    private readonly InlineFragmentOperationRewriter _rewriter = new(schema);
+    private readonly InlineFragmentOperationRewriter _rewriter =
+        new(schema, ignoreMissingTypeSystemMembers: ignoreMissingTypeSystemMembers);
 
     public SelectionSetNode Merge(
         SelectionSetNode selectionSet1,
@@ -59,42 +62,4 @@ public sealed class MergeSelectionSetRewriter(ISchemaDefinition schema)
             target[i + offset] = source[i];
         }
     }
-}
-
-public interface ISelectionSetMergeObserver
-{
-    void OnMerge(FieldNode field1, FieldNode field2);
-
-    void OnMerge(IEnumerable<FieldNode> fields);
-
-    void OnMerge(InlineFragmentNode inlineFragment1, InlineFragmentNode inlineFragment2);
-
-    void OnMerge(SelectionSetNode selectionSet1, SelectionSetNode selectionSet2);
-
-    void OnMerge(IEnumerable<SelectionSetNode> selectionSets);
-}
-
-internal sealed class NoopSelectionSetMergeObserver : ISelectionSetMergeObserver
-{
-    public void OnMerge(FieldNode field1, FieldNode field2)
-    {
-    }
-
-    public void OnMerge(IEnumerable<FieldNode> fields)
-    {
-    }
-
-    public void OnMerge(InlineFragmentNode inlineFragment1, InlineFragmentNode inlineFragment2)
-    {
-    }
-
-    public void OnMerge(SelectionSetNode selectionSet1, SelectionSetNode selectionSet2)
-    {
-    }
-
-    public void OnMerge(IEnumerable<SelectionSetNode> selectionSets)
-    {
-    }
-
-    public static NoopSelectionSetMergeObserver Instance { get; } = new();
 }

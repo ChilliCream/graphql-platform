@@ -12,12 +12,12 @@ type Query7 {
   node("ID of the object." id: ID!): Node @lookup
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
-  barById(id: ID!): Qux
+  barById(id: ID!): Qux!
 }
 
 type Qux implements Node {
   id: ID!
-  clearTextId: String
+  clearTextId: String!
 }
 
 """

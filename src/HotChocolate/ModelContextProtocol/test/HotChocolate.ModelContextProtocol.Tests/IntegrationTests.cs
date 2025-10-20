@@ -6,6 +6,7 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using HotChocolate.ModelContextProtocol.Diagnostics;
 using HotChocolate.ModelContextProtocol.Extensions;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -211,6 +212,108 @@ public sealed class IntegrationTests
         // assert
         Assert.Equal("get_books", tools[0].Name);
         Assert.Equal("test", tools[1].Name);
+    }
+
+    [Fact]
+    public async Task ListTools_SetTitle_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new TestOperationToolStorage();
+        await storage.AddOrUpdateToolAsync(
+            Utf8GraphQLParser.Parse("""query GetBooks @mcpTool(title: "Custom Title") { books { title } }"""));
+        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync();
+
+        // assert
+        Assert.Equal("Custom Title", tools[0].Title);
+    }
+
+    [Fact]
+    public async Task ListTools_SetAnnotations_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new TestOperationToolStorage();
+        await storage.AddOrUpdateToolAsync(
+            Utf8GraphQLParser.Parse(
+                """
+                mutation AddBook @mcpTool(destructiveHint: false, idempotentHint: true, openWorldHint: false) {
+                    addBook { title }
+                }
+                """));
+        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync();
+
+        // assert
+        Assert.Equal(false, tools[0].ProtocolTool.Annotations?.DestructiveHint);
+        Assert.Equal(true, tools[0].ProtocolTool.Annotations?.IdempotentHint);
+        Assert.Equal(false, tools[0].ProtocolTool.Annotations?.OpenWorldHint);
+    }
+
+    [Fact]
+    public async Task ListTools_InitializeToolsInvalidDocument_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new TestOperationToolStorage();
+        await storage.AddOrUpdateToolAsync(
+            Utf8GraphQLParser.Parse("query Invalid { doesNotExist1, doesNotExist2 }"));
+        await storage.AddOrUpdateToolAsync(
+            Utf8GraphQLParser.Parse("query Valid { books { title } }"));
+        var listener = new TestMcpDiagnosticEventListener();
+        var server =
+            CreateTestServer(
+                b => b
+                    .AddMcpDiagnosticEventListener(listener)
+                    .AddMcpToolStorage(storage));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var result = await mcpClient.ListToolsAsync();
+
+        // assert
+        Assert.Single(result, tool => tool.Name == "valid"); // The invalid tool is ignored.
+        Assert.Collection(
+            listener.ValidationErrorLog,
+            firstError =>
+                Assert.Equal("The field `doesNotExist1` does not exist on the type `Query`.", firstError.Message),
+            secondError =>
+                Assert.Equal("The field `doesNotExist2` does not exist on the type `Query`.", secondError.Message));
+    }
+
+    [Fact]
+    public async Task ListTools_UpdateToolsInvalidDocument_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new TestOperationToolStorage();
+        await storage.AddOrUpdateToolAsync(
+            Utf8GraphQLParser.Parse("""query Tool @mcpTool(title: "BEFORE") { books { title } }"""));
+        var listener = new TestMcpDiagnosticEventListener();
+        var server =
+            CreateTestServer(
+                b => b
+                    .AddMcpDiagnosticEventListener(listener)
+                    .AddMcpToolStorage(storage));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        await storage.AddOrUpdateToolAsync(
+            Utf8GraphQLParser.Parse("""query Tool @mcpTool(title: "AFTER") { doesNotExist1, doesNotExist2 }"""));
+        await Task.Delay(500); // Wait for the observer buffer to flush.
+        var result = await mcpClient.ListToolsAsync();
+
+        // assert
+        Assert.Single(result, tool => tool.Title == "BEFORE"); // The invalid update is ignored.
+        Assert.Collection(
+            listener.ValidationErrorLog,
+            firstError =>
+                Assert.Equal("The field `doesNotExist1` does not exist on the type `Query`.", firstError.Message),
+            secondError =>
+                Assert.Equal("The field `doesNotExist2` does not exist on the type `Query`.", secondError.Message));
     }
 
     [Fact]
@@ -522,6 +625,7 @@ public sealed class IntegrationTests
                             .AddAuthorization()
                             .AddMcp(configureMcpServerOptions, configureMcpServer)
                             .AddQueryType<TestSchema.Query>()
+                            .AddMutationType<TestSchema.Mutation>()
                             .AddInterfaceType<TestSchema.IPet>()
                             .AddUnionType<TestSchema.IPet>()
                             .AddObjectType<TestSchema.Cat>()
@@ -614,4 +718,14 @@ public sealed class IntegrationTests
     private const string TokenIssuer = "test-issuer";
     private const string TokenAudience = "test-audience";
     private static readonly SymmetricSecurityKey s_tokenKey = new("test-secret-key-at-least-32-bytes"u8.ToArray());
+}
+
+public sealed class TestMcpDiagnosticEventListener : McpDiagnosticEventListener
+{
+    public List<IError> ValidationErrorLog { get; } = [];
+
+    public override void ValidationErrors(IReadOnlyList<IError> errors)
+    {
+        ValidationErrorLog.AddRange(errors);
+    }
 }
