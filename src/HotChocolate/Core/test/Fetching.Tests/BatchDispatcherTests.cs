@@ -109,6 +109,8 @@ public class BatchDispatcherTests
 
         public override long ModifiedTimestamp { get; } = Stopwatch.GetTimestamp();
 
+        public override long CreatedTimestamp { get; } = Stopwatch.GetTimestamp();
+
         public override bool Touch()
         {
             if (_status is BatchStatus.Touched)
