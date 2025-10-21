@@ -1,3 +1,5 @@
+using System.Net.Http.Headers;
+
 namespace HotChocolate.Exporters.OpenApi;
 
 public class HttpEndpointIntegrationTests : OpenApiTestBase
@@ -42,6 +44,57 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
 
         // act
         var response = await client.GetAsync("/users/5");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_Root_Field_Has_Authorization()
+    {
+        // arrange
+        var storage = CreateBasicTestDocumentStorage();
+        var server = CreateBasicTestServer(storage);
+        var client = server.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            TestJwtTokenHelper.GenerateToken());
+
+        // act
+        var response = await client.GetAsync("/orders");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_Root_Field_Has_Authorization_Not_Authenticated()
+    {
+        // arrange
+        var storage = CreateBasicTestDocumentStorage();
+        var server = CreateBasicTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/orders");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_Root_Field_Has_Authorization_Not_Authorized()
+    {
+        // arrange
+        var storage = CreateBasicTestDocumentStorage();
+        var server = CreateBasicTestServer(storage);
+        var client = server.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            TestJwtTokenHelper.GenerateToken("guest"));
+
+        // act
+        var response = await client.GetAsync("/orders");
 
         // assert
         response.MatchSnapshot();

@@ -1,4 +1,7 @@
 using System.Collections.Immutable;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using HotChocolate.Authorization;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Exporters.OpenApi.Extensions;
 using HotChocolate.Language;
@@ -10,11 +13,17 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace HotChocolate.Exporters.OpenApi;
 
 public abstract class OpenApiTestBase
 {
+    private const string TokenIssuer = "test-issuer";
+    private const string TokenAudience = "test-audience";
+    private const string AdminRole = "Admin";
+    private static readonly SymmetricSecurityKey s_tokenKey = new("test-secret-key-at-least-32-bytes"u8.ToArray());
+
     protected static TestOpenApiDocumentStorage CreateBasicTestDocumentStorage()
     {
         return new TestOpenApiDocumentStorage(
@@ -27,6 +36,13 @@ public abstract class OpenApiTestBase
                 email
               }
             }
+            """,
+            """
+            query GetOrders @http(method: GET, route: "/orders") {
+              orders {
+                id
+              }
+            }
             """);
     }
 
@@ -35,6 +51,7 @@ public abstract class OpenApiTestBase
         return CreateTestServer(
             configureRequestExecutor: b => b
                 .AddOpenApiDocumentStorage(storage)
+                .AddAuthorization()
                 .AddQueryType<BasicServer.QueryType>(),
             configureOpenApi: o => o.AddGraphQL(),
             configureEndpoints: e => e.MapGraphQLEndpoints());
@@ -52,6 +69,17 @@ public abstract class OpenApiTestBase
                     .AddLogging()
                     .AddRouting();
 
+                services
+                    .AddAuthentication()
+                    .AddJwtBearer(
+                        o => o.TokenValidationParameters =
+                            new TokenValidationParameters
+                            {
+                                ValidIssuer = TokenIssuer,
+                                ValidAudience = TokenAudience,
+                                IssuerSigningKey = s_tokenKey
+                            });
+
                 services.AddOpenApi(options => configureOpenApi?.Invoke(options));
 
                 var executor = services
@@ -61,6 +89,7 @@ public abstract class OpenApiTestBase
             })
             .Configure(app => app
                 .UseRouting()
+                .UseAuthentication()
                 .UseEndpoints(endpoints =>
                 {
                     endpoints.MapOpenApi();
@@ -78,6 +107,25 @@ public abstract class OpenApiTestBase
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadAsStringAsync();
+    }
+
+    protected static class TestJwtTokenHelper
+    {
+        public static string GenerateToken(string? role = null)
+        {
+            Claim[] claims = [
+                new(ClaimTypes.Name, "Test"),
+                new(ClaimTypes.Role, role ?? AdminRole)];
+
+            var token = new JwtSecurityToken(
+                issuer: TokenIssuer,
+                audience: TokenAudience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(30),
+                signingCredentials: new SigningCredentials(s_tokenKey, SecurityAlgorithms.HmacSha256));
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
     }
 
     private static class BasicServer
@@ -102,9 +150,15 @@ public abstract class OpenApiTestBase
 
                 return new User(id, "User " + id, id + "@example.com");
             }
+
+            [Authorize(Roles = [AdminRole])]
+            public IEnumerable<Order> GetOrders()
+                => [new Order(1), new Order(2), new Order(3)];
         }
 
         public sealed record User([property: ID] int Id, string Name, string Email);
+
+        public sealed record Order([property: ID] int Id);
     }
 
     protected sealed class TestOpenApiDocumentStorage : IOpenApiDocumentStorage, IDisposable

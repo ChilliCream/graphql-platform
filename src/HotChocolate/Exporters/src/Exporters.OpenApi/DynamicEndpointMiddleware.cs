@@ -1,5 +1,6 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -15,25 +16,28 @@ internal sealed class DynamicEndpointMiddleware(string schemaName, ExecutableOpe
     private static readonly JsonSerializerOptions s_jsonSerializerOptions =
         new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
+    // TODO: This needs to raise diagnostic events (httprequest, startsingle and httprequesterror
     public async Task InvokeAsync(HttpContext context)
     {
         var cancellationToken = context.RequestAborted;
 
-        // TODO: Use proxy here
-        var provider = context.RequestServices.GetRequiredService<IRequestExecutorProvider>();
-        var executor = await provider.GetExecutorAsync(schemaName, cancellationToken).ConfigureAwait(false);
-
-        // TODO: Map to variables
-        var routeData = context.GetRouteData();
-
-        var request = OperationRequestBuilder.New()
-            .SetDocument(document.Document)
-            .SetVariableValues(routeData.Values)
-            .Build();
-
         try
         {
-            var result = await executor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
+            var proxy = context.RequestServices.GetRequiredKeyedService<HttpRequestExecutorProxy>(schemaName);
+            var session = await proxy.GetOrCreateSessionAsync(context.RequestAborted);
+
+            // TODO: Map to variables
+            var routeData = context.GetRouteData();
+
+            var requestBuilder = OperationRequestBuilder.New()
+                .SetDocument(document.Document)
+                .SetVariableValues(routeData.Values);
+
+            await session.OnCreateAsync(context, requestBuilder, cancellationToken);
+
+            var executionResult = await session.ExecuteAsync(
+                requestBuilder.Build(),
+                cancellationToken).ConfigureAwait(false);
 
             if (cancellationToken.IsCancellationRequested)
             {
@@ -41,25 +45,35 @@ internal sealed class DynamicEndpointMiddleware(string schemaName, ExecutableOpe
                 return;
             }
 
-            if (result is not IOperationResult { Errors: null } operationResult)
+            if (executionResult is not IOperationResult operationResult)
             {
-                await Results.StatusCode(500).ExecuteAsync(context);
+                await Results.InternalServerError().ExecuteAsync(context);
+                return;
+            }
+
+            if (operationResult.Errors is not null)
+            {
+                var result = GetResultFromErrors(operationResult.Errors);
+
+                await result.ExecuteAsync(context);
                 return;
             }
 
             if (operationResult.Data?.TryGetValue(document.ResponseNameToExtract, out var responseData) != true
                 || responseData is null)
             {
-                var statusCode = document.HttpMethod == HttpMethods.Get ? 404 : 500;
+                var result = document.HttpMethod == HttpMethods.Get
+                    ? Results.NotFound()
+                    : Results.InternalServerError();
 
-                await Results.StatusCode(statusCode).ExecuteAsync(context);
+                await result.ExecuteAsync(context);
                 return;
             }
 
             var bodyWriter = context.Response.BodyWriter;
             var jsonWriter = new Utf8JsonWriter(bodyWriter, s_jsonWriterOptions);
 
-            context.Response.StatusCode = 200;
+            context.Response.StatusCode = StatusCodes.Status200OK;
             context.Response.ContentType = "application/json";
 
             JsonValueFormatter.WriteValue(jsonWriter, responseData, s_jsonSerializerOptions,
@@ -69,7 +83,25 @@ internal sealed class DynamicEndpointMiddleware(string schemaName, ExecutableOpe
         }
         catch
         {
-            await Results.StatusCode(500).ExecuteAsync(context);
+            await Results.InternalServerError().ExecuteAsync(context);
         }
+    }
+
+    private static IResult GetResultFromErrors(IReadOnlyList<IError> errors)
+    {
+        foreach (var error in errors)
+        {
+            if (error.Code == ErrorCodes.Authentication.NotAuthenticated)
+            {
+                return Results.Unauthorized();
+            }
+
+            if (error.Code == ErrorCodes.Authentication.NotAuthorized)
+            {
+                return Results.Forbid();
+            }
+        }
+
+        return Results.InternalServerError();
     }
 }
