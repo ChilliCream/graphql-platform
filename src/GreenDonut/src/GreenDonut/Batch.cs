@@ -14,6 +14,7 @@ internal sealed class Batch<TKey> : Batch where TKey : notnull
     private int _status = Enqueued;
     private long _createdTimestamp;
     private long _modifiedTimestamp;
+    private CancellationTokenRegistration _promiseCancellationRegistration;
 
     public bool IsScheduled { get; set; }
 
@@ -58,7 +59,10 @@ internal sealed class Batch<TKey> : Batch where TKey : notnull
         => (Promise<TValue>)_items[key];
 
     public override async Task DispatchAsync()
-        => await _dispatch(this, _ct);
+    {
+        await _dispatch(this, _ct);
+        _promiseCancellationRegistration.Dispose();
+    }
 
     internal void Initialize(Func<Batch<TKey>, CancellationToken, ValueTask> dispatch, CancellationToken ct)
     {
@@ -67,6 +71,7 @@ internal sealed class Batch<TKey> : Batch where TKey : notnull
         _ct = ct;
         _createdTimestamp = Stopwatch.GetTimestamp();
         _modifiedTimestamp = _createdTimestamp;
+        _promiseCancellationRegistration = ct.Register(TryCancelPromises);
     }
 
     internal void ClearUnsafe()
@@ -79,5 +84,14 @@ internal sealed class Batch<TKey> : Batch where TKey : notnull
         _ct = CancellationToken.None;
         _createdTimestamp = 0;
         _modifiedTimestamp = 0;
+        _promiseCancellationRegistration.Dispose();
+    }
+
+    internal void TryCancelPromises()
+    {
+        foreach (var item in _items.Values)
+        {
+            item.TryCancel();
+        }
     }
 }

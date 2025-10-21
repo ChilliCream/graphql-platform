@@ -155,10 +155,13 @@ internal static class InternalServiceCollectionExtensions
     }
 
     internal static IServiceCollection TryAddDefaultBatchDispatcher(
-        this IServiceCollection services)
+        this IServiceCollection services,
+        BatchDispatcherOptions options)
     {
         services.TryAddScoped<IBatchScheduler, AutoBatchScheduler>();
-        services.TryAddScoped<IBatchDispatcher, BatchDispatcher>();
+
+        services.RemoveAll<IBatchDispatcher>();
+        services.AddScoped<IBatchDispatcher>(_ => new BatchDispatcher(options));
         return services;
     }
 
@@ -169,8 +172,7 @@ internal static class InternalServiceCollectionExtensions
         services.RemoveAll<IDataLoaderScope>();
         services.TryAddSingleton<DataLoaderScopeHolder>();
         services.TryAddScoped<IDataLoaderScopeFactory, ExecutionDataLoaderScopeFactory>();
-        services.TryAddScoped(
-            sp => sp.GetRequiredService<DataLoaderScopeHolder>().GetOrCreateScope(sp));
+        services.TryAddScoped(sp => sp.GetRequiredService<DataLoaderScopeHolder>().GetOrCreateScope(sp));
         return services;
     }
 

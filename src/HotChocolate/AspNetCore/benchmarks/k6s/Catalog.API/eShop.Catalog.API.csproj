@@ -29,6 +29,7 @@
     <ProjectReference Include="..\..\..\..\..\GreenDonut\src\GreenDonut.Data.EntityFramework\GreenDonut.Data.EntityFramework.csproj" />
     <ProjectReference Include="..\..\..\..\Data\src\EntityFramework\HotChocolate.Data.EntityFramework.csproj" />
     <ProjectReference Include="..\..\..\..\Core\src\Types.Analyzers\HotChocolate.Types.Analyzers.csproj" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\Catalog.ServiceDefaults\eShop.Catalog.ServiceDefaults.csproj" />
 
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
