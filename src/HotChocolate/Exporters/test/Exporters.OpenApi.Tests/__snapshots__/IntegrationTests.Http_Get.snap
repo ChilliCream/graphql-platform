@@ -3,4 +3,4 @@ Content-Type: application/json
 -------------------------->
 Status Code: OK
 -------------------------->
-{"id":"15","name":"User 15","email":"15@example.com"}
+{"id":"1","name":"User 1","email":"1@example.com"}
