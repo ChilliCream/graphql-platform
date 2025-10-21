@@ -1,13 +1,18 @@
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Routing.Patterns;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
+using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.Exporters.OpenApi;
 
+// TODO: Add an abstraction that can be added to schema services
 internal sealed class DynamicEndpointDataSource : EndpointDataSource, IDisposable
 {
-    private readonly List<Endpoint> _endpoints = new();
+    private List<Endpoint> _endpoints = [];
     private CancellationTokenSource _cts = new();
     private CancellationChangeToken _changeToken;
 
@@ -20,32 +25,105 @@ internal sealed class DynamicEndpointDataSource : EndpointDataSource, IDisposabl
 
     public override IChangeToken GetChangeToken() => _changeToken;
 
-    public void AddRoute(string pattern, RequestDelegate handler)
+    // TODO: Synchronization
+    public void SetEndpoints(IEnumerable<ExecutableOpenApiDocument> documents)
     {
-        var routePattern = RoutePatternFactory.Parse(pattern);
+        var newEndpoints = new List<Endpoint>();
 
-        var builder = new RouteEndpointBuilder(
-            requestDelegate: handler,
-            routePattern: routePattern,
-            order: 0)
+        foreach (var document in documents)
         {
-            DisplayName = pattern
-        };
+            var endpoint = CreateEndpoint(document);
 
-        _endpoints.Add(builder.Build());
+            newEndpoints.Add(endpoint);
+        }
+
+        _endpoints = newEndpoints;
+
+        NotifyChanged();
     }
 
-    // public void AddRoute(string pattern, Func<RouteValueDictionary, Task<IResult>> handler)
-    // {
-    //     AddRoute(pattern, async context =>
-    //     {
-    //         var routeValues = context.GetRouteData().Values;
-    //         var result = await handler(routeValues);
-    //         await result.ExecuteAsync(context);
-    //     });
-    // }
+    private static Endpoint CreateEndpoint(ExecutableOpenApiDocument document)
+    {
+        var builder = new RouteEndpointBuilder(
+            // TODO: Use proper schema name
+            requestDelegate: CreateRequestDelegate(ISchemaDefinition.DefaultName, document),
+            routePattern: document.Route,
+            // TODO: What does this control?
+            order: 0)
+        {
+            DisplayName = document.HttpMethod + " " + document.Route.RawText
+        };
 
-    public void NotifyChanged()
+        builder.Metadata.Add(new HttpMethodMetadata([document.HttpMethod]));
+
+        return builder.Build();
+    }
+
+    private static RequestDelegate CreateRequestDelegate(string schemaName, ExecutableOpenApiDocument document)
+    {
+        return async context =>
+        {
+            var cancellationToken = context.RequestAborted;
+
+            // TODO: Use proxy here
+            var provider = context.RequestServices.GetRequiredService<IRequestExecutorProvider>();
+            var executor = await provider.GetExecutorAsync(schemaName, cancellationToken).ConfigureAwait(false);
+
+            // TODO: Map to variables
+            var routeData = context.GetRouteData();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument(document.Document)
+                .SetVariableValues(routeData.Values)
+                .Build();
+
+            try
+            {
+                var result = await executor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    // TODO: Handle properly
+                    return;
+                }
+
+                if (result is not IOperationResult operationResult)
+                {
+                    await Results.StatusCode(500).ExecuteAsync(context);
+                    return;
+                }
+
+                var jsonWriterOptions = new JsonWriterOptions
+                {
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
+                var jsonSerializerOptions = new JsonSerializerOptions
+                {
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
+
+                // TODO: Extract first field and check for null
+                var data = operationResult.Data;
+
+                var bodyWriter = context.Response.BodyWriter;
+                // TODO: Cache the writer
+                var jsonWriter = new Utf8JsonWriter(bodyWriter, jsonWriterOptions);
+
+                context.Response.StatusCode = 200;
+                context.Response.ContentType = "application/json";
+
+                JsonValueFormatter.WriteValue(jsonWriter, data, jsonSerializerOptions, JsonNullIgnoreCondition.None);
+
+                await jsonWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                await Results.StatusCode(500).ExecuteAsync(context);
+            }
+        };
+    }
+
+    private void NotifyChanged()
     {
         var oldCts = _cts;
         _cts = new CancellationTokenSource();

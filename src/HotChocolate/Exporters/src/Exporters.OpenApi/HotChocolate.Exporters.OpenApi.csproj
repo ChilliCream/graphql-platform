@@ -4,6 +4,10 @@
     <AssemblyName>HotChocolate.Exporters.OpenApi</AssemblyName>
     <RootNamespace>HotChocolate.Exporters.OpenApi</RootNamespace>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Exporters.OpenApi.Tests" />
+  </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -14,7 +18,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="HotChocolate.Execution.Abstractions">
+      <HintPath>..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate\bin\Debug\net9.0\HotChocolate.Execution.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="HotChocolate.Execution.Configuration.Abstractions">
+      <HintPath>..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate\bin\Debug\net9.0\HotChocolate.Execution.Configuration.Abstractions.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

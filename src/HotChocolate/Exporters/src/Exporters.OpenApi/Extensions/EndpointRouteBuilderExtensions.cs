@@ -11,6 +11,8 @@ public static class EndpointRouteBuilderExtensions
         this IEndpointRouteBuilder endpoints,
         string? schemaName = null)
     {
+        schemaName ??= ISchemaDefinition.DefaultName;
+
         var dataSource = endpoints.ServiceProvider.GetRequiredKeyedService<DynamicEndpointDataSource>(schemaName);
 
         if (!endpoints.DataSources.Contains(dataSource))
