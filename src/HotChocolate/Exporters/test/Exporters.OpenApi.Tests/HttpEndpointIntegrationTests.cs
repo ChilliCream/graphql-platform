@@ -1,6 +1,6 @@
 namespace HotChocolate.Exporters.OpenApi;
 
-public class IntegrationTests : OpenApiTestBase
+public class HttpEndpointIntegrationTests : OpenApiTestBase
 {
     [Fact]
     public async Task Http_Get()
@@ -33,7 +33,7 @@ public class IntegrationTests : OpenApiTestBase
     }
 
     [Fact]
-    public async Task OpenApi_Includes_Initial_Routes()
+    public async Task Http_Get_Has_GraphQL_Errors()
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
@@ -41,9 +41,9 @@ public class IntegrationTests : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var openApiDocument = await GetOpenApiDocumentAsync(client);
+        var response = await client.GetAsync("/users/5");
 
         // assert
-        openApiDocument.MatchSnapshot(extension: ".json");
+        response.MatchSnapshot();
     }
 }
