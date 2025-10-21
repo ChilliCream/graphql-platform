@@ -46,6 +46,7 @@ sourceSchemas:
         id: Int!
         title: String!
         author: Author!
+        genreIds: [Int!]!
       }
 
       "A connection to a list of items."
@@ -279,6 +280,25 @@ sourceSchemas:
                   }
                 }
               }
+  - name: d
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Book {
+        genres(genreIds: [Int!]! @require(field: "genreIds")): [Genre!]!
+        id: Int!
+      }
+
+      type Genre {
+        id: Int!
+        name: String!
+      }
+
+      type Query {
+        book(id: Int!): Book @lookup
+      }
 operationPlan:
   operation:
     - document: |

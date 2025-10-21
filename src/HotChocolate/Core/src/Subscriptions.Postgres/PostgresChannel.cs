@@ -39,7 +39,7 @@ internal sealed class PostgresChannel : IAsyncDisposable
         }
     }
 
-    public IDisposable Subscribe(PostgresChannelObserver observer)
+    public IAsyncDisposable Subscribe(PostgresChannelObserver observer)
     {
         _observers.Add(observer);
 
@@ -122,7 +122,7 @@ internal sealed class PostgresChannel : IAsyncDisposable
         }
     }
 
-    private sealed class Unsubscriber : IDisposable
+    private sealed class Unsubscriber : IAsyncDisposable
     {
         private readonly PostgresChannel _channel;
         private readonly PostgresChannelObserver _observer;
@@ -134,9 +134,10 @@ internal sealed class PostgresChannel : IAsyncDisposable
         }
 
         /// <inheritdoc />
-        public void Dispose()
+        public ValueTask DisposeAsync()
         {
             _channel.Unsubscribe(_observer);
+            return ValueTask.CompletedTask;
         }
     }
 

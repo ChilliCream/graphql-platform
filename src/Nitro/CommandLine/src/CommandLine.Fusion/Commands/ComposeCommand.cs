@@ -473,12 +473,14 @@ internal sealed class ComposeCommand : Command
                 && existingSchemaName != newSourceSchemaName)
             {
                 compositionLog.Write(
-                    new LogEntry(
-                        string.Format(
+                    LogEntryBuilder.New()
+                        .SetMessage(
                             ComposeCommand_Error_ConflictingSchemaName,
                             newSourceSchemaName,
-                            existingSchemaName),
-                        LogEntryCodes.ConflictingSourceSchemaName));
+                            existingSchemaName)
+                        .SetCode(LogEntryCodes.ConflictingSourceSchemaName)
+                        .SetSeverity(LogSeverity.Error)
+                        .Build());
 
                 ImmutableArray<CompositionError> errors = [new("❌ Composition failed")];
                 return errors;
@@ -518,12 +520,14 @@ internal sealed class ComposeCommand : Command
             != schemaComposerOptions.EnableGlobalObjectIdentification)
         {
             compositionLog.Write(
-                new LogEntry(
-                    schemaComposerOptions.EnableGlobalObjectIdentification
-                        ? ComposeCommand_GlobalObjectIdentification_Enabled
-                        : ComposeCommand_GlobalObjectIdentification_Disabled,
-                    LogEntryCodes.ModifiedCompositionSetting,
-                    LogSeverity.Info));
+                LogEntryBuilder.New()
+                    .SetMessage(
+                        schemaComposerOptions.EnableGlobalObjectIdentification
+                            ? ComposeCommand_GlobalObjectIdentification_Enabled
+                            : ComposeCommand_GlobalObjectIdentification_Disabled)
+                    .SetCode(LogEntryCodes.ModifiedCompositionSetting)
+                    .SetSeverity(LogSeverity.Info)
+                    .Build());
         }
 
         var schemaComposer = new SchemaComposer(
@@ -601,9 +605,17 @@ internal sealed class ComposeCommand : Command
 
             var message = $"{emoji} [{abbreviatedSeverity}] {FormatMultilineMessage(entry.Message)} ({entry.Code})";
 
+            if (entry.ExtensionsFormatter is not null)
+            {
+                message +=
+                    Environment.NewLine
+                    + "   "
+                    + FormatMultilineMessage(entry.ExtensionsFormatter.Invoke(entry.Extensions));
+            }
+
             if (writeAsGraphQLComments)
             {
-                message = $"# {message}";
+                message = $"# {message.Replace(Environment.NewLine, Environment.NewLine + "# ")}";
             }
 
             writer.WriteLine(message);

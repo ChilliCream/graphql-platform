@@ -3,7 +3,6 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
-using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 

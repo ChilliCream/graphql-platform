@@ -9,7 +9,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Types;
 

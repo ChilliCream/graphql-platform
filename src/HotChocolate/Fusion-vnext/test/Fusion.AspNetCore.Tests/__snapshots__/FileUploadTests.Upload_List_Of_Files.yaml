@@ -1,0 +1,148 @@
+title: Upload_List_Of_Files
+request:
+  contentType: multipart/form-data; boundary="f56524ab-5626-4955-b296-234a097b44f6"
+  body: |
+    --f56524ab-5626-4955-b296-234a097b44f6
+    Content-Type: application/json; charset=utf-8
+    Content-Disposition: form-data; name=operations
+
+    {"query":"query ($files: [Upload!]!) {\n  multiUpload(files: $files) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"files":[null,null]}}
+    --f56524ab-5626-4955-b296-234a097b44f6
+    Content-Type: application/json; charset=utf-8
+    Content-Disposition: form-data; name=map
+
+    {"0":["variables.files.0"],"1":["variables.files.1"]}
+    --f56524ab-5626-4955-b296-234a097b44f6
+    Content-Type: text/plain
+    Content-Disposition: form-data; name=0; filename=test.txt; filename*=utf-8''test.txt
+
+    abc
+    --f56524ab-5626-4955-b296-234a097b44f6
+    Content-Type: application/pdf
+    Content-Disposition: form-data; name=1; filename=test2.pdf; filename*=utf-8''test2.pdf
+
+    def
+    --f56524ab-5626-4955-b296-234a097b44f6--
+response:
+  body: |
+    {
+      "data": {
+        "multiUpload": [
+          {
+            "fileName": "test.txt",
+            "contentType": "text/plain",
+            "content": "abc"
+          },
+          {
+            "fileName": "test2.pdf",
+            "contentType": "application/pdf",
+            "content": "def"
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type FileUploadResult {
+        fileName: String!
+        contentType: String
+        content: String!
+      }
+
+      type Query {
+        singleUpload(file: Upload!): FileUploadResult!
+        singleUploadWithInput(input: FileInput!): FileUploadResult!
+        multiUpload(files: [Upload!]!): [FileUploadResult!]!
+        multiUploadWithInput(input: FilesInput!): [FileUploadResult!]!
+      }
+
+      input FileInput {
+        file: Upload!
+      }
+
+      input FilesInput {
+        files: [Upload!]!
+      }
+
+      "The `Upload` scalar type represents a file upload."
+      scalar Upload
+    interactions:
+      - request:
+          contentType: multipart/form-data; boundary="f56524ab-5626-4955-b296-234a097b44f6"
+          body: |
+            --f56524ab-5626-4955-b296-234a097b44f6
+            Content-Type: application/json; charset=utf-8
+            Content-Disposition: form-data; name=operations
+
+            {"query":"query Op_c3581bf2_1(\n  $files: [Upload!]!\n) {\n  multiUpload(files: $files) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"files":[null,null]}}
+            --f56524ab-5626-4955-b296-234a097b44f6
+            Content-Type: application/json; charset=utf-8
+            Content-Disposition: form-data; name=map
+
+            {"0":["variables.files.0"],"1":["variables.files.1"]}
+            --f56524ab-5626-4955-b296-234a097b44f6
+            Content-Type: text/plain
+            Content-Disposition: form-data; name=0; filename=test.txt; filename*=utf-8''test.txt
+
+            abc
+            --f56524ab-5626-4955-b296-234a097b44f6
+            Content-Type: application/pdf
+            Content-Disposition: form-data; name=1; filename=test2.pdf; filename*=utf-8''test2.pdf
+
+            def
+            --f56524ab-5626-4955-b296-234a097b44f6--
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "multiUpload": [
+                    {
+                      "fileName": "test.txt",
+                      "contentType": "text/plain",
+                      "content": "abc"
+                    },
+                    {
+                      "fileName": "test2.pdf",
+                      "contentType": "application/pdf",
+                      "content": "def"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query(
+          $files: [Upload!]!
+        ) {
+          multiUpload(files: $files) {
+            fileName
+            contentType
+            content
+          }
+        }
+      hash: c3581bf2cf7060a7017061aeff52e0e0
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_c3581bf2_1(
+          $files: [Upload!]!
+        ) {
+          multiUpload(files: $files) {
+            fileName
+            contentType
+            content
+          }
+        }
+      forwardedVariables:
+        - files
+      requiresFileUpload: true

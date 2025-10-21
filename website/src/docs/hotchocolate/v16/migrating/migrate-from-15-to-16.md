@@ -38,28 +38,59 @@ builder.Services.AddGraphQLServer()
     .ModifyOptions(options => options.LazyInitialization = true);
 ```
 
-## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
+## Cache size configuration
 
-**Before**
+Previously, configuring document and operation cache sizes required calling methods directly on `IServiceCollection` rather than using the standard `IRequestExecutorBuilder` pattern. We've now consolidated cache configuration with other GraphQL options for consistency.
+If you're currently using `AddOperationCache` or `AddDocumentCache`, update your code as follows:
 
-```csharp
+```diff
+-builder.Services.AddDocumentCache(200);
+-builder.Services.AddOperationCache(100);
+
 builder.Services.AddGraphQLServer()
-    .ModifyOptions(options =>
-    {
-        options.MaxAllowedNodeBatchSize = 100;
-        options.EnsureAllNodesCanBeResolved = false;
-    });
++    .ModifyOptions(options =>
++    {
++        options.OperationDocumentCacheSize = 200;
++        options.PreparedOperationCacheSize = 100;
++    });
 ```
 
-**After**
+If you were previously accessing `IDocumentCache` or `IPreparedOperationCache` through the root service provider, you now need to access it through the schema-specific service provider instead.
+For instance, to populate the document cache during startup, create a custom `IRequestExecutorWarmupTask` that injects `IDocumentCache`:
 
 ```csharp
-builder.Services.AddGraphQLServer()
-    .AddGlobalObjectIdentification(options =>
+builder.Services
+    .AddGraphQLServer()
+    .AddWarmupTask<MyWarmupTask>();
+
+public class MyWarmupTask(IDocumentCache cache) : IRequestExecutorWarmupTask
+{
+    public bool ApplyOnlyOnStartup => false;
+
+    public async Task WarmupAsync(
+        IRequestExecutor executor,
+        CancellationToken cancellationToken)
     {
-        options.MaxAllowedNodeBatchSize = 100;
-        options.EnsureAllNodesCanBeResolved = false;
-    });
+        // Modify the cache
+    }
+}
+```
+
+## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
+
+```diff
+builder.Services.AddGraphQLServer()
+-    .ModifyOptions(options =>
+-    {
+-        options.MaxAllowedNodeBatchSize = 100;
+-        options.EnsureAllNodesCanBeResolved = false;
+-    })
+-    .AddGlobalObjectIdentification()
++    .AddGlobalObjectIdentification(options =>
++    {
++        options.MaxAllowedNodeBatchSize = 100;
++        options.EnsureAllNodesCanBeResolved = false;
++    });
 ```
 
 ## IRequestContext

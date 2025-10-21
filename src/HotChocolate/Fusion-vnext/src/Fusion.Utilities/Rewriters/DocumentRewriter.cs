@@ -186,7 +186,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
         var isTypeRefinement = !typeCondition.IsAssignableFrom(context.Type);
 
-        Context fragmentContext = context;
+        var fragmentContext = context;
         if (isTypeRefinement || otherDirectives is not null)
         {
             var inlineFragment = new InlineFragmentNode(
@@ -673,9 +673,9 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         return conditionalSelections switch
         {
             [FieldNode { Directives.Count: 0 } fieldNode] => fieldNode
-                .WithDirectives([..fieldNode.Directives, ..conditionalDirectives]),
+                .WithDirectives([.. fieldNode.Directives, .. conditionalDirectives]),
             [InlineFragmentNode { Directives.Count: 0 } inlineFragmentNode] => inlineFragmentNode
-                .WithDirectives([..inlineFragmentNode.Directives, ..conditionalDirectives]),
+                .WithDirectives([.. inlineFragmentNode.Directives, .. conditionalDirectives]),
             _ => new InlineFragmentNode(
                 null,
                 null,
@@ -817,7 +817,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
         public Context? UnconditionalContext { get; } = unconditionalContext;
 
         /// <summary>
-        /// The context for a specific <see cref="HotChocolate.Fusion.Rewriters.DocumentRewriter.Conditional"/>.
+        /// The context for a specific <see cref="DocumentRewriter.Conditional"/>.
         /// </summary>
         public Dictionary<Conditional, Context>? Conditionals { get; private set; }
 
@@ -844,7 +844,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
         public Context GetOrAddConditionalContext(Conditional conditional)
         {
-            Conditionals ??= new Dictionary<Conditional, Context>();
+            Conditionals ??= [];
 
             if (!Conditionals.TryGetValue(conditional, out var conditionalContext))
             {

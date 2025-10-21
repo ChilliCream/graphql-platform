@@ -25,7 +25,7 @@ internal sealed class ProvidesFieldsMissingExternalRule : IEventHandler<Provides
 {
     public void Handle(ProvidesFieldEvent @event, CompositionContext context)
     {
-        var (providedField, providedType, providesDirective, field, type, schema) = @event;
+        var (providedField, providedType, providesDirective, field, _, schema) = @event;
 
         if (!providedField.HasExternalDirective())
         {
@@ -34,8 +34,7 @@ internal sealed class ProvidesFieldsMissingExternalRule : IEventHandler<Provides
                     providedField.Name,
                     providedType.Name,
                     providesDirective,
-                    field.Name,
-                    type.Name,
+                    field,
                     schema));
         }
     }

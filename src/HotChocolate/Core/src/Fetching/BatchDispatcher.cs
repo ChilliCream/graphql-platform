@@ -149,7 +149,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
             // Spin-wait briefly to give executing resolvers time to add more
             // data requirements to the open batches.
-            WaitForMoreBatchActivity(lastModified);
+            await WaitForMoreBatchActivityAsync(lastModified);
         }
     }
 
@@ -201,9 +201,9 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         }
     }
 
-    private void WaitForMoreBatchActivity(long lastModified)
+    private async Task WaitForMoreBatchActivityAsync(long lastModified)
     {
-        const int maxSpinUs = 12;
+        const int maxSpinUs = 50;
 
         var lastSubscribed = Volatile.Read(ref _lastSubscribed);
         var lastEnqueued = Volatile.Read(ref _lastEnqueued);
@@ -219,19 +219,9 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         }
 
         var ageUs = TicksToUs(Stopwatch.GetTimestamp() - lastModified);
-        if (ageUs <= maxSpinUs && ThreadPoolHasHeadroom())
+        if (ageUs <= maxSpinUs)
         {
-            var sw = new SpinWait();
-            var start = Stopwatch.GetTimestamp();
-
-            while (TicksToUs(Stopwatch.GetTimestamp() - start) < maxSpinUs)
-            {
-                sw.SpinOnce();
-                if (sw.Count >= 8)
-                {
-                    Thread.Yield();
-                }
-            }
+            await Task.Yield();
         }
     }
 

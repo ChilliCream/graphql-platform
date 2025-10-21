@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
@@ -21,7 +22,8 @@ public abstract partial class FusionTestBase
         Gateway gateway,
         OperationRequest request,
         GraphQLHttpResponse response,
-        string? postFix = null)
+        string? postFix = null,
+        RawRequest? rawRequest = null)
     {
         var snapshot = new Snapshot(postFix, ".yaml");
 
@@ -44,7 +46,7 @@ public abstract partial class FusionTestBase
 
         writer.WriteLine("request:");
         writer.Indent();
-        WriteOperationRequest(writer, request);
+        WriteOperationRequest(writer, request, rawRequest);
         writer.Unindent();
 
         WriteResults(writer, results);
@@ -225,28 +227,46 @@ public abstract partial class FusionTestBase
 
             foreach (var (_, interaction) in interactions.OrderBy(x => x.Key))
             {
+                var request = interaction.Request!;
+
                 writer.WriteLine("- request:");
                 writer.Indent();
                 writer.Indent();
-                writer.WriteLine("document: |");
-                writer.Indent();
 
-                var query = interaction.Request!.Query.GetString()!;
-                // Ensure consistent formatting
-                var document = Utf8GraphQLParser.Parse(query).ToString(indented: true);
-
-                WriteMultilineString(writer, document);
-                writer.Unindent();
-
-                if (interaction.Request!.Variables.ValueKind != JsonValueKind.Undefined)
+                if (request.ContentType.MediaType?.StartsWith("multipart/", StringComparison.OrdinalIgnoreCase) == true)
                 {
-                    writer.WriteLine("variables: |");
-                    writer.Indent();
-                    WriteFormattedJson(writer, interaction.Request.Variables);
+                    WriteMultipartRequest(writer, request.ContentType, request.Body);
+
                     writer.Unindent();
                 }
+                else
+                {
+                    writer.WriteLine("document: |");
+                    writer.Indent();
 
-                writer.Unindent();
+                    var jsonBody = JsonDocument.Parse(request.Body);
+
+                    jsonBody.RootElement.TryGetProperty("query", out var queryProperty);
+                    jsonBody.RootElement.TryGetProperty("variables", out var variablesProperty);
+
+                    var query = queryProperty.GetString()!;
+
+                    // Ensure consistent formatting
+                    var document = Utf8GraphQLParser.Parse(query).ToString(indented: true);
+
+                    WriteMultilineString(writer, document);
+                    writer.Unindent();
+
+                    if (variablesProperty.ValueKind != JsonValueKind.Undefined)
+                    {
+                        writer.WriteLine("variables: |");
+                        writer.Indent();
+                        WriteFormattedJson(writer, variablesProperty);
+                        writer.Unindent();
+                    }
+
+                    writer.Unindent();
+                }
 
                 if (interaction.StatusCode.HasValue)
                 {
@@ -332,11 +352,33 @@ public abstract partial class FusionTestBase
         WriteMultilineString(writer, cleanedSchema);
     }
 
-    private static void WriteOperationRequest(CodeWriter writer, OperationRequest request)
+    private static void WriteOperationRequest(
+        CodeWriter writer,
+        OperationRequest request,
+        RawRequest? rawRequest)
     {
         if (request.OnError is not null && request.OnError != ErrorHandlingMode.Propagate)
         {
             writer.WriteLine("onError: {0}", request.OnError);
+        }
+
+        if (rawRequest is not null)
+        {
+            var contentType = rawRequest.ContentType;
+
+            if (contentType.MediaType?.StartsWith("multipart/", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                WriteMultipartRequest(writer, contentType, rawRequest.Body);
+            }
+            else
+            {
+                var streamReader = new StreamReader(rawRequest.Body);
+                var rawRequestString = streamReader.ReadToEnd();
+
+                WriteRawRequest(writer, contentType.MediaType!, rawRequestString);
+            }
+
+            return;
         }
 
         writer.WriteLine("document: |");
@@ -393,6 +435,44 @@ public abstract partial class FusionTestBase
         }
     }
 
+    private static void WriteMultipartRequest(
+        CodeWriter writer,
+        MediaTypeHeaderValue contentType,
+        MemoryStream body)
+    {
+        var streamReader = new StreamReader(body);
+        var rawRequestString = streamReader.ReadToEnd();
+        var contentTypeString = contentType.MediaType!;
+
+        var boundary = contentType.Parameters
+            .FirstOrDefault(
+                p => p.Name.Equals("boundary", StringComparison.OrdinalIgnoreCase))
+            ?.Value?.Trim('"');
+
+        // The multipart boundary is random, so we need to change it to a fixed value for the snapshots
+        if (!string.IsNullOrEmpty(boundary))
+        {
+            const string staticBoundaryValue = "f56524ab-5626-4955-b296-234a097b44f6";
+
+            contentTypeString = $"{contentType.MediaType}; boundary=\"{staticBoundaryValue}\"";
+
+            rawRequestString = rawRequestString.Replace($"--{boundary}", $"--{staticBoundaryValue}");
+        }
+
+        WriteRawRequest(writer, contentTypeString, rawRequestString);
+    }
+
+    private static void WriteRawRequest(CodeWriter writer, string contentType, string body)
+    {
+        writer.WriteLine("contentType: {0}", contentType);
+        writer.WriteLine("body: |");
+        writer.Indent();
+
+        WriteMultilineString(writer, body);
+
+        writer.Unindent();
+    }
+
     private static readonly FrozenSet<string> s_testDirectives = new HashSet<string> { "null", "error", "returns" }
         .ToFrozenSet();
 
@@ -410,5 +490,12 @@ public abstract partial class FusionTestBase
         }
 
         return true;
+    }
+
+    protected class RawRequest
+    {
+        public required MemoryStream Body { get; init; }
+
+        public required MediaTypeHeaderValue ContentType { get; init; }
     }
 }

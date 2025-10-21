@@ -1,7 +1,9 @@
 using System.Collections.Immutable;
 using System.Net.Http.Headers;
+#if FUSION
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+#endif
 
 #if FUSION
 namespace HotChocolate.Fusion.Transport.Http;

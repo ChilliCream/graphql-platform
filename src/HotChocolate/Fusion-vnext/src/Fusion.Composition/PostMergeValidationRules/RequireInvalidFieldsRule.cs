@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Validators;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
+using static HotChocolate.Fusion.Properties.CompositionResources;
 using static HotChocolate.Fusion.WellKnownArgumentNames;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
 
@@ -36,7 +37,7 @@ internal sealed class RequireInvalidFieldsRule : IEventHandler<SchemaEvent>
 
         var validator = new FieldSelectionMapValidator(schema);
 
-        foreach (var (sourceArgument, sourceField, sourceType, sourceSchema) in sourceArgumentGroup)
+        foreach (var (sourceArgument, _, sourceType, sourceSchema) in sourceArgumentGroup)
         {
             var requireDirective = sourceArgument.Directives[Require].First();
             var fieldArgumentValue = (string)requireDirective.Arguments[Field].Value!;
@@ -56,17 +57,25 @@ internal sealed class RequireInvalidFieldsRule : IEventHandler<SchemaEvent>
                     out var selectedFields);
 
             // A selected field is defined in the same schema as the `require` directive.
-            var selectedFieldSameSchema =
-                selectedFields.Any(f => f.GetSchemaNames().Contains(sourceSchema.Name));
+            var selectedFieldsSameSchema =
+                selectedFields.Where(f => f.GetSchemaNames().Contains(sourceSchema.Name));
 
-            if (errors.Any() || selectedFieldSameSchema)
+            foreach (var selectedField in selectedFieldsSameSchema)
+            {
+                errors =
+                    errors.Add(
+                        string.Format(
+                            RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema,
+                            selectedField.Coordinate.ToString(),
+                            sourceSchema.Name));
+            }
+
+            if (errors.Any())
             {
                 context.Log.Write(
                     RequireInvalidFields(
                         requireDirective,
-                        sourceArgument.Name,
-                        sourceField.Name,
-                        sourceType.Name,
+                        sourceArgument,
                         sourceSchema,
                         errors));
             }

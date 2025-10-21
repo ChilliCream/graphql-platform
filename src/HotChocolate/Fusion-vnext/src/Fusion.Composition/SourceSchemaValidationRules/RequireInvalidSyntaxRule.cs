@@ -17,14 +17,8 @@ internal sealed class RequireInvalidSyntaxRule : IEventHandler<RequireFieldInval
 {
     public void Handle(RequireFieldInvalidSyntaxEvent @event, CompositionContext context)
     {
-        var (requireDirective, argument, field, type, schema) = @event;
+        var (requireDirective, argument, _, _, schema) = @event;
 
-        context.Log.Write(
-            RequireInvalidSyntax(
-                requireDirective,
-                argument.Name,
-                field.Name,
-                type.Name,
-                schema));
+        context.Log.Write(RequireInvalidSyntax(requireDirective, argument, schema));
     }
 }

@@ -1,156 +1,167 @@
-using System.Collections.Immutable;
-using HotChocolate.Fusion.Logging;
-using HotChocolate.Types.Mutable;
-using static HotChocolate.Fusion.CompositionTestHelper;
-
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class DisallowedInaccessibleElementsRuleTests
+public sealed class DisallowedInaccessibleElementsRuleTests : RuleTestBase
 {
-    private static readonly object s_rule = new DisallowedInaccessibleElementsRule();
-    private static readonly ImmutableArray<object> s_rules = [s_rule];
-    private readonly CompositionLog _log = new();
+    protected override object Rule { get; } = new DisallowedInaccessibleElementsRule();
 
-    [Theory]
-    [MemberData(nameof(ValidExamplesData))]
-    public void Examples_Valid(string[] sdl)
+    // Here, the "String" type is not marked as @inaccessible, which adheres to the rule.
+    [Fact]
+    public void Validate_AllowedAccessibleElements_Succeeds()
     {
-        // arrange
-        var schemas = CreateSchemaDefinitions(sdl);
-        var validator = new SourceSchemaValidator(schemas, s_rules, _log);
-
-        // act
-        var result = validator.Validate();
-
-        // assert
-        Assert.True(result.IsSuccess);
-        Assert.True(_log.IsEmpty);
+        AssertValid(
+        [
+            """
+            type Product {
+                price: Float
+                name: String
+            }
+            """
+        ]);
     }
 
-    [Theory]
-    [MemberData(nameof(InvalidExamplesData))]
-    public void Examples_Invalid(string[] sdl, string[] errorMessages)
+    // In this example, the "String" scalar is marked as @inaccessible. This violates the rule
+    // because "String" is a required built-in type that cannot be inaccessible.
+    [Fact]
+    public void Validate_DisallowedInaccessibleElementsBuiltInScalar_Fails()
     {
-        // arrange
-        var schemas = CreateSchemaDefinitions(sdl);
-        foreach (var schema in schemas)
-        {
-            if (schema.Types.TryGetType("__Type", out MutableObjectTypeDefinition? type))
-            {
-                type.IsIntrospectionType = true;
-            }
-        }
-        var validator = new SourceSchemaValidator(schemas, s_rules, _log);
+        AssertInvalid(
+            [
+                """
+                scalar String @inaccessible
 
-        // act
-        var result = validator.Validate();
-
-        // assert
-        Assert.True(result.IsFailure);
-        Assert.Equal(errorMessages, _log.Select(e => e.Message).ToArray());
-        Assert.True(_log.All(e => e.Code == "DISALLOWED_INACCESSIBLE"));
-        Assert.True(_log.All(e => e.Severity == LogSeverity.Error));
+                type Product {
+                    price: Float
+                    name: String
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The built-in scalar type 'String' in schema 'A' is not accessible.",
+                    "code": "DISALLOWED_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "String",
+                    "member": "String",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
     }
 
-    public static TheoryData<string[]> ValidExamplesData()
+    // Inaccessible built-in directive argument.
+    [Fact]
+    public void Validate_DisallowedInaccessibleElementsBuiltInDirectiveArgument_Fails()
     {
-        return new TheoryData<string[]>
-        {
-            // Here, the "String" type is not marked as @inaccessible, which adheres to the rule.
-            {
-                [
-                    """
-                    type Product {
-                        price: Float
-                        name: String
-                    }
-                    """
-                ]
-            }
-        };
+        AssertInvalid(
+            [
+                """
+                directive @skip(if: Boolean! @inaccessible)
+                    on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The built-in directive argument '@skip(if:)' in schema 'A' is not accessible.",
+                    "code": "DISALLOWED_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "@skip(if:)",
+                    "member": "if",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
     }
 
-    public static TheoryData<string[], string[]> InvalidExamplesData()
+    // In this example, the introspection type "__Type" is marked as @inaccessible. This violates
+    // the rule because introspection types must remain accessible for GraphQL introspection queries
+    // to work.
+    [Fact]
+    public void Validate_DisallowedInaccessibleElementsIntrospectionType_Fails()
     {
-        return new TheoryData<string[], string[]>
-        {
-            // In this example, the "String" scalar is marked as @inaccessible. This violates the
-            // rule because "String" is a required built-in type that cannot be inaccessible.
-            {
-                [
-                    """
-                    scalar String @inaccessible
+        AssertInvalid(
+            [
+                """
+                type __Type @inaccessible {
+                    kind: __TypeKind!
+                    name: String
+                    fields(includeDeprecated: Boolean! = false): [__Field!]
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The introspection type '__Type' in schema 'A' is not accessible.",
+                    "code": "DISALLOWED_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "__Type",
+                    "member": "__Type",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
 
-                    type Product {
-                        price: Float
-                        name: String
-                    }
-                    """
-                ],
-                [
-                    "The built-in scalar type 'String' in schema 'A' is not accessible."
-                ]
-            },
-            // In this example, the introspection type "__Type" is marked as @inaccessible. This
-            // violates the rule because introspection types must remain accessible for GraphQL
-            // introspection queries to work.
-            {
-                [
-                    """
-                    type __Type @inaccessible {
-                        kind: __TypeKind!
-                        name: String
-                        fields(includeDeprecated: Boolean! = false): [__Field!]
-                    }
-                    """
-                ],
-                [
-                    "The introspection type '__Type' in schema 'A' is not accessible."
-                ]
-            },
-            // Inaccessible introspection field.
-            {
-                [
-                    """
-                    type __Type {
-                        kind: __TypeKind! @inaccessible
-                        name: String
-                        fields(includeDeprecated: Boolean! = false): [__Field!]
-                    }
-                    """
-                ],
-                [
-                    "The introspection field '__Type.kind' in schema 'A' is not accessible."
-                ]
-            },
-            // Inaccessible introspection argument.
-            {
-                [
-                    """
-                    type __Type {
-                        kind: __TypeKind!
-                        name: String
-                        fields(includeDeprecated: Boolean! = false @inaccessible): [__Field!]
-                    }
-                    """
-                ],
-                [
-                    "The introspection argument '__Type.fields(includeDeprecated:)' in schema "
-                    + "'A' is not accessible."
-                ]
-            },
-            // Inaccessible built-in directive argument.
-            {
-                [
-                    """
-                    directive @skip(if: Boolean! @inaccessible)
-                        on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
-                    """
-                ],
-                [
-                    "The built-in directive argument '@skip(if:)' in schema 'A' is not accessible."
-                ]
-            }
-        };
+    // Inaccessible introspection field.
+    [Fact]
+    public void Validate_DisallowedInaccessibleElementsIntrospectionField_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                type __Type {
+                    kind: __TypeKind! @inaccessible
+                    name: String
+                    fields(includeDeprecated: Boolean! = false): [__Field!]
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The introspection field '__Type.kind' in schema 'A' is not accessible.",
+                    "code": "DISALLOWED_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "__Type.kind",
+                    "member": "kind",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
+
+    // Inaccessible introspection argument.
+    [Fact]
+    public void Validate_DisallowedInaccessibleElementsIntrospectionArgument_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                type __Type {
+                    kind: __TypeKind!
+                    name: String
+                    fields(includeDeprecated: Boolean! = false @inaccessible): [__Field!]
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The introspection argument '__Type.fields(includeDeprecated:)' in schema 'A' is not accessible.",
+                    "code": "DISALLOWED_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "__Type.fields(includeDeprecated:)",
+                    "member": "includeDeprecated",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
     }
 }
