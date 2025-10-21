@@ -26,7 +26,7 @@ export function ArticleLayout({
 
   return (
     <TabGroupProvider>
-      <LayoutContainer>
+      <LayoutContainer className="article-layout">
         <ArticleLayoutNavigation>{navigation}</ArticleLayoutNavigation>
         <ArticleWrapper ref={ref}>
           <ArticleContainer>

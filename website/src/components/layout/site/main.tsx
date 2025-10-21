@@ -71,6 +71,11 @@ const Content = styled.main`
   flex-direction: column;
   align-items: center;
   width: 100%;
-  overflow: visible;
   flex: 1 0 auto;
+  overflow-x: hidden;
+
+  /* Reset overflow-x if acrticle-layout is present to fix "position: sticky" */
+  :has(.article-layout) {
+    overflow-x: visible;
+  }
 `;
