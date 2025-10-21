@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Exporters.OpenApi.Extensions;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.OpenApi;
@@ -83,8 +84,17 @@ public abstract class OpenApiTestBase
     {
         public class QueryType
         {
-            public User? GetUserById([ID] int id)
+            public User? GetUserById([ID] int id, IResolverContext context)
             {
+                if (id == 5)
+                {
+                    throw new GraphQLException(
+                        ErrorBuilder.New()
+                            .SetMessage("Something went wrong")
+                            .SetPath(context.Path)
+                            .Build());
+                }
+
                 if (id < 1 || id > 3)
                 {
                     return null;

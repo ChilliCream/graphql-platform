@@ -9,6 +9,12 @@ namespace HotChocolate.Exporters.OpenApi;
 
 internal sealed class DynamicEndpointMiddleware(string schemaName, ExecutableOpenApiDocument document)
 {
+    private static readonly JsonWriterOptions s_jsonWriterOptions =
+        new JsonWriterOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+
+    private static readonly JsonSerializerOptions s_jsonSerializerOptions =
+        new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+
     public async Task InvokeAsync(HttpContext context)
     {
         var cancellationToken = context.RequestAborted;
@@ -35,21 +41,7 @@ internal sealed class DynamicEndpointMiddleware(string schemaName, ExecutableOpe
                 return;
             }
 
-            if (result is not IOperationResult operationResult)
-            {
-                await Results.StatusCode(500).ExecuteAsync(context);
-                return;
-            }
-
-            // TODO: Handle errors
-
-            var jsonWriterOptions = new JsonWriterOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
-            var jsonSerializerOptions = new JsonSerializerOptions
-            {
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
-
-            if (!operationResult.IsDataSet)
+            if (result is not IOperationResult { Errors: null } operationResult)
             {
                 await Results.StatusCode(500).ExecuteAsync(context);
                 return;
@@ -65,13 +57,13 @@ internal sealed class DynamicEndpointMiddleware(string schemaName, ExecutableOpe
             }
 
             var bodyWriter = context.Response.BodyWriter;
-            // TODO: Cache the writer
-            var jsonWriter = new Utf8JsonWriter(bodyWriter, jsonWriterOptions);
+            var jsonWriter = new Utf8JsonWriter(bodyWriter, s_jsonWriterOptions);
 
             context.Response.StatusCode = 200;
             context.Response.ContentType = "application/json";
 
-            JsonValueFormatter.WriteValue(jsonWriter, responseData, jsonSerializerOptions, JsonNullIgnoreCondition.None);
+            JsonValueFormatter.WriteValue(jsonWriter, responseData, s_jsonSerializerOptions,
+                JsonNullIgnoreCondition.None);
 
             await jsonWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
