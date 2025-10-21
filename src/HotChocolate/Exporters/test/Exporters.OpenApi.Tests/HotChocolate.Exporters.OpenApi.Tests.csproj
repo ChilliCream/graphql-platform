@@ -6,4 +6,13 @@
     <RootNamespace>HotChocolate.Exporters.OpenApi</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Exporters.OpenApi\HotChocolate.Exporters.OpenApi.csproj" />
+  </ItemGroup>
+
 </Project>
