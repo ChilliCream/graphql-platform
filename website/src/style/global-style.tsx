@@ -34,6 +34,7 @@ export const GlobalStyle = createGlobalStyle`
     background-image: radial-gradient(ellipse at bottom, #151135 0%, ${THEME_COLORS.background} 40%);
     background-color: ${THEME_COLORS.background};
     background-size: auto;
+    background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
