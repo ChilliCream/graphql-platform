@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
+using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Exporters.OpenApi;
@@ -40,6 +41,16 @@ public static class RequestExecutorBuilderExtensions
     private static void AddOpenApiDocumentStorageCore(this IRequestExecutorBuilder builder)
     {
         builder.Services.TryAddKeyedSingleton<DynamicEndpointDataSource>(builder.Name);
+
+        builder.Services
+            .AddHttpContextAccessor()
+            .AddKeyedSingleton(
+                builder.Name,
+                // TODO: Maybe we should use a named one here to avoid conflicts in the future
+                static (sp, name) => new HttpRequestExecutorProxy(
+                    sp.GetRequiredService<IRequestExecutorProvider>(),
+                    sp.GetRequiredService<IRequestExecutorEvents>(),
+                    (string)name));
 
         builder.ConfigureSchemaServices(
             static (applicationServices, s) =>

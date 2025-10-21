@@ -7,12 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Exporters.OpenApi\HotChocolate.Exporters.OpenApi.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj" />
   </ItemGroup>
 
 </Project>
