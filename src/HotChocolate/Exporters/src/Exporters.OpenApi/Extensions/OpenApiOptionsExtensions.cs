@@ -7,6 +7,7 @@ public static class OpenApiOptionsExtensions
     // TODO: Better name
     public static OpenApiOptions AddGraphQL(this OpenApiOptions options)
     {
+        options.AddDocumentTransformer<DynamicOpenApiDocumentTransformer>();
         return options;
     }
 }
