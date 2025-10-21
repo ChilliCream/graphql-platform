@@ -83,12 +83,16 @@ internal sealed class OpenApiWarmupTask(
         var routeValue = httpDirective.Arguments
             .First(x => x.Name.Value == WellKnownArgumentNames.Route).Value;
 
+        var rootField = operation.SelectionSet.Selections.OfType<FieldNode>().First();
+        var responseNameToExtract = rootField.Alias?.Value ?? rootField.Name.Value;
+
         var document = new DocumentNode([operation.WithDirectives([])]);
 
         return new ExecutableOpenApiDocument(
             document,
             ParseHttpMethod(httpMethodValue),
-            ParseRoute(routeValue));
+            ParseRoute(routeValue),
+            responseNameToExtract);
     }
 
     private static RoutePattern ParseRoute(IValueNode value)
