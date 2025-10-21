@@ -14,9 +14,7 @@ public class IntegrationTests : OpenApiTestBase
         var response = await client.GetAsync("/users/15");
 
         // assert
-        response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync();
-        content.MatchSnapshot(extension: ".json");
+        response.MatchSnapshot();
     }
 
     [Fact]
