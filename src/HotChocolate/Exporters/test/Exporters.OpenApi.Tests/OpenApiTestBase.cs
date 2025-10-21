@@ -83,10 +83,18 @@ public abstract class OpenApiTestBase
     {
         public class QueryType
         {
-            public User? GetUserById([ID] string id) => new User(id, "User " + id, id + "@example.com");
+            public User? GetUserById([ID] int id)
+            {
+                if (id < 1 || id > 3)
+                {
+                    return null;
+                }
+
+                return new User(id, "User " + id, id + "@example.com");
+            }
         }
 
-        public sealed record User([property: ID] string Id, string Name, string Email);
+        public sealed record User([property: ID] int Id, string Name, string Email);
     }
 
     protected sealed class TestOpenApiDocumentStorage : IOpenApiDocumentStorage, IDisposable

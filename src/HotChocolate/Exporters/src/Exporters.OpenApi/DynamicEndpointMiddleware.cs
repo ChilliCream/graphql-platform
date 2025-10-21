@@ -55,10 +55,12 @@ internal sealed class DynamicEndpointMiddleware(string schemaName, ExecutableOpe
                 return;
             }
 
-            if (operationResult.Data?.TryGetValue(document.ResponseNameToExtract, out var responseData) != true)
+            if (operationResult.Data?.TryGetValue(document.ResponseNameToExtract, out var responseData) != true
+                || responseData is null)
             {
-                // TODO: Only for queries
-                await Results.StatusCode(404).ExecuteAsync(context);
+                var statusCode = document.HttpMethod == HttpMethods.Get ? 404 : 500;
+
+                await Results.StatusCode(statusCode).ExecuteAsync(context);
                 return;
             }
 
