@@ -74,7 +74,7 @@ const Content = styled.main`
   flex: 1 0 auto;
   overflow-x: hidden;
 
-  /* Reset overflow-x if acrticle-layout is present to fix "position: sticky" */
+  /* Reset overflow-x if article-layout is present to fix "position: sticky" */
   :has(.article-layout) {
     overflow-x: visible;
   }
