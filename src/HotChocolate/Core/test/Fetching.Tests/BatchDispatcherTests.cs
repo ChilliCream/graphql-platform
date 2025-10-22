@@ -30,6 +30,10 @@ public class BatchDispatcherTests
             }
         }
 
+        scheduler.Dispose();
+
+        await Task.Delay(10);
+
         Assert.Collection(
             observer.Events.Take(5),
             t => Assert.Equal(BatchDispatchEventType.Enqueued, t),
