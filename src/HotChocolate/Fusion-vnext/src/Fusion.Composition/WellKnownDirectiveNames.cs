@@ -11,6 +11,7 @@ internal static class WellKnownDirectiveNames
     public const string FusionLookup = "fusion__lookup";
     public const string FusionRequires = "fusion__requires";
     public const string FusionSchemaMetadata = "fusion__schema_metadata";
+    public const string FusionTag = "fusion__tag";
     public const string FusionType = "fusion__type";
     public const string FusionUnionMember = "fusion__unionMember";
     public const string Inaccessible = "inaccessible";
@@ -22,4 +23,5 @@ internal static class WellKnownDirectiveNames
     public const string Provides = "provides";
     public const string Require = "require";
     public const string Shareable = "shareable";
+    public const string Tag = "tag";
 }
