@@ -38,9 +38,18 @@ public abstract class OpenApiTestBase
             }
             """,
             """
-            query GetOrders @http(method: GET, route: "/orders") {
-              orders {
+            query GetUsers @http(method: GET, route: "/users") {
+              users {
                 id
+              }
+            }
+            """,
+            """
+            mutation CreateUser($user: UserInput! @body) @http(method: POST, route: "/users") {
+              createUser(user: $user) {
+                id
+                name
+                email
               }
             }
             """);
@@ -52,7 +61,8 @@ public abstract class OpenApiTestBase
             configureRequestExecutor: b => b
                 .AddOpenApiDocumentStorage(storage)
                 .AddAuthorization()
-                .AddQueryType<BasicServer.QueryType>(),
+                .AddQueryType<BasicServer.Query>()
+                .AddMutationType<BasicServer.Mutation>(),
             configureOpenApi: o => o.AddGraphQL(),
             configureEndpoints: e => e.MapGraphQLEndpoints());
     }
@@ -130,7 +140,7 @@ public abstract class OpenApiTestBase
 
     private static class BasicServer
     {
-        public class QueryType
+        public class Query
         {
             public User? GetUserById([ID] int id, IResolverContext context)
             {
@@ -148,17 +158,28 @@ public abstract class OpenApiTestBase
                     return null;
                 }
 
-                return new User(id, "User " + id, id + "@example.com");
+                return new User(id);
             }
 
             [Authorize(Roles = [AdminRole])]
-            public IEnumerable<Order> GetOrders()
-                => [new Order(1), new Order(2), new Order(3)];
+            public IEnumerable<User> GetUsers()
+                => [new User(1), new User(2), new User(3)];
         }
 
-        public sealed record User([property: ID] int Id, string Name, string Email);
+        public class Mutation
+        {
+            public User CreateUser(User user)
+            {
+                return user;
+            }
+        }
 
-        public sealed record Order([property: ID] int Id);
+        public sealed record User([property: ID] int Id)
+        {
+            public string Name => "User " + Id;
+
+            public string Email => Id + "@example.com";
+        }
     }
 
     protected sealed class TestOpenApiDocumentStorage : IOpenApiDocumentStorage, IDisposable
