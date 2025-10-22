@@ -262,7 +262,7 @@ jobs:
   performance-tests:
     name: "Performance Tests"
     needs: check-changes
-    if: needs.check-changes.outputs.src_changes == 'true'
+    if: needs.check-changes.outputs.src_changes == 'true' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       contents: write
