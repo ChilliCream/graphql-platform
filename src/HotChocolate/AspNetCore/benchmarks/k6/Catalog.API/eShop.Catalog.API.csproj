@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Diagnostics\src\Diagnostics\HotChocolate.Diagnostics.csproj" />
     <ProjectReference Include="..\..\..\src\AspNetCore.CommandLine\HotChocolate.AspNetCore.CommandLine.csproj" />
     <ProjectReference Include="..\..\..\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\..\Core\src\Types\HotChocolate.Types.csproj" />

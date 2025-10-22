@@ -11,7 +11,7 @@ public class BatchDispatcherTests
     {
         // arrange
         var observer = new TestObserver();
-        var scheduler = new BatchDispatcher();
+        var scheduler = new BatchDispatcher(new DataLoaderDiagnosticEventListener());
         using var session = scheduler.Subscribe(observer);
         scheduler.Schedule(new TestBatch());
         Assert.Equal(BatchDispatchEventType.Enqueued, observer.Events[0]);
@@ -44,7 +44,7 @@ public class BatchDispatcherTests
     {
         // arrange
         var observer = new TestObserver();
-        var scheduler = new BatchDispatcher();
+        var scheduler = new BatchDispatcher(new DataLoaderDiagnosticEventListener());
         using var session = scheduler.Subscribe(observer);
 
         // act
@@ -71,7 +71,7 @@ public class BatchDispatcherTests
     {
         // arrange
         var observer = new TestObserver();
-        var scheduler = new BatchDispatcher();
+        var scheduler = new BatchDispatcher(new DataLoaderDiagnosticEventListener());
 
         // act
         using var session = scheduler.Subscribe(observer);

@@ -293,10 +293,10 @@ jobs:
         run: sudo apt-get install -y jq
 
       - name: Restore dependencies
-        run: dotnet restore src/HotChocolate/AspNetCore/benchmarks/k6s/eShop.slnx
+        run: dotnet restore src/HotChocolate/AspNetCore/benchmarks/k6/eShop.slnx
 
       - name: Start AppHost and wait for readiness
-        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6s/Catalog.AppHost
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6/Catalog.AppHost
         run: |
           echo "Starting AppHost..."
           dotnet run > /tmp/apphost.log 2>&1 &
@@ -316,7 +316,7 @@ jobs:
           done
 
       - name: Run performance tests and collect data
-        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6s
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
         run: |
           chmod +x run-and-collect.sh
           ./run-and-collect.sh performance-data-current.json
@@ -332,7 +332,7 @@ jobs:
       - name: Fetch baseline performance data from main
         run: |
           git fetch origin main:main
-          if git show main:src/HotChocolate/AspNetCore/benchmarks/k6s/performance-data.json > baseline-performance.json 2>/dev/null; then
+          if git show main:src/HotChocolate/AspNetCore/benchmarks/k6/performance-data.json > baseline-performance.json 2>/dev/null; then
             echo "Baseline data fetched successfully"
           else
             echo "No baseline data found on main branch"
@@ -340,7 +340,7 @@ jobs:
           fi
 
       - name: Compare performance and generate report
-        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6s
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
         run: |
           chmod +x compare-performance.sh
           ./compare-performance.sh performance-data-current.json ../../../../baseline-performance.json performance-report.md
@@ -351,7 +351,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const reportPath = 'src/HotChocolate/AspNetCore/benchmarks/k6s/performance-report.md';
+            const reportPath = 'src/HotChocolate/AspNetCore/benchmarks/k6/performance-report.md';
 
             let report;
             try {
@@ -399,13 +399,13 @@ jobs:
         with:
           name: performance-data
           path: |
-            src/HotChocolate/AspNetCore/benchmarks/k6s/performance-data-current.json
-            src/HotChocolate/AspNetCore/benchmarks/k6s/performance-report.md
+            src/HotChocolate/AspNetCore/benchmarks/k6/performance-data-current.json
+            src/HotChocolate/AspNetCore/benchmarks/k6/performance-report.md
             /tmp/apphost.log
           retention-days: 30
 
       - name: Check for performance regression
-        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6s
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
         run: |
           # Fail the build if there's a significant performance regression
           if grep -q "⚠️ \*\*Performance regression detected" performance-report.md; then

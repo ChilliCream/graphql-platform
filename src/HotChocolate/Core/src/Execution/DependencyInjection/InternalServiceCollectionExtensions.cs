@@ -161,7 +161,10 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddScoped<IBatchScheduler, AutoBatchScheduler>();
 
         services.RemoveAll<IBatchDispatcher>();
-        services.AddScoped<IBatchDispatcher>(_ => new BatchDispatcher(options));
+        services.AddScoped<IBatchDispatcher>(
+            sp => new BatchDispatcher(
+                sp.GetRequiredService<IDataLoaderDiagnosticEvents>(),
+                options));
         return services;
     }
 

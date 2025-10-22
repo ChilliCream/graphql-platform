@@ -25,6 +25,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     private readonly object _sync = new();
     private readonly HashSet<Batch> _enqueuedBatches = [];
     private readonly CancellationTokenSource _coordinatorCts = new();
+    private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
     private readonly BatchDispatcherOptions _options;
     private List<Task>? _dispatchTasks;
     private int _openBatches;
@@ -37,8 +38,11 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     /// <summary>
     /// Initializes a new instance of the <see cref="BatchDispatcher"/> class.
     /// </summary>
-    public BatchDispatcher(BatchDispatcherOptions options = default)
+    public BatchDispatcher(IDataLoaderDiagnosticEvents diagnosticEvents, BatchDispatcherOptions options = default)
     {
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
+
+        _diagnosticEvents = diagnosticEvents;
         _options = options;
         _coordinatorCts.Token.Register(_signal.Set);
     }
@@ -71,6 +75,11 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
     private void EnsureCoordinatorIsRunning()
     {
+        if (_isCoordinatorRunning == 1)
+        {
+            return;
+        }
+
         if (Interlocked.CompareExchange(ref _isCoordinatorRunning, 1, 0) == 0)
         {
             CoordinatorAsync(_coordinatorCts.Token).FireAndForget();
@@ -79,6 +88,8 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
     private async Task CoordinatorAsync(CancellationToken stoppingToken)
     {
+        using var scope = _diagnosticEvents.RunBatchDispatchCoordinator();
+
         var backlog = new PriorityQueue<Batch, long>();
         _dispatchTasks ??= new List<Task>(_options.MaxParallelBatches);
 
@@ -86,7 +97,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
         try
         {
-            while (!stoppingToken.IsCancellationRequested && !IsCompleted())
+            while (!stoppingToken.IsCancellationRequested)
             {
                 await _signal;
 
@@ -98,16 +109,15 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
                 await EvaluateAndDispatchAsync(backlog, _dispatchTasks, stoppingToken);
             }
         }
+        catch (Exception ex)
+        {
+            _diagnosticEvents.BatchDispatchError(ex);
+            throw;
+        }
         finally
         {
             Interlocked.Exchange(ref _isCoordinatorRunning, 0);
             Send(BatchDispatchEventType.CoordinatorCompleted);
-        }
-
-        bool IsCompleted()
-        {
-            var openBatches = Volatile.Read(ref _openBatches);
-            return openBatches == 0;
         }
     }
 
@@ -161,12 +171,14 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
                     }
                 }
 
+                _diagnosticEvents.BatchDispatched(dispatchTasks.Count, _options.EnableParallelBatches);
                 _signal.TryResetToIdle();
                 Send(BatchDispatchEventType.Dispatched);
                 return;
             }
 
             // Signal that we have evaluated all enqueued tasks without dispatching any.
+            _diagnosticEvents.BatchEvaluated(openBatches);
             Send(BatchDispatchEventType.Evaluated);
 
             // Spin-wait briefly to give executing resolvers time to add more

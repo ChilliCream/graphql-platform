@@ -40,11 +40,11 @@ RESTART:
                     var first = buffer[0]!;
                     if (!first.IsSerial)
                     {
+                        // if work is NOT serial we will just enqueue it and not wait
+                        // for it to finish.
                         first.BeginExecute(_ct);
                         buffer[0] = null;
 
-                        // if work is not serial we will just enqueue it and not wait
-                        // for it to finish.
                         for (var i = 1; i < work; i++)
                         {
                             buffer[i]!.BeginExecute(_ct);

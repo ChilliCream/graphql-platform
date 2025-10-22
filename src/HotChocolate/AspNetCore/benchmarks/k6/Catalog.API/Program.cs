@@ -1,5 +1,9 @@
+using HotChocolate.Buffers;
+using HotChocolate.Execution;
+using HotChocolate.Transport.Formatters;
 using Npgsql;
 
+var errorCount = 0;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
@@ -35,12 +39,32 @@ builder
             MaxParallelBatches = 4,
             MaxBatchWaitTimeUs = 50_000
         })
-    .AddDiagnosticEventListener<DataLoaderEvents>()
+    .AddDiagnosticEventListener<BenchmarkDataLoaderDiagnosticEventListener>()
     .AddCatalogTypes()
     .AddPagingArguments()
     .AddQueryContext()
     .AddSorting()
-    .AddFiltering();
+    .AddFiltering()
+    .AddInstrumentation()
+    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+    .UseRequest(next =>
+    {
+        return async context =>
+        {
+            await next(context);
+
+            if (context.Result?.ExpectOperationResult() is { Errors.Count: > 0 } result)
+            {
+                var id = Interlocked.Increment(ref errorCount);
+                using var buffer = new PooledArrayWriter();
+                JsonResultFormatter.Indented.Format(result, buffer);
+                await File.WriteAllBytesAsync(
+                    $"/Users/michael/local/hc-4/src/HotChocolate/AspNetCore/benchmarks/k6Catalog.API/errors/{id}.json",
+                    buffer.WrittenMemory);
+            }
+        };
+    })
+    .UseDefaultPipeline();
 
 var app = builder.Build();
 

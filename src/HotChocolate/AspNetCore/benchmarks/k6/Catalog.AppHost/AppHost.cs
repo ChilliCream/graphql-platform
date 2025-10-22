@@ -16,6 +16,6 @@ var database = postgres.AddDatabase("catalog-db");
 builder
     .AddProject<Projects.eShop_Catalog_API>("catalog-api")
     .WithReference(database)
-    .WaitFor(postgres);
+    .WaitFor(database);
 
 builder.Build().Run();
