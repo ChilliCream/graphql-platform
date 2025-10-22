@@ -97,7 +97,14 @@ internal sealed class OpenApiWarmupTask(
         var rootField = operation.SelectionSet.Selections.OfType<FieldNode>().First();
         var responseNameToExtract = rootField.Alias?.Value ?? rootField.Name.Value;
 
-        var document = new DocumentNode([operation.WithDirectives([])]);
+        var cleanOperation = operation
+            .WithDirectives([])
+            .WithVariableDefinitions(
+                operation.VariableDefinitions
+                    .Select(v => v.WithDirectives([]))
+                    .ToArray());
+
+        var document = new DocumentNode([cleanOperation]);
 
         return new ExecutableOpenApiDocument(
             document,

@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Exporters.OpenApi;
 
+// TODO: Do we need to verify the incoming Content-Type?
 internal sealed class DynamicEndpointMiddleware(string schemaName, ExecutableOpenApiDocument document)
 {
     private static readonly JsonWriterOptions s_jsonWriterOptions =
@@ -39,18 +40,30 @@ internal sealed class DynamicEndpointMiddleware(string schemaName, ExecutableOpe
                 requestBuilder.Build(),
                 cancellationToken).ConfigureAwait(false);
 
+            // If the request was cancelled, we do not attempt to write a response.
             if (cancellationToken.IsCancellationRequested)
             {
-                // TODO: Handle properly
                 return;
             }
 
+            // If we do not have an operation result, something went wrong and we return HTTP 500.
+            // TODO: We need to ensure these requests don't contain incremental directives like @stream and @defer
             if (executionResult is not IOperationResult operationResult)
             {
                 await Results.InternalServerError().ExecuteAsync(context);
                 return;
             }
 
+            // If the request had validation errors or execution didn't start, we return HTTP 400.
+            if (operationResult.ContextData?.ContainsKey(ExecutionContextData.ValidationErrors) == true
+                || !operationResult.IsDataSet)
+            {
+                await Results.BadRequest().ExecuteAsync(context);
+                return;
+            }
+
+            // If execution started and we produced GraphQL errors,
+            // we return HTTP 500 or 401/403 for authorization errors.
             if (operationResult.Errors is not null)
             {
                 var result = GetResultFromErrors(operationResult.Errors);
@@ -59,6 +72,8 @@ internal sealed class DynamicEndpointMiddleware(string schemaName, ExecutableOpe
                 return;
             }
 
+            // If the root field is null and we don't have any errors,
+            // we return HTTP 404 for queries and HTTP 500 otherwise.
             if (operationResult.Data?.TryGetValue(document.ResponseNameToExtract, out var responseData) != true
                 || responseData is null)
             {
