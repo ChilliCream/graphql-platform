@@ -46,14 +46,14 @@ public abstract class ExecutionTask : IExecutionTask
     public void BeginExecute(CancellationToken cancellationToken)
     {
         Status = ExecutionTaskStatus.Running;
-        _task = ExecuteInternalAsync(cancellationToken).AsTask();
+        _task = ExecuteInternalAsync(cancellationToken);
     }
 
     /// <inheritdoc />
     public Task WaitForCompletionAsync(CancellationToken cancellationToken)
         => _task ?? Task.CompletedTask;
 
-    private async ValueTask ExecuteInternalAsync(CancellationToken cancellationToken)
+    private async Task ExecuteInternalAsync(CancellationToken cancellationToken)
     {
         try
         {

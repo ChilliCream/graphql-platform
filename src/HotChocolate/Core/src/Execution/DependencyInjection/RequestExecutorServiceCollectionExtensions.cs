@@ -49,7 +49,7 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddInputFormatter()
             .TryAddInputParser()
             .TryAddDefaultDocumentHashProvider()
-            .TryAddDefaultBatchDispatcher()
+            .TryAddDefaultBatchDispatcher(default)
             .TryAddDefaultDataLoaderRegistry()
             .TryAddDataLoaderParameterExpressionBuilder()
             .AddSingleton<ResolverProvider>();
@@ -214,10 +214,32 @@ public static class RequestExecutorServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddDefaultBatchDispatcher(this IServiceCollection services)
+    /// <summary>
+    /// Adds the batch dispatcher to the request executor.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="options">
+    ///  The batch dispatcher options.
+    /// </param>
+    /// <returns>
+    /// The request executor builder.
+    /// </returns>
+    public static IRequestExecutorBuilder AddDefaultBatchDispatcher(
+        this IRequestExecutorBuilder builder,
+        BatchDispatcherOptions options = default)
+    {
+        builder.Services.AddDefaultBatchDispatcher(options);
+        return builder;
+    }
+
+    public static IServiceCollection AddDefaultBatchDispatcher(
+        this IServiceCollection services,
+        BatchDispatcherOptions options = default)
     {
         services.RemoveAll<IBatchScheduler>();
-        services.TryAddDefaultBatchDispatcher();
+        services.TryAddDefaultBatchDispatcher(options);
         return services;
     }
 }
