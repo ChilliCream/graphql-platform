@@ -358,16 +358,18 @@ jobs:
           git fetch origin main:main
           if git show main:src/HotChocolate/AspNetCore/benchmarks/k6/performance-data.json > baseline-performance.json 2>/dev/null; then
             echo "Baseline data fetched successfully"
+            cat baseline-performance.json
           else
             echo "No baseline data found on main branch"
-            echo '{}' > baseline-performance.json
+            # Don't create the file - let the comparison script handle missing baseline
+            rm -f baseline-performance.json
           fi
 
       - name: Compare performance and generate report
         working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
         run: |
           chmod +x compare-performance.sh
-          ./compare-performance.sh performance-data-current.json ../../../../baseline-performance.json performance-report.md
+          ./compare-performance.sh performance-data-current.json ../../../../../baseline-performance.json performance-report.md
 
       - name: Comment PR with performance report
         uses: actions/github-script@v7
