@@ -111,5 +111,5 @@ internal sealed class ReadPersistedOperationMiddleware
                     options);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(ReadPersistedOperationMiddleware));
+            WellKnownRequestMiddleware.ReadPersistedOperationMiddleware);
 }

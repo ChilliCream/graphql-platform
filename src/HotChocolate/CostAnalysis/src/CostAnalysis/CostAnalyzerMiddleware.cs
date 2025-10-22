@@ -164,6 +164,6 @@ internal sealed class CostAnalyzerMiddleware(
 
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(CostAnalyzerMiddleware));
+            WellKnownRequestMiddleware.CostAnalyzerMiddleware);
     }
 }

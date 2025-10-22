@@ -58,7 +58,7 @@ internal sealed class ExceptionMiddleware
                 var middleware = Create(next, diagnosticEvents, errorHandler);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(ExceptionMiddleware));
+            WellKnownRequestMiddleware.ExceptionMiddleware);
 
     internal static ExceptionMiddleware Create(
         RequestDelegate next,
