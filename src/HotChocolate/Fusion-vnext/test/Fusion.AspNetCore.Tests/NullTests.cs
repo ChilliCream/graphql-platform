@@ -13,7 +13,7 @@ public class NullTests : FusionTestBase
         using var server1 = CreateSourceSchema(
             "A",
             b => b.AddQueryType<SourceSchema1.Query>()
-                .InsertUseRequest("OperationExecutionMiddleware", (_, _) => context =>
+                .InsertUseRequest(WellKnownRequestMiddleware.OperationExecutionMiddleware, (_, _) => context =>
                 {
                     context.Result = OperationResultBuilder.New()
                         .SetData(new Dictionary<string, object?> { ["nonNullString"] = null })

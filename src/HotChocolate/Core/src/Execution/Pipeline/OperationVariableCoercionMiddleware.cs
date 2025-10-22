@@ -52,5 +52,5 @@ internal sealed class OperationVariableCoercionMiddleware
                 var middleware = new OperationVariableCoercionMiddleware(next, coercionHelper, diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(OperationVariableCoercionMiddleware));
+            WellKnownRequestMiddleware.OperationVariableCoercionMiddleware);
 }

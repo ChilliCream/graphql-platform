@@ -129,7 +129,7 @@ internal sealed class DocumentParserMiddleware
                 var middleware = Create(next, diagnosticEvents, documentHashProvider, errorHandler, parserOptions);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(DocumentParserMiddleware));
+            WellKnownRequestMiddleware.DocumentParserMiddleware);
 
     internal static DocumentParserMiddleware Create(
         RequestDelegate next,
