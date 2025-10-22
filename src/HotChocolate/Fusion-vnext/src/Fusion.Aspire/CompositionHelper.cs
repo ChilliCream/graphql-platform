@@ -93,7 +93,10 @@ internal static class CompositionHelper
             sourceSchemas.Values.Select(t => t.Schema),
             new SchemaComposerOptions
             {
-                EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification
+                Merger =
+                {
+                    EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification
+                }
             },
             compositionLog);
         var result = schemaComposer.Compose();

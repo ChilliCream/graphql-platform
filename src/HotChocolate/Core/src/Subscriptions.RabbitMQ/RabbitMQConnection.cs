@@ -1,111 +1,119 @@
 using HotChocolate.Subscriptions.Diagnostics;
-using HotChocolate.Utilities;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using static HotChocolate.Subscriptions.RabbitMQ.RabbitMQResources;
 
 namespace HotChocolate.Subscriptions.RabbitMQ;
 
-internal sealed class RabbitMQConnection : IRabbitMQConnection, IDisposable
+internal sealed class RabbitMQConnection : IRabbitMQConnection, IAsyncDisposable
 {
     private const int RetryCount = 6;
-    private readonly object _sync = new();
-    private readonly TaskCompletionSource<IConnection> _completionSource = new();
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
-    private bool _disposed;
+    private readonly ConnectionFactory _connectionFactory;
     private IConnection? _connection;
-    private IModel? _channel;
+    private IChannel? _channel;
+    private bool _disposed;
 
     public RabbitMQConnection(ISubscriptionDiagnosticEvents diagnosticEvents, ConnectionFactory connectionFactory)
     {
-        _diagnosticEvents = diagnosticEvents ?? throw new ArgumentNullException(nameof(diagnosticEvents));
-
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
         ArgumentNullException.ThrowIfNull(connectionFactory);
 
-        InitializeConnection(connectionFactory);
+        _diagnosticEvents = diagnosticEvents;
+        _connectionFactory = connectionFactory;
+        _connectionFactory.TopologyRecoveryEnabled = true;
+        _connectionFactory.AutomaticRecoveryEnabled = true;
     }
 
-    public async Task<IModel> GetChannelAsync()
+    public async Task<IChannel> GetChannelAsync(CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (_channel is not null)
+        if (_channel?.IsOpen is true)
         {
             return _channel;
         }
 
-        var connection = await _completionSource.Task.ConfigureAwait(false);
-
-        lock (_sync)
+        await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
         {
-            var channel = connection.CreateModel();
+            if (_channel?.IsOpen is true)
+            {
+                return _channel;
+            }
 
-            channel.CallbackException +=
-                (_, args) => _diagnosticEvents.ProviderInfo(args.Exception.Message);
+            if (_channel != null)
+            {
+                await _channel.DisposeAsync().ConfigureAwait(false);
+                _channel = null;
+            }
 
-            _connection = connection;
+            if (_connection is { IsOpen: false })
+            {
+                await _connection.DisposeAsync().ConfigureAwait(false);
+                _connection = null;
+            }
 
-            return _channel ??= channel;
+            _connection ??= await CreateConnectionAsync(cancellationToken).ConfigureAwait(false);
+            _channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            return _channel;
+        }
+        finally
+        {
+            _semaphore.Release();
         }
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (_disposed)
         {
             return;
         }
 
+        if (_channel != null)
+        {
+            await _channel.CloseAsync().ConfigureAwait(false);
+            await _channel.DisposeAsync().ConfigureAwait(false);
+        }
+
+        if (_connection != null)
+        {
+            await _connection.CloseAsync().ConfigureAwait(false);
+            await _connection.DisposeAsync().ConfigureAwait(false);
+        }
+
+        _semaphore.Dispose();
         _disposed = true;
-        _completionSource.TrySetCanceled();
-        _channel?.Dispose();
-        _connection?.Dispose();
     }
 
-    private void InitializeConnection(ConnectionFactory connectionFactory)
-        => InitializeConnectionAsync(connectionFactory).FireAndForget();
-
-    private async Task InitializeConnectionAsync(ConnectionFactory connectionFactory)
+    private async Task<IConnection> CreateConnectionAsync(CancellationToken cancellationToken)
     {
-        connectionFactory.AutomaticRecoveryEnabled = true;
-        connectionFactory.DispatchConsumersAsync = true;
-        var connectionAttempt = 0;
-
-        while (connectionAttempt < RetryCount)
+        for (var connectionAttempt = 0; connectionAttempt < RetryCount; connectionAttempt++)
         {
             try
             {
-                var connection = connectionFactory.CreateConnection();
-
-                if (_completionSource.TrySetResult(connection))
-                {
-                    return;
-                }
-
-                throw new InvalidOperationException(
-                    RabbitMQConnection_InitializeConnection_ConnectionSucceededButFailedUnexpectedly);
+                return await _connectionFactory.CreateConnectionAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (BrokerUnreachableException)
             {
-                connectionAttempt++;
                 _diagnosticEvents.ProviderInfo(string.Format(
                     RabbitMQConnection_InitializeConnection_ConnectionAttemptFailed,
                     connectionAttempt));
-            }
 
-            if (connectionAttempt < RetryCount)
-            {
-                await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, connectionAttempt))).ConfigureAwait(false);
+                if (connectionAttempt < RetryCount - 1)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, connectionAttempt)), cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
         _diagnosticEvents.ProviderInfo(string.Format(
             RabbitMQConnection_InitializeConnection_ConnectionFailedAfterRetry,
-            connectionAttempt));
+            RetryCount));
 
-        if (!_completionSource.TrySetException(new RabbitMQConnectionFailedException(connectionAttempt)))
-        {
-            throw new InvalidOperationException(RabbitMQConnection_InitializeConnection_ConnectionFailedUnexpectedly);
-        }
+        throw new InvalidOperationException(RabbitMQConnection_InitializeConnection_ConnectionFailedUnexpectedly);
     }
 }

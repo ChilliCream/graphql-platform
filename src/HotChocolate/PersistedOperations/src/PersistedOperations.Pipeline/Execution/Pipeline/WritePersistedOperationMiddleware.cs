@@ -108,5 +108,5 @@ internal sealed class WritePersistedOperationMiddleware
                 var middleware = new WritePersistedOperationMiddleware(next, documentHashProvider, persistedOperationStore);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(WritePersistedOperationMiddleware));
+            WellKnownRequestMiddleware.WritePersistedOperationMiddleware);
 }

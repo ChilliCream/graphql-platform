@@ -60,6 +60,46 @@ internal class AggregateDataLoaderDiagnosticEventListener(
         }
     }
 
+    /// <inheritdoc />
+    public override IDisposable RunBatchDispatchCoordinator()
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].RunBatchDispatchCoordinator();
+        }
+
+        return new AggregateEventScope(scopes);
+    }
+
+    /// <inheritdoc />
+    public override void BatchDispatchError(Exception error)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].BatchDispatchError(error);
+        }
+    }
+
+    /// <inheritdoc />
+    public override void BatchEvaluated(int openBatches)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].BatchEvaluated(openBatches);
+        }
+    }
+
+    /// <inheritdoc />
+    public override void BatchDispatched(int dispatchedBatches, bool inParallel)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].BatchDispatched(dispatchedBatches, inParallel);
+        }
+    }
+
     private sealed class AggregateEventScope(IDisposable[] scopes) : IDisposable
     {
         public void Dispose()
