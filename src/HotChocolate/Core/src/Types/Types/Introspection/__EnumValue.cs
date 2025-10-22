@@ -15,6 +15,7 @@ internal sealed class __EnumValue : ObjectType<EnumValue>
     {
         var stringType = Create(ScalarNames.String);
         var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullStringListType = Parse($"[{ScalarNames.String}!]");
         var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
         var appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
@@ -42,6 +43,14 @@ internal sealed class __EnumValue : ObjectType<EnumValue>
                 pureResolver: Resolvers.AppliedDirectives));
         }
 
+        if (context.DescriptorContext.Options.EnableOptInFeatures)
+        {
+            def.Fields.Add(new(
+                Names.RequiresOptIn,
+                type: nonNullStringListType,
+                pureResolver: Resolvers.RequiresOptIn));
+        }
+
         return def;
     }
 
@@ -63,6 +72,11 @@ internal sealed class __EnumValue : ObjectType<EnumValue>
             => context.Parent<EnumValue>().Directives
                 .Where(t => t.Type.IsPublic)
                 .Select(d => d.ToSyntaxNode());
+
+        public static object RequiresOptIn(IResolverContext context)
+            => context.Parent<IEnumValue>().Directives
+                .Where(t => t.Definition is RequiresOptInDirectiveType)
+                .Select(d => d.ToValue<RequiresOptInDirective>().Feature);
     }
 
     public static class Names
@@ -74,6 +88,7 @@ internal sealed class __EnumValue : ObjectType<EnumValue>
         public const string IsDeprecated = "isDeprecated";
         public const string DeprecationReason = "deprecationReason";
         public const string AppliedDirectives = "appliedDirectives";
+        public const string RequiresOptIn = "requiresOptIn";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles
