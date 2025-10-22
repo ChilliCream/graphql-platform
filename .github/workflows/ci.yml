@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - main-version-*
+    paths-ignore:
+      - 'src/HotChocolate/AspNetCore/benchmarks/k6/performance-data.json'
 
 concurrency:
   group: ci-new-2-${{ github.event.pull_request.number }}
@@ -263,7 +265,7 @@ jobs:
     if: needs.check-changes.outputs.src_changes == 'true'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
 
     steps:
@@ -327,6 +329,27 @@ jobs:
           if [ -n "$APPHOST_PID" ]; then
             kill $APPHOST_PID 2>/dev/null || true
             wait $APPHOST_PID 2>/dev/null || true
+          fi
+
+      - name: Commit and push performance data to current branch
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
+        run: |
+          # Copy the performance data to the tracked filename
+          cp performance-data-current.json performance-data.json
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Add and commit the performance data
+          git add performance-data.json
+
+          # Only commit if there are changes
+          if ! git diff --staged --quiet; then
+            git commit -m "Update performance data [skip ci]"
+            git push origin HEAD:${{ github.head_ref }}
+          else
+            echo "No changes to performance data"
           fi
 
       - name: Fetch baseline performance data from main
