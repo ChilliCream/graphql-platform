@@ -326,4 +326,53 @@ public static class DirectiveNames
             public const string Field = "field";
         }
     }
+
+    /// <summary>
+    /// The name constants of the @requiresOptIn directive.
+    /// </summary>
+    public static class RequiresOptIn
+    {
+        /// <summary>
+        /// The name of the @requiresOptIn directive.
+        /// </summary>
+        public const string Name = "requiresOptIn";
+
+        /// <summary>
+        /// The argument names of the @requiresOptIn directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the @requiresOptIn feature argument.
+            /// </summary>
+            public const string Feature = "feature";
+        }
+    }
+
+    /// <summary>
+    /// The name constants of the @optInFeatureStability directive.
+    /// </summary>
+    public static class OptInFeatureStability
+    {
+        /// <summary>
+        /// The name of the @optInFeatureStability directive.
+        /// </summary>
+        public const string Name = "optInFeatureStability";
+
+        /// <summary>
+        /// The argument names of the @optInFeatureStability directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the @optInFeatureStability feature argument.
+            /// </summary>
+            public const string Feature = "feature";
+
+            /// <summary>
+            /// The name of the @optInFeatureStability stability argument.
+            /// </summary>
+            public const string Stability = "stability";
+        }
+    }
 }
