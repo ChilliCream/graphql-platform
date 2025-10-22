@@ -1,0 +1,18 @@
+{
+  "message": "The @requiresOptIn directive must not appear on required (non-null without a default) arguments.",
+  "type": "Object",
+  "extensions": {
+    "argument": "argument",
+    "field": "field"
+  }
+}
+
+{
+  "message": "The @requiresOptIn directive must not appear on required (non-null without a default) arguments.",
+  "type": "Object",
+  "extensions": {
+    "argument": "argument",
+    "field": "field"
+  }
+}
+
