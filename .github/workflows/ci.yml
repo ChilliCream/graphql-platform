@@ -33,9 +33,9 @@ jobs:
         run: |
           changes=$(git diff --name-only HEAD~1 HEAD -- ./website)
           if [[ -n "$changes" ]]; then
-            echo "::set-output name=website_changes::true"
+            echo "website_changes=true" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=website_changes::false"
+            echo "website_changes=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Check for changes outside website directory
@@ -43,9 +43,9 @@ jobs:
         run: |
           changes=$(git diff --name-only HEAD~1 HEAD -- ':!./website')
           if [[ -n "$changes" ]]; then
-            echo "::set-output name=library_changes::true"
+            echo "library_changes=true" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=library_changes::false"
+            echo "library_changes=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Check for changes in src directory or CI workflow
