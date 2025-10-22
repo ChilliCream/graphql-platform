@@ -117,89 +117,129 @@ cat > "$OUTPUT_MD" <<'EOF'
 EOF
 
 # Extract current metrics (raw values for calculations)
+CURRENT_SF_MIN_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.min")
 CURRENT_SF_P50_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.p50")
+CURRENT_SF_MAX_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.max")
+CURRENT_SF_AVG_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.avg")
+CURRENT_SF_P90_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.p90")
 CURRENT_SF_P95_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.p95")
 CURRENT_SF_P99_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.p99")
-CURRENT_SF_AVG_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.avg")
 CURRENT_SF_RPS_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".throughput.requests_per_second")
 CURRENT_SF_ERR_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".reliability.error_rate")
 
+CURRENT_DL_MIN_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.min")
 CURRENT_DL_P50_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.p50")
+CURRENT_DL_MAX_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.max")
+CURRENT_DL_AVG_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.avg")
+CURRENT_DL_P90_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.p90")
 CURRENT_DL_P95_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.p95")
 CURRENT_DL_P99_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.p99")
-CURRENT_DL_AVG_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.avg")
 CURRENT_DL_RPS_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.throughput.requests_per_second")
 CURRENT_DL_ERR_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.reliability.error_rate")
 
 # Format current metrics for display
+CURRENT_SF_MIN=$(format_number "$CURRENT_SF_MIN_RAW")
 CURRENT_SF_P50=$(format_number "$CURRENT_SF_P50_RAW")
+CURRENT_SF_MAX=$(format_number "$CURRENT_SF_MAX_RAW")
+CURRENT_SF_AVG=$(format_number "$CURRENT_SF_AVG_RAW")
+CURRENT_SF_P90=$(format_number "$CURRENT_SF_P90_RAW")
 CURRENT_SF_P95=$(format_number "$CURRENT_SF_P95_RAW")
 CURRENT_SF_P99=$(format_number "$CURRENT_SF_P99_RAW")
-CURRENT_SF_AVG=$(format_number "$CURRENT_SF_AVG_RAW")
 CURRENT_SF_RPS=$(format_number "$CURRENT_SF_RPS_RAW")
 CURRENT_SF_ERR=$(format_number "$CURRENT_SF_ERR_RAW")
 
+CURRENT_DL_MIN=$(format_number "$CURRENT_DL_MIN_RAW")
 CURRENT_DL_P50=$(format_number "$CURRENT_DL_P50_RAW")
+CURRENT_DL_MAX=$(format_number "$CURRENT_DL_MAX_RAW")
+CURRENT_DL_AVG=$(format_number "$CURRENT_DL_AVG_RAW")
+CURRENT_DL_P90=$(format_number "$CURRENT_DL_P90_RAW")
 CURRENT_DL_P95=$(format_number "$CURRENT_DL_P95_RAW")
 CURRENT_DL_P99=$(format_number "$CURRENT_DL_P99_RAW")
-CURRENT_DL_AVG=$(format_number "$CURRENT_DL_AVG_RAW")
 CURRENT_DL_RPS=$(format_number "$CURRENT_DL_RPS_RAW")
 CURRENT_DL_ERR=$(format_number "$CURRENT_DL_ERR_RAW")
 
 # If baseline exists, calculate comparisons
 if [ -n "$BASELINE_FILE" ]; then
+    BASELINE_SF_MIN_RAW=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.min")
     BASELINE_SF_P50_RAW=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.p50")
+    BASELINE_SF_MAX_RAW=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.max")
+    BASELINE_SF_AVG_RAW=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.avg")
+    BASELINE_SF_P90_RAW=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.p90")
     BASELINE_SF_P95_RAW=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.p95")
     BASELINE_SF_P99_RAW=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.p99")
-    BASELINE_SF_AVG_RAW=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.avg")
     BASELINE_SF_RPS_RAW=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".throughput.requests_per_second")
 
+    BASELINE_DL_MIN_RAW=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.min")
     BASELINE_DL_P50_RAW=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.p50")
+    BASELINE_DL_MAX_RAW=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.max")
+    BASELINE_DL_AVG_RAW=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.avg")
+    BASELINE_DL_P90_RAW=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.p90")
     BASELINE_DL_P95_RAW=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.p95")
     BASELINE_DL_P99_RAW=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.p99")
-    BASELINE_DL_AVG_RAW=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.avg")
     BASELINE_DL_RPS_RAW=$(get_value "$BASELINE_FILE" ".tests.dataloader.throughput.requests_per_second")
 
     # Format baseline values for display
+    BASELINE_SF_MIN=$(format_number "$BASELINE_SF_MIN_RAW")
     BASELINE_SF_P50=$(format_number "$BASELINE_SF_P50_RAW")
+    BASELINE_SF_MAX=$(format_number "$BASELINE_SF_MAX_RAW")
+    BASELINE_SF_AVG=$(format_number "$BASELINE_SF_AVG_RAW")
+    BASELINE_SF_P90=$(format_number "$BASELINE_SF_P90_RAW")
     BASELINE_SF_P95=$(format_number "$BASELINE_SF_P95_RAW")
     BASELINE_SF_P99=$(format_number "$BASELINE_SF_P99_RAW")
-    BASELINE_SF_AVG=$(format_number "$BASELINE_SF_AVG_RAW")
     BASELINE_SF_RPS=$(format_number "$BASELINE_SF_RPS_RAW")
 
+    BASELINE_DL_MIN=$(format_number "$BASELINE_DL_MIN_RAW")
     BASELINE_DL_P50=$(format_number "$BASELINE_DL_P50_RAW")
+    BASELINE_DL_MAX=$(format_number "$BASELINE_DL_MAX_RAW")
+    BASELINE_DL_AVG=$(format_number "$BASELINE_DL_AVG_RAW")
+    BASELINE_DL_P90=$(format_number "$BASELINE_DL_P90_RAW")
     BASELINE_DL_P95=$(format_number "$BASELINE_DL_P95_RAW")
     BASELINE_DL_P99=$(format_number "$BASELINE_DL_P99_RAW")
-    BASELINE_DL_AVG=$(format_number "$BASELINE_DL_AVG_RAW")
     BASELINE_DL_RPS=$(format_number "$BASELINE_DL_RPS_RAW")
 
     # Calculate changes using raw values
+    CHANGE_SF_MIN=$(calc_change "$CURRENT_SF_MIN_RAW" "$BASELINE_SF_MIN_RAW")
     CHANGE_SF_P50=$(calc_change "$CURRENT_SF_P50_RAW" "$BASELINE_SF_P50_RAW")
+    CHANGE_SF_MAX=$(calc_change "$CURRENT_SF_MAX_RAW" "$BASELINE_SF_MAX_RAW")
+    CHANGE_SF_AVG=$(calc_change "$CURRENT_SF_AVG_RAW" "$BASELINE_SF_AVG_RAW")
+    CHANGE_SF_P90=$(calc_change "$CURRENT_SF_P90_RAW" "$BASELINE_SF_P90_RAW")
     CHANGE_SF_P95=$(calc_change "$CURRENT_SF_P95_RAW" "$BASELINE_SF_P95_RAW")
     CHANGE_SF_P99=$(calc_change "$CURRENT_SF_P99_RAW" "$BASELINE_SF_P99_RAW")
-    CHANGE_SF_AVG=$(calc_change "$CURRENT_SF_AVG_RAW" "$BASELINE_SF_AVG_RAW")
     CHANGE_SF_RPS=$(calc_change "$CURRENT_SF_RPS_RAW" "$BASELINE_SF_RPS_RAW")
 
+    CHANGE_DL_MIN=$(calc_change "$CURRENT_DL_MIN_RAW" "$BASELINE_DL_MIN_RAW")
     CHANGE_DL_P50=$(calc_change "$CURRENT_DL_P50_RAW" "$BASELINE_DL_P50_RAW")
+    CHANGE_DL_MAX=$(calc_change "$CURRENT_DL_MAX_RAW" "$BASELINE_DL_MAX_RAW")
+    CHANGE_DL_AVG=$(calc_change "$CURRENT_DL_AVG_RAW" "$BASELINE_DL_AVG_RAW")
+    CHANGE_DL_P90=$(calc_change "$CURRENT_DL_P90_RAW" "$BASELINE_DL_P90_RAW")
     CHANGE_DL_P95=$(calc_change "$CURRENT_DL_P95_RAW" "$BASELINE_DL_P95_RAW")
     CHANGE_DL_P99=$(calc_change "$CURRENT_DL_P99_RAW" "$BASELINE_DL_P99_RAW")
-    CHANGE_DL_AVG=$(calc_change "$CURRENT_DL_AVG_RAW" "$BASELINE_DL_AVG_RAW")
     CHANGE_DL_RPS=$(calc_change "$CURRENT_DL_RPS_RAW" "$BASELINE_DL_RPS_RAW")
 
     # Add comparison section
     cat >> "$OUTPUT_MD" <<EOF
 ### 📊 Response Time
 
-| Test | Metric | Current | Baseline | Change |
-|------|--------|---------|----------|--------|
-| **Single Fetch** | **P50 (median)** | ${CURRENT_SF_P50}ms | ${BASELINE_SF_P50}ms | $(get_emoji "$CHANGE_SF_P50" "latency") $(format_change "$CHANGE_SF_P50") |
-| | **P95** | ${CURRENT_SF_P95}ms | ${BASELINE_SF_P95}ms | $(get_emoji "$CHANGE_SF_P95" "latency") $(format_change "$CHANGE_SF_P95") |
-| | **P99** | ${CURRENT_SF_P99}ms | ${BASELINE_SF_P99}ms | $(get_emoji "$CHANGE_SF_P99" "latency") $(format_change "$CHANGE_SF_P99") |
-| | **Average** | ${CURRENT_SF_AVG}ms | ${BASELINE_SF_AVG}ms | $(get_emoji "$CHANGE_SF_AVG" "latency") $(format_change "$CHANGE_SF_AVG") |
-| **DataLoader** | **P50 (median)** | ${CURRENT_DL_P50}ms | ${BASELINE_DL_P50}ms | $(get_emoji "$CHANGE_DL_P50" "latency") $(format_change "$CHANGE_DL_P50") |
-| | **P95** | ${CURRENT_DL_P95}ms | ${BASELINE_DL_P95}ms | $(get_emoji "$CHANGE_DL_P95" "latency") $(format_change "$CHANGE_DL_P95") |
-| | **P99** | ${CURRENT_DL_P99}ms | ${BASELINE_DL_P99}ms | $(get_emoji "$CHANGE_DL_P99" "latency") $(format_change "$CHANGE_DL_P99") |
-| | **Average** | ${CURRENT_DL_AVG}ms | ${BASELINE_DL_AVG}ms | $(get_emoji "$CHANGE_DL_AVG" "latency") $(format_change "$CHANGE_DL_AVG") |
+#### Current
+
+| Test | Min | Med | Max | Avg | P90 | P95 | P99 |
+|------|-----|-----|-----|-----|-----|-----|-----|
+| **Single Fetch** | ${CURRENT_SF_MIN}ms | ${CURRENT_SF_P50}ms | ${CURRENT_SF_MAX}ms | ${CURRENT_SF_AVG}ms | ${CURRENT_SF_P90}ms | ${CURRENT_SF_P95}ms | ${CURRENT_SF_P99}ms |
+| **DataLoader** | ${CURRENT_DL_MIN}ms | ${CURRENT_DL_P50}ms | ${CURRENT_DL_MAX}ms | ${CURRENT_DL_AVG}ms | ${CURRENT_DL_P90}ms | ${CURRENT_DL_P95}ms | ${CURRENT_DL_P99}ms |
+
+#### Baseline
+
+| Test | Min | Med | Max | Avg | P90 | P95 | P99 |
+|------|-----|-----|-----|-----|-----|-----|-----|
+| **Single Fetch** | ${BASELINE_SF_MIN}ms | ${BASELINE_SF_P50}ms | ${BASELINE_SF_MAX}ms | ${BASELINE_SF_AVG}ms | ${BASELINE_SF_P90}ms | ${BASELINE_SF_P95}ms | ${BASELINE_SF_P99}ms |
+| **DataLoader** | ${BASELINE_DL_MIN}ms | ${BASELINE_DL_P50}ms | ${BASELINE_DL_MAX}ms | ${BASELINE_DL_AVG}ms | ${BASELINE_DL_P90}ms | ${BASELINE_DL_P95}ms | ${BASELINE_DL_P99}ms |
+
+#### Change vs Baseline
+
+| Test | Min | Med | Max | Avg | P90 | P95 | P99 |
+|------|-----|-----|-----|-----|-----|-----|-----|
+| **Single Fetch** | $(get_emoji "$CHANGE_SF_MIN" "latency") $(format_change "$CHANGE_SF_MIN") | $(get_emoji "$CHANGE_SF_P50" "latency") $(format_change "$CHANGE_SF_P50") | $(get_emoji "$CHANGE_SF_MAX" "latency") $(format_change "$CHANGE_SF_MAX") | $(get_emoji "$CHANGE_SF_AVG" "latency") $(format_change "$CHANGE_SF_AVG") | $(get_emoji "$CHANGE_SF_P90" "latency") $(format_change "$CHANGE_SF_P90") | $(get_emoji "$CHANGE_SF_P95" "latency") $(format_change "$CHANGE_SF_P95") | $(get_emoji "$CHANGE_SF_P99" "latency") $(format_change "$CHANGE_SF_P99") |
+| **DataLoader** | $(get_emoji "$CHANGE_DL_MIN" "latency") $(format_change "$CHANGE_DL_MIN") | $(get_emoji "$CHANGE_DL_P50" "latency") $(format_change "$CHANGE_DL_P50") | $(get_emoji "$CHANGE_DL_MAX" "latency") $(format_change "$CHANGE_DL_MAX") | $(get_emoji "$CHANGE_DL_AVG" "latency") $(format_change "$CHANGE_DL_AVG") | $(get_emoji "$CHANGE_DL_P90" "latency") $(format_change "$CHANGE_DL_P90") | $(get_emoji "$CHANGE_DL_P95" "latency") $(format_change "$CHANGE_DL_P95") | $(get_emoji "$CHANGE_DL_P99" "latency") $(format_change "$CHANGE_DL_P99") |
 
 ### ⚡ Throughput
 
@@ -241,10 +281,10 @@ else
     cat >> "$OUTPUT_MD" <<EOF
 ### 📊 Response Time
 
-| Test | P50 (median) | P95 | P99 | Average |
-|------|-------------|-----|-----|---------|
-| **Single Fetch** | ${CURRENT_SF_P50}ms | ${CURRENT_SF_P95}ms | ${CURRENT_SF_P99}ms | ${CURRENT_SF_AVG}ms |
-| **DataLoader** | ${CURRENT_DL_P50}ms | ${CURRENT_DL_P95}ms | ${CURRENT_DL_P99}ms | ${CURRENT_DL_AVG}ms |
+| Test | Min | Med | Max | Avg | P90 | P95 | P99 |
+|------|-----|-----|-----|-----|-----|-----|-----|
+| **Single Fetch** | ${CURRENT_SF_MIN}ms | ${CURRENT_SF_P50}ms | ${CURRENT_SF_MAX}ms | ${CURRENT_SF_AVG}ms | ${CURRENT_SF_P90}ms | ${CURRENT_SF_P95}ms | ${CURRENT_SF_P99}ms |
+| **DataLoader** | ${CURRENT_DL_MIN}ms | ${CURRENT_DL_P50}ms | ${CURRENT_DL_MAX}ms | ${CURRENT_DL_AVG}ms | ${CURRENT_DL_P90}ms | ${CURRENT_DL_P95}ms | ${CURRENT_DL_P99}ms |
 
 ### ⚡ Throughput
 

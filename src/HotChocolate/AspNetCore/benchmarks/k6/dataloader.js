@@ -14,6 +14,7 @@ export const options = {
     'http_req_duration': ['p(95)<1000', 'p(99)<2000'],
     'http_req_failed': ['rate<0.05'],
   },
+  summaryTrendStats: ['min', 'avg', 'med', 'max', 'p(90)', 'p(95)', 'p(99)'],
 };
 
 const GRAPHQL_URL = 'http://localhost:5224/graphql';
