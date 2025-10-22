@@ -30,6 +30,12 @@ get_value() {
     fi
 }
 
+# Function to format number to 2 decimal places
+format_number() {
+    local num=$1
+    printf "%.2f" "$num" 2>/dev/null || echo "$num"
+}
+
 # Function to calculate percentage change
 calc_change() {
     local current=$1
@@ -110,47 +116,75 @@ cat > "$OUTPUT_MD" <<'EOF'
 
 EOF
 
-# Extract current metrics
-CURRENT_SF_P50=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.p50")
-CURRENT_SF_P95=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.p95")
-CURRENT_SF_P99=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.p99")
-CURRENT_SF_AVG=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.avg")
-CURRENT_SF_RPS=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".throughput.requests_per_second")
-CURRENT_SF_ERR=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".reliability.error_rate")
+# Extract current metrics (raw values for calculations)
+CURRENT_SF_P50_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.p50")
+CURRENT_SF_P95_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.p95")
+CURRENT_SF_P99_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.p99")
+CURRENT_SF_AVG_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".response_time.avg")
+CURRENT_SF_RPS_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".throughput.requests_per_second")
+CURRENT_SF_ERR_RAW=$(get_value "$CURRENT_FILE" ".tests.\"single-fetch\".reliability.error_rate")
 
-CURRENT_DL_P50=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.p50")
-CURRENT_DL_P95=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.p95")
-CURRENT_DL_P99=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.p99")
-CURRENT_DL_AVG=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.avg")
-CURRENT_DL_RPS=$(get_value "$CURRENT_FILE" ".tests.dataloader.throughput.requests_per_second")
-CURRENT_DL_ERR=$(get_value "$CURRENT_FILE" ".tests.dataloader.reliability.error_rate")
+CURRENT_DL_P50_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.p50")
+CURRENT_DL_P95_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.p95")
+CURRENT_DL_P99_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.p99")
+CURRENT_DL_AVG_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.response_time.avg")
+CURRENT_DL_RPS_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.throughput.requests_per_second")
+CURRENT_DL_ERR_RAW=$(get_value "$CURRENT_FILE" ".tests.dataloader.reliability.error_rate")
+
+# Format current metrics for display
+CURRENT_SF_P50=$(format_number "$CURRENT_SF_P50_RAW")
+CURRENT_SF_P95=$(format_number "$CURRENT_SF_P95_RAW")
+CURRENT_SF_P99=$(format_number "$CURRENT_SF_P99_RAW")
+CURRENT_SF_AVG=$(format_number "$CURRENT_SF_AVG_RAW")
+CURRENT_SF_RPS=$(format_number "$CURRENT_SF_RPS_RAW")
+CURRENT_SF_ERR=$(format_number "$CURRENT_SF_ERR_RAW")
+
+CURRENT_DL_P50=$(format_number "$CURRENT_DL_P50_RAW")
+CURRENT_DL_P95=$(format_number "$CURRENT_DL_P95_RAW")
+CURRENT_DL_P99=$(format_number "$CURRENT_DL_P99_RAW")
+CURRENT_DL_AVG=$(format_number "$CURRENT_DL_AVG_RAW")
+CURRENT_DL_RPS=$(format_number "$CURRENT_DL_RPS_RAW")
+CURRENT_DL_ERR=$(format_number "$CURRENT_DL_ERR_RAW")
 
 # If baseline exists, calculate comparisons
 if [ -n "$BASELINE_FILE" ]; then
-    BASELINE_SF_P50=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.p50")
-    BASELINE_SF_P95=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.p95")
-    BASELINE_SF_P99=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.p99")
-    BASELINE_SF_AVG=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.avg")
-    BASELINE_SF_RPS=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".throughput.requests_per_second")
+    BASELINE_SF_P50_RAW=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.p50")
+    BASELINE_SF_P95_RAW=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.p95")
+    BASELINE_SF_P99_RAW=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.p99")
+    BASELINE_SF_AVG_RAW=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".response_time.avg")
+    BASELINE_SF_RPS_RAW=$(get_value "$BASELINE_FILE" ".tests.\"single-fetch\".throughput.requests_per_second")
 
-    BASELINE_DL_P50=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.p50")
-    BASELINE_DL_P95=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.p95")
-    BASELINE_DL_P99=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.p99")
-    BASELINE_DL_AVG=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.avg")
-    BASELINE_DL_RPS=$(get_value "$BASELINE_FILE" ".tests.dataloader.throughput.requests_per_second")
+    BASELINE_DL_P50_RAW=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.p50")
+    BASELINE_DL_P95_RAW=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.p95")
+    BASELINE_DL_P99_RAW=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.p99")
+    BASELINE_DL_AVG_RAW=$(get_value "$BASELINE_FILE" ".tests.dataloader.response_time.avg")
+    BASELINE_DL_RPS_RAW=$(get_value "$BASELINE_FILE" ".tests.dataloader.throughput.requests_per_second")
 
-    # Calculate changes
-    CHANGE_SF_P50=$(calc_change "$CURRENT_SF_P50" "$BASELINE_SF_P50")
-    CHANGE_SF_P95=$(calc_change "$CURRENT_SF_P95" "$BASELINE_SF_P95")
-    CHANGE_SF_P99=$(calc_change "$CURRENT_SF_P99" "$BASELINE_SF_P99")
-    CHANGE_SF_AVG=$(calc_change "$CURRENT_SF_AVG" "$BASELINE_SF_AVG")
-    CHANGE_SF_RPS=$(calc_change "$CURRENT_SF_RPS" "$BASELINE_SF_RPS")
+    # Format baseline values for display
+    BASELINE_SF_P50=$(format_number "$BASELINE_SF_P50_RAW")
+    BASELINE_SF_P95=$(format_number "$BASELINE_SF_P95_RAW")
+    BASELINE_SF_P99=$(format_number "$BASELINE_SF_P99_RAW")
+    BASELINE_SF_AVG=$(format_number "$BASELINE_SF_AVG_RAW")
+    BASELINE_SF_RPS=$(format_number "$BASELINE_SF_RPS_RAW")
 
-    CHANGE_DL_P50=$(calc_change "$CURRENT_DL_P50" "$BASELINE_DL_P50")
-    CHANGE_DL_P95=$(calc_change "$CURRENT_DL_P95" "$BASELINE_DL_P95")
-    CHANGE_DL_P99=$(calc_change "$CURRENT_DL_P99" "$BASELINE_DL_P99")
-    CHANGE_DL_AVG=$(calc_change "$CURRENT_DL_AVG" "$BASELINE_DL_AVG")
-    CHANGE_DL_RPS=$(calc_change "$CURRENT_DL_RPS" "$BASELINE_DL_RPS")
+    BASELINE_DL_P50=$(format_number "$BASELINE_DL_P50_RAW")
+    BASELINE_DL_P95=$(format_number "$BASELINE_DL_P95_RAW")
+    BASELINE_DL_P99=$(format_number "$BASELINE_DL_P99_RAW")
+    BASELINE_DL_AVG=$(format_number "$BASELINE_DL_AVG_RAW")
+    BASELINE_DL_RPS=$(format_number "$BASELINE_DL_RPS_RAW")
+
+    # Calculate changes using raw values
+    CHANGE_SF_P50=$(calc_change "$CURRENT_SF_P50_RAW" "$BASELINE_SF_P50_RAW")
+    CHANGE_SF_P95=$(calc_change "$CURRENT_SF_P95_RAW" "$BASELINE_SF_P95_RAW")
+    CHANGE_SF_P99=$(calc_change "$CURRENT_SF_P99_RAW" "$BASELINE_SF_P99_RAW")
+    CHANGE_SF_AVG=$(calc_change "$CURRENT_SF_AVG_RAW" "$BASELINE_SF_AVG_RAW")
+    CHANGE_SF_RPS=$(calc_change "$CURRENT_SF_RPS_RAW" "$BASELINE_SF_RPS_RAW")
+
+    CHANGE_DL_P50=$(calc_change "$CURRENT_DL_P50_RAW" "$BASELINE_DL_P50_RAW")
+    CHANGE_DL_P95=$(calc_change "$CURRENT_DL_P95_RAW" "$BASELINE_DL_P95_RAW")
+    CHANGE_DL_P99=$(calc_change "$CURRENT_DL_P99_RAW" "$BASELINE_DL_P99_RAW")
+    CHANGE_DL_AVG=$(calc_change "$CURRENT_DL_AVG_RAW" "$BASELINE_DL_AVG_RAW")
+    CHANGE_DL_RPS=$(calc_change "$CURRENT_DL_RPS_RAW" "$BASELINE_DL_RPS_RAW")
 
     # Add comparison section
     cat >> "$OUTPUT_MD" <<EOF

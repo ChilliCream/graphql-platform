@@ -384,37 +384,20 @@ jobs:
               return;
             }
 
-            // Find existing performance comment
-            const comments = await github.rest.issues.listComments({
+            // Add timestamp and commit info to the report
+            const timestamp = new Date().toUTCString();
+            const commitSha = context.sha.substring(0, 7);
+            const runNumber = context.runNumber;
+
+            const commentBody = `${report}\n\n---\n*Run #${runNumber} • Commit ${commitSha} • ${timestamp}*`;
+
+            // Always create a new comment
+            await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
+              body: commentBody,
             });
-
-            const botComment = comments.data.find(comment =>
-              comment.user.type === 'Bot' &&
-              comment.body.includes('🚀 Performance Test Results')
-            );
-
-            const commentBody = report;
-
-            if (botComment) {
-              // Update existing comment
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: commentBody,
-              });
-            } else {
-              // Create new comment
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: commentBody,
-              });
-            }
 
       - name: Upload performance data as artifact
         uses: actions/upload-artifact@v4
