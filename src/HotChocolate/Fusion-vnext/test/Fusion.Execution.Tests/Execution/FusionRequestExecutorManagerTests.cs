@@ -1,7 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -83,7 +82,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                 .AddInMemoryConfiguration(schemaDocument)
                 .UseDefaultPipeline()
                 .InsertUseRequest(
-                    before: nameof(OperationExecutionMiddleware),
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                     (_, _) =>
                     {
                         return context =>

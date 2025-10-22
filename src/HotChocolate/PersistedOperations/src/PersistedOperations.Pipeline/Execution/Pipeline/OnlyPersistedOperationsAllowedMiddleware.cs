@@ -84,5 +84,5 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
                     options);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(OnlyPersistedOperationsAllowedMiddleware));
+            WellKnownRequestMiddleware.OnlyPersistedOperationsAllowed);
 }
