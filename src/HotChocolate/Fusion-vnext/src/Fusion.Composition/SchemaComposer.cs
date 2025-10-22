@@ -79,10 +79,7 @@ public sealed class SchemaComposer
         }
 
         // Merge Source Schemas
-        var sourceSchemaMergerOptions = new SourceSchemaMergerOptions
-        {
-            EnableGlobalObjectIdentification = _schemaComposerOptions.EnableGlobalObjectIdentification
-        };
+        var sourceSchemaMergerOptions = _schemaComposerOptions.Merger;
         var (_, isMergeFailure, mergedSchema, mergeErrors) =
             new SourceSchemaMerger(schemas, sourceSchemaMergerOptions).Merge();
 
