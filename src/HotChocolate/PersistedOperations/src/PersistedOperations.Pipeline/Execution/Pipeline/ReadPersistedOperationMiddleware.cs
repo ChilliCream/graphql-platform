@@ -102,7 +102,7 @@ internal sealed class ReadPersistedOperationMiddleware
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
                 var store = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
                 var options = core.SchemaServices.GetRequiredService<PersistedOperationOptions>();
-                var hashAlgorithm = core.Services.GetRequiredService<IDocumentHashProvider>();
+                var hashAlgorithm = core.SchemaServices.GetRequiredService<IDocumentHashProvider>();
                 var middleware = new ReadPersistedOperationMiddleware(
                     next,
                     diagnosticEvents,
