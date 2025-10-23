@@ -116,6 +116,32 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task First_Value_Not_Set()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .ModifyPagingOptions(o =>
+                {
+                    o.RequirePagingBoundaries = true;
+                    o.AllowBackwardPagination = false;
+                })
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    letters {
+                        nodes
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task Attribute_Simple_StringList_Default_Items()
     {
         var executor =
@@ -1198,13 +1224,13 @@ public class IntegrationTests
 
     public interface ISome
     {
-        public string[] ExplicitType();
+        string[] ExplicitType();
     }
 
     public interface ISome2
     {
         [UsePaging(typeof(NonNullType<StringType>))]
-        public string[] ExplicitType();
+        string[] ExplicitType();
     }
 
     public class InferConnectionNameFromFieldType : ObjectType<InferConnectionNameFromField>

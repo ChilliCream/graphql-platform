@@ -2,8 +2,8 @@ using HotChocolate;
 using HotChocolate.CostAnalysis;
 using HotChocolate.CostAnalysis.Caching;
 using HotChocolate.CostAnalysis.Types;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Execution.Pipeline;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using static Microsoft.Extensions.DependencyInjection.ServiceDescriptor;
 
@@ -65,7 +65,7 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
             .TryAddTypeInterceptor<CostTypeInterceptor>()
             .TryAddTypeInterceptor<CostDirectiveTypeInterceptor>()
             .AppendUseRequest(
-                after: CommonMiddleware.DocumentValidationKey,
+                after: WellKnownRequestMiddleware.DocumentValidationMiddleware,
                 configuration: CostAnalyzerMiddleware.Create(),
                 allowMultiple: false);
     }

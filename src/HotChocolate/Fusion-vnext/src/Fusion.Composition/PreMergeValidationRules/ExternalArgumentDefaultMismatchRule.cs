@@ -59,8 +59,6 @@ internal sealed class ExternalArgumentDefaultMismatchRule : IEventHandler<Output
                             ExternalArgumentDefaultMismatch(
                                 externalArgument.DefaultValue,
                                 externalArgument,
-                                fieldName,
-                                typeName,
                                 externalSchema,
                                 argument.DefaultValue,
                                 schema.Name));

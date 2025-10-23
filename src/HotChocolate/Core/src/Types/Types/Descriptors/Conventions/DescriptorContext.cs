@@ -26,8 +26,6 @@ public sealed partial class DescriptorContext : IDescriptorContext
     private readonly Func<IReadOnlySchemaOptions> _options;
     private FeatureReference<TypeSystemFeature> _typeSystemFeature = FeatureReference<TypeSystemFeature>.Default;
     private TypeDiscoveryHandler[]? _typeDiscoveryHandlers;
-    private INamingConventions? _naming;
-    private ITypeInspector? _inspector;
 
     private DescriptorContext(
         Func<IReadOnlySchemaOptions> options,
@@ -42,13 +40,16 @@ public sealed partial class DescriptorContext : IDescriptorContext
         _serviceHelper = new ServiceHelper(Services);
         Features = features;
         TypeInterceptor = typeInterceptor;
-        ResolverCompiler = new DefaultResolverCompiler(
-            schemaServices,
-            _serviceHelper.GetParameterExpressionBuilders());
 
         TypeConverter = _serviceHelper.GetTypeConverter();
         InputFormatter = _serviceHelper.GetInputFormatter(TypeConverter);
         InputParser = _serviceHelper.GetInputParser(TypeConverter);
+
+        TypeInspector = this.GetConventionOrDefault<ITypeInspector>(new DefaultTypeInspector());
+        ResolverCompiler = new DefaultResolverCompiler(
+            TypeInspector,
+            schemaServices,
+            _serviceHelper.GetParameterExpressionBuilders());
     }
 
     internal SchemaBuilder.LazySchema Schema { get; }
@@ -60,11 +61,12 @@ public sealed partial class DescriptorContext : IDescriptorContext
     public IReadOnlySchemaOptions Options => _options();
 
     /// <inheritdoc />
+    [field: AllowNull, MaybeNull]
     public INamingConventions Naming
     {
         get
         {
-            _naming ??= GetConventionOrDefault<INamingConventions>(() => Options.UseXmlDocumentation
+            field ??= GetConventionOrDefault<INamingConventions>(() => Options.UseXmlDocumentation
                 ? new DefaultNamingConventions(
                     new XmlDocumentationProvider(
                         new XmlDocumentationFileResolver(
@@ -73,21 +75,12 @@ public sealed partial class DescriptorContext : IDescriptorContext
                 : new DefaultNamingConventions(
                     new NoopDocumentationProvider()));
 
-            return _naming;
+            return field;
         }
     }
 
     /// <inheritdoc />
-    public ITypeInspector TypeInspector
-    {
-        get
-        {
-            _inspector ??= this.GetConventionOrDefault<ITypeInspector>(
-                new DefaultTypeInspector());
-
-            return _inspector;
-        }
-    }
+    public ITypeInspector TypeInspector { get; }
 
     /// <inheritdoc />
     public TypeInterceptor TypeInterceptor { get; }

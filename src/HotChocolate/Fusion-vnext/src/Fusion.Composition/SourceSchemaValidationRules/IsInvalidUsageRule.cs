@@ -16,17 +16,11 @@ internal sealed class IsInvalidUsageRule : IEventHandler<IsDirectiveEvent>
 {
     public void Handle(IsDirectiveEvent @event, CompositionContext context)
     {
-        var (isDirective, argument, field, type, schema) = @event;
+        var (isDirective, argument, field, _, schema) = @event;
 
         if (!field.Directives.ContainsName(Lookup))
         {
-            context.Log.Write(
-                IsInvalidUsage(
-                    isDirective,
-                    argument.Name,
-                    field.Name,
-                    type.Name,
-                    schema));
+            context.Log.Write(IsInvalidUsage(isDirective, argument, schema));
         }
     }
 }

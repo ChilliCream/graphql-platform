@@ -18,6 +18,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CompositionLogExtensions_EntryMessageWithSchemaName" xml:space="preserve">
+    <value>{0} (Schema: '{1}')</value>
+  </data>
   <data name="ErrorHelper_PostMergeValidationFailed" xml:space="preserve">
     <value>Post-merge validation failed.</value>
   </data>
@@ -213,6 +216,15 @@
   <data name="LogEntryHelper_ExternalOnInterface" xml:space="preserve">
     <value>The interface field '{0}' in schema '{1}' must not be marked as external.</value>
   </data>
+  <data name="LogEntryHelper_ExternalOverrideCollision" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' must not be annotated with the @override directive.</value>
+  </data>
+  <data name="LogEntryHelper_ExternalProvidesCollision" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' must not be annotated with the @provides directive.</value>
+  </data>
+  <data name="LogEntryHelper_ExternalRequireCollision" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' must not have arguments that are annotated with the @require directive.</value>
+  </data>
   <data name="LogEntryHelper_ExternalUnused" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
   </data>
@@ -243,7 +255,7 @@
   <data name="LogEntryHelper_InvalidShareableUsage" xml:space="preserve">
     <value>The interface field '{0}' in schema '{1}' must not be marked as shareable.</value>
   </data>
-  <data name="LogEntryHelper_IsInvalidField" xml:space="preserve">
+  <data name="LogEntryHelper_IsInvalidFields" xml:space="preserve">
     <value>The @is directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
   </data>
   <data name="LogEntryHelper_IsInvalidFieldType" xml:space="preserve">
@@ -265,7 +277,7 @@
     <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which must not be a list, interface, or union type.</value>
   </data>
   <data name="LogEntryHelper_KeyInvalidFields" xml:space="preserve">
-    <value>A @key directive on type '{0}' in schema '{1}' specifies an invalid field selection.</value>
+    <value>A @key directive on type '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
   </data>
   <data name="LogEntryHelper_KeyInvalidFieldsType" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' must specify a string value for the 'fields' argument.</value>
@@ -336,9 +348,6 @@
   <data name="LogEntryHelper_RootSubscriptionUsed" xml:space="preserve">
     <value>The root subscription type in schema '{0}' must be named 'Subscription'.</value>
   </data>
-  <data name="LogEntryHelper_TypeDefinitionInvalid" xml:space="preserve">
-    <value>The type or directive '{0}' in schema '{1}' is incompatible with the built-in type or directive of the same name.</value>
-  </data>
   <data name="LogEntryHelper_TypeKindMismatch" xml:space="preserve">
     <value>The type '{0}' has a different kind in schema '{1}' ({2}) than it does in schema '{3}' ({4}).</value>
   </data>
@@ -356,6 +365,9 @@
   </data>
   <data name="ProvidesMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @provides directive indicates that a field can provide certain subfields of its return type from the same source schema, without requiring an additional resolution step elsewhere.</value>
+  </data>
+  <data name="RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema" xml:space="preserve">
+    <value>The required field '{0}' must not be defined in schema '{1}'.</value>
   </data>
   <data name="RequirementsValidator_CycleDetected" xml:space="preserve">
     <value>Cycle detected in requirement: {0} -&gt; {1}.</value>
@@ -413,11 +425,5 @@
   </data>
   <data name="TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType" xml:space="preserve">
     <value>The specified type is not an abstract type.</value>
-  </data>
-  <data name="TypeDefinitionInvalidRule_ArgumentMissing" xml:space="preserve">
-    <value>The argument '{0}' is missing.</value>
-  </data>
-  <data name="TypeDefinitionInvalidRule_ArgumentTypeDifferent" xml:space="preserve">
-    <value>The argument '{0}' has a different type.</value>
   </data>
 </root>

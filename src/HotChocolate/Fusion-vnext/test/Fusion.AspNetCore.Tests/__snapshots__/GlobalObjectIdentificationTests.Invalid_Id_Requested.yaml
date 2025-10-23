@@ -1,0 +1,115 @@
+title: Invalid_Id_Requested
+request:
+  document: |
+    {
+      node(id: "invalid") {
+        ... on Discussion {
+          title
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": null
+      },
+      "errors": [
+        {
+          "message": "The node ID string has an invalid format.",
+          "path": [
+            "node"
+          ],
+          "extensions": {
+            "originalValue": "invalid"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Discussion implements Node {
+        id: ID!
+        title: String!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup
+        discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Discussion implements Node {
+        id: ID!
+        commentCount: Int!
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup
+        discussionById(id: ID!): Discussion @lookup @internal
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          node(id: "invalid") {
+            __typename @fusion__requirement
+            ... on Discussion {
+              title
+            }
+          }
+        }
+      hash: 3e8751806ea5a1885c3b2b109d808fbf
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "invalid"
+      responseName: node
+      branches:
+        - Discussion: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query Op_3e875180_2 {
+          node(id: "invalid") {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query Op_3e875180_3 {
+          node: discussionById(discussionId: "invalid") {
+            __typename
+            title
+          }
+        }
+      dependencies:
+        - id: 1

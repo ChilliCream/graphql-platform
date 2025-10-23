@@ -123,6 +123,15 @@ namespace HotChocolate.Fusion {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected the parent type of field &apos;{0}&apos; to be a complex type but received &apos;{1}&apos;..
+        /// </summary>
+        internal static string FieldSelectionMapValidator_InvalidFieldParentType {
+            get {
+                return ResourceManager.GetString("FieldSelectionMapValidator_InvalidFieldParentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The selection on one-of input type &apos;{0}&apos; must include a single field..
         /// </summary>
         internal static string FieldSelectionMapValidator_InvalidOneOfFieldSelection {
@@ -155,6 +164,42 @@ namespace HotChocolate.Fusion {
         internal static string FieldSelectionMapValidator_SelectionMissingRequiredFields {
             get {
                 return ResourceManager.GetString("FieldSelectionMapValidator_SelectionMissingRequiredFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; does not exist on the type &apos;{1}&apos;..
+        /// </summary>
+        internal static string InlineFragmentOperationRewriter_FieldDoesNotExistOnType {
+            get {
+                return ResourceManager.GetString("InlineFragmentOperationRewriter_FieldDoesNotExistOnType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A fragment with the name &apos;{0}&apos; does not exist..
+        /// </summary>
+        internal static string InlineFragmentOperationRewriter_FragmentDoesNotExist {
+            get {
+                return ResourceManager.GetString("InlineFragmentOperationRewriter_FragmentDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The fragment &apos;{0}&apos; has an invalid type condition. The type &apos;{1}&apos; does not exist..
+        /// </summary>
+        internal static string InlineFragmentOperationRewriter_InvalidTypeConditionOnFragment {
+            get {
+                return ResourceManager.GetString("InlineFragmentOperationRewriter_InvalidTypeConditionOnFragment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An inline fragment on type &apos;{0}&apos; has an invalid type condition. The type &apos;{1}&apos; does not exist..
+        /// </summary>
+        internal static string InlineFragmentOperationRewriter_InvalidTypeConditionOnInlineFragment {
+            get {
+                return ResourceManager.GetString("InlineFragmentOperationRewriter_InvalidTypeConditionOnInlineFragment", resourceCulture);
             }
         }
         

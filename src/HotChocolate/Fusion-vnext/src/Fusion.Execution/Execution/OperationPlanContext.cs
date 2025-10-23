@@ -10,6 +10,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +28,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private readonly ExecutionState _executionState;
     private readonly INodeIdParser _nodeIdParser;
     private readonly bool _collectTelemetry;
-    private ResultPoolSessionHolder _resultPoolSessionHolder;
     private ISourceSchemaClientScope _clientScope;
     private string? _traceId;
     private long _start;
@@ -56,7 +56,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         OperationPlan = operationPlan;
         IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
 
-        _resultPoolSessionHolder = requestContext.CreateResultPoolSession();
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope = requestContext.CreateClientScope();
         _nodeIdParser = requestContext.Schema.Services.GetRequiredService<INodeIdParser>();
@@ -66,7 +65,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _resultStore = new FetchResultStore(
             requestContext.Schema,
             errorHandler,
-            _resultPoolSessionHolder,
             operationPlan.Operation,
             requestContext.ErrorHandlingMode(),
             IncludeFlags);
@@ -83,8 +81,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public RequestContext RequestContext { get; }
 
     public ISourceSchemaClientScope ClientScope => _clientScope;
-
-    public ResultPoolSession ResultPool => _resultPoolSessionHolder;
 
     internal ExecutionState ExecutionState => _executionState;
 
@@ -126,7 +122,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             schemaName);
     }
 
-    internal string GetDynamicSchemaName(ExecutionNode node)
+    public string GetDynamicSchemaName(ExecutionNode node)
     {
         if (_nodeContexts.TryGetValue(node.Id, out var context)
             && !string.IsNullOrEmpty(context.SchemaName))
@@ -234,9 +230,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
+    internal void AddPartialResults(SourceResultDocument result, ReadOnlySpan<string> responseNames)
     {
-        var canExecutionContinue = _resultStore.AddPartialResults(result, selections);
+        var canExecutionContinue = _resultStore.AddPartialResults(result, responseNames);
 
         if (!canExecutionContinue)
         {
@@ -281,40 +277,34 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             }
             : null;
 
-        var resultBuilder = OperationResultBuilder.New();
+        var result = _resultStore.Result;
+        var operationResult = new RawOperationResult(result, contextData: null);
+        operationResult.RegisterForCleanup(_resultStore.MemoryOwners);
+        operationResult.Features.Set(OperationPlan);
 
         if (RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeOperationPlan))
         {
             var writer = new PooledArrayWriter();
             s_planFormatter.Format(writer, OperationPlan, trace);
             var value = new RawJsonValue(writer.WrittenMemory);
-            resultBuilder.SetExtension("fusion", new Dictionary<string, object?> { { "operationPlan", value } });
-            resultBuilder.RegisterForCleanup(writer);
+            result.Extensions.Add("fusion", new Dictionary<string, object?> { { "operationPlan", value } });
+            operationResult.RegisterForCleanup(writer);
         }
-
-        Debug.Assert(
-            !_resultStore.Data.IsInvalidated || _resultStore.Errors.Count > 0,
-            "Expected to either valid data or errors");
-
-        var result = resultBuilder
-            .AddErrors(_resultStore.Errors)
-            .SetData(_resultStore.Data.IsInvalidated ? null : _resultStore.Data)
-            .RegisterForCleanup(_resultStore.MemoryOwners)
-            .RegisterForCleanup(_resultPoolSessionHolder)
-            .Build();
-
-        result.Features.Set(OperationPlan);
 
         if (trace is not null)
         {
-            result.Features.Set(trace);
+            operationResult.Features.Set(trace);
         }
 
-        _clientScope = RequestContext.CreateClientScope();
-        _resultPoolSessionHolder = RequestContext.CreateResultPoolSession();
-        _resultStore.Reset(_resultPoolSessionHolder);
+        Debug.Assert(
+            !result.Data.IsInvalidated
+                || (result.Errors.Count > 0),
+            "Expected to either valid data or errors");
 
-        return result;
+        _clientScope = RequestContext.CreateClientScope();
+        _resultStore.Reset();
+
+        return operationResult;
     }
 
     private List<ObjectFieldNode> GetPathThroughVariables(
@@ -366,7 +356,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         if (!_disposed)
         {
             _disposed = true;
-            _resultPoolSessionHolder.Dispose();
             _resultStore.Dispose();
             await _clientScope.DisposeAsync();
         }
@@ -386,23 +375,13 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
 file static class OperationPlanContextExtensions
 {
-    public static OperationResultBuilder RegisterForCleanup(
-        this OperationResultBuilder builder,
+    public static void RegisterForCleanup(
+        this RawOperationResult result,
         ConcurrentStack<IDisposable> disposables)
     {
         while (disposables.TryPop(out var disposable))
         {
-            RegisterForCleanup(builder, disposable);
+            result.RegisterForCleanup(disposable.Dispose);
         }
-
-        return builder;
-    }
-
-    public static OperationResultBuilder RegisterForCleanup(
-        this OperationResultBuilder builder,
-        IDisposable disposable)
-    {
-        builder.RegisterForCleanup(disposable.Dispose);
-        return builder;
     }
 }

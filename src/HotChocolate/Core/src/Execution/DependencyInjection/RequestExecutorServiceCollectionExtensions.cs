@@ -1,7 +1,6 @@
 using GreenDonut;
 using HotChocolate;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
@@ -46,13 +45,11 @@ public static class RequestExecutorServiceCollectionExtensions
 
         // core services
         services
-            .TryAddRequestExecutorFactoryOptionsMonitor()
             .TryAddTypeConverter()
             .TryAddInputFormatter()
             .TryAddInputParser()
-            .TryAddDefaultCaches()
             .TryAddDefaultDocumentHashProvider()
-            .TryAddDefaultBatchDispatcher()
+            .TryAddDefaultBatchDispatcher(default)
             .TryAddDefaultDataLoaderRegistry()
             .TryAddDataLoaderParameterExpressionBuilder()
             .AddSingleton<ResolverProvider>();
@@ -156,6 +153,8 @@ public static class RequestExecutorServiceCollectionExtensions
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
         builder.TryAddTypeInterceptor<RequirementsTypeInterceptor>();
 
+        builder.AddDocumentCache();
+
         if (!services.Any(t =>
             t.ServiceType == typeof(SchemaName)
             && t.ImplementationInstance is SchemaName s
@@ -167,25 +166,6 @@ public static class RequestExecutorServiceCollectionExtensions
         builder.ConfigureSchemaServices(static s => s.TryAddSingleton<ITimeProvider, DefaultTimeProvider>());
 
         return builder;
-    }
-
-    public static IServiceCollection AddDocumentCache(
-        this IServiceCollection services,
-        int capacity = 256)
-    {
-        services.RemoveAll<IDocumentCache>();
-        services.AddSingleton<IDocumentCache>(
-            _ => new DefaultDocumentCache(capacity));
-        return services;
-    }
-
-    public static IServiceCollection AddOperationCache(
-        this IServiceCollection services,
-        int capacity = 256)
-    {
-        services.RemoveAll<PreparedOperationCacheOptions>();
-        services.AddSingleton(_ => new PreparedOperationCacheOptions { Capacity = capacity });
-        return services;
     }
 
     public static IServiceCollection AddMD5DocumentHashProvider(
@@ -234,10 +214,32 @@ public static class RequestExecutorServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddDefaultBatchDispatcher(this IServiceCollection services)
+    /// <summary>
+    /// Adds the batch dispatcher to the request executor.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="options">
+    ///  The batch dispatcher options.
+    /// </param>
+    /// <returns>
+    /// The request executor builder.
+    /// </returns>
+    public static IRequestExecutorBuilder AddDefaultBatchDispatcher(
+        this IRequestExecutorBuilder builder,
+        BatchDispatcherOptions options = default)
+    {
+        builder.Services.AddDefaultBatchDispatcher(options);
+        return builder;
+    }
+
+    public static IServiceCollection AddDefaultBatchDispatcher(
+        this IServiceCollection services,
+        BatchDispatcherOptions options = default)
     {
         services.RemoveAll<IBatchScheduler>();
-        services.TryAddDefaultBatchDispatcher();
+        services.TryAddDefaultBatchDispatcher(options);
         return services;
     }
 }

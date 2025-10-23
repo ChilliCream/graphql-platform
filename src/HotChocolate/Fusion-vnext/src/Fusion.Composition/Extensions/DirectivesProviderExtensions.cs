@@ -49,11 +49,6 @@ internal static class DirectivesProviderExtensions
         return type.Directives.ContainsName(WellKnownDirectiveNames.FusionInaccessible);
     }
 
-    public static bool HasFusionRequiresDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.FusionRequires);
-    }
-
     public static bool HasInaccessibleDirective(this IDirectivesProvider type)
     {
         return type.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);

@@ -41,7 +41,7 @@ internal sealed class DownloadClientCommand : Command
     {
         console.Title("Download persisted queries");
 
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             await console
                 .Status()

@@ -1,5 +1,9 @@
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Logging;
@@ -19,6 +23,18 @@ public abstract class FusionTestBase : IDisposable
 {
     private readonly TestServerSession _testServerSession = new();
     private bool _disposed;
+
+    protected static FusionConfiguration CreateFusionConfiguration(
+        [StringSyntax("graphql")] params string[] schemas)
+    {
+        var compositeSchema = ComposeSchemaDocument(schemas);
+
+        return new FusionConfiguration(
+            compositeSchema,
+            new JsonDocumentOwner(
+                JsonDocument.Parse("{ }"),
+                new EmptyMemoryOwner()));
+    }
 
     protected static FusionSchemaDefinition CreateCompositeSchema()
     {
@@ -402,7 +418,10 @@ public abstract class FusionTestBase : IDisposable
         var compositionLog = new CompositionLog();
         var composerOptions = new SchemaComposerOptions
         {
-            EnableGlobalObjectIdentification = true
+            Merger =
+            {
+                EnableGlobalObjectIdentification = true
+            }
         };
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
@@ -425,7 +444,13 @@ public abstract class FusionTestBase : IDisposable
         var sourceSchemas = CreateSourceSchemaTexts(schemas);
 
         var compositionLog = new CompositionLog();
-        var composerOptions = new SchemaComposerOptions { EnableGlobalObjectIdentification = false };
+        var composerOptions = new SchemaComposerOptions
+        {
+            Merger =
+            {
+                EnableGlobalObjectIdentification = false
+            }
+        };
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 
@@ -471,7 +496,7 @@ public abstract class FusionTestBase : IDisposable
 
         var operationDoc = Utf8GraphQLParser.Parse(operationText);
 
-        var rewriter = new InlineFragmentOperationRewriter(schema);
+        var rewriter = new DocumentRewriter(schema);
         var rewritten = rewriter.RewriteDocument(operationDoc, operationName: null);
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
 
@@ -549,4 +574,49 @@ public abstract class FusionTestBase : IDisposable
     }
 
     protected record TestSourceSchema([StringSyntax("graphql")] string Schema);
+
+    protected sealed class TestFusionConfigurationProvider(FusionConfiguration initialConfig) : IFusionConfigurationProvider
+    {
+        private readonly List<IObserver<FusionConfiguration>> _observers = [];
+
+        public IDisposable Subscribe(IObserver<FusionConfiguration> observer)
+        {
+            if (Configuration is not null)
+            {
+                observer.OnNext(Configuration);
+            }
+
+            _observers.Add(observer);
+
+            return new Observer();
+        }
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+        public FusionConfiguration? Configuration { get; private set; } = initialConfig;
+
+        public void UpdateConfiguration(FusionConfiguration configuration)
+        {
+            Configuration = configuration;
+
+            foreach (var observer in _observers)
+            {
+                observer.OnNext(Configuration);
+            }
+        }
+
+        private sealed class Observer : IDisposable
+        {
+            public void Dispose()
+            {
+            }
+        }
+    }
+
+    private class EmptyMemoryOwner : IMemoryOwner<byte>
+    {
+        public Memory<byte> Memory => default;
+
+        public void Dispose() { }
+    }
 }

@@ -46,6 +46,22 @@ public class DataLoaderDiagnosticEventListener : IDataLoaderDiagnosticEventListe
         where TKey : notnull
     { }
 
+    /// <inheritdoc />
+    public virtual IDisposable RunBatchDispatchCoordinator()
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual void BatchDispatchError(Exception error)
+    { }
+
+    /// <inheritdoc />
+    public virtual void BatchEvaluated(int openBatches)
+    { }
+
+    /// <inheritdoc />
+    public virtual void BatchDispatched(int dispatchedBatches, bool inParallel)
+    { }
+
     private sealed class EmptyActivityScope : IDisposable
     {
         public void Dispose() { }

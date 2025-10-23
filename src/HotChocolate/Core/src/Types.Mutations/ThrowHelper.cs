@@ -47,4 +47,10 @@ internal static class ThrowHelper
             .SetMessage(ThrowHelper_UnknownDirectiveArgument, argumentName)
             .SetCode(ErrorCodes.Schema.UnknownDirectiveArgument)
             .Build());
+
+    public static SchemaException MutationMustReturnValue(string memberName)
+        => new(SchemaErrorBuilder.New()
+            .SetMessage(ThrowHelper_MutationMustReturnValue, memberName)
+            .SetCode(ErrorCodes.Schema.MutationMustReturnValue)
+            .Build());
 }

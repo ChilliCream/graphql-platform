@@ -253,6 +253,11 @@ public static class ErrorCodes
         /// The specified directive argument does not exist.
         /// </summary>
         public const string UnknownDirectiveArgument = "HC0072";
+
+        /// <summary>
+        /// A mutation field must return a value.
+        /// </summary>
+        public const string MutationMustReturnValue = "HC0089";
     }
 
     public static class Scalars
@@ -353,6 +358,11 @@ public static class ErrorCodes
         /// You must provide a `first` or `last` value to properly paginate the connection.
         /// </summary>
         public const string NoPagingBoundaries = "HC0052";
+
+        /// <summary>
+        /// You must provide a `first` value to properly paginate the connection.
+        /// </summary>
+        public const string FirstValueNotSet = "HC0090";
 
         /// <summary>
         /// The requested number of values per page must be at least 0.

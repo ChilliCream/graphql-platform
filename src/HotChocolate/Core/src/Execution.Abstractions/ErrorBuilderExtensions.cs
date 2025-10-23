@@ -12,15 +12,30 @@ public static class ErrorBuilderExtensions
     /// Sets the field coordinate of the error.
     /// </summary>
     /// <param name="builder">The error builder.</param>
-    /// <param name="fieldCoordinate">The field coordinate.</param>
+    /// <param name="coordinate">The field coordinate.</param>
     /// <returns>The error builder.</returns>
-    public static ErrorBuilder SetFieldCoordinate(
+    public static ErrorBuilder SetCoordinate(
         this ErrorBuilder builder,
-        SchemaCoordinate fieldCoordinate)
+        SchemaCoordinate coordinate)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.SetExtension(nameof(fieldCoordinate), fieldCoordinate.ToString());
+        return builder.SetExtension(nameof(coordinate), coordinate.ToString());
+    }
+
+    /// <summary>
+    /// Sets the input path of the error.
+    /// </summary>
+    /// <param name="builder">The error builder.</param>
+    /// <param name="inputPath">The input path.</param>
+    /// <returns>The error builder.</returns>
+    public static ErrorBuilder SetInputPath(
+        this ErrorBuilder builder,
+        Path inputPath)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.SetExtension(nameof(inputPath), inputPath);
     }
 
     /// <summary>
@@ -55,6 +70,23 @@ public static class ErrorBuilderExtensions
         }
 
         builder.AddLocation(new Location(node.Location.Line, node.Location.Column));
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a location to the error if the error does not already have a location.
+    /// </summary>
+    /// <param name="builder">The error builder.</param>
+    /// <param name="node">The syntax node.</param>
+    /// <returns>The error builder.</returns>
+    public static ErrorBuilder TryAddLocation(this ErrorBuilder builder, ISyntaxNode? node)
+    {
+        if (node?.Location is null)
+        {
+            return builder;
+        }
+
+        builder.TryAddLocation(new Location(node.Location.Line, node.Location.Column));
         return builder;
     }
 

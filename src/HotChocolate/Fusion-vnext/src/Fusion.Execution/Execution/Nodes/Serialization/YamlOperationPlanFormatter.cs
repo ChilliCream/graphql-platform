@@ -30,7 +30,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                     break;
 
                 case NodeFieldExecutionNode nodeExecutionNode:
-                    WriteNodeNode(nodeExecutionNode, nodeTrace, writer);
+                    WriteNodeFieldNode(nodeExecutionNode, nodeTrace, writer);
                     break;
             }
         }
@@ -46,7 +46,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.WriteLine("operation:");
         writer.Indent();
 
-        writer.WriteLine("- document: >-");
+        writer.WriteLine("- document: |");
         writer.Indent();
         writer.Indent();
         var reader = new StringReader(plan.Operation.Definition.ToString(indented: true));
@@ -102,7 +102,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("schema: {0}", node.SchemaName);
         }
 
-        writer.WriteLine("operation: >-");
+        writer.WriteLine("operation: |");
         writer.Indent();
         var reader = new StringReader(node.Operation.SourceText);
         var line = reader.ReadLine();
@@ -148,6 +148,26 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Unindent();
         }
 
+        TryWriteConditions(writer, node);
+
+        if (node.ForwardedVariables.Length > 0)
+        {
+            writer.WriteLine("forwardedVariables:");
+            writer.Indent();
+
+            foreach (var variableName in node.ForwardedVariables)
+            {
+                writer.WriteLine("- {0}", variableName);
+            }
+
+            writer.Unindent();
+        }
+
+        if (node.RequiresFileUpload)
+        {
+            writer.WriteLine("requiresFileUpload: true");
+        }
+
         if (node.Dependencies.Length > 0)
         {
             writer.WriteLine("dependencies:");
@@ -160,16 +180,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Unindent();
         }
 
-        if (trace is not null)
-        {
-            if (trace.SpanId is not null)
-            {
-                writer.WriteLine("spanId: {0}", trace.SpanId);
-            }
-
-            writer.WriteLine("duration: {0}", trace.Duration.TotalMilliseconds);
-            writer.WriteLine("status: {0}", trace.Status.ToString());
-        }
+        TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
     }
@@ -193,40 +204,45 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
         writer.Unindent();
 
-        if (trace is not null)
-        {
-            if (trace.SpanId is not null)
-            {
-                writer.WriteLine("spanId: {0}", trace.SpanId);
-            }
+        TryWriteConditions(writer, node);
 
-            writer.WriteLine("duration: {0}", trace.Duration.TotalMilliseconds);
-            writer.WriteLine("status: {0}", trace.Status.ToString());
-        }
+        TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
     }
 
-    private void WriteNodeNode(NodeFieldExecutionNode nodeField, ExecutionNodeTrace? trace, CodeWriter writer)
+    private static void WriteNodeFieldNode(NodeFieldExecutionNode node, ExecutionNodeTrace? trace, CodeWriter writer)
     {
-        writer.WriteLine("- id: {0}", nodeField.Id);
+        writer.WriteLine("- id: {0}", node.Id);
         writer.Indent();
 
-        writer.WriteLine("type: {0}", nodeField.Type.ToString());
+        writer.WriteLine("type: {0}", node.Type.ToString());
 
-        writer.WriteLine("idValue: {0}", nodeField.IdValue.ToString());
-        writer.WriteLine("responseName: {0}", nodeField.ResponseName);
+        writer.WriteLine("idValue: {0}", node.IdValue.ToString());
+        writer.WriteLine("responseName: {0}", node.ResponseName);
 
-        writer.WriteLine("branches:");
-        writer.Indent();
-        foreach (var branch in nodeField.Branches.OrderBy(kvp => kvp.Key))
+        if (node.Branches.Count > 0)
         {
-            writer.WriteLine("- {0}: {1}", branch.Key, branch.Value.Id);
+            writer.WriteLine("branches:");
+            writer.Indent();
+            foreach (var branch in node.Branches.OrderBy(kvp => kvp.Key))
+            {
+                writer.WriteLine("- {0}: {1}", branch.Key, branch.Value.Id);
+            }
+            writer.Unindent();
         }
+
+        writer.WriteLine("fallback: {0}", node.FallbackQuery.Id);
+
+        TryWriteConditions(writer, node);
+
+        TryWriteNodeTrace(writer, trace);
+
         writer.Unindent();
+    }
 
-        writer.WriteLine("fallback: {0}", nodeField.FallbackQuery.Id);
-
+    private static void TryWriteNodeTrace(CodeWriter writer, ExecutionNodeTrace? trace)
+    {
         if (trace is not null)
         {
             if (trace.SpanId is not null)
@@ -237,7 +253,24 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("duration: {0}", trace.Duration.TotalMilliseconds);
             writer.WriteLine("status: {0}", trace.Status.ToString());
         }
+    }
 
-        writer.Unindent();
+    private static void TryWriteConditions(CodeWriter writer, ExecutionNode node)
+    {
+        if (node.Conditions.Length > 0)
+        {
+            writer.WriteLine("conditions:");
+            writer.Indent();
+            foreach (var condition in node.Conditions)
+            {
+                writer.WriteLine("- variable: {0}", "$" + condition.VariableName);
+                writer.Indent();
+
+                writer.WriteLine("passingValue: {0}", condition.PassingValue ? "true" : "false");
+                writer.Unindent();
+            }
+
+            writer.Unindent();
+        }
     }
 }

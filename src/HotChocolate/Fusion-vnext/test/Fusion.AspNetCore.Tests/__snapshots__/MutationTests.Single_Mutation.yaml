@@ -1,0 +1,156 @@
+title: Single_Mutation
+request:
+  document: |
+    mutation {
+      a: createBook(input: { title: "Book1" }) {
+        book {
+          id
+          author
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "a": {
+          "book": {
+            "id": 1,
+            "author": "Abc"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+        mutation: Mutation
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+      }
+
+      type CreateBookPayload {
+        book: Book!
+      }
+
+      type Mutation {
+        createBook(input: CreateBookInput!): CreateBookPayload!
+      }
+
+      type Query {
+        foo: String!
+      }
+
+      input CreateBookInput {
+        title: String!
+      }
+    interactions:
+      - request:
+          document: |
+            mutation Op_8adeedac_1 {
+              a: createBook(input: { title: "Book1" }) {
+                book {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "a": {
+                    "book": {
+                      "id": 1
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Book {
+        id: Int!
+        author: String!
+      }
+
+      type Query {
+        bookById(id: Int!): Book! @internal @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_8adeedac_2(
+              $__fusion_1_id: Int!
+            ) {
+              bookById(id: $__fusion_1_id) {
+                author
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "author": "Abc"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        mutation {
+          a: createBook(input: { title: "Book1" }) {
+            book {
+              id
+              id @fusion__requirement
+              author
+            }
+          }
+        }
+      hash: 8adeedac0c987644c3244bc6ad459a3d
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        mutation Op_8adeedac_1 {
+          a: createBook(input: { title: "Book1" }) {
+            book {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_8adeedac_2(
+          $__fusion_1_id: Int!
+        ) {
+          bookById(id: $__fusion_1_id) {
+            author
+          }
+        }
+      source: $.bookById
+      target: $.a.book
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

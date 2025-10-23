@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Fusion.Execution.Benchmarks/Fusion.Execution.Benchmarks.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />
     <Project Path="src/Fusion.AspNetCore/HotChocolate.Fusion.AspNetCore.csproj" />
@@ -10,12 +13,13 @@
     <Project Path="src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj" />
   </Folder>
   <Folder Name="/test/">
-    <Project Path="test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
-    <Project Path="test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
-    <Project Path="test/Fusion.EventSources.Tests/HotChocolate.Fusion.EventSources.Tests.csproj" />
-    <Project Path="test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />
-    <Project Path="test/Fusion.Utilities.Tests/HotChocolate.Fusion.Utilities.Tests.csproj" />
-    <Project Path="test/Fusion.Packaging.Tests/HotChocolate.Fusion.Packaging.Tests.csproj" />
     <Project Path="test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
+    <Project Path="test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
+    <Project Path="test/Fusion.EventSources.Tests/HotChocolate.Fusion.EventSources.Tests.csproj" />
+    <Project Path="test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
+    <Project Path="test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />
+    <Project Path="test/Fusion.Packaging.Tests/HotChocolate.Fusion.Packaging.Tests.csproj" />
+    <Project Path="test/Fusion.Utilities.Tests/HotChocolate.Fusion.Utilities.Tests.csproj" />
+    <Project Path="test/Fusion.Tests.Shared/HotChocolate.Fusion.Tests.Shared.csproj" />
   </Folder>
 </Solution>

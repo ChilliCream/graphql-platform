@@ -54,6 +54,8 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        response.Headers.Remove("ETag");
+        response.Content.Headers.ContentLength = null;
 
         response.MatchMarkdownSnapshot();
     }
@@ -81,6 +83,8 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        response.Headers.Remove("ETag");
+        response.Content.Headers.ContentLength = null;
 
         response.MatchMarkdownSnapshot();
     }

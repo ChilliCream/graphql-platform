@@ -20,7 +20,9 @@ public class MergeSelectionSetRewriterTests
                 id
                 name
                 reviews {
-                    id
+                    nodes {
+                        id
+                    }
                 }
             }
             """);
@@ -29,7 +31,9 @@ public class MergeSelectionSetRewriterTests
             """
             {
                 reviews {
-                    body
+                    nodes {
+                        body
+                    }
                 }
                 name
             }
@@ -46,8 +50,10 @@ public class MergeSelectionSetRewriterTests
                 id
                 name
                 reviews {
-                    id
-                    body
+                    nodes {
+                        id
+                        body
+                    }
                 }
             }
             """);

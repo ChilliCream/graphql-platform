@@ -24,6 +24,7 @@
     <InternalsVisibleTo Include="HotChocolate.Execution.Projections" />
     <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
     <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
@@ -217,6 +218,18 @@
       <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
     </Compile>
     <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Services.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RequestExecutorManager.Events.cs">
+      <DependentUpon>RequestExecutorManager.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RequestExecutorManager.Hooks.cs">
+      <DependentUpon>RequestExecutorManager.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RequestExecutorManager.Warmup.cs">
+      <DependentUpon>RequestExecutorManager.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Caches.cs">
       <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
     </Compile>
   </ItemGroup>

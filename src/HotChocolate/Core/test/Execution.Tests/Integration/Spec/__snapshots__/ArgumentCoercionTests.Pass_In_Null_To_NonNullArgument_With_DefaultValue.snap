@@ -12,7 +12,6 @@
         "sayHello"
       ],
       "extensions": {
-        "responseName": "sayHello",
         "errorPath": [
           "name"
         ]

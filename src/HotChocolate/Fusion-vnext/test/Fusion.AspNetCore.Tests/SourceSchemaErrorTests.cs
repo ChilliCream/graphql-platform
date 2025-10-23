@@ -4,6 +4,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
+using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion;
 
@@ -22,18 +23,15 @@ public class SourceSchemaErrorTests : FusionTestBase
             "A",
             b => b.AddQueryType<SourceSchema3.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               productById(id: 1) {
@@ -41,11 +39,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -59,30 +60,30 @@ public class SourceSchemaErrorTests : FusionTestBase
             "A",
             b => b.AddQueryType<SourceSchema2.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
-
-        // assert
-        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-        using var result = await client.PostAsync(
-            """
-            {
-                productById(id: 1) {
-                  name
-                }
-            }
-            """,
-            new Uri("http://localhost:5000/graphql"));
+        ]);
 
         // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              productById(id: 1) {
+                name
+              }
+            }
+            """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+           request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -96,18 +97,15 @@ public class SourceSchemaErrorTests : FusionTestBase
             "A",
             b => b.AddQueryType<SourceSchema4.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               productById(id: 1) {
@@ -115,11 +113,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -133,7 +134,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             "A",
             b => b.AddQueryType<SourceSchema5.Query>()
                 .InsertUseRequest(
-                    before: "OperationExecutionMiddleware",
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                     middleware: (_, _) =>
                     {
                         return context =>
@@ -148,18 +149,15 @@ public class SourceSchemaErrorTests : FusionTestBase
                     },
                     key: "error"));
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               productById(id: 1) {
@@ -167,11 +165,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -185,7 +186,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             "A",
             b => b.AddQueryType<SourceSchema6.Query>()
                 .InsertUseRequest(
-                    before: "OperationExecutionMiddleware",
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                     middleware: (_, _) =>
                     {
                         return context =>
@@ -200,18 +201,15 @@ public class SourceSchemaErrorTests : FusionTestBase
                     },
                     key: "error"));
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
-            [
-                ("A", server1)
-            ],
-            configureGatewayBuilder: builder => builder
-                .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        [
+            ("A", server1)
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               productById(id: 1) {
@@ -219,11 +217,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -238,18 +239,15 @@ public class SourceSchemaErrorTests : FusionTestBase
             b => b.AddQueryType<SourceSchema1.Query>(),
             isOffline: true);
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               nullableTopProduct {
@@ -257,11 +255,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -276,18 +277,15 @@ public class SourceSchemaErrorTests : FusionTestBase
             b => b.AddQueryType<SourceSchema1.Query>(),
             isOffline: true);
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -295,11 +293,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     #endregion
@@ -321,19 +322,16 @@ public class SourceSchemaErrorTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema2.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -342,11 +340,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -364,19 +365,16 @@ public class SourceSchemaErrorTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema7.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -385,11 +383,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -407,19 +408,16 @@ public class SourceSchemaErrorTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema3.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -428,11 +426,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -450,19 +451,16 @@ public class SourceSchemaErrorTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema7.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               topProducts {
@@ -471,11 +469,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -493,19 +494,16 @@ public class SourceSchemaErrorTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema2.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
-            [
-                ("A", server1),
-                ("B", server2)
-            ],
-            configureGatewayBuilder: builder => builder
-                .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               topProducts {
@@ -514,11 +512,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -536,19 +537,16 @@ public class SourceSchemaErrorTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema3.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               topProducts {
@@ -557,11 +555,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -579,19 +580,16 @@ public class SourceSchemaErrorTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema4.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -600,11 +598,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -622,19 +623,16 @@ public class SourceSchemaErrorTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema6.Query>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -643,11 +641,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -665,7 +666,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema5.Query>()
                 .InsertUseRequest(
-                    before: "OperationExecutionMiddleware",
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                     middleware: (_, _) =>
                     {
                         return context =>
@@ -680,19 +681,16 @@ public class SourceSchemaErrorTests : FusionTestBase
                     },
                     key: "error"));
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -701,11 +699,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -724,19 +725,16 @@ public class SourceSchemaErrorTests : FusionTestBase
             b => b.AddQueryType<SourceSchema2.Query>(),
             isOffline: true);
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               nullableTopProduct {
@@ -745,11 +743,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -768,19 +769,16 @@ public class SourceSchemaErrorTests : FusionTestBase
             b => b.AddQueryType<SourceSchema3.Query>(),
             isOffline: true);
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               topProduct {
@@ -789,11 +787,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -812,19 +813,16 @@ public class SourceSchemaErrorTests : FusionTestBase
             b => b.AddQueryType<SourceSchema2.Query>(),
             isOffline: true);
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               topProducts {
@@ -833,11 +831,14 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Theory]
@@ -856,19 +857,16 @@ public class SourceSchemaErrorTests : FusionTestBase
             b => b.AddQueryType<SourceSchema3.Query>(),
             isOffline: true);
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
-        ],
-        configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
+        ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new OperationRequest(
             """
             {
               topProducts {
@@ -877,14 +875,50 @@ public class SourceSchemaErrorTests : FusionTestBase
               }
             }
             """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot(postFix: "OnError_" + onError);
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     #endregion
+
+    [Fact]
+    public async Task Error_Extensions_From_Source_Schema_Are_Properly_Forwarded()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b
+                .AddQueryType<SourceSchema8.Query>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              someField
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
 
     public static class SourceSchema1
     {
@@ -1000,6 +1034,22 @@ public class SourceSchemaErrorTests : FusionTestBase
         public record Product(int Id)
         {
             public string? GetName() => "Product " + Id;
+        }
+    }
+
+    public static class SourceSchema8
+    {
+        public class Query
+        {
+            public string SomeField(IResolverContext context)
+            {
+                throw new GraphQLException(
+                    ErrorBuilder.New()
+                        .SetMessage("Something went wrong")
+                        .SetPath(context.Path)
+                        .SetException(new Exception("Some exception"))
+                        .Build());
+            }
         }
     }
 }

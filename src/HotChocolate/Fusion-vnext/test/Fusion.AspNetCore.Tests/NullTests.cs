@@ -13,7 +13,7 @@ public class NullTests : FusionTestBase
         using var server1 = CreateSourceSchema(
             "A",
             b => b.AddQueryType<SourceSchema1.Query>()
-                .InsertUseRequest("OperationExecutionMiddleware", (_, _) => context =>
+                .InsertUseRequest(WellKnownRequestMiddleware.OperationExecutionMiddleware, (_, _) => context =>
                 {
                     context.Result = OperationResultBuilder.New()
                         .SetData(new Dictionary<string, object?> { ["nonNullString"] = null })
@@ -28,20 +28,21 @@ public class NullTests : FusionTestBase
             ("A", server1)
         ]);
 
-        // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        using var result = await client.PostAsync(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 nonNullString
             }
-            """,
+            """);
+
+        using var result = await client.PostAsync(
+            request,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
-        using var response = await result.ReadAsResultAsync();
-        response.MatchSnapshot();
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
     }
 
     public static class SourceSchema1
