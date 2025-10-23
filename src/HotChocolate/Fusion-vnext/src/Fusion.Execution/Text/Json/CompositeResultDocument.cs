@@ -34,13 +34,10 @@ public sealed partial class CompositeResultDocument : IDisposable
         internal set => _errors = value;
     }
 
-    public Dictionary<string, object?> Extensions
+    public Dictionary<string, object?>? Extensions
     {
-        get
-        {
-            _extensions ??= [];
-            return _extensions;
-        }
+        get => _extensions;
+        internal set => _extensions = value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
