@@ -92,7 +92,7 @@ internal sealed class ReadPersistedOperationMiddleware
             return hashProvider.Hash;
         }
 
-        return OperationDocumentHash.Empty;
+        return _documentHashAlgorithm.ComputeHash(document.AsSpan());
     }
 
     public static RequestMiddlewareConfiguration Create()

@@ -7,7 +7,6 @@ using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion;
@@ -329,9 +328,7 @@ public class PersistedOperationTests : FusionTestBase
     {
         // arrange
         var storage = new OperationStorage();
-        storage.AddOperation(
-            "a73defcdf38e5891e91b9ba532cf4c36",
-            "query GetHeroName { hero { name } }");
+        var hashProvider = new MD5DocumentHashProvider(HashFormat.Hex);
 
         using var gateway = await CreateGatewayAsync(b => b
             .ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true)
@@ -340,7 +337,9 @@ public class PersistedOperationTests : FusionTestBase
 
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        const string query = "query GetHeroName { hero { name } }";
+        const string query = "{ __typename }";
+        var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
+        storage.AddOperation(key.Value, query);
 
         var request = new OperationRequest(query: query);
 
@@ -358,9 +357,7 @@ public class PersistedOperationTests : FusionTestBase
     {
         // arrange
         var storage = new OperationStorage();
-        storage.AddOperation(
-            "a73defcdf38e5891e91b9ba532cf4c36",
-            "query GetHeroName { hero { name } }");
+        var hashProvider = new MD5DocumentHashProvider(HashFormat.Hex);
 
         using var gateway = await CreateGatewayAsync(b => b
             .ModifyRequestOptions(o =>
@@ -373,7 +370,9 @@ public class PersistedOperationTests : FusionTestBase
 
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        const string query = "query GetHeroName { hero { name } }";
+        const string query = "{ __typename }";
+        var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
+        storage.AddOperation(key.Value, query);
 
         var request = new OperationRequest(query: query);
 
