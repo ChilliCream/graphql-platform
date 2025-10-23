@@ -107,6 +107,7 @@ internal sealed class FetchResultStore : IDisposable
 
                 if (result.Errors?.RootErrors is { Length: > 0 } rootErrors)
                 {
+                    _result.Errors ??= [];
                     _result.Errors.AddRange(rootErrors);
                 }
 

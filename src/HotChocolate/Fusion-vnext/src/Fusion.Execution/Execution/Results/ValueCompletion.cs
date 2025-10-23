@@ -115,6 +115,7 @@ internal sealed class ValueCompletion
                 .Build();
             errorWithPath = _errorHandler.Handle(errorWithPath);
 
+            _result.Errors ??= [];
             _result.Errors.Add(errorWithPath);
 
             switch (_errorHandlingMode)
@@ -191,6 +192,8 @@ internal sealed class ValueCompletion
                 }
 
                 error = _errorHandler.Handle(error);
+
+                _result.Errors ??= [];
                 _result.Errors.Add(error);
 
                 if (_errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
@@ -217,6 +220,8 @@ internal sealed class ValueCompletion
                     .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
+
+                _result.Errors ??= [];
                 _result.Errors.Add(errorWithPath);
 
                 if (_errorHandlingMode is ErrorHandlingMode.Halt)
@@ -282,6 +287,8 @@ internal sealed class ValueCompletion
                     .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
+
+                _result.Errors ??= [];
                 _result.Errors.Add(errorWithPath);
 
                 if (_errorHandlingMode is ErrorHandlingMode.Halt)
