@@ -288,8 +288,7 @@ internal sealed partial class RequestExecutorManager
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
         serviceCollection.AddSingleton(
             static sp => sp.GetRootServiceProvider().GetRequiredService<ParserOptions>());
-        serviceCollection.AddSingleton(
-            static sp => sp.GetRootServiceProvider().GetRequiredService<IDocumentHashProvider>());
+        serviceCollection.AddSingleton<IDocumentHashProvider>(static _ => new MD5DocumentHashProvider(HashFormat.Hex));
 
         serviceCollection.TryAddDiagnosticEvents();
         serviceCollection.TryAddOperationExecutors();

@@ -148,12 +148,8 @@ Unlike with Redis, a Blob Storage client has no easy way to set the expiration o
           }
         },
         "filters": {
-          "blobTypes": [
-            "blockBlob"
-          ],
-          "prefixMatch": [
-            "hotchocolate/"
-          ]
+          "blobTypes": ["blockBlob"],
+          "prefixMatch": ["hotchocolate/"]
         }
       }
     }
@@ -169,14 +165,12 @@ Per default Hot Chocolate uses the MD5 hashing algorithm, but we can override th
 public void ConfigureServices(IServiceCollection services)
 {
     services
+        .AddGraphQLServer()
+        .AddQueryType<Query>()
         // choose one of the following providers
         .AddMD5DocumentHashProvider()
         .AddSha256DocumentHashProvider()
         .AddSha1DocumentHashProvider()
-
-        // GraphQL server configuration
-        .AddGraphQLServer()
-        .AddQueryType<Query>()
         .UsePersistedOperationPipeline()
         .AddFileSystemOperationDocumentStorage("./persisted_operations");
 }
