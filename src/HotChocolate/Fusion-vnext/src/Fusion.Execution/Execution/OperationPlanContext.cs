@@ -298,7 +298,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
         Debug.Assert(
             !result.Data.IsInvalidated
-                || (result.Errors.Count > 0),
+                || result.Errors?.Count > 0,
             "Expected to either valid data or errors");
 
         _clientScope = RequestContext.CreateClientScope();
