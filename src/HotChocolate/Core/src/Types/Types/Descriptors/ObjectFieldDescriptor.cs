@@ -139,11 +139,13 @@ public class ObjectFieldDescriptor
 
         if (!Configuration.ConfigurationsAreApplied)
         {
+            var isGenerated = (Configuration.Flags & CoreFieldFlags.SourceGenerator) == CoreFieldFlags.SourceGenerator;
+
             DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                member,
-                member,
+                element: member,
+                mainAttributeProvider: isGenerated ? null : member,
                 Configuration.Configurations);
 
             Configuration.ConfigurationsAreApplied = true;

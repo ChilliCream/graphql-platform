@@ -1,13 +1,13 @@
 using System.Text;
+using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
-using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class RootTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
-    public override void WriteInitializeMethod(IOutputTypeInfo type)
+    public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not RootTypeInfo rootType)
         {
@@ -36,7 +36,7 @@ public sealed class RootTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
                         : "var resolvers = new __Resolvers();");
             }
 
-            WriteResolverBindings(rootType);
+            WriteResolverBindings(rootType, typeLookup);
 
             Writer.WriteLine();
             Writer.WriteIndentedLine("Configure(descriptor);");

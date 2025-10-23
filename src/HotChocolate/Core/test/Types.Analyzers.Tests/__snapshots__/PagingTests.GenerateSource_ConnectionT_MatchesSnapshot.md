@@ -41,6 +41,7 @@ namespace TestNamespace
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.Connection<global::TestNamespace.Author>);
 
                     configuration.SetSourceGeneratorFlags();
+
                     configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
                 },
                 (Resolvers: resolvers, ThisType: thisType));

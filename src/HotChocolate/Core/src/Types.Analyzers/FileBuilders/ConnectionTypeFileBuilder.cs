@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
@@ -18,7 +19,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
         Writer.IncreaseIndent();
     }
 
-    public override void WriteInitializeMethod(IOutputTypeInfo type)
+    public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not ConnectionTypeInfo connectionType)
         {
@@ -77,7 +78,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                     connectionType.NameFormat);
             }
 
-            WriteResolverBindings(connectionType);
+            WriteResolverBindings(connectionType, typeLookup);
         }
 
         Writer.WriteIndentedLine("}");

@@ -45,6 +45,20 @@ namespace TestNamespace
                     configuration.SetConnectionFlags();
                     var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(field.Context, null);
                     configuration.Features.Set(pagingOptions);
+
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetAuthorsAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::GreenDonut.Data.PagingArguments),
+                            typeof(global::System.Threading.CancellationToken)
+                        })!;
+
+                    var configurations = configuration.Configurations;
+                    configurations = configurations.Add(new global::HotChocolate.Types.UseConnectionAttribute(20) { Name = "Authors123" });
+                    configuration.Configurations = configurations;
+
                     configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -150,6 +164,7 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionEdgesFieldFlags();
+
                     configuration.Resolvers = context.Resolvers.Edges();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -168,6 +183,7 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionNodesFieldFlags();
+
                     configuration.Resolvers = context.Resolvers.Nodes();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -185,6 +201,7 @@ namespace TestNamespace
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.ConnectionPageInfo);
 
                     configuration.SetSourceGeneratorFlags();
+
                     configuration.Resolvers = context.Resolvers.PageInfo();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -203,6 +220,7 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionTotalCountFieldFlags();
+
                     configuration.Resolvers = context.Resolvers.TotalCount();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -296,6 +314,7 @@ namespace TestNamespace
                     configuration.ResultType = typeof(global::TestNamespace.Author);
 
                     configuration.SetSourceGeneratorFlags();
+
                     configuration.Resolvers = context.Resolvers.Node();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -313,6 +332,7 @@ namespace TestNamespace
                     configuration.ResultType = typeof(string);
 
                     configuration.SetSourceGeneratorFlags();
+
                     configuration.Resolvers = context.Resolvers.Cursor();
                 },
                 (Resolvers: resolvers, ThisType: thisType));

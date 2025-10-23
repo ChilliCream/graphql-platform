@@ -44,6 +44,7 @@ namespace TestNamespace
                     configuration.ResultType = typeof(string);
 
                     configuration.SetSourceGeneratorFlags();
+
                     configuration.Resolvers = context.Resolvers.CustomResolver();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -63,6 +64,7 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionEdgesFieldFlags();
+
                     configuration.Resolvers = context.Resolvers.Edges();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -82,6 +84,7 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionNodesFieldFlags();
+
                     configuration.Resolvers = context.Resolvers.Nodes();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -100,6 +103,7 @@ namespace TestNamespace
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.PageInfo);
 
                     configuration.SetSourceGeneratorFlags();
+
                     configuration.Resolvers = context.Resolvers.PageInfo();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -119,6 +123,7 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionTotalCountFieldFlags();
+
                     configuration.Resolvers = context.Resolvers.TotalCount();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -224,6 +229,7 @@ namespace TestNamespace
                     configuration.ResultType = typeof(global::TestNamespace.Author);
 
                     configuration.SetSourceGeneratorFlags();
+
                     configuration.Resolvers = context.Resolvers.Node();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -242,6 +248,7 @@ namespace TestNamespace
                     configuration.ResultType = typeof(string);
 
                     configuration.SetSourceGeneratorFlags();
+
                     configuration.Resolvers = context.Resolvers.Cursor();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -318,6 +325,7 @@ namespace TestNamespace.Types.Root
                     configuration.SetConnectionFlags();
                     var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(field.Context, null);
                     configuration.Features.Set(pagingOptions);
+
                     configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
                 },
                 (Resolvers: resolvers, ThisType: thisType));

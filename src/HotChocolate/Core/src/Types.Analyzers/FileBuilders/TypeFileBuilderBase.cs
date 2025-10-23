@@ -49,7 +49,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         Writer.WriteIndentedLine("}");
     }
 
-    public abstract void WriteInitializeMethod(IOutputTypeInfo type);
+    public abstract void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup);
 
     protected virtual void WriteInitializationBase(
         string schemaFullTypeName,
@@ -97,7 +97,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         }
     }
 
-    protected virtual void WriteResolverBindings(IOutputTypeInfo type)
+    protected virtual void WriteResolverBindings(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type.Resolvers.Length == 0)
         {
@@ -189,7 +189,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                 using (Writer.IncreaseIndent())
                 {
-                    WriteResolverBindingExtendsWith(type, resolver);
+                    WriteResolverBindingExtendsWith(type, typeLookup, resolver);
                 }
 
                 Writer.WriteIndentedLine("},");
@@ -210,6 +210,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
     protected virtual void WriteResolverBindingExtendsWith(
         IOutputTypeInfo type,
+        ILocalTypeLookup typeLookup,
         Resolver resolver)
     {
         Writer.WriteIndentedLine("var configuration = field.Configuration;");
@@ -230,7 +231,6 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             Writer.WriteIndentedLine("configuration.DeprecationReason = \"{0}\";", deprecationReason);
         }
 
-        // Writer.WriteIndentedLine("configuration.Member = member;");
         WriteResolverBindingDescriptor(type, resolver);
 
         Writer.WriteIndentedLine(
@@ -340,6 +340,51 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
         if (resolver.Attributes.Length > 0)
         {
+            Writer.WriteLine();
+            Writer.WriteIndentedLine("configuration.Member = context.ThisType.GetMethod(");
+            using (Writer.IncreaseIndent())
+            {
+                Writer.WriteIndentedLine(
+                    "\"{0}\",",
+                    resolver.Member.Name);
+                Writer.WriteIndentedLine(
+                    "global::{0},",
+                    resolver.IsStatic
+                        ? WellKnownTypes.StaticMemberFlags
+                        : WellKnownTypes.InstanceMemberFlags);
+                if (resolver.Parameters.Length == 0)
+                {
+                    Writer.WriteIndentedLine("global::System.Array.Empty<global::System.Type>());");
+                }
+                else
+                {
+                    var resolverMethods = (IMethodSymbol)resolver.Member;
+
+                    Writer.WriteIndentedLine("new global::System.Type[]");
+                    Writer.WriteIndentedLine("{");
+                    using (Writer.IncreaseIndent())
+                    {
+                        for (var i = 0; i < resolver.Parameters.Length; i++)
+                        {
+                            var parameter = resolver.Parameters[i];
+
+                            if (i > 0)
+                            {
+                                Writer.Write(',');
+                                Writer.WriteLine();
+                            }
+
+                            Writer.WriteIndented(
+                                "typeof({0})",
+                                ToFullyQualifiedString(parameter.Type, resolverMethods, typeLookup));
+                        }
+                    }
+
+                    Writer.WriteLine();
+                    Writer.WriteIndentedLine("})!;");
+                }
+            }
+
             Writer.WriteLine();
             Writer.WriteIndentedLine("var configurations = configuration.Configurations;");
 

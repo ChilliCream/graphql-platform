@@ -62,14 +62,25 @@ namespace TestNamespace
             var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
             var resolvers = new __Resolvers(bindingResolver);
 
+            var naming = descriptor.Extend().Context.Naming;
+
             descriptor
-                .Field(thisType.GetMember("GetTest", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("Test", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Configuration.SetSourceGeneratorFlags();
-                    c.Configuration.Resolvers = r.GetTest();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<int>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(int);
+
+                    configuration.SetSourceGeneratorFlags();
+
+                    configuration.Resolvers = context.Resolvers.GetTest();
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
 
             Configure(descriptor);
         }
@@ -78,29 +89,23 @@ namespace TestNamespace
 
         private sealed class __Resolvers
         {
-            private readonly global::HotChocolate.Internal.IParameterBinding[] _args_GetTest = new global::HotChocolate.Internal.IParameterBinding[1];
+            private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetTest_arg;
 
-            public __Resolvers(global::HotChocolate.Internal.IParameterBindingResolver bindingResolver)
+            public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
             {
-                var type = typeof(global::TestNamespace.Query);
-                global::System.Reflection.MethodInfo resolver = default!;
-                global::System.Reflection.ParameterInfo[] parameters = default!;
-
-                resolver = type.GetMethod(
-                    "GetTest",
-                    global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
-                    new global::System.Type[]
-                    {
-                        typeof(string)
-                    })!;
-
-                parameters = resolver.GetParameters();
-                _args_GetTest[0] = bindingResolver.GetBinding(parameters[0]);
+                _binding_GetTest_arg = bindingResolver.GetBinding(CreateParameterDescriptor_GetTest_arg());
             }
+
+            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetTest_arg()
+                => new HotChocolate.Internal.ParameterDescriptor(
+                    "arg",
+                    typeof(string),
+                    isNullable: false,
+                    []);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetTest()
             {
-                var isPureResolver = _args_GetTest[0].IsPure;
+                var isPureResolver = _binding_GetTest_arg.IsPure;
 
                 return isPureResolver
                     ? new global::HotChocolate.Resolvers.FieldResolverDelegates(pureResolver: GetTest)
@@ -109,7 +114,7 @@ namespace TestNamespace
 
             private global::System.Object? GetTest(global::HotChocolate.Resolvers.IResolverContext context)
             {
-                var args0 = _args_GetTest[0].Execute<string>(context);
+                var args0 = _binding_GetTest_arg.Execute<string>(context);
                 var result = global::TestNamespace.Query.GetTest(args0);
                 return result;
             }

@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
-    public override void WriteInitializeMethod(IOutputTypeInfo type)
+    public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not ObjectTypeInfo objectType)
         {
@@ -50,7 +50,7 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
                 }
             }
 
-            WriteResolverBindings(objectType);
+            WriteResolverBindings(objectType, typeLookup);
 
             Writer.WriteLine();
             Writer.WriteIndentedLine("Configure(descriptor);");

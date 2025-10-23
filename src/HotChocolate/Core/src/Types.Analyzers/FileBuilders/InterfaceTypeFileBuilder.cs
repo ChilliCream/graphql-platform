@@ -1,11 +1,12 @@
 using System.Text;
+using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Models;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class InterfaceTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
-    public override void WriteInitializeMethod(IOutputTypeInfo type)
+    public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not InterfaceTypeInfo interfaceType)
         {
@@ -29,7 +30,7 @@ public sealed class InterfaceTypeFileBuilder(StringBuilder sb) : TypeFileBuilder
                 interfaceType.Attributes,
                 interfaceType.Inaccessible);
 
-            WriteResolverBindings(interfaceType);
+            WriteResolverBindings(interfaceType, typeLookup);
 
             Writer.WriteLine();
             Writer.WriteIndentedLine("Configure(descriptor);");
