@@ -2,7 +2,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Execution.Pipeline;
+namespace HotChocolate.Execution;
 
 public class TransactionScopeHandlerTests
 {
@@ -87,15 +87,15 @@ public class TransactionScopeHandlerTests
 
     public class MockTransactionScopeHandler(Action complete, Action dispose) : ITransactionScopeHandler
     {
-        public ITransactionScope Create(IRequestContext context)
+        public ITransactionScope Create(RequestContext context)
             => new MockTransactionScope(complete, dispose, context);
     }
 
-    public class MockTransactionScope(Action complete, Action dispose, IRequestContext context) : ITransactionScope
+    public class MockTransactionScope(Action complete, Action dispose, RequestContext context) : ITransactionScope
     {
         public void Complete()
         {
-            if(context.Result is IOperationResult { Data: not null, Errors: null or { Count: 0, }, })
+            if (context.Result is IOperationResult { Data: not null, Errors: null or { Count: 0 } })
             {
                 complete();
             }

@@ -103,7 +103,7 @@ internal sealed class WritePersistedOperationMiddleware
         => new RequestMiddlewareConfiguration(
             (core, next) =>
             {
-                var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
+                var documentHashProvider = core.SchemaServices.GetRequiredService<IDocumentHashProvider>();
                 var persistedOperationStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
                 var middleware = new WritePersistedOperationMiddleware(next, documentHashProvider, persistedOperationStore);
                 return context => middleware.InvokeAsync(context);

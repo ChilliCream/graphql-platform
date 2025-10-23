@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.PersistedOperations;
+namespace HotChocolate.Execution;
 
 /// <summary>
 /// Provides the document syntax node of an operation document.
