@@ -93,7 +93,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         if (inaccessible is DirectiveScope.Type)
         {
             Writer.WriteLine();
-            Writer.WriteIndentedLine("descriptor.Directive({0}.Instance);", WellKnownTypes.Inaccessible);
+            Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Inaccessible);
         }
     }
 
@@ -141,6 +141,24 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
         foreach (var resolver in type.Resolvers)
         {
+            var fieldName = resolver.FieldName;
+
+            if (resolver.Member is IMethodSymbol)
+            {
+                if (fieldName.StartsWith("Get"))
+                {
+                    fieldName = fieldName.Substring(3);
+                }
+
+                if (resolver.ResultKind is ResolverResultKind.Task or
+                    ResolverResultKind.TaskAsyncEnumerable or
+                    ResolverResultKind.AsyncEnumerable
+                    && fieldName.EndsWith("Async"))
+                {
+                    fieldName = fieldName.Substring(0, fieldName.Length - "Async".Length);
+                }
+            }
+
             Writer.WriteLine();
             Writer.WriteIndentedLine("descriptor");
 
@@ -148,12 +166,22 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             {
                 Writer.WriteIndentedLine(
                     ".Field(naming.GetMemberName(\"{0}\", global::HotChocolate.Types.MemberKind.ObjectField))",
-                    resolver.FieldName);
+                    fieldName);
 
                 if (resolver.Kind is ResolverKind.ConnectionResolver)
                 {
                     Writer.WriteIndentedLine(
                         ".AddPagingArguments()");
+                }
+
+                if (resolver.Shareable is not DirectiveScope.None)
+                {
+                    Writer.WriteIndentedLine(".Directive(global::{0}.Instance)", WellKnownTypes.Shareable);
+                }
+
+                if (resolver.Inaccessible is not DirectiveScope.None)
+                {
+                    Writer.WriteIndentedLine(".Directive(global::{0}.Instance)", WellKnownTypes.Inaccessible);
                 }
 
                 Writer.WriteIndentedLine(".ExtendWith(static (field, context) =>");
@@ -283,7 +311,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                         Writer.WriteIndentedLine(
                             "Type = typeInspector.GetTypeRef(typeof({0}), {1}.Input)",
-                            parameter.Type.ToClassNonNullableFullyQualifiedWithNullRefQualifier(),
+                            parameter.SchemaTypeName,
                             WellKnownTypes.TypeContext);
                     }
 
@@ -310,6 +338,22 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             }
         }
 
+        if (resolver.Attributes.Length > 0)
+        {
+            Writer.WriteLine();
+            Writer.WriteIndentedLine("var configurations = configuration.Configurations;");
+
+            foreach (var attribute in resolver.Attributes)
+            {
+                Writer.WriteIndentedLine(
+                    "configurations = configurations.Add({0});",
+                    GenerateAttributeInstantiation(attribute));
+            }
+
+            Writer.WriteIndentedLine("configuration.Configurations = configurations;");
+        }
+
+        Writer.WriteLine();
         Writer.WriteIndentedLine("configuration.Resolvers = context.Resolvers.{0}();", resolver.Member.Name);
 
         if (resolver.ResultKind is not ResolverResultKind.Pure

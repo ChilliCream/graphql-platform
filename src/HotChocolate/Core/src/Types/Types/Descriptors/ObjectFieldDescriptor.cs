@@ -83,8 +83,7 @@ public class ObjectFieldDescriptor
         Configuration.Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         Configuration.SourceType = sourceType;
         Configuration.ResolverType = resolverType;
-        Configuration.IsParallelExecutable =
-            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
+        Configuration.IsParallelExecutable = context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
 
         var member = expression.TryExtractCallMember();
 

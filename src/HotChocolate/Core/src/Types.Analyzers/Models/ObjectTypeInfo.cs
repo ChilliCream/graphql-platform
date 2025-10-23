@@ -14,7 +14,8 @@ public sealed class ObjectTypeInfo
         INamedTypeSymbol runtimeType,
         Resolver? nodeResolver,
         ClassDeclarationSyntax classDeclarationSyntax,
-        ImmutableArray<Resolver> resolvers)
+        ImmutableArray<Resolver> resolvers,
+        ImmutableArray<AttributeData> attributes)
     {
         SchemaSchemaType = schemaType;
         SchemaTypeFullName = schemaType.ToDisplayString();
@@ -24,6 +25,9 @@ public sealed class ObjectTypeInfo
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
         Description = schemaType.GetDescription();
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        Attributes = attributes.GetUserAttributes();
     }
 
     public string Name => SchemaSchemaType.Name;
@@ -56,11 +60,11 @@ public sealed class ObjectTypeInfo
 
     public override string OrderByKey => SchemaTypeFullName;
 
-    public DirectiveScope Shareable { get; set; } = DirectiveScope.None;
+    public DirectiveScope Shareable { get; }
 
-    public DirectiveScope Inaccessible { get; set; } = DirectiveScope.None;
+    public DirectiveScope Inaccessible { get; }
 
-    public ImmutableArray<AttributeData> Attributes { get; set; } = [];
+    public ImmutableArray<AttributeData> Attributes { get; }
 
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);

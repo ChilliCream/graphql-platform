@@ -416,6 +416,26 @@ public class ExtendedTypeTests
         Assert.Equal(typeof(string), typeRef.Type.ElementType.ElementType.Type);
     }
 
+    [Fact]
+    public void SourceGenerated_NonNullList_NonNullString()
+    {
+        // arrange
+        var typeInspector = new DefaultTypeInspector();
+
+        // act
+        var typeRef = typeInspector.GetTypeRef(
+            typeof(SourceGeneratedType<NonNullType<ListType<NonNullType<NamedRuntimeType<string>>>>>));
+
+        // assert
+        Assert.NotNull(typeRef);
+        Assert.False(typeRef.Type.IsNullable);
+        Assert.True(typeRef.Type.IsArrayOrList);
+        Assert.NotNull(typeRef.Type.ElementType);
+        Assert.False(typeRef.Type.ElementType.IsNullable);
+        Assert.Equal(typeof(string), typeRef.Type.ElementType.Type);
+    }
+
+    //, HotChocolate.Types.TypeContext.Output)
     private sealed class CustomStringList1
         : List<string>;
 

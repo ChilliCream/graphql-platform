@@ -6,11 +6,16 @@ namespace HotChocolate.Types.Analyzers.Models;
 
 public sealed class ResolverParameter
 {
-    public ResolverParameter(IParameterSymbol parameter, string? key, ResolverParameterKind kind)
+    public ResolverParameter(
+        IParameterSymbol parameter,
+        string? key,
+        ResolverParameterKind kind,
+        string schemaTypeName)
     {
         Parameter = parameter;
         Kind = kind;
         Name = parameter.Name;
+        SchemaTypeName = schemaTypeName;
         Key = key;
         IsNullable = !parameter.IsNonNullable();
         DeprecationReason = null;
@@ -26,6 +31,8 @@ public sealed class ResolverParameter
     public string? Key { get; }
 
     public ITypeSymbol Type => Parameter.Type;
+
+    public string SchemaTypeName { get; }
 
     public ImmutableArray<ITypeSymbol> TypeParameters
         => GetGenericTypeArgument(Type);
@@ -61,7 +68,8 @@ public sealed class ResolverParameter
     public static ResolverParameter Create(IParameterSymbol parameter, Compilation compilation)
     {
         var kind = GetParameterKind(parameter, compilation, out var key);
-        return new ResolverParameter(parameter, key, kind);
+        var schemaTypeName = GraphQLTypeBuilder.ToSchemaType(parameter.Type, compilation);
+        return new ResolverParameter(parameter, key, kind, schemaTypeName);
     }
 
     private static ResolverParameterKind GetParameterKind(

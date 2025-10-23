@@ -66,7 +66,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
                         ResolverResultKind.Pure,
                         [],
                         [],
-                        GraphQLTypeBuilder.BuildTypeString(member.GetReturnType()!, context.SemanticModel.Compilation));
+                        GraphQLTypeBuilder.ToSchemaType(member.GetReturnType()!, context.SemanticModel.Compilation));
                 }
             }
         }
@@ -161,6 +161,6 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             resolverMethod.GetResultKind(),
             [.. resolverParameters],
             [],
-            GraphQLTypeBuilder.BuildTypeString(resolverMethod.GetReturnType()!, compilation));
+            GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation));
     }
 }

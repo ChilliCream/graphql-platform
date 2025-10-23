@@ -46,6 +46,11 @@ public sealed class Resolver
         }
 
         DeprecationReason = null;
+
+        var attributes = member.GetAttributes();
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        Attributes = attributes.GetUserAttributes();
     }
 
     public string FieldName { get; }
@@ -86,6 +91,12 @@ public sealed class Resolver
     public bool RequiresParameterBindings => Parameters.Any(t => t.RequiresBinding);
 
     public ImmutableArray<MemberBinding> Bindings { get; }
+
+    public DirectiveScope Shareable { get; }
+
+    public DirectiveScope Inaccessible { get; }
+
+    public ImmutableArray<AttributeData> Attributes { get; }
 
     public Resolver WithSchemaTypeName(string schemaTypeName)
     {

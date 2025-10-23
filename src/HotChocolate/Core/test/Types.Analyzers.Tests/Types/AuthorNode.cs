@@ -1,3 +1,5 @@
+using HotChocolate.Types.Composite;
+
 namespace HotChocolate.Types;
 
 [ObjectType<Author>]

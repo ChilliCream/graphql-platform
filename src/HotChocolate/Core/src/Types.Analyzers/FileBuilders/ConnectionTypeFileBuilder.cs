@@ -76,6 +76,8 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                     "descriptor.Name(\"{0}\");",
                     connectionType.NameFormat);
             }
+
+            WriteResolverBindings(connectionType);
         }
 
         Writer.WriteIndentedLine("}");

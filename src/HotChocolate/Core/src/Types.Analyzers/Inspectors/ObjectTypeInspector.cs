@@ -90,7 +90,7 @@ public class ObjectTypeInspector : ISyntaxInspector
                         ResolverResultKind.Pure,
                         [],
                         member.GetMemberBindings(),
-                        GraphQLTypeBuilder.BuildTypeString(member.GetReturnType()!, context.SemanticModel.Compilation));
+                        GraphQLTypeBuilder.ToSchemaType(member.GetReturnType()!, context.SemanticModel.Compilation));
                 }
             }
         }
@@ -107,13 +107,9 @@ public class ObjectTypeInspector : ISyntaxInspector
                 runtimeType,
                 nodeResolver,
                 possibleType,
-                i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
+                i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
+                classSymbol.GetAttributes());
             syntaxInfo = objectTypeInfo;
-
-            var attributes = classSymbol.GetAttributes();
-            objectTypeInfo.Shareable = attributes.GetShareableScope();
-            objectTypeInfo.Inaccessible = attributes.GetInaccessibleScope();
-            objectTypeInfo.Attributes = attributes.GetUserAttributes();
 
             if (objectTypeInfo.Shareable is DirectiveScope.Field)
             {
@@ -282,7 +278,7 @@ public class ObjectTypeInspector : ISyntaxInspector
             resolverMethod.GetResultKind(),
             [.. resolverParameters],
             resolverMethod.GetMemberBindings(),
-            GraphQLTypeBuilder.BuildTypeString(resolverMethod.GetReturnType()!, compilation),
+            GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation),
             kind: compilation.IsConnectionType(resolverMethod.ReturnType)
                 ? ResolverKind.ConnectionResolver
                 : ResolverKind.Default);
@@ -317,7 +313,11 @@ public class ObjectTypeInspector : ISyntaxInspector
 
             if (parameter.Kind is ResolverParameterKind.Unknown && (parameter.Name == "id" || parameter.Key == "id"))
             {
-                parameter = new ResolverParameter(parameter.Parameter, parameter.Key, ResolverParameterKind.Argument);
+                parameter = new ResolverParameter(
+                    parameter.Parameter,
+                    parameter.Key,
+                    ResolverParameterKind.Argument,
+                    GraphQLTypeBuilder.ToSchemaType(parameter.Type, compilation));
             }
 
             resolverParameters[i] = parameter;
@@ -339,7 +339,7 @@ public class ObjectTypeInspector : ISyntaxInspector
             resolverMethod.GetResultKind(),
             [..resolverParameters],
             resolverMethod.GetMemberBindings(),
-            GraphQLTypeBuilder.BuildTypeString(resolverMethod.GetReturnType()!, compilation),
+            GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation),
             kind: ResolverKind.NodeResolver);
     }
 

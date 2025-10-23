@@ -158,7 +158,7 @@ public sealed class ConnectionTypeInfo
                             ResolverResultKind.Pure,
                             [],
                             GetMemberBindings(property),
-                            GraphQLTypeBuilder.BuildTypeString(property.GetReturnType()!, compilation),
+                            GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
                             flags: flags));
                     break;
             }

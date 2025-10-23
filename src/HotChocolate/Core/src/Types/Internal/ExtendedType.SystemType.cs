@@ -30,6 +30,7 @@ public sealed partial class ExtendedType
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NonNullType<>))
             {
                 type = type.GetGenericArguments()[0];
+                type = Helper.RemoveNonEssentialTypes(type);
                 isNullable = false;
             }
 

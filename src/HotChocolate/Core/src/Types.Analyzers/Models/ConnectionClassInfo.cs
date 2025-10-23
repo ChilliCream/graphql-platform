@@ -110,7 +110,7 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
                             ResolverResultKind.Pure,
                             [],
                             ObjectTypeInspector.GetMemberBindings(member),
-                            GraphQLTypeBuilder.BuildTypeString(property.GetReturnType()!, compilation),
+                            GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
                             flags: flags));
                     break;
             }

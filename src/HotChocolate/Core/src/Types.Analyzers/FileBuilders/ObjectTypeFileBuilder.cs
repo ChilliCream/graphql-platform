@@ -34,7 +34,7 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
             if (objectType.Shareable is DirectiveScope.Type)
             {
                 Writer.WriteLine();
-                Writer.WriteIndentedLine("descriptor.Directive({0}.Instance);", WellKnownTypes.Shareable);
+                Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Shareable);
             }
 
             if (objectType.NodeResolver is not null)

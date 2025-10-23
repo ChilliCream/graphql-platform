@@ -11,7 +11,7 @@ public static class GraphQLTypeBuilder
         "HotChocolate.Optional<T>"
     ];
 
-    public static string BuildTypeString(ITypeSymbol typeSymbol, Compilation compilation)
+    public static string ToSchemaType(ITypeSymbol typeSymbol, Compilation compilation)
     {
         // First, we unwrap any non-essential wrapper types and IFieldResult implementations.
         var unwrapped = UnwrapNonEssentialTypes(typeSymbol, compilation);

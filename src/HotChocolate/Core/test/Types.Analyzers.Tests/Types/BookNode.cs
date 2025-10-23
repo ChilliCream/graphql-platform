@@ -19,18 +19,9 @@ public static partial class BookNode
         descriptor.Field(t => t.Genre);
     }
 
-    /// <summary>
-    /// Abc
-    /// </summary>
-    /// <param name="book"></param>
-    /// <param name="id"></param>
-    /// <param name="repository"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     [BindMember(nameof(Book.AuthorId))]
     public static async Task<Author?> GetAuthorAsync(
         [Parent] Book book,
-        string id,
         AuthorRepository repository,
         CancellationToken cancellationToken)
         => await repository.GetAuthorAsync(book.AuthorId, cancellationToken);

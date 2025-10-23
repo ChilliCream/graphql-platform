@@ -140,7 +140,7 @@ public sealed class EdgeTypeInfo
                             ResolverResultKind.Pure,
                             [],
                             ObjectTypeInspector.GetMemberBindings(member),
-                            GraphQLTypeBuilder.BuildTypeString(property.GetReturnType()!, compilation),
+                            GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
                             flags: FieldFlags.None));
                     break;
             }
