@@ -6,8 +6,8 @@ on:
     branches:
       - main
       - main-version-*
-    # paths-ignore:
-    #   - "src/HotChocolate/AspNetCore/benchmarks/k6/performance-data.json"
+    paths-ignore:
+      - "src/HotChocolate/AspNetCore/benchmarks/k6/performance-data.json"
 
 concurrency:
   group: ci-new-2-${{ github.event.pull_request.number }}
