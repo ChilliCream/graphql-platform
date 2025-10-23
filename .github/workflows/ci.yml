@@ -6,8 +6,8 @@ on:
     branches:
       - main
       - main-version-*
-    paths-ignore:
-      - 'src/HotChocolate/AspNetCore/benchmarks/k6/performance-data.json'
+    # paths-ignore:
+    #   - "src/HotChocolate/AspNetCore/benchmarks/k6/performance-data.json"
 
 concurrency:
   group: ci-new-2-${{ github.event.pull_request.number }}
@@ -392,9 +392,9 @@ jobs:
             // Add timestamp and commit info to the report
             const timestamp = new Date().toUTCString();
             const commitSha = context.sha.substring(0, 7);
-            const runNumber = context.runNumber;
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
-            const commentBody = `${report}\n\n---\n*Run #${runNumber} • Commit ${commitSha} • ${timestamp}*`;
+            const commentBody = `${report}\n\n---\n*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`;
 
             // Always create a new comment
             await github.rest.issues.createComment({
