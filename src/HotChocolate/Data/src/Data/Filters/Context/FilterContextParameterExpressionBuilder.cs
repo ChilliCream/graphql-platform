@@ -23,13 +23,13 @@ internal sealed class FilterContextParameterExpressionBuilder
             .GetMethods(BindingFlags.Static | BindingFlags.Public)
             .First(method => method.Name.Equals(GetFilterContext, StringComparison.Ordinal));
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IParameterExpressionBuilder.Kind" />
     public ArgumentKind Kind => ArgumentKind.Service;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IParameterExpressionBuilder.IsPure" />
     public bool IsPure => false;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IParameterExpressionBuilder.IsDefaultHandler" />
     public bool IsDefaultHandler => false;
 
     /// <inheritdoc />

@@ -393,7 +393,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NativeType<>))
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NamedRuntimeType<>))
         {
             return type;
         }

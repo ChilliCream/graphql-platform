@@ -76,8 +76,6 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                     "descriptor.Name(\"{0}\");",
                     connectionType.NameFormat);
             }
-
-            WriteResolverBindings(connectionType);
         }
 
         Writer.WriteIndentedLine("}");
@@ -88,7 +86,9 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
     {
     }
 
-    protected override void WriteResolverBindingDescriptor(IOutputTypeInfo type, Resolver resolver)
+    protected override void WriteResolverBindingDescriptor(
+        IOutputTypeInfo type,
+        Resolver resolver)
     {
         if (type is not ConnectionTypeInfo connectionType)
         {
@@ -101,8 +101,9 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
             var edgeTypeName = $"{connectionType.Namespace}.{connectionType.EdgeTypeName}";
 
             Writer.WriteIndentedLine(
-                ".Type<{0}>()",
-                ToGraphQLType(resolver.UnwrappedReturnType, edgeTypeName));
+                "configuration.Type = typeInspector.GetTypeRef(typeof({0}), {1}.Output);",
+                ToGraphQLType(resolver.ReturnType, edgeTypeName),
+                WellKnownTypes.TypeContext);
         }
         else
         {

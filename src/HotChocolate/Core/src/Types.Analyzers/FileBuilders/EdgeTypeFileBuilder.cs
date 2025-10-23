@@ -75,8 +75,6 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
                     "descriptor.Name(\"{0}\");",
                     edgeType.NameFormat);
             }
-
-            WriteResolverBindings(edgeType);
         }
 
         Writer.WriteIndentedLine("}");

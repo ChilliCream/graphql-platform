@@ -86,6 +86,9 @@ public static class KnownSymbols
     public static INamedTypeSymbol? GetConnectionBaseSymbol(this GeneratorSyntaxContext context)
         => context.SemanticModel.Compilation.GetConnectionBaseSymbol();
 
+    public static INamedTypeSymbol? GetFieldResultInterface(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("HotChocolate.IFieldResult");
+
     public static INamedTypeSymbol? GetConnectionBaseSymbol(this Compilation compilation)
         => compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.ConnectionBase`3");
 

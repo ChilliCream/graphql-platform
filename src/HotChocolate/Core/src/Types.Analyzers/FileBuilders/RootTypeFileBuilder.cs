@@ -1,6 +1,7 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
+using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 

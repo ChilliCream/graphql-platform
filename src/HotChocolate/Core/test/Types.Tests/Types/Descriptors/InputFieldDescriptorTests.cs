@@ -1,3 +1,4 @@
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
@@ -17,7 +18,7 @@ public class InputFieldDescriptorTests
         // act
         descriptor
             .Type<ListType<StringType>>()
-            .Type<NativeType<IReadOnlyDictionary<string, string>>>();
+            .Type<NamedRuntimeType<IReadOnlyDictionary<string, string>>>();
 
         // assert
         var description = descriptor.CreateConfiguration();
@@ -37,7 +38,7 @@ public class InputFieldDescriptorTests
 
         // act
         descriptor
-            .Type<NativeType<IReadOnlyDictionary<string, string>>>()
+            .Type<NamedRuntimeType<IReadOnlyDictionary<string, string>>>()
             .Type<ListType<StringType>>();
 
         // assert

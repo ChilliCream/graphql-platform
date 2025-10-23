@@ -346,7 +346,7 @@ public class ObjectFieldDescriptor
             {
                 var resultTypeDef = resultType.GetGenericTypeDefinition();
 
-                var clrResultType = resultTypeDef == typeof(NativeType<>)
+                var clrResultType = resultTypeDef == typeof(NamedRuntimeType<>)
                     ? resultType.GetGenericArguments()[0]
                     : resultType;
 

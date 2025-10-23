@@ -10,7 +10,7 @@ namespace HotChocolate.Internal;
 public sealed partial class ExtendedType : IExtendedType
 {
     internal static ImmutableHashSet<Type> NonEssentialWrapperTypes { get; set; } =
-        [typeof(ValueTask<>), typeof(Task<>), typeof(NativeType<>), typeof(Optional<>)];
+        [typeof(ValueTask<>), typeof(Task<>), typeof(NamedRuntimeType<>), typeof(Optional<>)];
 
     private ExtendedType(
         Type type,

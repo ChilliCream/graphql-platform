@@ -89,7 +89,8 @@ public class ObjectTypeInspector : ISyntaxInspector
                         member,
                         ResolverResultKind.Pure,
                         [],
-                        member.GetMemberBindings());
+                        member.GetMemberBindings(),
+                        GraphQLTypeBuilder.BuildTypeString(member.GetReturnType()!, context.SemanticModel.Compilation));
                 }
             }
         }
@@ -281,6 +282,7 @@ public class ObjectTypeInspector : ISyntaxInspector
             resolverMethod.GetResultKind(),
             [.. resolverParameters],
             resolverMethod.GetMemberBindings(),
+            GraphQLTypeBuilder.BuildTypeString(resolverMethod.GetReturnType()!, compilation),
             kind: compilation.IsConnectionType(resolverMethod.ReturnType)
                 ? ResolverKind.ConnectionResolver
                 : ResolverKind.Default);
@@ -335,8 +337,9 @@ public class ObjectTypeInspector : ISyntaxInspector
             resolverType.Name,
             resolverMethod,
             resolverMethod.GetResultKind(),
-            resolverParameters.ToImmutableArray(),
+            [..resolverParameters],
             resolverMethod.GetMemberBindings(),
+            GraphQLTypeBuilder.BuildTypeString(resolverMethod.GetReturnType()!, compilation),
             kind: ResolverKind.NodeResolver);
     }
 
@@ -357,53 +360,6 @@ file static class Extensions
         }
 
         return false;
-    }
-
-    public static DirectiveScope GetShareableScope(this ImmutableArray<AttributeData> attributes)
-    {
-        foreach (var attribute in attributes)
-        {
-            if (attribute.AttributeClass.IsOrInheritsFrom(ShareableAttribute))
-            {
-                var isScoped = attribute.ConstructorArguments.Length > 0
-                    && attribute.ConstructorArguments[0].Value is true;
-                return isScoped ? DirectiveScope.Field : DirectiveScope.Type;
-            }
-        }
-
-        return DirectiveScope.None;
-    }
-
-    public static DirectiveScope GetInaccessibleScope(this ImmutableArray<AttributeData> attributes)
-    {
-        foreach (var attribute in attributes)
-        {
-            if (attribute.AttributeClass.IsOrInheritsFrom(InaccessibleAttribute))
-            {
-                var isScoped = attribute.ConstructorArguments.Length > 0
-                    && attribute.ConstructorArguments[0].Value is true;
-                return isScoped ? DirectiveScope.Field : DirectiveScope.Type;
-            }
-        }
-
-        return DirectiveScope.None;
-    }
-
-    public static ImmutableArray<AttributeData> GetUserAttributes(this ImmutableArray<AttributeData> attributes)
-    {
-        var mutated = attributes;
-
-        foreach (var attribute in attributes)
-        {
-            if (attribute.AttributeClass.IsOrInheritsFrom(ShareableAttribute)
-                || attribute.AttributeClass.IsOrInheritsFrom(InaccessibleAttribute)
-                || !attribute.AttributeClass.IsOrInheritsFrom(DescriptorAttribute))
-            {
-                mutated = mutated.Remove(attribute);
-            }
-        }
-
-        return mutated;
     }
 
     public static bool Skip(this IMethodSymbol methodSymbol)

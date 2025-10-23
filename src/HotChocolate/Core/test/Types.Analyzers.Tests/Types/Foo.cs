@@ -4,7 +4,6 @@
 #pragma warning disable
 
 using System;
-using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using HotChocolate;
 using HotChocolate.Types;
@@ -12,226 +11,386 @@ using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Configurations;
-using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types
 {
-    public static partial class BookNode1
+    public static partial class AuthorNode1
     {
-        internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor<global::HotChocolate.Types.Book> descriptor)
+        internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor<global::HotChocolate.Types.Author> descriptor)
         {
-            var thisType = typeof(global::HotChocolate.Types.BookNode);
             var extension = descriptor.Extend();
-            var bindingResolver = extension.Context.ParameterBindingResolver;
             var configuration = extension.Configuration;
+            var thisType = typeof(global::HotChocolate.Types.AuthorNode);
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers(bindingResolver);
 
-            // configuration.AttributeBindingTypes = configuration.AttributeBindingTypes.Add(thisType);
-
-            if(configuration.Description
+            var naming = descriptor.Extend().Context.Naming;
 
             descriptor
-                .ImplementsNode()
-                .ResolveNode(resolvers.GetBookByIdAsync().Resolver!);
-
-            var naming = extension.Context.Naming;
-            var ignoredFields = new global::System.Collections.Generic.HashSet<string>();
-            ignoredFields.Add(naming.GetMemberName("AuthorId", global::HotChocolate.Types.MemberKind.ObjectField));
-
-            foreach(var ignoredField in ignoredFields)
-            {
-                descriptor.Field(ignoredField).Ignore();
-            }
-
-            descriptor
-                .Field(naming.GetMemberName("GetAuthorAsync", global::HotChocolate.Types.MemberKind.ObjectField))
+                .Field(naming.GetMemberName("GetBooksAsync", global::HotChocolate.Types.MemberKind.ObjectField))
                 .ExtendWith(static (field, context) =>
                 {
                     var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
+                    
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::HotChocolate.Types.Book>>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(global::System.Collections.Generic.IEnumerable<global::HotChocolate.Types.Book>);
 
-                    if (context.Resolvers.GetAuthorAsyncArguments.Length > 0)
-                    {
-                        foreach (var (parameter, kind) in context.Resolvers.GetAuthorAsyncArguments)
-                        {
-                            configuration.Arguments.Add(new ArgumentConfiguration(
-                                name: naming.GetMemberName("foo", global::HotChocolate.Types.MemberKind.Argument),
-
-
-                                ));
-
-                        }
-                    }
-
-                    // configuration.Member = member;
-                    configuration.Description = null;
-                    configuration.DeprecationReason = reason;
-                    configuration.Type =  context.TypeInspector.GetTypeRef(typeof(String), TypeContext.Output);
-                    configuration.ResultType = typeof(String);
-                    configuration.SourceType = context.ThisType;
-                    configuration.ResolverType = context.ThisType;
                     configuration.SetSourceGeneratorFlags();
-                    configuration.Resolvers = context.Resolvers.GetChapterAsync();
+
+                    var bindingInfo = field.Context.ParameterBindingResolver;
+                    var parameter = context.Resolvers.CreateParameterDescriptor_GetBooksAsync_repository();
+                    var parameterInfo = bindingInfo.GetBindingInfo(parameter);
+
+                    if(parameterInfo.Kind is global::HotChocolate.Internal.ArgumentKind.Argument)
+                    {
+                        var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
+                        {
+                            Name = naming.GetMemberName("repository", global::HotChocolate.Types.MemberKind.Argument),
+                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.BookRepository), HotChocolate.Types.TypeContext.Input)
+                        };
+
+                        configuration.Arguments.Add(argumentConfiguration);
+                    }
+                    configuration.Resolvers = context.Resolvers.GetBooksAsync();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
 
             descriptor
-                .Field(thisType.GetMember("GetAuthorAsync", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("GetSomeInfo", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Configuration.SetSourceGeneratorFlags();
-                    c.Configuration.Resolvers = r.GetAuthorAsync();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Description = "This is some information.";
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.NamedRuntimeType<string>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(string);
+
+                    configuration.SetSourceGeneratorFlags();
+
+                    var bindingInfo = field.Context.ParameterBindingResolver;
+                    var parameter = context.Resolvers.CreateParameterDescriptor_GetSomeInfo_dataLoader();
+                    var parameterInfo = bindingInfo.GetBindingInfo(parameter);
+
+                    if(parameterInfo.Kind is global::HotChocolate.Internal.ArgumentKind.Argument)
+                    {
+                        var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
+                        {
+                            Name = naming.GetMemberName("dataLoader", global::HotChocolate.Types.MemberKind.Argument),
+                            Type = typeInspector.GetTypeRef(typeof(ISomeInfoByIdDataLoader), HotChocolate.Types.TypeContext.Input)
+                        };
+
+                        configuration.Arguments.Add(argumentConfiguration);
+                    }
+                    configuration.Resolvers = context.Resolvers.GetSomeInfo();
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
 
             descriptor
-                .Field(thisType.GetMember("GetChapterAsync", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("GetAdditionalInfo", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Configuration.SetSourceGeneratorFlags();
-                    c.Configuration.Resolvers = r.GetChapterAsync();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Description = "Gets the additional info.";
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<string>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(string);
+
+                    configuration.SetSourceGeneratorFlags();
+
+                    var bindingInfo = field.Context.ParameterBindingResolver;
+                    var parameter = context.Resolvers.CreateParameterDescriptor_GetAdditionalInfo_someArg();
+                    var parameterInfo = bindingInfo.GetBindingInfo(parameter);
+
+                    if(parameterInfo.Kind is global::HotChocolate.Internal.ArgumentKind.Argument)
+                    {
+                        var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
+                        {
+                            Name = naming.GetMemberName("someArg", global::HotChocolate.Types.MemberKind.Argument),
+                            Description = "Some argument",
+                            Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Input)
+                        };
+
+                        configuration.Arguments.Add(argumentConfiguration);
+                    }
+                    configuration.Resolvers = context.Resolvers.GetAdditionalInfo();
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
 
             descriptor
-                .Field(thisType.GetMember("IdAndTitle", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("GetAdditionalInfo1", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Configuration.SetSourceGeneratorFlags();
-                    c.Configuration.Resolvers = r.IdAndTitle();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<string>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(string);
+
+                    configuration.SetSourceGeneratorFlags();
+
+                    var bindingInfo = field.Context.ParameterBindingResolver;
+                    var parameter = context.Resolvers.CreateParameterDescriptor_GetAdditionalInfo1_someArg1();
+                    var parameterInfo = bindingInfo.GetBindingInfo(parameter);
+
+                    if(parameterInfo.Kind is global::HotChocolate.Internal.ArgumentKind.Argument)
+                    {
+                        var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
+                        {
+                            Name = naming.GetMemberName("someArg1", global::HotChocolate.Types.MemberKind.Argument),
+                            Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Input)
+                        };
+
+                        configuration.Arguments.Add(argumentConfiguration);
+                    }
+
+                    parameter = context.Resolvers.CreateParameterDescriptor_GetAdditionalInfo1_someArg2();
+                    parameterInfo = bindingInfo.GetBindingInfo(parameter);
+
+                    if(parameterInfo.Kind is global::HotChocolate.Internal.ArgumentKind.Argument)
+                    {
+                        var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
+                        {
+                            Name = naming.GetMemberName("someArg2", global::HotChocolate.Types.MemberKind.Argument),
+                            Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Input)
+                        };
+
+                        configuration.Arguments.Add(argumentConfiguration);
+                    }
+                    configuration.Resolvers = context.Resolvers.GetAdditionalInfo1();
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
 
             descriptor
-                .Field(thisType.GetMember("GetBookUri", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("GetAuthorsPure", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Configuration.SetSourceGeneratorFlags();
-                    c.Configuration.Resolvers = r.GetBookUri();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::HotChocolate.Types.Author>>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(global::System.Collections.Generic.IEnumerable<global::HotChocolate.Types.Author>);
+
+                    configuration.SetSourceGeneratorFlags();
+                    configuration.Resolvers = context.Resolvers.GetAuthorsPure();
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
+
+            descriptor
+                .Field(naming.GetMemberName("GetAuthorsQuery", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
+                {
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::HotChocolate.Types.Author>>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(global::System.Linq.IQueryable<global::HotChocolate.Types.Author>);
+
+                    configuration.SetSourceGeneratorFlags();
+                    configuration.Resolvers = context.Resolvers.GetAuthorsQuery();
+                    configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::HotChocolate.Types.Author>.Default;
+                },
+                (Resolvers: resolvers, ThisType: thisType));
+
+            descriptor
+                .Field(naming.GetMemberName("GetAuthorsNeedsPostProcessor", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
+                {
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::HotChocolate.Types.Author>>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(global::System.Collections.Generic.IEnumerable<global::HotChocolate.Types.Author>);
+
+                    configuration.SetSourceGeneratorFlags();
+                    configuration.Resolvers = context.Resolvers.GetAuthorsNeedsPostProcessor();
+                    configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::HotChocolate.Types.Author>.Default;
+                },
+                (Resolvers: resolvers, ThisType: thisType));
+
+            descriptor
+                .Field(naming.GetMemberName("GetAuthorsHasPostProcessor", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
+                {
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::HotChocolate.Types.Author>>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(global::System.Collections.Generic.IEnumerable<global::HotChocolate.Types.Author>);
+
+                    configuration.SetSourceGeneratorFlags();
+                    configuration.Resolvers = context.Resolvers.GetAuthorsHasPostProcessor();
+                },
+                (Resolvers: resolvers, ThisType: thisType));
 
             Configure(descriptor);
         }
 
-        static partial void Configure(global::HotChocolate.Types.IObjectTypeDescriptor<global::HotChocolate.Types.Book> descriptor);
+        static partial void Configure(global::HotChocolate.Types.IObjectTypeDescriptor<global::HotChocolate.Types.Author> descriptor);
 
         private sealed class __Resolvers
         {
-            private readonly global::HotChocolate.Internal.IParameterBinding[] _args_GetAuthorAsync = new global::HotChocolate.Internal.IParameterBinding[1];
-            private readonly global::HotChocolate.Internal.IParameterBinding[] _args_GetChapterAsync = new global::HotChocolate.Internal.IParameterBinding[1];
-            private readonly global::HotChocolate.Internal.IParameterBinding[] _args_GetBookByIdAsync = new global::HotChocolate.Internal.IParameterBinding[1];
+            private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetBooksAsync_repository;
+            private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetSomeInfo_dataLoader;
+            private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetAdditionalInfo_someArg;
+            private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetAdditionalInfo1_someArg1;
+            private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetAdditionalInfo1_someArg2;
 
-            public __Resolvers(global::HotChocolate.Internal.IParameterBindingResolver bindingResolver)
+            public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
             {
-                var type = typeof(global::HotChocolate.Types.BookNode);
-                global::System.Reflection.MethodInfo resolver = default!;
-                global::System.Reflection.ParameterInfo[] parameters = default!;
-
-                resolver = type.GetMethod(
-                    "GetAuthorAsync",
-                    global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
-                    new global::System.Type[]
-                    {
-                        typeof(global::HotChocolate.Types.Book),
-                        typeof(global::HotChocolate.Types.AuthorRepository),
-                        typeof(global::System.Threading.CancellationToken)
-                    })!;
-
-                parameters = resolver.GetParameters();
-                _args_GetAuthorAsync[0] = bindingResolver.GetBinding(parameters[1]);
-
-                resolver = type.GetMethod(
-                    "GetChapterAsync",
-                    global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
-                    new global::System.Type[]
-                    {
-                        typeof(global::HotChocolate.Types.Book),
-                        typeof(global::HotChocolate.Types.ChapterRepository),
-                        typeof(global::System.Threading.CancellationToken)
-                    })!;
-
-                parameters = resolver.GetParameters();
-                _args_GetChapterAsync[0] = bindingResolver.GetBinding(parameters[1]);
-
-                resolver = type.GetMethod(
-                    "GetBookByIdAsync",
-                    global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
-                    new global::System.Type[]
-                    {
-                        typeof(int),
-                        typeof(global::HotChocolate.Types.BookRepository),
-                        typeof(global::System.Threading.CancellationToken)
-                    })!;
-
-                parameters = resolver.GetParameters();
-                _args_GetBookByIdAsync[0] = bindingResolver.GetBinding(parameters[1]);
+                _binding_GetBooksAsync_repository = bindingResolver.GetBinding(CreateParameterDescriptor_GetBooksAsync_repository());
+                _binding_GetSomeInfo_dataLoader = bindingResolver.GetBinding(CreateParameterDescriptor_GetSomeInfo_dataLoader());
+                _binding_GetAdditionalInfo_someArg = bindingResolver.GetBinding(CreateParameterDescriptor_GetAdditionalInfo_someArg());
+                _binding_GetAdditionalInfo1_someArg1 = bindingResolver.GetBinding(CreateParameterDescriptor_GetAdditionalInfo1_someArg1());
+                _binding_GetAdditionalInfo1_someArg2 = bindingResolver.GetBinding(CreateParameterDescriptor_GetAdditionalInfo1_someArg2());
             }
 
-            private readonly ImmutableArray<(ParameterDescriptor Parameter, ArgumentKind Kind)> _GetAuthorAsyncArguments = [];
+            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetBooksAsync_repository()
+                => new HotChocolate.Internal.ParameterDescriptor(
+                    "repository",
+                    typeof(global::HotChocolate.Types.BookRepository),
+                    isNullable: false,
+                    []);
 
-            public ImmutableArray<(ParameterDescriptor Parameter, ArgumentKind Kind)> GetAuthorAsyncArguments => _GetAuthorAsyncArguments;
+            public HotChocolate.Resolvers.FieldResolverDelegates GetBooksAsync()
+                => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetBooksAsync);
 
-            public HotChocolate.Resolvers.FieldResolverDelegates GetAuthorAsync()
-                => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetAuthorAsync);
-
-            private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetAuthorAsync(global::HotChocolate.Resolvers.IResolverContext context)
+            private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetBooksAsync(global::HotChocolate.Resolvers.IResolverContext context)
             {
-                var args0 = context.Parent<global::HotChocolate.Types.Book>();
-                var args1 = _args_GetAuthorAsync[0].Execute<global::HotChocolate.Types.AuthorRepository>(context);
+                var args0 = context.Parent<global::HotChocolate.Types.Author>();
+                var args1 = _binding_GetBooksAsync_repository.Execute<global::HotChocolate.Types.BookRepository>(context);
                 var args2 = context.RequestAborted;
-                var result = await global::HotChocolate.Types.BookNode.GetAuthorAsync(args0, args1, args2);
+                var result = await global::HotChocolate.Types.AuthorNode.GetBooksAsync(args0, args1, args2);
                 return result;
             }
 
-            public HotChocolate.Resolvers.FieldResolverDelegates GetChapterAsync()
-                => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetChapterAsync);
+            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetSomeInfo_dataLoader()
+                => new HotChocolate.Internal.ParameterDescriptor(
+                    "dataLoader",
+                    typeof(ISomeInfoByIdDataLoader),
+                    isNullable: false,
+                    []);
 
-            private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetChapterAsync(global::HotChocolate.Resolvers.IResolverContext context)
+            public HotChocolate.Resolvers.FieldResolverDelegates GetSomeInfo()
+                => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetSomeInfo);
+
+            private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetSomeInfo(global::HotChocolate.Resolvers.IResolverContext context)
             {
-                var args0 = context.Parent<global::HotChocolate.Types.Book>();
-                var args1 = _args_GetChapterAsync[0].Execute<global::HotChocolate.Types.ChapterRepository>(context);
+                var args0 = context.Parent<global::HotChocolate.Types.Author>();
+                var args1 = _binding_GetSomeInfo_dataLoader.Execute<global::HotChocolate.Types.ISomeInfoByIdDataLoader>(context);
                 var args2 = context.RequestAborted;
-                var result = await global::HotChocolate.Types.BookNode.GetChapterAsync(args0, args1, args2);
+                var result = await global::HotChocolate.Types.AuthorNode.GetSomeInfo(args0, args1, args2);
                 return result;
             }
 
-            public HotChocolate.Resolvers.FieldResolverDelegates IdAndTitle()
+            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetAdditionalInfo_someArg()
+                => new HotChocolate.Internal.ParameterDescriptor(
+                    "someArg",
+                    typeof(string),
+                    isNullable: false,
+                    []);
+
+            public HotChocolate.Resolvers.FieldResolverDelegates GetAdditionalInfo()
             {
-                return new global::HotChocolate.Resolvers.FieldResolverDelegates(pureResolver: IdAndTitle);
+                var isPureResolver = _binding_GetAdditionalInfo_someArg.IsPure;
+
+                return isPureResolver
+                    ? new global::HotChocolate.Resolvers.FieldResolverDelegates(pureResolver: GetAdditionalInfo)
+                    : new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: c => new(GetAdditionalInfo(c)));
             }
 
-            private global::System.Object? IdAndTitle(global::HotChocolate.Resolvers.IResolverContext context)
+            private global::System.Object? GetAdditionalInfo(global::HotChocolate.Resolvers.IResolverContext context)
             {
-                var args0 = context.Parent<global::HotChocolate.Types.Book>();
-                var result = global::HotChocolate.Types.BookNode.IdAndTitle(args0);
+                var args0 = context.Parent<global::HotChocolate.Types.Author>();
+                var args1 = _binding_GetAdditionalInfo_someArg.Execute<string>(context);
+                var result = global::HotChocolate.Types.AuthorNode.GetAdditionalInfo(args0, args1);
                 return result;
             }
 
-            public HotChocolate.Resolvers.FieldResolverDelegates GetBookUri()
+            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetAdditionalInfo1_someArg1()
+                => new HotChocolate.Internal.ParameterDescriptor(
+                    "someArg1",
+                    typeof(string),
+                    isNullable: false,
+                    []);
+            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetAdditionalInfo1_someArg2()
+                => new HotChocolate.Internal.ParameterDescriptor(
+                    "someArg2",
+                    typeof(string),
+                    isNullable: false,
+                    []);
+
+            public HotChocolate.Resolvers.FieldResolverDelegates GetAdditionalInfo1()
             {
-                return new global::HotChocolate.Resolvers.FieldResolverDelegates(pureResolver: GetBookUri);
+                var isPureResolver = _binding_GetAdditionalInfo1_someArg1.IsPure && _binding_GetAdditionalInfo1_someArg2.IsPure;
+
+                return isPureResolver
+                    ? new global::HotChocolate.Resolvers.FieldResolverDelegates(pureResolver: GetAdditionalInfo1)
+                    : new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: c => new(GetAdditionalInfo1(c)));
             }
 
-            private global::System.Object? GetBookUri(global::HotChocolate.Resolvers.IResolverContext context)
+            private global::System.Object? GetAdditionalInfo1(global::HotChocolate.Resolvers.IResolverContext context)
             {
-                var args0 = context.Parent<global::HotChocolate.Types.Book>();
-                var args1 = context.GetGlobalState<global::Microsoft.AspNetCore.Http.HttpContext>(nameof(global::Microsoft.AspNetCore.Http.HttpContext))!;
-                var args2 = context.GetLocalStateOrDefault<string?>("foo", default);
-                var result = global::HotChocolate.Types.BookNode.GetBookUri(args0, args1, args2);
+                var args0 = context.Parent<global::HotChocolate.Types.Author>();
+                var args1 = _binding_GetAdditionalInfo1_someArg1.Execute<string>(context);
+                var args2 = _binding_GetAdditionalInfo1_someArg2.Execute<string>(context);
+                var result = global::HotChocolate.Types.AuthorNode.GetAdditionalInfo1(args0, args1, args2);
                 return result;
             }
 
-            public HotChocolate.Resolvers.FieldResolverDelegates GetBookByIdAsync()
-                => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetBookByIdAsync);
-
-            private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetBookByIdAsync(global::HotChocolate.Resolvers.IResolverContext context)
+            public HotChocolate.Resolvers.FieldResolverDelegates GetAuthorsPure()
             {
-                var args0 = context.GetLocalState<int>(global::HotChocolate.WellKnownContextData.InternalId);
-                var args1 = _args_GetBookByIdAsync[0].Execute<global::HotChocolate.Types.BookRepository>(context);
-                var args2 = context.RequestAborted;
-                var result = await global::HotChocolate.Types.BookNode.GetBookByIdAsync(args0, args1, args2);
+                return new global::HotChocolate.Resolvers.FieldResolverDelegates(pureResolver: GetAuthorsPure);
+            }
+
+            private global::System.Object? GetAuthorsPure(global::HotChocolate.Resolvers.IResolverContext context)
+            {
+                var result = global::HotChocolate.Types.AuthorNode.GetAuthorsPure();
+                return result;
+            }
+
+            public HotChocolate.Resolvers.FieldResolverDelegates GetAuthorsQuery()
+                => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetAuthorsQuery);
+
+            private global::System.Threading.Tasks.ValueTask<global::System.Object?> GetAuthorsQuery(global::HotChocolate.Resolvers.IResolverContext context)
+            {
+                var result = global::HotChocolate.Types.AuthorNode.GetAuthorsQuery();
+                return new global::System.Threading.Tasks.ValueTask<global::System.Object?>(result);
+            }
+
+            public HotChocolate.Resolvers.FieldResolverDelegates GetAuthorsNeedsPostProcessor()
+                => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetAuthorsNeedsPostProcessor);
+
+            private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetAuthorsNeedsPostProcessor(global::HotChocolate.Resolvers.IResolverContext context)
+            {
+                var result = await global::HotChocolate.Types.AuthorNode.GetAuthorsNeedsPostProcessor();
+                return result;
+            }
+
+            public HotChocolate.Resolvers.FieldResolverDelegates GetAuthorsHasPostProcessor()
+                => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetAuthorsHasPostProcessor);
+
+            private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetAuthorsHasPostProcessor(global::HotChocolate.Resolvers.IResolverContext context)
+            {
+                var result = await global::HotChocolate.Types.AuthorNode.GetAuthorsHasPostProcessor();
                 return result;
             }
         }

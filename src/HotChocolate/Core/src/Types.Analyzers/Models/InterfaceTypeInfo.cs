@@ -50,6 +50,10 @@ public sealed class InterfaceTypeInfo
 
     public override string OrderByKey => SchemaTypeFullName;
 
+    public DirectiveScope Inaccessible { get; set; } = DirectiveScope.None;
+
+    public ImmutableArray<AttributeData> Attributes { get; set; } = [];
+
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);
 

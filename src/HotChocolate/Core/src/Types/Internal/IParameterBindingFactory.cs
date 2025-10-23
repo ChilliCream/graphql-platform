@@ -6,6 +6,17 @@ namespace HotChocolate.Internal;
 public interface IParameterBindingFactory
 {
     /// <summary>
+    /// Gets the kind of argument this binding represents.
+    /// </summary>
+    ArgumentKind Kind { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this binding produces pure values
+    /// without side effects or external dependencies.
+    /// </summary>
+    bool IsPure { get; }
+
+    /// <summary>
     /// Specifies that this handler is run after all non-default handlers.
     /// </summary>
     bool IsDefaultHandler { get; }

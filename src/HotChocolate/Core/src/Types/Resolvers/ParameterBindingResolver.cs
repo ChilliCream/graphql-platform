@@ -75,4 +75,17 @@ public sealed class ParameterBindingResolver
 
         return _defaultBinding.Create(parameter);
     }
+
+    public (ArgumentKind Kind, bool IsPure) GetBindingInfo(ParameterDescriptor parameter)
+    {
+        foreach (var binding in _bindings)
+        {
+            if (binding.CanHandle(parameter))
+            {
+                return (binding.Kind, binding.IsPure);
+            }
+        }
+
+        return (_defaultBinding.Kind, _defaultBinding.IsPure);
+    }
 }

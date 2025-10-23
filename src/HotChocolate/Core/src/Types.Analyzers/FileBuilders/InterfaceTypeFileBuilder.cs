@@ -1,5 +1,4 @@
 using System.Text;
-using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
@@ -23,18 +22,12 @@ public sealed class InterfaceTypeFileBuilder(StringBuilder sb) : TypeFileBuilder
 
         using (Writer.IncreaseIndent())
         {
-            if (interfaceType.Resolvers.Length > 0)
-            {
-                Writer.WriteIndentedLine(
-                    "var thisType = typeof({0});",
-                    interfaceType.SchemaSchemaType.ToFullyQualified());
-                Writer.WriteIndentedLine(
-                    "var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;");
-                Writer.WriteIndentedLine(
-                    interfaceType.Resolvers.Any(t => t.RequiresParameterBindings)
-                            ? "var resolvers = new __Resolvers(bindingResolver);"
-                            : "var resolvers = new __Resolvers();");
-            }
+            WriteInitializationBase(
+                interfaceType.SchemaTypeFullName,
+                interfaceType.Resolvers.Length > 0,
+                interfaceType.Resolvers.Any(t => t.RequiresParameterBindings),
+                interfaceType.Attributes,
+                interfaceType.Inaccessible);
 
             WriteResolverBindings(interfaceType);
 

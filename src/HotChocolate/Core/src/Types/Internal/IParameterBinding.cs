@@ -8,11 +8,6 @@ namespace HotChocolate.Internal;
 public interface IParameterBinding
 {
     /// <summary>
-    /// Gets the kind of argument this binding represents.
-    /// </summary>
-    ArgumentKind Kind { get; }
-
-    /// <summary>
     /// Gets a value indicating whether this binding produces pure values
     /// without side effects or external dependencies.
     /// </summary>

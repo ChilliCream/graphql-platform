@@ -15,6 +15,18 @@ public static class SymbolExtensions
         FullyQualifiedFormat.AddMiscellaneousOptions(
             IncludeNullableReferenceTypeModifier);
 
+    public static string GetName(this ISymbol symbol)
+    {
+        var name = GetNameFromAttribute(symbol);
+
+        if (string.IsNullOrEmpty(name))
+        {
+            name = symbol.Name;
+        }
+
+        return name!;
+    }
+
     public static MethodDescription GetDescription(this IMethodSymbol method)
     {
         var methodDescription = GetDescriptionFromAttribute(method);
@@ -50,12 +62,13 @@ public static class SymbolExtensions
         foreach (var param in parameters)
         {
             var paramDescription = GetDescriptionFromAttribute(param);
+            var commentXml = method.GetDocumentationCommentXml();
 
-            if (paramDescription == null && !string.IsNullOrEmpty(method.GetDocumentationCommentXml()))
+            if (paramDescription == null && !string.IsNullOrEmpty(commentXml))
             {
                 try
                 {
-                    var doc = XDocument.Parse(method.GetDocumentationCommentXml());
+                    var doc = XDocument.Parse(commentXml);
                     var paramDoc = doc.Descendants("param")
                         .FirstOrDefault(p => p.Attribute("name")?.Value == param.Name)?
                         .Value
@@ -83,15 +96,15 @@ public static class SymbolExtensions
             return description;
         }
 
-        var xml = property.GetDocumentationCommentXml();
-        if (string.IsNullOrEmpty(xml))
+        var commentXml = property.GetDocumentationCommentXml();
+        if (string.IsNullOrEmpty(commentXml))
         {
             return null;
         }
 
         try
         {
-            var doc = XDocument.Parse(xml);
+            var doc = XDocument.Parse(commentXml);
             var summaryElement = doc.Descendants("summary").FirstOrDefault();
             var text = summaryElement?.Value.Trim();
             return string.IsNullOrEmpty(text) ? null : text;
@@ -133,6 +146,20 @@ public static class SymbolExtensions
     {
         var attribute = symbol.GetAttributes()
             .FirstOrDefault(a => a.AttributeClass?.Name == "GraphQLDescriptionAttribute");
+
+        if (attribute?.ConstructorArguments.Length > 0)
+        {
+            var value = attribute.ConstructorArguments[0].Value as string;
+            return string.IsNullOrEmpty(value) ? null : value;
+        }
+
+        return null;
+    }
+
+    private static string? GetNameFromAttribute(ISymbol symbol)
+    {
+        var attribute = symbol.GetAttributes()
+            .FirstOrDefault(a => a.AttributeClass?.Name == "GraphQLNameAttribute");
 
         if (attribute?.ConstructorArguments.Length > 0)
         {
@@ -663,27 +690,29 @@ public static class SymbolExtensions
     public static ITypeSymbol? GetReturnType(this ISymbol member)
     {
         ITypeSymbol? returnType;
-        if (member is IMethodSymbol method)
+
+        switch (member)
         {
-            returnType = method.ReturnType;
-        }
-        else if (member is IPropertySymbol property)
-        {
-            returnType = property.Type;
-        }
-        else
-        {
-            return null;
+            case IMethodSymbol method:
+                returnType = method.ReturnType;
+                break;
+
+            case IPropertySymbol property:
+                returnType = property.Type;
+                break;
+
+            default:
+                return null;
         }
 
-        if (returnType is INamedTypeSymbol namedTypeSymbol)
+        if (returnType is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1 } namedType)
         {
-            var definitionName = namedTypeSymbol.ConstructedFrom.ToDisplayString();
+            var originalDefinition = namedType.ConstructedFrom;
 
-            if (definitionName.StartsWith("System.Threading.Tasks.Task<")
-                || definitionName.StartsWith("System.Threading.Tasks.ValueTask<"))
+            if (originalDefinition.ContainingNamespace.ToDisplayString() == "System.Threading.Tasks"
+                && originalDefinition.Name is "ValueTask" or "Task")
             {
-                return namedTypeSymbol.TypeArguments.FirstOrDefault();
+                return namedType.TypeArguments[0];
             }
         }
 
@@ -701,22 +730,6 @@ public static class SymbolExtensions
 
         return typeSymbol.AllInterfaces.Any(
             s => SymbolEqualityComparer.Default.Equals(s.OriginalDefinition, connectionInterface));
-    }
-
-    public static ITypeSymbol UnwrapTaskOrValueTask(this ITypeSymbol typeSymbol)
-    {
-        if (typeSymbol is INamedTypeSymbol { IsGenericType: true } namedType)
-        {
-            var originalDefinition = namedType.ConstructedFrom;
-
-            if (originalDefinition.ToDisplayString() == "System.Threading.Tasks.Task<T>"
-                || originalDefinition.ToDisplayString() == "System.Threading.Tasks.ValueTask<T>")
-            {
-                return namedType.TypeArguments[0];
-            }
-        }
-
-        return typeSymbol;
     }
 
     /// <summary>
@@ -784,5 +797,52 @@ public static class SymbolExtensions
 
         processed.Clear();
         PooledObjects.Return(processed);
+    }
+
+    public static DirectiveScope GetShareableScope(this ImmutableArray<AttributeData> attributes)
+    {
+        foreach (var attribute in attributes)
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.ShareableAttribute))
+            {
+                var isScoped = attribute.ConstructorArguments.Length > 0
+                    && attribute.ConstructorArguments[0].Value is true;
+                return isScoped ? DirectiveScope.Field : DirectiveScope.Type;
+            }
+        }
+
+        return DirectiveScope.None;
+    }
+
+    public static DirectiveScope GetInaccessibleScope(this ImmutableArray<AttributeData> attributes)
+    {
+        foreach (var attribute in attributes)
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.InaccessibleAttribute))
+            {
+                var isScoped = attribute.ConstructorArguments.Length > 0
+                    && attribute.ConstructorArguments[0].Value is true;
+                return isScoped ? DirectiveScope.Field : DirectiveScope.Type;
+            }
+        }
+
+        return DirectiveScope.None;
+    }
+
+    public static ImmutableArray<AttributeData> GetUserAttributes(this ImmutableArray<AttributeData> attributes)
+    {
+        var mutated = attributes;
+
+        foreach (var attribute in attributes)
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.ShareableAttribute)
+                || attribute.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.InaccessibleAttribute)
+                || !attribute.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.DescriptorAttribute))
+            {
+                mutated = mutated.Remove(attribute);
+            }
+        }
+
+        return mutated;
     }
 }

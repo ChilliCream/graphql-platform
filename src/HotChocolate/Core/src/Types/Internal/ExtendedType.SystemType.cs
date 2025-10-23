@@ -1,3 +1,5 @@
+using HotChocolate.Types;
+
 namespace HotChocolate.Internal;
 
 public sealed partial class ExtendedType
@@ -23,6 +25,14 @@ public sealed partial class ExtendedType
                     isNullable: true);
             }
 
+            var isNullable = !type.IsValueType;
+
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NonNullType<>))
+            {
+                type = type.GetGenericArguments()[0];
+                isNullable = false;
+            }
+
             var elementType =
                 Helper.GetInnerListType(type) is { } e
                     ? FromType(e, cache)
@@ -39,8 +49,8 @@ public sealed partial class ExtendedType
                 typeArguments: typeArguments,
                 source: type,
                 elementType: elementType,
-                isList: Helper.IsListType(type),
-                isNullable: !type.IsValueType);
+                isList: elementType is not null,
+                isNullable: isNullable);
         }
 
         public static IReadOnlyList<ExtendedType> GetGenericArguments(

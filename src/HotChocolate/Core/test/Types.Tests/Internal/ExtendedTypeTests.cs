@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Internal;
 
@@ -28,7 +29,7 @@ public class ExtendedTypeTests
         // arrange
         // act
         IExtendedType list = ExtendedType.FromType(
-            typeof(NativeType<List<byte?>>),
+            typeof(NamedRuntimeType<List<byte?>>),
             _cache);
         list = ExtendedType.Tools.ChangeNullability(
             list, [false], _cache);
@@ -132,7 +133,7 @@ public class ExtendedTypeTests
         // arrange
         // act
         var extendedType = ExtendedType.FromType(
-            typeof(NativeType<IntType>),
+            typeof(NamedRuntimeType<IntType>),
             _cache);
 
         // assert
@@ -392,6 +393,27 @@ public class ExtendedTypeTests
 
         // assert
         Assert.True(extendedType.IsNullable);
+    }
+
+    [Fact]
+    public void SourceGenerated_NestedStringList()
+    {
+        // arrange
+        var typeInspector = new DefaultTypeInspector();
+
+        // act
+        var typeRef = typeInspector.GetTypeRef(
+            typeof(SourceGeneratedType<ListType<NonNullType<ListType<NamedRuntimeType<string>>>>>));
+
+        // assert
+        Assert.NotNull(typeRef);
+        Assert.True(typeRef.Type.IsArrayOrList);
+        Assert.NotNull(typeRef.Type.ElementType);
+        Assert.False(typeRef.Type.ElementType.IsNullable);
+        Assert.True(typeRef.Type.ElementType.IsArrayOrList);
+        Assert.NotNull(typeRef.Type.ElementType.ElementType);
+        Assert.True(typeRef.Type.ElementType.ElementType.IsNullable);
+        Assert.Equal(typeof(string), typeRef.Type.ElementType.ElementType.Type);
     }
 
     private sealed class CustomStringList1

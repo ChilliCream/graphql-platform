@@ -13,11 +13,15 @@ public sealed class ResolverParameter
         Name = parameter.Name;
         Key = key;
         IsNullable = !parameter.IsNonNullable();
+        DeprecationReason = null;
+        Attributes = parameter.GetAttributes();
     }
 
     public string Name { get; }
 
     public string? Description { get; set; }
+
+    public string? DeprecationReason { get; }
 
     public string? Key { get; }
 
@@ -29,6 +33,8 @@ public sealed class ResolverParameter
     public IParameterSymbol Parameter { get; }
 
     public ResolverParameterKind Kind { get; }
+
+    public ImmutableArray<AttributeData> Attributes { get; }
 
     public bool IsPure
         => Kind is ResolverParameterKind.Argument

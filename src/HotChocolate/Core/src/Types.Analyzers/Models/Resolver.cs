@@ -12,10 +12,11 @@ public sealed class Resolver
         ResolverResultKind resultKind,
         ImmutableArray<ResolverParameter> parameters,
         ImmutableArray<MemberBinding> bindings,
+        string schemaTypeName,
         ResolverKind kind = ResolverKind.Default,
-        FieldFlags flags = FieldFlags.None,
-        string? schemaTypeName = null)
+        FieldFlags flags = FieldFlags.None)
     {
+        FieldName = member.GetName();
         TypeName = typeName;
         Member = member;
         SchemaTypeName = schemaTypeName;
@@ -43,11 +44,17 @@ public sealed class Resolver
                 }
                 break;
         }
+
+        DeprecationReason = null;
     }
+
+    public string FieldName { get; }
 
     public string TypeName { get; }
 
     public string? Description { get; }
+
+    public string? DeprecationReason { get; }
 
     public ISymbol Member { get; }
 
@@ -55,10 +62,7 @@ public sealed class Resolver
         => Member.GetReturnType()
             ?? throw new InvalidOperationException("Resolver has no return type.");
 
-    public ITypeSymbol UnwrappedReturnType
-        => ReturnType.UnwrapTaskOrValueTask();
-
-    public string? SchemaTypeName { get; }
+    public string SchemaTypeName { get; }
 
     public bool IsStatic => Member.IsStatic;
 
@@ -83,7 +87,7 @@ public sealed class Resolver
 
     public ImmutableArray<MemberBinding> Bindings { get; }
 
-    public Resolver WithSchemaTypeName(string? schemaTypeName)
+    public Resolver WithSchemaTypeName(string schemaTypeName)
     {
         return new Resolver(
             TypeName,
@@ -91,8 +95,8 @@ public sealed class Resolver
             ResultKind,
             Parameters,
             Bindings,
+            schemaTypeName,
             Kind,
-            Flags,
-            schemaTypeName);
+            Flags);
     }
 }
