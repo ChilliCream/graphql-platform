@@ -1046,6 +1046,7 @@ public class SourceSchemaErrorTests : FusionTestBase
                 throw new GraphQLException(
                     ErrorBuilder.New()
                         .SetMessage("Something went wrong")
+                        .SetCode("SOME_ERROR")
                         .SetPath(context.Path)
                         .SetException(new Exception("Some exception"))
                         .Build());

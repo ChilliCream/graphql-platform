@@ -166,7 +166,7 @@ public sealed partial class SourceResultDocument
         return ReadRawValue(start, endRow.Location - start + endRowLength);
     }
 
-    internal ReadOnlyMemory<byte> GetRawValueAsMemory(Cursor cursor)
+    internal ReadOnlyMemory<byte> GetRawValueAsMemory(Cursor cursor, bool includeQuotes)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -174,6 +174,13 @@ public sealed partial class SourceResultDocument
 
         if (row.IsSimpleValue)
         {
+            if (includeQuotes && row.TokenType == JsonTokenType.String)
+            {
+                // Start one character earlier than the value (the open quote)
+                // End one character after the value (the close quote)
+                return ReadRawValueAsMemory(row.Location - 1, row.SizeOrLength + 2);
+            }
+
             return ReadRawValueAsMemory(row.Location, row.SizeOrLength);
         }
 
