@@ -29,7 +29,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     }
 
     public static IFusionGatewayBuilder AddSha256DocumentHashProvider(
-       this IFusionGatewayBuilder builder,
+        this IFusionGatewayBuilder builder,
         HashFormat format = HashFormat.Base64)
     {
         return builder.ConfigureSchemaServices((_, services) =>
