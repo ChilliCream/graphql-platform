@@ -471,7 +471,7 @@ public readonly partial struct SourceResultElement
     public ReadOnlyMemory<byte> GetRawValueAsMemory()
     {
         CheckValidInstance();
-        return _parent.GetRawValueAsMemory(_cursor);
+        return _parent.GetRawValueAsMemory(_cursor, includeQuotes: true);
     }
 
     internal ReadOnlySpan<byte> ValueSpan
