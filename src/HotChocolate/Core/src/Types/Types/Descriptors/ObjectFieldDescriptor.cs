@@ -29,8 +29,7 @@ public class ObjectFieldDescriptor
     {
         Configuration.Name = fieldName;
         Configuration.ResultType = typeof(object);
-        Configuration.IsParallelExecutable =
-            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
+        Configuration.IsParallelExecutable = context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
     }
 
     /// <summary>
@@ -49,26 +48,25 @@ public class ObjectFieldDescriptor
         Configuration.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
         Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
         Configuration.SourceType = sourceType;
-        Configuration.ResolverType = resolverType == sourceType
-            ? null
-            : resolverType;
-        Configuration.IsParallelExecutable =
-            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
+        Configuration.ResolverType = resolverType == sourceType ? null : resolverType;
+        Configuration.IsParallelExecutable = context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
 
         if (naming.IsDeprecated(member, out var reason))
         {
             Deprecated(reason);
         }
 
-        if (member is MethodInfo m)
+        switch (member)
         {
-            _parameterInfos = context.TypeInspector.GetParameters(m);
-            Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
-            Configuration.ResultType = m.ReturnType;
-        }
-        else if (member is PropertyInfo p)
-        {
-            Configuration.ResultType = p.PropertyType;
+            case MethodInfo m:
+                _parameterInfos = context.TypeInspector.GetParameters(m);
+                Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+                Configuration.ResultType = m.ReturnType;
+                break;
+
+            case PropertyInfo p:
+                Configuration.ResultType = p.PropertyType;
+                break;
         }
     }
 
@@ -85,8 +83,7 @@ public class ObjectFieldDescriptor
         Configuration.Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         Configuration.SourceType = sourceType;
         Configuration.ResolverType = resolverType;
-        Configuration.IsParallelExecutable =
-            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
+        Configuration.IsParallelExecutable = context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
 
         var member = expression.TryExtractCallMember();
 
@@ -102,13 +99,15 @@ public class ObjectFieldDescriptor
                 Deprecated(reason);
             }
 
-            if (member is MethodInfo m)
+            switch (member)
             {
-                Configuration.ResultType = m.ReturnType;
-            }
-            else if (member is PropertyInfo p)
-            {
-                Configuration.ResultType = p.PropertyType;
+                case MethodInfo m:
+                    Configuration.ResultType = m.ReturnType;
+                    break;
+
+                case PropertyInfo p:
+                    Configuration.ResultType = p.PropertyType;
+                    break;
             }
         }
         else
@@ -138,10 +137,18 @@ public class ObjectFieldDescriptor
 
         var member = definition.ResolverMember ?? definition.Member;
 
-        if (!Configuration.AttributesAreApplied && member is not null)
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, member);
-            Configuration.AttributesAreApplied = true;
+            var isGenerated = (Configuration.Flags & CoreFieldFlags.SourceGenerator) == CoreFieldFlags.SourceGenerator;
+
+            DescriptorAttributeHelper.ApplyConfiguration(
+                Context,
+                this,
+                element: member,
+                mainAttributeProvider: isGenerated ? null : member,
+                Configuration.Configurations);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         base.OnCreateConfiguration(definition);
@@ -340,7 +347,7 @@ public class ObjectFieldDescriptor
             {
                 var resultTypeDef = resultType.GetGenericTypeDefinition();
 
-                var clrResultType = resultTypeDef == typeof(NativeType<>)
+                var clrResultType = resultTypeDef == typeof(NamedRuntimeType<>)
                     ? resultType.GetGenericArguments()[0]
                     : resultType;
 

@@ -65,7 +65,8 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
                         member,
                         ResolverResultKind.Pure,
                         [],
-                        []);
+                        [],
+                        GraphQLTypeBuilder.ToSchemaType(member.GetReturnType()!, context.SemanticModel.Compilation));
                 }
             }
         }
@@ -75,7 +76,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             Array.Resize(ref resolvers, i);
         }
 
-        syntaxInfo = new InterfaceTypeInfo(
+        var interfaceTypeInfo = new InterfaceTypeInfo(
             classSymbol,
             runtimeType,
             possibleType,
@@ -83,11 +84,16 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
                 ? []
                 : [.. resolvers]);
 
+        var attributes = classSymbol.GetAttributes();
+        interfaceTypeInfo.Inaccessible = attributes.GetInaccessibleScope();
+        interfaceTypeInfo.Attributes = attributes.GetUserAttributes();
+
         if (diagnostics.Length > 0)
         {
-            syntaxInfo.AddDiagnosticRange(diagnostics);
+            interfaceTypeInfo.AddDiagnosticRange(diagnostics);
         }
 
+        syntaxInfo = interfaceTypeInfo;
         return true;
     }
 
@@ -154,6 +160,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             resolverMethod,
             resolverMethod.GetResultKind(),
             [.. resolverParameters],
-            []);
+            [],
+            GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation));
     }
 }

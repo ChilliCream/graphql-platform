@@ -53,25 +53,16 @@ public class ObjectTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, FieldBindingType: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.FieldBindingType);
+                Configuration.FieldBindingType ?? Configuration.RuntimeType,
+                Configuration.FieldBindingType,
+                Configuration.Configurations);
 
-            if (Configuration.AttributeBindingTypes.Length > 0)
-            {
-                foreach (var type in Configuration.AttributeBindingTypes)
-                {
-                    Context.TypeInspector.ApplyAttributes(
-                        Context,
-                        this,
-                        type);
-                }
-            }
-
-            Configuration.AttributesAreApplied = true;
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         foreach (var field in _fields)
@@ -305,27 +296,26 @@ public class ObjectTypeDescriptor
     {
         ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
-        if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
+        if (propertyOrMethod is not (PropertyInfo or MethodInfo))
         {
-            var fieldDescriptor = _fields.Find(t => t.Configuration.Member == propertyOrMethod);
+            throw new ArgumentException(
+                ObjectTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
+        }
 
-            if (fieldDescriptor is not null)
-            {
-                return fieldDescriptor;
-            }
-
-            fieldDescriptor = ObjectFieldDescriptor.New(
-                Context,
-                propertyOrMethod,
-                Configuration.RuntimeType,
-                propertyOrMethod.ReflectedType ?? Configuration.RuntimeType);
-            _fields.Add(fieldDescriptor);
+        var fieldDescriptor = _fields.Find(t => t.Configuration.Member == propertyOrMethod);
+        if (fieldDescriptor is not null)
+        {
             return fieldDescriptor;
         }
 
-        throw new ArgumentException(
-            ObjectTypeDescriptor_MustBePropertyOrMethod,
-            nameof(propertyOrMethod));
+        fieldDescriptor = ObjectFieldDescriptor.New(
+            Context,
+            propertyOrMethod,
+            Configuration.RuntimeType,
+            propertyOrMethod.ReflectedType ?? Configuration.RuntimeType);
+        _fields.Add(fieldDescriptor);
+        return fieldDescriptor;
     }
 
     public IObjectFieldDescriptor Field<TResolver, TPropertyType>(

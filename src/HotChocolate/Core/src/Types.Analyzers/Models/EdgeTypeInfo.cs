@@ -33,6 +33,8 @@ public sealed class EdgeTypeInfo
 
     public string Namespace { get; }
 
+    public string? Description => null;
+
     public bool IsPublic => RuntimeType.DeclaredAccessibility == Accessibility.Public;
 
     public INamedTypeSymbol? SchemaSchemaType => null;
@@ -138,6 +140,7 @@ public sealed class EdgeTypeInfo
                             ResolverResultKind.Pure,
                             [],
                             ObjectTypeInspector.GetMemberBindings(member),
+                            GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
                             flags: FieldFlags.None));
                     break;
             }

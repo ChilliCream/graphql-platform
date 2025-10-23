@@ -89,7 +89,8 @@ public class ObjectTypeInspector : ISyntaxInspector
                         member,
                         ResolverResultKind.Pure,
                         [],
-                        member.GetMemberBindings());
+                        member.GetMemberBindings(),
+                        GraphQLTypeBuilder.ToSchemaType(member.GetReturnType()!, context.SemanticModel.Compilation));
                 }
             }
         }
@@ -101,19 +102,36 @@ public class ObjectTypeInspector : ISyntaxInspector
 
         if (runtimeType is not null)
         {
-            syntaxInfo = new ObjectTypeInfo(
+            var objectTypeInfo = new ObjectTypeInfo(
                 classSymbol,
                 runtimeType,
                 nodeResolver,
                 possibleType,
-                i == 0
-                    ? []
-                    : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
+                i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
+                classSymbol.GetAttributes());
+            syntaxInfo = objectTypeInfo;
+
+            if (objectTypeInfo.Shareable is DirectiveScope.Field)
+            {
+                foreach (var resolver in objectTypeInfo.Resolvers)
+                {
+                    resolver.IsShareable = true;
+                }
+            }
+
+            if (objectTypeInfo.Inaccessible is DirectiveScope.Field)
+            {
+                foreach (var resolver in objectTypeInfo.Resolvers)
+                {
+                    resolver.IsInaccessible = true;
+                }
+            }
 
             if (diagnostics.Length > 0)
             {
-                syntaxInfo.AddDiagnosticRange(diagnostics);
+                objectTypeInfo.AddDiagnosticRange(diagnostics);
             }
+
             return true;
         }
 
@@ -121,9 +139,7 @@ public class ObjectTypeInspector : ISyntaxInspector
             classSymbol,
             operationType!.Value,
             possibleType,
-            i == 0
-                ? []
-                : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
+            i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
 
         if (diagnostics.Length > 0)
         {
@@ -262,6 +278,7 @@ public class ObjectTypeInspector : ISyntaxInspector
             resolverMethod.GetResultKind(),
             [.. resolverParameters],
             resolverMethod.GetMemberBindings(),
+            GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation),
             kind: compilation.IsConnectionType(resolverMethod.ReturnType)
                 ? ResolverKind.ConnectionResolver
                 : ResolverKind.Default);
@@ -296,7 +313,11 @@ public class ObjectTypeInspector : ISyntaxInspector
 
             if (parameter.Kind is ResolverParameterKind.Unknown && (parameter.Name == "id" || parameter.Key == "id"))
             {
-                parameter = new ResolverParameter(parameter.Parameter, parameter.Key, ResolverParameterKind.Argument);
+                parameter = new ResolverParameter(
+                    parameter.Parameter,
+                    parameter.Key,
+                    ResolverParameterKind.Argument,
+                    GraphQLTypeBuilder.ToSchemaType(parameter.Type, compilation));
             }
 
             resolverParameters[i] = parameter;
@@ -316,8 +337,9 @@ public class ObjectTypeInspector : ISyntaxInspector
             resolverType.Name,
             resolverMethod,
             resolverMethod.GetResultKind(),
-            resolverParameters.ToImmutableArray(),
+            [..resolverParameters],
             resolverMethod.GetMemberBindings(),
+            GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation),
             kind: ResolverKind.NodeResolver);
     }
 

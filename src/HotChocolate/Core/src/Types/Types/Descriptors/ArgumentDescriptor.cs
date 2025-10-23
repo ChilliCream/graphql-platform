@@ -80,13 +80,16 @@ public class ArgumentDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Parameter: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.Parameter);
-            Configuration.AttributesAreApplied = true;
+                Configuration.Parameter,
+                Configuration.Parameter,
+                Configuration.Configurations);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         base.OnCreateConfiguration(definition);

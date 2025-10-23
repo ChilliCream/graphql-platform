@@ -29,6 +29,9 @@ public static class WellKnownAttributes
     public const string GraphQLIgnoreAttribute = "HotChocolate.GraphQLIgnoreAttribute";
     public const string UseConnectionAttribute = "HotChocolate.Types.UseConnectionAttribute";
     public const string GraphQLNameAttribute = "HotChocolate.GraphQLNameAttribute";
+    public const string ShareableAttribute = "HotChocolate.Types.Composite.ShareableAttribute";
+    public const string InaccessibleAttribute = "HotChocolate.Types.Composite.InaccessibleAttribute";
+    public const string DescriptorAttribute = "HotChocolate.Types.DescriptorAttribute";
 
     public static HashSet<string> BindAttributes { get; } =
     [

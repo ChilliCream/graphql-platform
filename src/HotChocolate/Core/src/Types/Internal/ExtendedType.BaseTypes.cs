@@ -34,6 +34,11 @@ public sealed partial class ExtendedType
         /// </summary>
         public static bool IsNamedType(Type type)
         {
+            if (!typeof(IType).IsAssignableFrom(type))
+            {
+                return false;
+            }
+
             if (type.IsAbstract || IsNonGenericBaseType(type))
             {
                 return false;
