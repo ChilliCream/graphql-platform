@@ -21,5 +21,5 @@ public interface IRequestExecutorOptionsMonitor
     /// <returns>
     /// An <see cref="IDisposable"/> which should be disposed to stop listening for changes.
     /// </returns>
-    IDisposable OnChange(Action<string> listener);
+    IDisposable? OnChange(Action<string> listener);
 }
