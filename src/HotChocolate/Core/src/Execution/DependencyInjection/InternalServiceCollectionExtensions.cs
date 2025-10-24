@@ -1,23 +1,33 @@
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Internal;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
+using Microsoft.Extensions.Options;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 internal static class InternalServiceCollectionExtensions
 {
+    internal static IServiceCollection TryAddRequestExecutorOptionsMonitor(
+        this IServiceCollection services)
+    {
+        services.TryAddSingleton<IRequestExecutorOptionsMonitor>(
+            sp => new DefaultRequestExecutorOptionsMonitor(
+                sp.GetRequiredService<IOptionsMonitor<RequestExecutorSetup>>()));
+        return services;
+    }
+
     internal static IServiceCollection TryAddVariableCoercion(
         this IServiceCollection services)
     {
