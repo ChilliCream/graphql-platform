@@ -84,8 +84,11 @@ public class ObjectTypeInspector : ISyntaxInspector
 
                 if (member is IPropertySymbol)
                 {
+                    context.SemanticModel.Compilation.TryGetGraphQLDeprecationReason(member, out var deprecationReason);
+
                     resolvers[i++] = new Resolver(
                         classSymbol.Name,
+                        deprecationReason,
                         member,
                         ResolverResultKind.Pure,
                         [],
@@ -139,7 +142,8 @@ public class ObjectTypeInspector : ISyntaxInspector
             classSymbol,
             operationType!.Value,
             possibleType,
-            i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
+            i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
+            classSymbol.GetAttributes());
 
         if (diagnostics.Length > 0)
         {
@@ -271,9 +275,11 @@ public class ObjectTypeInspector : ISyntaxInspector
         }
 
         resolverTypeName ??= resolverType.Name;
+        compilation.TryGetGraphQLDeprecationReason(resolverMethod, out var deprecationReason);
 
         return new Resolver(
             resolverTypeName,
+            deprecationReason,
             resolverMethod,
             resolverMethod.GetResultKind(),
             [.. resolverParameters],
@@ -333,11 +339,14 @@ public class ObjectTypeInspector : ISyntaxInspector
                     Location.Create(location.SourceTree!, location.SourceSpan)));
         }
 
+        context.SemanticModel.Compilation.TryGetGraphQLDeprecationReason(resolverMethod, out var deprecationReason);
+
         return new Resolver(
             resolverType.Name,
+            deprecationReason,
             resolverMethod,
             resolverMethod.GetResultKind(),
-            [..resolverParameters],
+            [.. resolverParameters],
             resolverMethod.GetMemberBindings(),
             GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation),
             kind: ResolverKind.NodeResolver);

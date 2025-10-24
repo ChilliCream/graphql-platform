@@ -8,6 +8,7 @@ public sealed class Resolver
 {
     public Resolver(
         string typeName,
+        string? deprecationReason,
         ISymbol member,
         ResolverResultKind resultKind,
         ImmutableArray<ResolverParameter> parameters,
@@ -45,11 +46,12 @@ public sealed class Resolver
                 break;
         }
 
-        DeprecationReason = null;
+        DeprecationReason = deprecationReason;
 
         var attributes = member.GetAttributes();
         Shareable = attributes.GetShareableScope();
         Inaccessible = attributes.GetInaccessibleScope();
+        IsNodeResolver = attributes.IsNodeResolver();
         Attributes = attributes.GetUserAttributes();
     }
 
@@ -92,6 +94,8 @@ public sealed class Resolver
 
     public ImmutableArray<MemberBinding> Bindings { get; }
 
+    public bool IsNodeResolver { get; }
+
     public DirectiveScope Shareable { get; }
 
     public DirectiveScope Inaccessible { get; }
@@ -102,6 +106,7 @@ public sealed class Resolver
     {
         return new Resolver(
             TypeName,
+            DeprecationReason,
             Member,
             ResultKind,
             Parameters,

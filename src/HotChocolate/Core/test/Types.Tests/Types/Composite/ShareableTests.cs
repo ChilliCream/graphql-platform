@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types.Composite;
 
-public static class SharableTests
+public static class ShareableTests
 {
     [Fact]
     public static async Task Lookup()

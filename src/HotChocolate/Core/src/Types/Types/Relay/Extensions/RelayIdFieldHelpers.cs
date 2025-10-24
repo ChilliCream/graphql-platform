@@ -142,7 +142,7 @@ internal static class RelayIdFieldHelpers
         var typeInspector = completionContext.TypeInspector;
         IExtendedType? resultType;
 
-        if (configuration is InputFieldConfiguration { RuntimeType: { } runtimeType })
+        if (configuration is ArgumentConfiguration { RuntimeType: { } runtimeType })
         {
             resultType = typeInspector.GetType(runtimeType);
         }

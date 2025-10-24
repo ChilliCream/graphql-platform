@@ -814,6 +814,19 @@ public static class SymbolExtensions
         return DirectiveScope.None;
     }
 
+    public static bool IsNodeResolver(this ImmutableArray<AttributeData> attributes)
+    {
+        foreach (var attribute in attributes)
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.NodeResolverAttribute))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static DirectiveScope GetInaccessibleScope(this ImmutableArray<AttributeData> attributes)
     {
         foreach (var attribute in attributes)

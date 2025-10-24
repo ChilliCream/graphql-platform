@@ -56,7 +56,7 @@ public sealed class ShareableAttribute : DescriptorAttribute
         switch (descriptor)
         {
             case IObjectTypeDescriptor desc:
-                desc.Shareable();
+                desc.Shareable(IsScoped);
                 break;
 
             case IObjectFieldDescriptor desc:

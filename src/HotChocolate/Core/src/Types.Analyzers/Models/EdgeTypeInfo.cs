@@ -133,9 +133,12 @@ public sealed class EdgeTypeInfo
                     break;
 
                 case IPropertySymbol property:
+                    compilation.TryGetGraphQLDeprecationReason(property, out var deprecationReason);
+
                     resolvers.Add(
                         new Resolver(
                             edgeName,
+                            deprecationReason,
                             property,
                             ResolverResultKind.Pure,
                             [],

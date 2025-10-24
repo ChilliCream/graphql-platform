@@ -310,9 +310,13 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         }
 
                         Writer.WriteIndentedLine(
-                            "Type = typeInspector.GetTypeRef(typeof({0}), {1}.Input)",
+                            "Type = typeInspector.GetTypeRef(typeof({0}), {1}.Input),",
                             parameter.SchemaTypeName,
                             WellKnownTypes.TypeContext);
+
+                        Writer.WriteIndentedLine(
+                            "RuntimeType = typeof({0})",
+                            parameter.Parameter.Type.ToClassNonNullableFullyQualifiedWithNullRefQualifier());
                     }
 
                     Writer.WriteIndentedLine("};");
@@ -338,7 +342,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             }
         }
 
-        if (resolver.Attributes.Length > 0)
+        if (resolver.Attributes.Length > 0 || resolver.IsNodeResolver)
         {
             Writer.WriteLine();
             Writer.WriteIndentedLine("configuration.Member = context.ThisType.GetMethod(");
@@ -384,7 +388,10 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     Writer.WriteIndentedLine("})!;");
                 }
             }
+        }
 
+        if (resolver.Attributes.Length > 0)
+        {
             Writer.WriteLine();
             Writer.WriteIndentedLine("var configurations = configuration.Configurations;");
 

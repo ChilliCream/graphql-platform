@@ -13,7 +13,8 @@ public sealed class RootTypeInfo
         INamedTypeSymbol schemaType,
         OperationType operationType,
         ClassDeclarationSyntax classDeclarationSyntax,
-        ImmutableArray<Resolver> resolvers)
+        ImmutableArray<Resolver> resolvers,
+        ImmutableArray<AttributeData> attributes)
     {
         OperationType = operationType;
         SchemaSchemaType = schemaType;
@@ -21,6 +22,9 @@ public sealed class RootTypeInfo
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
         Description = schemaType.GetDescription();
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        Attributes = attributes.GetUserAttributes();
     }
 
     public string Name => SchemaSchemaType.Name;
@@ -51,9 +55,11 @@ public sealed class RootTypeInfo
 
     public override string OrderByKey => SchemaTypeFullName;
 
-    public DirectiveScope Sharable { get; set; } = DirectiveScope.None;
+    public DirectiveScope Shareable { get; }
 
-    public DirectiveScope Inaccessible { get; set; } = DirectiveScope.None;
+    public DirectiveScope Inaccessible { get; }
+
+    public ImmutableArray<AttributeData> Attributes { get; }
 
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);
