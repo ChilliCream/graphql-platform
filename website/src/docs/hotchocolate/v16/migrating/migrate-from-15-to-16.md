@@ -40,8 +40,7 @@ builder.Services.AddGraphQLServer()
 
 ## Cache size configuration
 
-Previously, configuring document and operation cache sizes required calling methods directly on `IServiceCollection` rather than using the standard `IRequestExecutorBuilder` pattern. We've now consolidated cache configuration with other GraphQL options for consistency.
-If you're currently using `AddOperationCache` or `AddDocumentCache`, update your code as follows:
+Previously, document and operation cache sizes were globally configured through the `IServiceCollection`. In an effort to align and properly scope our configuration APIs, we've moved the configuration of these caches to the `IRequestExecutorBuilder`. If you're currently calling `AddDocumentCache` or `AddOperationCache` directly on the `IServiceCollection`, move the configuration to `ModifyOptions` on the `IRequestExecutorBuilder`:
 
 ```diff
 -builder.Services.AddDocumentCache(200);
@@ -54,6 +53,8 @@ builder.Services.AddGraphQLServer()
 +        options.PreparedOperationCacheSize = 100;
 +    });
 ```
+
+If your application contains multiple GraphQL servers, the cache configuration has to be repeated for each one as the configuration is now scoped to a particular GraphQL server.
 
 If you were previously accessing `IDocumentCache` or `IPreparedOperationCache` through the root service provider, you now need to access it through the schema-specific service provider instead.
 For instance, to populate the document cache during startup, create a custom `IRequestExecutorWarmupTask` that injects `IDocumentCache`:
@@ -75,6 +76,19 @@ public class MyWarmupTask(IDocumentCache cache) : IRequestExecutorWarmupTask
     }
 }
 ```
+
+## Document hash provider configuration
+
+Previously, document hash providers were globally configured through the `IServiceCollection`. In an effort to align and properly scope our configuration APIs, we've moved the configuration of the hash provider to the `IRequestExecutorBuilder`. If you're currently calling `AddMD5DocumentHashProvider`, `AddSha256DocumentHashProvider` or `AddSha1DocumentHashProvider` directly on the `IServiceCollection`, move the call to the `IRequestExecutorBuilder`:
+
+```diff
+-builder.Services.AddSha256DocumentHashProvider();
+
+builder.Services.AddGraphQLServer()
++    .AddSha256DocumentHashProvider()
+```
+
+If your application contains multiple GraphQL servers, the hash provider configuration has to be repeated for each one as the configuration is now scoped to a particular GraphQL server.
 
 ## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
 
