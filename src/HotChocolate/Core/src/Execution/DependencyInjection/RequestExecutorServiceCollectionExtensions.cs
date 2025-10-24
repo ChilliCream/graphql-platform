@@ -45,6 +45,7 @@ public static class RequestExecutorServiceCollectionExtensions
 
         // core services
         services
+            .TryAddRequestExecutorOptionsMonitor()
             .TryAddTypeConverter()
             .TryAddInputFormatter()
             .TryAddInputParser()

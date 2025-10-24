@@ -3,7 +3,6 @@ using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -15,7 +14,7 @@ public static partial class RequestExecutorBuilderExtensions
             builder.Name,
             static (sp, schemaName) =>
             {
-                var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<RequestExecutorSetup>>();
+                var optionsMonitor = sp.GetRequiredService<IRequestExecutorOptionsMonitor>();
                 var setup = optionsMonitor.Get((string)schemaName!);
                 var options = setup.CreateSchemaOptions();
 
