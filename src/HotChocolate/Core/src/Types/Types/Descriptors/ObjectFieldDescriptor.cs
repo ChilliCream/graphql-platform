@@ -195,10 +195,7 @@ public class ObjectFieldDescriptor
 
                     foreach (var parameter in subscribeParameters)
                     {
-                        if (!parameterLookup.ContainsKey(parameter.Name!))
-                        {
-                            parameterLookup.Add(parameter.Name!, parameter);
-                        }
+                        parameterLookup.TryAdd(parameter.Name!, parameter);
                     }
                 }
             }
