@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 namespace HotChocolate.AspNetCore.Warmup;
 
 internal sealed class RequestExecutorWarmupService(
-    IOptionsMonitor<RequestExecutorSetup> optionsMonitor,
+    IRequestExecutorOptionsMonitor optionsMonitor,
     IRequestExecutorProvider provider) : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)

@@ -18,7 +18,6 @@ using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
-using Microsoft.Extensions.Options;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution;
@@ -31,7 +30,7 @@ internal sealed partial class RequestExecutorManager
     private readonly CancellationTokenSource _cts = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreBySchema = new();
     private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
-    private readonly IOptionsMonitor<RequestExecutorSetup> _optionsMonitor;
+    private readonly IRequestExecutorOptionsMonitor _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
     private readonly EventObservable _events = new();
     private readonly ChannelWriter<string> _executorEvictionChannelWriter;
@@ -39,7 +38,7 @@ internal sealed partial class RequestExecutorManager
     private bool _disposed;
 
     public RequestExecutorManager(
-        IOptionsMonitor<RequestExecutorSetup> optionsMonitor,
+        IRequestExecutorOptionsMonitor optionsMonitor,
         IServiceProvider serviceProvider)
     {
         ArgumentNullException.ThrowIfNull(optionsMonitor);
@@ -52,6 +51,8 @@ internal sealed partial class RequestExecutorManager
         _executorEvictionChannelWriter = executorEvictionChannel.Writer;
 
         ConsumeExecutorEvictionsAsync(executorEvictionChannel.Reader, _cts.Token).FireAndForget();
+
+        _optionsMonitor.OnChange(EvictExecutor);
 
         var schemaNames = _applicationServices.GetService<IEnumerable<SchemaName>>()?
             .Select(x => x.Value).Distinct().Order().ToImmutableArray();
