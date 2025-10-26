@@ -121,4 +121,40 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Info,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor NodeResolverIdAttributeNotAllowed =
+        new(
+            id: "HC0092",
+            title: "ID Attribute Not Allowed",
+            messageFormat: "The [ID] attribute should not be used on node resolver parameters as the NodeResolver attribute already declares the parameter as an ID type",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor NodeResolverMustBePublic =
+        new(
+            id: "HC0093",
+            title: "Node Resolver Must Be Public",
+            messageFormat: "A node resolver method must be public",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor BindMemberNotFound =
+        new(
+            id: "HC0094",
+            title: "Bind Member Not Found",
+            messageFormat: "The member '{0}' does not exist on type '{1}'",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor BindMemberTypeMismatch =
+        new(
+            id: "HC0095",
+            title: "Bind Member Type Mismatch",
+            messageFormat: "The type '{0}' in nameof expression does not match the ObjectType type '{1}'",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }
