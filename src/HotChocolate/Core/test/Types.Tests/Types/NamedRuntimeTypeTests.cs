@@ -1,12 +1,14 @@
+using HotChocolate.Internal;
+
 namespace HotChocolate.Types;
 
-public class NativeTypeTests
+public class NamedRuntimeTypeTests
 {
     [Fact]
     public void Kind_NotSupportedException()
     {
         // arrange
-        var type = new NativeType<string>();
+        var type = new NamedRuntimeType<string>();
 
         // act
         TypeKind kind;
@@ -20,7 +22,7 @@ public class NativeTypeTests
     public void ClrType_NotSupportedException()
     {
         // arrange
-        var type = new NativeType<string>();
+        var type = new NamedRuntimeType<string>();
 
         // act
         void Action() => type.ToRuntimeType();

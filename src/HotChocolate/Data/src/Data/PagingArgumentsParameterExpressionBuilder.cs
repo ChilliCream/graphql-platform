@@ -4,14 +4,19 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination;
 
-namespace HotChocolate.Data.Pagination;
+namespace HotChocolate.Data;
 
 internal sealed class PagingArgumentsParameterExpressionBuilder()
     : CustomParameterExpressionBuilder<PagingArguments>(ctx => MapArguments(ctx))
     , IParameterBindingFactory
     , IParameterBinding
 {
-    public IParameterBinding Create(ParameterBindingContext context)
+    public bool IsDefaultHandler => false;
+
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Type == typeof(PagingArguments);
+
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public ArgumentKind Kind => ArgumentKind.Custom;

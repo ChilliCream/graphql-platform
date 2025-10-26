@@ -14,14 +14,20 @@ type Brand implements Node {
 }
 
 type BrandConnection {
+  "A list of edges."
   edges: [BrandEdge!]!
+  "A flattened list of the nodes."
   nodes: [Brand!]!
+  "Information to aid in pagination."
   pageInfo: ConnectionPageInfo!
+  "Identifies the total count of items in the connection."
   totalCount: Int! @cost(weight: "10")
 }
 
 type BrandEdge {
+  "The item at the end of the edge."
   node: Brand!
+  "A cursor for use in pagination."
   cursor: String!
 }
 
@@ -114,7 +120,7 @@ type ProductConnection {
   pageInfo: ConnectionPageInfo!
   "Identifies the total count of items in the connection."
   totalCount: Int! @cost(weight: "10")
-  endCursors(count: Int!): [String!]!
+  endCursors: [String!]!
 }
 
 "An edge in a connection."
