@@ -48,7 +48,6 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddTypeConverter()
             .TryAddInputFormatter()
             .TryAddInputParser()
-            .TryAddDefaultDocumentHashProvider()
             .TryAddDefaultBatchDispatcher(default)
             .TryAddDefaultDataLoaderRegistry()
             .TryAddDataLoaderParameterExpressionBuilder()
@@ -166,36 +165,6 @@ public static class RequestExecutorServiceCollectionExtensions
         builder.ConfigureSchemaServices(static s => s.TryAddSingleton<ITimeProvider, DefaultTimeProvider>());
 
         return builder;
-    }
-
-    public static IServiceCollection AddMD5DocumentHashProvider(
-        this IServiceCollection services,
-        HashFormat format = HashFormat.Base64)
-    {
-        services.RemoveAll<IDocumentHashProvider>();
-        services.AddSingleton<IDocumentHashProvider>(
-            new MD5DocumentHashProvider(format));
-        return services;
-    }
-
-    public static IServiceCollection AddSha1DocumentHashProvider(
-        this IServiceCollection services,
-        HashFormat format = HashFormat.Base64)
-    {
-        services.RemoveAll<IDocumentHashProvider>();
-        services.AddSingleton<IDocumentHashProvider>(
-            new Sha1DocumentHashProvider(format));
-        return services;
-    }
-
-    public static IServiceCollection AddSha256DocumentHashProvider(
-        this IServiceCollection services,
-        HashFormat format = HashFormat.Base64)
-    {
-        services.RemoveAll<IDocumentHashProvider>();
-        services.AddSingleton<IDocumentHashProvider>(
-            new Sha256DocumentHashProvider(format));
-        return services;
     }
 
     public static IServiceCollection AddBatchDispatcher<T>(this IServiceCollection services)

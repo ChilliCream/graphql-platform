@@ -49,7 +49,11 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
         => format switch
         {
             HashFormat.Base64 => ToBase64UrlSafeString(hash),
+#if NET9_0_OR_GREATER
+            HashFormat.Hex => Convert.ToHexStringLower(hash),
+#else
             HashFormat.Hex => ToHexString(hash),
+#endif
             _ => throw new NotSupportedException(ComputeHash_FormatNotSupported)
         };
 

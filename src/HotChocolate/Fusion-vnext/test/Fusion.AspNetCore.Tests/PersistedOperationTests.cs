@@ -70,92 +70,92 @@ public class PersistedOperationTests : FusionTestBase
         result.HttpResponseMessage.MatchSnapshot();
     }
 
-    // [Fact]
-    // public async Task HotChocolateStyle_Sha1Hash_Success()
-    // {
-    //     // arrange
-    //     var storage = new OperationStorage();
-    //     var hashProvider = new Sha1DocumentHashProvider(HashFormat.Hex);
-    //
-    //     using var gateway = await CreateGatewayAsync(b => b
-    //         .AddSha1DocumentHashProvider(HashFormat.Hex)
-    //         .ConfigureSchemaServices((_, sc) => sc.AddSingleton<IOperationDocumentStorage>(storage))
-    //         .UsePersistedOperationPipeline());
-    //
-    //     using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-    //
-    //     const string query = "{ __typename }";
-    //     var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
-    //     storage.AddOperation(key.Value, query);
-    //
-    //     var request = new OperationRequest(id: key.Value);
-    //
-    //     // act
-    //     using var result = await client.PostAsync(
-    //         request,
-    //         new Uri("http://localhost:5000/graphql"));
-    //
-    //     // assert
-    //     result.HttpResponseMessage.MatchSnapshot();
-    // }
+    [Fact]
+    public async Task HotChocolateStyle_Sha1Hash_Success()
+    {
+        // arrange
+        var storage = new OperationStorage();
+        var hashProvider = new Sha1DocumentHashProvider(HashFormat.Hex);
 
-    // [Fact]
-    // public async Task HotChocolateStyle_Sha256Hash_Success()
-    // {
-    //     // arrange
-    //     var storage = new OperationStorage();
-    //     var hashProvider = new Sha256DocumentHashProvider(HashFormat.Hex);
-    //
-    //     using var gateway = await CreateGatewayAsync(b => b
-    //         .AddSha256DocumentHashProvider(HashFormat.Hex)
-    //         .ConfigureSchemaServices((_, sc) => sc.AddSingleton<IOperationDocumentStorage>(storage))
-    //         .UsePersistedOperationPipeline());
-    //
-    //     using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-    //
-    //     const string query = "{ __typename }";
-    //     var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
-    //     storage.AddOperation(key.Value, query);
-    //
-    //     var request = new OperationRequest(id: key.Value);
-    //
-    //     // act
-    //     using var result = await client.PostAsync(
-    //         request,
-    //         new Uri("http://localhost:5000/graphql"));
-    //
-    //     // assert
-    //     result.HttpResponseMessage.MatchSnapshot();
-    // }
+        using var gateway = await CreateGatewayAsync(b => b
+            .AddSha1DocumentHashProvider(HashFormat.Hex)
+            .ConfigureSchemaServices((_, sc) => sc.AddSingleton<IOperationDocumentStorage>(storage))
+            .UsePersistedOperationPipeline());
 
-    // [Fact]
-    // public async Task HotChocolateStyle_Sha256Hash_Query_Empty_String_Success()
-    // {
-    //     // arrange
-    //     var storage = new OperationStorage();
-    //     var hashProvider = new Sha256DocumentHashProvider(HashFormat.Hex);
-    //
-    //     using var gateway = await CreateGatewayAsync(b => b
-    //         .AddSha256DocumentHashProvider(HashFormat.Hex)
-    //         .ConfigureSchemaServices((_, sc) => sc.AddSingleton<IOperationDocumentStorage>(storage))
-    //         .UsePersistedOperationPipeline());
-    //
-    //     using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-    //
-    //     const string query = "{ __typename }";
-    //     var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
-    //     storage.AddOperation(key.Value, query);
-    //
-    //     var request = new OperationRequest(query: string.Empty, id: key.Value);
-    //
-    //     // act
-    //     using var result = await client.PostAsync(
-    //         request,
-    //         new Uri("http://localhost:5000/graphql"));
-    //
-    //     // assert
-    //     result.HttpResponseMessage.MatchSnapshot();
-    // }
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        const string query = "{ __typename }";
+        var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
+        storage.AddOperation(key.Value, query);
+
+        var request = new OperationRequest(id: key.Value);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        result.HttpResponseMessage.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task HotChocolateStyle_Sha256Hash_Success()
+    {
+        // arrange
+        var storage = new OperationStorage();
+        var hashProvider = new Sha256DocumentHashProvider(HashFormat.Hex);
+
+        using var gateway = await CreateGatewayAsync(b => b
+            .AddSha256DocumentHashProvider(HashFormat.Hex)
+            .ConfigureSchemaServices((_, sc) => sc.AddSingleton<IOperationDocumentStorage>(storage))
+            .UsePersistedOperationPipeline());
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        const string query = "{ __typename }";
+        var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
+        storage.AddOperation(key.Value, query);
+
+        var request = new OperationRequest(id: key.Value);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        result.HttpResponseMessage.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task HotChocolateStyle_Sha256Hash_Query_Empty_String_Success()
+    {
+        // arrange
+        var storage = new OperationStorage();
+        var hashProvider = new Sha256DocumentHashProvider(HashFormat.Hex);
+
+        using var gateway = await CreateGatewayAsync(b => b
+            .AddSha256DocumentHashProvider(HashFormat.Hex)
+            .ConfigureSchemaServices((_, sc) => sc.AddSingleton<IOperationDocumentStorage>(storage))
+            .UsePersistedOperationPipeline());
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        const string query = "{ __typename }";
+        var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
+        storage.AddOperation(key.Value, query);
+
+        var request = new OperationRequest(query: string.Empty, id: key.Value);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        result.HttpResponseMessage.MatchSnapshot();
+    }
 
     [Fact]
     public async Task ApolloStyle_MD5Hash_Success()
@@ -214,63 +214,63 @@ public class PersistedOperationTests : FusionTestBase
         result.HttpResponseMessage.MatchSnapshot();
     }
 
-    // [Fact]
-    // public async Task ApolloStyle_Sha1Hash_Success()
-    // {
-    //     // arrange
-    //     var storage = new OperationStorage();
-    //     var hashProvider = new Sha1DocumentHashProvider(HashFormat.Hex);
-    //
-    //     using var gateway = await CreateGatewayAsync(b => b
-    //         .AddSha1DocumentHashProvider(HashFormat.Hex)
-    //         .ConfigureSchemaServices((_, sc) => sc.AddSingleton<IOperationDocumentStorage>(storage))
-    //         .UsePersistedOperationPipeline());
-    //
-    //     using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-    //
-    //     const string query = "{ __typename }";
-    //     var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
-    //     storage.AddOperation(key.Value, query);
-    //
-    //     var request = CreateApolloStyleRequest(hashProvider.Name, key.Value);
-    //
-    //     // act
-    //     using var result = await client.PostAsync(
-    //         request,
-    //         new Uri("http://localhost:5000/graphql"));
-    //
-    //     // assert
-    //     result.HttpResponseMessage.MatchSnapshot();
-    // }
+    [Fact]
+    public async Task ApolloStyle_Sha1Hash_Success()
+    {
+        // arrange
+        var storage = new OperationStorage();
+        var hashProvider = new Sha1DocumentHashProvider(HashFormat.Hex);
 
-    // [Fact]
-    // public async Task ApolloStyle_Sha256Hash_Success()
-    // {
-    //     // arrange
-    //     var storage = new OperationStorage();
-    //     var hashProvider = new Sha256DocumentHashProvider(HashFormat.Hex);
-    //
-    //     using var gateway = await CreateGatewayAsync(b => b
-    //         .AddSha256DocumentHashProvider(HashFormat.Hex)
-    //         .ConfigureSchemaServices((_, sc) => sc.AddSingleton<IOperationDocumentStorage>(storage))
-    //         .UsePersistedOperationPipeline());
-    //
-    //     using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-    //
-    //     const string query = "{ __typename }";
-    //     var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
-    //     storage.AddOperation(key.Value, query);
-    //
-    //     var request = CreateApolloStyleRequest(hashProvider.Name, key.Value);
-    //
-    //     // act
-    //     using var result = await client.PostAsync(
-    //         request,
-    //         new Uri("http://localhost:5000/graphql"));
-    //
-    //     // assert
-    //     result.HttpResponseMessage.MatchSnapshot();
-    // }
+        using var gateway = await CreateGatewayAsync(b => b
+            .AddSha1DocumentHashProvider(HashFormat.Hex)
+            .ConfigureSchemaServices((_, sc) => sc.AddSingleton<IOperationDocumentStorage>(storage))
+            .UsePersistedOperationPipeline());
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        const string query = "{ __typename }";
+        var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
+        storage.AddOperation(key.Value, query);
+
+        var request = CreateApolloStyleRequest(hashProvider.Name, key.Value);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        result.HttpResponseMessage.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ApolloStyle_Sha256Hash_Success()
+    {
+        // arrange
+        var storage = new OperationStorage();
+        var hashProvider = new Sha256DocumentHashProvider(HashFormat.Hex);
+
+        using var gateway = await CreateGatewayAsync(b => b
+            .AddSha256DocumentHashProvider(HashFormat.Hex)
+            .ConfigureSchemaServices((_, sc) => sc.AddSingleton<IOperationDocumentStorage>(storage))
+            .UsePersistedOperationPipeline());
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        const string query = "{ __typename }";
+        var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
+        storage.AddOperation(key.Value, query);
+
+        var request = CreateApolloStyleRequest(hashProvider.Name, key.Value);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        result.HttpResponseMessage.MatchSnapshot();
+    }
 
     [Fact]
     public async Task Standard_Query_By_Default_Works()

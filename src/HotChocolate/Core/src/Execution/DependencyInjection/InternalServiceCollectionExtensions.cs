@@ -146,14 +146,6 @@ internal static class InternalServiceCollectionExtensions
         return services;
     }
 
-    internal static IServiceCollection TryAddDefaultDocumentHashProvider(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton<IDocumentHashProvider>(
-            _ => new MD5DocumentHashProvider(HashFormat.Hex));
-        return services;
-    }
-
     internal static IServiceCollection TryAddDefaultBatchDispatcher(
         this IServiceCollection services,
         BatchDispatcherOptions options)
