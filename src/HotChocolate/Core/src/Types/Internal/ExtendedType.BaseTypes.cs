@@ -34,7 +34,8 @@ public sealed partial class ExtendedType
         /// </summary>
         public static bool IsNamedType(Type type)
         {
-            if (!typeof(IType).IsAssignableFrom(type))
+            if (!typeof(IType).IsAssignableFrom(type)
+                && !typeof(IDirectiveDefinition).IsAssignableFrom(type))
             {
                 return false;
             }

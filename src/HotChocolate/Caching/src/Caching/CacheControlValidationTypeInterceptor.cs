@@ -39,9 +39,8 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
                 var span = objectType.Fields.AsSpan();
 
-                for (var i = 0; i < span.Length; i++)
+                foreach (var field in span)
                 {
-                    var field = span[i];
                     ValidateCacheControlOnField(context, field, objectType, isQueryType);
                 }
                 break;
@@ -53,9 +52,8 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
                 var span = interfaceType.Fields.AsSpan();
 
-                for (var i = 0; i < span.Length; i++)
+                foreach (var field in span)
                 {
-                    var field = span[i];
                     ValidateCacheControlOnField(context, field, interfaceType, false);
                 }
                 break;

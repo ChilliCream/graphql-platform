@@ -417,6 +417,20 @@ public class ExtendedTypeTests
     }
 
     [Fact]
+    public void EnsureDirectiveTypes_Is_Detected_As_SchemaType()
+    {
+        // arrange
+        var typeInspector = new DefaultTypeInspector();
+
+        // act
+        var typeRef = typeInspector.GetTypeRef(typeof(TestDirective));
+
+        // assert
+        Assert.NotNull(typeRef);
+        Assert.True(typeRef.Type.IsSchemaType);
+    }
+
+    [Fact]
     public void SourceGenerated_NonNullList_NonNullString()
     {
         // arrange
@@ -463,6 +477,15 @@ public class ExtendedTypeTests
         public class Nested
         {
             public string? Value { get; set; }
+        }
+    }
+
+    public class TestDirective : DirectiveType
+    {
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor.Name("testDirective");
+            descriptor.Location(DirectiveLocation.FieldDefinition);
         }
     }
 }

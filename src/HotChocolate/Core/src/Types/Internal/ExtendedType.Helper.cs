@@ -13,7 +13,8 @@ public sealed partial class ExtendedType
     {
         internal static bool IsSchemaType(Type type)
         {
-            if (!typeof(IType).IsAssignableFrom(type))
+            if (!typeof(IType).IsAssignableFrom(type)
+                && !typeof(IDirectiveDefinition).IsAssignableFrom(type))
             {
                 return false;
             }
