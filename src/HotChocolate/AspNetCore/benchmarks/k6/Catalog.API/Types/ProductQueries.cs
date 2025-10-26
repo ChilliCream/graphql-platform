@@ -11,7 +11,6 @@ public static partial class ProductQueries
         => await productService.GetProductByIdAsync(id, query, cancellationToken);
 
     [UsePaging]
-    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public static async Task<Connection<Product>> GetProductsAsync(

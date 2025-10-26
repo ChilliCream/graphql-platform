@@ -193,4 +193,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor DataAttributeOrder =
+        new(
+            id: "HC0100",
+            title: "Data Attribute Order",
+            messageFormat: "Data attributes must be ordered correctly: [UsePaging], [UseProjection], [UseFiltering], [UseSorting]",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }

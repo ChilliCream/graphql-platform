@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types.Composite;

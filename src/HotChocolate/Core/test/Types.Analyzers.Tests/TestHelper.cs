@@ -199,7 +199,8 @@ internal static partial class TestHelper
                 new ExtendObjectTypeAnalyzer(),
                 new ParentAttributeAnalyzer(),
                 new ParentMethodAnalyzer(),
-                new QueryContextProjectionAnalyzer());
+                new QueryContextProjectionAnalyzer(),
+                new DataAttributeOrderAnalyzer());
 
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
             var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;
