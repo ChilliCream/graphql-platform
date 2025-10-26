@@ -1,0 +1,1015 @@
+operation:
+  - document: |
+      query(
+        $level1: Boolean!
+        $level2: Boolean!
+        $level3: Boolean!
+        $level4: Boolean!
+        $level5: Boolean!
+        $level6: Boolean!
+        $includeExpensive: Boolean!
+        $includeReviews: Boolean!
+        $includeMetadata: Boolean!
+      ) {
+        productById(id: "1") {
+          id
+          name
+          ... @include(if: $level1) {
+            description
+            ... @skip(if: $level2) {
+              price
+              ... @include(if: $level3) {
+                dimension {
+                  height
+                  width
+                }
+                ... @skip(if: $level4) {
+                  ... @include(if: $level5) {
+                    reviews(first: 10) @skip(if: $level6) {
+                      pageInfo {
+                        hasNextPage
+                        ... @include(if: $includeMetadata) {
+                          hasPreviousPage
+                          startCursor
+                          endCursor
+                        }
+                      }
+                      edges {
+                        cursor
+                        node {
+                          id
+                          body
+                          stars
+                          author @include(if: $includeReviews) {
+                            id
+                            id @fusion__requirement
+                            displayName
+                          }
+                        }
+                      }
+                    }
+                    id @fusion__requirement
+                  }
+                }
+              }
+            }
+          }
+        }
+        products(first: 3) {
+          edges {
+            node {
+              name
+              description
+              price
+              id
+              id @fusion__requirement
+              averageRating
+              reviews(first: 5) @include(if: $includeReviews) {
+                nodes {
+                  id
+                  body
+                  stars
+                  author @skip(if: $level1) {
+                    id
+                    id @fusion__requirement
+                    displayName
+                    reviews(first: 3) @include(if: $level2) {
+                      nodes {
+                        id
+                        id @fusion__requirement
+                        body
+                        ... @skip(if: $level3) {
+                          stars
+                          product {
+                            id
+                            id @fusion__requirement
+                            name
+                            ... @include(if: $level4) {
+                              price
+                              dimension @skip(if: $level5) {
+                                height
+                                width
+                              }
+                              id @fusion__requirement
+                            }
+                          }
+                          id @fusion__requirement
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        searchContent(query: "extreme") {
+          __typename @fusion__requirement
+          id
+          title
+          description
+          ... on Product {
+            name
+            price
+            reviews(first: 3) @include(if: $includeReviews) {
+              nodes {
+                id
+                body
+                stars
+                author @skip(if: $level1) {
+                  id
+                  id @fusion__requirement
+                  displayName
+                  reviews(first: 2) @include(if: $level2) {
+                    nodes {
+                      id
+                      id @fusion__requirement
+                      body
+                      ... @skip(if: $level3) {
+                        stars
+                        product {
+                          id
+                          id @fusion__requirement
+                          name
+                          ... @include(if: $level4) {
+                            price
+                            ... @skip(if: $level5) {
+                              dimension {
+                                height
+                                width
+                              }
+                              reviews(first: 1) @include(if: $level6) {
+                                nodes {
+                                  id
+                                  body
+                                  stars
+                                }
+                              }
+                              id @fusion__requirement
+                            }
+                            id @fusion__requirement
+                          }
+                        }
+                        id @fusion__requirement
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            id @fusion__requirement
+          }
+          ... on Article {
+            content
+            author {
+              id
+              id @fusion__requirement
+              displayName
+              reviews(first: 2) @include(if: $level3) {
+                nodes {
+                  id
+                  id @fusion__requirement
+                  body
+                  ... @skip(if: $level4) {
+                    stars
+                    product {
+                      id
+                      id @fusion__requirement
+                      name
+                      ... @include(if: $level5) {
+                        price
+                        dimension @skip(if: $level6) {
+                          height
+                          width
+                        }
+                        id @fusion__requirement
+                      }
+                    }
+                    id @fusion__requirement
+                  }
+                }
+              }
+            }
+            publishedAt
+            tags
+          }
+        }
+        viewer {
+          displayName
+          reviews(first: 5) @include(if: $includeReviews) {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+            edges {
+              cursor
+              node {
+                id
+                body
+                stars
+                author {
+                  id
+                  id @fusion__requirement
+                  displayName
+                  reviews(first: 3) @skip(if: $level3) {
+                    nodes {
+                      id
+                      id @fusion__requirement
+                      body
+                      stars
+                      product @include(if: $level4) {
+                        id
+                        id @fusion__requirement
+                        name
+                        ... @skip(if: $level5) {
+                          price
+                          dimension @include(if: $level6) {
+                            height
+                            width
+                          }
+                          id @fusion__requirement
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 23
+nodes:
+  - id: 1
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_1(
+        $level1: Boolean!
+        $level2: Boolean!
+        $level3: Boolean!
+        $level4: Boolean!
+        $level5: Boolean!
+      ) {
+        productById(id: "1") {
+          id
+          name
+          ... @include(if: $level1) {
+            description
+            ... @skip(if: $level2) {
+              price
+              ... @include(if: $level3) {
+                dimension {
+                  height
+                  width
+                }
+                ... @skip(if: $level4) {
+                  ... @include(if: $level5) {
+                    id
+                  }
+                }
+              }
+            }
+          }
+        }
+        products(first: 3) {
+          edges {
+            node {
+              name
+              description
+              price
+              id
+            }
+          }
+        }
+      }
+    forwardedVariables:
+      - level1
+      - level2
+      - level3
+      - level4
+      - level5
+  - id: 2
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_2(
+        $includeReviews: Boolean!
+      ) {
+        viewer {
+          reviews(first: 5) @include(if: $includeReviews) {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+            edges {
+              cursor
+              node {
+                id
+                body
+                stars
+                author {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    forwardedVariables:
+      - includeReviews
+  - id: 3
+    type: Operation
+    schema: search
+    operation: |
+      query Op_123456789101112_3 {
+        searchContent(query: "extreme") {
+          __typename
+          id
+          title
+          description
+          ... on Product {
+            id
+          }
+          ... on Article {
+            content
+            author {
+              id
+            }
+            publishedAt
+            tags
+          }
+        }
+      }
+  - id: 4
+    type: Operation
+    schema: users
+    operation: |
+      query Op_123456789101112_4(
+        $level3: Boolean!
+        $level4: Boolean!
+        $__fusion_1_id: ID!
+      ) {
+        userById(id: $__fusion_1_id) {
+          displayName
+          reviews(first: 2) @include(if: $level3) {
+            nodes {
+              id
+              ... @skip(if: $level4) {
+                id
+              }
+            }
+          }
+        }
+      }
+    source: $.userById
+    target: $.searchContent<Article>.author
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    forwardedVariables:
+      - level3
+      - level4
+    dependencies:
+      - id: 3
+  - id: 5
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_5(
+        $__fusion_2_id: ID!
+      ) {
+        reviewById(id: $__fusion_2_id) {
+          body
+        }
+      }
+    source: $.reviewById
+    target: $.searchContent<Article>.author.reviews.nodes
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 4
+  - id: 6
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_6(
+        $level5: Boolean!
+        $__fusion_3_id: ID!
+      ) {
+        reviewById(id: $__fusion_3_id) {
+          stars
+          product {
+            id
+            ... @include(if: $level5) {
+              id
+            }
+          }
+        }
+      }
+    source: $.reviewById
+    target: $.searchContent<Article>.author.reviews.nodes
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    forwardedVariables:
+      - level5
+    dependencies:
+      - id: 4
+  - id: 7
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_7(
+        $__fusion_4_id: ID!
+      ) {
+        productById(id: $__fusion_4_id) {
+          name
+        }
+      }
+    source: $.productById
+    target: $.searchContent<Article>.author.reviews.nodes.product
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 6
+  - id: 8
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_8(
+        $level6: Boolean!
+        $__fusion_5_id: ID!
+      ) {
+        productById(id: $__fusion_5_id) {
+          price
+          dimension @skip(if: $level6) {
+            height
+            width
+          }
+        }
+      }
+    source: $.productById
+    target: $.searchContent<Article>.author.reviews.nodes.product
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    forwardedVariables:
+      - level6
+    dependencies:
+      - id: 6
+  - id: 9
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_9(
+        $__fusion_6_id: ID!
+      ) {
+        productById(id: $__fusion_6_id) {
+          name
+          price
+        }
+      }
+    source: $.productById
+    target: $.searchContent<Product>
+    requirements:
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3
+  - id: 10
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_10(
+        $level1: Boolean!
+        $__fusion_7_id: ID!
+      ) {
+        productById(id: $__fusion_7_id) {
+          reviews(first: 3) {
+            nodes {
+              id
+              body
+              stars
+              author @skip(if: $level1) {
+                id
+              }
+            }
+          }
+        }
+      }
+    source: $.productById
+    target: $.searchContent<Product>
+    requirements:
+      - name: __fusion_7_id
+        selectionMap: >-
+          id
+    conditions:
+      - variable: $includeReviews
+        passingValue: true
+    forwardedVariables:
+      - level1
+    dependencies:
+      - id: 3
+  - id: 11
+    type: Operation
+    schema: users
+    operation: |
+      query Op_123456789101112_11(
+        $level2: Boolean!
+        $level3: Boolean!
+        $__fusion_8_id: ID!
+      ) {
+        userById(id: $__fusion_8_id) {
+          displayName
+          reviews(first: 2) @include(if: $level2) {
+            nodes {
+              id
+              ... @skip(if: $level3) {
+                id
+              }
+            }
+          }
+        }
+      }
+    source: $.userById
+    target: $.searchContent<Product>.reviews.nodes.author
+    requirements:
+      - name: __fusion_8_id
+        selectionMap: >-
+          id
+    forwardedVariables:
+      - level2
+      - level3
+    dependencies:
+      - id: 10
+  - id: 12
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_12(
+        $__fusion_9_id: ID!
+      ) {
+        reviewById(id: $__fusion_9_id) {
+          body
+        }
+      }
+    source: $.reviewById
+    target: $.searchContent<Product>.reviews.nodes.author.reviews.nodes
+    requirements:
+      - name: __fusion_9_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 11
+  - id: 13
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_13(
+        $level4: Boolean!
+        $level5: Boolean!
+        $level6: Boolean!
+        $__fusion_10_id: ID!
+      ) {
+        reviewById(id: $__fusion_10_id) {
+          stars
+          product {
+            id
+            ... @include(if: $level4) {
+              ... @skip(if: $level5) {
+                reviews(first: 1) @include(if: $level6) {
+                  nodes {
+                    id
+                    body
+                    stars
+                  }
+                }
+                id
+              }
+              id
+            }
+          }
+        }
+      }
+    source: $.reviewById
+    target: $.searchContent<Product>.reviews.nodes.author.reviews.nodes
+    requirements:
+      - name: __fusion_10_id
+        selectionMap: >-
+          id
+    forwardedVariables:
+      - level4
+      - level5
+      - level6
+    dependencies:
+      - id: 11
+  - id: 14
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_14(
+        $__fusion_11_id: ID!
+      ) {
+        productById(id: $__fusion_11_id) {
+          name
+        }
+      }
+    source: $.productById
+    target: $.searchContent<Product>.reviews.nodes.author.reviews.nodes.product
+    requirements:
+      - name: __fusion_11_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 13
+  - id: 15
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_15(
+        $__fusion_12_id: ID!
+      ) {
+        productById(id: $__fusion_12_id) {
+          price
+        }
+      }
+    source: $.productById
+    target: $.searchContent<Product>.reviews.nodes.author.reviews.nodes.product
+    requirements:
+      - name: __fusion_12_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 13
+  - id: 16
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_16(
+        $__fusion_13_id: ID!
+      ) {
+        productById(id: $__fusion_13_id) {
+          dimension {
+            height
+            width
+          }
+        }
+      }
+    source: $.productById
+    target: $.searchContent<Product>.reviews.nodes.author.reviews.nodes.product
+    requirements:
+      - name: __fusion_13_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 13
+  - id: 17
+    type: Operation
+    schema: users
+    operation: |
+      query Op_123456789101112_17 {
+        viewer {
+          displayName
+        }
+      }
+  - id: 18
+    type: Operation
+    schema: users
+    operation: |
+      query Op_123456789101112_18(
+        $level3: Boolean!
+        $__fusion_14_id: ID!
+      ) {
+        userById(id: $__fusion_14_id) {
+          displayName
+          reviews(first: 3) @skip(if: $level3) {
+            nodes {
+              id
+            }
+          }
+        }
+      }
+    source: $.userById
+    target: $.viewer.reviews.edges.node.author
+    requirements:
+      - name: __fusion_14_id
+        selectionMap: >-
+          id
+    forwardedVariables:
+      - level3
+    dependencies:
+      - id: 2
+  - id: 19
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_19(
+        $level4: Boolean!
+        $level5: Boolean!
+        $__fusion_15_id: ID!
+      ) {
+        reviewById(id: $__fusion_15_id) {
+          body
+          stars
+          product @include(if: $level4) {
+            id
+            ... @skip(if: $level5) {
+              id
+            }
+          }
+        }
+      }
+    source: $.reviewById
+    target: $.viewer.reviews.edges.node.author.reviews.nodes
+    requirements:
+      - name: __fusion_15_id
+        selectionMap: >-
+          id
+    forwardedVariables:
+      - level4
+      - level5
+    dependencies:
+      - id: 18
+  - id: 20
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_20(
+        $__fusion_16_id: ID!
+      ) {
+        productById(id: $__fusion_16_id) {
+          name
+        }
+      }
+    source: $.productById
+    target: $.viewer.reviews.edges.node.author.reviews.nodes.product
+    requirements:
+      - name: __fusion_16_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 19
+  - id: 21
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_21(
+        $level6: Boolean!
+        $__fusion_17_id: ID!
+      ) {
+        productById(id: $__fusion_17_id) {
+          price
+          dimension @include(if: $level6) {
+            height
+            width
+          }
+        }
+      }
+    source: $.productById
+    target: $.viewer.reviews.edges.node.author.reviews.nodes.product
+    requirements:
+      - name: __fusion_17_id
+        selectionMap: >-
+          id
+    forwardedVariables:
+      - level6
+    dependencies:
+      - id: 19
+  - id: 22
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_22(
+        $level1: Boolean!
+        $includeReviews: Boolean!
+        $__fusion_18_id: ID!
+      ) {
+        productById(id: $__fusion_18_id) {
+          averageRating
+          reviews(first: 5) @include(if: $includeReviews) {
+            nodes {
+              id
+              body
+              stars
+              author @skip(if: $level1) {
+                id
+              }
+            }
+          }
+        }
+      }
+    source: $.productById
+    target: $.products.edges.node
+    requirements:
+      - name: __fusion_18_id
+        selectionMap: >-
+          id
+    forwardedVariables:
+      - level1
+      - includeReviews
+    dependencies:
+      - id: 1
+  - id: 23
+    type: Operation
+    schema: users
+    operation: |
+      query Op_123456789101112_23(
+        $level2: Boolean!
+        $level3: Boolean!
+        $__fusion_19_id: ID!
+      ) {
+        userById(id: $__fusion_19_id) {
+          displayName
+          reviews(first: 3) @include(if: $level2) {
+            nodes {
+              id
+              ... @skip(if: $level3) {
+                id
+              }
+            }
+          }
+        }
+      }
+    source: $.userById
+    target: $.products.edges.node.reviews.nodes.author
+    requirements:
+      - name: __fusion_19_id
+        selectionMap: >-
+          id
+    forwardedVariables:
+      - level2
+      - level3
+    dependencies:
+      - id: 22
+  - id: 24
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_24(
+        $__fusion_20_id: ID!
+      ) {
+        reviewById(id: $__fusion_20_id) {
+          body
+        }
+      }
+    source: $.reviewById
+    target: $.products.edges.node.reviews.nodes.author.reviews.nodes
+    requirements:
+      - name: __fusion_20_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 23
+  - id: 25
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_25(
+        $level4: Boolean!
+        $__fusion_21_id: ID!
+      ) {
+        reviewById(id: $__fusion_21_id) {
+          stars
+          product {
+            id
+            ... @include(if: $level4) {
+              id
+            }
+          }
+        }
+      }
+    source: $.reviewById
+    target: $.products.edges.node.reviews.nodes.author.reviews.nodes
+    requirements:
+      - name: __fusion_21_id
+        selectionMap: >-
+          id
+    forwardedVariables:
+      - level4
+    dependencies:
+      - id: 23
+  - id: 26
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_26(
+        $__fusion_22_id: ID!
+      ) {
+        productById(id: $__fusion_22_id) {
+          name
+        }
+      }
+    source: $.productById
+    target: $.products.edges.node.reviews.nodes.author.reviews.nodes.product
+    requirements:
+      - name: __fusion_22_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 25
+  - id: 27
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_27(
+        $level5: Boolean!
+        $__fusion_23_id: ID!
+      ) {
+        productById(id: $__fusion_23_id) {
+          price
+          dimension @skip(if: $level5) {
+            height
+            width
+          }
+        }
+      }
+    source: $.productById
+    target: $.products.edges.node.reviews.nodes.author.reviews.nodes.product
+    requirements:
+      - name: __fusion_23_id
+        selectionMap: >-
+          id
+    forwardedVariables:
+      - level5
+    dependencies:
+      - id: 25
+  - id: 28
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_28(
+        $includeReviews: Boolean!
+        $includeMetadata: Boolean!
+        $__fusion_24_id: ID!
+      ) {
+        productById(id: $__fusion_24_id) {
+          reviews(first: 10) {
+            pageInfo {
+              hasNextPage
+              ... @include(if: $includeMetadata) {
+                hasPreviousPage
+                startCursor
+                endCursor
+              }
+            }
+            edges {
+              cursor
+              node {
+                id
+                body
+                stars
+                author @include(if: $includeReviews) {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    source: $.productById
+    target: $.productById
+    requirements:
+      - name: __fusion_24_id
+        selectionMap: >-
+          id
+    conditions:
+      - variable: $level6
+        passingValue: false
+    forwardedVariables:
+      - includeReviews
+      - includeMetadata
+    dependencies:
+      - id: 1
+  - id: 29
+    type: Operation
+    schema: users
+    operation: |
+      query Op_123456789101112_29(
+        $__fusion_25_id: ID!
+      ) {
+        userById(id: $__fusion_25_id) {
+          displayName
+        }
+      }
+    source: $.userById
+    target: $.productById.reviews.edges.node.author
+    requirements:
+      - name: __fusion_25_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 28

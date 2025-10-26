@@ -28,7 +28,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -69,7 +69,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -104,7 +104,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -147,7 +147,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -183,7 +183,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -219,7 +219,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition, true);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -257,7 +257,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -296,7 +296,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition, true);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -331,7 +331,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition, true);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -362,7 +362,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition, true);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -396,7 +396,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition, true);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -438,7 +438,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -490,7 +490,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -537,7 +537,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -574,7 +574,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition, true);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -608,7 +608,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -644,7 +644,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -680,7 +680,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -717,7 +717,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -758,7 +758,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -801,7 +801,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -844,7 +844,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -887,7 +887,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -923,7 +923,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -959,7 +959,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -999,7 +999,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1040,7 +1040,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1081,7 +1081,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1122,7 +1122,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1177,7 +1177,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1233,7 +1233,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1290,7 +1290,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1350,7 +1350,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1407,7 +1407,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1463,7 +1463,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1528,7 +1528,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1580,7 +1580,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1639,7 +1639,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1706,7 +1706,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1753,7 +1753,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1797,7 +1797,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1864,7 +1864,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1905,7 +1905,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -1975,7 +1975,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -2045,7 +2045,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -2092,7 +2092,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -2132,7 +2132,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -2171,7 +2171,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -2215,7 +2215,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -2255,7 +2255,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -2320,7 +2320,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert - should merge dimension fields appropriately
         rewritten.MatchInlineSnapshot(
@@ -2382,7 +2382,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -2430,7 +2430,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -2472,7 +2472,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -2545,7 +2545,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -2607,7 +2607,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
@@ -2658,7 +2658,7 @@ public class DocumentRewriterTests
 
         // act
         var rewriter = new DocumentRewriter(schemaDefinition);
-        var rewritten = rewriter.RewriteDocument(doc);
+        var rewritten = rewriter.RewriteOperation(doc);
 
         // assert
         rewritten.MatchInlineSnapshot(
