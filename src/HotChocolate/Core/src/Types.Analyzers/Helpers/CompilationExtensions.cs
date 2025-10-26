@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
-namespace HotChocolate.Types.Analyzers;
+namespace HotChocolate.Types.Analyzers.Helpers;
 
-public static class KnownSymbols
+public static class CompilationExtensions
 {
     public static bool TryGetConnectionNameFromResolver(
         this Compilation compilation,
@@ -83,8 +83,62 @@ public static class KnownSymbols
         return false;
     }
 
+    public static bool TryGetGraphQLDeprecationReason(
+        this Compilation compilation,
+        ISymbol symbol,
+        [NotNullWhen(true)] out string? reason)
+    {
+        var graphQLDeprecatedAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.GraphQLDeprecatedAttribute);
+        var obsoleteAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.ObsoleteAttribute);
+
+        const string defaultReason = "No longer supported.";
+
+        foreach (var attributeData in symbol.GetAttributes())
+        {
+            // Check for GraphQLDeprecatedAttribute
+            if (graphQLDeprecatedAttribute is not null
+                && SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, graphQLDeprecatedAttribute))
+            {
+                if (attributeData.ConstructorArguments.Length > 0
+                    && attributeData.ConstructorArguments[0].Value is string deprecatedReason
+                    && !string.IsNullOrWhiteSpace(deprecatedReason))
+                {
+                    reason = deprecatedReason;
+                }
+                else
+                {
+                    reason = defaultReason;
+                }
+                return true;
+            }
+
+            // Check for ObsoleteAttribute
+            if (obsoleteAttribute is not null
+                && SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, obsoleteAttribute))
+            {
+                if (attributeData.ConstructorArguments.Length > 0
+                    && attributeData.ConstructorArguments[0].Value is string obsoleteReason
+                    && !string.IsNullOrWhiteSpace(obsoleteReason))
+                {
+                    reason = obsoleteReason;
+                }
+                else
+                {
+                    reason = defaultReason;
+                }
+                return true;
+            }
+        }
+
+        reason = null;
+        return false;
+    }
+
     public static INamedTypeSymbol? GetConnectionBaseSymbol(this GeneratorSyntaxContext context)
         => context.SemanticModel.Compilation.GetConnectionBaseSymbol();
+
+    public static INamedTypeSymbol? GetFieldResultInterface(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("HotChocolate.IFieldResult");
 
     public static INamedTypeSymbol? GetConnectionBaseSymbol(this Compilation compilation)
         => compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.ConnectionBase`3");

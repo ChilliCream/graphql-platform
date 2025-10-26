@@ -42,7 +42,7 @@
 
 ```sql
 -- @p='2'
-SELECT b."Id", b."Name"
+SELECT b."Name", b."Id"
 FROM "Brands" AS b
 ORDER BY b."Name" DESC, b."Id"
 LIMIT @p

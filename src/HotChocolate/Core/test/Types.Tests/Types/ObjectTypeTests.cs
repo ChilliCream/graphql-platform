@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Immutable;
 using System.Linq.Expressions;
 using HotChocolate.Execution;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -1580,7 +1581,7 @@ public class ObjectTypeTests : TypeTestBase
                     .Field("test")
                     .Resolve(
                         _ => new ValueTask<object?>("abc"),
-                        typeof(NativeType<List<int>>)))
+                        typeof(NamedRuntimeType<List<int>>)))
             .Create();
 
         // assert
