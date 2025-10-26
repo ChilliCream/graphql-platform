@@ -195,7 +195,8 @@ internal static partial class TestHelper
                 new RootTypePartialAnalyzer(),
                 new NodeResolverIdAttributeAnalyzer(),
                 new NodeResolverPublicAnalyzer(),
-                new BindMemberAnalyzer());
+                new BindMemberAnalyzer(),
+                new ExtendObjectTypeAnalyzer());
 
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
             var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;

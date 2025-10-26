@@ -157,4 +157,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor ExtendObjectTypeShouldBeUpgraded =
+        new(
+            id: "HC0096",
+            title: "ExtendObjectType Should Be Upgraded",
+            messageFormat: "Consider upgrading [ExtendObjectType<{0}>] to [ObjectType<{0}>]",
+            category: "TypeSystem",
+            DiagnosticSeverity.Info,
+            isEnabledByDefault: true);
 }
