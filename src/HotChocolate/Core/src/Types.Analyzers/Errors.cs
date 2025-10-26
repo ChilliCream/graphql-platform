@@ -112,4 +112,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor RootTypePartialKeywordMissing =
+        new(
+            id: "HC0091",
+            title: "Partial Keyword Missing",
+            messageFormat: "A static root type class should be declared as partial to allow source generation",
+            category: "TypeSystem",
+            DiagnosticSeverity.Info,
+            isEnabledByDefault: true);
 }
