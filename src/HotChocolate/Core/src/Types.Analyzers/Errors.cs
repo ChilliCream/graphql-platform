@@ -175,4 +175,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor ParentMethodTypeMismatch =
+        new(
+            id: "HC0098",
+            title: "Parent Method Type Mismatch",
+            messageFormat: "The type argument '{0}' in Parent<T>() must be '{1}' or a base type/interface that '{1}' implements",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }
