@@ -198,7 +198,8 @@ internal static partial class TestHelper
                 new BindMemberAnalyzer(),
                 new ExtendObjectTypeAnalyzer(),
                 new ParentAttributeAnalyzer(),
-                new ParentMethodAnalyzer());
+                new ParentMethodAnalyzer(),
+                new QueryContextProjectionAnalyzer());
 
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
             var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;

@@ -184,4 +184,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor QueryContextWithUseProjection =
+        new(
+            id: "HC0099",
+            title: "QueryContext With UseProjection",
+            messageFormat: "Methods with QueryContext<T> parameters cannot use the [UseProjection] attribute",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }
