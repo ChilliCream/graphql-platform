@@ -166,4 +166,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Info,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor ParentAttributeTypeMismatch =
+        new(
+            id: "HC0097",
+            title: "Parent Attribute Type Mismatch",
+            messageFormat: "The parameter type '{0}' must be '{1}' or a base type/interface that '{1}' implements",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }
