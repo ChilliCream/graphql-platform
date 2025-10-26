@@ -74,33 +74,10 @@
     },
     {
       "OperationName": "BatchCoordinator",
-      "DisplayName": "Coordinate DataLoader Batches",
+      "DisplayName": "BatchCoordinator",
       "Status": "Unset",
       "tags": [],
-      "event": [
-        {
-          "Name": "BatchEvaluated",
-          "Tags": [
-            {
-              "Key": "openBatches",
-              "Value": 1
-            }
-          ]
-        },
-        {
-          "Name": "BatchDispatched",
-          "Tags": [
-            {
-              "Key": "dispatchedBatches",
-              "Value": 1
-            },
-            {
-              "Key": "inParallel",
-              "Value": false
-            }
-          ]
-        }
-      ],
+      "event": [],
       "activities": [
         {
           "OperationName": "ExecuteBatch",
