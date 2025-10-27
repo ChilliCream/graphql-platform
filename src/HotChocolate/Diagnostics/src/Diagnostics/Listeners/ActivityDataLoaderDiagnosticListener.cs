@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using GreenDonut;
 using HotChocolate.Diagnostics.Scopes;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
@@ -34,5 +35,42 @@ internal sealed class ActivityDataLoaderDiagnosticListener : DataLoaderDiagnosti
         }
 
         return new DataLoaderBatchScope<TKey>(_enricher, dataLoader, keys, activity);
+    }
+
+    public override IDisposable RunBatchDispatchCoordinator()
+    {
+        var activity = Source.StartActivity("BatchCoordinator");
+        activity?.DisplayName = "Coordinate DataLoader Batches";
+        return activity ?? EmptyScope;
+    }
+
+    public override void BatchDispatchError(Exception error)
+    {
+#if NET9_0_OR_GREATER
+        Activity.Current?.AddException(error);
+#else
+        Activity.Current?.SetStatus(ActivityStatusCode.Error, error.Message);
+#endif
+    }
+
+    public override void BatchEvaluated(int openBatches)
+    {
+        Activity.Current?.AddEvent(new ActivityEvent(
+            "BatchEvaluated",
+            tags: new ActivityTagsCollection
+            {
+                { "openBatches", openBatches }
+            }));
+    }
+
+    public override void BatchDispatched(int dispatchedBatches, bool inParallel)
+    {
+        Activity.Current?.AddEvent(new ActivityEvent(
+            "BatchDispatched",
+            tags: new ActivityTagsCollection
+            {
+                { "dispatchedBatches", dispatchedBatches },
+                { "inParallel", inParallel }
+            }));
     }
 }

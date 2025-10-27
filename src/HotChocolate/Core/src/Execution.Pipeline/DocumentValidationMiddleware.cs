@@ -84,7 +84,7 @@ internal sealed class DocumentValidationMiddleware
                 var middleware = Create(next, diagnosticEvents, documentValidator);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(DocumentValidationMiddleware));
+            WellKnownRequestMiddleware.DocumentValidationMiddleware);
 
     internal static DocumentValidationMiddleware Create(
         RequestDelegate next,

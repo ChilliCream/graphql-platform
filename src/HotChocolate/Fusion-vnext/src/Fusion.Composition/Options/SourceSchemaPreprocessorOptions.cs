@@ -1,5 +1,8 @@
 namespace HotChocolate.Fusion.Options;
 
+/// <summary>
+/// Configuration options for preprocessing source schemas.
+/// </summary>
 public sealed class SourceSchemaPreprocessorOptions
 {
     /// <summary>

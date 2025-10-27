@@ -148,5 +148,14 @@ namespace HotChocolate.Types.Mutable.Properties {
                 return ResourceManager.GetString("SchemaParser_InvalidUnionMemberType", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @tag directive must have a &apos;name&apos; argument of type String..
+        /// </summary>
+        internal static string TagDirective_NameArgument_Invalid {
+            get {
+                return ResourceManager.GetString("TagDirective_NameArgument_Invalid", resourceCulture);
+            }
+        }
     }
 }

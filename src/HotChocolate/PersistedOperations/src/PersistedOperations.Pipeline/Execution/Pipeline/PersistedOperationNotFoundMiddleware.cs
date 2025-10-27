@@ -54,9 +54,9 @@ internal sealed class PersistedOperationNotFoundMiddleware
                 var middleware = new PersistedOperationNotFoundMiddleware(next, diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(PersistedOperationNotFoundMiddleware));
+            WellKnownRequestMiddleware.PersistedOperationNotFoundMiddleware);
 
-    public static IError PersistedOperationNotFound(OperationDocumentId requestedKey)
+    private static IError PersistedOperationNotFound(OperationDocumentId requestedKey)
         => ErrorBuilder.New()
             .SetMessage("The specified persisted operation key is invalid.")
             .SetCode(ErrorCodes.Execution.PersistedOperationNotFound)

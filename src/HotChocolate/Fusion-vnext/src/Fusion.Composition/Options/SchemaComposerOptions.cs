@@ -1,10 +1,22 @@
 namespace HotChocolate.Fusion.Options;
 
+/// <summary>
+/// Configuration options for composing source schemas.
+/// </summary>
 public sealed class SchemaComposerOptions
 {
-    public required bool EnableGlobalObjectIdentification { get; init; }
+    /// <summary>
+    /// Configuration options for parsing source schemas.
+    /// </summary>
+    public SourceSchemaParserOptions Parser { get; } = new();
 
-    public SourceSchemaParserOptions Parser { get; init; } = new();
+    /// <summary>
+    /// Configuration options for preprocessing source schemas.
+    /// </summary>
+    public Dictionary<string, SourceSchemaPreprocessorOptions> Preprocessor { get; } = new();
 
-    public Dictionary<string, SourceSchemaPreprocessorOptions> PreprocessorOptions { get; init; } = [];
+    /// <summary>
+    /// Configuration options for merging source schemas.
+    /// </summary>
+    public SourceSchemaMergerOptions Merger { get; } = new();
 }

@@ -43,7 +43,11 @@ public static partial class RequestExecutorBuilderExtensions
         where TService : class, IDataLoader
         where TImplementation : class, TService
     {
-        builder.Services.AddSingleton(new DataLoaderRegistration(typeof(TService), typeof(TImplementation), sp => factory(sp)));
+        builder.Services.AddSingleton(
+            new DataLoaderRegistration(
+                typeof(TService),
+                typeof(TImplementation),
+                sp => factory(sp)));
         builder.Services.TryAddScoped(sp => sp.GetDataLoader<TImplementation>());
         builder.Services.TryAddScoped(sp => sp.GetDataLoader<TService>());
         return builder;

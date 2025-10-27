@@ -175,10 +175,10 @@ public void ConfigureServices(IServiceCollection services)
     services
         // Global Services
         .AddMemoryCache()
-        .AddSha256DocumentHashProvider(HashFormat.Hex)
 
         // GraphQL server configuration
         .AddGraphQLServer()
+        .AddSha256DocumentHashProvider(HashFormat.Hex)
         .AddQueryType<Query>()
         .UseAutomaticPersistedOperationPipeline()
         .AddInMemoryOperationDocumentStorage();

@@ -91,5 +91,5 @@ internal sealed class OperationExecutionMiddleware
                     next,
                     context.RequestAborted);
             },
-            nameof(OperationExecutionMiddleware));
+            WellKnownRequestMiddleware.OperationExecutionMiddleware);
 }

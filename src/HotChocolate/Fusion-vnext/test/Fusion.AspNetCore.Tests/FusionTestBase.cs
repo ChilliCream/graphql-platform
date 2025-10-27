@@ -95,7 +95,13 @@ public abstract partial class FusionTestBase : IDisposable
         }
 
         var compositionLog = new CompositionLog();
-        var composerOptions = new SchemaComposerOptions { EnableGlobalObjectIdentification = true };
+        var composerOptions = new SchemaComposerOptions
+        {
+            Merger =
+            {
+                EnableGlobalObjectIdentification = true
+            }
+        };
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 

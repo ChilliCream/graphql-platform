@@ -9,6 +9,7 @@
     <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="9.4.1" />
     <PackageVersion Include="Aspire.Hosting.Redis" Version="9.4.1" />
     <PackageVersion Include="Aspire.Hosting" Version="9.4.1" />
+    <PackageVersion Include="Aspire.AppHost.Sdk" Version="1.9.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.23.0" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="1.8.3" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.8.3" />
@@ -24,15 +25,13 @@
     <PackageVersion Include="Glob" Version="1.1.9" />
     <PackageVersion Include="JsonPointer.Net" Version="5.0.0" />
     <PackageVersion Include="JsonSchema.Net" Version="7.3.4" />
-    <PackageVersion Include="Marten" Version="7.33.0" />
+    <PackageVersion Include="Marten" Version="8.0.0" />
     <PackageVersion Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
     <PackageVersion Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
-    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Core" Version="1.4.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Core" Version="2.0.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Abstractions" Version="1.1.0" />
-    <PackageVersion Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
-    <PackageVersion Include="Microsoft.Extensions.Identity.Core" Version="7.0.3" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageVersion Include="Microsoft.OpenApi.Readers" Version="1.6.14" />
@@ -47,7 +46,7 @@
     <PackageVersion Include="OpenTelemetry.Api" Version="1.1.0" />
     <PackageVersion Include="ProjNET" Version="2.0.0" />
     <PackageVersion Include="RabbitMQ.Client" Version="7.0.0" />
-    <PackageVersion Include="RavenDB.Client" Version="6.0.104" />
+    <PackageVersion Include="RavenDB.Client" Version="7.0.0" />
     <PackageVersion Include="Snapshooter.Xunit" Version="0.5.4" />
     <PackageVersion Include="Spectre.Console.Json" Version="0.52.0" />
     <PackageVersion Include="Spectre.Console" Version="0.52.0" />
@@ -160,6 +159,7 @@
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageVersion Include="Microsoft.Bcl.HashCode" Version="6.0.0" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="6.0.0" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
