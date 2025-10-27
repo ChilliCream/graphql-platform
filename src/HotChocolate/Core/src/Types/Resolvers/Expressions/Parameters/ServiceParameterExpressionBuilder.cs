@@ -21,6 +21,9 @@ internal sealed class ServiceParameterExpressionBuilder
     public bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ServiceAttribute), false);
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Attributes.Any(t => t is ServiceAttribute);
+
     public Expression Build(ParameterExpressionBuilderContext context)
     {
         var attribute = context.Parameter.GetCustomAttribute<ServiceAttribute>()!;
@@ -33,19 +36,25 @@ internal sealed class ServiceParameterExpressionBuilder
         return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext);
     }
 
-    public IParameterBinding Create(ParameterBindingContext context)
-        => new ServiceParameterBinding(context.Parameter);
+    public IParameterBinding Create(ParameterDescriptor parameter)
+        => new ServiceParameterBinding(parameter);
 
     private sealed class ServiceParameterBinding : IParameterBinding
     {
-        public ServiceParameterBinding(ParameterInfo parameter)
+        public ServiceParameterBinding(ParameterDescriptor parameter)
         {
-            var attribute = parameter.GetCustomAttribute<ServiceAttribute>();
-            Key = attribute?.Key;
+            ServiceAttribute? service = null;
+            foreach (var attribute in parameter.Attributes)
+            {
+                if (attribute is ServiceAttribute serviceAttribute)
+                {
+                    service = serviceAttribute;
+                    break;
+                }
+            }
 
-            var context = new NullabilityInfoContext();
-            var nullabilityInfo = context.Create(parameter);
-            IsRequired = nullabilityInfo.ReadState == NullabilityState.NotNull;
+            Key = service?.Key;
+            IsRequired = !parameter.IsNullable;
         }
 
         public string? Key { get; }
@@ -56,6 +65,7 @@ internal sealed class ServiceParameterExpressionBuilder
 
         public bool IsPure => true;
 
+#pragma warning disable CS8633
         public T Execute<T>(IResolverContext context) where T : notnull
         {
             if (Key is not null)
@@ -69,5 +79,6 @@ internal sealed class ServiceParameterExpressionBuilder
                 ? context.Services.GetRequiredService<T>()
                 : context.Services.GetService<T>()!;
         }
+#pragma warning restore CS8633
     }
 }

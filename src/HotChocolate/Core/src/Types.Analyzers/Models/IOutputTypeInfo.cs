@@ -20,6 +20,11 @@ public interface IOutputTypeInfo
     string Namespace { get; }
 
     /// <summary>
+    /// Gets the description of the object type.
+    /// </summary>
+    string? Description { get; }
+
+    /// <summary>
     /// Defines if the type is a public.
     /// </summary>
     bool IsPublic { get; }

@@ -37,15 +37,18 @@ public class EnumValueDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Member: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.Member);
-            Configuration.AttributesAreApplied = true;
+                Configuration.Member,
+                Configuration.Member,
+                Configuration.Configurations);
+            Configuration.ConfigurationsAreApplied = true;
 
-            if (Context.TypeInspector.IsMemberIgnored(Configuration.Member))
+            if (Configuration.Member is { } member
+                && Context.TypeInspector.IsMemberIgnored(member))
             {
                 Ignore();
             }

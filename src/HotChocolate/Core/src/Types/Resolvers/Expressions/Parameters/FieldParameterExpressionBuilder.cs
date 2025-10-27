@@ -1,6 +1,9 @@
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
@@ -15,6 +18,9 @@ internal sealed class FieldParameterExpressionBuilder()
     public override bool CanHandle(ParameterInfo parameter)
         => typeof(IOutputFieldDefinition).IsAssignableFrom(parameter.ParameterType);
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => typeof(IOutputFieldDefinition).IsAssignableFrom(parameter.Type);
+
     public override Expression Build(ParameterExpressionBuilderContext context)
     {
         var expression = base.Build(context);
@@ -25,9 +31,13 @@ internal sealed class FieldParameterExpressionBuilder()
             : expression;
     }
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)(object)context.Selection.Field;
+    {
+        Debug.Assert(typeof(T) == typeof(ObjectField) || typeof(T) == typeof(IOutputFieldDefinition));
+        var field = context.Selection.Field;
+        return Unsafe.As<ObjectField, T>(ref field);
+    }
 }

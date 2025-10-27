@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 
@@ -17,7 +18,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
         Writer.IncreaseIndent();
     }
 
-    public override void WriteInitializeMethod(IOutputTypeInfo type)
+    public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not EdgeTypeInfo edgeType)
         {
@@ -76,7 +77,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
                     edgeType.NameFormat);
             }
 
-            WriteResolverBindings(edgeType);
+            WriteResolverBindings(edgeType, typeLookup);
         }
 
         Writer.WriteIndentedLine("}");
