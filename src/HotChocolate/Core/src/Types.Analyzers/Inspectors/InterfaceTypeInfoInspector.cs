@@ -85,11 +85,8 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             possibleType,
             i == 0
                 ? []
-                : [.. resolvers]);
-
-        var attributes = classSymbol.GetAttributes();
-        interfaceTypeInfo.Inaccessible = attributes.GetInaccessibleScope();
-        interfaceTypeInfo.Attributes = attributes.GetUserAttributes();
+                : [.. resolvers],
+            classSymbol.GetAttributes());
 
         if (diagnostics.Length > 0)
         {

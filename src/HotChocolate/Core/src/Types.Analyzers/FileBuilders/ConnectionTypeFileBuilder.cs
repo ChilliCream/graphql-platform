@@ -36,6 +36,12 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
 
         using (Writer.IncreaseIndent())
         {
+            if (connectionType.Resolvers.Length > 0 || connectionType.Attributes.Length > 0)
+            {
+                Writer.WriteIndentedLine("var extension = descriptor.Extend();");
+                Writer.WriteIndentedLine("var configuration = extension.Configuration;");
+            }
+
             if (connectionType.Resolvers.Length > 0)
             {
                 Writer.WriteIndentedLine(
@@ -49,6 +55,33 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                     connectionType.Resolvers.Any(t => t.RequiresParameterBindings)
                         ? "var resolvers = new __Resolvers(bindingResolver);"
                         : "var resolvers = new __Resolvers();");
+            }
+
+            if (connectionType.Attributes.Length > 0)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("var configurations = configuration.Configurations;");
+
+                foreach (var attribute in connectionType.Attributes)
+                {
+                    Writer.WriteIndentedLine(
+                        "configurations = configurations.Add({0});",
+                        GenerateAttributeInstantiation(attribute));
+                }
+
+                Writer.WriteIndentedLine("configuration.Configurations = configurations;");
+            }
+
+            if (connectionType.Inaccessible is DirectiveScope.Type)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Inaccessible);
+            }
+
+            if (connectionType.Shareable is DirectiveScope.Type)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Shareable);
             }
 
             if (connectionType.RuntimeType.IsGenericType

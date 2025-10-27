@@ -5,15 +5,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class InterfaceTypeInfo
-    : SyntaxInfo
-    , IOutputTypeInfo
+public sealed class InterfaceTypeInfo : SyntaxInfo, IOutputTypeInfo
 {
     public InterfaceTypeInfo(
         INamedTypeSymbol schemaType,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax classDeclarationSyntax,
-        ImmutableArray<Resolver> resolvers)
+        ImmutableArray<Resolver> resolvers,
+        ImmutableArray<AttributeData> attributes)
     {
         SchemaSchemaType = schemaType;
         SchemaTypeFullName = schemaType.ToDisplayString();
@@ -22,6 +21,10 @@ public sealed class InterfaceTypeInfo
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
         Description = schemaType.GetDescription();
+        // sharable directives are only allowed on object types and field definitions
+        Shareable = DirectiveScope.None;
+        Inaccessible = attributes.GetInaccessibleScope();
+        Attributes = attributes.GetUserAttributes();
     }
 
     public string Name => SchemaSchemaType.Name;
@@ -50,9 +53,11 @@ public sealed class InterfaceTypeInfo
 
     public override string OrderByKey => SchemaTypeFullName;
 
-    public DirectiveScope Inaccessible { get; set; } = DirectiveScope.None;
+    public DirectiveScope Shareable { get; }
 
-    public ImmutableArray<AttributeData> Attributes { get; set; } = [];
+    public DirectiveScope Inaccessible { get; }
+
+    public ImmutableArray<AttributeData> Attributes { get; }
 
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);

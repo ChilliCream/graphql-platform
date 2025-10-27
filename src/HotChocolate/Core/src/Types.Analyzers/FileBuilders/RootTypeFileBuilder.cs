@@ -23,17 +23,17 @@ public sealed class RootTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
 
         using (Writer.IncreaseIndent())
         {
-            if (rootType.Resolvers.Length > 0)
+            WriteInitializationBase(
+                rootType.SchemaSchemaType.ToFullyQualified(),
+                rootType.Resolvers.Length > 0,
+                rootType.Resolvers.Any(t => t.RequiresParameterBindings),
+                rootType.Attributes,
+                rootType.Inaccessible);
+
+            if (rootType.Shareable is DirectiveScope.Type)
             {
-                Writer.WriteIndentedLine(
-                    "var thisType = typeof({0});",
-                    rootType.SchemaSchemaType.ToFullyQualified());
-                Writer.WriteIndentedLine(
-                    "var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;");
-                Writer.WriteIndentedLine(
-                    rootType.Resolvers.Any(t => t.RequiresParameterBindings)
-                        ? "var resolvers = new __Resolvers(bindingResolver);"
-                        : "var resolvers = new __Resolvers();");
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Shareable);
             }
 
             WriteResolverBindings(rootType, typeLookup);

@@ -59,6 +59,11 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         ImmutableArray<AttributeData> attributes,
         DirectiveScope inaccessible)
     {
+        if (schemaFullTypeName.StartsWith("global::", StringComparison.Ordinal))
+        {
+            schemaFullTypeName = schemaFullTypeName.Substring(8);
+        }
+
         if (hasResolvers || attributes.Length > 0)
         {
             Writer.WriteIndentedLine("var extension = descriptor.Extend();");
@@ -175,14 +180,17 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         ".AddPagingArguments()");
                 }
 
-                if (resolver.Shareable is not DirectiveScope.None)
-                {
-                    Writer.WriteIndentedLine(".Directive(global::{0}.Instance)", WellKnownTypes.Shareable);
-                }
+                Writer.WriteIndentedLine("// {0}", resolver.Shareable.ToString());
+                Writer.WriteIndentedLine("// {0}", type.Shareable.ToString());
 
-                if (resolver.Inaccessible is not DirectiveScope.None)
+                if (type.Inaccessible is DirectiveScope.Field || resolver.Inaccessible is not DirectiveScope.None)
                 {
                     Writer.WriteIndentedLine(".Directive(global::{0}.Instance)", WellKnownTypes.Inaccessible);
+                }
+
+                if (type.Shareable is DirectiveScope.Field || resolver.Shareable is not DirectiveScope.None)
+                {
+                    Writer.WriteIndentedLine(".Directive(global::{0}.Instance)", WellKnownTypes.Shareable);
                 }
 
                 Writer.WriteIndentedLine(".ExtendWith(static (field, context) =>");
@@ -248,7 +256,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             Writer.WriteIndentedLine("configuration.Features.Set(pagingOptions);");
         }
 
-        if (resolver.Parameters.Any(p => p.Kind is not (ResolverParameterKind.Argument or ResolverParameterKind.Unknown)))
+        if (resolver.Parameters.Any(p => p.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
         {
             var firstParameter = true;
 

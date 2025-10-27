@@ -74,6 +74,12 @@ public interface IOutputTypeInfo
 
     ImmutableArray<Diagnostic> Diagnostics { get; }
 
+    DirectiveScope Shareable { get; }
+
+    DirectiveScope Inaccessible { get; }
+
+    ImmutableArray<AttributeData> Attributes { get; }
+
     void AddDiagnostic(Diagnostic diagnostic);
 
     void AddDiagnosticRange(ImmutableArray<Diagnostic> diagnostics);

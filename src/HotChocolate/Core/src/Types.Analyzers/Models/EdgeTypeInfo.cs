@@ -16,7 +16,8 @@ public sealed class EdgeTypeInfo
         string @namespace,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
-        ImmutableArray<Resolver> resolvers)
+        ImmutableArray<Resolver> resolvers,
+        ImmutableArray<AttributeData> attributes)
     {
         Name = name;
         NameFormat = nameFormat;
@@ -25,6 +26,9 @@ public sealed class EdgeTypeInfo
         Namespace = @namespace;
         ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        Attributes = attributes.GetUserAttributes();
     }
 
     public string Name { get; }
@@ -52,6 +56,12 @@ public sealed class EdgeTypeInfo
     public ClassDeclarationSyntax? ClassDeclaration { get; }
 
     public ImmutableArray<Resolver> Resolvers { get; private set; }
+
+    public DirectiveScope Shareable { get; }
+
+    public DirectiveScope Inaccessible { get; }
+
+    public ImmutableArray<AttributeData> Attributes { get; }
 
     public override string OrderByKey => RuntimeTypeFullName;
 
@@ -100,7 +110,8 @@ public sealed class EdgeTypeInfo
             @namespace,
             connectionClass.RuntimeType,
             connectionClass.ClassDeclarations,
-            connectionClass.Resolvers);
+            connectionClass.Resolvers,
+            []);
     }
 
     public static EdgeTypeInfo CreateEdge(
@@ -155,6 +166,7 @@ public sealed class EdgeTypeInfo
             @namespace,
             runtimeType,
             classDeclaration,
-            resolvers.ToImmutable());
+            resolvers.ToImmutable(),
+            runtimeType.GetAttributes());
     }
 }
