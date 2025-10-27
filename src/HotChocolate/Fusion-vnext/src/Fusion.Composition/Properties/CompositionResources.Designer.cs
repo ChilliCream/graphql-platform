@@ -645,6 +645,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; on external field &apos;{1}&apos; in schema &apos;{2}&apos; has a different type ({3}) than it does in schema &apos;{4}&apos; ({5})..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalArgumentTypeMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalArgumentTypeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; is not defined (non-external) in any other schema..
         /// </summary>
         internal static string LogEntryHelper_ExternalMissingOnBase {

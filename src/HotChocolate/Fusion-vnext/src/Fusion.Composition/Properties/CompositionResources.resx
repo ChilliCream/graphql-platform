@@ -213,6 +213,9 @@
   <data name="LogEntryHelper_ExternalArgumentMissing" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' must define the argument '{2}'.</value>
   </data>
+  <data name="LogEntryHelper_ExternalArgumentTypeMismatch" xml:space="preserve">
+    <value>The argument '{0}' on external field '{1}' in schema '{2}' has a different type ({3}) than it does in schema '{4}' ({5}).</value>
+  </data>
   <data name="LogEntryHelper_ExternalMissingOnBase" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' is not defined (non-external) in any other schema.</value>
   </data>
