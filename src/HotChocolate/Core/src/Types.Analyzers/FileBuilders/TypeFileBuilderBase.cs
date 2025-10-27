@@ -4,6 +4,7 @@ using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
@@ -250,6 +251,15 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         if (resolver.Parameters.Any(p => p.Kind is not (ResolverParameterKind.Argument or ResolverParameterKind.Unknown)))
         {
             var firstParameter = true;
+
+            var parentInfo = resolver.Parameters.GetParentInfo();
+            if (parentInfo.HasValue)
+            {
+                Writer.WriteIndentedLine(
+                    "configuration.SetFieldRequirements({0}, typeof({1}));",
+                    SymbolDisplay.FormatLiteral(parentInfo.Value.Requirements ?? "", quote: true),
+                    parentInfo.Value.Type);
+            }
 
             foreach (var parameter in resolver.Parameters)
             {
@@ -1394,5 +1404,20 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         }
 
         return type.ToFullyQualified();
+    }
+}
+
+file static class Extensions
+{
+    public static (string Requirements, string Type)? GetParentInfo(this ImmutableArray<ResolverParameter> parameters)
+    {
+        var parameter = parameters.FirstOrDefault(t => t.Kind is ResolverParameterKind.Parent);
+
+        if (!string.IsNullOrEmpty(parameter?.Requirements))
+        {
+            return (parameter!.Requirements!, parameter.Type.ToFullyQualified());
+        }
+
+        return null;
     }
 }

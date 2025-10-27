@@ -20,6 +20,14 @@ public sealed class ResolverParameter
         IsNullable = !parameter.IsNonNullable();
         DeprecationReason = null;
         Attributes = parameter.GetAttributes();
+
+        // if this is the parent attribute we will check if we have requirements for the parent model.
+        var parentAttribute = Attributes.FirstOrDefault(a => a.AttributeClass?.Name is "ParentAttribute" or "Parent");
+        if (parentAttribute?.ConstructorArguments.Length > 0)
+        {
+            var requiresArg = parentAttribute.ConstructorArguments[0];
+            Requirements = requiresArg.Value as string;
+        }
     }
 
     public string Name { get; }
@@ -42,6 +50,8 @@ public sealed class ResolverParameter
     public ResolverParameterKind Kind { get; }
 
     public ImmutableArray<AttributeData> Attributes { get; }
+
+    public string? Requirements { get; }
 
     public bool IsPure
         => Kind is ResolverParameterKind.Argument
