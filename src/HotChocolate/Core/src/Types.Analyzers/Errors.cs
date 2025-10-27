@@ -229,4 +229,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor NodeResolverIdParameter =
+        new(
+            id: "HC0104",
+            title: "NodeResolver First Parameter Must Be Named 'id'",
+            messageFormat: "The first parameter of a node resolver must be the node id and must be called 'id'",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }

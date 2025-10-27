@@ -195,6 +195,7 @@ internal static partial class TestHelper
                 new RootTypePartialAnalyzer(),
                 new NodeResolverIdAttributeAnalyzer(),
                 new NodeResolverPublicAnalyzer(),
+                new NodeResolverIdParameterAnalyzer(),
                 new BindMemberAnalyzer(),
                 new ExtendObjectTypeAnalyzer(),
                 new ParentAttributeAnalyzer(),
