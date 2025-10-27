@@ -238,4 +238,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor IdAttributeOnRecordParameter =
+        new(
+            id: "HC0105",
+            title: "ID Attribute Must Target Property",
+            messageFormat: "The [ID] attribute on record parameters must use the 'property:' target specifier",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }

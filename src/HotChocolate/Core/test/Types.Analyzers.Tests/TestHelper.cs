@@ -204,7 +204,8 @@ internal static partial class TestHelper
                 new QueryContextConnectionAnalyzer(),
                 new ShareableInterfaceTypeAnalyzer(),
                 new ShareableScopedOnMemberAnalyzer(),
-                new DataAttributeOrderAnalyzer());
+                new DataAttributeOrderAnalyzer(),
+                new IdAttributeOnRecordParameterAnalyzer());
 
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
             var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;
