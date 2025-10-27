@@ -210,6 +210,9 @@
   <data name="LogEntryHelper_ExternalArgumentDefaultMismatch" xml:space="preserve">
     <value>The default value '{0}' of external argument '{1}' in schema '{2}' differs from the default value of '{3}' in schema '{4}'.</value>
   </data>
+  <data name="LogEntryHelper_ExternalArgumentMissing" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' must define the argument '{2}'.</value>
+  </data>
   <data name="LogEntryHelper_ExternalMissingOnBase" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' is not defined (non-external) in any other schema.</value>
   </data>

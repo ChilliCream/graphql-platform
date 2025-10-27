@@ -210,6 +210,24 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry ExternalArgumentMissing(
+        MutableOutputFieldDefinition externalField,
+        MutableSchemaDefinition schema,
+        string argumentName)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ExternalArgumentMissing,
+                externalField.Coordinate.ToString(),
+                schema.Name,
+                argumentName)
+            .SetCode(LogEntryCodes.ExternalArgumentMissing)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(externalField)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry ExternalMissingOnBase(
         MutableOutputFieldDefinition externalField,
         MutableSchemaDefinition schema)
