@@ -206,4 +206,14 @@ public interface IReadOnlySchemaOptions
     /// Specifies the size of the operation document cache.
     /// </summary>
     int OperationDocumentCacheSize { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to the PageInfo type.
+    /// </summary>
+    bool ApplyShareableToPageInfo { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to all connection and edge types.
+    /// </summary>
+    bool ApplyShareableToConnections { get; }
 }

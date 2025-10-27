@@ -105,9 +105,9 @@ public sealed partial class DescriptorContext : IDescriptorContext
         => Services.GetRequiredService<INodeIdSerializerAccessor>();
 
     /// <inheritdoc />
-    public IParameterBindingResolver ParameterBindingResolver
+    public ParameterBindingResolver ParameterBindingResolver
         => Services.GetRequiredService<IRootServiceProviderAccessor>()
-            .ServiceProvider.GetRequiredService<IParameterBindingResolver>();
+            .ServiceProvider.GetRequiredService<ParameterBindingResolver>();
 
     /// <inheritdoc />
     public IFeatureCollection Features { get; }

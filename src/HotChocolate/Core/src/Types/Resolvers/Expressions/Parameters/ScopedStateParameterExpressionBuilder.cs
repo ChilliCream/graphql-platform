@@ -9,7 +9,6 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 internal class ScopedStateParameterExpressionBuilder
     : IParameterExpressionBuilder
     , IParameterBindingFactory
-    , IParameterBinding
 {
     private static readonly MethodInfo s_getScopedState =
         typeof(ExpressionHelper).GetMethod(
@@ -41,6 +40,9 @@ internal class ScopedStateParameterExpressionBuilder
 
     public virtual bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ScopedStateAttribute));
+
+    public virtual bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Attributes.Any(t => t is ScopedStateAttribute);
 
     public virtual Expression Build(ParameterExpressionBuilderContext context)
     {
@@ -124,9 +126,38 @@ internal class ScopedStateParameterExpressionBuilder
         return false;
     }
 
-    public IParameterBinding Create(ParameterBindingContext context)
-        => this;
+    public virtual IParameterBinding Create(ParameterDescriptor parameter)
+        => new ParameterBinding(this, parameter);
 
-    public T Execute<T>(IResolverContext context)
-        => throw new NotSupportedException();
+    private sealed class ParameterBinding : IParameterBinding
+    {
+        private readonly ScopedStateParameterExpressionBuilder _parent;
+        private readonly string _key;
+
+        public ParameterBinding(
+            ScopedStateParameterExpressionBuilder parent,
+            ParameterDescriptor parameter)
+        {
+            _parent = parent;
+
+            ScopedStateAttribute? globalState = null;
+            foreach (var attribute in parameter.Attributes)
+            {
+                if (attribute is ScopedStateAttribute casted)
+                {
+                    globalState = casted;
+                    break;
+                }
+            }
+
+            _key = globalState?.Key ?? parameter.Name;
+        }
+
+        public ArgumentKind Kind => _parent.Kind;
+
+        public bool IsPure => _parent.IsPure;
+
+        public T Execute<T>(IResolverContext context)
+            => context.GetScopedStateOrDefault<T>(_key, default!);
+    }
 }
