@@ -16,10 +16,25 @@ public static class ShareableTests
                 .AddTypeExtension(typeof(PageInfoExtensions))
                 .BuildSchemaAsync();
 
-        schema.MatchInlineSnapshot(
-            """
+        schema.MatchSnapshot();
+    }
 
-            """);
+    [Fact]
+    public static async Task PageInfo_Is_Shareable_Fluent()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query1>()
+                .AddTypeExtension(
+                    new ObjectTypeExtension(d =>
+                    {
+                        d.Name("PageInfo");
+                        d.Shareable();
+                    }))
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -32,10 +47,26 @@ public static class ShareableTests
                 .AddTypeExtension(typeof(PageInfoScopedExtensions))
                 .BuildSchemaAsync();
 
-        schema.MatchInlineSnapshot(
-            """
+        schema.MatchSnapshot();
+    }
 
-            """);
+    [Fact]
+    public static async Task New_On_PageInfo_Is_Shareable_Fluent()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query1>()
+                .AddTypeExtension(
+                    new ObjectTypeExtension(d =>
+                    {
+                        d.Name("PageInfo");
+                        d.Shareable(scoped: true);
+                        d.Field("new").Resolve("bar");
+                    }))
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
     }
 
     public class Query1

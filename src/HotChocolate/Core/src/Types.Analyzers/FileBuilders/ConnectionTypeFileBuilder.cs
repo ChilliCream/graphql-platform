@@ -48,9 +48,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                     "var thisType = typeof(global::{0});",
                     connectionType.RuntimeTypeFullName);
                 Writer.WriteIndentedLine(
-                    "var extend = descriptor.Extend();");
-                Writer.WriteIndentedLine(
-                    "var bindingResolver = extend.Context.ParameterBindingResolver;");
+                    "var bindingResolver = extension.Context.ParameterBindingResolver;");
                 Writer.WriteIndentedLine(
                     connectionType.Resolvers.Any(t => t.RequiresParameterBindings)
                         ? "var resolvers = new __Resolvers(bindingResolver);"
@@ -83,6 +81,14 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                 Writer.WriteLine();
                 Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Shareable);
             }
+            else
+            {
+                Writer.WriteLine();
+                using (Writer.WriteIfClause("extension.Context.Options.ApplyShareableToConnections"))
+                {
+                    Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Shareable);
+                }
+            }
 
             if (connectionType.RuntimeType.IsGenericType
                 && !string.IsNullOrEmpty(connectionType.NameFormat)
@@ -91,7 +97,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                 var nodeTypeName = connectionType.RuntimeType.TypeArguments[0].ToFullyQualified();
                 Writer.WriteLine();
                 Writer.WriteIndentedLine(
-                    "var nodeTypeRef = extend.Context.TypeInspector.GetTypeRef(typeof({0}));",
+                    "var nodeTypeRef = extension.Context.TypeInspector.GetTypeRef(typeof({0}));",
                     nodeTypeName);
                 Writer.WriteIndentedLine("descriptor");
                 using (Writer.IncreaseIndent())

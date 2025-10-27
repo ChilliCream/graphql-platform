@@ -61,14 +61,16 @@ public sealed class RootTypeInfo
 
     public ImmutableArray<AttributeData> Attributes { get; }
 
+    public bool SourceSchemaDetected { get; set; }
+
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);
 
     public override bool Equals(object? obj)
-        => obj is ObjectTypeInfo other && Equals(other);
+        => obj is RootTypeInfo other && Equals(other);
 
     public override bool Equals(SyntaxInfo? obj)
-        => obj is ObjectTypeInfo other && Equals(other);
+        => obj is RootTypeInfo other && Equals(other);
 
     public override int GetHashCode()
         => HashCode.Combine(SchemaTypeFullName, ClassDeclaration);

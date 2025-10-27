@@ -114,22 +114,6 @@ public class ObjectTypeInspector : ISyntaxInspector
                 classSymbol.GetAttributes());
             syntaxInfo = objectTypeInfo;
 
-            if (objectTypeInfo.Shareable is DirectiveScope.Field)
-            {
-                foreach (var resolver in objectTypeInfo.Resolvers)
-                {
-                    resolver.IsShareable = true;
-                }
-            }
-
-            if (objectTypeInfo.Inaccessible is DirectiveScope.Field)
-            {
-                foreach (var resolver in objectTypeInfo.Resolvers)
-                {
-                    resolver.IsInaccessible = true;
-                }
-            }
-
             if (diagnostics.Length > 0)
             {
                 objectTypeInfo.AddDiagnosticRange(diagnostics);
@@ -138,17 +122,25 @@ public class ObjectTypeInspector : ISyntaxInspector
             return true;
         }
 
-        syntaxInfo = new RootTypeInfo(
+        var rooType = new RootTypeInfo(
             classSymbol,
             operationType!.Value,
             possibleType,
             i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
             classSymbol.GetAttributes());
 
+        rooType.SourceSchemaDetected =
+            rooType.Shareable is not DirectiveScope.None
+                || rooType.Inaccessible is not DirectiveScope.None
+                || rooType.Attributes.HasSourceSchemaAttribute()
+                || rooType.Resolvers.Any(r => r.HasSourceSchemaAttribute());
+
         if (diagnostics.Length > 0)
         {
-            syntaxInfo.AddDiagnosticRange(diagnostics);
+            rooType.AddDiagnosticRange(diagnostics);
         }
+
+        syntaxInfo = rooType;
         return true;
     }
 
@@ -358,6 +350,39 @@ public class ObjectTypeInspector : ISyntaxInspector
 
 file static class Extensions
 {
+    public static bool HasSourceSchemaAttribute(this Resolver resolver)
+    {
+        if (resolver.Shareable is not DirectiveScope.None)
+        {
+            return true;
+        }
+
+        if (resolver.Inaccessible is not DirectiveScope.None)
+        {
+            return true;
+        }
+
+        return resolver.Attributes.HasSourceSchemaAttribute();
+    }
+
+    public static bool HasSourceSchemaAttribute(this ImmutableArray<AttributeData> attributes)
+    {
+        if (attributes.Length == 0)
+        {
+            return false;
+        }
+
+        return attributes.Any(
+            a => a.AttributeClass?.ToDisplayString() switch
+            {
+                InaccessibleAttribute => true,
+                InternalAttribute => true,
+                LookupAttribute => true,
+                ShareableAttribute => true,
+                _ => false
+            });
+    }
+
     public static bool IsNodeResolver(this IMethodSymbol methodSymbol)
     {
         foreach (var attribute in methodSymbol.GetAttributes())

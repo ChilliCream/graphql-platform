@@ -78,10 +78,6 @@ public sealed class Resolver
             && ResultKind is ResolverResultKind.Pure
             && Parameters.All(t => t.IsPure);
 
-    public bool IsShareable { get; set; }
-
-    public bool IsInaccessible { get; set; }
-
     public ResolverKind Kind { get; }
 
     public FieldFlags Flags { get; }
