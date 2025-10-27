@@ -234,7 +234,7 @@ public static class Errors
         new(
             id: "HC0104",
             title: "NodeResolver First Parameter Must Be Named 'id'",
-            messageFormat: "The first parameter of a node resolver must be the node id and must be called 'id'",
+            messageFormat: "The first parameter of a node resolver must be the node ID and must be named 'id'",
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
