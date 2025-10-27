@@ -22,9 +22,15 @@ namespace TestNamespace
     {
         internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.BookPage);
-            var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
+
+            var configurations = configuration.Configurations;
+            configurations = configurations.Add(new global::HotChocolate.Types.QueryTypeAttribute());
+            configuration.Configurations = configurations;
 
             var naming = descriptor.Extend().Context.Naming;
 

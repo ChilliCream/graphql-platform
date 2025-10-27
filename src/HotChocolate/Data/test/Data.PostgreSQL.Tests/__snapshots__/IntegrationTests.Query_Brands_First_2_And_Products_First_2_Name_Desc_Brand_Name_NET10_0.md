@@ -91,16 +91,7 @@ ORDER BY p1."BrandId", p3."BrandId", p3."Name" DESC, p3."Id"
 ## Query 3
 
 ```sql
--- @ids={ '11' } (DbType = Object)
-SELECT b."Id", b."Name"
-FROM "Brands" AS b
-WHERE b."Id" = ANY (@ids)
-```
-
-## Query 4
-
-```sql
--- @ids={ '13' } (DbType = Object)
+-- @ids={ '11', '13' } (DbType = Object)
 SELECT b."Id", b."Name"
 FROM "Brands" AS b
 WHERE b."Id" = ANY (@ids)

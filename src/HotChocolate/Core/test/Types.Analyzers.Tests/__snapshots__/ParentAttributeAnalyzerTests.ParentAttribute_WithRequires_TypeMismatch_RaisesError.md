@@ -81,6 +81,7 @@ namespace TestNamespace
                     configuration.ResultType = typeof(global::TestNamespace.Brand);
 
                     configuration.SetSourceGeneratorFlags();
+                    configuration.SetFieldRequirements("BrandId", typeof(global::TestNamespace.Brand));
 
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetBrandAsync_brandService();

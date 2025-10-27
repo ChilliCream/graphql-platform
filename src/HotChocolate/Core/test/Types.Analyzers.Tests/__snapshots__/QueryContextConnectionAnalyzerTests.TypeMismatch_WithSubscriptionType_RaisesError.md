@@ -60,6 +60,8 @@ namespace HotChocolate.Types.Pagination
     {
         protected override void Configure(global::HotChocolate.Types.IObjectTypeDescriptor<global::HotChocolate.Types.Pagination.PageConnection<TestNamespace.Product>> descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::HotChocolate.Types.Pagination.PageConnection<TestNamespace.Product>);
             var extend = descriptor.Extend();
             var bindingResolver = extend.Context.ParameterBindingResolver;
@@ -317,9 +319,15 @@ namespace TestNamespace
     {
         internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.Subscription);
-            var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers(bindingResolver);
+
+            var configurations = configuration.Configurations;
+            configurations = configurations.Add(new global::HotChocolate.Types.SubscriptionTypeAttribute());
+            configuration.Configurations = configurations;
 
             var naming = descriptor.Extend().Context.Naming;
 

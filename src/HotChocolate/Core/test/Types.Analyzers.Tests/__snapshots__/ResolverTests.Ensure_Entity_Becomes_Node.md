@@ -62,9 +62,15 @@ namespace TestNamespace
     {
         internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.Query);
-            var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers(bindingResolver);
+
+            var configurations = configuration.Configurations;
+            configurations = configurations.Add(new global::HotChocolate.Types.QueryTypeAttribute());
+            configuration.Configurations = configurations;
 
             var naming = descriptor.Extend().Context.Naming;
 
@@ -81,6 +87,26 @@ namespace TestNamespace
                     configuration.ResultType = typeof(global::TestNamespace.Test);
 
                     configuration.SetSourceGeneratorFlags();
+
+                    var bindingInfo = field.Context.ParameterBindingResolver;
+                    var parameter = context.Resolvers.CreateParameterDescriptor_GetTestById_id();
+                    var parameterInfo = bindingInfo.GetBindingInfo(parameter);
+
+                    if(parameterInfo.Kind is global::HotChocolate.Internal.ArgumentKind.Argument)
+                    {
+                        var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
+                        {
+                            Name = naming.GetMemberName("id", global::HotChocolate.Types.MemberKind.Argument),
+                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<int>>>), HotChocolate.Types.TypeContext.Input),
+                            RuntimeType = typeof(int)
+                        };
+
+                        var argumentConfigurations = argumentConfiguration.Configurations;
+                        argumentConfigurations = argumentConfigurations.Add(new global::HotChocolate.Types.Relay.IDAttribute<global::TestNamespace.Test>());
+                        argumentConfiguration.Configurations = argumentConfigurations;
+
+                        configuration.Arguments.Add(argumentConfiguration);
+                    }
 
                     configuration.Resolvers = context.Resolvers.GetTestById();
                 },
@@ -189,7 +215,7 @@ namespace TestNamespace
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "Query.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (63,103)-(63,103)",
+    "Location": "Query.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (89,103)-(89,103)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1001)",
     "MessageFormat": "Identifier expected",
     "Message": "Identifier expected",

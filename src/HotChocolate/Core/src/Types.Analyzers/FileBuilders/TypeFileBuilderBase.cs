@@ -180,9 +180,6 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         ".AddPagingArguments()");
                 }
 
-                Writer.WriteIndentedLine("// {0}", resolver.Shareable.ToString());
-                Writer.WriteIndentedLine("// {0}", type.Shareable.ToString());
-
                 if (type.Inaccessible is DirectiveScope.Field || resolver.Inaccessible is not DirectiveScope.None)
                 {
                     Writer.WriteIndentedLine(".Directive(global::{0}.Instance)", WellKnownTypes.Inaccessible);

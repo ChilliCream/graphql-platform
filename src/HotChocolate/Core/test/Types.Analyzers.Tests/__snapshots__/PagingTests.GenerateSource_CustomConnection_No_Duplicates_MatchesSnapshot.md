@@ -22,6 +22,8 @@ namespace TestNamespace
     {
         protected override void Configure(global::HotChocolate.Types.IObjectTypeDescriptor<global::TestNamespace.AuthorConnection> descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.AuthorConnection);
             var extend = descriptor.Extend();
             var bindingResolver = extend.Context.ParameterBindingResolver;
@@ -376,9 +378,15 @@ namespace TestNamespace.Types.Root
     {
         internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.Types.Root.AuthorQueries);
-            var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
+
+            var configurations = configuration.Configurations;
+            configurations = configurations.Add(new global::HotChocolate.Types.QueryTypeAttribute());
+            configuration.Configurations = configurations;
 
             var naming = descriptor.Extend().Context.Naming;
 

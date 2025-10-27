@@ -58,6 +58,12 @@ namespace TestNamespace
     {
         internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
+
+            var configurations = configuration.Configurations;
+            configurations = configurations.Add(new global::HotChocolate.Types.QueryTypeAttribute());
+            configuration.Configurations = configurations;
 
             Configure(descriptor);
         }

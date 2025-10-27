@@ -75,6 +75,22 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    var bindingInfo = field.Context.ParameterBindingResolver;
+                    var parameter = context.Resolvers.CreateParameterDescriptor_GetName_brand();
+                    var parameterInfo = bindingInfo.GetBindingInfo(parameter);
+
+                    if(parameterInfo.Kind is global::HotChocolate.Internal.ArgumentKind.Argument)
+                    {
+                        var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
+                        {
+                            Name = naming.GetMemberName("brand", global::HotChocolate.Types.MemberKind.Argument),
+                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Brand>>>), HotChocolate.Types.TypeContext.Input),
+                            RuntimeType = typeof(global::TestNamespace.Brand)
+                        };
+
+                        configuration.Arguments.Add(argumentConfiguration);
+                    }
+
                     configuration.Resolvers = context.Resolvers.GetName();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
