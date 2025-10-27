@@ -228,6 +228,29 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry ExternalArgumentTypeMismatch(
+        MutableInputFieldDefinition externalArgument,
+        SchemaCoordinate externalFieldCoordinate,
+        MutableSchemaDefinition externalSchema,
+        string otherSchemaName,
+        IInputType otherArgumentType)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ExternalArgumentTypeMismatch,
+                externalArgument.Name,
+                externalFieldCoordinate.ToString(),
+                externalSchema.Name,
+                externalArgument.Type.ToTypeNode().ToString(indented: false),
+                otherSchemaName,
+                otherArgumentType.ToTypeNode().ToString(indented: false))
+            .SetCode(LogEntryCodes.ExternalArgumentTypeMismatch)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(externalArgument)
+            .SetSchema(externalSchema)
+            .Build();
+    }
+
     public static LogEntry ExternalMissingOnBase(
         MutableOutputFieldDefinition externalField,
         MutableSchemaDefinition schema)
