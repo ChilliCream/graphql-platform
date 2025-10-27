@@ -28,7 +28,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                 @fusion__type(schema: A)
                 @fusion__type(schema: B)
             """,
-            options => options.TagMergeBehavior = TagMergeBehavior.Ignore);
+            options => options.TagMergeBehavior = DirectiveMergeBehavior.Ignore);
     }
 
     // Merge @tag directives when the definitions match the canonical definition.
@@ -189,7 +189,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
 
             directive @tag(name: String!) repeatable on {{s_tagLocations}}
             """,
-            options => options.TagMergeBehavior = TagMergeBehavior.Include);
+            options => options.TagMergeBehavior = DirectiveMergeBehavior.Include);
     }
 
     // Do not merge @tag directives when the definitions do not match the canonical definition.
@@ -216,7 +216,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                 @fusion__type(schema: A)
                 @fusion__type(schema: B)
             """,
-            options => options.TagMergeBehavior = TagMergeBehavior.Include);
+            options => options.TagMergeBehavior = DirectiveMergeBehavior.Include);
     }
 
     // Merge @tag directives privately.
@@ -247,7 +247,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
 
             directive @fusion__tag(name: String!) repeatable on {s_tagLocations}
             """,
-            options => options.TagMergeBehavior = TagMergeBehavior.IncludePrivate);
+            options => options.TagMergeBehavior = DirectiveMergeBehavior.IncludePrivate);
     }
 
     // Merge @tag directives with the same name.
@@ -277,7 +277,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
 
             directive @tag(name: String!) repeatable on {s_tagLocations}
             """,
-            options => options.TagMergeBehavior = TagMergeBehavior.Include);
+            options => options.TagMergeBehavior = DirectiveMergeBehavior.Include);
     }
 
     private static readonly string s_tagLocations =

@@ -16,7 +16,7 @@ public abstract class RuleTestBase
         var schemas = CreateSchemaDefinitions(sdl);
         var merger = new SourceSchemaMerger(
             schemas,
-            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
+            new SourceSchemaMergerOptions { RemoveUnreferencedDefinitions = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, [Rule], schemas, _log);
 
@@ -34,7 +34,7 @@ public abstract class RuleTestBase
         var schemas = CreateSchemaDefinitions(sdl);
         var merger = new SourceSchemaMerger(
             schemas,
-            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
+            new SourceSchemaMergerOptions { RemoveUnreferencedDefinitions = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, [Rule], schemas, _log);
 
