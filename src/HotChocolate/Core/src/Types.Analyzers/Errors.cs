@@ -220,4 +220,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor ShareableScopedOnMember =
+        new(
+            id: "HC0103",
+            title: "Shareable Scoped Not Allowed On Members",
+            messageFormat: "The [Shareable] attribute on properties and methods must not specify the 'scoped' argument",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }

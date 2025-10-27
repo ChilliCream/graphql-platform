@@ -5,6 +5,8 @@ public class PageInfoType : ObjectType<ConnectionPageInfo>
     protected override void Configure(
         IObjectTypeDescriptor<ConnectionPageInfo> descriptor)
     {
+        //if(descriptor.Extend().Context.Options.IsPageInfoShareable
+
         descriptor
             .Name(Names.PageInfo)
             .Description("Information about pagination in a connection.")
