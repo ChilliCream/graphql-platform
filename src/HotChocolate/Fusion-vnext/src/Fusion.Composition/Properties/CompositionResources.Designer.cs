@@ -699,6 +699,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; has a different type ({2}) than it does in schema &apos;{3}&apos; ({4})..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalTypeMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalTypeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; is not referenced by a @provides directive in the schema..
         /// </summary>
         internal static string LogEntryHelper_ExternalUnused {
