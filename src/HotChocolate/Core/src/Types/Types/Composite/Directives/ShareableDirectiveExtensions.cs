@@ -49,31 +49,39 @@ public static class ShareableDirectiveExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="descriptor"/> is <c>null</c>.
     /// </exception>
-    public static IObjectTypeDescriptor Shareable(this IObjectTypeDescriptor descriptor, bool scoped = false)
+    public static IObjectTypeDescriptor Shareable(
+        this IObjectTypeDescriptor descriptor,
+        bool scoped = false)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
-        // The @sharable directive on a type is meant as a helper to apply it to all fields within its scope.
-        // This behavior is mainly defined to aid schema-first workflows.
-        // In Hot Chocolate, we focus on code-first and implementation-first flows.
-        // This means we do not typically use the `extend` keyword, and types can be split in different ways.
-        // To maintain the same scoping mechanism, we add the dependency to the sharable directive
-        // so that it will be properly initialized.
-        var extend = descriptor.Extend();
-        extend.Configuration.Dependencies.Add(
-            new TypeDependency(
-                extend.Context.TypeInspector.GetTypeRef(typeof(Shareable)),
-                TypeDependencyFulfilled.Named));
+        if (scoped)
+        {
+            // The @sharable directive on a type is meant as a helper to apply it to all fields within its scope.
+            // This behavior is mainly defined to aid schema-first workflows.
+            // In Hot Chocolate, we focus on code-first and implementation-first flows.
+            // This means we do not typically use the `extend` keyword, and types can be split in different ways.
+            // To maintain the same scoping mechanism, we add the dependency to the sharable directive
+            // so that it will be properly initialized.
+            var extend = descriptor.Extend();
+            extend.Configuration.Dependencies.Add(
+                new TypeDependency(
+                    extend.Context.TypeInspector.GetTypeRef(typeof(Shareable)),
+                    TypeDependencyFulfilled.Named));
 
-        // Second, we apply the shareable directive to all fields of the current type part before we merge them.
-        descriptor.Extend().OnBeforeNaming(
-            (ctx, def) =>
+            // Second, we apply the shareable directive to all fields of the current type part before we merge them.
+            descriptor.Extend().OnBeforeNaming((ctx, def) =>
             {
                 foreach (var field in def.Fields)
                 {
                     field.AddDirective(Composite.Shareable.Instance, ctx.TypeInspector);
                 }
             });
+        }
+        else
+        {
+            descriptor.Directive(Composite.Shareable.Instance);
+        }
 
         return descriptor;
     }
