@@ -22,6 +22,9 @@ internal sealed class ClaimsPrincipalParameterExpressionBuilder
     public bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(ClaimsPrincipal);
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Type == typeof(ClaimsPrincipal);
+
     public Expression Build(ParameterExpressionBuilderContext context)
     {
         var parameter = context.Parameter;
@@ -53,7 +56,7 @@ internal sealed class ClaimsPrincipalParameterExpressionBuilder
             nameof(context));
     }
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)

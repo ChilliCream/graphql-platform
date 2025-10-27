@@ -106,6 +106,12 @@ public abstract class FieldConfiguration
 
     public void SetConnectionTotalCountFieldFlags() => Flags |= CoreFieldFlags.TotalCount;
 
+    public void SetFieldRequirements(string requirements, Type entityType)
+    {
+        Flags |= CoreFieldFlags.WithRequirements;
+        Features.Set(new FieldRequirementFeature(requirements, entityType));
+    }
+
     protected void CopyTo(FieldConfiguration target)
     {
         base.CopyTo(target);

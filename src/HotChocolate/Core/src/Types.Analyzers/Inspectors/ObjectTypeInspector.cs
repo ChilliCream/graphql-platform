@@ -84,12 +84,16 @@ public class ObjectTypeInspector : ISyntaxInspector
 
                 if (member is IPropertySymbol)
                 {
+                    context.SemanticModel.Compilation.TryGetGraphQLDeprecationReason(member, out var deprecationReason);
+
                     resolvers[i++] = new Resolver(
                         classSymbol.Name,
+                        deprecationReason,
                         member,
                         ResolverResultKind.Pure,
                         [],
-                        member.GetMemberBindings());
+                        member.GetMemberBindings(),
+                        GraphQLTypeBuilder.ToSchemaType(member.GetReturnType()!, context.SemanticModel.Compilation));
                 }
             }
         }
@@ -101,34 +105,42 @@ public class ObjectTypeInspector : ISyntaxInspector
 
         if (runtimeType is not null)
         {
-            syntaxInfo = new ObjectTypeInfo(
+            var objectTypeInfo = new ObjectTypeInfo(
                 classSymbol,
                 runtimeType,
                 nodeResolver,
                 possibleType,
-                i == 0
-                    ? []
-                    : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
+                i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
+                classSymbol.GetAttributes());
+            syntaxInfo = objectTypeInfo;
 
             if (diagnostics.Length > 0)
             {
-                syntaxInfo.AddDiagnosticRange(diagnostics);
+                objectTypeInfo.AddDiagnosticRange(diagnostics);
             }
+
             return true;
         }
 
-        syntaxInfo = new RootTypeInfo(
+        var rooType = new RootTypeInfo(
             classSymbol,
             operationType!.Value,
             possibleType,
-            i == 0
-                ? []
-                : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
+            i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
+            classSymbol.GetAttributes());
+
+        rooType.SourceSchemaDetected =
+            rooType.Shareable is not DirectiveScope.None
+                || rooType.Inaccessible is not DirectiveScope.None
+                || rooType.Attributes.HasSourceSchemaAttribute()
+                || rooType.Resolvers.Any(r => r.HasSourceSchemaAttribute());
 
         if (diagnostics.Length > 0)
         {
-            syntaxInfo.AddDiagnosticRange(diagnostics);
+            rooType.AddDiagnosticRange(diagnostics);
         }
+
+        syntaxInfo = rooType;
         return true;
     }
 
@@ -255,13 +267,16 @@ public class ObjectTypeInspector : ISyntaxInspector
         }
 
         resolverTypeName ??= resolverType.Name;
+        compilation.TryGetGraphQLDeprecationReason(resolverMethod, out var deprecationReason);
 
         return new Resolver(
             resolverTypeName,
+            deprecationReason,
             resolverMethod,
             resolverMethod.GetResultKind(),
             [.. resolverParameters],
             resolverMethod.GetMemberBindings(),
+            GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation),
             kind: compilation.IsConnectionType(resolverMethod.ReturnType)
                 ? ResolverKind.ConnectionResolver
                 : ResolverKind.Default);
@@ -296,7 +311,11 @@ public class ObjectTypeInspector : ISyntaxInspector
 
             if (parameter.Kind is ResolverParameterKind.Unknown && (parameter.Name == "id" || parameter.Key == "id"))
             {
-                parameter = new ResolverParameter(parameter.Parameter, parameter.Key, ResolverParameterKind.Argument);
+                parameter = new ResolverParameter(
+                    parameter.Parameter,
+                    parameter.Key,
+                    ResolverParameterKind.Argument,
+                    GraphQLTypeBuilder.ToSchemaType(parameter.Type, compilation));
             }
 
             resolverParameters[i] = parameter;
@@ -312,12 +331,16 @@ public class ObjectTypeInspector : ISyntaxInspector
                     Location.Create(location.SourceTree!, location.SourceSpan)));
         }
 
+        context.SemanticModel.Compilation.TryGetGraphQLDeprecationReason(resolverMethod, out var deprecationReason);
+
         return new Resolver(
             resolverType.Name,
+            deprecationReason,
             resolverMethod,
             resolverMethod.GetResultKind(),
-            resolverParameters.ToImmutableArray(),
+            [.. resolverParameters],
             resolverMethod.GetMemberBindings(),
+            GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation),
             kind: ResolverKind.NodeResolver);
     }
 
@@ -327,6 +350,39 @@ public class ObjectTypeInspector : ISyntaxInspector
 
 file static class Extensions
 {
+    public static bool HasSourceSchemaAttribute(this Resolver resolver)
+    {
+        if (resolver.Shareable is not DirectiveScope.None)
+        {
+            return true;
+        }
+
+        if (resolver.Inaccessible is not DirectiveScope.None)
+        {
+            return true;
+        }
+
+        return resolver.Attributes.HasSourceSchemaAttribute();
+    }
+
+    public static bool HasSourceSchemaAttribute(this ImmutableArray<AttributeData> attributes)
+    {
+        if (attributes.Length == 0)
+        {
+            return false;
+        }
+
+        return attributes.Any(
+            a => a.AttributeClass?.ToDisplayString() switch
+            {
+                InaccessibleAttribute => true,
+                InternalAttribute => true,
+                LookupAttribute => true,
+                ShareableAttribute => true,
+                _ => false
+            });
+    }
+
     public static bool IsNodeResolver(this IMethodSymbol methodSymbol)
     {
         foreach (var attribute in methodSymbol.GetAttributes())

@@ -173,4 +173,67 @@ public class TypeModuleSyntaxGeneratorTests
             """
         ], assemblyName: "Custom-Module").MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task DetectSourceSchemaDefaults_From_Shareable()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [Shareable]
+            [QueryType]
+            internal static partial class RootType
+            {
+                public static int Value => throw new System.NotImplementedException();
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task DetectSourceSchemaDefaults_From_Shareable_On_Field()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            internal static partial class RootType
+            {
+                [Shareable]
+                public static int Value => throw new System.NotImplementedException();
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task DetectSourceSchemaDefaults_From_Lookup()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            internal static partial class RootType
+            {
+                [Lookup]
+                public static int Value => throw new System.NotImplementedException();
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
 }
