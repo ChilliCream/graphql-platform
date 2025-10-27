@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Mutable.DirectiveDefinitions;
+namespace HotChocolate.Types.Mutable.Definitions;
 
 public sealed class TagMutableDirectiveDefinition : MutableDirectiveDefinition
 {
@@ -22,5 +22,15 @@ public sealed class TagMutableDirectiveDefinition : MutableDirectiveDefinition
             | DirectiveLocation.ArgumentDefinition
             | DirectiveLocation.EnumValue
             | DirectiveLocation.Schema;
+    }
+
+    public static TagMutableDirectiveDefinition Create(ISchemaDefinition schema)
+    {
+        if (!schema.Types.TryGetType<MutableScalarTypeDefinition>(BuiltIns.String.Name, out var stringType))
+        {
+            stringType = BuiltIns.String.Create();
+        }
+
+        return new TagMutableDirectiveDefinition(stringType);
     }
 }
