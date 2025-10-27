@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -8,7 +9,8 @@ public sealed class InterfaceTypeInfo
     : SyntaxInfo
     , IOutputTypeInfo
 {
-    public InterfaceTypeInfo(INamedTypeSymbol schemaType,
+    public InterfaceTypeInfo(
+        INamedTypeSymbol schemaType,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax classDeclarationSyntax,
         ImmutableArray<Resolver> resolvers)
@@ -19,11 +21,14 @@ public sealed class InterfaceTypeInfo
         RuntimeTypeFullName = runtimeType.ToDisplayString();
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
+        Description = schemaType.GetDescription();
     }
 
     public string Name => SchemaSchemaType.Name;
 
     public string Namespace => SchemaSchemaType.ContainingNamespace.ToDisplayString();
+
+    public string? Description { get; }
 
     public bool IsPublic => SchemaSchemaType.DeclaredAccessibility == Accessibility.Public;
 
@@ -44,6 +49,10 @@ public sealed class InterfaceTypeInfo
     public ImmutableArray<Resolver> Resolvers { get; private set; }
 
     public override string OrderByKey => SchemaTypeFullName;
+
+    public DirectiveScope Inaccessible { get; set; } = DirectiveScope.None;
+
+    public ImmutableArray<AttributeData> Attributes { get; set; } = [];
 
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);

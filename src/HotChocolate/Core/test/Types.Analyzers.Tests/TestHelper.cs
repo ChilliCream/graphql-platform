@@ -18,6 +18,7 @@ using HotChocolate.Types.Pagination;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
@@ -34,7 +35,8 @@ internal static partial class TestHelper
     public static Snapshot GetGeneratedSourceSnapshot(
         string[] sourceTexts,
         string? assemblyName = "Tests",
-        bool enableInterceptors = false)
+        bool enableInterceptors = false,
+        bool enableAnalyzers = false)
     {
         IEnumerable<PortableExecutableReference> references =
         [
@@ -128,7 +130,7 @@ internal static partial class TestHelper
         driver = driver.RunGenerators(compilation);
 
         // Create a snapshot.
-        var snapshot = CreateSnapshot(compilation, driver);
+        var snapshot = CreateSnapshot(compilation, driver, enableAnalyzers);
 
         // Finally, compile the entire assembly (original code + generated code) to check
         // if the sample is valid as a whole
@@ -149,7 +151,7 @@ internal static partial class TestHelper
         return snapshot;
     }
 
-    private static Snapshot CreateSnapshot(CSharpCompilation compilation, GeneratorDriver driver)
+    private static Snapshot CreateSnapshot(CSharpCompilation compilation, GeneratorDriver driver, bool enableAnalyzers)
     {
         var snapshot = new Snapshot();
 
@@ -183,6 +185,30 @@ internal static partial class TestHelper
             if (result.Diagnostics.Any())
             {
                 AddDiagnosticsToSnapshot(snapshot, result.Diagnostics, "Generator Diagnostics");
+            }
+        }
+
+        // Run diagnostic analyzers if enabled
+        if (enableAnalyzers)
+        {
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(
+                new RootTypePartialAnalyzer(),
+                new NodeResolverIdAttributeAnalyzer(),
+                new NodeResolverPublicAnalyzer(),
+                new BindMemberAnalyzer(),
+                new ExtendObjectTypeAnalyzer(),
+                new ParentAttributeAnalyzer(),
+                new ParentMethodAnalyzer(),
+                new QueryContextProjectionAnalyzer(),
+                new QueryContextConnectionAnalyzer(),
+                new DataAttributeOrderAnalyzer());
+
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
+            var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;
+
+            if (analyzerDiagnostics.Any())
+            {
+                AddDiagnosticsToSnapshot(snapshot, analyzerDiagnostics, "Analyzer Diagnostics");
             }
         }
 
