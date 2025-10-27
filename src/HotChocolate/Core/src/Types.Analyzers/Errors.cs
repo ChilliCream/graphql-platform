@@ -202,4 +202,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor QueryContextConnectionMismatch =
+        new(
+            id: "HC0101",
+            title: "QueryContext Generic Type Mismatch",
+            messageFormat: "The QueryContext<{0}> parameter must match the connection node type {1}",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }
