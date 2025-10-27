@@ -179,6 +179,17 @@ namespace TestNamespace
 ```json
 [
   {
+    "Id": "HC0094",
+    "Title": "Bind Member Not Found",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": ": (9,5)-(9,45)",
+    "MessageFormat": "The member '{0}' does not exist on type '{1}'",
+    "Message": "The member 'DoesNotExist' does not exist on type 'Product'",
+    "Category": "TypeSystem",
+    "CustomTags": []
+  },
+  {
     "Id": "CS0117",
     "Title": "",
     "Severity": "Error",
@@ -193,17 +204,6 @@ namespace TestNamespace
       "Telemetry",
       "NotConfigurable"
     ]
-  },
-  {
-    "Id": "HC0094",
-    "Title": "Bind Member Not Found",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (9,5)-(9,45)",
-    "MessageFormat": "The member '{0}' does not exist on type '{1}'",
-    "Message": "The member 'DoesNotExist' does not exist on type 'Product'",
-    "Category": "TypeSystem",
-    "CustomTags": []
   }
 ]
 ```

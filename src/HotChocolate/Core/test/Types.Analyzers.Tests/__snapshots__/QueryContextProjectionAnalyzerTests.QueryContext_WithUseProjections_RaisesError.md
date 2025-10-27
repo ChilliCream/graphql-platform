@@ -254,22 +254,6 @@ namespace TestNamespace
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": ": (35,11)-(35,30)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)",
-    "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
-    "Message": "The type or namespace name 'IQueryable<>' could not be found (are you missing a using directive or an assembly reference?)",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0246",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
     "Location": ": (14,5)-(14,19)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)",
     "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
@@ -290,6 +274,22 @@ namespace TestNamespace
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)",
     "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
     "Message": "The type or namespace name 'UseProjections' could not be found (are you missing a using directive or an assembly reference?)",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS0246",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": ": (35,11)-(35,30)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)",
+    "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
+    "Message": "The type or namespace name 'IQueryable<>' could not be found (are you missing a using directive or an assembly reference?)",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",
@@ -309,22 +309,6 @@ namespace TestNamespace
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": ": (35,11)-(35,30)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)",
-    "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
-    "Message": "The type or namespace name 'IQueryable<>' could not be found (are you missing a using directive or an assembly reference?)",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0246",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
     "Location": ": (14,5)-(14,19)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)",
     "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
@@ -345,6 +329,22 @@ namespace TestNamespace
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)",
     "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
     "Message": "The type or namespace name 'UseProjections' could not be found (are you missing a using directive or an assembly reference?)",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS0246",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": ": (35,11)-(35,30)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)",
+    "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
+    "Message": "The type or namespace name 'IQueryable<>' could not be found (are you missing a using directive or an assembly reference?)",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",

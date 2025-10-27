@@ -219,6 +219,17 @@ namespace TestNamespace
 ```json
 [
   {
+    "Id": "HC0099",
+    "Title": "QueryContext With UseProjection",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": ": (14,5)-(14,18)",
+    "MessageFormat": "Methods with QueryContext<T> parameters cannot use the [UseProjection] attribute",
+    "Message": "Methods with QueryContext<T> parameters cannot use the [UseProjection] attribute",
+    "Category": "TypeSystem",
+    "CustomTags": []
+  },
+  {
     "Id": "CS0246",
     "Title": "",
     "Severity": "Error",
@@ -233,17 +244,6 @@ namespace TestNamespace
       "Telemetry",
       "NotConfigurable"
     ]
-  },
-  {
-    "Id": "HC0099",
-    "Title": "QueryContext With UseProjection",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (14,5)-(14,18)",
-    "MessageFormat": "Methods with QueryContext<T> parameters cannot use the [UseProjection] attribute",
-    "Message": "Methods with QueryContext<T> parameters cannot use the [UseProjection] attribute",
-    "Category": "TypeSystem",
-    "CustomTags": []
   }
 ]
 ```

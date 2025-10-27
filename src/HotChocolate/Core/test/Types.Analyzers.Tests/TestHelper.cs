@@ -233,7 +233,10 @@ internal static partial class TestHelper
 
         jsonWriter.WriteStartArray();
 
-        foreach (var diagnostic in diagnostics)
+        foreach (var diagnostic in diagnostics
+            .OrderBy(d => d.Location.SourceTree?.FilePath)
+            .ThenBy(d => d.Location.GetLineSpan().StartLinePosition.Line)
+            .ThenBy(d => d.Location.GetLineSpan().StartLinePosition.Character))
         {
             if (s_ignoreCodes.Contains(diagnostic.Id))
             {

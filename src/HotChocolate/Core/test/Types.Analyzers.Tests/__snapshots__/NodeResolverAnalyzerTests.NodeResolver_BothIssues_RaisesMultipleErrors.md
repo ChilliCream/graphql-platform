@@ -73,17 +73,6 @@ namespace TestNamespace
 ```json
 [
   {
-    "Id": "HC0092",
-    "Title": "ID Attribute Not Allowed",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (11,51)-(11,53)",
-    "MessageFormat": "The [ID] attribute should not be used on node resolver parameters as the NodeResolver attribute already declares the parameter as an ID type",
-    "Message": "The [ID] attribute should not be used on node resolver parameters as the NodeResolver attribute already declares the parameter as an ID type",
-    "Category": "TypeSystem",
-    "CustomTags": []
-  },
-  {
     "Id": "HC0093",
     "Title": "Node Resolver Must Be Public",
     "Severity": "Error",
@@ -91,6 +80,17 @@ namespace TestNamespace
     "Location": ": (11,34)-(11,49)",
     "MessageFormat": "A node resolver method must be public",
     "Message": "A node resolver method must be public",
+    "Category": "TypeSystem",
+    "CustomTags": []
+  },
+  {
+    "Id": "HC0092",
+    "Title": "ID Attribute Not Allowed",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": ": (11,51)-(11,53)",
+    "MessageFormat": "The [ID] attribute should not be used on node resolver parameters as the NodeResolver attribute already declares the parameter as an ID type",
+    "Message": "The [ID] attribute should not be used on node resolver parameters as the NodeResolver attribute already declares the parameter as an ID type",
     "Category": "TypeSystem",
     "CustomTags": []
   }
