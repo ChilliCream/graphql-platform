@@ -18,23 +18,24 @@ internal sealed class ConnectionType
         string connectionName,
         TypeReference nodeType,
         bool includeTotalCount,
-        bool includeNodesField)
+        bool includeNodesField,
+        INamingConventions namingConventions)
     {
         ArgumentException.ThrowIfNullOrEmpty(connectionName);
         ArgumentNullException.ThrowIfNull(nodeType);
 
         ConnectionName = connectionName;
-        var edgeTypeName = NameHelper.CreateEdgeName(connectionName);
+        var edgeTypeName = NameHelper.CreateEdgeName(namingConventions, connectionName);
 
         var edgesType =
             TypeReference.Parse(
                 $"[{edgeTypeName}!]",
                 TypeContext.Output,
-                factory: _ => new EdgeType(connectionName, nodeType));
+                factory: c => new EdgeType(connectionName, nodeType, c.Naming));
 
         Configuration = CreateConfiguration(includeTotalCount, includeNodesField, edgesType);
-        Configuration.Name = NameHelper.CreateConnectionName(connectionName);
-        Configuration.Dependencies.Add(new(nodeType));
+        Configuration.Name = NameHelper.CreateConnectionName(namingConventions, connectionName);
+        Configuration.Dependencies.Add(new TypeDependency(nodeType));
         Configuration.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
                 (c, _) => EdgeType = c.GetType<IEdgeType>(TypeReference.Create(edgeTypeName)),
@@ -68,14 +69,14 @@ internal sealed class ConnectionType
             TypeReference.Create(
                 ContextDataKeys.EdgeType,
                 nodeType,
-                _ => new EdgeType(nodeType),
+                c => new EdgeType(nodeType, c.Naming),
                 TypeContext.Output);
 
         // the property is set later in the configuration
         ConnectionName = null!;
         Configuration = CreateConfiguration(includeTotalCount, includeNodesField);
-        Configuration.Dependencies.Add(new(nodeType));
-        Configuration.Dependencies.Add(new(edgeType));
+        Configuration.Dependencies.Add(new TypeDependency(nodeType));
+        Configuration.Dependencies.Add(new TypeDependency(edgeType));
         Configuration.NeedsNameCompletion = true;
 
         Configuration.Tasks.Add(
@@ -88,9 +89,9 @@ internal sealed class ConnectionType
                     var definition = (ObjectTypeConfiguration)d;
                     var edges = definition.Fields.First(IsEdgesField);
 
-                    definition.Name = NameHelper.CreateConnectionName(ConnectionName);
+                    definition.Name = NameHelper.CreateConnectionName(c.DescriptorContext.Naming, ConnectionName);
                     edges.Type = TypeReference.Parse(
-                        $"[{NameHelper.CreateEdgeName(ConnectionName)}!]",
+                        $"[{NameHelper.CreateEdgeName(c.DescriptorContext.Naming, ConnectionName)}!]",
                         TypeContext.Output);
 
                     if (includeNodesField)
@@ -128,7 +129,7 @@ internal sealed class ConnectionType
         ITypeDiscoveryContext context,
         TypeSystemConfiguration configuration)
     {
-        context.Dependencies.Add(new(
+        context.Dependencies.Add(new TypeDependency(
             context.TypeInspector.GetOutputTypeRef(typeof(PageInfoType))));
 
         base.OnBeforeRegisterDependencies(context, configuration);
@@ -156,37 +157,46 @@ internal sealed class ConnectionType
             RuntimeType = typeof(Connection)
         };
 
-        definition.Fields.Add(new(
-            Names.PageInfo,
-            ConnectionType_PageInfo_Description,
-            TypeReference.Parse("PageInfo!"),
-            pureResolver: GetPagingInfo));
+        definition.Fields.Add(
+            new ObjectFieldConfiguration(
+                Names.PageInfo,
+                ConnectionType_PageInfo_Description,
+                TypeReference.Parse("PageInfo!"),
+                pureResolver: GetPagingInfo));
 
-        definition.Fields.Add(new(
-            Names.Edges,
-            ConnectionType_Edges_Description,
-            edgesType,
-            pureResolver: GetEdges)
-        { Flags = CoreFieldFlags.ConnectionEdgesField });
+        definition.Fields.Add(
+            new ObjectFieldConfiguration(
+                Names.Edges,
+                ConnectionType_Edges_Description,
+                edgesType,
+                pureResolver: GetEdges)
+            {
+                Flags = CoreFieldFlags.ConnectionEdgesField
+            });
+
         if (includeNodesField)
         {
-            definition.Fields.Add(new(
-                Names.Nodes,
-                ConnectionType_Nodes_Description,
-                pureResolver: GetNodes)
-            { Flags = CoreFieldFlags.ConnectionNodesField });
+            definition.Fields.Add(
+                new ObjectFieldConfiguration(
+                    Names.Nodes,
+                    ConnectionType_Nodes_Description,
+                    pureResolver: GetNodes)
+                {
+                    Flags = CoreFieldFlags.ConnectionNodesField
+                });
         }
 
         if (includeTotalCount)
         {
-            definition.Fields.Add(new(
-                Names.TotalCount,
-                ConnectionType_TotalCount_Description,
-                type: TypeReference.Parse($"{ScalarNames.Int}!"),
-                pureResolver: GetTotalCount)
-            {
-                Flags = CoreFieldFlags.TotalCount
-            });
+            definition.Fields.Add(
+                new ObjectFieldConfiguration(
+                    Names.TotalCount,
+                    ConnectionType_TotalCount_Description,
+                    type: TypeReference.Parse($"{ScalarNames.Int}!"),
+                    pureResolver: GetTotalCount)
+                {
+                    Flags = CoreFieldFlags.TotalCount
+                });
         }
 
         return definition;
