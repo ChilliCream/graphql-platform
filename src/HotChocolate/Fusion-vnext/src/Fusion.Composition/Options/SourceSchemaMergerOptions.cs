@@ -11,17 +11,22 @@ public sealed class SourceSchemaMergerOptions
     public bool AddFusionDefinitions { get; set; } = true;
 
     /// <summary>
+    /// Defines how to handle <c>@cacheControl</c> directives when merging source schemas.
+    /// </summary>
+    public DirectiveMergeBehavior CacheControlMergeBehavior { get; set; }
+
+    /// <summary>
     /// Enables the inclusion of Global Object Identification fields.
     /// </summary>
     public bool EnableGlobalObjectIdentification { get; set; }
 
     /// <summary>
-    /// Removes types that are not referenced in the final merged schema.
+    /// Removes types and directives that are not referenced in the final merged schema.
     /// </summary>
-    public bool RemoveUnreferencedTypes { get; set; } = true;
+    public bool RemoveUnreferencedDefinitions { get; set; } = true;
 
     /// <summary>
-    /// Defines how to handle tag directives when merging source schemas.
+    /// Defines how to handle <c>@tag</c> directives when merging source schemas.
     /// </summary>
-    public TagMergeBehavior TagMergeBehavior { get; set; } = TagMergeBehavior.IncludePrivate;
+    public DirectiveMergeBehavior TagMergeBehavior { get; set; } = DirectiveMergeBehavior.IncludePrivate;
 }

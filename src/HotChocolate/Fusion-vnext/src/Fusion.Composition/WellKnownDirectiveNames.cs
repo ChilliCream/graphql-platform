@@ -2,7 +2,9 @@ namespace HotChocolate.Fusion;
 
 internal static class WellKnownDirectiveNames
 {
+    public const string CacheControl = "cacheControl";
     public const string External = "external";
+    public const string FusionCacheControl = "fusion__cacheControl";
     public const string FusionEnumValue = "fusion__enumValue";
     public const string FusionField = "fusion__field";
     public const string FusionImplements = "fusion__implements";
