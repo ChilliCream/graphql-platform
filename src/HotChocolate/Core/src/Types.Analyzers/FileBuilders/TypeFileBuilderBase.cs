@@ -644,10 +644,20 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                                 using (Writer.IncreaseIndent())
                                 {
+                                    var first = true;
                                     foreach (var attribute in parameter.Attributes)
                                     {
-                                        Writer.WriteIndentedLine("{0}.", GenerateAttributeInstantiation(attribute));
+                                        if (!first)
+                                        {
+                                            Writer.Write(',');
+                                            Writer.WriteLine();
+                                        }
+
+                                        Writer.WriteIndented(GenerateAttributeInstantiation(attribute));
+                                        first = false;
                                     }
+
+                                    Writer.WriteLine();
                                 }
 
                                 Writer.WriteIndentedLine("]);");
