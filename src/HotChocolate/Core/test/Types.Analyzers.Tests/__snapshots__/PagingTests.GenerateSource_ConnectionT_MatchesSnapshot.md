@@ -22,18 +22,35 @@ namespace TestNamespace
     {
         internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.BookPage);
-            var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
+            var configurations = configuration.Configurations;
+            configurations = configurations.Add(new global::HotChocolate.Types.QueryTypeAttribute());
+            configuration.Configurations = configurations;
+
+            var naming = descriptor.Extend().Context.Naming;
+
             descriptor
-                .Field(thisType.GetMember("GetAuthorsAsync", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("Authors", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Configuration.SetSourceGeneratorFlags();
-                    c.Configuration.Resolvers = r.GetAuthorsAsync();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::HotChocolate.Types.Pagination.Connection<global::TestNamespace.Author>>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.Connection<global::TestNamespace.Author>);
+
+                    configuration.SetSourceGeneratorFlags();
+
+                    configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
 
             Configure(descriptor);
         }
