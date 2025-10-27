@@ -211,4 +211,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor ShareableOnInterfaceType =
+        new(
+            id: "HC0102",
+            title: "Shareable Not Allowed On Interface Type",
+            messageFormat: "The [Shareable] attribute is not allowed on classes decorated with [InterfaceType<T>]",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }

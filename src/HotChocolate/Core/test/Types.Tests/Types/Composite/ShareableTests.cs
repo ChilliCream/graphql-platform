@@ -7,13 +7,29 @@ namespace HotChocolate.Types.Composite;
 public static class ShareableTests
 {
     [Fact]
-    public static async Task Lookup()
+    public static async Task PageInfo_Is_Shareable()
     {
         var schema =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query1>()
                 .AddTypeExtension(typeof(PageInfoExtensions))
+                .BuildSchemaAsync();
+
+        schema.MatchInlineSnapshot(
+            """
+
+            """);
+    }
+
+    [Fact]
+    public static async Task New_On_PageInfo_Is_Shareable()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query1>()
+                .AddTypeExtension(typeof(PageInfoScopedExtensions))
                 .BuildSchemaAsync();
 
         schema.MatchInlineSnapshot(
@@ -32,4 +48,11 @@ public static class ShareableTests
     [Shareable]
     [ExtendObjectType("PageInfo")]
     public static class PageInfoExtensions;
+
+    [Shareable(scoped: true)]
+    [ExtendObjectType("PageInfo")]
+    public static class PageInfoScopedExtensions
+    {
+        public static int New() => throw new NotImplementedException();
+    }
 }

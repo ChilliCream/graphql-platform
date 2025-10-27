@@ -201,6 +201,7 @@ internal static partial class TestHelper
                 new ParentMethodAnalyzer(),
                 new QueryContextProjectionAnalyzer(),
                 new QueryContextConnectionAnalyzer(),
+                new ShareableInterfaceTypeAnalyzer(),
                 new DataAttributeOrderAnalyzer());
 
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
