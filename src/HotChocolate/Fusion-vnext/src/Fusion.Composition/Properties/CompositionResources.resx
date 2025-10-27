@@ -231,6 +231,9 @@
   <data name="LogEntryHelper_ExternalRequireCollision" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' must not have arguments that are annotated with the @require directive.</value>
   </data>
+  <data name="LogEntryHelper_ExternalTypeMismatch" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' has a different type ({2}) than it does in schema '{3}' ({4}).</value>
+  </data>
   <data name="LogEntryHelper_ExternalUnused" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
   </data>

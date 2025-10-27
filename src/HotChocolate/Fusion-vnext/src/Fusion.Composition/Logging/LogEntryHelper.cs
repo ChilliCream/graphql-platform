@@ -331,6 +331,27 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry ExternalTypeMismatch(
+        MutableOutputFieldDefinition externalField,
+        MutableSchemaDefinition externalSchema,
+        string otherSchemaName,
+        IOutputType otherFieldType)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ExternalTypeMismatch,
+                externalField.Coordinate.ToString(),
+                externalSchema.Name,
+                externalField.Type.ToTypeNode().ToString(indented: false),
+                otherSchemaName,
+                otherFieldType.ToTypeNode().ToString(indented: false))
+            .SetCode(LogEntryCodes.ExternalTypeMismatch)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(externalField)
+            .SetSchema(externalSchema)
+            .Build();
+    }
+
     public static LogEntry ExternalUnused(
         MutableOutputFieldDefinition externalField,
         MutableSchemaDefinition schema)
