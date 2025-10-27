@@ -20,6 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IRequestExecutorBuilder AddTestsTypes(this IRequestExecutorBuilder builder)
         {
+            builder.AddSourceSchemaDefaults();
             builder.ConfigureDescriptorContext(ctx => ctx.TypeConfiguration.TryAdd(
                 "Tests::TestNamespace.Query",
                 global::HotChocolate.Types.OperationTypeNames.Query,

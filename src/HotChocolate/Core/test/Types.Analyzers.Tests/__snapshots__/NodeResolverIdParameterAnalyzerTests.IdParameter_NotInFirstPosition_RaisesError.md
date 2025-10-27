@@ -119,8 +119,8 @@ namespace TestNamespace
     "Severity": "Error",
     "WarningLevel": 0,
     "Location": ": (14,8)-(14,37)",
-    "MessageFormat": "The first parameter of a node resolver must be the node id and must be called 'id'",
-    "Message": "The first parameter of a node resolver must be the node id and must be called 'id'",
+    "MessageFormat": "The first parameter of a node resolver must be the node ID and must be named 'id'",
+    "Message": "The first parameter of a node resolver must be the node ID and must be named 'id'",
     "Category": "TypeSystem",
     "CustomTags": []
   }

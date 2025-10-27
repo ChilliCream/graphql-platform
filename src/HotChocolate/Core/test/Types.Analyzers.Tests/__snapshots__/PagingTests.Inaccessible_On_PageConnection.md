@@ -25,11 +25,15 @@ namespace TestNamespace
             var extension = descriptor.Extend();
             var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.AuthorConnection);
-            var extend = descriptor.Extend();
-            var bindingResolver = extend.Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
             descriptor.Directive(global::HotChocolate.Types.Composite.Inaccessible.Instance);
+
+            if(extension.Context.Options.ApplyShareableToConnections)
+            {
+                descriptor.Directive(global::HotChocolate.Types.Composite.Shareable.Instance);
+            }
 
             descriptor.Name("AuthorConnection");
 
@@ -213,11 +217,15 @@ namespace TestNamespace
             var extension = descriptor.Extend();
             var configuration = extension.Configuration;
             var thisType = typeof(global::HotChocolate.Types.Pagination.PageEdge<TestNamespace.Author>);
-            var extend = descriptor.Extend();
-            var bindingResolver = extend.Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
             descriptor.Directive(global::HotChocolate.Types.Composite.Inaccessible.Instance);
+
+            if(extension.Context.Options.ApplyShareableToConnections)
+            {
+                descriptor.Directive(global::HotChocolate.Types.Composite.Shareable.Instance);
+            }
 
             descriptor.Name("AuthorEdge");
 
