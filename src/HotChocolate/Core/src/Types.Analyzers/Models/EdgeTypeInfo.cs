@@ -57,9 +57,9 @@ public sealed class EdgeTypeInfo
 
     public ImmutableArray<Resolver> Resolvers { get; private set; }
 
-    public DirectiveScope Shareable { get; }
+    public DirectiveScope Shareable { get; private set; }
 
-    public DirectiveScope Inaccessible { get; }
+    public DirectiveScope Inaccessible { get; private set; }
 
     public ImmutableArray<AttributeData> Attributes { get; }
 
@@ -104,6 +104,8 @@ public sealed class EdgeTypeInfo
         string? name = null,
         string? nameFormat = null)
     {
+        var attributes = connectionClass.RuntimeType.GetAttributes();
+
         return new EdgeTypeInfo(
             (name ?? connectionClass.RuntimeType.Name) + "Type",
             nameFormat,
@@ -111,22 +113,28 @@ public sealed class EdgeTypeInfo
             connectionClass.RuntimeType,
             connectionClass.ClassDeclarations,
             connectionClass.Resolvers,
-            []);
+            [])
+        {
+            Shareable = attributes.GetShareableScope(),
+            Inaccessible = attributes.GetInaccessibleScope()
+        };
     }
 
     public static EdgeTypeInfo CreateEdge(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
+        ImmutableArray<AttributeData> attributes,
         string @namespace,
         string? name = null,
         string? nameFormat = null)
-        => Create(compilation, runtimeType, classDeclaration, @namespace, name, nameFormat);
+        => Create(compilation, runtimeType, classDeclaration, attributes, @namespace, name, nameFormat);
 
     private static EdgeTypeInfo Create(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
+        ImmutableArray<AttributeData> attributes,
         string @namespace,
         string? name = null,
         string? nameFormat = null)
@@ -167,6 +175,6 @@ public sealed class EdgeTypeInfo
             runtimeType,
             classDeclaration,
             resolvers.ToImmutable(),
-            runtimeType.GetAttributes());
+            attributes);
     }
 }

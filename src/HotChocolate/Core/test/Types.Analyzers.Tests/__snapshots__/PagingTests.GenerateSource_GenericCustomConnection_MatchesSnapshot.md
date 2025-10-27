@@ -178,6 +178,8 @@ namespace TestNamespace
     {
         protected override void Configure(global::HotChocolate.Types.IObjectTypeDescriptor<global::TestNamespace.CustomEdge<TestNamespace.Author>> descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.CustomEdge<TestNamespace.Author>);
             var extend = descriptor.Extend();
             var bindingResolver = extend.Context.ParameterBindingResolver;

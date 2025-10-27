@@ -231,6 +231,15 @@ public static class CompilationExtensions
             return false;
         }
 
+        // If baseTypeSymbol is an interface, check all implemented interfaces
+        if (baseTypeSymbol.TypeKind == TypeKind.Interface)
+        {
+            return typeSymbol?.AllInterfaces.Any(
+                i => i.IsGenericType
+                    && SymbolEqualityComparer.Default.Equals(i.ConstructedFrom, baseTypeSymbol)) ?? false;
+        }
+
+        // Otherwise, walk up the base type hierarchy
         var current = typeSymbol;
 
         while (current is not null)
@@ -238,7 +247,7 @@ public static class CompilationExtensions
             if (current is { IsGenericType: true } namedTypeSymbol)
             {
                 var baseType = namedTypeSymbol.ConstructedFrom;
-                if (SymbolEqualityComparer.Default.Equals(baseType.OriginalDefinition, baseTypeSymbol))
+                if (SymbolEqualityComparer.Default.Equals(baseType, baseTypeSymbol))
                 {
                     return true;
                 }
