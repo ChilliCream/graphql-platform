@@ -5,63 +5,39 @@ using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.Exporters.OpenApi;
 
-// TODO: Add an abstraction that can be added to schema services
-internal sealed class DynamicEndpointDataSource : EndpointDataSource, IDisposable
+internal sealed class DynamicEndpointDataSource : EndpointDataSource, IDynamicEndpointDataSource, IDisposable
 {
-    private List<Endpoint> _endpoints = [];
+    private IReadOnlyList<Endpoint> _endpoints = [];
     private CancellationTokenSource _cts = new();
     private CancellationChangeToken _changeToken;
+    private readonly Lock _lock = new();
 
     public DynamicEndpointDataSource()
     {
         _changeToken = new CancellationChangeToken(_cts.Token);
     }
 
-    public override IReadOnlyList<Endpoint> Endpoints => _endpoints;
+    public override IReadOnlyList<Endpoint> Endpoints
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _endpoints;
+            }
+        }
+    }
 
     public override IChangeToken GetChangeToken() => _changeToken;
 
-    // TODO: Synchronization
-    public void SetEndpoints(IEnumerable<ExecutableOpenApiDocument> documents)
+    public void SetEndpoints(IReadOnlyList<Endpoint> endpoints)
     {
-        var newEndpoints = new List<Endpoint>();
-
-        foreach (var document in documents)
+        lock (_lock)
         {
-            var endpoint = CreateEndpoint(document);
+            _endpoints = endpoints;
 
-            newEndpoints.Add(endpoint);
+            NotifyChanged();
         }
-
-        _endpoints = newEndpoints;
-
-        NotifyChanged();
-    }
-
-    private static Endpoint CreateEndpoint(ExecutableOpenApiDocument document)
-    {
-        // TODO: Use proper schema name
-        var schemaName = ISchemaDefinition.DefaultName;
-
-        var builder = new RouteEndpointBuilder(
-
-            requestDelegate: CreateRequestDelegate(schemaName, document),
-            routePattern: document.Route,
-            // TODO: What does this control?
-            order: 0)
-        {
-            DisplayName = document.HttpMethod + " " + document.Route.RawText
-        };
-
-        builder.Metadata.Add(new HttpMethodMetadata([document.HttpMethod]));
-
-        return builder.Build();
-    }
-
-    private static RequestDelegate CreateRequestDelegate(string schemaName, ExecutableOpenApiDocument document)
-    {
-        var middleware = new DynamicEndpointMiddleware(schemaName, document);
-        return context => middleware.InvokeAsync(context);
     }
 
     private void NotifyChanged()
