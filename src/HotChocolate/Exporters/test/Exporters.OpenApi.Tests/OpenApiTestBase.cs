@@ -38,6 +38,7 @@ public abstract class OpenApiTestBase
             }
             """,
             """
+            "Fetches all users"
             query GetUsers @http(method: GET, route: "/users") {
               users {
                 id
@@ -45,8 +46,19 @@ public abstract class OpenApiTestBase
             }
             """,
             """
+            "Creates a user"
             mutation CreateUser($user: UserInput! @body) @http(method: POST, route: "/users") {
               createUser(user: $user) {
+                id
+                name
+                email
+              }
+            }
+            """,
+            """
+            "Updates a user's details"
+            mutation UpdateUser($user: UserInput! @body) @http(method: POST, route: "/users/{userId:$user.id}") {
+              updateUser(user: $user) {
                 id
                 name
                 email
@@ -172,13 +184,21 @@ public abstract class OpenApiTestBase
             {
                 return user;
             }
+
+            public User UpdateUser(User user)
+            {
+                return user;
+            }
         }
 
-        public sealed record User([property: ID] int Id)
+        public sealed class User(int id)
         {
-            public string Name => "User " + Id;
+            [ID]
+            public int Id { get; init; } = id;
 
-            public string Email => Id + "@example.com";
+            public string Name { get; set; } = "User " + id;
+
+            public string Email { get; set; } = id + "@example.com";
         }
     }
 
@@ -230,13 +250,6 @@ public abstract class OpenApiTestBase
             DocumentNode document,
             CancellationToken cancellationToken = default)
         {
-            var operation = document.Definitions.OfType<OperationDefinitionNode>().FirstOrDefault();
-
-            if (operation is null)
-            {
-                throw new ArgumentException($"Document {document} has no operation definition");
-            }
-
             OpenApiDocumentStorageEventType type;
             await _semaphore.WaitAsync(cancellationToken);
 

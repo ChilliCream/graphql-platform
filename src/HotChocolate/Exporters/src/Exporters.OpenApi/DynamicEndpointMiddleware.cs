@@ -1,6 +1,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -8,8 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Exporters.OpenApi;
 
-// TODO: Do we need to verify the incoming Content-Type?
-internal sealed class DynamicEndpointMiddleware(string schemaName, ExecutableOpenApiDocument document)
+internal sealed class DynamicEndpointMiddleware(
+    string schemaName,
+    OpenApiEndpointDescriptor endpointDescriptor)
 {
     private static readonly JsonWriterOptions s_jsonWriterOptions =
         new JsonWriterOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
@@ -24,15 +26,37 @@ internal sealed class DynamicEndpointMiddleware(string schemaName, ExecutableOpe
 
         try
         {
+            if (endpointDescriptor.BodyParameter is not null)
+            {
+                if (context.Request.ContentType?.StartsWith("application/json", StringComparison.OrdinalIgnoreCase) != true)
+                {
+                    await Results.Problem(
+                        detail: "Content-Type must be application/json",
+                        statusCode: StatusCodes.Status415UnsupportedMediaType).ExecuteAsync(context);
+
+                    return;
+                }
+
+                if (context.Request.ContentLength < 1)
+                {
+                    await Results.Problem(
+                        detail: "Request body is required",
+                        statusCode: StatusCodes.Status400BadRequest).ExecuteAsync(context);
+                    return;
+                }
+            }
+
             var proxy = context.RequestServices.GetRequiredKeyedService<HttpRequestExecutorProxy>(schemaName);
             var session = await proxy.GetOrCreateSessionAsync(context.RequestAborted);
 
-            // TODO: Map to variables
-            var routeData = context.GetRouteData();
+            var variables = await BuildVariables(
+                endpointDescriptor,
+                context,
+                cancellationToken);
 
             var requestBuilder = OperationRequestBuilder.New()
-                .SetDocument(document.Document)
-                .SetVariableValues(routeData.Values);
+                .SetDocument(endpointDescriptor.Document)
+                .SetVariableValues(variables);
 
             await session.OnCreateAsync(context, requestBuilder, cancellationToken);
 
@@ -74,10 +98,10 @@ internal sealed class DynamicEndpointMiddleware(string schemaName, ExecutableOpe
 
             // If the root field is null and we don't have any errors,
             // we return HTTP 404 for queries and HTTP 500 otherwise.
-            if (operationResult.Data?.TryGetValue(document.ResponseNameToExtract, out var responseData) != true
+            if (operationResult.Data?.TryGetValue(endpointDescriptor.ResponseNameToExtract, out var responseData) != true
                 || responseData is null)
             {
-                var result = document.HttpMethod == HttpMethods.Get
+                var result = endpointDescriptor.HttpMethod == HttpMethods.Get
                     ? Results.NotFound()
                     : Results.InternalServerError();
 
@@ -100,6 +124,194 @@ internal sealed class DynamicEndpointMiddleware(string schemaName, ExecutableOpe
         {
             await Results.InternalServerError().ExecuteAsync(context);
         }
+    }
+
+    private static async Task<IReadOnlyDictionary<string, object?>?> BuildVariables(
+        OpenApiEndpointDescriptor endpointDescriptor,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        var variables = new Dictionary<string, object?>();
+
+        if (endpointDescriptor.BodyParameter is not null)
+        {
+            const int chunkSize = 256;
+            using var writer = new PooledArrayWriter();
+            var body = httpContext.Request.Body;
+            int read;
+
+            do
+            {
+                var memory = writer.GetMemory(chunkSize);
+                read = await body.ReadAsync(memory, cancellationToken).ConfigureAwait(false);
+                writer.Advance(read);
+
+                // if (_maxRequestSize < writer.Length)
+                // {
+                //     throw DefaultHttpRequestParser_MaxRequestSizeExceeded();
+                // }
+            } while (read == chunkSize);
+
+            if (read == 0)
+            {
+                throw new InvalidOperationException("Expected to have a body");
+            }
+
+            var variablesProperty = GetObjectProperty(
+                variables,
+                endpointDescriptor.BodyParameter.Variable);
+
+            ParseJsonIntoDictionary(variablesProperty, writer.WrittenSpan);
+        }
+
+        if (endpointDescriptor.RouteParameters.Count > 0)
+        {
+            var routeData = httpContext.GetRouteData();
+
+            foreach (var parameter in endpointDescriptor.RouteParameters)
+            {
+                if (!routeData.Values.TryGetValue(parameter.Key, out var value))
+                {
+                    // We just skip here and let the GraphQL execution take care of the validation
+                    continue;
+                }
+
+                MapIntoVariables(variables, parameter, value);
+            }
+        }
+
+        if (endpointDescriptor.QueryParameters.Count > 0)
+        {
+            foreach (var parameter in endpointDescriptor.QueryParameters)
+            {
+                if (!httpContext.Request.Query.TryGetValue(parameter.Key, out var value))
+                {
+                    // We just skip here and let the GraphQL execution take care of the validation
+                    continue;
+                }
+
+                MapIntoVariables(variables, parameter, value);
+            }
+        }
+
+        return variables;
+    }
+
+    private static void MapIntoVariables(
+        Dictionary<string, object?> variables,
+        OpenApiRouteSegmentParameter parameter,
+        object? value)
+    {
+        if (parameter.InputObjectPath.HasValue)
+        {
+            var objectProperty = GetObjectProperty(variables, parameter.Variable);
+            var path = parameter.InputObjectPath.Value;
+
+            for (var i = 0; i < path.Length - 1; i++)
+            {
+                objectProperty = GetObjectProperty(objectProperty, path[i]);
+            }
+
+            objectProperty[path[^1]] = value;
+        }
+        else
+        {
+            variables[parameter.Variable] = value;
+        }
+    }
+
+    private static Dictionary<string, object?> GetObjectProperty(
+        Dictionary<string, object?> @object,
+        string key)
+    {
+        if (!@object.TryGetValue(key, out var existing))
+        {
+            var newObject = new Dictionary<string, object?>();
+            @object[key] = newObject;
+            return newObject;
+        }
+
+        if (existing is Dictionary<string, object?> existingDict)
+        {
+            return existingDict;
+        }
+
+        throw new InvalidOperationException($"Path segment '{key}' is not an object");
+    }
+
+    // TODO: This json stuff should live elsewhere
+    private static void ParseJsonIntoDictionary(
+        Dictionary<string, object?> dictionary,
+        ReadOnlySpan<byte> utf8Json)
+    {
+        var reader = new Utf8JsonReader(utf8Json);
+
+        if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
+        {
+            throw new JsonException("Expected JSON object");
+        }
+
+        ParseObject(ref reader, dictionary);
+    }
+
+    private static void ParseObject(ref Utf8JsonReader reader, Dictionary<string, object?> dictionary)
+    {
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndObject)
+            {
+                return;
+            }
+
+            if (reader.TokenType != JsonTokenType.PropertyName)
+            {
+                throw new JsonException("Expected property name");
+            }
+
+            var propertyName = reader.GetString()!;
+            reader.Read();
+
+            dictionary[propertyName] = ParseValue(ref reader);
+        }
+    }
+
+    private static object? ParseValue(ref Utf8JsonReader reader)
+    {
+        return reader.TokenType switch
+        {
+            JsonTokenType.String => reader.GetString(),
+            JsonTokenType.Number => reader.TryGetInt64(out var l) ? l : reader.GetDouble(),
+            JsonTokenType.True => true,
+            JsonTokenType.False => false,
+            JsonTokenType.Null => null,
+            JsonTokenType.StartObject => ParseObjectValue(ref reader),
+            JsonTokenType.StartArray => ParseArrayValue(ref reader),
+            _ => throw new JsonException($"Unexpected token: {reader.TokenType}")
+        };
+    }
+
+    private static Dictionary<string, object?> ParseObjectValue(ref Utf8JsonReader reader)
+    {
+        var obj = new Dictionary<string, object?>();
+        ParseObject(ref reader, obj);
+        return obj;
+    }
+
+    private static List<object?> ParseArrayValue(ref Utf8JsonReader reader)
+    {
+        var array = new List<object?>();
+
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndArray)
+            {
+                return array;
+            }
+
+            array.Add(ParseValue(ref reader));
+        }
+
+        throw new JsonException("Unexpected end of array");
     }
 
     private static IResult GetResultFromErrors(IReadOnlyList<IError> errors)
