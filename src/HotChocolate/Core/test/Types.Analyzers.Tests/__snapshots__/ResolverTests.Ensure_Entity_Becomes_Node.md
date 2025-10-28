@@ -132,7 +132,7 @@ namespace TestNamespace
                     typeof(int),
                     isNullable: false,
                     [
-                        new global::HotChocolate.Types.Relay.IDAttribute<global::TestNamespace.Test>().
+                        new global::HotChocolate.Types.Relay.IDAttribute<global::TestNamespace.Test>()
                     ]);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetTestById()
@@ -204,28 +204,5 @@ namespace TestNamespace
 }
 
 
-```
-
-## Assembly Emit Diagnostics
-
-```json
-[
-  {
-    "Id": "CS1001",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "Query.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (89,103)-(89,103)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1001)",
-    "MessageFormat": "Identifier expected",
-    "Message": "Identifier expected",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  }
-]
 ```
 
