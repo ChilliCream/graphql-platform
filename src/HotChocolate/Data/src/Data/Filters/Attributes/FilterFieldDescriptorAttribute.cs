@@ -14,10 +14,10 @@ public abstract class FilterFieldDescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider attributeProvider)
     {
         if (descriptor is IFilterFieldDescriptor d
-            && element is MemberInfo m)
+            && attributeProvider is MemberInfo m)
         {
             OnConfigure(context, d, m);
         }

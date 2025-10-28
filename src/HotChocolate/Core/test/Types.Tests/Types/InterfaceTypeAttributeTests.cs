@@ -103,10 +103,9 @@ public class InterfaceTypeAttributeTests
 
         public object DefaultValue { get; }
 
-        protected override void OnConfigure(
-            IDescriptorContext context,
+        protected override void OnConfigure(IDescriptorContext context,
             IArgumentDescriptor descriptor,
-            ParameterInfo parameter)
+            ParameterInfo? parameter)
         {
             descriptor.DefaultValue(DefaultValue);
         }

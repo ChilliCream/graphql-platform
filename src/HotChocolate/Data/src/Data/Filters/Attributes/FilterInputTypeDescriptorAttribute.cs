@@ -14,10 +14,10 @@ public abstract class FilterInputTypeDescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider attributeProvider)
     {
         if (descriptor is IFilterInputTypeDescriptor d
-            && element is Type t)
+            && attributeProvider is Type t)
         {
             OnConfigure(context, d, t);
         }

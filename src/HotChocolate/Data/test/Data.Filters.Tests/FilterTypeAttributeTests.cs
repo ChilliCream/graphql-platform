@@ -60,7 +60,7 @@ public class FilterInputAttributeTests
         protected internal override void TryConfigure(
             IDescriptorContext context,
             IDescriptor d,
-            ICustomAttributeProvider element)
+            ICustomAttributeProvider attributeProvider)
         {
             if (d is FilterInputTypeDescriptor<FooGeneric> descriptor)
             {
@@ -77,7 +77,7 @@ public class FilterInputAttributeTests
         protected internal override void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,
-            ICustomAttributeProvider element)
+            ICustomAttributeProvider attributeProvider)
         {
             if (descriptor is FilterFieldDescriptor filterFieldDescriptor)
             {

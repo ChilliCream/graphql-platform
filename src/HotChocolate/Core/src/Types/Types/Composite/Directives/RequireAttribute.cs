@@ -35,10 +35,9 @@ public class RequireAttribute : ArgumentDescriptorAttribute
     /// </summary>
     public string? Field { get; }
 
-    protected override void OnConfigure(
-        IDescriptorContext context,
+    protected override void OnConfigure(IDescriptorContext context,
         IArgumentDescriptor descriptor,
-        ParameterInfo parameter)
+        ParameterInfo? parameter)
     {
         var field = Field;
 

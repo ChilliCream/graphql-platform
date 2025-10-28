@@ -90,20 +90,20 @@ public class IDAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider attributeProvider)
     {
         switch (descriptor)
         {
-            case IInputFieldDescriptor d when element is PropertyInfo:
+            case IInputFieldDescriptor d:
                 d.ID(TypeName);
                 break;
-            case IArgumentDescriptor d when element is ParameterInfo:
+            case IArgumentDescriptor d:
                 d.ID(TypeName);
                 break;
-            case IObjectFieldDescriptor d when element is MemberInfo:
+            case IObjectFieldDescriptor d:
                 d.ID(TypeName);
                 break;
-            case IInterfaceFieldDescriptor d when element is MemberInfo:
+            case IInterfaceFieldDescriptor d:
                 d.ID();
                 break;
         }
@@ -197,20 +197,20 @@ public class IDAttribute<T> : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider attributeProvider)
     {
         switch (descriptor)
         {
-            case IInputFieldDescriptor d when element is PropertyInfo:
+            case IInputFieldDescriptor d:
                 d.ID(TypeName);
                 break;
-            case IArgumentDescriptor d when element is ParameterInfo:
+            case IArgumentDescriptor d:
                 d.ID(TypeName);
                 break;
-            case IObjectFieldDescriptor d when element is MemberInfo:
+            case IObjectFieldDescriptor d:
                 d.ID(TypeName);
                 break;
-            case IInterfaceFieldDescriptor d when element is MemberInfo:
+            case IInterfaceFieldDescriptor d:
                 d.ID();
                 break;
         }

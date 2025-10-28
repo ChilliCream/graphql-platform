@@ -9,10 +9,10 @@ public abstract class DirectiveArgumentDescriptorAttribute : DescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider attributeProvider)
     {
         if (descriptor is IDirectiveArgumentDescriptor d
-            && element is PropertyInfo property)
+            && attributeProvider is PropertyInfo property)
         {
             OnConfigure(context, d, property);
         }

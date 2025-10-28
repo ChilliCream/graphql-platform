@@ -79,9 +79,9 @@ public sealed class KeyAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider attributeProvider)
     {
-        switch (element)
+        switch (attributeProvider)
         {
             case Type type:
                 ConfigureType(type, descriptor);

@@ -97,6 +97,7 @@ public static class WellKnownTypes
     public const string ArgumentConfiguration = "HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration";
     public const string ParameterDescriptor = "HotChocolate.Internal.ParameterDescriptor";
     public const string TypeContext = "HotChocolate.Types.TypeContext";
+    public const string ConfigurationHelper = "HotChocolate.Internal.ConfigurationHelper";
 
     public static HashSet<string> TypeClass { get; } =
     [

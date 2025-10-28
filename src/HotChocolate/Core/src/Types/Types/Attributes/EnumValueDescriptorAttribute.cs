@@ -12,10 +12,10 @@ public abstract class EnumValueDescriptorAttribute : DescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider attributeProvider)
     {
         if (descriptor is IEnumValueDescriptor d
-            && element is FieldInfo f)
+            && attributeProvider is FieldInfo f)
         {
             OnConfigure(context, d, f);
         }

@@ -1,3 +1,4 @@
+using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 

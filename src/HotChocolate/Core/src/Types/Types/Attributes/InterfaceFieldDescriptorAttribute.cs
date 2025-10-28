@@ -13,10 +13,10 @@ public abstract class InterfaceFieldDescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider attributeProvider)
     {
         if (descriptor is IInterfaceFieldDescriptor d
-            && element is MemberInfo m)
+            && attributeProvider is MemberInfo m)
         {
             OnConfigure(context, d, m);
         }

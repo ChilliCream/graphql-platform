@@ -132,10 +132,9 @@ public class ObjectTypeAttributeTests
 
         public object DefaultValue { get; }
 
-        protected override void OnConfigure(
-            IDescriptorContext context,
+        protected override void OnConfigure(IDescriptorContext context,
             IArgumentDescriptor descriptor,
-            ParameterInfo parameterInfo)
+            ParameterInfo? parameterInfo)
         {
             descriptor.DefaultValue(DefaultValue);
         }

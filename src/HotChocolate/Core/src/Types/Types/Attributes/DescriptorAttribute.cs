@@ -11,18 +11,23 @@ public abstract class DescriptorAttribute : Attribute, IDescriptorConfiguration
     public int Order { get; set; } = int.MaxValue;
 
     /// <summary>
+    /// Requires the attribute provide this configuration was applied to for reflection.
+    /// </summary>
+    public bool RequiresAttributeProvider { get; set; } = false;
+
+    /// <summary>
     /// Override this to implement the configuration logic for this attribute.
     /// </summary>
     protected internal abstract void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element);
+        ICustomAttributeProvider? attributeProvider);
 
     void IDescriptorConfiguration.TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
-        => TryConfigure(context, descriptor, element);
+        ICustomAttributeProvider? attributeProvider)
+        => TryConfigure(context, descriptor, attributeProvider);
 
     /// <summary>
     /// Allows to apply a child attribute withing the context of this attribute.
@@ -30,7 +35,7 @@ public abstract class DescriptorAttribute : Attribute, IDescriptorConfiguration
     protected static void ApplyAttribute<T>(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element,
+        ICustomAttributeProvider? element,
         T attribute)
         where T : DescriptorAttribute
     {
