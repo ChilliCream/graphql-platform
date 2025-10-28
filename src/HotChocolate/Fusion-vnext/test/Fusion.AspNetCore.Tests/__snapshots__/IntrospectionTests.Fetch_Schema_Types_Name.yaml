@@ -81,17 +81,17 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Author {
         id: Int!
       }
-      
+
       type Book {
         id: Int!
         title: String!
         author: Author!
       }
-      
+
       "A connection to a list of items."
       type BooksConnection {
         "Information to aid in pagination."
@@ -101,7 +101,7 @@ sourceSchemas:
         "A flattened list of the nodes."
         nodes: [Book!]
       }
-      
+
       "An edge in a connection."
       type BooksEdge {
         "A cursor for use in pagination."
@@ -109,7 +109,7 @@ sourceSchemas:
         "The item at the end of the edge."
         node: Book!
       }
-      
+
       "Information about pagination in a connection."
       type PageInfo {
         "Indicates whether more edges exist following the set defined by the clients arguments."
@@ -121,7 +121,7 @@ sourceSchemas:
         "When paginating forwards, the cursor to continue."
         endCursor: String
       }
-      
+
       type Query {
         bookById(id: Int!): Book! @lookup
         books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
@@ -131,13 +131,13 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Author {
         books: [Book!]!
         id: Int!
         name: String!
       }
-      
+
       "A connection to a list of items."
       type AuthorsConnection {
         "Information to aid in pagination."
@@ -147,7 +147,7 @@ sourceSchemas:
         "A flattened list of the nodes."
         nodes: [Author!]
       }
-      
+
       "An edge in a connection."
       type AuthorsEdge {
         "A cursor for use in pagination."
@@ -155,12 +155,12 @@ sourceSchemas:
         "The item at the end of the edge."
         node: Author!
       }
-      
+
       type Book {
         id: Int!
         author: Author!
       }
-      
+
       "Information about pagination in a connection."
       type PageInfo {
         "Indicates whether more edges exist following the set defined by the clients arguments."
@@ -172,7 +172,7 @@ sourceSchemas:
         "When paginating forwards, the cursor to continue."
         endCursor: String
       }
-      
+
       type Query {
         authorById(id: Int!): Author! @internal @lookup
         authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
@@ -193,6 +193,6 @@ operationPlan:
     - id: 1
       type: Introspection
       selections:
-        - id: 1
+        - id: 2
           responseName: __schema
           fieldName: __schema

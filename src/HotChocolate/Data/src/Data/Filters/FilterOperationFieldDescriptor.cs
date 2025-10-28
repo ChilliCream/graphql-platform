@@ -31,10 +31,16 @@ public class FilterOperationFieldDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Property: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.Property);
-            Configuration.AttributesAreApplied = true;
+            DescriptorAttributeHelper.ApplyConfiguration(
+                Context,
+                this,
+                Configuration.Property,
+                Configuration.Property,
+                Configuration.Configurations);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         base.OnCreateConfiguration(configuration);

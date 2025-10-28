@@ -37,7 +37,7 @@ internal sealed class DownloadSchemaCommand : Command
     {
         console.Title("Download schema");
 
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             await console
                 .Status()

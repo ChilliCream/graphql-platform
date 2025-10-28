@@ -30,7 +30,7 @@ internal sealed class InvalidShareableUsageRule : IEventHandler<OutputFieldEvent
 
         if (type is MutableInterfaceTypeDefinition && field.HasShareableDirective())
         {
-            context.Log.Write(InvalidShareableUsage(field, type, schema));
+            context.Log.Write(InvalidShareableUsage(field, schema));
         }
     }
 }

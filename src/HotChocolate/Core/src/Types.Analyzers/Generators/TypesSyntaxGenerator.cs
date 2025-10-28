@@ -131,7 +131,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         file.WriteHeader();
         file.WriteBeginNamespace(type);
         file.WriteBeginClass(type);
-        file.WriteInitializeMethod(type);
+        file.WriteInitializeMethod(type, typeLookup);
         file.WriteConfigureMethod(type);
         file.WriteBeginResolverClass();
         file.WriteResolverFields(type);

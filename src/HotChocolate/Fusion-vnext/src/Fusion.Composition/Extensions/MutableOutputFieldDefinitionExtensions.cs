@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
@@ -13,16 +12,6 @@ namespace HotChocolate.Fusion.Extensions;
 
 internal static class MutableOutputFieldDefinitionExtensions
 {
-    public static void ApplyShareableDirective(this MutableOutputFieldDefinition field)
-    {
-        if (field.Directives.ContainsName(DirectiveNames.Shareable))
-        {
-            return;
-        }
-
-        field.Directives.Add(new Directive(new ShareableMutableDirectiveDefinition()));
-    }
-
     public static bool ExistsInSchema(this MutableOutputFieldDefinition field, string schemaName)
     {
         return field.Directives.AsEnumerable().Any(
@@ -94,7 +83,8 @@ internal static class MutableOutputFieldDefinitionExtensions
         MutableSchemaDefinition schema)
     {
         var selectedValues = lookupMap.Select(a => new FieldSelectionMapParser(a).Parse());
-        var valueSelectionToSelectionSetRewriter = new ValueSelectionToSelectionSetRewriter(schema);
+        var valueSelectionToSelectionSetRewriter =
+            new ValueSelectionToSelectionSetRewriter(schema, ignoreMissingTypeSystemMembers: true);
         var fieldType = field.Type.AsTypeDefinition();
         var selectionSets = selectedValues
             .Select(s => valueSelectionToSelectionSetRewriter.Rewrite(s, fieldType))
@@ -106,9 +96,9 @@ internal static class MutableOutputFieldDefinitionExtensions
         return mergedSelectionSet.ToString(indented: false).AsSpan()[2..^2].ToString();
     }
 
-    public static bool HasInternalDirective(this MutableOutputFieldDefinition type)
+    public static bool HasInternalDirective(this MutableOutputFieldDefinition field)
     {
-        return type.Directives.ContainsName(DirectiveNames.Internal);
+        return field.Directives.ContainsName(DirectiveNames.Internal);
     }
 
     public static bool IsPartial(this MutableOutputFieldDefinition field, string schemaName)

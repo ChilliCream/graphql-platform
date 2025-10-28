@@ -33,8 +33,9 @@ public sealed class SchemaComposer
     public CompositionResult<MutableSchemaDefinition> Compose()
     {
         // Parse Source Schemas
+        var parserOptions = _schemaComposerOptions.Parser;
         var (_, isParseFailure, schemas, parseErrors) =
-            new SourceSchemaParser(_sourceSchemas, _log).Parse();
+            new SourceSchemaParser(_sourceSchemas, _log, parserOptions).Parse();
 
         if (isParseFailure)
         {
@@ -78,10 +79,7 @@ public sealed class SchemaComposer
         }
 
         // Merge Source Schemas
-        var sourceSchemaMergerOptions = new SourceSchemaMergerOptions
-        {
-            EnableGlobalObjectIdentification = _schemaComposerOptions.EnableGlobalObjectIdentification
-        };
+        var sourceSchemaMergerOptions = _schemaComposerOptions.Merger;
         var (_, isMergeFailure, mergedSchema, mergeErrors) =
             new SourceSchemaMerger(schemas, sourceSchemaMergerOptions).Merge();
 
@@ -114,6 +112,9 @@ public sealed class SchemaComposer
     [
         new DisallowedInaccessibleElementsRule(),
         new ExternalOnInterfaceRule(),
+        new ExternalOverrideCollisionRule(),
+        new ExternalProvidesCollisionRule(),
+        new ExternalRequireCollisionRule(),
         new ExternalUnusedRule(),
         new InvalidShareableUsageRule(),
         new IsInvalidFieldTypeRule(),
@@ -147,7 +148,10 @@ public sealed class SchemaComposer
     [
         new EnumValuesMismatchRule(),
         new ExternalArgumentDefaultMismatchRule(),
+        new ExternalArgumentMissingRule(),
+        new ExternalArgumentTypeMismatchRule(),
         new ExternalMissingOnBaseRule(),
+        new ExternalTypeMismatchRule(),
         new FieldArgumentTypesMergeableRule(),
         new FieldWithMissingRequiredArgumentRule(),
         new InputFieldDefaultMismatchRule(),

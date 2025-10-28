@@ -48,7 +48,7 @@ internal sealed class PublishClientCommand : Command
 
         var committed = false;
 
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             await console
                 .Status()
@@ -109,7 +109,7 @@ internal sealed class PublishClientCommand : Command
                         break;
 
                     case IClientVersionPublishFailed { Errors: var clientErrors }:
-                        console.Error("Client publish failed");
+                        console.Error.WriteLine("Client publish failed");
                         console.PrintErrorsAndExit(clientErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;

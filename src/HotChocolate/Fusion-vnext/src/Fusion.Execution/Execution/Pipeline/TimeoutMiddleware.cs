@@ -96,5 +96,5 @@ internal sealed class TimeoutMiddleware
                 var middleware = new TimeoutMiddleware(next, schema, options);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(TimeoutMiddleware));
+            WellKnownRequestMiddleware.TimeoutMiddleware);
 }

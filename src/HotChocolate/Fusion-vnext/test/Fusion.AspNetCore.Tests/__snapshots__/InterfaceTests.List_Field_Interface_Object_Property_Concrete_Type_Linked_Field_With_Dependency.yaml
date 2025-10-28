@@ -51,30 +51,30 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Votable {
         viewerCanVote: Boolean!
       }
-      
-      type Author @key(fields: "id") {
+
+      type Author {
         id: ID!
       }
-      
-      type Comment implements Votable @key(fields: "id") {
+
+      type Comment implements Votable {
         id: ID!
         viewerCanVote: Boolean!
       }
-      
-      type Discussion implements Votable @key(fields: "id") {
+
+      type Discussion implements Votable {
         id: ID!
         viewerCanVote: Boolean!
         author: Author
       }
-      
+
       type Query {
         wrappers: [Wrapper]
       }
-      
+
       type Wrapper {
         votable: Votable
       }
@@ -135,12 +135,12 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
-      type Author @key(fields: "id") {
+
+      type Author {
         id: ID!
         displayName: String!
       }
-      
+
       type Query {
         authorById(id: ID!): Author @lookup
       }

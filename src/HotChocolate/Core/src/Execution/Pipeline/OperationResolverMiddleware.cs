@@ -120,5 +120,5 @@ internal sealed class OperationResolverMiddleware
                     diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(OperationResolverMiddleware));
+            WellKnownRequestMiddleware.OperationResolverMiddleware);
 }

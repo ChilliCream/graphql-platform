@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Immutable;
 using System.Linq.Expressions;
 using HotChocolate.Execution;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -1580,7 +1581,7 @@ public class ObjectTypeTests : TypeTestBase
                     .Field("test")
                     .Resolve(
                         _ => new ValueTask<object?>("abc"),
-                        typeof(NativeType<List<int>>)))
+                        typeof(NamedRuntimeType<List<int>>)))
             .Create();
 
         // assert
@@ -1839,7 +1840,7 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task AnotationBased_DeprecatedArgument_Should_BeDeprecated()
+    public async Task AnnotationBased_DeprecatedArgument_Should_BeDeprecated()
     {
         // arrangt
         // act
@@ -1853,7 +1854,7 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task AnotationBased_DeprecatedArgument_NonNullableIsDeprecated_Throw()
+    public async Task AnnotationBased_DeprecatedArgument_NonNullableIsDeprecated_Throw()
     {
         // arrange
         // act

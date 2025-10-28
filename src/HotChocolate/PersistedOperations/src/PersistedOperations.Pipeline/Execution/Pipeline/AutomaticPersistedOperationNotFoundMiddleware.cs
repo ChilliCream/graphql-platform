@@ -56,5 +56,5 @@ internal sealed class AutomaticPersistedOperationNotFoundMiddleware
                 var middleware = new AutomaticPersistedOperationNotFoundMiddleware(next, diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(AutomaticPersistedOperationNotFoundMiddleware));
+            WellKnownRequestMiddleware.AutomaticPersistedOperationNotFoundMiddleware);
 }

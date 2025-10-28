@@ -99,8 +99,6 @@ csharp_space_between_parentheses = false
 csharp_preserve_single_line_statements = false
 csharp_preserve_single_line_blocks = true
 
-dotnet_style_require_accessibility_modifiers = always
-
 # Public API
 dotnet_diagnostic.rs0016.severity = warning
 dotnet_diagnostic.rcs1194.severity = none
@@ -203,6 +201,9 @@ dotnet_diagnostic.IDE0028.severity = warning
 dotnet_diagnostic.IDE0036.severity = warning
 # Use inferred member names.
 dotnet_diagnostic.IDE0037.severity = warning
+# Add accessibility modifiers.
+dotnet_diagnostic.IDE0040.severity = warning
+dotnet_style_require_accessibility_modifiers = for_non_interface_members
 # Add readonly modifier.
 dotnet_diagnostic.IDE0044.severity = warning
 dotnet_diagnostic.RCS1169.severity = none

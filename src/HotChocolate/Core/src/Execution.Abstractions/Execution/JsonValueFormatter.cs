@@ -246,6 +246,22 @@ public static class JsonValueFormatter
         }
     }
 
+    public static void WriteErrors(
+        Utf8JsonWriter writer,
+        IReadOnlyList<IError> error,
+        JsonSerializerOptions options,
+        JsonNullIgnoreCondition nullIgnoreCondition)
+    {
+        writer.WriteStartArray();
+
+        for (var i = 0; i < error.Count; i++)
+        {
+            WriteError(writer, error[i], options, nullIgnoreCondition);
+        }
+
+        writer.WriteEndArray();
+    }
+
     public static void WriteError(
         Utf8JsonWriter writer,
         IError error,

@@ -24,11 +24,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
         reviews: [Review!]
       }
-      
+
       type Review {
         id: Int!
       }

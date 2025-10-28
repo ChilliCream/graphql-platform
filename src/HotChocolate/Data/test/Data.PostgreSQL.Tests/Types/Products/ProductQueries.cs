@@ -2,6 +2,7 @@ using GreenDonut.Data;
 using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
 using HotChocolate.Types;
+using HotChocolate.Types.Composite;
 
 namespace HotChocolate.Data.Types.Products;
 

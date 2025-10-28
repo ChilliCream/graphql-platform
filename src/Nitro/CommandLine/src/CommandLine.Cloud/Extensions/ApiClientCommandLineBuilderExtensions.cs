@@ -104,7 +104,7 @@ internal static class ApiClientCommandLineBuilderExtensions
         return services.BuildServiceProvider().GetRequiredService<IApiClient>();
     }
 
-    static string Version
+    private static string Version
     {
         get
         {

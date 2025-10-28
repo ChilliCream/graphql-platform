@@ -17,14 +17,8 @@ internal sealed class IsInvalidFieldTypeRule : IEventHandler<IsFieldInvalidTypeE
 {
     public void Handle(IsFieldInvalidTypeEvent @event, CompositionContext context)
     {
-        var (isDirective, argument, field, type, schema) = @event;
+        var (isDirective, argument, _, _, schema) = @event;
 
-        context.Log.Write(
-            IsInvalidFieldType(
-                isDirective,
-                argument.Name,
-                field.Name,
-                type.Name,
-                schema));
+        context.Log.Write(IsInvalidFieldType(isDirective, argument, schema));
     }
 }

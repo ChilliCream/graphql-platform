@@ -1,3 +1,4 @@
+using System.IO.Pipelines;
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -7,11 +8,13 @@ namespace HotChocolate.AzureFunctions.IsolatedProcess;
 
 internal sealed class AzureHttpResponse : HttpResponse
 {
+    private static readonly StreamPipeWriterOptions s_options = new(leaveOpen: true);
     private readonly HttpResponse _response;
     private readonly HttpRequestData _requestData;
     private readonly object _sync = new();
     private HttpResponseData? _responseData;
     private AzureHeaderDictionary? _headers;
+    private PipeWriter? _writer;
 
     public AzureHttpResponse(HttpResponse response, HttpRequestData requestData)
     {
@@ -64,6 +67,15 @@ internal sealed class AzureHttpResponse : HttpResponse
         set => ResponseData.Body = value;
     }
 
+    public override PipeWriter BodyWriter
+    {
+        get
+        {
+            _writer ??= PipeWriter.Create(Body, s_options);
+            return _writer;
+        }
+    }
+
     public override long? ContentLength
     {
         get => Headers.ContentLength;
@@ -88,4 +100,13 @@ internal sealed class AzureHttpResponse : HttpResponse
 
     public override void Redirect(string location, bool permanent)
         => throw new NotSupportedException();
+
+    public override async Task CompleteAsync()
+    {
+        if (_writer is not null)
+        {
+            await _writer.FlushAsync().ConfigureAwait(false);
+            await _writer.CompleteAsync().ConfigureAwait(false);
+        }
+    }
 }

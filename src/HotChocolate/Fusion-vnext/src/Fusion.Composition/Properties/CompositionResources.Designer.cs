@@ -60,6 +60,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} (Schema: &apos;{1}&apos;).
+        /// </summary>
+        internal static string CompositionLogExtensions_EntryMessageWithSchemaName {
+            get {
+                return ResourceManager.GetString("CompositionLogExtensions_EntryMessageWithSchemaName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Post-merge validation failed..
         /// </summary>
         internal static string ErrorHelper_PostMergeValidationFailed {
@@ -627,6 +636,24 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; must define the argument &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalArgumentMissing {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalArgumentMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; on external field &apos;{1}&apos; in schema &apos;{2}&apos; has a different type ({3}) than it does in schema &apos;{4}&apos; ({5})..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalArgumentTypeMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalArgumentTypeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; is not defined (non-external) in any other schema..
         /// </summary>
         internal static string LogEntryHelper_ExternalMissingOnBase {
@@ -641,6 +668,42 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_ExternalOnInterface {
             get {
                 return ResourceManager.GetString("LogEntryHelper_ExternalOnInterface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; must not be annotated with the @override directive..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalOverrideCollision {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalOverrideCollision", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; must not be annotated with the @provides directive..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalProvidesCollision {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalProvidesCollision", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; must not have arguments that are annotated with the @require directive..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalRequireCollision {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalRequireCollision", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; has a different type ({2}) than it does in schema &apos;{3}&apos; ({4})..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalTypeMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalTypeMismatch", resourceCulture);
             }
         }
         
@@ -1014,15 +1077,6 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type or directive &apos;{0}&apos; in schema &apos;{1}&apos; is incompatible with the built-in type or directive of the same name..
-        /// </summary>
-        internal static string LogEntryHelper_TypeDefinitionInvalid {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_TypeDefinitionInvalid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; has a different kind in schema &apos;{1}&apos; ({2}) than it does in schema &apos;{3}&apos; ({4})..
         /// </summary>
         internal static string LogEntryHelper_TypeKindMismatch {
@@ -1073,6 +1127,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ProvidesMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("ProvidesMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The required field &apos;{0}&apos; must not be defined in schema &apos;{1}&apos;..
+        /// </summary>
+        internal static string RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema {
+            get {
+                return ResourceManager.GetString("RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema", resourceCulture);
             }
         }
         
@@ -1244,24 +1307,6 @@ namespace HotChocolate.Fusion.Properties {
         internal static string TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType {
             get {
                 return ResourceManager.GetString("TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The argument &apos;{0}&apos; is missing..
-        /// </summary>
-        internal static string TypeDefinitionInvalidRule_ArgumentMissing {
-            get {
-                return ResourceManager.GetString("TypeDefinitionInvalidRule_ArgumentMissing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The argument &apos;{0}&apos; has a different type..
-        /// </summary>
-        internal static string TypeDefinitionInvalidRule_ArgumentTypeDifferent {
-            get {
-                return ResourceManager.GetString("TypeDefinitionInvalidRule_ArgumentTypeDifferent", resourceCulture);
             }
         }
     }

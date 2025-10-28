@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -9,12 +10,12 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
-// TODO: we must make this thread-safe
 internal sealed class FetchResultStore : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
@@ -24,21 +25,18 @@ internal sealed class FetchResultStore : IDisposable
     private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly ulong _includeFlags;
     private readonly ConcurrentStack<IDisposable> _memory = [];
-    private ObjectResult _root = null!;
-    private ValueCompletion _valueCompletion = null!;
-    private List<IError> _errors = null!;
+    private CompositeResultDocument _result;
+    private ValueCompletion _valueCompletion;
     private bool _disposed;
 
     public FetchResultStore(
         ISchemaDefinition schema,
         IErrorHandler errorHandler,
-        ResultPoolSession resultPoolSession,
         Operation operation,
         ErrorHandlingMode errorHandlingMode,
         ulong includeFlags)
     {
         ArgumentNullException.ThrowIfNull(schema);
-        ArgumentNullException.ThrowIfNull(resultPoolSession);
         ArgumentNullException.ThrowIfNull(operation);
 
         _schema = schema;
@@ -47,29 +45,31 @@ internal sealed class FetchResultStore : IDisposable
         _errorHandlingMode = errorHandlingMode;
         _includeFlags = includeFlags;
 
-        Reset(resultPoolSession);
-    }
-
-    public void Reset(ResultPoolSession resultPoolSession)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        _root = resultPoolSession.RentObjectResult();
-        _root.Initialize(resultPoolSession, _operation.RootSelectionSet, _includeFlags);
-        _errors = [];
+        _result = new CompositeResultDocument(operation, includeFlags);
 
         _valueCompletion = new ValueCompletion(
             _schema,
+            _result,
             _errorHandler,
-            resultPoolSession,
             _errorHandlingMode,
-            32,
-            _includeFlags,
-            _errors);
+            maxDepth: 32);
     }
 
-    public ObjectResult Data => _root;
+    public void Reset()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-    public List<IError> Errors => _errors;
+        _result = new CompositeResultDocument(_operation, _includeFlags);
+
+        _valueCompletion = new ValueCompletion(
+            _schema,
+            _result,
+            _errorHandler,
+            _errorHandlingMode,
+            maxDepth: 32);
+    }
+
+    public CompositeResultDocument Result => _result;
 
     public ConcurrentStack<IDisposable> MemoryOwners => _memory;
 
@@ -88,7 +88,7 @@ internal sealed class FetchResultStore : IDisposable
                 nameof(results));
         }
 
-        var dataElements = ArrayPool<JsonElement>.Shared.Rent(results.Length);
+        var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
         var errorTries = ArrayPool<ErrorTrie?>.Shared.Rent(results.Length);
         var dataElementsSpan = dataElements.AsSpan()[..results.Length];
         var errorTriesSpan = errorTries.AsSpan()[..results.Length];
@@ -107,7 +107,8 @@ internal sealed class FetchResultStore : IDisposable
 
                 if (result.Errors?.RootErrors is { Length: > 0 } rootErrors)
                 {
-                    _errors.AddRange(rootErrors);
+                    _result.Errors ??= [];
+                    _result.Errors.AddRange(rootErrors);
                 }
 
                 dataElement = GetDataElement(sourcePath, result.Data);
@@ -122,43 +123,41 @@ internal sealed class FetchResultStore : IDisposable
         }
         finally
         {
-            ArrayPool<JsonElement>.Shared.Return(dataElements);
+            ArrayPool<SourceResultElement>.Shared.Return(dataElements);
             ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
         }
     }
 
-    public bool AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
+    /// <summary>
+    /// Adds partial root data to the result document.
+    /// </summary>
+    /// <param name="document">
+    /// The document that contains partial results that need to be merged into the `Data` segment of the result.
+    /// </param>
+    /// <param name="responseNames">
+    /// The names of the root fields the document provides data for.
+    /// </param>
+    /// <returns>
+    /// true if the result was integrated.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="document"/> is null.
+    /// </exception>
+    public bool AddPartialResults(SourceResultDocument document, ReadOnlySpan<string> responseNames)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        ArgumentNullException.ThrowIfNull(result);
-
-        if (selections.Length == 0)
-        {
-            throw new ArgumentException(
-                "The selections span must contain at least one selection.",
-                nameof(selections));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         _lock.EnterWriteLock();
 
         try
         {
-            foreach (var selection in selections)
-            {
-                if (!selection.IsIncluded(_includeFlags))
-                {
-                    continue;
-                }
+            var partial = document.Root;
+            var data = _result.Data;
 
-                if (_root.IsInvalidated)
-                {
-                    return false;
-                }
-
-                result.MoveFieldTo(selection.ResponseName, _root);
-            }
-
-            return true;
+            return _valueCompletion.BuildResult(
+                partial,
+                data, errorTrie: null, responseNames: responseNames);
         }
         finally
         {
@@ -174,30 +173,30 @@ internal sealed class FetchResultStore : IDisposable
         {
             ref var path = ref MemoryMarshal.GetReference(paths);
             ref var end = ref Unsafe.Add(ref path, paths.Length);
+            var resultData = _result.Data;
 
             while (Unsafe.IsAddressLessThan(ref path, ref end))
             {
-                if (_root.IsInvalidated)
+                if (resultData.IsInvalidated)
                 {
                     return false;
                 }
 
-                var objectResult = path.IsRoot ? _root : GetStartObjectResult(path);
-
-#pragma warning disable RCS1146
-                // disabled warning for readability of the condition.
-                if (objectResult is null || objectResult.IsInvalidated)
+                var element = path.IsRoot ? resultData : GetStartObjectResult(path);
+                if (element.IsNullOrInvalidated)
                 {
                     goto AddErrors_Next;
                 }
-#pragma warning restore RCS1146
 
-                var canExecutionContinue = _valueCompletion.BuildErrorResult(objectResult, responseNames, error, path);
-
+                var canExecutionContinue =
+                    _valueCompletion.BuildErrorResult(
+                        element,
+                        responseNames,
+                        error,
+                        path);
                 if (!canExecutionContinue)
                 {
-                    _root.IsInvalidated = true;
-
+                    resultData.Invalidate();
                     return false;
                 }
 
@@ -215,7 +214,7 @@ AddErrors_Next:
 
     private bool SaveSafe(
         ReadOnlySpan<SourceSchemaResult> results,
-        ReadOnlySpan<JsonElement> dataElements,
+        ReadOnlySpan<SourceResultElement> dataElements,
         ReadOnlySpan<ErrorTrie?> errorTries,
         ReadOnlySpan<string> responseNames)
     {
@@ -227,35 +226,31 @@ AddErrors_Next:
             ref var data = ref MemoryMarshal.GetReference(dataElements);
             ref var errorTrie = ref MemoryMarshal.GetReference(errorTries);
             ref var end = ref Unsafe.Add(ref result, results.Length);
+            var resultData = _result.Data;
 
             while (Unsafe.IsAddressLessThan(ref result, ref end))
             {
-                if (_root.IsInvalidated)
+                if (resultData.IsNullOrInvalidated)
                 {
                     return false;
                 }
 
-#pragma warning disable RCS1146
-                // disabled warning for readability of the condition
-                var objectResult = result.Path.IsRoot ? _root : GetStartObjectResult(result.Path);
-                if (objectResult is null || objectResult.IsInvalidated)
+                var element = result.Path.IsRoot ? resultData : GetStartObjectResult(result.Path);
+                if (element.IsNullOrInvalidated)
                 {
                     goto SaveSafe_Next;
                 }
-#pragma warning restore RCS1146
 
-                var selectionSet = result.Path.IsRoot ? _operation.RootSelectionSet : objectResult.SelectionSet;
-                var canExecutionContinue = _valueCompletion.BuildResult(
-                    selectionSet,
-                    data,
-                    errorTrie,
-                    responseNames,
-                    objectResult);
+                var canExecutionContinue =
+                    _valueCompletion.BuildResult(
+                        data,
+                        element,
+                        errorTrie,
+                        responseNames);
 
                 if (!canExecutionContinue)
                 {
-                    _root.IsInvalidated = true;
-
+                    resultData.Invalidate();
                     return false;
                 }
 
@@ -293,39 +288,47 @@ SaveSafe_Next:
 
         try
         {
-            var current = new List<ObjectResult> { _root };
-            var next = new List<ObjectResult>();
+            var current = new List<CompositeResultElement> { _result.Data };
+            var next = new List<CompositeResultElement>();
 
             for (var i = 0; i < selectionSet.Segments.Length; i++)
             {
                 var segment = selectionSet.Segments[i];
-                foreach (var result in current)
+
+                foreach (var element in current)
                 {
                     if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
                     {
-                        if (result.TryGetValue(IntrospectionFieldNames.TypeName, out var value)
-                            && value is LeafFieldResult leaf
-                            && (leaf.Value.GetString()?.Equals(segment.Name) ?? false))
+                        if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
+                            && value.ValueKind is JsonValueKind.String
+                            && value.TextEqualsHelper(segment.Name, isPropertyName: false))
                         {
-                            next.Add(result);
+                            next.Add(element);
                         }
                     }
                     else if (segment.Kind is SelectionPathSegmentKind.Field)
                     {
-                        if (!result.TryGetValue(segment.Name, out var value) || value.HasNullValue)
+                        if (!element.TryGetProperty(segment.Name, out var value))
                         {
                             continue;
                         }
 
-                        if (value is ListFieldResult { Value: { } list })
+                        var valueKind = value.ValueKind;
+
+                        if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
                         {
-                            next.AddRange(UnrollLists(list));
                             continue;
                         }
 
-                        if (value is ObjectFieldResult objectField)
+                        if (valueKind is JsonValueKind.Array)
                         {
-                            next.Add(objectField.Value!);
+                            next.AddRange(UnrollLists(value));
+                            continue;
+                        }
+
+                        if (valueKind is JsonValueKind.Object)
+                        {
+                            next.Add(value);
                             continue;
                         }
 
@@ -383,15 +386,15 @@ SaveSafe_Next:
     }
 
     private ObjectValueNode? MapRequirements(
-        ObjectResult result,
-        IReadOnlyList<ObjectFieldNode> requestVariables,
-        ReadOnlySpan<OperationRequirement> requiredData,
+        CompositeResultElement result,
+        IReadOnlyList<ObjectFieldNode> forwardedVariables,
+        ReadOnlySpan<OperationRequirement> requirements,
         ref PooledArrayWriter? buffer)
     {
-        var fields = new List<ObjectFieldNode>(requestVariables.Count + requiredData.Length);
-        fields.AddRange(requestVariables);
+        var fields = new List<ObjectFieldNode>(forwardedVariables.Count + requirements.Length);
+        fields.AddRange(forwardedVariables);
 
-        foreach (var requirement in requiredData)
+        foreach (var requirement in requirements)
         {
             var field = MapRequirement(result, requirement.Key, requirement.Map, ref buffer);
 
@@ -412,7 +415,7 @@ SaveSafe_Next:
     }
 
     private ObjectFieldNode? MapRequirement(
-        ObjectResult result,
+        CompositeResultElement result,
         string key,
         IValueSelectionNode path,
         ref PooledArrayWriter? buffer)
@@ -421,39 +424,28 @@ SaveSafe_Next:
         return value is null ? null : new ObjectFieldNode(key, value);
     }
 
-    private static IEnumerable<ObjectResult> UnrollLists(ListResult list)
+    private static IEnumerable<CompositeResultElement> UnrollLists(CompositeResultElement list)
     {
-        if (list is NestedListResult nestedList)
+        foreach (var element in list.EnumerateArray())
         {
-            foreach (var item in nestedList.Items)
-            {
-                if (item is null)
-                {
-                    continue;
-                }
+            var elementValueKind = element.ValueKind;
 
-                foreach (var result in UnrollLists(item))
+            if (elementValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            {
+                continue;
+            }
+
+            if (elementValueKind is JsonValueKind.Array)
+            {
+                foreach (var nestedElement in UnrollLists(element))
                 {
-                    yield return result;
+                    yield return nestedElement;
                 }
             }
-        }
-        else if (list is ObjectListResult objectList)
-        {
-            foreach (var result in objectList.Items)
+            else
             {
-                if (result is null)
-                {
-                    continue;
-                }
-
-                yield return result;
+                yield return element;
             }
-        }
-        else
-        {
-            throw new NotSupportedException(
-                "Only nested lists and object lists are supported.");
         }
     }
 
@@ -466,7 +458,7 @@ SaveSafe_Next:
         return buffer;
     }
 
-    private static JsonElement GetDataElement(SelectionPath sourcePath, JsonElement data)
+    private static SourceResultElement GetDataElement(SelectionPath sourcePath, SourceResultElement data)
     {
         if (sourcePath.IsRoot)
         {
@@ -540,74 +532,43 @@ SaveSafe_Next:
         return current;
     }
 
-    private ObjectResult? GetStartObjectResult(Path path)
+    private CompositeResultElement GetStartObjectResult(Path path)
     {
         var result = GetStartResult(path);
-
-        if (result is ObjectResult objectResult)
-        {
-            return objectResult;
-        }
-
-        return null;
+        Debug.Assert(result.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
+        return result.ValueKind is JsonValueKind.Object or JsonValueKind.Null ? result : default;
     }
 
-    private ResultData? GetStartResult(Path path)
+    private CompositeResultElement GetStartResult(Path path)
     {
         if (path.IsRoot)
         {
-            return _root;
+            return _result.Data;
         }
 
         var parent = path.Parent;
-        var result = GetStartResult(parent);
+        var element = GetStartResult(parent);
+        var elementKind = element.ValueKind;
 
-        if (result is null)
+        if (elementKind is JsonValueKind.Null)
         {
-            return null;
+            return element;
         }
 
-        if (result is ObjectResult objectResult && path is NamePathSegment nameSegment)
+        if (elementKind is JsonValueKind.Object && path is NamePathSegment nameSegment)
         {
-            if (!objectResult.TryGetValue(nameSegment.Name, out var field))
-            {
-                return null;
-            }
-
-            return field switch
-            {
-                ObjectFieldResult objectFieldResult => objectFieldResult.Value,
-                ListFieldResult listFieldResult => listFieldResult.Value,
-                null => null,
-                _ => throw new InvalidOperationException($"The path segment '{parent}' does not exist in the data.")
-            };
+            return element.TryGetProperty(nameSegment.Name, out var field) ? field : default;
         }
 
-        if (path is IndexerPathSegment indexSegment)
+        if (elementKind is JsonValueKind.Array && path is IndexerPathSegment indexSegment)
         {
-            switch (result)
+            if (element.GetArrayLength() <= indexSegment.Index)
             {
-                case NestedListResult listResult:
-                    if (listResult.Items.Count <= indexSegment.Index)
-                    {
-                        throw new InvalidOperationException(
-                            $"The path segment '{indexSegment}' does not exist in the data.");
-                    }
-
-                    return listResult.Items[indexSegment.Index];
-
-                case ObjectListResult listResult:
-                    if (listResult.Items.Count <= indexSegment.Index)
-                    {
-                        throw new InvalidOperationException(
-                            $"The path segment '{indexSegment}' does not exist in the data.");
-                    }
-
-                    return listResult.Items[indexSegment.Index];
-
-                case null:
-                    return null;
+                throw new InvalidOperationException(
+                    $"The path segment '{indexSegment}' does not exist in the data.");
             }
+
+            return element[indexSegment.Index];
         }
 
         throw new InvalidOperationException(

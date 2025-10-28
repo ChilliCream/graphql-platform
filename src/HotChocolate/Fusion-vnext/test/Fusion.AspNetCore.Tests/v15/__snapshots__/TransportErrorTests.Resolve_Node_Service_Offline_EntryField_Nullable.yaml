@@ -30,16 +30,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Brand implements Node {
         id: ID!
         name: String
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }

@@ -6,20 +6,41 @@ namespace HotChocolate.Types.Analyzers.Models;
 
 public sealed class ResolverParameter
 {
-    public ResolverParameter(IParameterSymbol parameter, string? key, ResolverParameterKind kind)
+    public ResolverParameter(
+        IParameterSymbol parameter,
+        string? key,
+        ResolverParameterKind kind,
+        string schemaTypeName)
     {
         Parameter = parameter;
         Kind = kind;
         Name = parameter.Name;
+        SchemaTypeName = schemaTypeName;
         Key = key;
         IsNullable = !parameter.IsNonNullable();
+        DeprecationReason = null;
+        Attributes = parameter.GetAttributes();
+
+        // if this is the parent attribute we will check if we have requirements for the parent model.
+        var parentAttribute = Attributes.FirstOrDefault(a => a.AttributeClass?.Name is "ParentAttribute" or "Parent");
+        if (parentAttribute?.ConstructorArguments.Length > 0)
+        {
+            var requiresArg = parentAttribute.ConstructorArguments[0];
+            Requirements = requiresArg.Value as string;
+        }
     }
 
     public string Name { get; }
 
+    public string? Description { get; set; }
+
+    public string? DeprecationReason { get; }
+
     public string? Key { get; }
 
     public ITypeSymbol Type => Parameter.Type;
+
+    public string SchemaTypeName { get; }
 
     public ImmutableArray<ITypeSymbol> TypeParameters
         => GetGenericTypeArgument(Type);
@@ -27,6 +48,10 @@ public sealed class ResolverParameter
     public IParameterSymbol Parameter { get; }
 
     public ResolverParameterKind Kind { get; }
+
+    public ImmutableArray<AttributeData> Attributes { get; }
+
+    public string? Requirements { get; }
 
     public bool IsPure
         => Kind is ResolverParameterKind.Argument
@@ -53,7 +78,8 @@ public sealed class ResolverParameter
     public static ResolverParameter Create(IParameterSymbol parameter, Compilation compilation)
     {
         var kind = GetParameterKind(parameter, compilation, out var key);
-        return new ResolverParameter(parameter, key, kind);
+        var schemaTypeName = GraphQLTypeBuilder.ToSchemaType(parameter.Type, compilation);
+        return new ResolverParameter(parameter, key, kind, schemaTypeName);
     }
 
     private static ResolverParameterKind GetParameterKind(

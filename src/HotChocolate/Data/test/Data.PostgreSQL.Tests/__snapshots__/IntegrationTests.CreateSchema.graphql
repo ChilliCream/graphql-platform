@@ -13,20 +13,26 @@ type Brand implements Node {
   name: String!
 }
 
-type BrandConnection {
+type BrandConnection @shareable {
+  "A list of edges."
   edges: [BrandEdge!]!
+  "A flattened list of the nodes."
   nodes: [Brand!]!
+  "Information to aid in pagination."
   pageInfo: ConnectionPageInfo!
+  "Identifies the total count of items in the connection."
   totalCount: Int! @cost(weight: "10")
 }
 
-type BrandEdge {
+type BrandEdge @shareable {
+  "The item at the end of the edge."
   node: Brand!
+  "A cursor for use in pagination."
   cursor: String!
 }
 
 "A connection to a list of items."
-type BrandProductsConnection {
+type BrandProductsConnection @shareable {
   "A list of edges."
   edges: [BrandProductsEdge!]
   "A flattened list of the nodes"
@@ -37,7 +43,7 @@ type BrandProductsConnection {
   totalCount: Int! @cost(weight: "10")
 }
 
-type BrandProductsEdge {
+type BrandProductsEdge @shareable {
   "The item at the end of the edge."
   node: Product!
   "A cursor for use in pagination."
@@ -74,7 +80,7 @@ type PageCursor {
 }
 
 "Information about pagination in a connection."
-type PageInfo {
+type PageInfo @shareable {
   "Indicates whether more edges exist following the set defined by the clients arguments."
   hasNextPage: Boolean!
   "Indicates whether more edges exist prior the set defined by the clients arguments."
@@ -105,7 +111,7 @@ type Product implements Node {
 }
 
 "A connection to a list of items."
-type ProductConnection {
+type ProductConnection @shareable {
   "A list of edges."
   edges: [ProductEdge!]
   "A flattened list of the nodes."
@@ -118,7 +124,7 @@ type ProductConnection {
 }
 
 "An edge in a connection."
-type ProductEdge {
+type ProductEdge @shareable {
   "The item at the end of the edge."
   node: Product!
   "A cursor for use in pagination."
@@ -137,7 +143,7 @@ type Query {
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]! @cost(weight: "10")
   brands("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: BrandFilterInput @cost(weight: "10")): BrandConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
-  brandById(id: ID!): Brand @cost(weight: "10")
+  brandById(id: ID!): Brand @lookup @cost(weight: "10")
   products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   productsNonRelative("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   singleProperties: [SingleProperty!]! @cost(weight: "10")
@@ -265,6 +271,24 @@ that can be used by the distributed GraphQL executor to resolve an entity by
 a stable key.
 """
 directive @lookup on FIELD_DEFINITION
+
+"""
+By default, only a single source schema is allowed to contribute
+a particular field to an object type.
+
+            
+This prevents source schemas from inadvertently defining similarly named
+fields that are not semantically equivalent.
+
+            
+Fields must be explicitly marked as @shareable to allow multiple source
+schemas to define them, ensuring that the decision to serve a field from
+more than one source schema is intentional and coordinated.
+
+
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION
+"""
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION
 
 "The `Decimal` scalar type represents a decimal floating-point number."
 scalar Decimal

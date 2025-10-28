@@ -1,7 +1,9 @@
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
+using HotChocolate.Types.Helpers;
 using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Pagination;
@@ -34,7 +36,7 @@ internal sealed class ConnectionType
 
         Configuration = CreateConfiguration(includeTotalCount, includeNodesField, edgesType);
         Configuration.Name = NameHelper.CreateConnectionName(connectionName);
-        Configuration.Dependencies.Add(new(nodeType));
+        Configuration.Dependencies.Add(new TypeDependency(nodeType));
         Configuration.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
                 (c, _) => EdgeType = c.GetType<IEdgeType>(TypeReference.Create(edgeTypeName)),
@@ -74,8 +76,8 @@ internal sealed class ConnectionType
         // the property is set later in the configuration
         ConnectionName = null!;
         Configuration = CreateConfiguration(includeTotalCount, includeNodesField);
-        Configuration.Dependencies.Add(new(nodeType));
-        Configuration.Dependencies.Add(new(edgeType));
+        Configuration.Dependencies.Add(new TypeDependency(nodeType));
+        Configuration.Dependencies.Add(new TypeDependency(edgeType));
         Configuration.NeedsNameCompletion = true;
 
         Configuration.Tasks.Add(
@@ -128,8 +130,15 @@ internal sealed class ConnectionType
         ITypeDiscoveryContext context,
         TypeSystemConfiguration configuration)
     {
-        context.Dependencies.Add(new(
-            context.TypeInspector.GetOutputTypeRef(typeof(PageInfoType))));
+        context.Dependencies.Add(new TypeDependency(context.TypeInspector.GetOutputTypeRef(typeof(PageInfoType))));
+
+        if (context.DescriptorContext.Options.ApplyShareableToConnections)
+        {
+            context.Dependencies.Add(new TypeDependency(context.TypeInspector.GetOutputTypeRef(typeof(Shareable))));
+
+            var config = (ObjectTypeConfiguration)configuration;
+            config.AddDirective(Shareable.Instance, context.TypeInspector);
+        }
 
         base.OnBeforeRegisterDependencies(context, configuration);
     }
@@ -156,30 +165,37 @@ internal sealed class ConnectionType
             RuntimeType = typeof(Connection)
         };
 
-        definition.Fields.Add(new(
-            Names.PageInfo,
-            ConnectionType_PageInfo_Description,
-            TypeReference.Parse("PageInfo!"),
-            pureResolver: GetPagingInfo));
+        definition.Fields.Add(
+            new ObjectFieldConfiguration(
+                Names.PageInfo,
+                ConnectionType_PageInfo_Description,
+                TypeReference.Parse("PageInfo!"),
+                pureResolver: GetPagingInfo));
 
-        definition.Fields.Add(new(
-            Names.Edges,
-            ConnectionType_Edges_Description,
-            edgesType,
-            pureResolver: GetEdges)
-        { Flags = CoreFieldFlags.ConnectionEdgesField });
+        definition.Fields.Add(
+            new ObjectFieldConfiguration(
+                Names.Edges,
+                ConnectionType_Edges_Description,
+                edgesType,
+                pureResolver: GetEdges)
+            {
+                Flags = CoreFieldFlags.ConnectionEdgesField
+            });
+
         if (includeNodesField)
         {
-            definition.Fields.Add(new(
+            definition.Fields.Add(new ObjectFieldConfiguration(
                 Names.Nodes,
                 ConnectionType_Nodes_Description,
                 pureResolver: GetNodes)
-            { Flags = CoreFieldFlags.ConnectionNodesField });
+            {
+                Flags = CoreFieldFlags.ConnectionNodesField
+            });
         }
 
         if (includeTotalCount)
         {
-            definition.Fields.Add(new(
+            definition.Fields.Add(new ObjectFieldConfiguration(
                 Names.TotalCount,
                 ConnectionType_TotalCount_Description,
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),

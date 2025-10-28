@@ -21,21 +21,21 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Discussion {
         id: ID!
         title: String
       }
-      
+
       type Photo {
         id: ID!
         imageUrl: String!
       }
-      
+
       type Query {
         post: Post
       }
-      
+
       union Post = Photo | Discussion
     interactions:
       - request:

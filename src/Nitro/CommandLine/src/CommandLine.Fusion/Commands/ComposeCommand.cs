@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.CommandLine;
 using System.CommandLine.IO;
 using System.Text;
@@ -5,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Channels;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion;
+using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
@@ -221,7 +223,7 @@ internal sealed class ComposeCommand : Command
             }
             else
             {
-                console.Out.WriteLine($"❌ The path `{sourceSchemaPath}` does not exist.");
+                console.Error.WriteLine($"❌ The path `{sourceSchemaPath}` does not exist.");
                 return 1;
             }
         }
@@ -450,11 +452,42 @@ internal sealed class ComposeCommand : Command
             sourceSchemaFiles,
             cancellationToken);
 
-        var sourceSchemaNamesInPackage = new SortedSet<string>(
+        var existingSourceSchemaNames = new SortedSet<string>(
             await archive.GetSourceSchemaNamesAsync(cancellationToken),
             StringComparer.Ordinal);
 
-        foreach (var schemaName in sourceSchemaNamesInPackage)
+        var normalizedToRealExistingSchemaNameLookup =
+            existingSourceSchemaNames.ToDictionary(StringUtilities.ToConstantCase, s => s);
+
+        // During the schema merging process, schema names are converted to upper-case,
+        // before being inserted into the fusion__Schema enum.
+        // This means two different schema names, like some-service and SomeService,
+        // could be uppercased to a conflicting SOME_SERVICE.
+        // To avoid weird errors for the user down the line,
+        // we already validate for collisions here.
+        foreach (var (newSourceSchemaName, _) in sourceSchemas)
+        {
+            var normalizedSchemaName = StringUtilities.ToConstantCase(newSourceSchemaName);
+
+            if (normalizedToRealExistingSchemaNameLookup.TryGetValue(normalizedSchemaName, out var existingSchemaName)
+                && existingSchemaName != newSourceSchemaName)
+            {
+                compositionLog.Write(
+                    LogEntryBuilder.New()
+                        .SetMessage(
+                            ComposeCommand_Error_ConflictingSchemaName,
+                            newSourceSchemaName,
+                            existingSchemaName)
+                        .SetCode(LogEntryCodes.ConflictingSourceSchemaName)
+                        .SetSeverity(LogSeverity.Error)
+                        .Build());
+
+                ImmutableArray<CompositionError> errors = [new("❌ Composition failed")];
+                return errors;
+            }
+        }
+
+        foreach (var schemaName in existingSourceSchemaNames)
         {
             if (sourceSchemas.ContainsKey(schemaName))
             {
@@ -479,24 +512,29 @@ internal sealed class ComposeCommand : Command
 
         var schemaComposerOptions = new SchemaComposerOptions
         {
-            EnableGlobalObjectIdentification = enableGlobalObjectIdentification
-                ?? existingCompositionSettings.EnableGlobalObjectIdentification
+            Merger =
+            {
+                EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                    ?? existingCompositionSettings.EnableGlobalObjectIdentification
+            }
         };
 
         if (existingCompositionSettings.EnableGlobalObjectIdentification
-            != schemaComposerOptions.EnableGlobalObjectIdentification)
+            != schemaComposerOptions.Merger.EnableGlobalObjectIdentification)
         {
             compositionLog.Write(
-                new LogEntry(
-                    schemaComposerOptions.EnableGlobalObjectIdentification
-                        ? ComposeCommand_GlobalObjectIdentification_Enabled
-                        : ComposeCommand_GlobalObjectIdentification_Disabled,
-                    LogEntryCodes.ModifiedCompositionSetting,
-                    LogSeverity.Info));
+                LogEntryBuilder.New()
+                    .SetMessage(
+                        schemaComposerOptions.Merger.EnableGlobalObjectIdentification
+                            ? ComposeCommand_GlobalObjectIdentification_Enabled
+                            : ComposeCommand_GlobalObjectIdentification_Disabled)
+                    .SetCode(LogEntryCodes.ModifiedCompositionSetting)
+                    .SetSeverity(LogSeverity.Info)
+                    .Build());
         }
 
         var schemaComposer = new SchemaComposer(
-            sourceSchemas.Values.Select(t => t.Item1),
+            sourceSchemas.Select(s => s.Value.Item1),
             schemaComposerOptions,
             compositionLog);
 
@@ -510,7 +548,7 @@ internal sealed class ComposeCommand : Command
         using var bufferWriter = new PooledArrayWriter();
         new SettingsComposer().Compose(
             bufferWriter,
-            sourceSchemas.Values.Select(t => t.Item2.RootElement).ToArray(),
+            sourceSchemas.Select(s => s.Value.Item2.RootElement).ToArray(),
             environment);
 
         var metadata = new ArchiveMetadata
@@ -570,9 +608,17 @@ internal sealed class ComposeCommand : Command
 
             var message = $"{emoji} [{abbreviatedSeverity}] {FormatMultilineMessage(entry.Message)} ({entry.Code})";
 
+            if (entry.ExtensionsFormatter is not null)
+            {
+                message +=
+                    Environment.NewLine
+                    + "   "
+                    + FormatMultilineMessage(entry.ExtensionsFormatter.Invoke(entry.Extensions));
+            }
+
             if (writeAsGraphQLComments)
             {
-                message = $"# {message}";
+                message = $"# {message.Replace(Environment.NewLine, Environment.NewLine + "# ")}";
             }
 
             writer.WriteLine(message);
@@ -662,7 +708,7 @@ internal sealed class ComposeCommand : Command
     {
         var settings = new CompositionSettings
         {
-            EnableGlobalObjectIdentification = options.EnableGlobalObjectIdentification
+            EnableGlobalObjectIdentification = options.Merger.EnableGlobalObjectIdentification
         };
         var settingsJson = JsonSerializer.SerializeToDocument(
             settings,

@@ -13,7 +13,7 @@ public class NullTests : FusionTestBase
         using var server1 = CreateSourceSchema(
             "A",
             b => b.AddQueryType<SourceSchema1.Query>()
-                .InsertUseRequest("OperationExecutionMiddleware", (_, _) => context =>
+                .InsertUseRequest(WellKnownRequestMiddleware.OperationExecutionMiddleware, (_, _) => context =>
                 {
                     context.Result = OperationResultBuilder.New()
                         .SetData(new Dictionary<string, object?> { ["nonNullString"] = null })
@@ -30,7 +30,7 @@ public class NullTests : FusionTestBase
 
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 nonNullString

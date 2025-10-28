@@ -33,15 +33,15 @@ sourceSchemas:
         query: Query
         subscription: Subscription
       }
-      
+
       type Query {
         reviews: [Review!]
       }
-      
+
       type Review {
         id: Int!
       }
-      
+
       type Subscription {
         onReviewCreated: Review
       }

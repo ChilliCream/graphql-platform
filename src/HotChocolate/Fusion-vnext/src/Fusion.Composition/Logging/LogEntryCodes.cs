@@ -2,6 +2,7 @@ namespace HotChocolate.Fusion.Logging;
 
 public static class LogEntryCodes
 {
+    public const string ConflictingSourceSchemaName = "CONFLICTING_SOURCE_SCHEMA_NAME";
     public const string DisallowedInaccessible = "DISALLOWED_INACCESSIBLE";
     public const string EmptyMergedEnumType = "EMPTY_MERGED_ENUM_TYPE";
     public const string EmptyMergedInputObjectType = "EMPTY_MERGED_INPUT_OBJECT_TYPE";
@@ -11,8 +12,14 @@ public static class LogEntryCodes
     public const string EnumTypeDefaultValueInaccessible = "ENUM_TYPE_DEFAULT_VALUE_INACCESSIBLE";
     public const string EnumValuesMismatch = "ENUM_VALUES_MISMATCH";
     public const string ExternalArgumentDefaultMismatch = "EXTERNAL_ARGUMENT_DEFAULT_MISMATCH";
+    public const string ExternalArgumentMissing = "EXTERNAL_ARGUMENT_MISSING";
+    public const string ExternalArgumentTypeMismatch = "EXTERNAL_ARGUMENT_TYPE_MISMATCH";
     public const string ExternalMissingOnBase = "EXTERNAL_MISSING_ON_BASE";
     public const string ExternalOnInterface = "EXTERNAL_ON_INTERFACE";
+    public const string ExternalOverrideCollision = "EXTERNAL_OVERRIDE_COLLISION";
+    public const string ExternalProvidesCollision = "EXTERNAL_PROVIDES_COLLISION";
+    public const string ExternalRequireCollision = "EXTERNAL_REQUIRE_COLLISION";
+    public const string ExternalTypeMismatch = "EXTERNAL_TYPE_MISMATCH";
     public const string ExternalUnused = "EXTERNAL_UNUSED";
     public const string FieldArgumentTypesNotMergeable = "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE";
     public const string FieldWithMissingRequiredArgument = "FIELD_WITH_MISSING_REQUIRED_ARGUMENT";
@@ -55,7 +62,6 @@ public static class LogEntryCodes
     public const string RootMutationUsed = "ROOT_MUTATION_USED";
     public const string RootQueryUsed = "ROOT_QUERY_USED";
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
-    public const string TypeDefinitionInvalid = "TYPE_DEFINITION_INVALID";
     public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
     public const string Unsatisfiable = "UNSATISFIABLE";
 }

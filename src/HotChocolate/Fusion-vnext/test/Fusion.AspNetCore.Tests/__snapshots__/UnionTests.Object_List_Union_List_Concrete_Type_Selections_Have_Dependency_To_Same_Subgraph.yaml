@@ -88,33 +88,33 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
-      type Author @key(fields: "id") {
+
+      type Author {
         id: ID!
       }
-      
+
       type Discussion {
         id: ID!
         author: Author
       }
-      
+
       type Photo {
         id: ID!
         product: Product
       }
-      
-      type Product @key(fields: "id") {
+
+      type Product {
         id: ID!
       }
-      
+
       type Query {
         users: [User]
       }
-      
+
       type User {
         posts: [Post]
       }
-      
+
       union Post = Photo | Discussion
     interactions:
       - request:
@@ -216,17 +216,17 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
-      type Author @key(fields: "id") {
+
+      type Author {
         id: ID!
         subgraph2: String!
       }
-      
-      type Product @key(fields: "id") {
+
+      type Product {
         id: ID!
         subgraph2: String!
       }
-      
+
       type Query {
         productById(id: ID!): Product @lookup
         authorById(id: ID!): Author @lookup

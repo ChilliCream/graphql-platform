@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Json/">
+    <Project Path="src/Json/HotChocolate.Text.Json.csproj" />
+  </Folder>
+  <Folder Name="/test/" />
+  <Folder Name="/test/Json.Tests/">
+    <Project Path="test/Json.Tests/HotChocolate.Text.Json.Tests.csproj" />
+  </Folder>
+</Solution>

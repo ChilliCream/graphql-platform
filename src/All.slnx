@@ -35,6 +35,12 @@
     <Project Path="HotChocolate/ApolloFederation/test/ApolloFederation.Tests/HotChocolate.ApolloFederation.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/AspNetCore/" />
+  <Folder Name="/HotChocolate/AspNetCore/benchmarks/" />
+  <Folder Name="/HotChocolate/AspNetCore/benchmarks/k6/">
+    <Project Path="HotChocolate/AspNetCore/benchmarks/k6/Catalog.AppHost/eShop.Catalog.AppHost.csproj" />
+    <Project Path="HotChocolate/AspNetCore/benchmarks/k6/Catalog.API/eShop.Catalog.API.csproj" />
+    <Project Path="HotChocolate/AspNetCore/benchmarks/k6/Catalog.ServiceDefaults/eShop.Catalog.ServiceDefaults.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/AspNetCore/src/">
     <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Authorization.Opa/HotChocolate.AspNetCore.Authorization.Opa.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Authorization/HotChocolate.AspNetCore.Authorization.csproj" />
@@ -47,7 +53,6 @@
     <Project Path="HotChocolate/AspNetCore/src/Transport.Sockets.Client/HotChocolate.Transport.Sockets.Client.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/Transport.Sockets/HotChocolate.Transport.Sockets.csproj" />
   </Folder>
-  <Folder Name="/HotChocolate/AspNetCore/src/AspNetCore/" />
   <Folder Name="/HotChocolate/AspNetCore/test/">
     <Project Path="HotChocolate/AspNetCore/test/AspNetCore.Authorization.Opa.Tests/HotChocolate.AspNetCore.Authorization.Opa.Tests.csproj" />
     <Project Path="HotChocolate/AspNetCore/test/AspNetCore.Authorization.Tests/HotChocolate.AspNetCore.Authorization.Tests.csproj" />
@@ -108,6 +113,7 @@
     <Project Path="HotChocolate/Core/src/Types.Scalars.Upload/HotChocolate.Types.Scalars.Upload.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Scalars/HotChocolate.Types.Scalars.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Shared/HotChocolate.Types.Shared.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.Validation/HotChocolate.Types.Validation.csproj" />
     <Project Path="HotChocolate/Core/src/Types/HotChocolate.Types.csproj" />
     <Project Path="HotChocolate/Core/src/Validation/HotChocolate.Validation.csproj" />
   </Folder>
@@ -137,6 +143,7 @@
     <Project Path="HotChocolate/Core/test/Types.Scalars.Tests/HotChocolate.Types.Scalars.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Tests.Documentation/HotChocolate.Types.Tests.Documentation.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Tests/HotChocolate.Types.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.Validation.Tests/HotChocolate.Types.Validation.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Utilities/HotChocolate.Tests.Utilities.csproj" />
     <Project Path="HotChocolate/Core/test/Validation.Tests/HotChocolate.Validation.Tests.csproj" />
   </Folder>
@@ -175,6 +182,9 @@
     <Project Path="HotChocolate/Diagnostics/test/Diagnostics.Tests/HotChocolate.Diagnostics.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/" />
+  <Folder Name="/HotChocolate/Fusion-vnext/benchmarks/">
+    <Project Path="HotChocolate/Fusion-vnext/benchmarks/Fusion.Execution.Benchmarks/Fusion.Execution.Benchmarks.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/src/">
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.AspNetCore/HotChocolate.Fusion.AspNetCore.csproj" />
@@ -188,12 +198,21 @@
   <Folder Name="/HotChocolate/Fusion-vnext/test/">
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
-    <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.EventSources.Tests/HotChocolate.Fusion.EventSources.Tests.csproj" />
+    <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Packaging.Tests/HotChocolate.Fusion.Packaging.Tests.csproj" />
-    <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Utilities.Tests/HotChocolate.Fusion.Utilities.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Tests.Shared/HotChocolate.Fusion.Tests.Shared.csproj" />
+    <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Utilities.Tests/HotChocolate.Fusion.Utilities.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Json/" />
+  <Folder Name="/HotChocolate/Json/src/" />
+  <Folder Name="/HotChocolate/Json/src/Json/">
+    <Project Path="HotChocolate/Json/src/Json/HotChocolate.Text.Json.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Json/test/" />
+  <Folder Name="/HotChocolate/Json/test/Json.Tests/">
+    <Project Path="HotChocolate/Json/test/Json.Tests/HotChocolate.Text.Json.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Language/" />
   <Folder Name="/HotChocolate/Language/src/">
@@ -288,12 +307,12 @@
   </Folder>
   <Folder Name="/HotChocolate/Utilities/" />
   <Folder Name="/HotChocolate/Utilities/src/">
+    <Project Path="HotChocolate/Utilities/src/Utilities.Base36/HotChocolate.Utilities.Base36.csproj" />
     <Project Path="HotChocolate/Utilities/src/Utilities.Buffers/HotChocolate.Utilities.Buffers.csproj" />
     <Project Path="HotChocolate/Utilities/src/Utilities.DependencyInjection/HotChocolate.Utilities.DependencyInjection.csproj" />
     <Project Path="HotChocolate/Utilities/src/Utilities.Introspection/HotChocolate.Utilities.Introspection.csproj" />
     <Project Path="HotChocolate/Utilities/src/Utilities.Tasks/HotChocolate.Utilities.Tasks.csproj" />
     <Project Path="HotChocolate/Utilities/src/Utilities/HotChocolate.Utilities.csproj" />
-    <Project Path="HotChocolate/Utilities/src/Utilities.Base36/HotChocolate.Utilities.Base36.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Utilities/test/">
     <Project Path="HotChocolate/Utilities/test/Utilities.Introspection.Tests/HotChocolate.Utilities.Introspection.Tests.csproj" />

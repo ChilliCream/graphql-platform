@@ -130,10 +130,10 @@ type __Type {
   kind: __TypeKind!
   name: String
   description: String
-  fields(includeDeprecated: Boolean = false): [__Field!]
+  fields(includeDeprecated: Boolean! = false): [__Field!]
   interfaces: [__Type!]
   possibleTypes: [__Type!]
-  enumValues(includeDeprecated: Boolean = false): [__EnumValue!]
+  enumValues(includeDeprecated: Boolean! = false): [__EnumValue!]
   inputFields: [__InputValue!]
   ofType: __Type
 }

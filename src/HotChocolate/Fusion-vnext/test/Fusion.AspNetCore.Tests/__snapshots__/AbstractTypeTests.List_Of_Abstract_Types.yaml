@@ -37,21 +37,21 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface SharedType {
         id: Int!
       }
-      
+
       type Author implements SharedType {
         id: Int!
         name: String!
       }
-      
+
       type Discussion implements SharedType {
         id: Int!
         title: String!
       }
-      
+
       "A connection to a list of items."
       type InterfaceConnectionConnection {
         "Information to aid in pagination."
@@ -61,7 +61,7 @@ sourceSchemas:
         "A flattened list of the nodes."
         nodes: [SharedType!]
       }
-      
+
       "An edge in a connection."
       type InterfaceConnectionEdge {
         "A cursor for use in pagination."
@@ -69,7 +69,7 @@ sourceSchemas:
         "The item at the end of the edge."
         node: SharedType!
       }
-      
+
       "Information about pagination in a connection."
       type PageInfo {
         "Indicates whether more edges exist following the set defined by the clients arguments."
@@ -81,11 +81,11 @@ sourceSchemas:
         "When paginating forwards, the cursor to continue."
         endCursor: String
       }
-      
+
       type Product implements SharedType {
         id: Int!
       }
-      
+
       type Query {
         abstractType: SharedType!
         otherAbstractType: SharedType!
