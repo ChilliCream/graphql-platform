@@ -1,6 +1,9 @@
+using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
@@ -15,9 +18,16 @@ internal sealed class FieldSyntaxParameterExpressionBuilder()
     public override bool CanHandle(ParameterInfo parameter)
         => typeof(FieldNode) == parameter.ParameterType;
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public bool CanHandle(ParameterDescriptor parameter)
+        => typeof(FieldNode) == parameter.Type;
+
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)(object)context.Selection.Field;
+    {
+        Debug.Assert(typeof(T) == typeof(FieldNode));
+        var syntaxNode = context.Selection.SyntaxNode;
+        return Unsafe.As<FieldNode, T>(ref syntaxNode);
+    }
 }

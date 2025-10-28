@@ -161,7 +161,10 @@ public sealed class SchemaComposer
     [
         new EnumValuesMismatchRule(),
         new ExternalArgumentDefaultMismatchRule(),
+        new ExternalArgumentMissingRule(),
+        new ExternalArgumentTypeMismatchRule(),
         new ExternalMissingOnBaseRule(),
+        new ExternalTypeMismatchRule(),
         new FieldArgumentTypesMergeableRule(),
         new FieldWithMissingRequiredArgumentRule(),
         new InputFieldDefaultMismatchRule(),

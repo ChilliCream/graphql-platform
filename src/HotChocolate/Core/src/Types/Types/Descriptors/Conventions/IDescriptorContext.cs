@@ -73,7 +73,7 @@ public interface IDescriptorContext : IFeatureProvider, IDisposable
     /// <summary>
     /// Gets the parameter binding resolver.
     /// </summary>
-    IParameterBindingResolver ParameterBindingResolver { get; }
+    ParameterBindingResolver ParameterBindingResolver { get; }
 
     /// <summary>
     /// Gets the type configuration container.

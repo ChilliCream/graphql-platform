@@ -64,10 +64,16 @@ public class FilterInputTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, EntityType: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.EntityType);
-            Configuration.AttributesAreApplied = true;
+            DescriptorAttributeHelper.ApplyConfiguration(
+                Context,
+                this,
+                Configuration.EntityType,
+                Configuration.EntityType,
+                Configuration.Configurations);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         var fields = new Dictionary<string, FilterFieldConfiguration>(StringComparer.Ordinal);

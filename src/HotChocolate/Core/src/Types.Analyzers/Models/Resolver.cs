@@ -8,14 +8,16 @@ public sealed class Resolver
 {
     public Resolver(
         string typeName,
+        string? deprecationReason,
         ISymbol member,
         ResolverResultKind resultKind,
         ImmutableArray<ResolverParameter> parameters,
         ImmutableArray<MemberBinding> bindings,
+        string schemaTypeName,
         ResolverKind kind = ResolverKind.Default,
-        FieldFlags flags = FieldFlags.None,
-        string? schemaTypeName = null)
+        FieldFlags flags = FieldFlags.None)
     {
+        FieldName = member.GetName();
         TypeName = typeName;
         Member = member;
         SchemaTypeName = schemaTypeName;
@@ -24,9 +26,42 @@ public sealed class Resolver
         Bindings = bindings;
         Kind = kind;
         Flags = flags;
+
+        switch (member)
+        {
+            case IPropertySymbol property:
+                Description = property.GetDescription();
+                break;
+
+            case IMethodSymbol method:
+                var description = method.GetDescription();
+                Description = description.Description;
+                if (description.ParameterDescriptions.Length == parameters.Length)
+                {
+                    for (var i = 0; i < parameters.Length; i++)
+                    {
+                        parameters[i].Description = description.ParameterDescriptions[i];
+                    }
+                }
+                break;
+        }
+
+        DeprecationReason = deprecationReason;
+
+        var attributes = member.GetAttributes();
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        IsNodeResolver = attributes.IsNodeResolver();
+        Attributes = attributes.GetUserAttributes();
     }
 
+    public string FieldName { get; }
+
     public string TypeName { get; }
+
+    public string? Description { get; }
+
+    public string? DeprecationReason { get; }
 
     public ISymbol Member { get; }
 
@@ -34,10 +69,7 @@ public sealed class Resolver
         => Member.GetReturnType()
             ?? throw new InvalidOperationException("Resolver has no return type.");
 
-    public ITypeSymbol UnwrappedReturnType
-        => ReturnType.UnwrapTaskOrValueTask();
-
-    public string? SchemaTypeName { get; }
+    public string SchemaTypeName { get; }
 
     public bool IsStatic => Member.IsStatic;
 
@@ -58,16 +90,25 @@ public sealed class Resolver
 
     public ImmutableArray<MemberBinding> Bindings { get; }
 
-    public Resolver WithSchemaTypeName(string? schemaTypeName)
+    public bool IsNodeResolver { get; }
+
+    public DirectiveScope Shareable { get; }
+
+    public DirectiveScope Inaccessible { get; }
+
+    public ImmutableArray<AttributeData> Attributes { get; }
+
+    public Resolver WithSchemaTypeName(string schemaTypeName)
     {
         return new Resolver(
             TypeName,
+            DeprecationReason,
             Member,
             ResultKind,
             Parameters,
             Bindings,
+            schemaTypeName,
             Kind,
-            Flags,
-            schemaTypeName);
+            Flags);
     }
 }

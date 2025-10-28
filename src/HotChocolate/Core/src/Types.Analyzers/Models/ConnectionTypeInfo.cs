@@ -16,7 +16,8 @@ public sealed class ConnectionTypeInfo
         string edgeTypeName,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
-        ImmutableArray<Resolver> resolvers)
+        ImmutableArray<Resolver> resolvers,
+        ImmutableArray<AttributeData> attributes)
     {
         Name = name;
         NameFormat = nameFormat;
@@ -26,6 +27,9 @@ public sealed class ConnectionTypeInfo
         Namespace = runtimeType.ContainingNamespace.ToDisplayString();
         ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        Attributes = attributes.GetUserAttributes();
     }
 
     public string Name { get; }
@@ -35,6 +39,8 @@ public sealed class ConnectionTypeInfo
     public string EdgeTypeName { get; }
 
     public string Namespace { get; }
+
+    public string? Description => null;
 
     public bool IsPublic => RuntimeType.DeclaredAccessibility == Accessibility.Public;
 
@@ -55,6 +61,12 @@ public sealed class ConnectionTypeInfo
     public ImmutableArray<Resolver> Resolvers { get; private set; }
 
     public override string OrderByKey => RuntimeTypeFullName;
+
+    public DirectiveScope Shareable { get; }
+
+    public DirectiveScope Inaccessible { get; }
+
+    public ImmutableArray<AttributeData> Attributes { get; }
 
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);
@@ -101,7 +113,8 @@ public sealed class ConnectionTypeInfo
             edgeTypeName,
             connectionClass.RuntimeType,
             connectionClass.ClassDeclarations,
-            connectionClass.Resolvers);
+            connectionClass.Resolvers,
+            connectionClass.RuntimeType.GetAttributes());
     }
 
     public static ConnectionTypeInfo CreateConnection(
@@ -149,13 +162,17 @@ public sealed class ConnectionTypeInfo
                         flags |= FieldFlags.TotalCount;
                     }
 
+                    compilation.TryGetGraphQLDeprecationReason(property, out var deprecationReason);
+
                     resolvers.Add(
                         new Resolver(
                             connectionName,
+                            deprecationReason,
                             property,
                             ResolverResultKind.Pure,
                             [],
-                            GetMemberBindings(member),
+                            GetMemberBindings(property),
+                            GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
                             flags: flags));
                     break;
             }
@@ -167,6 +184,7 @@ public sealed class ConnectionTypeInfo
             edgeTypeName,
             runtimeType,
             classDeclaration,
-            resolvers.ToImmutable());
+            resolvers.ToImmutable(),
+            runtimeType.GetAttributes());
     }
 }

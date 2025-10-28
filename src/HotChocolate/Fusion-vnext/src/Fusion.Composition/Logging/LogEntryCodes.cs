@@ -12,11 +12,14 @@ public static class LogEntryCodes
     public const string EnumTypeDefaultValueInaccessible = "ENUM_TYPE_DEFAULT_VALUE_INACCESSIBLE";
     public const string EnumValuesMismatch = "ENUM_VALUES_MISMATCH";
     public const string ExternalArgumentDefaultMismatch = "EXTERNAL_ARGUMENT_DEFAULT_MISMATCH";
+    public const string ExternalArgumentMissing = "EXTERNAL_ARGUMENT_MISSING";
+    public const string ExternalArgumentTypeMismatch = "EXTERNAL_ARGUMENT_TYPE_MISMATCH";
     public const string ExternalMissingOnBase = "EXTERNAL_MISSING_ON_BASE";
     public const string ExternalOnInterface = "EXTERNAL_ON_INTERFACE";
     public const string ExternalOverrideCollision = "EXTERNAL_OVERRIDE_COLLISION";
     public const string ExternalProvidesCollision = "EXTERNAL_PROVIDES_COLLISION";
     public const string ExternalRequireCollision = "EXTERNAL_REQUIRE_COLLISION";
+    public const string ExternalTypeMismatch = "EXTERNAL_TYPE_MISMATCH";
     public const string ExternalUnused = "EXTERNAL_UNUSED";
     public const string FieldArgumentTypesNotMergeable = "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE";
     public const string FieldWithMissingRequiredArgument = "FIELD_WITH_MISSING_REQUIRED_ARGUMENT";

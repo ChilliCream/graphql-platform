@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
@@ -18,7 +19,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
         Writer.IncreaseIndent();
     }
 
-    public override void WriteInitializeMethod(IOutputTypeInfo type)
+    public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not ConnectionTypeInfo connectionType)
         {
@@ -35,19 +36,58 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
 
         using (Writer.IncreaseIndent())
         {
+            if (connectionType.Resolvers.Length > 0 || connectionType.Attributes.Length > 0)
+            {
+                Writer.WriteIndentedLine("var extension = descriptor.Extend();");
+                Writer.WriteIndentedLine("var configuration = extension.Configuration;");
+            }
+
             if (connectionType.Resolvers.Length > 0)
             {
                 Writer.WriteIndentedLine(
                     "var thisType = typeof(global::{0});",
                     connectionType.RuntimeTypeFullName);
                 Writer.WriteIndentedLine(
-                    "var extend = descriptor.Extend();");
-                Writer.WriteIndentedLine(
-                    "var bindingResolver = extend.Context.ParameterBindingResolver;");
+                    "var bindingResolver = extension.Context.ParameterBindingResolver;");
                 Writer.WriteIndentedLine(
                     connectionType.Resolvers.Any(t => t.RequiresParameterBindings)
                         ? "var resolvers = new __Resolvers(bindingResolver);"
                         : "var resolvers = new __Resolvers();");
+            }
+
+            if (connectionType.Attributes.Length > 0)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("var configurations = configuration.Configurations;");
+
+                foreach (var attribute in connectionType.Attributes)
+                {
+                    Writer.WriteIndentedLine(
+                        "configurations = configurations.Add({0});",
+                        GenerateAttributeInstantiation(attribute));
+                }
+
+                Writer.WriteIndentedLine("configuration.Configurations = configurations;");
+            }
+
+            if (connectionType.Inaccessible is DirectiveScope.Type)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Inaccessible);
+            }
+
+            if (connectionType.Shareable is DirectiveScope.Type)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Shareable);
+            }
+            else
+            {
+                Writer.WriteLine();
+                using (Writer.WriteIfClause("extension.Context.Options.ApplyShareableToConnections"))
+                {
+                    Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Shareable);
+                }
             }
 
             if (connectionType.RuntimeType.IsGenericType
@@ -57,7 +97,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                 var nodeTypeName = connectionType.RuntimeType.TypeArguments[0].ToFullyQualified();
                 Writer.WriteLine();
                 Writer.WriteIndentedLine(
-                    "var nodeTypeRef = extend.Context.TypeInspector.GetTypeRef(typeof({0}));",
+                    "var nodeTypeRef = extension.Context.TypeInspector.GetTypeRef(typeof({0}));",
                     nodeTypeName);
                 Writer.WriteIndentedLine("descriptor");
                 using (Writer.IncreaseIndent())
@@ -77,7 +117,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                     connectionType.NameFormat);
             }
 
-            WriteResolverBindings(connectionType);
+            WriteResolverBindings(connectionType, typeLookup);
         }
 
         Writer.WriteIndentedLine("}");
@@ -88,7 +128,9 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
     {
     }
 
-    protected override void WriteResolverBindingDescriptor(IOutputTypeInfo type, Resolver resolver)
+    protected override void WriteResolverBindingDescriptor(
+        IOutputTypeInfo type,
+        Resolver resolver)
     {
         if (type is not ConnectionTypeInfo connectionType)
         {
@@ -101,8 +143,9 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
             var edgeTypeName = $"{connectionType.Namespace}.{connectionType.EdgeTypeName}";
 
             Writer.WriteIndentedLine(
-                ".Type<{0}>()",
-                ToGraphQLType(resolver.UnwrappedReturnType, edgeTypeName));
+                "configuration.Type = typeInspector.GetTypeRef(typeof({0}), {1}.Output);",
+                ToGraphQLType(resolver.ReturnType, edgeTypeName),
+                WellKnownTypes.TypeContext);
         }
         else
         {

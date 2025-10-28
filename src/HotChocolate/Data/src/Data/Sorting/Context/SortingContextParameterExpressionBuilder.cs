@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 
@@ -27,20 +29,27 @@ internal sealed class SortingContextParameterExpressionBuilder
     /// <inheritdoc cref="IParameterExpressionBuilder.IsPure" />
     public bool IsPure => false;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IParameterExpressionBuilder.IsDefaultHandler" />
     public bool IsDefaultHandler => false;
 
     /// <inheritdoc />
     public bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(ISortingContext);
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Type == typeof(ISortingContext);
+
     /// <inheritdoc />
     public Expression Build(ParameterExpressionBuilderContext context)
         => Expression.Call(s_getSortingContextMethod, context.ResolverContext);
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)context.GetSortingContext()!;
+    {
+        Debug.Assert(typeof(T) == typeof(ISortingContext));
+        var sortingContext = context.GetSortingContext()!;
+        return Unsafe.As<ISortingContext, T>(ref sortingContext);
+    }
 }
