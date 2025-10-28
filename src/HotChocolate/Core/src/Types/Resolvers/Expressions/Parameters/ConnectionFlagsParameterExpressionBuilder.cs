@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
 using HotChocolate.Types.Pagination;
 
@@ -19,7 +21,10 @@ internal sealed class ConnectionFlagsParameterExpressionBuilder
     public bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(ConnectionFlags);
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Type == typeof(ConnectionFlags);
+
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public Expression Build(ParameterExpressionBuilderContext context)
@@ -31,7 +36,11 @@ internal sealed class ConnectionFlagsParameterExpressionBuilder
         => Expression.Invoke(lambda, context);
 
     public T Execute<T>(IResolverContext context)
-        => (T)(object)Execute(context);
+    {
+        Debug.Assert(typeof(T) == typeof(ConnectionFlags));
+        var flags = Execute(context);
+        return Unsafe.As<ConnectionFlags, T>(ref flags);
+    }
 
     private static ConnectionFlags Execute(IResolverContext context)
         => ConnectionFlagsHelper.GetConnectionFlags(context);

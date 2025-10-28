@@ -287,6 +287,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             var writer = new PooledArrayWriter();
             s_planFormatter.Format(writer, OperationPlan, trace);
             var value = new RawJsonValue(writer.WrittenMemory);
+            result.Extensions ??= [];
             result.Extensions.Add("fusion", new Dictionary<string, object?> { { "operationPlan", value } });
             operationResult.RegisterForCleanup(writer);
         }
@@ -298,7 +299,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
         Debug.Assert(
             !result.Data.IsInvalidated
-                || (result.Errors.Count > 0),
+                || result.Errors?.Count > 0,
             "Expected to either valid data or errors");
 
         _clientScope = RequestContext.CreateClientScope();

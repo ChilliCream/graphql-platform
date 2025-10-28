@@ -39,18 +39,18 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         id: ID!
         name: String!
         review: Review
       }
-      
+
       type Query {
         productBySlug(slug: String!): Product
-        reviewById(id: ID!): Review @lookup
+        reviewById(id: ID!): Review @lookup @shareable
       }
-      
+
       type Review {
         id: ID!
         author: String!
@@ -95,11 +95,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
-        reviewById(id: ID!): Review @lookup
+        reviewById(id: ID!): Review @lookup @shareable
       }
-      
+
       type Review {
         id: ID!
         title: String!

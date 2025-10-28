@@ -35,6 +35,12 @@
     <Project Path="HotChocolate/ApolloFederation/test/ApolloFederation.Tests/HotChocolate.ApolloFederation.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/AspNetCore/" />
+  <Folder Name="/HotChocolate/AspNetCore/benchmarks/" />
+  <Folder Name="/HotChocolate/AspNetCore/benchmarks/k6/">
+    <Project Path="HotChocolate/AspNetCore/benchmarks/k6/Catalog.AppHost/eShop.Catalog.AppHost.csproj" />
+    <Project Path="HotChocolate/AspNetCore/benchmarks/k6/Catalog.API/eShop.Catalog.API.csproj" />
+    <Project Path="HotChocolate/AspNetCore/benchmarks/k6/Catalog.ServiceDefaults/eShop.Catalog.ServiceDefaults.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/AspNetCore/src/">
     <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Authorization.Opa/HotChocolate.AspNetCore.Authorization.Opa.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Authorization/HotChocolate.AspNetCore.Authorization.csproj" />

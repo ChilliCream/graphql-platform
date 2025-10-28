@@ -270,4 +270,52 @@ public class ResolverTests
             }
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task Resolver_Parameter_With_One_Attribute()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Relay;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static int GetTest([ID] int test)
+                {
+                    return test;
+                }
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Resolver_Parameter_With_Two_Attribute()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Relay;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static int GetTest([ID] [ID] int test)
+                {
+                    return test;
+                }
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync();
+    }
 }

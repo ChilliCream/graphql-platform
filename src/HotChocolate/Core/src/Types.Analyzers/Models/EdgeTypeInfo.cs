@@ -16,7 +16,8 @@ public sealed class EdgeTypeInfo
         string @namespace,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
-        ImmutableArray<Resolver> resolvers)
+        ImmutableArray<Resolver> resolvers,
+        ImmutableArray<AttributeData> attributes)
     {
         Name = name;
         NameFormat = nameFormat;
@@ -25,6 +26,9 @@ public sealed class EdgeTypeInfo
         Namespace = @namespace;
         ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        Attributes = attributes.GetUserAttributes();
     }
 
     public string Name { get; }
@@ -32,6 +36,8 @@ public sealed class EdgeTypeInfo
     public string? NameFormat { get; }
 
     public string Namespace { get; }
+
+    public string? Description => null;
 
     public bool IsPublic => RuntimeType.DeclaredAccessibility == Accessibility.Public;
 
@@ -50,6 +56,12 @@ public sealed class EdgeTypeInfo
     public ClassDeclarationSyntax? ClassDeclaration { get; }
 
     public ImmutableArray<Resolver> Resolvers { get; private set; }
+
+    public DirectiveScope Shareable { get; private set; }
+
+    public DirectiveScope Inaccessible { get; private set; }
+
+    public ImmutableArray<AttributeData> Attributes { get; }
 
     public override string OrderByKey => RuntimeTypeFullName;
 
@@ -92,28 +104,37 @@ public sealed class EdgeTypeInfo
         string? name = null,
         string? nameFormat = null)
     {
+        var attributes = connectionClass.RuntimeType.GetAttributes();
+
         return new EdgeTypeInfo(
             (name ?? connectionClass.RuntimeType.Name) + "Type",
             nameFormat,
             @namespace,
             connectionClass.RuntimeType,
             connectionClass.ClassDeclarations,
-            connectionClass.Resolvers);
+            connectionClass.Resolvers,
+            [])
+        {
+            Shareable = attributes.GetShareableScope(),
+            Inaccessible = attributes.GetInaccessibleScope()
+        };
     }
 
     public static EdgeTypeInfo CreateEdge(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
+        ImmutableArray<AttributeData> attributes,
         string @namespace,
         string? name = null,
         string? nameFormat = null)
-        => Create(compilation, runtimeType, classDeclaration, @namespace, name, nameFormat);
+        => Create(compilation, runtimeType, classDeclaration, attributes, @namespace, name, nameFormat);
 
     private static EdgeTypeInfo Create(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
+        ImmutableArray<AttributeData> attributes,
         string @namespace,
         string? name = null,
         string? nameFormat = null)
@@ -131,13 +152,17 @@ public sealed class EdgeTypeInfo
                     break;
 
                 case IPropertySymbol property:
+                    compilation.TryGetGraphQLDeprecationReason(property, out var deprecationReason);
+
                     resolvers.Add(
                         new Resolver(
                             edgeName,
+                            deprecationReason,
                             property,
                             ResolverResultKind.Pure,
                             [],
                             ObjectTypeInspector.GetMemberBindings(member),
+                            GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
                             flags: FieldFlags.None));
                     break;
             }
@@ -149,6 +174,7 @@ public sealed class EdgeTypeInfo
             @namespace,
             runtimeType,
             classDeclaration,
-            resolvers.ToImmutable());
+            resolvers.ToImmutable(),
+            attributes);
     }
 }

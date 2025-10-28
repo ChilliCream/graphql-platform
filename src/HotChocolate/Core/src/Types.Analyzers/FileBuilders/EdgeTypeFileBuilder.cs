@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 
@@ -17,7 +18,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
         Writer.IncreaseIndent();
     }
 
-    public override void WriteInitializeMethod(IOutputTypeInfo type)
+    public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not EdgeTypeInfo edgeType)
         {
@@ -34,19 +35,58 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
 
         using (Writer.IncreaseIndent())
         {
+            if (edgeType.Resolvers.Length > 0 || edgeType.Attributes.Length > 0)
+            {
+                Writer.WriteIndentedLine("var extension = descriptor.Extend();");
+                Writer.WriteIndentedLine("var configuration = extension.Configuration;");
+            }
+
             if (edgeType.Resolvers.Length > 0)
             {
                 Writer.WriteIndentedLine(
                     "var thisType = typeof(global::{0});",
                     edgeType.RuntimeTypeFullName);
                 Writer.WriteIndentedLine(
-                    "var extend = descriptor.Extend();");
-                Writer.WriteIndentedLine(
-                    "var bindingResolver = extend.Context.ParameterBindingResolver;");
+                    "var bindingResolver = extension.Context.ParameterBindingResolver;");
                 Writer.WriteIndentedLine(
                     edgeType.Resolvers.Any(t => t.RequiresParameterBindings)
                         ? "var resolvers = new __Resolvers(bindingResolver);"
                         : "var resolvers = new __Resolvers();");
+            }
+
+            if (edgeType.Attributes.Length > 0)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("var configurations = configuration.Configurations;");
+
+                foreach (var attribute in edgeType.Attributes)
+                {
+                    Writer.WriteIndentedLine(
+                        "configurations = configurations.Add({0});",
+                        GenerateAttributeInstantiation(attribute));
+                }
+
+                Writer.WriteIndentedLine("configuration.Configurations = configurations;");
+            }
+
+            if (edgeType.Inaccessible is DirectiveScope.Type)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Inaccessible);
+            }
+
+            if (edgeType.Shareable is DirectiveScope.Type)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Shareable);
+            }
+            else
+            {
+                Writer.WriteLine();
+                using (Writer.WriteIfClause("extension.Context.Options.ApplyShareableToConnections"))
+                {
+                    Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Shareable);
+                }
             }
 
             if (edgeType.RuntimeType.IsGenericType
@@ -56,7 +96,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
                 var nodeTypeName = edgeType.RuntimeType.TypeArguments[0].ToFullyQualified();
                 Writer.WriteLine();
                 Writer.WriteIndentedLine(
-                    "var nodeTypeRef = extend.Context.TypeInspector.GetTypeRef(typeof({0}));",
+                    "var nodeTypeRef = extension.Context.TypeInspector.GetTypeRef(typeof({0}));",
                     nodeTypeName);
                 Writer.WriteIndentedLine("descriptor");
                 using (Writer.IncreaseIndent())
@@ -76,7 +116,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
                     edgeType.NameFormat);
             }
 
-            WriteResolverBindings(edgeType);
+            WriteResolverBindings(edgeType, typeLookup);
         }
 
         Writer.WriteIndentedLine("}");

@@ -74,6 +74,7 @@ internal sealed class TypeCache
                 return true;
             }
         }
+
         return false;
     }
 
@@ -90,6 +91,7 @@ internal sealed class TypeCache
                 typeInfo = create();
                 _typeInfos.Add(id, typeInfo);
             }
+
             return typeInfo;
         }
     }

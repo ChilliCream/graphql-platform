@@ -29,6 +29,14 @@ public static class WellKnownAttributes
     public const string GraphQLIgnoreAttribute = "HotChocolate.GraphQLIgnoreAttribute";
     public const string UseConnectionAttribute = "HotChocolate.Types.UseConnectionAttribute";
     public const string GraphQLNameAttribute = "HotChocolate.GraphQLNameAttribute";
+    public const string ShareableAttribute = "HotChocolate.Types.Composite.ShareableAttribute";
+    public const string InaccessibleAttribute = "HotChocolate.Types.Composite.InaccessibleAttribute";
+    public const string InternalAttribute = "HotChocolate.Types.Composite.InternalAttribute";
+    public const string RelayNodeResolverAttribute = "HotChocolate.Types.Relay.NodeResolverAttribute";
+    public const string LookupAttribute = "HotChocolate.Types.Composite.LookupAttribute";
+    public const string DescriptorAttribute = "HotChocolate.Types.DescriptorAttribute";
+    public const string GraphQLDeprecatedAttribute = "HotChocolate.GraphQLDeprecatedAttribute";
+    public const string ObsoleteAttribute = "System.ObsoleteAttribute";
 
     public static HashSet<string> BindAttributes { get; } =
     [
