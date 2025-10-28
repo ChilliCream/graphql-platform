@@ -55,19 +55,19 @@ sourceSchemas:
 
       type ProductAvailability implements Node {
         id: ID!
-        sharedLinked: ProductAvailabilityMail!
+        sharedLinked: ProductAvailabilityMail! @shareable
         subgraph1Only: Boolean!
       }
 
       type ProductAvailabilityMail {
-        sharedScalar: String!
+        sharedScalar: String! @shareable
         subgraph1Only: String!
       }
 
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
         productById(id: ID!): Product @lookup
-        productAvailabilityById(id: ID!): ProductAvailability @lookup
+        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
       }
     interactions:
       - request:
@@ -118,19 +118,19 @@ sourceSchemas:
       }
 
       type ProductAvailability implements Node {
-        sharedLinked: ProductAvailabilityMail!
+        sharedLinked: ProductAvailabilityMail! @shareable
         subgraph2Only: Boolean!
         id: ID!
       }
 
       type ProductAvailabilityMail {
         subgraph2Only: Boolean!
-        sharedScalar: String!
+        sharedScalar: String! @shareable
       }
 
       type Query {
-        node(id: ID!): Node @lookup
-        productAvailabilityById(id: ID!): ProductAvailability @lookup
+        node(id: ID!): Node @lookup @shareable
+        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
       }
     interactions:
       - request:

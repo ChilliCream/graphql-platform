@@ -14,21 +14,20 @@ public sealed class SourceSchemaMergerTests
     {
         // arrange
         var intType = BuiltIns.Int.Create();
-        var merger = new SourceSchemaMerger(
-        [
-            new MutableSchemaDefinition
+        var schema = new MutableSchemaDefinition
+        {
+            Types =
             {
-                Types =
-                {
-                    new MutableObjectTypeDefinition(Query)
-                        { Fields = { new MutableOutputFieldDefinition("field", intType) } },
-                    new MutableObjectTypeDefinition(Mutation)
-                        { Fields = { new MutableOutputFieldDefinition("field", intType) } },
-                    new MutableObjectTypeDefinition(Subscription)
-                        { Fields = { new MutableOutputFieldDefinition("field", intType) } }
-                }
+                new MutableObjectTypeDefinition(Query)
+                    { Fields = { new MutableOutputFieldDefinition("field", intType) } },
+                new MutableObjectTypeDefinition(Mutation)
+                    { Fields = { new MutableOutputFieldDefinition("field", intType) } },
+                new MutableObjectTypeDefinition(Subscription)
+                    { Fields = { new MutableOutputFieldDefinition("field", intType) } }
             }
-        ]);
+        };
+        new SourceSchemaEnricher(schema, [schema]).Enrich();
+        var merger = new SourceSchemaMerger([schema]);
 
         // act
         var (isSuccess, _, mergedSchema, _) = merger.Merge();
@@ -44,24 +43,23 @@ public sealed class SourceSchemaMergerTests
     public void Merge_WithEmptyMutationAndSubscriptionType_RemovesEmptyOperationTypes()
     {
         // arrange
-        var merger = new SourceSchemaMerger(
-        [
-            new MutableSchemaDefinition
+        var schema = new MutableSchemaDefinition
+        {
+            Types =
             {
-                Types =
+                new MutableObjectTypeDefinition(Query)
                 {
-                    new MutableObjectTypeDefinition(Query)
+                    Fields =
                     {
-                        Fields =
-                        {
-                            new MutableOutputFieldDefinition("field", BuiltIns.Int.Create())
-                        }
-                    },
-                    new MutableObjectTypeDefinition(Mutation),
-                    new MutableObjectTypeDefinition(Subscription)
-                }
+                        new MutableOutputFieldDefinition("field", BuiltIns.Int.Create())
+                    }
+                },
+                new MutableObjectTypeDefinition(Mutation),
+                new MutableObjectTypeDefinition(Subscription)
             }
-        ]);
+        };
+        new SourceSchemaEnricher(schema, [schema]).Enrich();
+        var merger = new SourceSchemaMerger([schema]);
 
         // act
         var (isSuccess, _, mergedSchema, _) = merger.Merge();
@@ -131,7 +129,10 @@ public sealed class SourceSchemaMergerTests
                 }
                 """);
         var sourceSchemaParser = new SourceSchemaParser([sourceSchemaTextA, sourceSchemaTextB], new CompositionLog());
-        var merger = new SourceSchemaMerger(sourceSchemaParser.Parse().Value);
+        var schemas = sourceSchemaParser.Parse().Value;
+        new SourceSchemaEnricher(schemas[0], schemas).Enrich();
+        new SourceSchemaEnricher(schemas[1], schemas).Enrich();
+        var merger = new SourceSchemaMerger(schemas);
 
         // act
         var result = merger.Merge();

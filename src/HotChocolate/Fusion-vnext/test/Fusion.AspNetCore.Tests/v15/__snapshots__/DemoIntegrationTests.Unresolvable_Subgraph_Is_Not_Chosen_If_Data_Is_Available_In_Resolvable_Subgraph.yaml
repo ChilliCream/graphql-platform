@@ -28,7 +28,7 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
+      interface Node @key(fields: "id") {
         id: ID!
       }
 
@@ -71,9 +71,9 @@ sourceSchemas:
         query: Query
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         id: ID!
-        name: String!
+        name: String! @shareable
       }
 
       type Query {
@@ -95,7 +95,7 @@ sourceSchemas:
 
       type Product implements Node {
         id: ID!
-        name: String!
+        name: String! @shareable
       }
 
       type Query {

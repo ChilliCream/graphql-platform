@@ -502,6 +502,22 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry InvalidFieldSharing(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InvalidFieldSharing,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.InvalidFieldSharing)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry InvalidGraphQL(string exceptionMessage, MutableSchemaDefinition schema)
     {
         return LogEntryBuilder.New()

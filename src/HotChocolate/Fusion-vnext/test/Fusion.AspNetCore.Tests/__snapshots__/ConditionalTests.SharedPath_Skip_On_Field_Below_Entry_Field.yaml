@@ -28,11 +28,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
-      
+
       type Viewer {
         fieldA: String!
       }
@@ -59,11 +59,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
-      
+
       type Viewer {
         fieldB: String!
       }
