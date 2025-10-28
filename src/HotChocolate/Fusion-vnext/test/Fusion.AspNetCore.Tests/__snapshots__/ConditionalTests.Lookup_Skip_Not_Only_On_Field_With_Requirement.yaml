@@ -28,11 +28,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         id: ID!
       }
-      
+
       type Query {
         productBySlug(slug: String!): Product
       }
@@ -59,12 +59,12 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         id: ID!
         size: Int!
       }
-      
+
       type Query {
         productById(id: ID!): Product @lookup
       }
@@ -97,13 +97,13 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         id: ID!
         dimension(size: Int! @require(field: "size")): String
         price: Int!
       }
-      
+
       type Query {
         productById(id: ID!): Product @lookup
       }

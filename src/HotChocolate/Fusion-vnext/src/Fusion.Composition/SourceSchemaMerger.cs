@@ -775,10 +775,14 @@ internal sealed class SourceSchemaMerger
         MutableSchemaDefinition mergedSchema)
     {
         // Filter out internal or overridden fields.
-        var group = fieldGroup;
         fieldGroup =
         [
-            .. fieldGroup.Where(i => !i.Field.HasInternalDirective() && !i.IsOverridden(group))
+            .. fieldGroup.Where(
+                i => i.Field.GetRequiredSourceFieldMetadata() is
+                {
+                    IsInternal: false,
+                    IsOverridden: false
+                })
         ];
 
         if (fieldGroup.Length == 0)

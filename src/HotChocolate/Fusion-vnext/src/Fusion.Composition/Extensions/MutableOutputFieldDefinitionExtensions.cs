@@ -96,6 +96,14 @@ internal static class MutableOutputFieldDefinitionExtensions
         return mergedSelectionSet.ToString(indented: false).AsSpan()[2..^2].ToString();
     }
 
+    public static string? GetOverrideFrom(this MutableOutputFieldDefinition field)
+    {
+        var overrideDirective =
+            field.Directives.AsEnumerable().SingleOrDefault(d => d.Name == DirectiveNames.Override);
+
+        return (string?)overrideDirective?.Arguments[ArgumentNames.From].Value;
+    }
+
     public static bool HasInternalDirective(this MutableOutputFieldDefinition field)
     {
         return field.Directives.ContainsName(DirectiveNames.Internal);
