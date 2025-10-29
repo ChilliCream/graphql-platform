@@ -43,7 +43,7 @@ public sealed class ObjectTypeAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         if (!string.IsNullOrEmpty(Name))
         {

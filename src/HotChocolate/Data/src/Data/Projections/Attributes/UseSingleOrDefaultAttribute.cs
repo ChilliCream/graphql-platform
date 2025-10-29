@@ -20,8 +20,6 @@ public sealed class UseSingleOrDefaultAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
-    {
-        descriptor.UseSingleOrDefault();
-    }
+        MemberInfo? member)
+        => descriptor.UseSingleOrDefault();
 }

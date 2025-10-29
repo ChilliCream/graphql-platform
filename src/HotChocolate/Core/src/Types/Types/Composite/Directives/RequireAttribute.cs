@@ -44,7 +44,7 @@ public class RequireAttribute : ArgumentDescriptorAttribute
         if (string.IsNullOrEmpty(field))
         {
             // todo : this works only for leafs, we need to validate this.
-            field = context.Naming.GetArgumentName(parameter);
+            field = descriptor.Extend().Configuration.Name;
         }
 
         descriptor.Require(field);

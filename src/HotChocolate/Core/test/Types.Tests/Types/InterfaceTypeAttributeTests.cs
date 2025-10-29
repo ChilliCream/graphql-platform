@@ -123,7 +123,7 @@ public class InterfaceTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IInterfaceFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Extend().OnBeforeCompletion(
                 (c, d) => d.Features.Set(new CustomFeature()));
@@ -142,7 +142,7 @@ public class InterfaceTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IInterfaceTypeDescriptor descriptor,
-            Type type)
+            Type? type)
         {
             descriptor.Field("abc").Type<StringType>();
         }

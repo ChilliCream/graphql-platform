@@ -155,7 +155,7 @@ public class ObjectTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Extend().OnBeforeCompletion(
                 (c, d) => d.Features.Set(new CustomFeature()));
@@ -177,7 +177,7 @@ public class ObjectTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectTypeDescriptor descriptor,
-            Type type)
+            Type? type)
         {
             descriptor.Field("abc").Resolve("def");
         }

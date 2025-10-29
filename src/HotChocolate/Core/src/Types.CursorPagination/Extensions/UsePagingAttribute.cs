@@ -113,7 +113,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider attributeProvider)
+        ICustomAttributeProvider? attributeProvider)
     {
         if (attributeProvider is not MemberInfo)
         {

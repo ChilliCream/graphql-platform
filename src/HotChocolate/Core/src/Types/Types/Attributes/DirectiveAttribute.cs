@@ -28,7 +28,7 @@ public abstract class DirectiveAttribute<TDirective> : DescriptorAttribute where
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider attributeProvider)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {
@@ -90,7 +90,7 @@ public abstract class DirectiveAttribute<TDirective> : DescriptorAttribute where
     protected virtual void OnConfigure(
         IDescriptorContext context,
         TDirective descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? element)
     {
     }
 }

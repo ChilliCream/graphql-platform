@@ -13,7 +13,7 @@ public abstract class DescriptorAttribute : Attribute, IDescriptorConfiguration
     /// <summary>
     /// Requires the attribute provide this configuration was applied to for reflection.
     /// </summary>
-    public bool RequiresAttributeProvider { get; set; } = false;
+    public bool RequiresAttributeProvider { get; set; }
 
     /// <summary>
     /// Override this to implement the configuration logic for this attribute.

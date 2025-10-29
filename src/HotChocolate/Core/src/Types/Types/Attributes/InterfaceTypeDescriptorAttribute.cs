@@ -13,17 +13,25 @@ public abstract class InterfaceTypeDescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider attributeProvider)
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (descriptor is IInterfaceTypeDescriptor d
-            && attributeProvider is Type t)
+        var type = attributeProvider as Type;
+
+        if (RequiresAttributeProvider && type is null)
         {
-            OnConfigure(context, d, t);
+            throw new InvalidOperationException("The attribute provider is required to be a type.");
         }
+
+        if (descriptor is not IInterfaceTypeDescriptor interfaceTypeDescriptor)
+        {
+            throw new InvalidOperationException("The descriptor must be of type IInterfaceTypeDescriptor.");
+        }
+
+        OnConfigure(context, interfaceTypeDescriptor, type);
     }
 
     protected abstract void OnConfigure(
         IDescriptorContext context,
         IInterfaceTypeDescriptor descriptor,
-        Type type);
+        Type? type);
 }

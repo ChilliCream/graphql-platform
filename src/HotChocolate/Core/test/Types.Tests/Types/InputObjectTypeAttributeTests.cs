@@ -130,7 +130,7 @@ public class InputObjectTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IInputFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Name("bar");
         }
@@ -154,7 +154,7 @@ public class InputObjectTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IInputObjectTypeDescriptor descriptor,
-            Type type)
+            Type? type)
         {
             descriptor.Name("Bar");
         }

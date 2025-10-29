@@ -14,17 +14,25 @@ public abstract class FilterFieldDescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider attributeProvider)
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (descriptor is IFilterFieldDescriptor d
-            && attributeProvider is MemberInfo m)
+        var member = attributeProvider as MemberInfo;
+
+        if (RequiresAttributeProvider && member is null)
         {
-            OnConfigure(context, d, m);
+            throw new InvalidOperationException("The attribute provider is required to be a member.");
         }
+
+        if (descriptor is not IFilterFieldDescriptor filterFieldDescriptor)
+        {
+            throw new InvalidOperationException("The descriptor must be of type IFilterFieldDescriptor.");
+        }
+
+        OnConfigure(context, filterFieldDescriptor, member);
     }
 
     public abstract void OnConfigure(
         IDescriptorContext context,
         IFilterFieldDescriptor descriptor,
-        MemberInfo member);
+        MemberInfo? member);
 }

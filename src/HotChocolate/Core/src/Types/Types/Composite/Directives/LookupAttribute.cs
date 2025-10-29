@@ -29,7 +29,7 @@ public sealed class LookupAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider attributeProvider)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {

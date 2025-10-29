@@ -12,17 +12,25 @@ public abstract class ScalarTypeDescriptorAttribute : DescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider attributeProvider)
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (descriptor is IScalarTypeDescriptor d
-            && attributeProvider is Type t)
+        var type = attributeProvider as Type;
+
+        if (RequiresAttributeProvider && type is null)
         {
-            OnConfigure(context, d, t);
+            throw new InvalidOperationException("The attribute provider is required to be a type.");
         }
+
+        if (descriptor is not IScalarTypeDescriptor scalarTypeDescriptor)
+        {
+            throw new InvalidOperationException("The descriptor must be of type IScalarTypeDescriptor.");
+        }
+
+        OnConfigure(context, scalarTypeDescriptor, type);
     }
 
     protected abstract void OnConfigure(
         IDescriptorContext context,
         IScalarTypeDescriptor descriptor,
-        Type type);
+        Type? type);
 }

@@ -12,17 +12,25 @@ public abstract class ObjectTypeDescriptorAttribute : DescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider attributeProvider)
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (descriptor is IObjectTypeDescriptor d
-            && attributeProvider is Type t)
+        var type = attributeProvider as Type;
+
+        if (RequiresAttributeProvider && type is null)
         {
-            OnConfigure(context, d, t);
+            throw new InvalidOperationException("The attribute provider is required to be a type.");
         }
+
+        if (descriptor is not IObjectTypeDescriptor objectTypeDescriptor)
+        {
+            throw new InvalidOperationException("The descriptor must be of type IObjectTypeDescriptor.");
+        }
+
+        OnConfigure(context, objectTypeDescriptor, type);
     }
 
     protected abstract void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
-        Type type);
+        Type? type);
 }

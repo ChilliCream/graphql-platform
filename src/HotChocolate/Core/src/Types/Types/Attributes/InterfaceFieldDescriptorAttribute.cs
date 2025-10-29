@@ -13,17 +13,25 @@ public abstract class InterfaceFieldDescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider attributeProvider)
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (descriptor is IInterfaceFieldDescriptor d
-            && attributeProvider is MemberInfo m)
+        var member = attributeProvider as MemberInfo;
+
+        if (RequiresAttributeProvider && member is null)
         {
-            OnConfigure(context, d, m);
+            throw new InvalidOperationException("The attribute provider is required to be a member.");
         }
+
+        if (descriptor is not IInterfaceFieldDescriptor interfaceFieldDescriptor)
+        {
+            throw new InvalidOperationException("The descriptor must be of type IInterfaceFieldDescriptor.");
+        }
+
+        OnConfigure(context, interfaceFieldDescriptor, member);
     }
 
     protected abstract void OnConfigure(
         IDescriptorContext context,
         IInterfaceFieldDescriptor descriptor,
-        MemberInfo member);
+        MemberInfo? member);
 }

@@ -49,7 +49,7 @@ public sealed class McpToolAnnotationsAttribute : DescriptorAttribute
     protected override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider attributeProvider)
+        ICustomAttributeProvider? attributeProvider)
     {
         if (descriptor is IObjectFieldDescriptor objectFieldDescriptor)
         {
