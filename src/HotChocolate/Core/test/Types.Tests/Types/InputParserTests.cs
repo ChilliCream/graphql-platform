@@ -502,9 +502,9 @@ public class InputParserTests
             .AddSingleton(resolverArgumentsAccessor)
             .AddGraphQL()
             .AddQueryType(x => x.Field("foo")
-                                .Argument("args", a => a.Type<NonNullType<MyInputType>>())
-                                .Type<StringType>()
-                                .ResolveWith<ResolverArgumentsAccessor>(r => r.ResolveWith(default!)))
+                .Argument("args", a => a.Type<NonNullType<MyInputType>>())
+                .Type<StringType>()
+                .ResolveWith<ResolverArgumentsAccessor>(r => r.ResolveWith(default!)))
             .BuildRequestExecutorAsync();
 
         // act
