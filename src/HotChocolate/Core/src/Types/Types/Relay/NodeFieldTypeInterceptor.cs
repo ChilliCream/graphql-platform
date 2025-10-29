@@ -1,5 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Features;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;

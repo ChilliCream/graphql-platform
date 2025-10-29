@@ -57,7 +57,7 @@ public class FooAttribute : DescriptorAttribute
     protected override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
     }
 }

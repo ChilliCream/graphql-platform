@@ -212,6 +212,10 @@ In addition, the default output for such errors has been standardized: earlier, 
 }
 ```
 
+## DescriptorAttribute attributeProvider is nullable
+
+Previously the `TryConfigure` or `OnConfigure` methods carried a non-nullable parameter of the member the descriptor attribute was annotated to. With the new source generator we moved away from pure reflection based APIs. This means that when you use the source generator
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

@@ -326,3 +326,4 @@ conferences.db-wal
 packages.lock.json
 
 Directory.Build.props.user
+.generated/

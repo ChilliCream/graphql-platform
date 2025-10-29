@@ -1191,7 +1191,7 @@ public class AnnotationBasedAuthorizationTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectTypeDescriptor descriptor,
-            Type type)
+            Type? type)
             => descriptor.Directive(new FooDirective());
     }
 

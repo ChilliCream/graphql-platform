@@ -13,17 +13,25 @@ public abstract class InputObjectTypeDescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (descriptor is IInputObjectTypeDescriptor d
-            && element is Type t)
+        var type = attributeProvider as Type;
+
+        if (RequiresAttributeProvider && type is null)
         {
-            OnConfigure(context, d, t);
+            throw new InvalidOperationException("The attribute provider is required to be a type.");
         }
+
+        if (descriptor is not IInputObjectTypeDescriptor inputObjectTypeDescriptor)
+        {
+            throw new InvalidOperationException("The descriptor must be of type IInputObjectTypeDescriptor.");
+        }
+
+        OnConfigure(context, inputObjectTypeDescriptor, type);
     }
 
     protected abstract void OnConfigure(
         IDescriptorContext context,
         IInputObjectTypeDescriptor descriptor,
-        Type type);
+        Type? type);
 }
