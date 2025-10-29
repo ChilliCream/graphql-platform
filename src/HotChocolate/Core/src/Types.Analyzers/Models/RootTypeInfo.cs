@@ -72,6 +72,9 @@ public sealed class RootTypeInfo
     public override bool Equals(SyntaxInfo? obj)
         => obj is RootTypeInfo other && Equals(other);
 
+    private bool Equals(RootTypeInfo other)
+        => ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
+
     public override int GetHashCode()
         => HashCode.Combine(SchemaTypeFullName, ClassDeclaration);
 }
