@@ -38,8 +38,6 @@ public sealed class ObjectTypeInfo
 
     public bool IsPublic => SchemaSchemaType.DeclaredAccessibility == Accessibility.Public;
 
-    public bool IsRootType => false;
-
     public INamedTypeSymbol SchemaSchemaType { get; }
 
     public string SchemaTypeFullName { get; }

@@ -24,7 +24,7 @@ public static partial class ProductQueries
     }
 
     [Lookup, Internal]
-    public static async Task<Product?> GetProductAsync(
+    public static async Task<Product?> GetProductByIdAsync(
         [ID] int id,
         QueryContext<Product> query,
         ProductService productService,

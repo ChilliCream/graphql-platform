@@ -70,9 +70,7 @@ public class FilterInputTypeDescriptor
             DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.EntityType,
-                Configuration.EntityType,
-                Configuration.Configurations);
+                Configuration.EntityType);
 
             Configuration.ConfigurationsAreApplied = true;
         }

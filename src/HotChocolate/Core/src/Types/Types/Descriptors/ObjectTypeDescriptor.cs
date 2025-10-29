@@ -59,9 +59,7 @@ public class ObjectTypeDescriptor
             DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.FieldBindingType ?? Configuration.RuntimeType,
-                Configuration.FieldBindingType,
-                Configuration.Configurations);
+                Configuration.FieldBindingType ?? Configuration.RuntimeType);
 
             Configuration.ConfigurationsAreApplied = true;
         }

@@ -34,11 +34,6 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     public string? BindTo { get; set; }
 
     /// <summary>
-    /// Gets configurations that shall be applied to this type system configuration.
-    /// </summary>
-    public ImmutableList<IDescriptorConfiguration> Configurations { get; set; } = [];
-
-    /// <summary>
     /// Defines whether the <see cref="Configurations"/>> have been applied or not.
     /// </summary>
     public bool ConfigurationsAreApplied { get; set; }
@@ -120,11 +115,6 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
             target._dependencies = [.. _dependencies];
         }
 
-        if (Configurations.Count > 0)
-        {
-            target.Configurations = Configurations;
-        }
-
         if (_tasks?.Count > 0)
         {
             target._tasks = [];
@@ -166,11 +156,6 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
             {
                 target._tasks.Add(configuration.Copy(target));
             }
-        }
-
-        if (Configurations.Count > 0)
-        {
-            target.Configurations = target.Configurations.AddRange(Configurations);
         }
 
         if (_features?.IsEmpty is false)

@@ -43,9 +43,8 @@ public class EnumValueDescriptor
             DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.Member,
-                Configuration.Member,
-                Configuration.Configurations);
+                Configuration.Member);
+
             Configuration.ConfigurationsAreApplied = true;
 
             if (Configuration.Member is { } member

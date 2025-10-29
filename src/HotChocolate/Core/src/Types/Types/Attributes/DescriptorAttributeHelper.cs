@@ -11,13 +11,9 @@ internal static class DescriptorAttributeHelper
     public static void ApplyConfiguration(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider? element,
-        ICustomAttributeProvider? mainAttributeProvider,
-        ImmutableList<IDescriptorConfiguration> additionalConfigurations)
+        ICustomAttributeProvider? element)
     {
-        if (element is null
-            || ((mainAttributeProvider is null || ReferenceEquals(mainAttributeProvider, typeof(object)))
-                && additionalConfigurations.Count == 0))
+        if (element is null)
         {
             return;
         }
@@ -25,36 +21,34 @@ internal static class DescriptorAttributeHelper
         var configurations = ArrayPool<IDescriptorConfiguration>.Shared.Rent(64);
         var count = 0;
 
-        if (mainAttributeProvider is not null && !ReferenceEquals(mainAttributeProvider, typeof(object)))
+        try
         {
-            CollectAttributeConfigurations(
-                context.TypeInspector,
-                mainAttributeProvider,
-                ref configurations,
-                ref count);
-        }
-
-        if (additionalConfigurations.Count > 0)
-        {
-            EnsureCapacity(additionalConfigurations.Count, ref configurations, ref count);
-
-            foreach (var configuration in additionalConfigurations)
+            if (!ReferenceEquals(element, typeof(object)))
             {
-                configurations[count++] = configuration;
+                CollectAttributeConfigurations(
+                    context.TypeInspector,
+                    element,
+                    ref configurations,
+                    ref count);
+            }
+
+            if (count == 0)
+            {
+                return;
+            }
+
+            var configurationSpan = configurations.AsSpan(0, count);
+            configurationSpan.Sort(DescriptorAttributeComparer.Default);
+
+            foreach (var configuration in configurationSpan)
+            {
+                configuration.TryConfigure(context, descriptor, element);
             }
         }
-
-        if (count == 0)
+        finally
         {
-            return;
-        }
-
-        var configurationSpan = configurations.AsSpan(0, count);
-        configurationSpan.Sort(DescriptorAttributeComparer.Default);
-
-        foreach (var configuration in configurationSpan)
-        {
-            configuration.TryConfigure(context, descriptor, element);
+            configurations.AsSpan(0, count).Clear();
+            ArrayPool<IDescriptorConfiguration>.Shared.Return(configurations);
         }
     }
 

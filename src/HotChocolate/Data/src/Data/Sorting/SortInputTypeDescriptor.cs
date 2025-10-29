@@ -68,9 +68,7 @@ public class SortInputTypeDescriptor
             DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.EntityType,
-                Configuration.EntityType,
-                Configuration.Configurations);
+                Configuration.EntityType);
 
             Configuration.ConfigurationsAreApplied = true;
         }

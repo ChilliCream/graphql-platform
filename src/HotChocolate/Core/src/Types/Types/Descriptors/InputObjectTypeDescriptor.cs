@@ -60,9 +60,7 @@ public class InputObjectTypeDescriptor
             DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.RuntimeType,
-                Configuration.RuntimeType,
-                Configuration.Configurations);
+                Configuration.RuntimeType);
 
             Configuration.ConfigurationsAreApplied = true;
         }

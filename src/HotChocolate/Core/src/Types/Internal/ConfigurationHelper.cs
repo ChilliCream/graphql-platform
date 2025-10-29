@@ -108,11 +108,15 @@ public static class ConfigurationHelper
         IDescriptorContext context,
         IDescriptor descriptor,
         ICustomAttributeProvider? attributeProvider,
-        ImmutableList<IDescriptorConfiguration> configurations)
+        params ReadOnlySpan<IDescriptorConfiguration> configurations)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(descriptor);
-        ArgumentNullException.ThrowIfNull(configurations);
+
+        if (configurations.IsEmpty)
+        {
+            return;
+        }
 
         foreach (var configuration in configurations)
         {
@@ -121,11 +125,6 @@ public static class ConfigurationHelper
                 throw new InvalidOperationException("The attribute provider is not configured.");
             }
 
-            configuration.TryConfigure(context, descriptor, attributeProvider);
-        }
-
-        foreach (var configuration in configurations)
-        {
             configuration.TryConfigure(context, descriptor, attributeProvider);
         }
     }

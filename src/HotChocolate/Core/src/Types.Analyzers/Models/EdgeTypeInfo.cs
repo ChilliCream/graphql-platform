@@ -14,6 +14,7 @@ public sealed class EdgeTypeInfo
         string name,
         string? nameFormat,
         string @namespace,
+        string? description,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
         ImmutableArray<Resolver> resolvers,
@@ -37,7 +38,7 @@ public sealed class EdgeTypeInfo
 
     public string Namespace { get; }
 
-    public string? Description => null;
+    public string? Description { get; }
 
     public bool IsPublic => RuntimeType.DeclaredAccessibility == Accessibility.Public;
 
@@ -110,6 +111,7 @@ public sealed class EdgeTypeInfo
             (name ?? connectionClass.RuntimeType.Name) + "Type",
             nameFormat,
             @namespace,
+            null,
             connectionClass.RuntimeType,
             connectionClass.ClassDeclarations,
             connectionClass.Resolvers,
@@ -172,6 +174,7 @@ public sealed class EdgeTypeInfo
             edgeName,
             nameFormat,
             @namespace,
+            runtimeType.GetDescription(),
             runtimeType,
             classDeclaration,
             resolvers.ToImmutable(),

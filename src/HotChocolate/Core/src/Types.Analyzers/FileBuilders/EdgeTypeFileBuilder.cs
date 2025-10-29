@@ -7,6 +7,8 @@ namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
+    protected override string OutputFieldDescriptorType => WellKnownTypes.ObjectFieldDescriptor;
+
     public override void WriteBeginClass(IOutputTypeInfo type)
     {
         Writer.WriteIndentedLine(
@@ -57,16 +59,30 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
             if (edgeType.Attributes.Length > 0)
             {
                 Writer.WriteLine();
-                Writer.WriteIndentedLine("var configurations = configuration.Configurations;");
-
-                foreach (var attribute in edgeType.Attributes)
+                Writer.WriteIndentedLine(
+                    "{0}.ApplyConfiguration(",
+                    WellKnownTypes.ConfigurationHelper);
+                using (Writer.IncreaseIndent())
                 {
-                    Writer.WriteIndentedLine(
-                        "configurations = configurations.Add({0});",
-                        GenerateAttributeInstantiation(attribute));
-                }
+                    Writer.WriteIndentedLine("extension.Context,");
+                    Writer.WriteIndentedLine("descriptor,");
+                    Writer.WriteIndentedLine("null,");
 
-                Writer.WriteIndentedLine("configuration.Configurations = configurations;");
+                    var first = true;
+                    foreach (var attribute in edgeType.Attributes)
+                    {
+                        if (!first)
+                        {
+                            Writer.WriteLine(',');
+                        }
+
+                        Writer.WriteIndent();
+                        Writer.Write(GenerateAttributeInstantiation(attribute));
+                        first = false;
+                    }
+
+                    Writer.WriteLine([')', ';']);
+                }
             }
 
             if (edgeType.Inaccessible is DirectiveScope.Type)
