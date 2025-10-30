@@ -47,6 +47,9 @@
   "components": {
     "schemas": {
       "Address": {
+        "required": [
+          "street"
+        ],
         "type": "object",
         "properties": {
           "street": {
@@ -55,6 +58,12 @@
         }
       },
       "User": {
+        "required": [
+          "id",
+          "name",
+          "email",
+          "address"
+        ],
         "type": "object",
         "properties": {
           "id": {

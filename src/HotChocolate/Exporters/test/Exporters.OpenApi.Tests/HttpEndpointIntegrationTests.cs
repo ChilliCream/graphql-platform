@@ -6,7 +6,6 @@ namespace HotChocolate.Exporters.OpenApi;
 // TODO: We need to validate that we can't have the same path + method twice, even if once with and without query parameters
 // TODO: With authorization also check what happens if we handle it in validation
 // TODO: Test hot reload
-// TODO: Query parameter tests
 // TODO: @oneOf tests
 public class HttpEndpointIntegrationTests : OpenApiTestBase
 {
@@ -22,6 +21,21 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
 
         // act
         var response = await client.GetAsync("/users/1");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_With_Query_Parameter()
+    {
+        // arrange
+        var storage = CreateBasicTestDocumentStorage();
+        var server = CreateBasicTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/users/1/details?includeAddress=true");
 
         // assert
         response.MatchSnapshot();

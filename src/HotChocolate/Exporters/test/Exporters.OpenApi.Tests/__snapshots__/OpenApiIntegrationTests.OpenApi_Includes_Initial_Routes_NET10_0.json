@@ -30,6 +30,11 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
                   "type": "object",
                   "properties": {
                     "id": {
@@ -93,6 +98,11 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
                   "type": "object",
                   "properties": {
                     "id": {
@@ -142,6 +152,11 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
                   "type": "object",
                   "properties": {
                     "id": {
@@ -184,11 +199,6 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "required": [
-                      "id",
-                      "name",
-                      "address"
-                    ],
                     "type": "object",
                     "properties": {
                       "id": {
@@ -199,13 +209,13 @@
                         "description": "The name of the user"
                       },
                       "email": {
-                        "type": "string",
+                        "type": [
+                          "null",
+                          "string"
+                        ],
                         "deprecated": true
                       },
                       "address": {
-                        "required": [
-                          "street"
-                        ],
                         "type": "object",
                         "properties": {
                           "street": {
@@ -257,6 +267,11 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
                   "type": "object",
                   "properties": {
                     "id": {
@@ -283,6 +298,9 @@
   "components": {
     "schemas": {
       "UserAddress": {
+        "required": [
+          "street"
+        ],
         "type": "object",
         "properties": {
           "street": {

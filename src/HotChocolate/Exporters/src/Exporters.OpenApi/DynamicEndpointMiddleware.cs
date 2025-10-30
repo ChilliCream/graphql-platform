@@ -186,11 +186,13 @@ internal sealed class DynamicEndpointMiddleware(
         {
             foreach (var parameter in endpointDescriptor.QueryParameters)
             {
-                if (!httpContext.Request.Query.TryGetValue(parameter.Key, out var value))
+                if (!httpContext.Request.Query.TryGetValue(parameter.Key, out var values))
                 {
                     // We just skip here and let the GraphQL execution take care of the validation
                     continue;
                 }
+
+                var value = ParseQueryStringValue(values[0]);
 
                 MapIntoVariables(variables, parameter, value);
             }
@@ -239,6 +241,32 @@ internal sealed class DynamicEndpointMiddleware(
         }
 
         throw new InvalidOperationException($"Path segment '{key}' is not an object");
+    }
+
+    // TODO: This is incorrect. The parsing should be done based on the type it's mapping to. Could be they want the true literal string...
+    private static object? ParseQueryStringValue(string? value)
+    {
+        if (value is "true")
+        {
+            return true;
+        }
+
+        if (value is "false")
+        {
+            return false;
+        }
+
+        if (int.TryParse(value, out var intValue))
+        {
+            return intValue;
+        }
+
+        if (double.TryParse(value, out var doubleValue))
+        {
+            return doubleValue;
+        }
+
+        return value;
     }
 
     // TODO: This json stuff should live elsewhere
