@@ -54,6 +54,25 @@ jobs:
           fetch-depth: 0
           show-progress: false
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.x
+            9.x
+            10.x
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Restore dependencies
         run: dotnet restore src/HotChocolate/AspNetCore/benchmarks/k6/eShop.slnx
 
@@ -151,7 +170,7 @@ jobs:
             const commitSha = context.sha.substring(0, 7);
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
-            const commentBody = `${report}\n\n---\n*Run [${context.runId}](${runUrl}) " Commit ${commitSha} " ${timestamp}*`;
+            const commentBody = `${report}\n\n---\n*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`;
 
             // Always create a new comment
             await github.rest.issues.createComment({
@@ -176,7 +195,7 @@ jobs:
         working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
         run: |
           # Fail the build if there's a significant performance regression
-          if grep -q "� \*\*Performance regression detected" performance-report.md; then
+          if grep -q "⚠️ \*\*Performance regression detected" performance-report.md; then
             echo "::warning::Performance regression detected! Please review the performance report."
             # Uncomment the next line to fail the build on regression
             # exit 1
