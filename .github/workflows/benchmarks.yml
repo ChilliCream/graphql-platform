@@ -14,34 +14,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-changes:
-    name: Check for Changes
-    runs-on: ubuntu-latest
-    outputs:
-      src_changes: ${{ steps.check-src.outputs.src_changes }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-          show-progress: false
-
-      - name: Check for changes in src directory or workflow files
-        id: check-src
-        run: |
-          src_changes=$(git diff --name-only HEAD~1 HEAD -- ./src)
-          workflow_changes=$(git diff --name-only HEAD~1 HEAD -- .github/workflows/benchmarks.yml)
-
-          if [[ -n "$src_changes" ]] || [[ -n "$workflow_changes" ]]; then
-            echo "src_changes=true" >> $GITHUB_OUTPUT
-          else
-            echo "src_changes=false" >> $GITHUB_OUTPUT
-          fi
-
   hotchocolate-core:
     name: "HotChocolate Core Benchmarks"
-    needs: check-changes
-    if: needs.check-changes.outputs.src_changes == 'true' && github.event.pull_request.draft == false
+    if: github.event.pull_request.draft == false
     runs-on: benchmarking
     permissions:
       contents: write
@@ -53,25 +28,6 @@ jobs:
         with:
           fetch-depth: 0
           show-progress: false
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: |
-            8.x
-            9.x
-            10.x
-
-      - name: Install k6
-        run: |
-          sudo gpg -k
-          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update
-          sudo apt-get install k6
-
-      - name: Install jq
-        run: sudo apt-get install -y jq
 
       - name: Restore dependencies
         run: dotnet restore src/HotChocolate/AspNetCore/benchmarks/k6/eShop.slnx
