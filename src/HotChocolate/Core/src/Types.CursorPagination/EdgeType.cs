@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;

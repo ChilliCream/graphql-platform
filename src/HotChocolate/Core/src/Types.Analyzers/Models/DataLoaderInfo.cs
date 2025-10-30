@@ -318,13 +318,25 @@ public sealed class DataLoaderInfo : SyntaxInfo
     public override bool Equals(SyntaxInfo? obj)
         => obj is DataLoaderInfo other && Equals(other);
 
-    private bool Equals(DataLoaderInfo other)
-        => AttributeSyntax.IsEquivalentTo(other.AttributeSyntax)
-            && MethodSyntax.IsEquivalentTo(other.MethodSyntax)
-            && Groups.SequenceEqual(other.Groups, StringComparer.Ordinal);
+    private bool Equals(DataLoaderInfo? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return OrderByKey.Equals(other.OrderByKey, StringComparison.Ordinal)
+            && AttributeSyntax.IsEquivalentTo(other.AttributeSyntax)
+            && MethodSyntax.IsEquivalentTo(other.MethodSyntax);
+    }
 
     public override int GetHashCode()
-        => HashCode.Combine(AttributeSyntax, MethodSyntax);
+        => HashCode.Combine(OrderByKey, AttributeSyntax, MethodSyntax);
 
     private static string GetDataLoaderName(string name, AttributeData attribute)
     {

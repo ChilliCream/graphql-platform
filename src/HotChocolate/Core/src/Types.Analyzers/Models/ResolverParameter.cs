@@ -73,6 +73,8 @@ public sealed class ResolverParameter
     public bool RequiresBinding
         => Kind == ResolverParameterKind.Unknown;
 
+    public bool HasConfiguration => Attributes.Length > 0;
+
     public bool IsNullable { get; }
 
     public static ResolverParameter Create(IParameterSymbol parameter, Compilation compilation)

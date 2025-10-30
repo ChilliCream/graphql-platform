@@ -1,4 +1,5 @@
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -69,9 +70,7 @@ public class FilterInputTypeDescriptor
             DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.EntityType,
-                Configuration.EntityType,
-                Configuration.Configurations);
+                Configuration.EntityType);
 
             Configuration.ConfigurationsAreApplied = true;
         }

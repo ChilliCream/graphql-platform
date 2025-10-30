@@ -12,6 +12,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 {
     public CodeWriter Writer { get; } = new(sb);
 
+    protected abstract string OutputFieldDescriptorType { get; }
+
     public void WriteHeader()
     {
         Writer.WriteFileHeader();
@@ -52,7 +54,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
     public abstract void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup);
 
-    protected virtual void WriteInitializationBase(
+    protected void WriteInitializationBase(
         string schemaFullTypeName,
         bool hasResolvers,
         bool requiresParameterBindings,
@@ -84,16 +86,32 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         if (attributes.Length > 0)
         {
             Writer.WriteLine();
-            Writer.WriteIndentedLine("var configurations = configuration.Configurations;");
-
-            foreach (var attribute in attributes)
+            Writer.WriteIndentedLine(
+                "{0}.ApplyConfiguration(",
+                WellKnownTypes.ConfigurationHelper);
+            using (Writer.IncreaseIndent())
             {
-                Writer.WriteIndentedLine(
-                    "configurations = configurations.Add({0});",
-                    GenerateAttributeInstantiation(attribute));
+                Writer.WriteIndentedLine("extension.Context,");
+                Writer.WriteIndentedLine("descriptor,");
+                Writer.WriteIndentedLine("null,");
+
+                var first = true;
+                foreach (var attribute in attributes)
+                {
+                    if (!first)
+                    {
+                        Writer.WriteLine(',');
+                    }
+
+                    Writer.WriteIndent();
+                    Writer.Write(GenerateAttributeInstantiation(attribute));
+                    first = false;
+                }
+
+                Writer.WriteLine([')', ';']);
             }
 
-            Writer.WriteIndentedLine("configuration.Configurations = configurations;");
+            Writer.WriteIndentedLine("configuration.ConfigurationsAreApplied = true;");
         }
 
         if (inaccessible is DirectiveScope.Type)
@@ -214,7 +232,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             WellKnownTypes.TypeContext);
     }
 
-    protected virtual void WriteResolverBindingExtendsWith(
+    private void WriteResolverBindingExtendsWith(
         IOutputTypeInfo type,
         ILocalTypeLookup typeLookup,
         Resolver resolver)
@@ -339,16 +357,36 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     if (parameter.Attributes.Length > 0)
                     {
                         Writer.WriteLine();
-                        Writer.WriteIndentedLine("var argumentConfigurations = argumentConfiguration.Configurations;");
-
-                        foreach (var attribute in parameter.Attributes)
+                        Writer.WriteIndentedLine(
+                            "var argumentDescriptor = global::{0}.From(field.Context, argumentConfiguration);",
+                            WellKnownTypes.ArgumentDescriptor);
+                        Writer.WriteIndentedLine(
+                            "{0}.ApplyConfiguration(",
+                            WellKnownTypes.ConfigurationHelper);
+                        using (Writer.IncreaseIndent())
                         {
-                            Writer.WriteIndentedLine(
-                                "argumentConfigurations = argumentConfigurations.Add({0});",
-                                GenerateAttributeInstantiation(attribute));
+                            Writer.WriteIndentedLine("field.Context,");
+                            Writer.WriteIndentedLine("argumentDescriptor,");
+                            Writer.WriteIndentedLine("null,");
+
+                            var first = true;
+                            foreach (var attribute in parameter.Attributes)
+                            {
+                                if (!first)
+                                {
+                                    Writer.WriteLine(',');
+                                }
+
+                                Writer.WriteIndent();
+                                Writer.Write(GenerateAttributeInstantiation(attribute));
+                                first = false;
+                            }
+
+                            Writer.WriteLine([')', ';']);
                         }
 
-                        Writer.WriteIndentedLine("argumentConfiguration.Configurations = argumentConfigurations;");
+                        Writer.WriteIndentedLine("argumentConfiguration.ConfigurationsAreApplied = true;");
+                        Writer.WriteIndentedLine("argumentDescriptor.CreateConfiguration();");
                     }
 
                     Writer.WriteLine();
@@ -408,16 +446,36 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         if (resolver.Attributes.Length > 0)
         {
             Writer.WriteLine();
-            Writer.WriteIndentedLine("var configurations = configuration.Configurations;");
-
-            foreach (var attribute in resolver.Attributes)
+            Writer.WriteIndentedLine(
+                "var fieldDescriptor = global::{0}.From(field.Context, configuration);",
+                OutputFieldDescriptorType);
+            Writer.WriteIndentedLine(
+                "{0}.ApplyConfiguration(",
+                WellKnownTypes.ConfigurationHelper);
+            using (Writer.IncreaseIndent())
             {
-                Writer.WriteIndentedLine(
-                    "configurations = configurations.Add({0});",
-                    GenerateAttributeInstantiation(attribute));
+                Writer.WriteIndentedLine("field.Context,");
+                Writer.WriteIndentedLine("fieldDescriptor,");
+                Writer.WriteIndentedLine("configuration.Member,");
+
+                var first = true;
+                foreach (var attribute in resolver.Attributes)
+                {
+                    if (!first)
+                    {
+                        Writer.WriteLine(',');
+                    }
+
+                    Writer.WriteIndent();
+                    Writer.Write(GenerateAttributeInstantiation(attribute));
+                    first = false;
+                }
+
+                Writer.WriteLine([')', ';']);
             }
 
-            Writer.WriteIndentedLine("configuration.Configurations = configurations;");
+            Writer.WriteIndentedLine("configuration.ConfigurationsAreApplied = true;");
+            Writer.WriteIndentedLine("fieldDescriptor.CreateConfiguration();");
         }
 
         Writer.WriteLine();

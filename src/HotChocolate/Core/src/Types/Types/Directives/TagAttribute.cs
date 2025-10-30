@@ -50,7 +50,7 @@ public sealed class TagAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {
@@ -106,7 +106,7 @@ public sealed class TagAttribute : DescriptorAttribute
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
                         .SetMessage(TypeResources.TagDirective_Descriptor_NotSupported)
-                        .SetExtension("member", element)
+                        .SetExtension("member", attributeProvider)
                         .SetExtension("descriptor", descriptor)
                         .Build());
         }

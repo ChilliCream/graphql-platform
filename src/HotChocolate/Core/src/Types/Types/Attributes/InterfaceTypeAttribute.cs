@@ -27,7 +27,7 @@ public sealed class InterfaceTypeAttribute(string? name = null)
     protected override void OnConfigure(
         IDescriptorContext context,
         IInterfaceTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         if (!string.IsNullOrEmpty(Name))
         {

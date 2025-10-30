@@ -14,17 +14,25 @@ public abstract class FilterInputTypeDescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (descriptor is IFilterInputTypeDescriptor d
-            && element is Type t)
+        var type = attributeProvider as Type;
+
+        if (RequiresAttributeProvider && type is null)
         {
-            OnConfigure(context, d, t);
+            throw new InvalidOperationException("The attribute provider is required to be a type.");
         }
+
+        if (descriptor is not IFilterInputTypeDescriptor filterInputTypeDescriptor)
+        {
+            throw new InvalidOperationException("The descriptor must be of type IFilterInputTypeDescriptor.");
+        }
+
+        OnConfigure(context, filterInputTypeDescriptor, type);
     }
 
     public abstract void OnConfigure(
         IDescriptorContext context,
         IFilterInputTypeDescriptor descriptor,
-        Type type);
+        Type? type);
 }

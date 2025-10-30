@@ -6,6 +6,8 @@ namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class InterfaceTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
+    protected override string OutputFieldDescriptorType => WellKnownTypes.InterfaceFieldDescriptor;
+
     public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not InterfaceTypeInfo interfaceType)

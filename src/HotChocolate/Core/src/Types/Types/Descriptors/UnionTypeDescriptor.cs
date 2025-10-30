@@ -1,3 +1,4 @@
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
@@ -43,9 +44,7 @@ public class UnionTypeDescriptor
             DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.RuntimeType,
-                Configuration.RuntimeType,
-                Configuration.Configurations);
+                Configuration.RuntimeType);
 
             Configuration.ConfigurationsAreApplied = true;
         }

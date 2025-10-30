@@ -13,6 +13,6 @@ public sealed class SkipDataLoaderCacheAttribute : ObjectFieldDescriptorAttribut
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
         => descriptor.Extend().Configuration.Flags |= CoreFieldFlags.UsesProjections;
 }

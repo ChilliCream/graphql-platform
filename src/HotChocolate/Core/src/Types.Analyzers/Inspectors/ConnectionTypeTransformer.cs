@@ -130,7 +130,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                             ? EdgeTypeInfo.CreateEdge(
                                 compilation,
                                 edge.Type,
-                                edgeClass.ClassDeclarations,
+                                edgeClass.ClassDeclaration,
                                 edge.Type.GetAttributes(),
                                 connectionType.ContainingNamespace.ToDisplayString(),
                                 edge.Name,
@@ -149,7 +149,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                             ? ConnectionTypeInfo.CreateConnection(
                                 compilation,
                                 connection.Type,
-                                connectionClass.ClassDeclarations,
+                                connectionClass.ClassDeclaration,
                                 edgeTypeInfo.Name,
                                 connection.Name,
                                 connection.NameFormat ?? connection.Name)

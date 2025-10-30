@@ -64,7 +64,7 @@ public sealed class DefaultValueAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         if (descriptor is IArgumentDescriptor arg)
         {
