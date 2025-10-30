@@ -240,6 +240,7 @@ internal sealed class DynamicEndpointMiddleware(
     }
 
     // TODO: This json stuff should live elsewhere
+    // TODO: We should only parse the properties that are actually required, otherwise this could be used to try to sneak in stuff
     private static void ParseJsonIntoDictionary(
         Dictionary<string, object?> dictionary,
         ReadOnlySpan<byte> utf8Json)
