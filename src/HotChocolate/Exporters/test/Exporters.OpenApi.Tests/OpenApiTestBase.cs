@@ -24,9 +24,9 @@ public abstract class OpenApiTestBase
     private const string AdminRole = "Admin";
     private static readonly SymmetricSecurityKey s_tokenKey = new("test-secret-key-at-least-32-bytes"u8.ToArray());
 
-    protected static TestOpenApiDocumentStorage CreateBasicTestDocumentStorage()
+    protected static TestOpenApiDefinitionStorage CreateBasicTestDocumentStorage()
     {
-        return new TestOpenApiDocumentStorage(
+        return new TestOpenApiDefinitionStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -34,6 +34,18 @@ public abstract class OpenApiTestBase
                 id
                 name
                 email
+              }
+            }
+            """,
+            """
+            query GetFullUser($userId: ID!, $includeAddress: Boolean!) @http(method: GET, route: "/users/{userId}/details", queryParameters: ["includeAddress"]) {
+              userById(id: $userId) {
+                id
+                name
+                email
+                address @include(if: $includeAddress) {
+                  ...UserAddress
+                }
               }
             }
             """,
@@ -57,21 +69,27 @@ public abstract class OpenApiTestBase
             """,
             """
             "Updates a user's details"
-            mutation UpdateUser($user: UserInput! @body) @http(method: POST, route: "/users/{userId:$user.id}") {
+            mutation UpdateUser($user: UserInput! @body) @http(method: PUT, route: "/users/{userId:$user.id}") {
               updateUser(user: $user) {
                 id
                 name
                 email
               }
             }
+            """,
+            """
+            "The user's address"
+            fragment UserAddress on Address {
+              street
+            }
             """);
     }
 
-    protected static TestServer CreateBasicTestServer(IOpenApiDocumentStorage storage)
+    protected static TestServer CreateBasicTestServer(IOpenApiDefinitionStorage storage)
     {
         return CreateTestServer(
             configureRequestExecutor: b => b
-                .AddOpenApiDocumentStorage(storage)
+                .AddOpenApiDefinitionStorage(storage)
                 .AddAuthorization()
                 .AddQueryType<BasicServer.Query>()
                 .AddMutationType<BasicServer.Mutation>(),
@@ -180,15 +198,25 @@ public abstract class OpenApiTestBase
 
         public class Mutation
         {
-            public User CreateUser(User user)
+            public User CreateUser(UserInput user)
             {
-                return user;
+                return new User(user.Id);
             }
 
-            public User UpdateUser(User user)
+            public User UpdateUser(UserInput user)
             {
-                return user;
+                return CreateUser(user);
             }
+        }
+
+        public class UserInput
+        {
+            [ID]
+            public int Id { get; init; }
+
+            public required string Name { get; init; }
+
+            public required string Email { get; init; }
         }
 
         public sealed class User(int id)
@@ -199,10 +227,14 @@ public abstract class OpenApiTestBase
             public string Name { get; set; } = "User " + id;
 
             public string Email { get; set; } = id + "@example.com";
+
+            public Address Address { get; set; } = new Address(id + " Street");
         }
+
+        public sealed record Address(string Street);
     }
 
-    protected sealed class TestOpenApiDocumentStorage : IOpenApiDocumentStorage, IDisposable
+    protected sealed class TestOpenApiDefinitionStorage : IOpenApiDefinitionStorage, IDisposable
     {
         private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
         private readonly Dictionary<string, OpenApiDocumentDefinition> _documentsById = [];
@@ -210,7 +242,7 @@ public abstract class OpenApiTestBase
         private bool _disposed;
         private readonly object _sync = new();
 
-        public TestOpenApiDocumentStorage(params IEnumerable<string>? documents)
+        public TestOpenApiDefinitionStorage(params IEnumerable<string>? documents)
         {
             if (documents is not null)
             {
@@ -240,7 +272,7 @@ public abstract class OpenApiTestBase
             }
         }
 
-        public IDisposable Subscribe(IObserver<OpenApiDocumentStorageEventArgs> observer)
+        public IDisposable Subscribe(IObserver<OpenApiDefinitionStorageEventArgs> observer)
         {
             return new ObserverSession(this, observer);
         }
@@ -250,7 +282,7 @@ public abstract class OpenApiTestBase
             DocumentNode document,
             CancellationToken cancellationToken = default)
         {
-            OpenApiDocumentStorageEventType type;
+            OpenApiDefinitionStorageEventType type;
             await _semaphore.WaitAsync(cancellationToken);
 
             OpenApiDocumentDefinition tool;
@@ -259,12 +291,12 @@ public abstract class OpenApiTestBase
                 tool = new OpenApiDocumentDefinition(id, document);
                 if (_documentsById.TryAdd(id, tool))
                 {
-                    type = OpenApiDocumentStorageEventType.Added;
+                    type = OpenApiDefinitionStorageEventType.Added;
                 }
                 else
                 {
                     _documentsById[id] = tool;
-                    type = OpenApiDocumentStorageEventType.Modified;
+                    type = OpenApiDefinitionStorageEventType.Modified;
                 }
             }
             finally
@@ -293,16 +325,16 @@ public abstract class OpenApiTestBase
 
             if (removed)
             {
-                NotifySubscribers(id, null, OpenApiDocumentStorageEventType.Removed);
+                NotifySubscribers(id, null, OpenApiDefinitionStorageEventType.Removed);
             }
         }
 
         private void NotifySubscribers(
             string id,
             OpenApiDocumentDefinition? toolDefinition,
-            OpenApiDocumentStorageEventType type)
+            OpenApiDefinitionStorageEventType type)
         {
-            if (type is OpenApiDocumentStorageEventType.Added or OpenApiDocumentStorageEventType.Modified)
+            if (type is OpenApiDefinitionStorageEventType.Added or OpenApiDefinitionStorageEventType.Modified)
             {
                 ArgumentNullException.ThrowIfNull(toolDefinition);
             }
@@ -313,7 +345,7 @@ public abstract class OpenApiTestBase
             }
 
             var sessions = _sessions;
-            var eventArgs = new OpenApiDocumentStorageEventArgs(id, type, toolDefinition);
+            var eventArgs = new OpenApiDefinitionStorageEventArgs(id, type, toolDefinition);
 
             foreach (var session in sessions)
             {
@@ -346,12 +378,12 @@ public abstract class OpenApiTestBase
         private sealed class ObserverSession : IDisposable
         {
             private bool _disposed;
-            private readonly TestOpenApiDocumentStorage _storage;
-            private readonly IObserver<OpenApiDocumentStorageEventArgs> _observer;
+            private readonly TestOpenApiDefinitionStorage _storage;
+            private readonly IObserver<OpenApiDefinitionStorageEventArgs> _observer;
 
             public ObserverSession(
-                TestOpenApiDocumentStorage storage,
-                IObserver<OpenApiDocumentStorageEventArgs> observer)
+                TestOpenApiDefinitionStorage storage,
+                IObserver<OpenApiDefinitionStorageEventArgs> observer)
             {
                 _storage = storage;
                 _observer = observer;
@@ -362,7 +394,7 @@ public abstract class OpenApiTestBase
                 }
             }
 
-            public void Notify(OpenApiDocumentStorageEventArgs eventArgs)
+            public void Notify(OpenApiDefinitionStorageEventArgs eventArgs)
             {
                 if (!_disposed && !_storage._disposed)
                 {

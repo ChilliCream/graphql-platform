@@ -10,7 +10,8 @@ namespace HotChocolate.Exporters.OpenApi;
 
 // TODO: Make this nicer and independent from executor lifetime
 internal sealed class OpenApiWarmupTask(
-    IOpenApiDocumentStorage storage,
+    IOpenApiDefinitionStorage definitionStorage,
+    DynamicOpenApiDocumentTransformer transformer,
     IDynamicEndpointDataSource dynamicEndpointDataSource) : IRequestExecutorWarmupTask
 {
     public bool ApplyOnlyOnStartup => true;
@@ -18,7 +19,7 @@ internal sealed class OpenApiWarmupTask(
     public async Task WarmupAsync(IRequestExecutor executor, CancellationToken cancellationToken)
     {
         var schema = executor.Schema;
-        var documents = await storage.GetDocumentsAsync(cancellationToken);
+        var documents = await definitionStorage.GetDocumentsAsync(cancellationToken);
 
         // TODO: Maybe this can be static without the schema reference?
         var parser = new OpenApiDocumentParser(schema);
@@ -43,7 +44,10 @@ internal sealed class OpenApiWarmupTask(
 
         // TODO: Validate
 
-        // TODO: Update OpenAPI document transformer
+        transformer.AddDocuments(
+            operationDocuments,
+            fragmentDocumentLookup.Values.ToList(),
+            schema);
 
         var endpoints = new List<Endpoint>();
 
@@ -90,7 +94,7 @@ internal sealed class OpenApiWarmupTask(
         var definitions = new List<IExecutableDefinitionNode>();
         definitions.Add(operationDocument.OperationDefinition);
 
-        foreach (var referencedFragmentName in operationDocument.FragmentDependencies)
+        foreach (var referencedFragmentName in operationDocument.ExternalFragmentReferences)
         {
             var fragmentDocument = fragmentDocumentLookup[referencedFragmentName];
 

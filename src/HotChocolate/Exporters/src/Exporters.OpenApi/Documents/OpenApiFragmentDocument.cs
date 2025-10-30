@@ -9,4 +9,5 @@ public sealed record OpenApiFragmentDocument(
     string? Description,
     ITypeDefinition TypeCondition,
     FragmentDefinitionNode FragmentDefinition,
-    IReadOnlyList<string> FragmentDependencies) : IOpenApiDocument;
+    Dictionary<string, FragmentDefinitionNode> LocalFragmentLookup,
+    HashSet<string> ExternalFragmentReferences) : IOpenApiDocument;

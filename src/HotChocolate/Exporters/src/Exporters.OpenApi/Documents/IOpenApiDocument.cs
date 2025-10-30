@@ -1,3 +1,5 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.Exporters.OpenApi;
 
 public interface IOpenApiDocument
@@ -8,5 +10,7 @@ public interface IOpenApiDocument
 
     string? Description { get; }
 
-    IReadOnlyList<string> FragmentDependencies { get; }
+    Dictionary<string, FragmentDefinitionNode> LocalFragmentLookup { get; }
+
+    HashSet<string> ExternalFragmentReferences { get; }
 }
