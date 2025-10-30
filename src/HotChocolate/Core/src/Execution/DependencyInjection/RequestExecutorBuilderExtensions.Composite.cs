@@ -22,5 +22,6 @@ public static partial class RequestExecutorBuilderExtensions
         {
             o.ApplyShareableToConnections = true;
             o.ApplyShareableToPageInfo = true;
+            o.ApplyShareableToNodeFields = true;
         });
 }
