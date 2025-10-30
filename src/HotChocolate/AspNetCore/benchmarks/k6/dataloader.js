@@ -4,9 +4,9 @@ import exec from 'k6/execution';
 
 export const options = {
   stages: [
-    { duration: '10s', target: 10 },
-    { duration: '20s', target: 100 },
-    { duration: '1m', target: 100 },
+    { duration: '10s', target: 50 },
+    { duration: '20s', target: 500 },
+    { duration: '1m', target: 500 },
   ],
   thresholds: {
     'http_req_duration{phase:measurement}': ['p(95)<500', 'p(99)<1000'],
