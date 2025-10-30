@@ -275,14 +275,17 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             return CreatEnumSchema(enumType);
         }
 
-        var schema = new OpenApiSchema();
-
         if (namedType is IObjectTypeDefinition objectType)
         {
-            schema = CreateObjectSchema();
+            var schema = CreateObjectSchema();
 
             foreach (var field in objectType.Fields)
             {
+                if (field.IsIntrospectionField)
+                {
+                    continue;
+                }
+
                 if (field.Type.IsNonNullType())
                 {
                     schema.Required!.Add(field.Name);
@@ -291,15 +294,30 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 var fieldTypeSchema = CreateOpenApiSchemaForType(field.Type, schemaDefinition);
                 fieldTypeSchema.Deprecated = field.IsDeprecated;
 
+                if (field.Description is not null)
+                {
+                    fieldTypeSchema.Description = field.Description;
+                }
+
                 schema.Properties!.Add(field.Name, fieldTypeSchema);
             }
+
+            schema.Description = objectType.Description;
+
+            return schema;
         }
-        else if (namedType is IInputObjectTypeDefinition inputObject)
+
+        if (namedType is IInputObjectTypeDefinition inputObject)
         {
-            schema = CreateObjectSchema();
+            var schema = CreateObjectSchema();
 
             foreach (var field in inputObject.Fields)
             {
+                if (field.IsIntrospectionField)
+                {
+                    continue;
+                }
+
                 if (field.Type.IsNonNullType())
                 {
                     schema.Required!.Add(field.Name);
@@ -308,10 +326,20 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 var fieldTypeSchema = CreateOpenApiSchemaForType(field.Type, schemaDefinition);
                 fieldTypeSchema.Deprecated = field.IsDeprecated;
 
+                if (field.Description is not null)
+                {
+                    fieldTypeSchema.Description = field.Description;
+                }
+
                 schema.Properties!.Add(field.Name, fieldTypeSchema);
             }
+
+            schema.Description = inputObject.Description;
+
+            return schema;
         }
-        else if (namedType is IInterfaceTypeDefinition interfaceType)
+
+        if (namedType is IInterfaceTypeDefinition interfaceType)
         {
             var possibleTypes = schemaDefinition.GetPossibleTypes(interfaceType);
             var items = new List<OpenApiSchema>();
@@ -323,9 +351,13 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 items.Add(typeSchema);
             }
 
-            schema = CreateOneOfSchema(items);
+            var schema = CreateOneOfSchema(items);
+            schema.Description = interfaceType.Description;
+
+            return schema;
         }
-        else if (namedType is IUnionTypeDefinition unionType)
+
+        if (namedType is IUnionTypeDefinition unionType)
         {
             var items = new List<OpenApiSchema>();
 
@@ -336,15 +368,13 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 items.Add(typeSchema);
             }
 
-            schema = CreateOneOfSchema(items);
+            var schema = CreateOneOfSchema(items);
+            schema.Description = unionType.Description;
+
+            return schema;
         }
 
-        if (namedType is IDescriptionProvider descriptionProvider)
-        {
-            schema.Description = descriptionProvider.Description;
-        }
-
-        return schema;
+        throw new NotSupportedException();
     }
 
     private static OpenApiSchema CreateOneOfSchema(IList<OpenApiSchema> schemas)

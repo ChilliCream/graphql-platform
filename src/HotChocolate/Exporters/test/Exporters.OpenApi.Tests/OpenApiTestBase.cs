@@ -172,7 +172,7 @@ public abstract class OpenApiTestBase
     {
         public class Query
         {
-            public User? GetUserById([ID] int id, IResolverContext context)
+            public User? GetUserById([GraphQLDescription("The id of the user")] [ID] int id, IResolverContext context)
             {
                 if (id == 5)
                 {
@@ -216,6 +216,7 @@ public abstract class OpenApiTestBase
 
             public required string Name { get; init; }
 
+            [GraphQLDescription("The user's email")]
             public required string Email { get; init; }
         }
 
@@ -224,8 +225,10 @@ public abstract class OpenApiTestBase
             [ID]
             public int Id { get; init; } = id;
 
+            [GraphQLDescription("The name of the user")]
             public string Name { get; set; } = "User " + id;
 
+            [GraphQLDeprecated("Deprecated for some reason")]
             public string? Email { get; set; } = id + "@example.com";
 
             public Address Address { get; set; } = new Address(id + " Street");

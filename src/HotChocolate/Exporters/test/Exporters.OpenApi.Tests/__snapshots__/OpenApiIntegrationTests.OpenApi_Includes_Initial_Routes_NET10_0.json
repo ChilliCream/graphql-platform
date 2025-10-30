@@ -78,7 +78,8 @@
                     "type": "string"
                   },
                   "email": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "The user's email"
                   }
                 }
               }
@@ -184,35 +185,29 @@
                   "type": "array",
                   "items": {
                     "required": [
-                      "__typename",
                       "id",
                       "name",
                       "address"
                     ],
                     "type": "object",
                     "properties": {
-                      "__typename": {
-                        "type": "string"
-                      },
                       "id": {
                         "type": "string"
                       },
                       "name": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "The name of the user"
                       },
                       "email": {
-                        "type": "string"
+                        "type": "string",
+                        "deprecated": true
                       },
                       "address": {
                         "required": [
-                          "__typename",
                           "street"
                         ],
                         "type": "object",
                         "properties": {
-                          "__typename": {
-                            "type": "string"
-                          },
                           "street": {
                             "type": "string"
                           }
@@ -247,7 +242,8 @@
                     "type": "string"
                   },
                   "email": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "The user's email"
                   }
                 }
               }
