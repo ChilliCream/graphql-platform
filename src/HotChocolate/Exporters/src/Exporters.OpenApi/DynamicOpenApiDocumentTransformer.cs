@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.OpenApi;
 #if NET10_0_OR_GREATER
 using Microsoft.OpenApi;
 using System.Text.Json.Nodes;
+
 #else
 using Microsoft.OpenApi.Models;
 using OperationType = Microsoft.OpenApi.Models.OperationType;
@@ -36,7 +37,6 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         return Task.CompletedTask;
     }
 
-    // TODO: Synchronization
     public void AddDocuments(
         List<OpenApiOperationDocument> operations,
         List<OpenApiFragmentDocument> fragments,
@@ -80,11 +80,19 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         operation.Parameters = new List<OpenApiParameter>();
 #endif
 
+        var bodyVariable = operationDocument.BodyParameter is { } bodyParameter ? bodyParameter.Variable : null;
+        var trie = new InputObjectPathTrie();
+
         foreach (var routeParameter in operationDocument.Route.Parameters)
         {
             var parameter = CreateOpenApiParameter(operationDocument, routeParameter, ParameterLocation.Path, schema);
 
             operation.Parameters.Add(parameter);
+
+            if (routeParameter.Variable == bodyVariable && routeParameter.InputObjectPath is not null)
+            {
+                trie.Add(routeParameter);
+            }
         }
 
         foreach (var queryParameter in operationDocument.QueryParameters)
@@ -92,22 +100,26 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             var parameter = CreateOpenApiParameter(operationDocument, queryParameter, ParameterLocation.Query, schema);
 
             operation.Parameters.Add(parameter);
+
+            if (queryParameter.Variable == bodyVariable && queryParameter.InputObjectPath is not null)
+            {
+                trie.Add(queryParameter);
+            }
         }
 
-        if (operationDocument.BodyParameter is { } bodyParameter)
+        if (operationDocument.BodyParameter is { } bodyParameter2)
         {
-            var graphqlType = GetGraphQLType(operationDocument.OperationDefinition, bodyParameter, schema);
-            var requestBodyType = new OpenApiMediaType
-            {
-                Schema = CreateOpenApiSchemaForType(graphqlType, schema)
-            };
+            var graphqlType = GetGraphQLType(operationDocument.OperationDefinition, bodyParameter2, schema);
+            var requestBodyType = CreateOpenApiSchemaForType(graphqlType, schema);
+
+            RemovePropertiesFromSchema(requestBodyType, trie);
 
             var requestBody = new OpenApiRequestBody
             {
                 Required = true,
                 Content = new Dictionary<string, OpenApiMediaType>
                 {
-                    [JsonContentType] = requestBodyType
+                    [JsonContentType] = new() { Schema = requestBodyType }
                 }
             };
 
@@ -116,7 +128,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         var operationType = schema.GetOperationType(operationDocument.OperationDefinition.Operation);
 
-        if (operationDocument.OperationDefinition.SelectionSet.Selections is not [FieldNode { SelectionSet: not null } rootField])
+        if (operationDocument.OperationDefinition.SelectionSet.Selections is not
+            [FieldNode { SelectionSet: not null } rootField])
         {
             throw new InvalidOperationException("Expected to have a single field selection on the root");
         }
@@ -240,7 +253,6 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     }
 #endif
 
-    // TODO: We need to remove fields from input object types if they are provided through other parameters
     private static OpenApiSchema CreateOpenApiSchemaForType(IType type, ISchemaDefinition schemaDefinition)
     {
         if (type.IsListType())
@@ -538,7 +550,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     schema.AllOf.Add(new OpenApiSchemaReference(fragmentName));
 #else
                     var externalReference = new OpenApiSchema();
-                    externalReference.Reference = new OpenApiReference { Type = ReferenceType.Schema, Id = fragmentName};
+                    externalReference.Reference = new OpenApiReference { Type = ReferenceType.Schema, Id =
+ fragmentName};
                     schema.AllOf ??= new List<OpenApiSchema>();
                     schema.AllOf.Add(externalReference);
 #endif
@@ -652,4 +665,78 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     private sealed record OperationDescriptor(string Path, string HttpMethod, OpenApiOperation Operation);
 
     private sealed record ComponentDescriptor(string SchemaName, OpenApiSchema Schema);
+
+    private sealed class InputObjectPathTrie : Dictionary<string, InputObjectPathTrie>
+    {
+        public bool IsTerminal { get; private set; }
+
+        public void Add(OpenApiRouteSegmentParameter parameter)
+        {
+            if (parameter.InputObjectPath is not { } inputObjectPath || inputObjectPath.Length == 0)
+            {
+                return;
+            }
+
+            var currentNode = this;
+
+            foreach (var segment in inputObjectPath)
+            {
+                if (!currentNode.TryGetValue(segment, out var nextNode))
+                {
+                    nextNode = new InputObjectPathTrie();
+                    currentNode[segment] = nextNode;
+                }
+
+                currentNode = nextNode;
+            }
+
+            currentNode.IsTerminal = true;
+        }
+    }
+
+    private static void RemovePropertiesFromSchema(
+#if NET10_0_OR_GREATER
+        IOpenApiSchema schema,
+#else
+        OpenApiSchema schema,
+#endif
+        InputObjectPathTrie trie)
+    {
+        if (schema.Properties == null || schema.Properties.Count == 0)
+        {
+            return;
+        }
+
+        var propertiesToRemove = new List<string>();
+
+        foreach (var (propertyName, propertySchema) in schema.Properties)
+        {
+            if (!trie.TryGetValue(propertyName, out var childTrie))
+            {
+                continue;
+            }
+
+            if (childTrie.IsTerminal)
+            {
+                propertiesToRemove.Add(propertyName);
+            }
+            else if (childTrie.Count > 0 && propertySchema.Properties != null)
+            {
+                RemovePropertiesFromSchema(propertySchema, childTrie);
+            }
+        }
+
+        foreach (var propertyName in propertiesToRemove)
+        {
+            schema.Properties.Remove(propertyName);
+        }
+
+        if (schema.Required != null)
+        {
+            foreach (var propertyName in propertiesToRemove)
+            {
+                schema.Required.Remove(propertyName);
+            }
+        }
+    }
 }

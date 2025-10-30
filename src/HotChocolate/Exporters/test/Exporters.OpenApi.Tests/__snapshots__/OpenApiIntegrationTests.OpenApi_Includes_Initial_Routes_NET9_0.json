@@ -62,15 +62,11 @@
             "application/json": {
               "schema": {
                 "required": [
-                  "id",
                   "name",
                   "email"
                 ],
                 "type": "object",
                 "properties": {
-                  "id": {
-                    "type": "string"
-                  },
                   "name": {
                     "type": "string"
                   },
