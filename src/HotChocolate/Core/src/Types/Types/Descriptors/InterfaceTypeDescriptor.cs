@@ -1,4 +1,5 @@
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -58,9 +59,7 @@ public class InterfaceTypeDescriptor
             DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.RuntimeType,
-                Configuration.RuntimeType,
-                Configuration.Configurations);
+                Configuration.RuntimeType);
 
             Configuration.ConfigurationsAreApplied = true;
         }

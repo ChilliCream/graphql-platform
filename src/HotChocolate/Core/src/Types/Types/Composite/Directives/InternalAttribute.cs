@@ -33,7 +33,7 @@ public sealed class InternalAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {
@@ -49,7 +49,7 @@ public sealed class InternalAttribute : DescriptorAttribute
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
                         .SetMessage("Internal directive is only supported on object types and field definitions.")
-                        .SetExtension("member", element)
+                        .SetExtension("member", attributeProvider)
                         .SetExtension("descriptor", descriptor)
                         .Build());
         }

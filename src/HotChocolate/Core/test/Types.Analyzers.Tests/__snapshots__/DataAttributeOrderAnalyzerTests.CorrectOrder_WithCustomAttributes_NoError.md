@@ -100,12 +100,17 @@ namespace TestNamespace
                             typeof(global::TestNamespace.ProductService)
                         })!;
 
-                    var configurations = configuration.Configurations;
-                    configurations = configurations.Add(new global::HotChocolate.Types.UsePagingAttribute(null, 12));
-                    configurations = configurations.Add(new global::HotChocolate.Data.UseProjectionAttribute(13));
-                    configurations = configurations.Add(new global::HotChocolate.Data.UseFilteringAttribute(null, 15));
-                    configurations = configurations.Add(new global::HotChocolate.Data.UseSortingAttribute(null, 16));
-                    configuration.Configurations = configurations;
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.UsePagingAttribute(null, 12),
+                        new global::HotChocolate.Data.UseProjectionAttribute(13),
+                        new global::HotChocolate.Data.UseFilteringAttribute(null, 15),
+                        new global::HotChocolate.Data.UseSortingAttribute(null, 16));
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
 
                     configuration.Resolvers = context.Resolvers.GetProducts();
                 },

@@ -148,12 +148,12 @@ internal static class ThrowHelper
     /// <see cref="string.Empty"/>.
     /// </summary>
     public static SchemaException Provides_FieldSet_CannotBeEmpty(
-        MemberInfo member) =>
+        string fieldName) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(ThrowHelper_Provides_FieldSet_CannotBeEmpty)
                 // .SetCode(ErrorCodes.ApolloFederation.ProvidesFieldSetNullOrEmpty)
-                .SetExtension(nameof(member), member)
+                .SetExtension(nameof(fieldName), fieldName)
                 .Build());
 
     /// <summary>
@@ -161,12 +161,12 @@ internal static class ThrowHelper
     /// <see cref="string.Empty"/>.
     /// </summary>
     public static SchemaException Requires_FieldSet_CannotBeEmpty(
-        MemberInfo member) =>
+        string fieldName) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(ThrowHelper_Requires_FieldSet_CannotBeEmpty)
                 // .SetCode(ErrorCodes.ApolloFederation.RequiresFieldSetNullOrEmpty)
-                .SetExtension(nameof(member), member)
+                .SetExtension(nameof(fieldName), fieldName)
                 .Build());
 
     /// <summary>

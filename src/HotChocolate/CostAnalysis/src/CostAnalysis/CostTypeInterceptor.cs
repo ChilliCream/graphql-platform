@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.CostAnalysis.Types;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;

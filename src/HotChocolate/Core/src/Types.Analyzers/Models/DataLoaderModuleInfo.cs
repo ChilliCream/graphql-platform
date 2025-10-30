@@ -14,10 +14,22 @@ public sealed class DataLoaderModuleInfo(string moduleName, bool isInternal) : S
     public override bool Equals(SyntaxInfo? obj)
         => obj is DataLoaderModuleInfo other && Equals(other);
 
-    private bool Equals(DataLoaderModuleInfo other)
-        => string.Equals(ModuleName, other.ModuleName, StringComparison.Ordinal)
+    private bool Equals(DataLoaderModuleInfo? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return OrderByKey.Equals(other.OrderByKey, StringComparison.Ordinal)
             && IsInternal == other.IsInternal;
+    }
 
     public override int GetHashCode()
-        => HashCode.Combine(ModuleName, IsInternal);
+        => HashCode.Combine(OrderByKey, IsInternal);
 }

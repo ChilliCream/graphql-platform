@@ -80,7 +80,7 @@ public sealed class ExtendObjectTypeAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         if (ExtendsType is not null)
         {
@@ -187,7 +187,7 @@ public sealed class ExtendObjectTypeAttribute<T>
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         if (ExtendsType is not null)
         {

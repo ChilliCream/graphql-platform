@@ -66,9 +66,12 @@ namespace TestNamespace
             var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers(bindingResolver);
 
-            var configurations = configuration.Configurations;
-            configurations = configurations.Add(new global::HotChocolate.Types.MutationTypeAttribute());
-            configuration.Configurations = configurations;
+            HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                extension.Context,
+                descriptor,
+                null,
+                new global::HotChocolate.Types.MutationTypeAttribute());
+            configuration.ConfigurationsAreApplied = true;
 
             var naming = descriptor.Extend().Context.Naming;
 

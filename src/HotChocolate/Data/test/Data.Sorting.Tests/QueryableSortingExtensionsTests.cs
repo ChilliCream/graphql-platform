@@ -126,20 +126,21 @@ public class QueryableSortingExtensionsTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
-            descriptor.Use(next => context =>
-            {
-                context.LocalContextData =
-                    context.LocalContextData.SetItem(
-                        QueryableSortProvider.ContextApplySortingKey,
-                        CreateApplicatorAsync<Foo>());
+            descriptor.Use(
+                static next => ctx =>
+                {
+                    ctx.LocalContextData =
+                        ctx.LocalContextData.SetItem(
+                            QueryableSortProvider.ContextApplySortingKey,
+                            CreateApplicatorAsync());
 
-                return next(context);
-            });
+                    return next(ctx);
+                });
         }
 
-        private static ApplySorting CreateApplicatorAsync<TEntityType>() =>
-            (context, input) => new object();
+        private static ApplySorting CreateApplicatorAsync() =>
+            (_, _) => new object();
     }
 }

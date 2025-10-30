@@ -51,7 +51,7 @@ public sealed class ShareableAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {
@@ -67,7 +67,7 @@ public sealed class ShareableAttribute : DescriptorAttribute
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
                         .SetMessage("Shareable directive is only supported on object types and object fields.")
-                        .SetExtension("member", element)
+                        .SetExtension("member", attributeProvider)
                         .SetExtension("descriptor", descriptor)
                         .Build());
         }

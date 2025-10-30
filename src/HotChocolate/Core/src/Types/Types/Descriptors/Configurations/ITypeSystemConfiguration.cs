@@ -25,11 +25,6 @@ public interface ITypeSystemConfiguration : IFeatureProvider
     string? BindTo { get; set; }
 
     /// <summary>
-    /// Gets configurations that shall be applied to this type system configuration.
-    /// </summary>
-    ImmutableList<IDescriptorConfiguration> Configurations { get; set; }
-
-    /// <summary>
     /// Defines whether descriptor attributes are applied or not.
     /// </summary>
     bool ConfigurationsAreApplied { get; set; }

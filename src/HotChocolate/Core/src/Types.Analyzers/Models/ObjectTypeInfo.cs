@@ -38,8 +38,6 @@ public sealed class ObjectTypeInfo
 
     public bool IsPublic => SchemaSchemaType.DeclaredAccessibility == Accessibility.Public;
 
-    public bool IsRootType => false;
-
     public INamedTypeSymbol SchemaSchemaType { get; }
 
     public string SchemaTypeFullName { get; }
@@ -75,10 +73,23 @@ public sealed class ObjectTypeInfo
     public override bool Equals(SyntaxInfo? obj)
         => obj is ObjectTypeInfo other && Equals(other);
 
-    private bool Equals(ObjectTypeInfo other)
-        => string.Equals(SchemaTypeFullName, other.SchemaTypeFullName, StringComparison.Ordinal)
-            && ClassDeclaration.SyntaxTree.IsEquivalentTo(
-                other.ClassDeclaration.SyntaxTree);
+    private bool Equals(ObjectTypeInfo? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return OrderByKey.Equals(other.OrderByKey)
+            && string.Equals(SchemaTypeFullName, other.SchemaTypeFullName, StringComparison.Ordinal)
+            && ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
+    }
+
     public override int GetHashCode()
-        => HashCode.Combine(SchemaTypeFullName, ClassDeclaration);
+        => HashCode.Combine(OrderByKey, SchemaTypeFullName, ClassDeclaration);
 }
