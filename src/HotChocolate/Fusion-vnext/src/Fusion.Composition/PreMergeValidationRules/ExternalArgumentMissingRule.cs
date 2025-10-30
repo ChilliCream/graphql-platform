@@ -22,16 +22,14 @@ internal sealed class ExternalArgumentMissingRule : IEventHandler<OutputFieldGro
     {
         var (_, fieldGroup, _) = @event;
 
-        var externalFieldGroup =
-            fieldGroup.Where(i => i.Field.HasExternalDirective()).ToImmutableHashSet();
+        var externalFieldGroup = fieldGroup.Where(i => i.Field.IsExternal).ToImmutableHashSet();
 
         if (externalFieldGroup.IsEmpty)
         {
             return;
         }
 
-        var nonExternalFieldGroup =
-            fieldGroup.Where(i => !i.Field.HasExternalDirective()).ToImmutableHashSet();
+        var nonExternalFieldGroup = fieldGroup.Where(i => !i.Field.IsExternal).ToImmutableHashSet();
 
         var argumentNames = nonExternalFieldGroup
             .SelectMany(i => i.Field.Arguments.AsEnumerable(), (_, arg) => arg.Name)

@@ -1,3 +1,5 @@
+using HotChocolate.Features;
+using HotChocolate.Fusion.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
@@ -28,5 +30,11 @@ internal static class MutableComplexTypeDefinitionExtensions
     public static IEnumerable<Directive> GetKeyDirectives(this MutableComplexTypeDefinition type)
     {
         return type.Directives.AsEnumerable().Where(d => d.Name == DirectiveNames.Key);
+    }
+
+    extension(MutableComplexTypeDefinition complexType)
+    {
+        public Dictionary<Directive, KeyInfo> KeyInfoByDirective
+            => complexType.Features.GetOrSet<SourceComplexTypeMetadata>().KeyInfoByDirective;
     }
 }

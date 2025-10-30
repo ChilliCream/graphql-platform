@@ -56,7 +56,7 @@ internal sealed class DiscoverLookupsSchemaVisitor(MutableSchemaDefinition schem
         List<MutableObjectTypeDefinition> objectTypesToVisit = [];
 
         // Lookup field.
-        if (field.HasLookupDirective())
+        if (field.IsLookup)
         {
             context.LookupFieldGroup.Add(
                 new LookupFieldInfo(

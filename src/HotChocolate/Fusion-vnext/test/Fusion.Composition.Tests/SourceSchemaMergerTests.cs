@@ -14,16 +14,31 @@ public sealed class SourceSchemaMergerTests
     {
         // arrange
         var intType = BuiltIns.Int.Create();
+        var queryType = new MutableObjectTypeDefinition(Query);
+        queryType.Fields.Add(
+            new MutableOutputFieldDefinition("field", intType)
+            {
+                DeclaringMember = queryType
+            });
+        var mutationType = new MutableObjectTypeDefinition(Mutation);
+        mutationType.Fields.Add(
+            new MutableOutputFieldDefinition("field", intType)
+            {
+                DeclaringMember = mutationType
+            });
+        var subscriptionType = new MutableObjectTypeDefinition(Subscription);
+        subscriptionType.Fields.Add(
+            new MutableOutputFieldDefinition("field", intType)
+            {
+                DeclaringMember = subscriptionType
+            });
         var schema = new MutableSchemaDefinition
         {
             Types =
             {
-                new MutableObjectTypeDefinition(Query)
-                    { Fields = { new MutableOutputFieldDefinition("field", intType) } },
-                new MutableObjectTypeDefinition(Mutation)
-                    { Fields = { new MutableOutputFieldDefinition("field", intType) } },
-                new MutableObjectTypeDefinition(Subscription)
-                    { Fields = { new MutableOutputFieldDefinition("field", intType) } }
+                queryType,
+                mutationType,
+                subscriptionType
             }
         };
         new SourceSchemaEnricher(schema, [schema]).Enrich();
@@ -43,17 +58,17 @@ public sealed class SourceSchemaMergerTests
     public void Merge_WithEmptyMutationAndSubscriptionType_RemovesEmptyOperationTypes()
     {
         // arrange
+        var queryType = new MutableObjectTypeDefinition(Query);
+        queryType.Fields.Add(
+            new MutableOutputFieldDefinition("field", BuiltIns.Int.Create())
+            {
+                DeclaringMember = queryType
+            });
         var schema = new MutableSchemaDefinition
         {
             Types =
             {
-                new MutableObjectTypeDefinition(Query)
-                {
-                    Fields =
-                    {
-                        new MutableOutputFieldDefinition("field", BuiltIns.Int.Create())
-                    }
-                },
+                queryType,
                 new MutableObjectTypeDefinition(Mutation),
                 new MutableObjectTypeDefinition(Subscription)
             }

@@ -21,7 +21,7 @@ internal sealed class LookupReturnsListRule : IEventHandler<OutputFieldEvent>
     {
         var (field, _, schema) = @event;
 
-        if (field.HasLookupDirective() && field.Type.NullableType() is ListType)
+        if (field.IsLookup && field.Type.NullableType() is ListType)
         {
             context.Log.Write(LookupReturnsList(field, schema));
         }
