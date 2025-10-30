@@ -21,12 +21,10 @@ public abstract class ObjectFieldDescriptorAttribute : DescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a member.");
         }
 
-        if (descriptor is not IObjectFieldDescriptor objectFieldDescriptor)
+        if (descriptor is IObjectFieldDescriptor objectFieldDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type IObjectFieldDescriptor.");
+            OnConfigure(context, objectFieldDescriptor, member);
         }
-
-        OnConfigure(context, objectFieldDescriptor, member);
     }
 
     protected abstract void OnConfigure(

@@ -21,12 +21,10 @@ public abstract class ScalarTypeDescriptorAttribute : DescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a type.");
         }
 
-        if (descriptor is not IScalarTypeDescriptor scalarTypeDescriptor)
+        if (descriptor is IScalarTypeDescriptor scalarTypeDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type IScalarTypeDescriptor.");
+            OnConfigure(context, scalarTypeDescriptor, type);
         }
-
-        OnConfigure(context, scalarTypeDescriptor, type);
     }
 
     protected abstract void OnConfigure(

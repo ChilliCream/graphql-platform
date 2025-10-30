@@ -21,12 +21,10 @@ public abstract class ArgumentDescriptorAttribute : DescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a parameter.");
         }
 
-        if (descriptor is not IArgumentDescriptor argumentDescriptor)
+        if (descriptor is IArgumentDescriptor argumentDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type IArgumentDescriptor.");
+            OnConfigure(context, argumentDescriptor, parameter);
         }
-
-        OnConfigure(context, argumentDescriptor, parameter);
     }
 
     protected abstract void OnConfigure(

@@ -23,12 +23,10 @@ public abstract class SortFieldDescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a member.");
         }
 
-        if (descriptor is not ISortFieldDescriptor sortFieldDescriptor)
+        if (descriptor is ISortFieldDescriptor sortFieldDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type ISortFieldDescriptor.");
+            OnConfigure(context, sortFieldDescriptor, member);
         }
-
-        OnConfigure(context, sortFieldDescriptor, member);
     }
 
     public abstract void OnConfigure(

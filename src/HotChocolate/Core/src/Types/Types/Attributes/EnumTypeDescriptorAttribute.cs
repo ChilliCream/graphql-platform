@@ -21,12 +21,10 @@ public abstract class EnumTypeDescriptorAttribute : DescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a type.");
         }
 
-        if (descriptor is not IEnumTypeDescriptor enumTypeDescriptor)
+        if (descriptor is IEnumTypeDescriptor enumTypeDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type IEnumTypeDescriptor.");
+            OnConfigure(context, enumTypeDescriptor, type);
         }
-
-        OnConfigure(context, enumTypeDescriptor, type);
     }
 
     protected abstract void OnConfigure(

@@ -21,12 +21,10 @@ public abstract class EnumValueDescriptorAttribute : DescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a field.");
         }
 
-        if (descriptor is not IEnumValueDescriptor enumValueDescriptor)
+        if (descriptor is IEnumValueDescriptor enumValueDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type IEnumValueDescriptor.");
+            OnConfigure(context, enumValueDescriptor, field);
         }
-
-        OnConfigure(context, enumValueDescriptor, field);
     }
 
     protected abstract void OnConfigure(

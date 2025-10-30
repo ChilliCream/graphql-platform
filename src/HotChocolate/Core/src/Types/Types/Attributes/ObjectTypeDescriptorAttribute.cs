@@ -21,12 +21,10 @@ public abstract class ObjectTypeDescriptorAttribute : DescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a type.");
         }
 
-        if (descriptor is not IObjectTypeDescriptor objectTypeDescriptor)
+        if (descriptor is IObjectTypeDescriptor objectTypeDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type IObjectTypeDescriptor.");
+            OnConfigure(context, objectTypeDescriptor, type);
         }
-
-        OnConfigure(context, objectTypeDescriptor, type);
     }
 
     protected abstract void OnConfigure(

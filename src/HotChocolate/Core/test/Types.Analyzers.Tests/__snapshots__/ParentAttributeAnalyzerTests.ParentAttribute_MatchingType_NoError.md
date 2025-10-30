@@ -107,9 +107,14 @@ namespace TestNamespace
                             typeof(global::TestNamespace.BrandService)
                         })!;
 
-                    var configurations = configuration.Configurations;
-                    configurations = configurations.Add(new global::HotChocolate.Types.BindMemberAttribute("BrandId"));
-                    configuration.Configurations = configurations;
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.BindMemberAttribute("BrandId"));
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
 
                     configuration.Resolvers = context.Resolvers.GetBrandAsync();
                 },

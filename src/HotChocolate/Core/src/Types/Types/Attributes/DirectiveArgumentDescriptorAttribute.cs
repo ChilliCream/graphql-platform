@@ -18,12 +18,10 @@ public abstract class DirectiveArgumentDescriptorAttribute : DescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a property.");
         }
 
-        if (descriptor is not IDirectiveArgumentDescriptor directiveArgumentDescriptor)
+        if (descriptor is IDirectiveArgumentDescriptor directiveArgumentDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type IDirectiveArgumentDescriptor.");
+            OnConfigure(context, directiveArgumentDescriptor, property);
         }
-
-        OnConfigure(context, directiveArgumentDescriptor, property);
     }
 
     protected abstract void OnConfigure(

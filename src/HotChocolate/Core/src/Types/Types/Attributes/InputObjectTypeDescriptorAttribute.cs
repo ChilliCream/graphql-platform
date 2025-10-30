@@ -22,12 +22,10 @@ public abstract class InputObjectTypeDescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a type.");
         }
 
-        if (descriptor is not IInputObjectTypeDescriptor inputObjectTypeDescriptor)
+        if (descriptor is IInputObjectTypeDescriptor inputObjectTypeDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type IInputObjectTypeDescriptor.");
+            OnConfigure(context, inputObjectTypeDescriptor, type);
         }
-
-        OnConfigure(context, inputObjectTypeDescriptor, type);
     }
 
     protected abstract void OnConfigure(

@@ -65,9 +65,12 @@ namespace TestNamespace
             var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers(bindingResolver);
 
-            var configurations = configuration.Configurations;
-            configurations = configurations.Add(new global::HotChocolate.Types.QueryTypeAttribute());
-            configuration.Configurations = configurations;
+            HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                extension.Context,
+                descriptor,
+                null,
+                new global::HotChocolate.Types.QueryTypeAttribute());
+            configuration.ConfigurationsAreApplied = true;
 
             var naming = descriptor.Extend().Context.Naming;
 
@@ -98,9 +101,14 @@ namespace TestNamespace
                             RuntimeType = typeof(int)
                         };
 
-                        var argumentConfigurations = argumentConfiguration.Configurations;
-                        argumentConfigurations = argumentConfigurations.Add(new global::HotChocolate.Types.Relay.IDAttribute<global::TestNamespace.Product>());
-                        argumentConfiguration.Configurations = argumentConfigurations;
+                        var argumentDescriptor = global::HotChocolate.Types.Descriptors.ArgumentDescriptor.From(field.Context, argumentConfiguration);
+                        HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                            field.Context,
+                            argumentDescriptor,
+                            null,
+                            new global::HotChocolate.Types.Relay.IDAttribute<global::TestNamespace.Product>());
+                        argumentConfiguration.ConfigurationsAreApplied = true;
+                        argumentDescriptor.CreateConfiguration();
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }
@@ -113,10 +121,15 @@ namespace TestNamespace
                             typeof(int)
                         })!;
 
-                    var configurations = configuration.Configurations;
-                    configurations = configurations.Add(new global::HotChocolate.Types.Composite.LookupAttribute());
-                    configurations = configurations.Add(new global::HotChocolate.Types.Composite.InternalAttribute());
-                    configuration.Configurations = configurations;
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.Composite.LookupAttribute(),
+                        new global::HotChocolate.Types.Composite.InternalAttribute());
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
 
                     configuration.Resolvers = context.Resolvers.GetProductById();
                 },

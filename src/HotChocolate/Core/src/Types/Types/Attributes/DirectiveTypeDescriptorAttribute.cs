@@ -18,12 +18,10 @@ public abstract class DirectiveTypeDescriptorAttribute : DescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a type.");
         }
 
-        if (descriptor is not IDirectiveTypeDescriptor directiveTypeDescriptor)
+        if (descriptor is IDirectiveTypeDescriptor directiveTypeDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type IDirectiveTypeDescriptor.");
+            OnConfigure(context, directiveTypeDescriptor, type);
         }
-
-        OnConfigure(context, directiveTypeDescriptor, type);
     }
 
     protected abstract void OnConfigure(

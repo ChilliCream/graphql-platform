@@ -8,8 +8,7 @@ namespace HotChocolate.Data.Filters;
     AttributeTargets.Class | AttributeTargets.Struct,
     Inherited = true,
     AllowMultiple = true)]
-public abstract class FilterInputTypeDescriptorAttribute
-    : DescriptorAttribute
+public abstract class FilterInputTypeDescriptorAttribute : DescriptorAttribute
 {
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
@@ -23,12 +22,10 @@ public abstract class FilterInputTypeDescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a type.");
         }
 
-        if (descriptor is not IFilterInputTypeDescriptor filterInputTypeDescriptor)
+        if (descriptor is IFilterInputTypeDescriptor filterInputTypeDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type IFilterInputTypeDescriptor.");
+            OnConfigure(context, filterInputTypeDescriptor, type);
         }
-
-        OnConfigure(context, filterInputTypeDescriptor, type);
     }
 
     public abstract void OnConfigure(

@@ -23,12 +23,10 @@ public abstract class SortInputTypeDescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a type.");
         }
 
-        if (descriptor is not ISortInputTypeDescriptor sortInputTypeDescriptor)
+        if (descriptor is ISortInputTypeDescriptor sortInputTypeDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type ISortInputTypeDescriptor.");
+            OnConfigure(context, sortInputTypeDescriptor, type);
         }
-
-        OnConfigure(context, sortInputTypeDescriptor, type);
     }
 
     public abstract void OnConfigure(

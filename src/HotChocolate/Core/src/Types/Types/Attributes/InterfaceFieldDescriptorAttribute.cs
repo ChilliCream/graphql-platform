@@ -22,12 +22,10 @@ public abstract class InterfaceFieldDescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a member.");
         }
 
-        if (descriptor is not IInterfaceFieldDescriptor interfaceFieldDescriptor)
+        if (descriptor is IInterfaceFieldDescriptor interfaceFieldDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type IInterfaceFieldDescriptor.");
+            OnConfigure(context, interfaceFieldDescriptor, member);
         }
-
-        OnConfigure(context, interfaceFieldDescriptor, member);
     }
 
     protected abstract void OnConfigure(

@@ -18,21 +18,42 @@ internal static class DescriptorAttributeHelper
             return;
         }
 
-        var configurations = ArrayPool<IDescriptorConfiguration>.Shared.Rent(64);
         var count = 0;
+        var attributes = context.TypeInspector.GetAttributes(element, true);
+        IDescriptorConfiguration? first = null;
+        IDescriptorConfiguration[]? configurations = null;
 
         try
         {
-            if (!ReferenceEquals(element, typeof(object)))
+            foreach (var attribute in attributes)
             {
-                CollectAttributeConfigurations(
-                    context.TypeInspector,
-                    element,
-                    ref configurations,
-                    ref count);
+                if (attribute is IDescriptorConfiguration casted)
+                {
+                    if (configurations is null && first == null)
+                    {
+                        first = casted;
+                    }
+                    else if (configurations is null && first is not null)
+                    {
+                        configurations = ArrayPool<IDescriptorConfiguration>.Shared.Rent(attributes.Length);
+                        configurations[count++] = first;
+                        configurations[count++] = casted;
+                        first = null;
+                    }
+                    else
+                    {
+                        configurations?[count++] = casted;
+                    }
+                }
             }
 
-            if (count == 0)
+            if (first is not null)
+            {
+                first.TryConfigure(context, descriptor, element);
+                return;
+            }
+
+            if (configurations is null)
             {
                 return;
             }
@@ -47,49 +68,11 @@ internal static class DescriptorAttributeHelper
         }
         finally
         {
-            configurations.AsSpan(0, count).Clear();
-            ArrayPool<IDescriptorConfiguration>.Shared.Return(configurations);
-        }
-    }
-
-    private static void CollectAttributeConfigurations(
-        ITypeInspector typeInspector,
-        ICustomAttributeProvider attributeProvider,
-        ref IDescriptorConfiguration[] configurations,
-        ref int count)
-    {
-        var i = count;
-        var attributes = typeInspector.GetAttributes(attributeProvider, true);
-
-        EnsureCapacity(attributes.Length, ref configurations, ref count);
-
-        foreach (var attribute in attributes)
-        {
-            if (attribute is IDescriptorConfiguration casted)
+            if (configurations is not null)
             {
-                configurations[i++] = casted;
+                configurations.AsSpan(0, count).Clear();
+                ArrayPool<IDescriptorConfiguration>.Shared.Return(configurations);
             }
-        }
-
-        count = i;
-    }
-
-    private static void EnsureCapacity(
-        int requiredCapacity,
-        ref IDescriptorConfiguration[] configurations,
-        ref int count)
-    {
-        if (count + requiredCapacity > configurations.Length)
-        {
-            var requiredSize = Math.Max(count * 2, count + requiredCapacity);
-            var temp = ArrayPool<IDescriptorConfiguration>.Shared.Rent(requiredSize);
-            var configurationsSpan = configurations.AsSpan(0, count);
-
-            configurationsSpan.CopyTo(temp);
-            configurationsSpan.Clear();
-
-            ArrayPool<IDescriptorConfiguration>.Shared.Return(configurations);
-            configurations = temp;
         }
     }
 

@@ -22,12 +22,10 @@ public abstract class UnionTypeDescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a type.");
         }
 
-        if (descriptor is not IUnionTypeDescriptor unionTypeDescriptor)
+        if (descriptor is IUnionTypeDescriptor unionTypeDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type IUnionTypeDescriptor.");
+            OnConfigure(context, unionTypeDescriptor, type);
         }
-
-        OnConfigure(context, unionTypeDescriptor, type);
     }
 
     protected abstract void OnConfigure(

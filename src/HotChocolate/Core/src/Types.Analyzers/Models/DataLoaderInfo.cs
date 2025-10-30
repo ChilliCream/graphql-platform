@@ -12,6 +12,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
     public DataLoaderInfo(
         AttributeSyntax attributeSyntax,
         IMethodSymbol attributeSymbol,
+        AttributeData attributeData,
         IMethodSymbol methodSymbol,
         MethodDeclarationSyntax methodSyntax)
     {
@@ -22,19 +23,18 @@ public sealed class DataLoaderInfo : SyntaxInfo
         MethodSymbol = methodSymbol;
         MethodSyntax = methodSyntax;
 
-        var attribute = methodSymbol.GetDataLoaderAttribute();
-        _lookups = attribute.GetLookups();
+        _lookups = attributeData.GetLookups();
         var declaringType = methodSymbol.ContainingType;
 
-        NameWithoutSuffix = GetDataLoaderName(methodSymbol.Name, attribute);
+        NameWithoutSuffix = GetDataLoaderName(methodSymbol.Name, attributeData);
         Name = NameWithoutSuffix + "DataLoader";
         InterfaceName = $"I{Name}";
         Namespace = methodSymbol.ContainingNamespace.ToDisplayString();
         FullName = $"{Namespace}.{Name}";
         InterfaceFullName = $"{Namespace}.{InterfaceName}";
-        IsScoped = attribute.IsScoped();
-        IsPublic = attribute.IsPublic();
-        IsInterfacePublic = attribute.IsInterfacePublic();
+        IsScoped = attributeData.IsScoped();
+        IsPublic = attributeData.IsPublic();
+        IsInterfacePublic = attributeData.IsInterfacePublic();
         MethodName = methodSymbol.Name;
         KeyParameter = MethodSymbol.Parameters[0];
         ContainingType = declaringType.ToDisplayString();

@@ -22,12 +22,10 @@ public abstract class InputFieldDescriptorAttribute
             throw new InvalidOperationException("The attribute provider is required to be a member.");
         }
 
-        if (descriptor is not IInputFieldDescriptor inputFieldDescriptor)
+        if (descriptor is IInputFieldDescriptor inputFieldDescriptor)
         {
-            throw new InvalidOperationException("The descriptor must be of type IInputFieldDescriptor.");
+            OnConfigure(context, inputFieldDescriptor, member);
         }
-
-        OnConfigure(context, inputFieldDescriptor, member);
     }
 
     protected abstract void OnConfigure(
