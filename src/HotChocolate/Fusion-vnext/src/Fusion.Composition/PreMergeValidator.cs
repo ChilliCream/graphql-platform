@@ -34,7 +34,7 @@ internal sealed class PreMergeValidator(
         {
             foreach (var type in schema.Types)
             {
-                if (type is MutableObjectTypeDefinition t && t.HasInternalDirective())
+                if (type is MutableObjectTypeDefinition { IsInternal: true })
                 {
                     continue;
                 }
@@ -74,7 +74,7 @@ internal sealed class PreMergeValidator(
                     case MutableComplexTypeDefinition complexType:
                         foreach (var field in complexType.Fields)
                         {
-                            if (field.HasInternalDirective())
+                            if (field.IsInternal)
                             {
                                 continue;
                             }
