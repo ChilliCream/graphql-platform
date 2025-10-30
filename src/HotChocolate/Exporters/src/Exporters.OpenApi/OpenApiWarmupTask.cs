@@ -1,5 +1,6 @@
 using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
+using HotChocolate.Exporters.OpenApi.Validation;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -41,12 +42,26 @@ internal sealed class OpenApiWarmupTask(
         }
 
         var validator = new OpenApiDocumentValidator();
+        var context = new OpenApiValidationContext();
 
-        // TODO: Validate
+        // TODO: We need a queue mechanism here that resolves dependencies between fragment definitions
+        foreach (var (_, fragmentDocument) in fragmentDocumentLookup)
+        {
+            await validator.ValidateAsync(fragmentDocument, context, cancellationToken).ConfigureAwait(false);
+
+            context.AddValidDocument(fragmentDocument);
+        }
+
+        foreach (var operationDocument in operationDocuments)
+        {
+            await validator.ValidateAsync(operationDocument, context, cancellationToken).ConfigureAwait(false);
+
+            context.AddValidDocument(operationDocument);
+        }
 
         transformer.AddDocuments(
-            operationDocuments,
-            fragmentDocumentLookup.Values.ToList(),
+            context.ValidOperationDocuments,
+            context.ValidFragmentDocuments,
             schema);
 
         var endpoints = new List<Endpoint>();

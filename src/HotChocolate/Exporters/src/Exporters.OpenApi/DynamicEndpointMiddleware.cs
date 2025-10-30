@@ -3,6 +3,7 @@ using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,6 +57,7 @@ internal sealed class DynamicEndpointMiddleware(
 
             var requestBuilder = OperationRequestBuilder.New()
                 .SetDocument(endpointDescriptor.Document)
+                .SetErrorHandlingMode(ErrorHandlingMode.Halt)
                 .SetVariableValues(variables);
 
             await session.OnCreateAsync(context, requestBuilder, cancellationToken);
