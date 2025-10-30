@@ -636,8 +636,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry KeyFieldsHasArguments(
-        string keyFieldName,
-        string keyFieldDeclaringTypeName,
+        MutableOutputFieldDefinition keyField,
         Directive keyDirective,
         MutableComplexTypeDefinition type,
         MutableSchemaDefinition schema)
@@ -647,7 +646,7 @@ internal static class LogEntryHelper
                 LogEntryHelper_KeyFieldsHasArguments,
                 type.Name,
                 schema.Name,
-                new SchemaCoordinate(keyFieldDeclaringTypeName, keyFieldName).ToString())
+                keyField.Coordinate.ToString())
             .SetCode(LogEntryCodes.KeyFieldsHasArgs)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
@@ -657,8 +656,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry KeyFieldsSelectInvalidType(
-        string keyFieldName,
-        string keyFieldDeclaringTypeName,
+        MutableOutputFieldDefinition keyField,
         Directive keyDirective,
         MutableComplexTypeDefinition type,
         MutableSchemaDefinition schema)
@@ -668,7 +666,7 @@ internal static class LogEntryHelper
                 LogEntryHelper_KeyFieldsSelectInvalidType,
                 type.Name,
                 schema.Name,
-                new SchemaCoordinate(keyFieldDeclaringTypeName, keyFieldName).ToString())
+                keyField.Coordinate.ToString())
             .SetCode(LogEntryCodes.KeyFieldsSelectInvalidType)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
@@ -867,8 +865,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry ProvidesFieldsHasArguments(
-        string providedFieldName,
-        string providedTypeName,
+        MutableOutputFieldDefinition providedField,
         Directive providesDirective,
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
@@ -880,7 +877,7 @@ internal static class LogEntryHelper
                 LogEntryHelper_ProvidesFieldsHasArguments,
                 coordinate.ToString(),
                 schema.Name,
-                new SchemaCoordinate(providedTypeName, providedFieldName).ToString())
+                providedField.Coordinate.ToString())
             .SetCode(LogEntryCodes.ProvidesFieldsHasArgs)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(coordinate)
@@ -890,8 +887,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry ProvidesFieldsMissingExternal(
-        string providedFieldName,
-        string providedTypeName,
+        MutableOutputFieldDefinition providedField,
         Directive providesDirective,
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
@@ -903,7 +899,7 @@ internal static class LogEntryHelper
                 LogEntryHelper_ProvidesFieldsMissingExternal,
                 coordinate.ToString(),
                 schema.Name,
-                new SchemaCoordinate(providedTypeName, providedFieldName).ToString())
+                providedField.Coordinate.ToString())
             .SetCode(LogEntryCodes.ProvidesFieldsMissingExternal)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(coordinate)

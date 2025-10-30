@@ -216,7 +216,7 @@ internal sealed class SourceSchemaMerger
                             ? NullValueNode.Default
                             : new StringValueNode(sourcePath);
 
-                        var @internal = sourceField.HasInternalDirective();
+                        var @internal = sourceField.IsInternal;
 
                         mergedType.Directives.Add(
                             new Directive(
@@ -342,7 +342,7 @@ internal sealed class SourceSchemaMerger
         ImmutableArray<FieldArgumentInfo> argumentGroup,
         MutableSchemaDefinition mergedSchema)
     {
-        Assert(!argumentGroup.Any(i => i.Argument.HasRequireDirective()));
+        Assert(!argumentGroup.Any(i => i.Argument.HasRequireDirective));
 
         var mergedArgument = argumentGroup.Select(i => i.Argument).FirstOrDefault();
 
@@ -680,12 +680,8 @@ internal sealed class SourceSchemaMerger
         ImmutableArray<TypeInfo> typeGroup,
         MutableSchemaDefinition mergedSchema)
     {
-        // Filter out all types marked with @internal.
-        typeGroup =
-            [
-                .. typeGroup.Where(
-                    i => !((MutableObjectTypeDefinition)i.Type).HasInternalDirective())
-            ];
+        // Filter out internal types.
+        typeGroup = [.. typeGroup.Where(i => !((MutableObjectTypeDefinition)i.Type).IsInternal)];
 
         if (typeGroup.Length == 0)
         {
@@ -776,14 +772,7 @@ internal sealed class SourceSchemaMerger
     {
         // Filter out internal or overridden fields.
         fieldGroup =
-        [
-            .. fieldGroup.Where(
-                i => i.Field.GetRequiredSourceFieldMetadata() is
-                {
-                    IsInternal: false,
-                    IsOverridden: false
-                })
-        ];
+            [.. fieldGroup.Where(i => i.Field is { IsInternal: false, IsOverridden: false })];
 
         if (fieldGroup.Length == 0)
         {
@@ -828,7 +817,7 @@ internal sealed class SourceSchemaMerger
         _requireInputTypeNames.UnionWith(
             fieldGroup
                 .SelectMany(i => i.Field.Arguments.AsEnumerable())
-                .Where(a => a.HasRequireDirective())
+                .Where(a => a.HasRequireDirective)
                 .Select(a => a.Type.InnerType())
                 .OfType<IInputObjectTypeDefinition>()
                 .Select(t => t.Name));
@@ -838,7 +827,7 @@ internal sealed class SourceSchemaMerger
             .SelectMany(
                 i => i.Field.Arguments.AsEnumerable(),
                 (i, a) => new FieldArgumentInfo(a, i.Field, i.Type, i.Schema))
-            .Where(i => !i.Argument.HasRequireDirective())
+            .Where(i => !i.Argument.HasRequireDirective)
             .GroupBy(i => i.Argument.Name)
             // Intersection: Argument definition count matches field definition count.
             .Where(g => g.Count() == fieldGroup.Length);
@@ -945,7 +934,7 @@ internal sealed class SourceSchemaMerger
             .SelectMany(
                 i => ((MutableUnionTypeDefinition)i.Type).Types.AsEnumerable(),
                 (i, t) => new UnionMemberInfo(t, (MutableUnionTypeDefinition)i.Type, i.Schema))
-            .Where(i => !i.MemberType.HasInternalDirective())
+            .Where(i => !i.MemberType.IsInternal)
             .GroupBy(i => i.MemberType.Name);
 
         foreach (var (memberName, memberGroup) in unionMemberGroupByName)
@@ -1253,7 +1242,7 @@ internal sealed class SourceSchemaMerger
                 arguments.Add(new ArgumentAssignment(ArgumentNames.Provides, selectionSet));
             }
 
-            if (sourceField.HasExternalDirective())
+            if (sourceField.IsExternal)
             {
                 arguments.Add(new ArgumentAssignment(ArgumentNames.Partial, true));
             }

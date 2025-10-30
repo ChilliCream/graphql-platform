@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
+using static HotChocolate.Fusion.WellKnownDirectiveNames;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 
 namespace HotChocolate.Fusion;
@@ -40,7 +41,7 @@ internal sealed class SourceSchemaPreprocessor(
         var lookupFieldDefinitions =
             schema.Types
                 .OfType<MutableComplexTypeDefinition>()
-                .SelectMany(t => t.Fields.AsEnumerable().Where(f => f.HasLookupDirective()));
+                .SelectMany(t => t.Fields.AsEnumerable().Where(f => f.Directives.ContainsName(Lookup)));
 
         foreach (var lookupFieldDefinition in lookupFieldDefinitions)
         {
