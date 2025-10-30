@@ -7,27 +7,34 @@ namespace HotChocolate.Exporters.OpenApi;
 
 public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
 {
-    private static readonly FragmentSpreadFinder s_fragmentSpreadFinder = new();
+    private static readonly ExternalFragmentReferenceFinder s_externalFragmentReferenceFinder = new();
 
     public IOpenApiDocument Parse(string id, DocumentNode document)
     {
-        var fragmentDefinitions = document.Definitions.OfType<FragmentDefinitionNode>().ToArray();
+        var localFragments = document.Definitions
+            .OfType<FragmentDefinitionNode>()
+            .ToArray();
+        var localFragmentLookup = localFragments
+            .ToDictionary(f => f.Name.Value);
 
         // An operation document can only define a single operation alongside local fragment definitions.
         var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().SingleOrDefault();
 
         if (operationDefinition is not null)
         {
-            return ParseOperation(id, operationDefinition, fragmentDefinitions);
+            return ParseOperation(id, operationDefinition, document, localFragmentLookup);
         }
 
-        // A fragment document can only define a single fragment.
-        var fragmentDefinition = fragmentDefinitions.Single();
+        var fragmentDefinition = localFragments[0];
 
-        return ParseFragment(id, fragmentDefinition);
+        return ParseFragment(id, fragmentDefinition, document, localFragmentLookup);
     }
 
-    private OpenApiFragmentDocument ParseFragment(string id, FragmentDefinitionNode fragment)
+    private OpenApiFragmentDocument ParseFragment(
+        string id,
+        FragmentDefinitionNode fragment,
+        DocumentNode document,
+        Dictionary<string, FragmentDefinitionNode> localFragmentLookup)
     {
         var name = fragment.Name.Value;
         var description = fragment.Description?.Value;
@@ -37,8 +44,8 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
             throw new InvalidOperationException("Type Condition not found");
         }
 
-        var context = new FragmentSpreadFinderContext();
-        s_fragmentSpreadFinder.Visit(fragment, context);
+        var context = new FragmentSpreadFinderContext(localFragmentLookup);
+        s_externalFragmentReferenceFinder.Visit(document, context);
 
         return new OpenApiFragmentDocument(
             id,
@@ -46,13 +53,15 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
             description,
             typeCondition,
             fragment,
-            context.FragmentDependencies);
+            localFragmentLookup,
+            context.ExternalFragmentReferences);
     }
 
     private static OpenApiOperationDocument ParseOperation(
         string id,
         OperationDefinitionNode operation,
-        FragmentDefinitionNode[] localFragments)
+        DocumentNode document,
+        Dictionary<string, FragmentDefinitionNode> localFragmentLookup)
     {
         var name = operation.Name?.Value;
         var description = operation.Description?.Value;
@@ -76,8 +85,8 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
                     .Select(RewriteVariableDefinition)
                     .ToArray());
 
-        var context = new FragmentSpreadFinderContext();
-        s_fragmentSpreadFinder.Visit(operation, context);
+        var context = new FragmentSpreadFinderContext(localFragmentLookup);
+        s_externalFragmentReferenceFinder.Visit(document, context);
 
         return new OpenApiOperationDocument(
             id,
@@ -88,7 +97,8 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
             queryParameters,
             bodyParameter,
             cleanOperation,
-            context.FragmentDependencies);
+            localFragmentLookup,
+            context.ExternalFragmentReferences);
     }
 
     private static OpenApiRouteSegmentParameter? GetBodyParameter(OperationDefinitionNode operation)
@@ -131,7 +141,7 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
 
         foreach (var item in listValue.Items)
         {
-            if (item.Value is not StringValueNode { Value: var stringValue })
+            if (item is not StringValueNode { Value: var stringValue })
             {
                 throw new InvalidOperationException("Query parameters must be a string");
             }
@@ -313,20 +323,28 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
             : variable.WithDirectives(directives);
     }
 
-    private sealed class FragmentSpreadFinder : SyntaxVisitor<FragmentSpreadFinderContext>
+    private sealed class ExternalFragmentReferenceFinder : SyntaxVisitor<FragmentSpreadFinderContext>
     {
-        protected override ISyntaxVisitorAction VisitChildren(
-            FragmentSpreadNode node,
-            FragmentSpreadFinderContext context)
+        protected override ISyntaxVisitorAction Enter(ISyntaxNode node, FragmentSpreadFinderContext context)
         {
-            context.FragmentDependencies.Add(node.Name.Value);
+            if (node is FragmentSpreadNode fragmentSpread)
+            {
+                var fragmentName = fragmentSpread.Name.Value;
+                if (!context.LocalFragmentLookup.ContainsKey(fragmentName))
+                {
+                    context.ExternalFragmentReferences.Add(fragmentName);
+                }
+            }
 
             return Continue;
         }
     }
 
-    private sealed class FragmentSpreadFinderContext
+    private sealed class FragmentSpreadFinderContext(
+        Dictionary<string, FragmentDefinitionNode> localFragmentLookup)
     {
-        public List<string> FragmentDependencies { get; } = [];
+        public HashSet<string> ExternalFragmentReferences { get; } = [];
+
+        public Dictionary<string, FragmentDefinitionNode> LocalFragmentLookup { get; } = localFragmentLookup;
     }
 }

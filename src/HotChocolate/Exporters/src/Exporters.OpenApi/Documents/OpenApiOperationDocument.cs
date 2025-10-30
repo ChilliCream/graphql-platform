@@ -13,7 +13,8 @@ public sealed record OpenApiOperationDocument(
     ImmutableArray<OpenApiRouteSegmentParameter> QueryParameters,
     OpenApiRouteSegmentParameter? BodyParameter,
     OperationDefinitionNode OperationDefinition,
-    IReadOnlyList<string> FragmentDependencies) : IOpenApiDocument;
+    Dictionary<string, FragmentDefinitionNode> LocalFragmentLookup,
+    HashSet<string> ExternalFragmentReferences) : IOpenApiDocument;
 
 // TODO: Move
 public sealed record OpenApiRoute(ImmutableArray<IOpenApiRouteSegment> Segments)
@@ -22,6 +23,16 @@ public sealed record OpenApiRoute(ImmutableArray<IOpenApiRouteSegment> Segments)
         => Segments.OfType<OpenApiRouteSegmentParameter>();
 
     public override string ToString()
+    {
+        return ToString(false);
+    }
+
+    public string ToOpenApiPath()
+    {
+        return ToString(true);
+    }
+
+    private string ToString(bool openApiFormat)
     {
         var sb = new StringBuilder();
 
@@ -35,7 +46,16 @@ public sealed record OpenApiRoute(ImmutableArray<IOpenApiRouteSegment> Segments)
             }
             else if (segment is OpenApiRouteSegmentParameter parameter)
             {
-                sb.Append(parameter);
+                if (openApiFormat)
+                {
+                    sb.Append('{');
+                    sb.Append(parameter.Key);
+                    sb.Append('}');
+                }
+                else
+                {
+                    sb.Append(parameter);
+                }
             }
         }
 

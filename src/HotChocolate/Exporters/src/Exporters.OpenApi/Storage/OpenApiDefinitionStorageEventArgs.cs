@@ -1,6 +1,6 @@
 namespace HotChocolate.Exporters.OpenApi;
 
-public sealed record OpenApiDocumentStorageEventArgs(
+public sealed record OpenApiDefinitionStorageEventArgs(
     string Id,
-    OpenApiDocumentStorageEventType Type,
+    OpenApiDefinitionStorageEventType Type,
     OpenApiDocumentDefinition? Definition = null);

@@ -1,12 +1,13 @@
 using System.Net.Http.Headers;
 using System.Text;
-using HotChocolate.Execution;
 
 namespace HotChocolate.Exporters.OpenApi;
 
+// TODO: We need to validate that we can't have the same path + method twice, even if once with and without query parameters
 // TODO: With authorization also check what happens if we handle it in validation
 // TODO: Test hot reload
 // TODO: Query parameter tests
+// TODO: @oneOf tests
 public class HttpEndpointIntegrationTests : OpenApiTestBase
 {
     #region GET
@@ -263,7 +264,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PostAsync("/users/6", content);
+        var response = await client.PutAsync("/users/6", content);
 
         // assert
         response.MatchSnapshot();

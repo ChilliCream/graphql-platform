@@ -1,6 +1,6 @@
 namespace HotChocolate.Exporters.OpenApi;
 
-public enum OpenApiDocumentStorageEventType
+public enum OpenApiDefinitionStorageEventType
 {
     Added,
     Modified,

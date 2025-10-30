@@ -12,43 +12,34 @@ namespace Microsoft.Extensions.DependencyInjection;
 // TODO: Also add Fusion variants
 public static class RequestExecutorBuilderExtensions
 {
-    public static IRequestExecutorBuilder AddOpenApiDocumentStorage(
+    public static IRequestExecutorBuilder AddOpenApiDefinitionStorage(
         this IRequestExecutorBuilder builder,
-        IOpenApiDocumentStorage documentStorage)
+        IOpenApiDefinitionStorage definitionStorage)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(documentStorage);
+        ArgumentNullException.ThrowIfNull(definitionStorage);
 
         builder.AddOpenApiDocumentStorageCore();
 
-        return builder.ConfigureSchemaServices(s => s.AddSingleton(documentStorage));
+        return builder.ConfigureSchemaServices(s => s.AddSingleton(definitionStorage));
     }
 
-    public static IRequestExecutorBuilder AddOpenApiDocumentStorage<
+    public static IRequestExecutorBuilder AddOpenApiDefinitionStorage<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
-        where T : class, IOpenApiDocumentStorage
+        where T : class, IOpenApiDefinitionStorage
     {
         ArgumentNullException.ThrowIfNull(builder);
 
         builder.AddOpenApiDocumentStorageCore();
 
-        return builder.ConfigureSchemaServices(static s => s.AddSingleton<IOpenApiDocumentStorage, T>());
+        return builder.ConfigureSchemaServices(static s => s.AddSingleton<IOpenApiDefinitionStorage, T>());
     }
 
     private static void AddOpenApiDocumentStorageCore(this IRequestExecutorBuilder builder)
     {
+        // EndpointDataSource
         builder.Services.TryAddKeyedSingleton<DynamicEndpointDataSource>(builder.Name);
-
-        builder.Services
-            .AddHttpContextAccessor()
-            .AddKeyedSingleton(
-                builder.Name,
-                // TODO: Maybe we should use a named one here to avoid conflicts in the future
-                static (sp, name) => new HttpRequestExecutorProxy(
-                    sp.GetRequiredService<IRequestExecutorProvider>(),
-                    sp.GetRequiredService<IRequestExecutorEvents>(),
-                    (string)name));
 
         builder.ConfigureSchemaServices(
             static (applicationServices, s) =>
@@ -57,6 +48,28 @@ public static class RequestExecutorBuilderExtensions
                     var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
                     return applicationServices.GetRequiredKeyedService<DynamicEndpointDataSource>(schemaName);
                 }));
+
+        // DynamicOpenApiDocumentTransformer
+        builder.Services.TryAddKeyedSingleton<DynamicOpenApiDocumentTransformer>(builder.Name);
+
+        builder.ConfigureSchemaServices(
+            static (applicationServices, s) =>
+                s.AddSingleton(schemaServices =>
+                {
+                    var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
+                    return applicationServices.GetRequiredKeyedService<DynamicOpenApiDocumentTransformer>(schemaName);
+                }));
+
+        // RequestExecutorProxy
+        builder.Services
+            .AddHttpContextAccessor()
+            .AddKeyedSingleton(
+                builder.Name,
+                // TODO: Maybe we should create our own implementation here?
+                static (sp, name) => new HttpRequestExecutorProxy(
+                    sp.GetRequiredService<IRequestExecutorProvider>(),
+                    sp.GetRequiredService<IRequestExecutorEvents>(),
+                    (string)name));
 
         builder.AddWarmupTask<OpenApiWarmupTask>();
     }
