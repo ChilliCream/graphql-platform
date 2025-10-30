@@ -28,6 +28,12 @@
                   "type": "object",
                   "allOf": [
                     {
+                      "required": [
+                        "id",
+                        "name",
+                        "email",
+                        "address"
+                      ],
                       "type": "object",
                       "properties": {
                         "id": {
@@ -62,6 +68,9 @@
   "components": {
     "schemas": {
       "Address": {
+        "required": [
+          "street"
+        ],
         "type": "object",
         "properties": {
           "street": {

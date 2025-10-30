@@ -25,9 +25,16 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "required": [
+                    "id"
+                  ],
                   "type": "object",
                   "allOf": [
                     {
+                      "required": [
+                        "name",
+                        "email"
+                      ],
                       "type": "object",
                       "properties": {
                         "name": {

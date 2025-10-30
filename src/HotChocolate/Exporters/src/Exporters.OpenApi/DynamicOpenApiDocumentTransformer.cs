@@ -286,11 +286,6 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     continue;
                 }
 
-                if (field.Type.IsNonNullType())
-                {
-                    schema.Required!.Add(field.Name);
-                }
-
                 var fieldTypeSchema = CreateOpenApiSchemaForType(field.Type, schemaDefinition);
                 fieldTypeSchema.Deprecated = field.IsDeprecated;
 
@@ -298,6 +293,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 {
                     fieldTypeSchema.Description = field.Description;
                 }
+
+                ApplyNullability(fieldTypeSchema, field.Type);
 
                 schema.Properties!.Add(field.Name, fieldTypeSchema);
             }
@@ -511,6 +508,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         foreach (var selection in selectionSet.Selections)
         {
+            var isSelectionConditional = IsConditional(selection);
+
             if (selection is FieldNode field)
             {
                 var fieldName = field.Name.Value;
@@ -533,16 +532,12 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     typeSchema = CreateOpenApiSchemaForType(fieldType, schemaDefinition);
                 }
 
-                var isNullable = optional || !fieldType.IsNonNullType();
-
-#if NET10_0_OR_GREATER
-                if (isNullable)
+                if (!optional && !isSelectionConditional)
                 {
-                    typeSchema.Type |= JsonSchemaType.Null;
+                    schema.Required!.Add(responseName);
                 }
-#else
-                typeSchema.Nullable = isNullable;
-#endif
+
+                ApplyNullability(typeSchema, fieldType);
 
                 schema.Properties!.Add(responseName, typeSchema);
             }
@@ -559,7 +554,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     schemaDefinition,
                     fragmentLookup,
                     externalFragments,
-                    optional: optional || isDifferentType);
+                    optional: optional || isDifferentType || isSelectionConditional);
 
 #if NET10_0_OR_GREATER
                 schema.AllOf ??= new List<IOpenApiSchema>();
@@ -598,7 +593,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                         schemaDefinition,
                         fragmentLookup,
                         externalFragments,
-                        optional: optional || isDifferentType);
+                        optional: optional || isDifferentType || isSelectionConditional);
 
 #if NET10_0_OR_GREATER
                     schema.AllOf ??= new List<IOpenApiSchema>();
@@ -612,6 +607,18 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         }
 
         return schema;
+    }
+
+    private static void ApplyNullability(OpenApiSchema schema, IType type)
+    {
+        if (!type.IsNonNullType())
+        {
+#if NET10_0_OR_GREATER
+            schema.Type |= JsonSchemaType.Null;
+#else
+            schema.Nullable = true;
+#endif
+        }
     }
 
     private static OpenApiParameter CreateOpenApiParameter(
@@ -629,6 +636,39 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             Required = graphqlType.IsNonNullType(),
             Schema = CreateOpenApiSchemaForType(graphqlType, schema)
         };
+    }
+
+    private static bool IsConditional(ISelectionNode selection)
+    {
+        if (selection is FieldNode field)
+        {
+            return HasConditionalDirective(field.Directives);
+        }
+
+        if (selection is InlineFragmentNode inlineFragment)
+        {
+            return HasConditionalDirective(inlineFragment.Directives);
+        }
+
+        if (selection is FragmentSpreadNode fragmentSpread)
+        {
+            return HasConditionalDirective(fragmentSpread.Directives);
+        }
+
+        return false;
+    }
+
+    private static bool HasConditionalDirective(IReadOnlyList<DirectiveNode> directives)
+    {
+        foreach (var directive in directives)
+        {
+            if (directive.Name.Value is "skip" or "include")
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static IType GetGraphQLType(

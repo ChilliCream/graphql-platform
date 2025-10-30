@@ -25,6 +25,9 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "required": [
+                    "id"
+                  ],
                   "type": "object",
                   "allOf": [
                     {
@@ -47,6 +50,10 @@
   "components": {
     "schemas": {
       "User": {
+        "required": [
+          "name",
+          "email"
+        ],
         "type": "object",
         "properties": {
           "name": {

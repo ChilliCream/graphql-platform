@@ -42,6 +42,9 @@
   "components": {
     "schemas": {
       "User": {
+        "required": [
+          "id"
+        ],
         "type": "object",
         "allOf": [
           {
@@ -55,6 +58,10 @@
         }
       },
       "GlobalUser": {
+        "required": [
+          "name",
+          "email"
+        ],
         "type": "object",
         "properties": {
           "name": {

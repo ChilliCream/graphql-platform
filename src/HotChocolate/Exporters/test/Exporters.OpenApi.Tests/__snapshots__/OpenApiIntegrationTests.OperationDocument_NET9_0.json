@@ -25,6 +25,10 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "required": [
+                    "name",
+                    "email"
+                  ],
                   "type": "object",
                   "properties": {
                     "name": {

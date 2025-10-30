@@ -28,6 +28,11 @@
                   "type": "object",
                   "allOf": [
                     {
+                      "required": [
+                        "id",
+                        "name",
+                        "email"
+                      ],
                       "type": "object",
                       "properties": {
                         "id": {
