@@ -1,4 +1,4 @@
-# Shareable_On_Field
+# Lookup_With_Generic_ID_Attribute
 
 ## HotChocolateTypeModule.735550c.g.cs
 
@@ -75,8 +75,7 @@ namespace TestNamespace
             var naming = descriptor.Extend().Context.Naming;
 
             descriptor
-                .Field(naming.GetMemberName("Test", global::HotChocolate.Types.MemberKind.ObjectField))
-                .Directive(global::HotChocolate.Types.Composite.Shareable.Instance)
+                .Field(naming.GetMemberName("ProductById", global::HotChocolate.Types.MemberKind.ObjectField))
                 .ExtendWith(static (field, context) =>
                 {
                     var configuration = field.Configuration;
@@ -84,28 +83,55 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<int>>>), HotChocolate.Types.TypeContext.Output);
-                    configuration.ResultType = typeof(int);
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Product>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(global::TestNamespace.Product);
 
                     configuration.SetSourceGeneratorFlags();
 
                     var bindingInfo = field.Context.ParameterBindingResolver;
-                    var parameter = context.Resolvers.CreateParameterDescriptor_GetTest_arg();
+                    var parameter = context.Resolvers.CreateParameterDescriptor_GetProductById_id();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
 
                     if(parameterInfo.Kind is global::HotChocolate.Internal.ArgumentKind.Argument)
                     {
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
-                            Name = naming.GetMemberName("arg", global::HotChocolate.Types.MemberKind.Argument),
-                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<string>>>), HotChocolate.Types.TypeContext.Input),
-                            RuntimeType = typeof(string)
+                            Name = naming.GetMemberName("id", global::HotChocolate.Types.MemberKind.Argument),
+                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<int>>>), HotChocolate.Types.TypeContext.Input),
+                            RuntimeType = typeof(int)
                         };
+
+                        var argumentDescriptor = global::HotChocolate.Types.Descriptors.ArgumentDescriptor.From(field.Context, argumentConfiguration);
+                        HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                            field.Context,
+                            argumentDescriptor,
+                            null,
+                            new global::HotChocolate.Types.Relay.IDAttribute<global::TestNamespace.Product>());
+                        argumentConfiguration.ConfigurationsAreApplied = true;
+                        argumentDescriptor.CreateConfiguration();
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
-                    configuration.Resolvers = context.Resolvers.GetTest();
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetProductById",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(int)
+                        })!;
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.Composite.LookupAttribute(),
+                        new global::HotChocolate.Types.Composite.InternalAttribute());
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
+
+                    configuration.Resolvers = context.Resolvers.GetProductById();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
 
@@ -116,33 +142,35 @@ namespace TestNamespace
 
         private sealed class __Resolvers
         {
-            private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetTest_arg;
+            private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetProductById_id;
 
             public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
             {
-                _binding_GetTest_arg = bindingResolver.GetBinding(CreateParameterDescriptor_GetTest_arg());
+                _binding_GetProductById_id = bindingResolver.GetBinding(CreateParameterDescriptor_GetProductById_id());
             }
 
-            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetTest_arg()
+            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetProductById_id()
                 => new HotChocolate.Internal.ParameterDescriptor(
-                    "arg",
-                    typeof(string),
+                    "id",
+                    typeof(int),
                     isNullable: false,
-                    []);
+                    [
+                        new global::HotChocolate.Types.Relay.IDAttribute<global::TestNamespace.Product>()
+                    ]);
 
-            public HotChocolate.Resolvers.FieldResolverDelegates GetTest()
+            public HotChocolate.Resolvers.FieldResolverDelegates GetProductById()
             {
-                var isPureResolver = _binding_GetTest_arg.IsPure;
+                var isPureResolver = _binding_GetProductById_id.IsPure;
 
                 return isPureResolver
-                    ? new global::HotChocolate.Resolvers.FieldResolverDelegates(pureResolver: GetTest)
-                    : new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: c => new(GetTest(c)));
+                    ? new global::HotChocolate.Resolvers.FieldResolverDelegates(pureResolver: GetProductById)
+                    : new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: c => new(GetProductById(c)));
             }
 
-            private global::System.Object? GetTest(global::HotChocolate.Resolvers.IResolverContext context)
+            private global::System.Object? GetProductById(global::HotChocolate.Resolvers.IResolverContext context)
             {
-                var args0 = _binding_GetTest_arg.Execute<string>(context);
-                var result = global::TestNamespace.Query.GetTest(args0);
+                var args0 = _binding_GetProductById_id.Execute<int>(context);
+                var result = global::TestNamespace.Query.GetProductById(args0);
                 return result;
             }
         }

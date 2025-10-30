@@ -85,9 +85,7 @@ public class ArgumentDescriptor
             DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.Parameter,
-                Configuration.Parameter,
-                Configuration.Configurations);
+                Configuration.Parameter);
 
             Configuration.ConfigurationsAreApplied = true;
         }

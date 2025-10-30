@@ -84,7 +84,5 @@ public interface IOutputTypeInfo
 
     void AddDiagnosticRange(ImmutableArray<Diagnostic> diagnostics);
 
-    void ReplaceResolver(
-        Resolver current,
-        Resolver replacement);
+    void ReplaceResolver(Resolver current, Resolver replacement);
 }

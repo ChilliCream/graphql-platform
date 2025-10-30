@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
@@ -58,9 +59,7 @@ public class ObjectTypeDescriptor
             DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.FieldBindingType ?? Configuration.RuntimeType,
-                Configuration.FieldBindingType,
-                Configuration.Configurations);
+                Configuration.FieldBindingType ?? Configuration.RuntimeType);
 
             Configuration.ConfigurationsAreApplied = true;
         }

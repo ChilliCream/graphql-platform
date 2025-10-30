@@ -66,9 +66,7 @@ public class InputFieldDescriptor
             DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.Property,
-                Configuration.Property,
-                Configuration.Configurations);
+                Configuration.Property);
 
             Configuration.ConfigurationsAreApplied = true;
         }

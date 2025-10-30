@@ -278,4 +278,28 @@ public class OperationTests
             }
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task Lookup_With_Generic_ID_Attribute()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Relay;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            public static partial class Query
+            {
+                [Lookup, Internal]
+                public static Product? GetProductById([ID<Product>] int id)
+                    => new(id);
+            }
+
+            public record Product(int Id);
+            """).MatchMarkdownAsync();
+    }
 }
