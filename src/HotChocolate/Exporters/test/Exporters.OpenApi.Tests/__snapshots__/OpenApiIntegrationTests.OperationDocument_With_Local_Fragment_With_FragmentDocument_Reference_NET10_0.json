@@ -42,7 +42,10 @@
                           "type": "string"
                         },
                         "email": {
-                          "type": "string"
+                          "type": [
+                            "null",
+                            "string"
+                          ]
                         },
                         "address": {
                           "type": "object",

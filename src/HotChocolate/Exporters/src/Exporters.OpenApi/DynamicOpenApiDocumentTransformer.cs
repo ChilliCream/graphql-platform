@@ -479,7 +479,6 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 OpenApiSchema typeSchema;
                 if (field.SelectionSet is not null)
                 {
-                    // TODO: We need to account for arrays here
                     typeSchema = CreateOpenApiSchemaForSelectionSet(
                         field.SelectionSet,
                         fieldType,
@@ -492,21 +491,25 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     typeSchema = CreateOpenApiSchemaForType(fieldType, schemaDefinition);
                 }
 
-                schema.Properties!.Add(responseName, typeSchema);
+                var isNullable = optional || !fieldType.IsNonNullType();
 
-                // TODO: I think required and nullable is handled differently on the output side
-                var isRequired = !optional && fieldType.NamedType().IsNonNullType();
-                if (isRequired)
+#if NET10_0_OR_GREATER
+                if (isNullable)
                 {
-                    schema.Required!.Add(fieldName);
+                    typeSchema.Type |= JsonSchemaType.Null;
                 }
+#else
+                typeSchema.Nullable = isNullable;
+#endif
+
+                schema.Properties!.Add(responseName, typeSchema);
             }
             else if (selection is InlineFragmentNode inlineFragment)
             {
                 var typeCondition = inlineFragment.TypeCondition is null
                     ? complexType
                     : schemaDefinition.Types[inlineFragment.TypeCondition.Name.Value];
-                var isDifferentType = typeCondition.IsAssignableFrom(complexType);
+                var isDifferentType = !typeCondition.IsAssignableFrom(complexType);
 
                 var typeConditionSchema = CreateOpenApiSchemaForSelectionSet(
                     inlineFragment.SelectionSet,
@@ -544,7 +547,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 {
                     var fragment = fragmentLookup[fragmentName];
                     var typeCondition = schemaDefinition.Types[fragment.TypeCondition.Name.Value];
-                    var isDifferentType = typeCondition.IsAssignableFrom(complexType);
+                    var isDifferentType = !typeCondition.IsAssignableFrom(complexType);
 
                     var typeConditionSchema = CreateOpenApiSchemaForSelectionSet(
                         fragment.SelectionSet,

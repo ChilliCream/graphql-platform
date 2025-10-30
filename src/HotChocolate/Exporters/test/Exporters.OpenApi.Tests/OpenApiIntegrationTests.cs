@@ -1,6 +1,7 @@
 namespace HotChocolate.Exporters.OpenApi;
 
 // TODO: Test with arrays, custom scalars, enum, interface, union, etc., introspection fields
+// TODO: @skip and such needs to be treated as optional
 public class OpenApiIntegrationTests : OpenApiTestBase
 {
     [Fact]
