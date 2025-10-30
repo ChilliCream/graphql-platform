@@ -125,10 +125,9 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         var responseBody = new OpenApiMediaType
         {
-            // TODO: We need to account for arrays here
             Schema = CreateOpenApiSchemaForSelectionSet(
                 rootField.SelectionSet,
-                fieldType.AsTypeDefinition(),
+                fieldType,
                 schema,
                 operationDocument.LocalFragmentLookup,
                 operationDocument.ExternalFragmentReferences)
@@ -153,7 +152,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     {
         var componentSchema = CreateOpenApiSchemaForSelectionSet(
             fragmentDocument.FragmentDefinition.SelectionSet,
-            fragmentDocument.TypeCondition,
+            (IOutputType)fragmentDocument.TypeCondition,
             schema,
             fragmentDocument.LocalFragmentLookup,
             fragmentDocument.ExternalFragmentReferences);
@@ -384,7 +383,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
 #if NET10_0_OR_GREATER
         schema.Type = JsonSchemaType.String;
-        schema.Enum = enumType.Values.Select(JsonNode (v) => JsonValue.Create(v.Name)!).ToList();
+        schema.Enum = enumType.Values.Select(JsonNode (v) => JsonValue.Create(v.Name)).ToList();
 #else
         schema.Type = "string";
         schema.Enum = enumType.Values.Select(IOpenApiAny (v) => new OpenApiString(v.Name)).ToList();
@@ -450,12 +449,22 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     // TODO: We need to handle introspection fields here
     private static OpenApiSchema CreateOpenApiSchemaForSelectionSet(
         SelectionSetNode selectionSet,
-        ITypeDefinition typeDefinition,
+        IOutputType typeDefinition,
         ISchemaDefinition schemaDefinition,
         Dictionary<string, FragmentDefinitionNode> fragmentLookup,
         HashSet<string> externalFragments,
         bool optional = false)
     {
+        if (typeDefinition.IsListType())
+        {
+            var elementType = typeDefinition.ElementType();
+            var itemSchema = CreateOpenApiSchemaForType(elementType, schemaDefinition);
+
+            return CreateArraySchema(itemSchema);
+        }
+
+        var complexType = typeDefinition.NamedType<IComplexTypeDefinition>();
+
         var schema = CreateObjectSchema();
 
         foreach (var selection in selectionSet.Selections)
@@ -465,12 +474,6 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 var fieldName = field.Name.Value;
                 var responseName = field.Alias?.Value ?? fieldName;
 
-                if (typeDefinition is not IComplexTypeDefinition complexType)
-                {
-                    throw new InvalidOperationException(
-                        $"Expected '{responseName}' selection to be on a complex type.");
-                }
-
                 var fieldType = complexType.Fields[fieldName].Type;
 
                 OpenApiSchema typeSchema;
@@ -479,7 +482,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     // TODO: We need to account for arrays here
                     typeSchema = CreateOpenApiSchemaForSelectionSet(
                         field.SelectionSet,
-                        fieldType.AsTypeDefinition(),
+                        fieldType,
                         schemaDefinition,
                         fragmentLookup,
                         externalFragments);
@@ -498,16 +501,16 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     schema.Required!.Add(fieldName);
                 }
             }
-            if (selection is InlineFragmentNode inlineFragment)
+            else if (selection is InlineFragmentNode inlineFragment)
             {
                 var typeCondition = inlineFragment.TypeCondition is null
-                    ? typeDefinition
+                    ? complexType
                     : schemaDefinition.Types[inlineFragment.TypeCondition.Name.Value];
-                var isDifferentType = typeCondition.IsAssignableFrom(typeDefinition);
+                var isDifferentType = typeCondition.IsAssignableFrom(complexType);
 
                 var typeConditionSchema = CreateOpenApiSchemaForSelectionSet(
                     inlineFragment.SelectionSet,
-                    typeCondition,
+                    (IOutputType)typeCondition,
                     schemaDefinition,
                     fragmentLookup,
                     externalFragments,
@@ -541,11 +544,11 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 {
                     var fragment = fragmentLookup[fragmentName];
                     var typeCondition = schemaDefinition.Types[fragment.TypeCondition.Name.Value];
-                    var isDifferentType = typeCondition.IsAssignableFrom(typeDefinition);
+                    var isDifferentType = typeCondition.IsAssignableFrom(complexType);
 
                     var typeConditionSchema = CreateOpenApiSchemaForSelectionSet(
                         fragment.SelectionSet,
-                        typeCondition,
+                        (IOutputType)typeCondition,
                         schemaDefinition,
                         fragmentLookup,
                         externalFragments,
