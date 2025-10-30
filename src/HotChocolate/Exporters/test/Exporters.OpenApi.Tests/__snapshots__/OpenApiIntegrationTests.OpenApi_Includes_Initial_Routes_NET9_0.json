@@ -34,7 +34,8 @@
                       "type": "string"
                     },
                     "email": {
-                      "type": "string"
+                      "type": "string",
+                      "nullable": true
                     }
                   }
                 }
@@ -97,7 +98,8 @@
                       "type": "string"
                     },
                     "email": {
-                      "type": "string"
+                      "type": "string",
+                      "nullable": true
                     }
                   }
                 }
@@ -143,7 +145,8 @@
                       "type": "string"
                     },
                     "email": {
-                      "type": "string"
+                      "type": "string",
+                      "nullable": true
                     },
                     "address": {
                       "type": "object",
@@ -177,7 +180,6 @@
                       "__typename",
                       "id",
                       "name",
-                      "email",
                       "address"
                     ],
                     "type": "object",
@@ -261,7 +263,8 @@
                       "type": "string"
                     },
                     "email": {
-                      "type": "string"
+                      "type": "string",
+                      "nullable": true
                     }
                   }
                 }

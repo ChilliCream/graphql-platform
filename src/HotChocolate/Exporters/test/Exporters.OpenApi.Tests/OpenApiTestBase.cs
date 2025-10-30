@@ -226,7 +226,7 @@ public abstract class OpenApiTestBase
 
             public string Name { get; set; } = "User " + id;
 
-            public string Email { get; set; } = id + "@example.com";
+            public string? Email { get; set; } = id + "@example.com";
 
             public Address Address { get; set; } = new Address(id + " Street");
         }

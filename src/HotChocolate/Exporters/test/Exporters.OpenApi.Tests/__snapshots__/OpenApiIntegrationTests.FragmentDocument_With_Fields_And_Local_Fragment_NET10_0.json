@@ -61,7 +61,10 @@
                 "type": "string"
               },
               "email": {
-                "type": "string"
+                "type": [
+                  "null",
+                  "string"
+                ]
               }
             }
           }
