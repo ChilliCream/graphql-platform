@@ -1,6 +1,6 @@
 namespace HotChocolate.Exporters.OpenApi;
 
-// TODO: Test with arrays, custom scalars, enum, interface, union, etc.
+// TODO: Test with arrays, custom scalars, enum, interface, union, etc., introspection fields
 public class OpenApiIntegrationTests : OpenApiTestBase
 {
     [Fact]
@@ -19,7 +19,31 @@ public class OpenApiIntegrationTests : OpenApiTestBase
     }
 
     [Fact]
-    public async Task Local_Fragment()
+    public async Task OperationDocument()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a user by their id"
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                name
+                email
+              }
+            }
+            """);
+        var server = CreateBasicTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task OperationDocument_With_Local_Fragment()
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
@@ -48,7 +72,37 @@ public class OpenApiIntegrationTests : OpenApiTestBase
     }
 
     [Fact]
-    public async Task Local_Fragment_References_Fragment_Document()
+    public async Task OperationDocument_With_FragmentDocument_Reference()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a user by their id"
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                ...User
+              }
+            }
+            """,
+            """
+            fragment User on User {
+              id
+              name
+              email
+            }
+            """);
+        var server = CreateBasicTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task OperationDocument_With_Local_Fragment_With_FragmentDocument_Reference()
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
@@ -73,6 +127,272 @@ public class OpenApiIntegrationTests : OpenApiTestBase
             "An address"
             fragment Address on Address {
               street
+            }
+            """);
+        var server = CreateBasicTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task OperationDocument_With_Fields_And_Local_Fragment()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a user by their id"
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                id
+                ...User
+              }
+            }
+
+            fragment User on User {
+              name
+              email
+            }
+            """);
+        var server = CreateBasicTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task OperationDocument_With_Fields_And_FragmentDocument_Reference()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a user by their id"
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                id
+                ...User
+              }
+            }
+            """,
+            """
+            fragment User on User {
+              name
+              email
+            }
+            """);
+        var server = CreateBasicTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task FragmentDocument()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a user by their id"
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                name
+                email
+              }
+            }
+            """);
+        var server = CreateBasicTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task FragmentDocument_With_Local_Fragment()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a user by their id"
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                ...User
+              }
+            }
+            """,
+            """
+            fragment User on User {
+              id
+              name
+              email
+              address {
+                ...Address
+              }
+            }
+
+            fragment Address on Address {
+              street
+            }
+            """);
+        var server = CreateBasicTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task FragmentDocument_With_FragmentDocument_Reference()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a user by their id"
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                ...User
+              }
+            }
+            """,
+            """
+            fragment User on User {
+              id
+              name
+              email
+              address {
+                ...Address
+              }
+            }
+            """,
+            """
+            fragment Address on Address {
+              street
+            }
+            """);
+        var server = CreateBasicTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task FragmentDocument_With_Local_Fragment_With_FragmentDocument_Reference()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a user by their id"
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                ...User
+              }
+            }
+            """,
+            """
+            fragment User on User {
+              id
+              name
+              email
+              address {
+                ...Address
+              }
+            }
+            """,
+            """
+            fragment Address on Address {
+              street
+            }
+            """);
+        var server = CreateBasicTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task FragmentDocument_With_Fields_And_Local_Fragment()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a user by their id"
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                id
+                ...User
+              }
+            }
+            """,
+            """
+            fragment User on User {
+              id
+              ...LocalUser
+            }
+
+            fragment LocalUser on User {
+              name
+              email
+            }
+            """);
+        var server = CreateBasicTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task FragmentDocument_With_Fields_And_FragmentDocument_Reference()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a user by their id"
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                ...User
+              }
+            }
+            """,
+            """
+            fragment User on User {
+              id
+              ...GlobalUser
+            }
+            """,
+            """
+            fragment GlobalUser on User {
+              name
+              email
             }
             """);
         var server = CreateBasicTestServer(storage);

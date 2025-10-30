@@ -171,10 +171,44 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
+                  "type": "array",
+                  "items": {
+                    "required": [
+                      "__typename",
+                      "id",
+                      "name",
+                      "email",
+                      "address"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "__typename": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "address": {
+                        "required": [
+                          "__typename",
+                          "street"
+                        ],
+                        "type": "object",
+                        "properties": {
+                          "__typename": {
+                            "type": "string"
+                          },
+                          "street": {
+                            "type": "string"
+                          }
+                        }
+                      }
                     }
                   }
                 }
