@@ -1,115 +1,158 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-# This workflow will build, test, sign and package a WPF or Windows Forms desktop application
-# built on .NET Core.
-# To learn how to migrate your existing application to .NET Core,
-# refer to https://docs.microsoft.com/en-us/dotnet/desktop-wpf/migration/convert-project-from-net-framework
-#
-# To configure this workflow:
-#
-# 1. Configure environment variables
-# GitHub sets default environment variables for every workflow run.
-# Replace the variables relative to your project in the "env" section below.
-#
-# 2. Signing
-# Generate a signing certificate in the Windows Application
-# Packaging Project or add an existing signing certificate to the project.
-# Next, use PowerShell to encode the .pfx file using Base64 encoding
-# by running the following Powershell script to generate the output string:
-#
-# $pfx_cert = Get-Content '.\SigningCertificate.pfx' -Encoding Byte
-# [System.Convert]::ToBase64String($pfx_cert) | Out-File 'SigningCertificate_Encoded.txt'
-#
-# Open the output file, SigningCertificate_Encoded.txt, and copy the
-# string inside. Then, add the string to the repo as a GitHub secret
-# and name it "Base64_Encoded_Pfx."
-# For more information on how to configure your signing certificate for
-# this workflow, refer to https://github.com/microsoft/github-actions-for-desktop-apps#signing
-#
-# Finally, add the signing certificate password to the repo as a secret and name it "Pfx_Key".
-# See "Build the Windows Application Packaging project" below to see how the secret is used.
-#
-# For more information on GitHub Actions, refer to https://github.com/features/actions
-# For a complete CI/CD sample to get started with GitHub Action workflows for Desktop Applications,
-# refer to https://github.com/microsoft/github-actions-for-desktop-apps
-
-name: .NET Core Desktop
+name: Benchmarks
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+      - main-version-*
+    paths-ignore:
+      - "src/HotChocolate/AspNetCore/benchmarks/k6/performance-data.json"
+
+concurrency:
+  group: benchmarks-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
-
-  build:
-
-    strategy:
-      matrix:
-        configuration: [Debug, Release]
-
-    runs-on: windows-latest  # For a list of available runner types, refer to
-                             # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
-
-    env:
-      Solution_Name: your-solution-name                         # Replace with your solution name, i.e. MyWpfApp.sln.
-      Test_Project_Path: your-test-project-path                 # Replace with the path to your test project, i.e. MyWpfApp.Tests\MyWpfApp.Tests.csproj.
-      Wap_Project_Directory: your-wap-project-directory-name    # Replace with the Wap project directory relative to the solution, i.e. MyWpfApp.Package.
-      Wap_Project_Path: your-wap-project-path                   # Replace with the path to your Wap project, i.e. MyWpf.App.Package\MyWpfApp.Package.wapproj.
+  hotchocolate-core:
+    name: "HotChocolate Core Benchmarks"
+    if: github.event.pull_request.draft == false
+    runs-on: benchmarking
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          show-progress: false
 
-    # Install the .NET Core workload
-    - name: Install .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
+      - name: Restore dependencies
+        run: dotnet restore src/HotChocolate/AspNetCore/benchmarks/k6/eShop.slnx
 
-    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
-    - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v2
+      - name: Start AppHost and wait for readiness
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6/Catalog.AppHost
+        run: |
+          echo "Starting AppHost..."
+          dotnet run > /tmp/apphost.log 2>&1 &
+          APPHOST_PID=$!
+          echo "APPHOST_PID=$APPHOST_PID" >> $GITHUB_ENV
 
-    # Execute all unit tests in the solution
-    - name: Execute unit tests
-      run: dotnet test
+          echo "Waiting for server to be ready..."
+          for i in {1..30}; do
+            if curl -s -o /dev/null -w "%{http_code}" http://localhost:5224/graphql -X POST \
+              -H "Content-Type: application/json" \
+              -d '{"query": "{ __typename }"}' | grep -q "200"; then
+              echo "Server is ready!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
 
-    # Restore the application to populate the obj folder with RuntimeIdentifiers
-    - name: Restore the application
-      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
-      env:
-        Configuration: ${{ matrix.configuration }}
+      - name: Run performance tests and collect data
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
+        run: |
+          chmod +x run-and-collect.sh
+          ./run-and-collect.sh performance-data-current.json
 
-    # Decode the base 64 encoded pfx and save the Signing_Certificate
-    - name: Decode the pfx
-      run: |
-        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.Base64_Encoded_Pfx }}")
-        $certificatePath = Join-Path -Path $env:Wap_Project_Directory -ChildPath GitHubActionsWorkflow.pfx
-        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+      - name: Stop AppHost
+        if: always()
+        run: |
+          if [ -n "$APPHOST_PID" ]; then
+            kill $APPHOST_PID 2>/dev/null || true
+            wait $APPHOST_PID 2>/dev/null || true
+          fi
 
-    # Create the app package by building and packaging the Windows Application Packaging project
-    - name: Create the app package
-      run: msbuild $env:Wap_Project_Path /p:Configuration=$env:Configuration /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:PackageCertificatePassword=${{ secrets.Pfx_Key }}
-      env:
-        Appx_Bundle: Always
-        Appx_Bundle_Platforms: x86|x64
-        Appx_Package_Build_Mode: StoreUpload
-        Configuration: ${{ matrix.configuration }}
+      - name: Commit and push performance data to current branch
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
+        run: |
+          # Copy the performance data to the tracked filename
+          cp performance-data-current.json performance-data.json
 
-    # Remove the pfx
-    - name: Remove the pfx
-      run: Remove-Item -path $env:Wap_Project_Directory\GitHubActionsWorkflow.pfx
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-    # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: MSIX Package
-        path: ${{ env.Wap_Project_Directory }}\AppPackages
+          # Add and commit the performance data
+          git add performance-data.json
+
+          # Only commit if there are changes
+          if ! git diff --staged --quiet; then
+            git commit -m "Update performance data [skip ci]"
+            git push origin HEAD:${{ github.head_ref }}
+          else
+            echo "No changes to performance data"
+          fi
+
+      - name: Fetch baseline performance data from main
+        run: |
+          git fetch origin main:main
+          if git show main:src/HotChocolate/AspNetCore/benchmarks/k6/performance-data.json > baseline-performance.json 2>/dev/null; then
+            echo "Baseline data fetched successfully"
+            cat baseline-performance.json
+          else
+            echo "No baseline data found on main branch"
+            # Don't create the file - let the comparison script handle missing baseline
+            rm -f baseline-performance.json
+          fi
+
+      - name: Compare performance and generate report
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
+        run: |
+          chmod +x compare-performance.sh
+          ./compare-performance.sh performance-data-current.json ../../../../../baseline-performance.json performance-report.md
+
+      - name: Comment PR with performance report
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const reportPath = 'src/HotChocolate/AspNetCore/benchmarks/k6/performance-report.md';
+
+            let report;
+            try {
+              report = fs.readFileSync(reportPath, 'utf8');
+            } catch (error) {
+              console.error('Failed to read performance report:', error);
+              return;
+            }
+
+            // Add timestamp and commit info to the report
+            const timestamp = new Date().toUTCString();
+            const commitSha = context.sha.substring(0, 7);
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const commentBody = `${report}\n\n---\n*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`;
+
+            // Always create a new comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: commentBody,
+            });
+
+      - name: Upload performance data as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-data
+          path: |
+            src/HotChocolate/AspNetCore/benchmarks/k6/performance-data-current.json
+            src/HotChocolate/AspNetCore/benchmarks/k6/performance-report.md
+            /tmp/apphost.log
+          retention-days: 30
+
+      - name: Check for performance regression
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
+        run: |
+          # Fail the build if there's a significant performance regression
+          if grep -q "⚠️ \*\*Performance regression detected" performance-report.md; then
+            echo "::warning::Performance regression detected! Please review the performance report."
+            # Uncomment the next line to fail the build on regression
+            # exit 1
+          fi
