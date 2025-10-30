@@ -32,7 +32,7 @@ internal sealed class RequireInvalidFieldsRule : IEventHandler<SchemaEvent>
             .SelectMany(s => s.Types.OfType<MutableObjectTypeDefinition>(), (s, o) => (s, o))
             .SelectMany(x => x.o.Fields.AsEnumerable(), (x, f) => (x.s, x.o, f))
             .SelectMany(
-                x => x.f.Arguments.AsEnumerable().Where(a => a.HasRequireDirective()),
+                x => x.f.Arguments.AsEnumerable().Where(a => a.HasRequireDirective),
                 (x, a) => new FieldArgumentInfo(a, x.f, x.o, x.s));
 
         var validator = new FieldSelectionMapValidator(schema);

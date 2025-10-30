@@ -1,4 +1,4 @@
-using HotChocolate.Fusion.Extensions;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Features;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Types;
@@ -45,8 +45,8 @@ public sealed class SourceSchemaEnricherTests
         // act
         enricher.Enrich();
 
-        static SourceFieldMetadata GetMetadata(IOutputFieldDefinition field) =>
-            field.GetRequiredSourceFieldMetadata();
+        static SourceOutputFieldMetadata GetMetadata(IOutputFieldDefinition field) =>
+            field.Features.GetRequired<SourceOutputFieldMetadata>();
 
         var productType = (MutableObjectTypeDefinition)schema.Types["Product"];
         var productIdFieldMetadata = GetMetadata(productType.Fields["id"]);
