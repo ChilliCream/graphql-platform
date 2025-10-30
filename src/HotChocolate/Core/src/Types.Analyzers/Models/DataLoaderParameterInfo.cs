@@ -4,7 +4,8 @@ namespace HotChocolate.Types.Analyzers.Models;
 
 public sealed class DataLoaderParameterInfo
 {
-    public DataLoaderParameterInfo(string variableName,
+    public DataLoaderParameterInfo(
+        string variableName,
         IParameterSymbol parameter,
         DataLoaderParameterKind kind,
         string? stateKey = null)
@@ -18,8 +19,6 @@ public sealed class DataLoaderParameterInfo
     public string VariableName { get; }
 
     public string? StateKey { get; }
-
-    public int Index => Parameter.Ordinal;
 
     public ITypeSymbol Type => Parameter.Type;
 

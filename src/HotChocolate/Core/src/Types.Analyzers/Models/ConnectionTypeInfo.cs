@@ -77,8 +77,18 @@ public sealed class ConnectionTypeInfo
     public override bool Equals(SyntaxInfo? obj)
         => obj is ConnectionTypeInfo other && Equals(other);
 
-    private bool Equals(ConnectionTypeInfo other)
+    private bool Equals(ConnectionTypeInfo? other)
     {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
         if (!string.Equals(OrderByKey, other.OrderByKey, StringComparison.Ordinal))
         {
             return false;
@@ -94,8 +104,7 @@ public sealed class ConnectionTypeInfo
             return false;
         }
 
-        return ClassDeclaration.SyntaxTree.IsEquivalentTo(
-            other.ClassDeclaration.SyntaxTree);
+        return ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
     }
 
     public override int GetHashCode()
@@ -112,7 +121,7 @@ public sealed class ConnectionTypeInfo
             nameFormat,
             edgeTypeName,
             connectionClass.RuntimeType,
-            connectionClass.ClassDeclarations,
+            connectionClass.ClassDeclaration,
             connectionClass.Resolvers,
             connectionClass.RuntimeType.GetAttributes());
     }
