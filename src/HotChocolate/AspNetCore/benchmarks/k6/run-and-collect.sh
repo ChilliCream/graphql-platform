@@ -11,7 +11,7 @@ NC='\033[0m' # No Color
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 OUTPUT_FILE="${1:-$SCRIPT_DIR/performance-data.json}"
-NUM_RUNS=3
+NUM_RUNS=5
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}k6 Performance Test Collector${NC}"
@@ -21,24 +21,26 @@ echo "Output file: $OUTPUT_FILE"
 echo "Running each test ${NUM_RUNS} times to reduce variance"
 echo ""
 
-# Function to calculate median of 3 values
+# Function to calculate median from multiple values
 calculate_median() {
     local values=("$@")
+    local count=${#values[@]}
     # Sort the values
     IFS=$'\n' sorted=($(sort -n <<<"${values[*]}"))
     unset IFS
-    # Return the middle value
-    echo "${sorted[1]}"
+    # Return the middle value (for odd number of values)
+    local middle_index=$(( (count - 1) / 2 ))
+    echo "${sorted[$middle_index]}"
 }
 
-# Run single-fetch test 3 times
+# Run single-fetch test multiple times
 echo -e "${BLUE}Running Single Fetch Test (${NUM_RUNS} runs)...${NC}"
 for i in $(seq 1 $NUM_RUNS); do
     echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
     k6 run --summary-export=/tmp/single-fetch-summary-${i}.json "$SCRIPT_DIR/single-fetch.js"
 done
 
-# Run dataloader test 3 times
+# Run dataloader test multiple times
 echo -e "${BLUE}Running DataLoader Test (${NUM_RUNS} runs)...${NC}"
 for i in $(seq 1 $NUM_RUNS); do
     echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
