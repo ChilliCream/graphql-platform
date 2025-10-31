@@ -1,20 +1,20 @@
 {
-  "timestamp": "2025-10-30T15:41:52Z",
+  "timestamp": "2025-10-31T06:48:22Z",
   "tests": {
     "single-fetch": {
       "name": "Single Fetch (50 products, names only)",
       "response_time": {
-        "min": 0.8121,
-        "p50": 2.019409,
-        "max": 34.259858,
-        "avg": 2.016368485854345,
-        "p90": 2.7201433000000006,
-        "p95": 2.9610656499999988,
-        "p99": 6.065892389999998
+        "min": 0.753822,
+        "p50": 1.604364,
+        "max": 37.149623,
+        "avg": 2.1752418803325773,
+        "p90": 3.702547,
+        "p95": 4.677971,
+        "p99": 9.221278799999993
       },
       "throughput": {
-        "requests_per_second": 78.82362001703528,
-        "total_iterations": 7171
+        "requests_per_second": 394.1810353609303,
+        "total_iterations": 35872
       },
       "reliability": {
         "error_rate": 0
@@ -23,17 +23,17 @@
     "dataloader": {
       "name": "DataLoader (50 products with brands)",
       "response_time": {
-        "min": 1.666098,
-        "p50": 3.1525455,
-        "max": 16.3474,
-        "avg": 3.2837058709677325,
-        "p90": 4.254632300000001,
-        "p95": 4.88343795,
-        "p99": 9.383130000000001
+        "min": 1.63435,
+        "p50": 3.1268205,
+        "max": 63.694051,
+        "avg": 4.471117626307843,
+        "p90": 8.404571,
+        "p95": 13.17596525,
+        "p99": 22.978290100000237
       },
       "throughput": {
-        "requests_per_second": 78.69012270107648,
-        "total_iterations": 7161
+        "requests_per_second": 393.32695588673283,
+        "total_iterations": 35777
       },
       "reliability": {
         "error_rate": 0
