@@ -14,7 +14,7 @@ interface Node {
 
 type QueryWithInteface {
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node @lookup
+  node("ID of the object." id: ID!): Node @lookup @shareable
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node] @semanticNonNull
   someObject: SomeObject @semanticNonNull
@@ -33,3 +33,21 @@ a stable key.
 directive @lookup on FIELD_DEFINITION
 
 directive @semanticNonNull(levels: [Int!] = [ 0 ]) on FIELD_DEFINITION
+
+"""
+By default, only a single source schema is allowed to contribute
+a particular field to an object type.
+
+            
+This prevents source schemas from inadvertently defining similarly named
+fields that are not semantically equivalent.
+
+            
+Fields must be explicitly marked as @shareable to allow multiple source
+schemas to define them, ensuring that the decision to serve a field from
+more than one source schema is intentional and coordinated.
+
+
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION
+"""
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION
