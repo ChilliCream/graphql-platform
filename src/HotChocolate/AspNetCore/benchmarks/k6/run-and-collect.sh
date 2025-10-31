@@ -105,11 +105,14 @@ SINGLE_P95=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration{ph
 SINGLE_P99=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration{phase:measurement}" "p(99)")
 [ "$SINGLE_P99" == "0" ] && SINGLE_P99=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration" "p(99)")
 
-SINGLE_RPS=$(extract_metric /tmp/single-fetch-summary.json "http_reqs" "rate")
+SINGLE_RPS=$(extract_metric /tmp/single-fetch-summary.json "http_reqs{phase:measurement}" "rate")
+[ "$SINGLE_RPS" == "0" ] && SINGLE_RPS=$(extract_metric /tmp/single-fetch-summary.json "http_reqs" "rate")
+
 SINGLE_ERROR_RATE=$(extract_metric /tmp/single-fetch-summary.json "http_req_failed{phase:measurement}" "rate")
 [ "$SINGLE_ERROR_RATE" == "0" ] && SINGLE_ERROR_RATE=$(extract_metric /tmp/single-fetch-summary.json "http_req_failed" "rate")
 
-SINGLE_ITERATIONS=$(extract_metric /tmp/single-fetch-summary.json "iterations" "count")
+SINGLE_ITERATIONS=$(extract_metric /tmp/single-fetch-summary.json "iterations{phase:measurement}" "count")
+[ "$SINGLE_ITERATIONS" == "0" ] && SINGLE_ITERATIONS=$(extract_metric /tmp/single-fetch-summary.json "iterations" "count")
 
 # Extract metrics from dataloader test
 DATALOADER_MIN=$(extract_metric /tmp/dataloader-summary.json "http_req_duration{phase:measurement}" "min")
@@ -133,11 +136,14 @@ DATALOADER_P95=$(extract_metric /tmp/dataloader-summary.json "http_req_duration{
 DATALOADER_P99=$(extract_metric /tmp/dataloader-summary.json "http_req_duration{phase:measurement}" "p(99)")
 [ "$DATALOADER_P99" == "0" ] && DATALOADER_P99=$(extract_metric /tmp/dataloader-summary.json "http_req_duration" "p(99)")
 
-DATALOADER_RPS=$(extract_metric /tmp/dataloader-summary.json "http_reqs" "rate")
+DATALOADER_RPS=$(extract_metric /tmp/dataloader-summary.json "http_reqs{phase:measurement}" "rate")
+[ "$DATALOADER_RPS" == "0" ] && DATALOADER_RPS=$(extract_metric /tmp/dataloader-summary.json "http_reqs" "rate")
+
 DATALOADER_ERROR_RATE=$(extract_metric /tmp/dataloader-summary.json "http_req_failed{phase:measurement}" "rate")
 [ "$DATALOADER_ERROR_RATE" == "0" ] && DATALOADER_ERROR_RATE=$(extract_metric /tmp/dataloader-summary.json "http_req_failed" "rate")
 
-DATALOADER_ITERATIONS=$(extract_metric /tmp/dataloader-summary.json "iterations" "count")
+DATALOADER_ITERATIONS=$(extract_metric /tmp/dataloader-summary.json "iterations{phase:measurement}" "count")
+[ "$DATALOADER_ITERATIONS" == "0" ] && DATALOADER_ITERATIONS=$(extract_metric /tmp/dataloader-summary.json "iterations" "count")
 
 # Create JSON output
 cat > "$OUTPUT_FILE" <<EOF
