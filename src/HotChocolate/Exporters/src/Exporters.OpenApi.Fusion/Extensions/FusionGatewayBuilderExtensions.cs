@@ -36,6 +36,7 @@ public static class FusionGatewayBuilderExtensions
     {
         var schemaName = builder.Name;
 
+        builder.Services.AddSingleton<IOpenApiResultFormatter, FusionOpenApiResultFormatter>();
         builder.Services.AddOpenApiExporterServices(schemaName);
 
         builder.ConfigureSchemaServices((applicationServices, services)

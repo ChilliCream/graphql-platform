@@ -119,6 +119,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             RequiresFileUpload = _requiresFileUpload
         };
 
+        // TODO: This throwing leads to a successful result without errors!
         var client = context.GetClient(schemaName, _operation.Type);
 
         var index = 0;

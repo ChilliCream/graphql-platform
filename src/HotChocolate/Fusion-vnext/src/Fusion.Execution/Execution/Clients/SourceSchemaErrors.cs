@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections.Immutable;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Text.Json;
@@ -120,17 +121,18 @@ public sealed class SourceSchemaErrors
                 errorBuilder.SetPath(CreatePathFromJson(path));
             }
 
-            if (jsonError.TryGetProperty("code", out var code)
-                && code.ValueKind is JsonValueKind.String)
-            {
-                errorBuilder.SetCode(code.GetString());
-            }
-
             if (jsonError.TryGetProperty("extensions", out var extensions)
                 && extensions.ValueKind is JsonValueKind.Object)
             {
                 foreach (var property in extensions.EnumerateObject())
                 {
+                    if (property is { Name: "code", Value.ValueKind: JsonValueKind.String })
+                    {
+                        var code = property.Value.GetString();
+                        errorBuilder.SetCode(code);
+                        continue;
+                    }
+
                     var valueMemory = property.Value.GetRawValueAsMemory();
 
                     errorBuilder.SetExtension(property.Name, new RawJsonValue(valueMemory));
