@@ -21,6 +21,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
     private ObjectTypeConfiguration? _queryTypeConfig;
     private TypeReference _nodeType = null!;
     private TypeReference _lookupRef = null!;
+    private TypeReference _shareableRef = null!;
     private bool _registeredTypes;
     private GlobalObjectIdentificationOptions _options = null!;
     private IReadOnlySchemaOptions _schemaOptions = null!;
@@ -42,6 +43,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
     {
         _nodeType = context.TypeInspector.GetTypeRef(typeof(NodeType));
         _lookupRef = context.TypeInspector.GetTypeRef(typeof(Lookup));
+        _shareableRef = context.TypeInspector.GetTypeRef(typeof(Shareable));
         _options = context.Features.GetRequired<NodeSchemaFeature>().Options;
         _schemaOptions = context.Options;
     }
@@ -56,6 +58,11 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             if (_options.MarkNodeFieldAsLookup)
             {
                 yield return _lookupRef;
+            }
+
+            if (_options.MarkNodeFieldAsLookup || _schemaOptions.ApplyShareableToNodeFields)
+            {
+                yield return _shareableRef;
             }
 
             _registeredTypes = true;
@@ -126,7 +133,10 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Relay_NodeField_Description,
             node)
         {
-            Arguments = { new ArgumentConfiguration(Id, Relay_NodeField_Id_Description, id) },
+            Arguments =
+            {
+                new ArgumentConfiguration(Id, Relay_NodeField_Id_Description, id)
+            },
             MiddlewareConfigurations =
             {
                 new FieldMiddlewareConfiguration(_ =>
@@ -176,7 +186,10 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Relay_NodesField_Description,
             nodes)
         {
-            Arguments = { new ArgumentConfiguration(Ids, Relay_NodesField_Ids_Description, ids) },
+            Arguments =
+            {
+                new ArgumentConfiguration(Ids, Relay_NodesField_Ids_Description, ids)
+            },
             MiddlewareConfigurations =
             {
                 new FieldMiddlewareConfiguration(_ =>
