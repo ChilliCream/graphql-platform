@@ -6,26 +6,36 @@ on:
     branches:
       - main
       - main-version-*
-    paths-ignore:
-      - "src/HotChocolate/AspNetCore/benchmarks/k6/performance-data.json"
+  push:
+    branches:
+      - main
 
 concurrency:
-  group: benchmarks-${{ github.event.pull_request.number }}
+  group: benchmarks-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   hotchocolate-core:
     name: "HotChocolate Core Benchmarks"
-    if: github.event.pull_request.draft == false
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
     runs-on: benchmarking
     permissions:
       contents: write
       pull-requests: write
 
     steps:
-      - name: Checkout PR code
+      - name: Checkout current repository
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
+          show-progress: false
+
+      - name: Checkout performance data repository
+        uses: actions/checkout@v4
+        with:
+          repository: ChilliCream/graphql-platform-performance-data
+          token: ${{ secrets.PERFORMANCE_DATA_TOKEN }}
+          path: performance-data-repo
           fetch-depth: 0
           show-progress: false
 
@@ -56,7 +66,7 @@ jobs:
         working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
         run: |
           chmod +x run-and-collect.sh
-          ./run-and-collect.sh performance-data-current.json
+          ./run-and-collect.sh hotchocolate-core-performance-data-current.json
 
       - name: Stop AppHost
         if: always()
@@ -66,46 +76,28 @@ jobs:
             wait $APPHOST_PID 2>/dev/null || true
           fi
 
-      - name: Commit and push performance data to current branch
-        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
+      - name: Fetch baseline performance data from external repo
+        if: github.event_name == 'pull_request'
         run: |
-          # Copy the performance data to the tracked filename
-          cp performance-data-current.json performance-data.json
-
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Add and commit the performance data
-          git add performance-data.json
-
-          # Only commit if there are changes
-          if ! git diff --staged --quiet; then
-            git commit -m "Update performance data [skip ci]"
-            git push origin HEAD:${{ github.head_ref }}
-          else
-            echo "No changes to performance data"
-          fi
-
-      - name: Fetch baseline performance data from main
-        run: |
-          git fetch origin main:main
-          if git show main:src/HotChocolate/AspNetCore/benchmarks/k6/performance-data.json > baseline-performance.json 2>/dev/null; then
-            echo "Baseline data fetched successfully"
+          if [ -f performance-data-repo/hotchocolate-core-performance-data.json ]; then
+            echo "Baseline data fetched successfully from performance data repository"
+            cp performance-data-repo/hotchocolate-core-performance-data.json baseline-performance.json
             cat baseline-performance.json
           else
-            echo "No baseline data found on main branch"
+            echo "No baseline data found in performance data repository"
             # Don't create the file - let the comparison script handle missing baseline
             rm -f baseline-performance.json
           fi
 
       - name: Compare performance and generate report
+        if: github.event_name == 'pull_request'
         working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
         run: |
           chmod +x compare-performance.sh
-          ./compare-performance.sh performance-data-current.json ../../../../../baseline-performance.json performance-report.md
+          ./compare-performance.sh hotchocolate-core-performance-data-current.json ../../../../../baseline-performance.json performance-report.md
 
       - name: Comment PR with performance report
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -142,12 +134,13 @@ jobs:
         with:
           name: performance-data
           path: |
-            src/HotChocolate/AspNetCore/benchmarks/k6/performance-data-current.json
+            src/HotChocolate/AspNetCore/benchmarks/k6/hotchocolate-core-performance-data-current.json
             src/HotChocolate/AspNetCore/benchmarks/k6/performance-report.md
             /tmp/apphost.log
           retention-days: 30
 
       - name: Check for performance regression
+        if: github.event_name == 'pull_request'
         working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
         run: |
           # Fail the build if there's a significant performance regression
@@ -155,4 +148,26 @@ jobs:
             echo "::warning::Performance regression detected! Please review the performance report."
             # Uncomment the next line to fail the build on regression
             # exit 1
+          fi
+
+      - name: Store performance data to external repository
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: performance-data-repo
+        run: |
+          # Copy the new performance data
+          cp ../src/HotChocolate/AspNetCore/benchmarks/k6/hotchocolate-core-performance-data-current.json hotchocolate-core-performance-data.json
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Add and commit the performance data
+          git add hotchocolate-core-performance-data.json
+
+          # Only commit if there are changes
+          if ! git diff --staged --quiet; then
+            git commit -m "Update HotChocolate core performance data from ${{ github.sha }}"
+            git push
+          else
+            echo "No changes to performance data"
           fi
