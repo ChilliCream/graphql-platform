@@ -24,7 +24,7 @@ type Foo implements Node {
 
 type QueryWithNodeResolvers {
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node @lookup
+  node("ID of the object." id: ID!): Node @lookup @shareable
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
   all: [Foo!]!
@@ -39,3 +39,21 @@ that can be used by the distributed GraphQL executor to resolve an entity by
 a stable key.
 """
 directive @lookup on FIELD_DEFINITION
+
+"""
+By default, only a single source schema is allowed to contribute
+a particular field to an object type.
+
+            
+This prevents source schemas from inadvertently defining similarly named
+fields that are not semantically equivalent.
+
+            
+Fields must be explicitly marked as @shareable to allow multiple source
+schemas to define them, ensuring that the decision to serve a field from
+more than one source schema is intentional and coordinated.
+
+
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION
+"""
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION
