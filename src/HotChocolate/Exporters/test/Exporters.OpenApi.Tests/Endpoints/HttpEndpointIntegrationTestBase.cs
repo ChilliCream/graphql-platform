@@ -7,7 +7,7 @@ namespace HotChocolate.Exporters.OpenApi;
 // TODO: With authorization also check what happens if we handle it in validation
 // TODO: Test hot reload
 // TODO: @oneOf tests
-public class HttpEndpointIntegrationTests : OpenApiTestBase
+public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 {
     #region GET
 
@@ -16,7 +16,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -31,7 +31,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -46,7 +46,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -61,7 +61,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -76,7 +76,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -91,7 +91,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
@@ -109,7 +109,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -124,7 +124,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
@@ -146,7 +146,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -172,7 +172,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -192,7 +192,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -218,7 +218,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -243,7 +243,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         var content = new StringContent("", Encoding.UTF8, "application/json");
@@ -264,7 +264,7 @@ public class HttpEndpointIntegrationTests : OpenApiTestBase
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act

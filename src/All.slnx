@@ -184,6 +184,8 @@
   <Folder Name="/HotChocolate/Exporters/" />
   <Folder Name="/HotChocolate/Exporters/src/">
     <Project Path="HotChocolate/Exporters/src/Exporters.OpenApi/HotChocolate.Exporters.OpenApi.csproj" />
+    <Project Path="HotChocolate/Exporters/src/Exporters.OpenApi.Core/HotChocolate.Exporters.OpenApi.Core.csproj" />
+    <Project Path="HotChocolate/Exporters/src/Exporters.OpenApi.Fusion/HotChocolate.Fusion.Exporters.OpenApi.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Exporters/test/">
     <Project Path="HotChocolate/Exporters/test/Exporters.OpenApi.Tests/HotChocolate.Exporters.OpenApi.Tests.csproj" />
