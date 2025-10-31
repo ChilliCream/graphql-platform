@@ -51,14 +51,14 @@ jobs:
           echo "APPHOST_PID=$APPHOST_PID" >> $GITHUB_ENV
 
           echo "Waiting for server to be ready..."
-          for i in {1..5}; do
+          for i in {1..10}; do
             if curl -s -o /dev/null -w "%{http_code}" http://localhost:5224/graphql -X POST \
               -H "Content-Type: application/json" \
               -d '{"query": "{ __typename }"}' | grep -q "200"; then
               echo "Server is ready!"
               break
             fi
-            echo "Waiting... ($i/5)"
+            echo "Waiting... ($i/10)"
             sleep 2
           done
 
