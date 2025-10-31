@@ -493,6 +493,55 @@ public class InputParserTests
         Assert.IsType<Test4Input>(runtimeValue).MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Integration_CodeFirst_InputObjectNoDefaultValue_NoRuntimeTypeDefaultValueIsInitialized()
+    {
+        // arrange
+        var resolverArgumentsAccessor = new ResolverArgumentsAccessor();
+        var executor = await new ServiceCollection()
+            .AddSingleton(resolverArgumentsAccessor)
+            .AddGraphQL()
+            .AddQueryType(x => x.Field("foo")
+                .Argument("args", a => a.Type<NonNullType<MyInputType>>())
+                .Type<StringType>()
+                .ResolveWith<ResolverArgumentsAccessor>(r => r.ResolveWith(default!)))
+            .BuildRequestExecutorAsync();
+
+        // act
+        var query =
+            OperationRequest.FromSourceText(
+                """
+                {
+                    a: foo(args: { string: "allSet" int: 1 bool: true })
+                    b: foo(args: { string: "noneSet" })
+                    c: foo(args: { string: "intExplicitlyNull" int: null })
+                    d: foo(args: { string: "boolExplicitlyNull" bool: null })
+                    e: foo(args: { string: "intSetBoolNull" int: 1 bool: null })
+                    f: foo(args: { string: "boolSetIntNull" int: null bool: true })
+                }
+                """);
+        await executor.ExecuteAsync(query, CancellationToken.None);
+
+        // assert
+        resolverArgumentsAccessor.Arguments.MatchSnapshot();
+    }
+
+    private class ResolverArgumentsAccessor
+    {
+        private readonly object _lock = new();
+        internal SortedDictionary<string, IDictionary<string, object?>?> Arguments { get; } = new();
+
+        internal string? ResolveWith(IDictionary<string, object?> args)
+        {
+            lock (_lock)
+            {
+                Arguments[args["string"]!.ToString()!] = args;
+            }
+
+            return "OK";
+        }
+    }
+
     public class TestInput
     {
         public string? Field1 { get; set; }
@@ -563,5 +612,16 @@ public class InputParserTests
         public string Field1 { get; set; } = null!;
 
         public int Field2 { get; set; }
+    }
+
+    public class MyInputType : InputObjectType
+    {
+        protected override void Configure(IInputObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("MyInput");
+            descriptor.Field("string").Type<StringType>();
+            descriptor.Field("int").Type<IntType>();
+            descriptor.Field("bool").Type<BooleanType>();
+        }
     }
 }
