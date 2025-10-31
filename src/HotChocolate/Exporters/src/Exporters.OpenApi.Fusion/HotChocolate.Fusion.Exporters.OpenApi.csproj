@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Exporters.OpenApi</AssemblyName>
+    <AssemblyName>HotChocolate.Fusion.Exporters.OpenApi</AssemblyName>
     <RootNamespace>HotChocolate.Exporters.OpenApi</RootNamespace>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Exporters.OpenApi.Tests" />
   </ItemGroup>
@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
     <ProjectReference Include="..\Exporters.OpenApi.Core\HotChocolate.Exporters.OpenApi.Core.csproj" />
   </ItemGroup>
 

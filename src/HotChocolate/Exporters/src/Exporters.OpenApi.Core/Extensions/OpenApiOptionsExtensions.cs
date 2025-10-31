@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Exporters.OpenApi.Extensions;
+namespace HotChocolate.Exporters.OpenApi;
 
 public static class OpenApiOptionsExtensions
 {

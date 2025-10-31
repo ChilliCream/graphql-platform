@@ -67,17 +67,17 @@
             "application/json": {
               "schema": {
                 "required": [
-                  "name",
-                  "email"
+                  "email",
+                  "name"
                 ],
                 "type": "object",
                 "properties": {
-                  "name": {
-                    "type": "string"
-                  },
                   "email": {
                     "type": "string",
                     "description": "The user's email"
+                  },
+                  "name": {
+                    "type": "string"
                   }
                 }
               }
@@ -190,18 +190,6 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "name": {
-                        "type": "string",
-                        "description": "The name of the user"
-                      },
-                      "email": {
-                        "type": "string",
-                        "nullable": true,
-                        "deprecated": true
-                      },
                       "address": {
                         "type": "object",
                         "properties": {
@@ -209,6 +197,18 @@
                             "type": "string"
                           }
                         }
+                      },
+                      "email": {
+                        "type": "string",
+                        "nullable": true,
+                        "deprecated": true
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "The name of the user"
                       }
                     }
                   }
@@ -226,21 +226,21 @@
             "application/json": {
               "schema": {
                 "required": [
+                  "email",
                   "id",
-                  "name",
-                  "email"
+                  "name"
                 ],
                 "type": "object",
                 "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "The user's email"
+                  },
                   "id": {
                     "type": "string"
                   },
                   "name": {
                     "type": "string"
-                  },
-                  "email": {
-                    "type": "string",
-                    "description": "The user's email"
                   }
                 }
               }

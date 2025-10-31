@@ -14,7 +14,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Exporters.OpenApi\HotChocolate.Exporters.OpenApi.csproj" />
+    <ProjectReference Include="..\..\src\Exporters.OpenApi.Fusion\HotChocolate.Fusion.Exporters.OpenApi.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj" />
+    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
+    <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
   </ItemGroup>
 
 </Project>

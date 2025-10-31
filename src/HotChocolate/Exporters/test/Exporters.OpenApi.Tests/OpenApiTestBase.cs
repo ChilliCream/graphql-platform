@@ -2,8 +2,6 @@ using System.Collections.Immutable;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using HotChocolate.Authorization;
-using HotChocolate.Execution.Configuration;
-using HotChocolate.Exporters.OpenApi.Extensions;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
@@ -17,12 +15,14 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace HotChocolate.Exporters.OpenApi;
 
-public abstract class OpenApiTestBase
+public abstract class OpenApiTestBase : IAsyncLifetime
 {
     private const string TokenIssuer = "test-issuer";
     private const string TokenAudience = "test-audience";
-    private const string AdminRole = "Admin";
+    public const string AdminRole = "Admin";
     private static readonly SymmetricSecurityKey s_tokenKey = new("test-secret-key-at-least-32-bytes"u8.ToArray());
+
+    private readonly TestServerSession _testServerSession = new();
 
     protected static TestOpenApiDefinitionStorage CreateBasicTestDocumentStorage()
     {
@@ -69,7 +69,7 @@ public abstract class OpenApiTestBase
             """,
             """
             "Updates a user's details"
-            mutation UpdateUser($user: UserInput! @body) @http(method: PUT, route: "/users/{userId:$user.id}") {
+            mutation UpdateUser($user: UserInput! @body) @http(method: PUT, route: "/users/{userId:$user.id.test.foo}") {
               updateUser(user: $user) {
                 id
                 name
@@ -85,25 +85,35 @@ public abstract class OpenApiTestBase
             """);
     }
 
-    protected static TestServer CreateBasicTestServer(IOpenApiDefinitionStorage storage)
+    public Task InitializeAsync()
     {
-        return CreateTestServer(
-            configureRequestExecutor: b => b
-                .AddOpenApiDefinitionStorage(storage)
-                .AddAuthorization()
-                .AddQueryType<BasicServer.Query>()
-                .AddMutationType<BasicServer.Mutation>(),
-            configureOpenApi: o => o.AddGraphQL(),
-            configureEndpoints: e => e.MapGraphQLEndpoints());
+        return Initialize2Async(_testServerSession);
     }
 
-    protected static TestServer CreateTestServer(
-        Action<IRequestExecutorBuilder>? configureRequestExecutor = null,
-        Action<OpenApiOptions>? configureOpenApi = null,
-        Action<IEndpointRouteBuilder>? configureEndpoints = null)
+    protected virtual Task Initialize2Async(TestServerSession serverSession) => Task.CompletedTask;
+
+    public Task DisposeAsync()
     {
-        var builder = new WebHostBuilder()
-            .ConfigureServices(services =>
+        _testServerSession.Dispose();
+        return Task.CompletedTask;
+    }
+
+    protected abstract void ConfigureStorage(IServiceCollection services, IOpenApiDefinitionStorage storage);
+
+    protected virtual void ConfigureOpenApi(OpenApiOptions options)
+    {
+        options.AddGraphQL();
+    }
+
+    protected virtual void ConfigureEndpoints(IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapGraphQLEndpoints();
+    }
+
+    protected TestServer CreateTestServer(IOpenApiDefinitionStorage storage)
+    {
+        return _testServerSession.CreateServer(
+            services =>
             {
                 services
                     .AddLogging()
@@ -120,24 +130,56 @@ public abstract class OpenApiTestBase
                                 IssuerSigningKey = s_tokenKey
                             });
 
-                services.AddOpenApi(options => configureOpenApi?.Invoke(options));
+                services.AddOpenApi(ConfigureOpenApi);
 
-                var executor = services
-                    .AddGraphQLServer();
+                ConfigureStorage(services, storage);
+            },
+            app =>
+            {
+                app
+                    .UseRouting()
+                    .UseAuthentication()
+                    .UseEndpoints(endpoints =>
+                    {
+                        endpoints.MapOpenApi();
 
-                configureRequestExecutor?.Invoke(executor);
-            })
-            .Configure(app => app
-                .UseRouting()
-                .UseAuthentication()
-                .UseEndpoints(endpoints =>
-                {
-                    endpoints.MapOpenApi();
+                        ConfigureEndpoints(endpoints);
 
-                    configureEndpoints?.Invoke(endpoints);
-                }));
+                        endpoints.MapGraphQL();
+                    });
+            });
+    }
 
-        return new TestServer(builder);
+    protected TestServer CreateSourceSchema()
+    {
+        return _testServerSession.CreateServer(
+            services =>
+            {
+                services
+                    .AddLogging()
+                    .AddRouting();
+
+                services
+                    .AddAuthentication()
+                    .AddJwtBearer(
+                        o => o.TokenValidationParameters =
+                            new TokenValidationParameters
+                            {
+                                ValidIssuer = TokenIssuer,
+                                ValidAudience = TokenAudience,
+                                IssuerSigningKey = s_tokenKey
+                            });
+
+                services.AddGraphQLServer()
+                    .AddBasicServer();
+            },
+            app =>
+            {
+                app
+                    .UseRouting()
+                    .UseAuthentication()
+                    .UseEndpoints(endpoints => endpoints.MapGraphQL());
+            });
     }
 
     protected static async Task<string> GetOpenApiDocumentAsync(HttpClient client)
@@ -166,75 +208,6 @@ public abstract class OpenApiTestBase
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-    }
-
-    private static class BasicServer
-    {
-        public class Query
-        {
-            public User? GetUserById([GraphQLDescription("The id of the user")] [ID] int id, IResolverContext context)
-            {
-                if (id == 5)
-                {
-                    throw new GraphQLException(
-                        ErrorBuilder.New()
-                            .SetMessage("Something went wrong")
-                            .SetPath(context.Path)
-                            .Build());
-                }
-
-                if (id < 1 || id > 3)
-                {
-                    return null;
-                }
-
-                return new User(id);
-            }
-
-            [Authorize(Roles = [AdminRole])]
-            public IEnumerable<User> GetUsers()
-                => [new User(1), new User(2), new User(3)];
-        }
-
-        public class Mutation
-        {
-            public User CreateUser(UserInput user)
-            {
-                return new User(user.Id);
-            }
-
-            public User UpdateUser(UserInput user)
-            {
-                return CreateUser(user);
-            }
-        }
-
-        public class UserInput
-        {
-            [ID]
-            public int Id { get; init; }
-
-            public required string Name { get; init; }
-
-            [GraphQLDescription("The user's email")]
-            public required string Email { get; init; }
-        }
-
-        public sealed class User(int id)
-        {
-            [ID]
-            public int Id { get; init; } = id;
-
-            [GraphQLDescription("The name of the user")]
-            public string Name { get; set; } = "User " + id;
-
-            [GraphQLDeprecated("Deprecated for some reason")]
-            public string? Email { get; set; } = id + "@example.com";
-
-            public Address Address { get; set; } = new Address(id + " Street");
-        }
-
-        public sealed record Address(string Street);
     }
 
     protected sealed class TestOpenApiDefinitionStorage : IOpenApiDefinitionStorage, IDisposable

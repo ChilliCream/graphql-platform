@@ -76,6 +76,7 @@ public sealed record OpenApiRouteSegmentLiteral(string Value) : IOpenApiRouteSeg
 public sealed record OpenApiRouteSegmentParameter(
     string Key,
     string Variable,
+    // TODO: could be path
     ImmutableArray<string>? InputObjectPath)
     : IOpenApiRouteSegment
 {

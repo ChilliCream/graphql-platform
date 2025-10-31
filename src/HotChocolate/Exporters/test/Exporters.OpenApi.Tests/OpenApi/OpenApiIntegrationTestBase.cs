@@ -2,14 +2,14 @@ namespace HotChocolate.Exporters.OpenApi;
 
 // TODO: Test with arrays, custom scalars, enum, interface, union, etc., introspection fields
 // TODO: @skip and such needs to be treated as optional
-public class OpenApiIntegrationTests : OpenApiTestBase
+public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
 {
     [Fact]
     public async Task OpenApi_Includes_Initial_Routes()
     {
         // arrange
         var storage = CreateBasicTestDocumentStorage();
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -33,7 +33,7 @@ public class OpenApiIntegrationTests : OpenApiTestBase
               }
             }
             """);
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -62,7 +62,7 @@ public class OpenApiIntegrationTests : OpenApiTestBase
               email
             }
             """);
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -92,7 +92,7 @@ public class OpenApiIntegrationTests : OpenApiTestBase
               email
             }
             """);
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -130,7 +130,7 @@ public class OpenApiIntegrationTests : OpenApiTestBase
               street
             }
             """);
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -159,7 +159,7 @@ public class OpenApiIntegrationTests : OpenApiTestBase
               email
             }
             """);
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -189,7 +189,7 @@ public class OpenApiIntegrationTests : OpenApiTestBase
               email
             }
             """);
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -213,7 +213,7 @@ public class OpenApiIntegrationTests : OpenApiTestBase
               }
             }
             """);
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -250,7 +250,7 @@ public class OpenApiIntegrationTests : OpenApiTestBase
               street
             }
             """);
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -288,7 +288,7 @@ public class OpenApiIntegrationTests : OpenApiTestBase
               street
             }
             """);
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -326,7 +326,7 @@ public class OpenApiIntegrationTests : OpenApiTestBase
               street
             }
             """);
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -361,7 +361,7 @@ public class OpenApiIntegrationTests : OpenApiTestBase
               email
             }
             """);
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
@@ -396,7 +396,7 @@ public class OpenApiIntegrationTests : OpenApiTestBase
               email
             }
             """);
-        var server = CreateBasicTestServer(storage);
+        var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act

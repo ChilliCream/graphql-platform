@@ -1,4 +1,3 @@
-using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
 using HotChocolate.Exporters.OpenApi.Validation;
 using HotChocolate.Language;
