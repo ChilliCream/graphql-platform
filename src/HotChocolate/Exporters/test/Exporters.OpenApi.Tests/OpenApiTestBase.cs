@@ -69,7 +69,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             """,
             """
             "Updates a user's details"
-            mutation UpdateUser($user: UserInput! @body) @http(method: PUT, route: "/users/{userId:$user.id.test.foo}") {
+            mutation UpdateUser($user: UserInput! @body) @http(method: PUT, route: "/users/{userId:$user.id}") {
               updateUser(user: $user) {
                 id
                 name
@@ -119,6 +119,8 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                     .AddLogging()
                     .AddRouting();
 
+                services.AddHeaderPropagation(options => options.Headers.Add("Authorization"));
+
                 services
                     .AddAuthentication()
                     .AddJwtBearer(
@@ -139,6 +141,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                 app
                     .UseRouting()
                     .UseAuthentication()
+                    .UseHeaderPropagation()
                     .UseEndpoints(endpoints =>
                     {
                         endpoints.MapOpenApi();

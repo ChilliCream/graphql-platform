@@ -1,4 +1,3 @@
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
@@ -14,12 +13,6 @@ internal sealed class DynamicEndpointMiddleware(
     string schemaName,
     OpenApiEndpointDescriptor endpointDescriptor)
 {
-    private static readonly JsonWriterOptions s_jsonWriterOptions =
-        new JsonWriterOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
-
-    private static readonly JsonSerializerOptions s_jsonSerializerOptions =
-        new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
-
     // TODO: This needs to raise diagnostic events (httprequest, startsingle and httprequesterror
     public async Task InvokeAsync(HttpContext context)
     {
@@ -48,6 +41,7 @@ internal sealed class DynamicEndpointMiddleware(
             }
 
             var proxy = context.RequestServices.GetRequiredKeyedService<HttpRequestExecutorProxy>(schemaName);
+            var formatter = context.RequestServices.GetRequiredService<IOpenApiResultFormatter>();
             var session = await proxy.GetOrCreateSessionAsync(context.RequestAborted);
 
             var variables = await BuildVariables(
@@ -82,13 +76,15 @@ internal sealed class DynamicEndpointMiddleware(
 
             // If the request had validation errors or execution didn't start, we return HTTP 400.
             if (operationResult.ContextData?.ContainsKey(ExecutionContextData.ValidationErrors) == true
-                || !operationResult.IsDataSet)
+                // TODO: This is wrong for Fusion
+                // || !operationResult.IsDataSet
+                )
             {
                 await Results.BadRequest().ExecuteAsync(context);
                 return;
             }
 
-            // If execution started and we produced GraphQL errors,
+            // If execution started, and we produced GraphQL errors,
             // we return HTTP 500 or 401/403 for authorization errors.
             if (operationResult.Errors is not null)
             {
@@ -98,33 +94,11 @@ internal sealed class DynamicEndpointMiddleware(
                 return;
             }
 
-            // If the root field is null and we don't have any errors,
-            // we return HTTP 404 for queries and HTTP 500 otherwise.
-            if (operationResult.Data?.TryGetValue(endpointDescriptor.ResponseNameToExtract, out var responseData) != true
-                || responseData is null)
-            {
-                var result = endpointDescriptor.HttpMethod == HttpMethods.Get
-                    ? Results.NotFound()
-                    : Results.InternalServerError();
-
-                await result.ExecuteAsync(context);
-                return;
-            }
-
-            var bodyWriter = context.Response.BodyWriter;
-            var jsonWriter = new Utf8JsonWriter(bodyWriter, s_jsonWriterOptions);
-
-            context.Response.StatusCode = StatusCodes.Status200OK;
-            context.Response.ContentType = "application/json";
-
-            JsonValueFormatter.WriteValue(jsonWriter, responseData, s_jsonSerializerOptions,
-                JsonNullIgnoreCondition.None);
-
-            await jsonWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+            await formatter.FormatResultAsync(operationResult, context, endpointDescriptor, cancellationToken);
         }
-        catch
+        catch (Exception e)
         {
-            await Results.InternalServerError().ExecuteAsync(context);
+            await Results.InternalServerError(e).ExecuteAsync(context);
         }
     }
 

@@ -40,6 +40,7 @@ public static class RequestExecutorBuilderExtensions
     {
         var schemaName = builder.Name;
 
+        builder.Services.AddSingleton<IOpenApiResultFormatter, OpenApiResultFormatter>();
         builder.Services.AddOpenApiExporterServices(schemaName);
 
         builder.ConfigureSchemaServices((applicationServices, services)

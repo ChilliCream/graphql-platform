@@ -14,7 +14,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
         formatter.Write();
     }
 
-    private ref struct RawJsonFormatter(CompositeResultDocument document, IBufferWriter<byte> writer, bool indented)
+    internal ref struct RawJsonFormatter(CompositeResultDocument document, IBufferWriter<byte> writer, bool indented)
     {
         private const byte StartObject = (byte)'{';
         private const byte EndObject = (byte)'}';
@@ -134,7 +134,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             WriteByte(EndObject);
         }
 
-        private void WriteValue(Cursor cursor, DbRow row)
+        public void WriteValue(Cursor cursor, DbRow row)
         {
             var tokenType = row.TokenType;
 
