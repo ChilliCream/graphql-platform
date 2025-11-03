@@ -39,7 +39,7 @@ public sealed class KeyFieldsHasArgumentsRuleTests : RuleTestBase
                 """
                 {
                     "message": "A @key directive on type 'User' in schema 'A' references field 'User.tags', which must not have arguments.",
-                    "code": "KEY_FIELDS_HAS_ARGS",
+                    "code": "KEY_FIELDS_HAS_ARGUMENTS",
                     "severity": "Error",
                     "coordinate": "User",
                     "member": "key",
@@ -71,7 +71,7 @@ public sealed class KeyFieldsHasArgumentsRuleTests : RuleTestBase
                 """
                 {
                     "message": "A @key directive on type 'User' in schema 'A' references field 'UserInfo.tags', which must not have arguments.",
-                    "code": "KEY_FIELDS_HAS_ARGS",
+                    "code": "KEY_FIELDS_HAS_ARGUMENTS",
                     "severity": "Error",
                     "coordinate": "User",
                     "member": "key",
@@ -99,7 +99,7 @@ public sealed class KeyFieldsHasArgumentsRuleTests : RuleTestBase
                 """
                 {
                     "message": "A @key directive on type 'User' in schema 'A' references field 'User.id', which must not have arguments.",
-                    "code": "KEY_FIELDS_HAS_ARGS",
+                    "code": "KEY_FIELDS_HAS_ARGUMENTS",
                     "severity": "Error",
                     "coordinate": "User",
                     "member": "key",
@@ -110,7 +110,7 @@ public sealed class KeyFieldsHasArgumentsRuleTests : RuleTestBase
                 """
                 {
                     "message": "A @key directive on type 'User' in schema 'A' references field 'User.tags', which must not have arguments.",
-                    "code": "KEY_FIELDS_HAS_ARGS",
+                    "code": "KEY_FIELDS_HAS_ARGUMENTS",
                     "severity": "Error",
                     "coordinate": "User",
                     "member": "key",
