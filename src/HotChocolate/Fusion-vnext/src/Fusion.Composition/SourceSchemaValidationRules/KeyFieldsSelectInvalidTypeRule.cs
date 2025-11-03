@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
@@ -16,23 +17,24 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Key-Fields-Select-Invalid-Type">
 /// Specification
 /// </seealso>
-internal sealed class KeyFieldsSelectInvalidTypeRule : IEventHandler<KeyFieldEvent>
+internal sealed class KeyFieldsSelectInvalidTypeRule : IEventHandler<ComplexTypeEvent>
 {
-    public void Handle(KeyFieldEvent @event, CompositionContext context)
+    public void Handle(ComplexTypeEvent @event, CompositionContext context)
     {
-        var (keyDirective, entityType, field, type, schema) = @event;
+        var (complexType, schema) = @event;
 
-        var fieldType = field.Type.NullableType();
-
-        if (fieldType is MutableInterfaceTypeDefinition or ListType or MutableUnionTypeDefinition)
+        foreach (var (keyDirective, keyInfo) in complexType.KeyInfoByDirective)
         {
-            context.Log.Write(
-                KeyFieldsSelectInvalidType(
-                    entityType.Name,
-                    keyDirective,
-                    field.Name,
-                    type.Name,
-                    schema));
+            foreach (var keyField in keyInfo.Fields)
+            {
+                var fieldType = keyField.Type.NullableType();
+
+                if (fieldType is MutableInterfaceTypeDefinition or ListType or MutableUnionTypeDefinition)
+                {
+                    context.Log.Write(
+                        KeyFieldsSelectInvalidType(keyField, keyDirective, complexType, schema));
+                }
+            }
         }
     }
 }

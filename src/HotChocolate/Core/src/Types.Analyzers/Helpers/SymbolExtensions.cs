@@ -1,12 +1,181 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using static Microsoft.CodeAnalysis.SymbolDisplayFormat;
+using static Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions;
 
 namespace HotChocolate.Types.Analyzers.Helpers;
 
 public static class SymbolExtensions
 {
+    private static readonly SymbolDisplayFormat s_format =
+        FullyQualifiedFormat.AddMiscellaneousOptions(
+            IncludeNullableReferenceTypeModifier);
+
+    public static string GetName(this ISymbol symbol)
+    {
+        var name = GetNameFromAttribute(symbol);
+
+        if (string.IsNullOrEmpty(name))
+        {
+            name = symbol.Name;
+        }
+
+        return name!;
+    }
+
+    public static MethodDescription GetDescription(this IMethodSymbol method)
+    {
+        var methodDescription = GetDescriptionFromAttribute(method);
+
+        if (methodDescription == null)
+        {
+            var xml = method.GetDocumentationCommentXml();
+            if (!string.IsNullOrEmpty(xml))
+            {
+                try
+                {
+                    var doc = XDocument.Parse(xml);
+                    methodDescription = doc.Descendants("summary")
+                        .FirstOrDefault()?
+                        .Value
+                        .Trim();
+
+                    if (string.IsNullOrEmpty(methodDescription))
+                    {
+                        methodDescription = null;
+                    }
+                }
+                catch
+                {
+                    // XML documentation parsing is best-effort only.
+                    // Malformed XML is ignored and we fall back to no description.
+                }
+            }
+        }
+
+        var parameters = method.Parameters;
+        var paramDescriptions = ImmutableArray.CreateBuilder<string?>(parameters.Length);
+
+        foreach (var param in parameters)
+        {
+            var paramDescription = GetDescriptionFromAttribute(param);
+            var commentXml = method.GetDocumentationCommentXml();
+
+            if (paramDescription == null && !string.IsNullOrEmpty(commentXml))
+            {
+                try
+                {
+                    var doc = XDocument.Parse(commentXml);
+                    var paramDoc = doc.Descendants("param")
+                        .FirstOrDefault(p => p.Attribute("name")?.Value == param.Name)?
+                        .Value
+                        .Trim();
+
+                    paramDescription = string.IsNullOrEmpty(paramDoc) ? null : paramDoc;
+                }
+                catch
+                {
+                    // XML documentation parsing is best-effort only.
+                    // Malformed XML is ignored and we fall back to no description.
+                }
+            }
+
+            paramDescriptions.Add(paramDescription);
+        }
+
+        return new MethodDescription(methodDescription, paramDescriptions.ToImmutable());
+    }
+
+    public static string? GetDescription(this IPropertySymbol property)
+    {
+        var description = GetDescriptionFromAttribute(property);
+        if (description != null)
+        {
+            return description;
+        }
+
+        var commentXml = property.GetDocumentationCommentXml();
+        if (string.IsNullOrEmpty(commentXml))
+        {
+            return null;
+        }
+
+        try
+        {
+            var doc = XDocument.Parse(commentXml);
+            var summaryElement = doc.Descendants("summary").FirstOrDefault();
+            var text = summaryElement?.Value.Trim();
+            return string.IsNullOrEmpty(text) ? null : text;
+        }
+        catch
+        {
+            // XML documentation parsing is best-effort only.
+            // Malformed XML is ignored and we fall back to no description.
+            return null;
+        }
+    }
+
+    public static string? GetDescription(this INamedTypeSymbol type)
+    {
+        var description = GetDescriptionFromAttribute(type);
+        if (description != null)
+        {
+            return description;
+        }
+
+        var xml = type.GetDocumentationCommentXml();
+        if (string.IsNullOrEmpty(xml))
+        {
+            return null;
+        }
+
+        try
+        {
+            var doc = XDocument.Parse(xml);
+            var summaryElement = doc.Descendants("summary").FirstOrDefault();
+            var text = summaryElement?.Value.Trim();
+            return string.IsNullOrEmpty(text) ? null : text;
+        }
+        catch
+        {
+            // XML documentation parsing is best-effort only.
+            // Malformed XML is ignored and we fall back to no description.
+            return null;
+        }
+    }
+
+    private static string? GetDescriptionFromAttribute(ISymbol symbol)
+    {
+        var attribute = symbol.GetAttributes()
+            .FirstOrDefault(a => a.AttributeClass?.Name == "GraphQLDescriptionAttribute");
+
+        if (attribute?.ConstructorArguments.Length > 0)
+        {
+            var value = attribute.ConstructorArguments[0].Value as string;
+            return string.IsNullOrEmpty(value) ? null : value;
+        }
+
+        return null;
+    }
+
+    private static string? GetNameFromAttribute(ISymbol symbol)
+    {
+        var attribute = symbol.GetAttributes()
+            .FirstOrDefault(a => a.AttributeClass?.Name == "GraphQLNameAttribute");
+
+        if (attribute?.ConstructorArguments.Length > 0)
+        {
+            var value = attribute.ConstructorArguments[0].Value as string;
+            return string.IsNullOrEmpty(value) ? null : value;
+        }
+
+        return null;
+    }
+
     public static bool IsNullableType(this ITypeSymbol typeSymbol)
         => typeSymbol.IsNullableRefType() || typeSymbol.IsNullableValueType();
 
@@ -25,12 +194,32 @@ public static class SymbolExtensions
         };
 
     public static string PrintNullRefQualifier(this ITypeSymbol typeSymbol)
-    {
-        return typeSymbol.IsNullableRefType() ? "?" : string.Empty;
-    }
+        => typeSymbol.IsNullableRefType() ? "?" : string.Empty;
 
     public static string ToFullyQualified(this ITypeSymbol typeSymbol)
-        => typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        => typeSymbol.ToDisplayString(FullyQualifiedFormat);
+
+    public static string ToFullyQualifiedWithNullRefQualifier(this ITypeSymbol typeSymbol)
+        => typeSymbol.ToDisplayString(s_format);
+
+    public static string ToNullableFullyQualifiedWithNullRefQualifier(this ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol.IsValueType)
+        {
+            return typeSymbol.ToFullyQualifiedWithNullRefQualifier();
+        }
+
+        var value = typeSymbol.ToFullyQualifiedWithNullRefQualifier();
+        return value.Length > 0 && value[value.Length - 1] != '?' ? value + "?" : value;
+    }
+
+    public static string ToClassNonNullableFullyQualifiedWithNullRefQualifier(this ITypeSymbol typeSymbol)
+    {
+        var value = typeSymbol.ToFullyQualifiedWithNullRefQualifier();
+        return !typeSymbol.IsValueType && value.Length > 0 && value[value.Length - 1] == '?'
+            ? value.Substring(0, value.Length - 1)
+            : value;
+    }
 
     public static bool IsParent(this IParameterSymbol parameter)
         => parameter.IsThis
@@ -71,17 +260,13 @@ public static class SymbolExtensions
 
     public static bool IsSetState(this IParameterSymbol parameter, [NotNullWhen(true)] out string? stateTypeName)
     {
-        if (parameter.Type is INamedTypeSymbol namedTypeSymbol)
+        if (parameter.Type is INamedTypeSymbol namedTypeSymbol
+            && namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 }
+            && namedTypeSymbol.Name == "SetState"
+            && namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
         {
-            if (namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 })
-            {
-                if (namedTypeSymbol.Name == "SetState"
-                    && namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
-                {
-                    stateTypeName = namedTypeSymbol.TypeArguments[0].ToDisplayString();
-                    return true;
-                }
-            }
+            stateTypeName = namedTypeSymbol.TypeArguments[0].ToDisplayString();
+            return true;
         }
 
         stateTypeName = null;
@@ -89,44 +274,19 @@ public static class SymbolExtensions
     }
 
     public static bool IsSetState(this IParameterSymbol parameter)
-    {
-        if (parameter.Type is INamedTypeSymbol namedTypeSymbol)
-        {
-            if (namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 })
-            {
-                if (namedTypeSymbol.Name == "SetState"
-                    && namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
+        => parameter.Type is INamedTypeSymbol namedTypeSymbol
+            && namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 }
+            && namedTypeSymbol.Name == "SetState"
+            && namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate";
 
     public static bool IsQueryContext(this IParameterSymbol parameter)
-    {
-        if (parameter.Type is INamedTypeSymbol namedTypeSymbol
+        => parameter.Type is INamedTypeSymbol namedTypeSymbol
             && namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 }
-            && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.QueryContextGeneric))
-        {
-            return true;
-        }
-
-        return false;
-    }
+            && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.QueryContextGeneric);
 
     public static bool IsPagingArguments(this IParameterSymbol parameter)
-    {
-        if (parameter.Type is INamedTypeSymbol namedTypeSymbol
-            && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.PagingArguments))
-        {
-            return true;
-        }
-
-        return false;
-    }
+        => parameter.Type is INamedTypeSymbol namedTypeSymbol
+            && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.PagingArguments);
 
     public static bool IsGlobalState(
         this IParameterSymbol parameter,
@@ -148,7 +308,7 @@ public static class SymbolExtensions
 
                 foreach (var namedArg in attributeData.NamedArguments)
                 {
-                    if (namedArg.Key == "Key" && namedArg.Value.Value is string namedKeyValue)
+                    if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
                     {
                         key = namedKeyValue;
                         return true;
@@ -218,7 +378,7 @@ public static class SymbolExtensions
 
                 foreach (var namedArg in attributeData.NamedArguments)
                 {
-                    if (namedArg.Key == "Key" && namedArg.Value.Value is string namedKeyValue)
+                    if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
                     {
                         key = namedKeyValue;
                         return true;
@@ -536,27 +696,29 @@ public static class SymbolExtensions
     public static ITypeSymbol? GetReturnType(this ISymbol member)
     {
         ITypeSymbol? returnType;
-        if (member is IMethodSymbol method)
+
+        switch (member)
         {
-            returnType = method.ReturnType;
-        }
-        else if (member is IPropertySymbol property)
-        {
-            returnType = property.Type;
-        }
-        else
-        {
-            return null;
+            case IMethodSymbol method:
+                returnType = method.ReturnType;
+                break;
+
+            case IPropertySymbol property:
+                returnType = property.Type;
+                break;
+
+            default:
+                return null;
         }
 
-        if (returnType is INamedTypeSymbol namedTypeSymbol)
+        if (returnType is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1 } namedType)
         {
-            var definitionName = namedTypeSymbol.ConstructedFrom.ToDisplayString();
+            var originalDefinition = namedType.ConstructedFrom;
 
-            if (definitionName.StartsWith("System.Threading.Tasks.Task<")
-                || definitionName.StartsWith("System.Threading.Tasks.ValueTask<"))
+            if (originalDefinition.ContainingNamespace.ToDisplayString() == "System.Threading.Tasks"
+                && originalDefinition.Name is "ValueTask" or "Task")
             {
-                return namedTypeSymbol.TypeArguments.FirstOrDefault();
+                return namedType.TypeArguments[0];
             }
         }
 
@@ -574,55 +736,6 @@ public static class SymbolExtensions
 
         return typeSymbol.AllInterfaces.Any(
             s => SymbolEqualityComparer.Default.Equals(s.OriginalDefinition, connectionInterface));
-    }
-
-    public static bool IsConnectionBase(this ITypeSymbol typeSymbol)
-    {
-        if (typeSymbol is INamedTypeSymbol { IsGenericType: true } namedType)
-        {
-            var definitionName = namedType.ConstructedFrom.ToDisplayString();
-
-            if (definitionName.StartsWith("System.Threading.Tasks.Task<")
-                || definitionName.StartsWith("System.Threading.Tasks.ValueTask<"))
-            {
-                typeSymbol = namedType.TypeArguments[0];
-            }
-        }
-
-        var current = typeSymbol;
-
-        while (current != null)
-        {
-            if (current is INamedTypeSymbol { IsGenericType: true } namedTypeSymbol)
-            {
-                var baseType = namedTypeSymbol.ConstructedFrom;
-
-                if (baseType.ToDisplayString().StartsWith("HotChocolate.Types.Pagination.ConnectionBase<"))
-                {
-                    return true;
-                }
-            }
-
-            current = current.BaseType;
-        }
-
-        return false;
-    }
-
-    public static ITypeSymbol UnwrapTaskOrValueTask(this ITypeSymbol typeSymbol)
-    {
-        if (typeSymbol is INamedTypeSymbol { IsGenericType: true } namedType)
-        {
-            var originalDefinition = namedType.ConstructedFrom;
-
-            if (originalDefinition.ToDisplayString() == "System.Threading.Tasks.Task<T>"
-                || originalDefinition.ToDisplayString() == "System.Threading.Tasks.ValueTask<T>")
-            {
-                return namedType.TypeArguments[0];
-            }
-        }
-
-        return typeSymbol;
     }
 
     /// <summary>
@@ -665,4 +778,90 @@ public static class SymbolExtensions
             .GetAttributes()
             .Any(attr => attr.AttributeClass?.ToDisplayString()
                 == "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
+
+    public static IEnumerable<ISymbol> AllPublicInstanceMembers(this ITypeSymbol type)
+    {
+        var processed = PooledObjects.GetStringSet();
+        var current = type;
+
+        while (current is not null && current.SpecialType != SpecialType.System_Object)
+        {
+            foreach (var member in current.GetMembers())
+            {
+                if (member.DeclaredAccessibility == Accessibility.Public
+                    && member.Kind is SymbolKind.Property or SymbolKind.Method
+                    && !member.IsStatic
+                    && !member.IsIgnored()
+                    && processed.Add(member.Name))
+                {
+                    yield return member;
+                }
+            }
+
+            current = current.BaseType;
+        }
+
+        processed.Clear();
+        PooledObjects.Return(processed);
+    }
+
+    public static DirectiveScope GetShareableScope(this ImmutableArray<AttributeData> attributes)
+    {
+        foreach (var attribute in attributes)
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.ShareableAttribute))
+            {
+                var isScoped = attribute.ConstructorArguments.Length > 0
+                    && attribute.ConstructorArguments[0].Value is true;
+                return isScoped ? DirectiveScope.Field : DirectiveScope.Type;
+            }
+        }
+
+        return DirectiveScope.None;
+    }
+
+    public static bool IsNodeResolver(this ImmutableArray<AttributeData> attributes)
+    {
+        foreach (var attribute in attributes)
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.NodeResolverAttribute))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static DirectiveScope GetInaccessibleScope(this ImmutableArray<AttributeData> attributes)
+    {
+        foreach (var attribute in attributes)
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.InaccessibleAttribute))
+            {
+                var isScoped = attribute.ConstructorArguments.Length > 0
+                    && attribute.ConstructorArguments[0].Value is true;
+                return isScoped ? DirectiveScope.Field : DirectiveScope.Type;
+            }
+        }
+
+        return DirectiveScope.None;
+    }
+
+    public static ImmutableArray<AttributeData> GetUserAttributes(this ImmutableArray<AttributeData> attributes)
+    {
+        var mutated = attributes;
+
+        foreach (var attribute in attributes)
+        {
+            if (attribute.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.ShareableAttribute)
+                || attribute.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.InaccessibleAttribute)
+                || !attribute.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.DescriptorAttribute))
+            {
+                mutated = mutated.Remove(attribute);
+            }
+        }
+
+        return mutated;
+    }
 }

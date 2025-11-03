@@ -1,5 +1,6 @@
+using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.ApolloFederation.Types;
@@ -35,10 +36,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -70,9 +68,7 @@ public static class RequiresScopesDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -85,10 +81,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -102,9 +95,7 @@ public static class RequiresScopesDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -117,10 +108,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -134,9 +122,7 @@ public static class RequiresScopesDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -149,10 +135,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -166,9 +149,7 @@ public static class RequiresScopesDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -181,10 +162,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddScopes(scopes, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddScopes(scopes, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -198,16 +176,14 @@ public static class RequiresScopesDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddScopes(scopes.Select(s => new Scope(s)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
 
     private static void AddScopes(
         IReadOnlyList<Scope> scopes,
-        IHasDirectiveDefinition definition,
+        IDirectiveConfigurationProvider definition,
         ITypeInspector typeInspector)
     {
         var directive = definition

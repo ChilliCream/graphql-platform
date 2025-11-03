@@ -14,10 +14,7 @@ internal static class GeneralCollectionExtensions
         Func<TElement, TValue> valueSelector)
         where TKey : IEquatable<TKey>
     {
-        if (values is null)
-        {
-            throw new ArgumentNullException(nameof(values));
-        }
+        ArgumentNullException.ThrowIfNull(values);
 
         var dictionary = new OrderedDictionary<TKey, TValue>();
 

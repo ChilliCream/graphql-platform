@@ -2,8 +2,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.CostAnalysis;
 
-internal sealed class CostSchemaDocumentFormatter(ISchema schema)
-    : ISchemaDocumentFormatter
+internal sealed class CostSchemaDocumentFormatter(ISchemaDefinition schema) : ISchemaDocumentFormatter
 {
     public DocumentNode Format(DocumentNode schemaDocument)
     {

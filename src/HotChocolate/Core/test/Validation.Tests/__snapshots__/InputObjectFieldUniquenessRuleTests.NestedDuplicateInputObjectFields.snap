@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "There can be only one input field named `f2`.",
     "Code": null,
@@ -19,8 +19,8 @@
     },
     "Locations": [
       {
-        "Line": 9,
-        "Column": 33
+        "Line": 8,
+        "Column": 9
       }
     ],
     "Extensions": {

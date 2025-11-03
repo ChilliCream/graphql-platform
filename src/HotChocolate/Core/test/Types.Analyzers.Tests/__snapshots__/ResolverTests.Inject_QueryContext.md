@@ -53,19 +53,32 @@ namespace TestNamespace
     {
         internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor<global::TestNamespace.Test> descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.TestType);
-            var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
+            var naming = descriptor.Extend().Context.Naming;
+
             descriptor
-                .Field(thisType.GetMember("GetTest", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("Test", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = r.GetTest();
-                    c.Definition.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Entity>.Default;
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Entity>>>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(global::System.Linq.IQueryable<global::TestNamespace.Entity>);
+
+                    configuration.SetSourceGeneratorFlags();
+
+                    configuration.Resolvers = context.Resolvers.GetTest();
+                    configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Entity>.Default;
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
 
             Configure(descriptor);
         }

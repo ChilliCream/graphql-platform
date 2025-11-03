@@ -1,0 +1,345 @@
+title: Require_Enumerable_In_List
+request:
+  document: |
+    {
+      books {
+        nodes {
+          title
+          genres {
+            name
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "books": {
+          "nodes": [
+            {
+              "title": "The Great Gatsby",
+              "genres": [
+                {
+                  "name": "Fiction"
+                },
+                {
+                  "name": "Classic"
+                }
+              ]
+            },
+            {
+              "title": "1984",
+              "genres": [
+                {
+                  "name": "Science Fiction"
+                },
+                {
+                  "name": "Classic"
+                }
+              ]
+            },
+            {
+              "title": "The Catcher in the Rye",
+              "genres": [
+                {
+                  "name": "Fiction"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: Int!
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+        author: Author!
+        genreIds: [Int!]!
+      }
+
+      "A connection to a list of items."
+      type BooksConnection @shareable {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [BooksEdge!]
+        "A flattened list of the nodes."
+        nodes: [Book!]
+      }
+
+      "An edge in a connection."
+      type BooksEdge @shareable {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: Book!
+      }
+
+      "Information about pagination in a connection."
+      type PageInfo @shareable {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+
+      type Query {
+        books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
+        book(id: Int!): Book @lookup @shareable
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_684e067a_1 {
+              books {
+                nodes {
+                  title
+                  id
+                  genreIds
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "books": {
+                    "nodes": [
+                      {
+                        "title": "The Great Gatsby",
+                        "id": 1,
+                        "genreIds": [
+                          1,
+                          3
+                        ]
+                      },
+                      {
+                        "title": "1984",
+                        "id": 2,
+                        "genreIds": [
+                          2,
+                          3
+                        ]
+                      },
+                      {
+                        "title": "The Catcher in the Rye",
+                        "id": 3,
+                        "genreIds": [
+                          1
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Book {
+        id: Int!
+        dimension: BookDimension!
+      }
+
+      type BookDimension {
+        width: Int!
+        height: Int!
+      }
+
+      type Query {
+        book(id: Int!): Book @lookup @shareable
+      }
+  - name: c
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Book {
+        estimatedDelivery(dimension: BookDimensionInput! @require(field: "{\n  title\n  width: dimension.width\n  height: dimension.height\n}")): Int!
+        id: Int!
+      }
+
+      type Query {
+        book(id: Int!): Book @lookup @shareable
+      }
+
+      input BookDimensionInput {
+        title: String!
+        width: Int!
+        height: Int!
+      }
+  - name: d
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Book {
+        genres(genreIds: [Int!]! @require(field: "genreIds")): [Genre!]!
+        id: Int!
+      }
+
+      type Genre {
+        id: Int!
+        name: String!
+      }
+
+      type Query {
+        book(id: Int!): Book @lookup @shareable
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_684e067a_2(
+              $__fusion_1_id: Int!
+              $__fusion_2_genreIds: [Int!]!
+            ) {
+              book(id: $__fusion_1_id) {
+                genres(genreIds: $__fusion_2_genreIds) {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": 1,
+                "__fusion_2_genreIds": [
+                  1,
+                  3
+                ]
+              },
+              {
+                "__fusion_1_id": 2,
+                "__fusion_2_genreIds": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "__fusion_1_id": 3,
+                "__fusion_2_genreIds": [
+                  1
+                ]
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "book": {
+                    "genres": [
+                      {
+                        "name": "Fiction"
+                      },
+                      {
+                        "name": "Classic"
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "book": {
+                    "genres": [
+                      {
+                        "name": "Science Fiction"
+                      },
+                      {
+                        "name": "Classic"
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "book": {
+                    "genres": [
+                      {
+                        "name": "Fiction"
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          books {
+            nodes {
+              title
+              genres {
+                name
+              }
+              id @fusion__requirement
+              genreIds @fusion__requirement
+            }
+          }
+        }
+      hash: 684e067a80efad0f197393d61f996250
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_684e067a_1 {
+          books {
+            nodes {
+              title
+              id
+              genreIds
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: d
+      operation: |
+        query Op_684e067a_2(
+          $__fusion_1_id: Int!
+          $__fusion_2_genreIds: [Int!]!
+        ) {
+          book(id: $__fusion_1_id) {
+            genres(genreIds: $__fusion_2_genreIds) {
+              name
+            }
+          }
+        }
+      source: $.book
+      target: $.books.nodes
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+        - name: __fusion_2_genreIds
+          selectionMap: >-
+            genreIds
+      dependencies:
+        - id: 1

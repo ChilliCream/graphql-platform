@@ -1,5 +1,7 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -14,18 +16,26 @@ public sealed class FusionInterfaceTypeDefinition(
 {
     private bool _isEntity;
 
-    public override TypeKind Kind => TypeKind.Object;
+    /// <inheritdoc />
+    public override TypeKind Kind => TypeKind.Interface;
 
+    /// <summary>
+    /// Defines is this interface is an entity.
+    /// </summary>
     public override bool IsEntity => _isEntity;
 
-    public new ISourceComplexTypeCollection<SourceInterfaceType> Sources { get; private set; } = null!;
+    /// <summary>
+    /// Gets source schema metadata for this interface.
+    /// </summary>
+    public new ISourceComplexTypeCollection<SourceInterfaceType> Sources
+        => Unsafe.As<ISourceComplexTypeCollection<SourceInterfaceType>>(base.Sources);
 
     internal void Complete(CompositeInterfaceTypeCompletionContext context)
     {
         Directives = context.Directives;
         Implements = context.Interfaces;
-        Sources = context.Sources;
         base.Sources = context.Sources;
+        Features = context.Features;
         _isEntity = Sources.Any(t => t.Lookups.Length > 0);
 
         Complete();
@@ -46,6 +56,8 @@ public sealed class FusionInterfaceTypeDefinition(
     /// <inheritdoc />
     public override bool IsAssignableFrom(ITypeDefinition type)
     {
+        ArgumentNullException.ThrowIfNull(type);
+
         switch (type.Kind)
         {
             case TypeKind.Interface:

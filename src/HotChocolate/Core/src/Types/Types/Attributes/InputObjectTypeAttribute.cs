@@ -1,13 +1,11 @@
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Struct)]
+    AttributeTargets.Class
+    | AttributeTargets.Struct)]
 public sealed class InputObjectTypeAttribute
     : InputObjectTypeDescriptorAttribute
     , ITypeAttribute
@@ -34,13 +32,13 @@ public sealed class InputObjectTypeAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IInputObjectTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         if (!string.IsNullOrEmpty(Name))
         {
             descriptor.Name(Name);
         }
 
-        descriptor.Extend().Definition.Fields.BindingBehavior = BindingBehavior.Implicit;
+        descriptor.Extend().Configuration.Fields.BindingBehavior = BindingBehavior.Implicit;
     }
 }

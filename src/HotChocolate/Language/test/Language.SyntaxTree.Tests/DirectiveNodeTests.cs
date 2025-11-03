@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class DirectiveNodeTests
@@ -8,7 +6,7 @@ public class DirectiveNodeTests
     public void Equals_With_Same_Location()
     {
         // arrange
-        var arguments = new List<ArgumentNode> { new("abc", "def"), };
+        var arguments = new List<ArgumentNode> { new("abc", "def") };
 
         var a = new DirectiveNode(
             TestLocations.Location1,
@@ -27,7 +25,7 @@ public class DirectiveNodeTests
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -40,7 +38,7 @@ public class DirectiveNodeTests
     public void Equals_With_Different_Location()
     {
         // arrange
-        var arguments = new List<ArgumentNode> { new("abc", "def"), };
+        var arguments = new List<ArgumentNode> { new("abc", "def") };
 
         var a = new DirectiveNode(
             TestLocations.Location1,
@@ -59,7 +57,7 @@ public class DirectiveNodeTests
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -72,7 +70,7 @@ public class DirectiveNodeTests
     public void GetHashCode_With_Location()
     {
         // arrange
-        var arguments = new List<ArgumentNode> { new("abc", "def"), };
+        var arguments = new List<ArgumentNode> { new("abc", "def") };
 
         var a = new DirectiveNode(
             TestLocations.Location1,

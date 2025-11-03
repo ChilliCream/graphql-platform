@@ -20,10 +20,10 @@
 
 SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE NOT EXISTS (
-    SELECT 1
+WHERE "d"."BarShort" NOT IN (
+    SELECT "p"."value"
     FROM json_each(@__p_0) AS "p"
-    WHERE "p"."value" = "d"."BarShort" OR ("p"."value" IS NULL AND "d"."BarShort" IS NULL))
+) OR "d"."BarShort" IS NULL
 ---------------
 
 13and14 Result:
@@ -48,10 +48,10 @@ WHERE NOT EXISTS (
 
 SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE NOT EXISTS (
-    SELECT 1
+WHERE "d"."BarShort" NOT IN (
+    SELECT "p"."value"
     FROM json_each(@__p_0) AS "p"
-    WHERE "p"."value" = "d"."BarShort" OR ("p"."value" IS NULL AND "d"."BarShort" IS NULL))
+) OR "d"."BarShort" IS NULL
 ---------------
 
 13andNull Result:
@@ -72,12 +72,12 @@ WHERE NOT EXISTS (
 
 13andNull SQL:
 ---------------
-.param set @__p_0 '[13,null]'
+.param set @__p_0_without_nulls '[13]'
 
 SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM json_each(@__p_0) AS "p"
-    WHERE "p"."value" = "d"."BarShort" OR ("p"."value" IS NULL AND "d"."BarShort" IS NULL))
+WHERE "d"."BarShort" NOT IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0_without_nulls) AS "p"
+) AND "d"."BarShort" IS NOT NULL
 ---------------

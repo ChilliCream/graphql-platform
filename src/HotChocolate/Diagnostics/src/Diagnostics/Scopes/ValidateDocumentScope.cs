@@ -8,7 +8,7 @@ internal sealed class ValidateDocumentScope : RequestScopeBase
 {
     public ValidateDocumentScope(
         ActivityEnricher enricher,
-        IRequestContext context,
+        RequestContext context,
         Activity activity)
         : base(enricher, context, activity)
     {
@@ -19,7 +19,7 @@ internal sealed class ValidateDocumentScope : RequestScopeBase
 
     protected override void SetStatus()
     {
-        if (Context.IsValidDocument)
+        if (Context.IsOperationDocumentValid())
         {
             Activity.SetStatus(Status.Ok);
             Activity.SetStatus(ActivityStatusCode.Ok);

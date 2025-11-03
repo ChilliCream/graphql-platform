@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -1011,333 +1012,7 @@ namespace Foo.Bar
 
         public static GetPeopleQueryDocument Instance { get; } = new GetPeopleQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x71,
-            0x75,
-            0x65,
-            0x72,
-            0x79,
-            0x20,
-            0x47,
-            0x65,
-            0x74,
-            0x50,
-            0x65,
-            0x6f,
-            0x70,
-            0x6c,
-            0x65,
-            0x20,
-            0x7b,
-            0x20,
-            0x70,
-            0x65,
-            0x6f,
-            0x70,
-            0x6c,
-            0x65,
-            0x28,
-            0x6f,
-            0x72,
-            0x64,
-            0x65,
-            0x72,
-            0x5f,
-            0x62,
-            0x79,
-            0x3a,
-            0x20,
-            0x7b,
-            0x20,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x3a,
-            0x20,
-            0x41,
-            0x53,
-            0x43,
-            0x20,
-            0x7d,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x6e,
-            0x6f,
-            0x64,
-            0x65,
-            0x73,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x6d,
-            0x65,
-            0x73,
-            0x73,
-            0x61,
-            0x67,
-            0x65,
-            0x73,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x6e,
-            0x6f,
-            0x64,
-            0x65,
-            0x73,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x4d,
-            0x65,
-            0x73,
-            0x73,
-            0x61,
-            0x67,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x4d,
-            0x65,
-            0x73,
-            0x73,
-            0x61,
-            0x67,
-            0x65,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x66,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x7d,
-            0x20,
-            0x66,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x4d,
-            0x65,
-            0x73,
-            0x73,
-            0x61,
-            0x67,
-            0x65,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x4d,
-            0x65,
-            0x73,
-            0x73,
-            0x61,
-            0x67,
-            0x65,
-            0x20,
-            0x7b,
-            0x20,
-            0x73,
-            0x65,
-            0x6e,
-            0x64,
-            0x65,
-            0x72,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x74,
-            0x65,
-            0x78,
-            0x74,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetPeople { people(order_by: { name: ASC }) { __typename nodes { __typename ... Person messages { __typename nodes { __typename ... Message ... on Message { id } } } ... on Person { id } } } } fragment Person on Person { name } fragment Message on Message { sender { __typename ... Person ... on Person { id } } text }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "0967ca09947e3a18370454229ece650b8ba8e2ef");
 
         public override global::System.String ToString()
@@ -1397,16 +1072,43 @@ namespace Foo.Bar
     public partial class GetPeopleQuery : global::Foo.Bar.IGetPeopleQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetPeopleResult> _operationExecutor;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetPeopleQuery(global::StrawberryShake.IOperationExecutor<IGetPeopleResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
+        private GetPeopleQuery(global::StrawberryShake.IOperationExecutor<IGetPeopleResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetPeopleResult);
+
+        public global::Foo.Bar.IGetPeopleQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.GetPeopleQuery(_operationExecutor, _configure.Add(configure));
+        }
+
+        public global::Foo.Bar.IGetPeopleQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IGetPeopleQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeopleResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -1478,6 +1180,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeopleQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IGetPeopleQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IGetPeopleQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IGetPeopleQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeopleResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetPeopleResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -1486,7 +1191,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the WriteMessage GraphQL operation
     /// <code>
-    /// mutation WriteMessage($text: String!, $address: String!) {
+    /// mutation WriteMessage(
+    ///   $text: String!
+    ///   $address: String!
+    /// ) {
     ///   sendMessage(input: { text: $text, recipientEmail: $address }) {
     ///     __typename
     ///     message {
@@ -1524,329 +1232,7 @@ namespace Foo.Bar
 
         public static WriteMessageMutationDocument Instance { get; } = new WriteMessageMutationDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x6d,
-            0x75,
-            0x74,
-            0x61,
-            0x74,
-            0x69,
-            0x6f,
-            0x6e,
-            0x20,
-            0x57,
-            0x72,
-            0x69,
-            0x74,
-            0x65,
-            0x4d,
-            0x65,
-            0x73,
-            0x73,
-            0x61,
-            0x67,
-            0x65,
-            0x28,
-            0x24,
-            0x74,
-            0x65,
-            0x78,
-            0x74,
-            0x3a,
-            0x20,
-            0x53,
-            0x74,
-            0x72,
-            0x69,
-            0x6e,
-            0x67,
-            0x21,
-            0x2c,
-            0x20,
-            0x24,
-            0x61,
-            0x64,
-            0x64,
-            0x72,
-            0x65,
-            0x73,
-            0x73,
-            0x3a,
-            0x20,
-            0x53,
-            0x74,
-            0x72,
-            0x69,
-            0x6e,
-            0x67,
-            0x21,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x73,
-            0x65,
-            0x6e,
-            0x64,
-            0x4d,
-            0x65,
-            0x73,
-            0x73,
-            0x61,
-            0x67,
-            0x65,
-            0x28,
-            0x69,
-            0x6e,
-            0x70,
-            0x75,
-            0x74,
-            0x3a,
-            0x20,
-            0x7b,
-            0x20,
-            0x74,
-            0x65,
-            0x78,
-            0x74,
-            0x3a,
-            0x20,
-            0x24,
-            0x74,
-            0x65,
-            0x78,
-            0x74,
-            0x2c,
-            0x20,
-            0x72,
-            0x65,
-            0x63,
-            0x69,
-            0x70,
-            0x69,
-            0x65,
-            0x6e,
-            0x74,
-            0x45,
-            0x6d,
-            0x61,
-            0x69,
-            0x6c,
-            0x3a,
-            0x20,
-            0x24,
-            0x61,
-            0x64,
-            0x64,
-            0x72,
-            0x65,
-            0x73,
-            0x73,
-            0x20,
-            0x7d,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x6d,
-            0x65,
-            0x73,
-            0x73,
-            0x61,
-            0x67,
-            0x65,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x4d,
-            0x65,
-            0x73,
-            0x73,
-            0x61,
-            0x67,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x4d,
-            0x65,
-            0x73,
-            0x73,
-            0x61,
-            0x67,
-            0x65,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x66,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x4d,
-            0x65,
-            0x73,
-            0x73,
-            0x61,
-            0x67,
-            0x65,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x4d,
-            0x65,
-            0x73,
-            0x73,
-            0x61,
-            0x67,
-            0x65,
-            0x20,
-            0x7b,
-            0x20,
-            0x73,
-            0x65,
-            0x6e,
-            0x64,
-            0x65,
-            0x72,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x74,
-            0x65,
-            0x78,
-            0x74,
-            0x20,
-            0x7d,
-            0x20,
-            0x66,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x50,
-            0x65,
-            0x72,
-            0x73,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "mutation WriteMessage($text: String!, $address: String!) { sendMessage(input: { text: $text, recipientEmail: $address }) { __typename message { __typename ... Message ... on Message { id } } } } fragment Message on Message { sender { __typename ... Person ... on Person { id } } text } fragment Person on Person { name }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "5b649ed10b73d2f35595b9d5f11fee8759ac4d72");
 
         public override global::System.String ToString()
@@ -1863,7 +1249,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the WriteMessage GraphQL operation
     /// <code>
-    /// mutation WriteMessage($text: String!, $address: String!) {
+    /// mutation WriteMessage(
+    ///   $text: String!
+    ///   $address: String!
+    /// ) {
     ///   sendMessage(input: { text: $text, recipientEmail: $address }) {
     ///     __typename
     ///     message {
@@ -1897,17 +1286,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IWriteMessageResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public WriteMessageMutation(global::StrawberryShake.IOperationExecutor<IWriteMessageResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
         }
 
+        private WriteMessageMutation(global::StrawberryShake.IOperationExecutor<IWriteMessageResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _stringFormatter = @stringFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IWriteMessageResult);
+
+        public global::Foo.Bar.IWriteMessageMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.WriteMessageMutation(_operationExecutor, _configure.Add(configure), _stringFormatter);
+        }
+
+        public global::Foo.Bar.IWriteMessageMutation WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IWriteMessageMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IWriteMessageResult>> ExecuteAsync(global::System.String text, global::System.String address, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(text, address);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -1960,7 +1377,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the WriteMessage GraphQL operation
     /// <code>
-    /// mutation WriteMessage($text: String!, $address: String!) {
+    /// mutation WriteMessage(
+    ///   $text: String!
+    ///   $address: String!
+    /// ) {
     ///   sendMessage(input: { text: $text, recipientEmail: $address }) {
     ///     __typename
     ///     message {
@@ -1992,6 +1412,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IWriteMessageMutation : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IWriteMessageMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IWriteMessageMutation WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IWriteMessageMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IWriteMessageResult>> ExecuteAsync(global::System.String text, global::System.String address, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IWriteMessageResult>> Watch(global::System.String text, global::System.String address, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -2106,7 +1529,7 @@ namespace Foo.Bar.State
             }
 
             IGetPeople_People returnValue = default !;
-            if (data?.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetPeople_People_PersonConnection(MapIGetPeople_People_NodesArray(data.Nodes, snapshot));
             }
@@ -2157,7 +1580,7 @@ namespace Foo.Bar.State
             }
 
             IGetPeople_People_Nodes_Messages returnValue = default !;
-            if (data?.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetPeople_People_Nodes_Messages_MessageConnection(MapIGetPeople_People_Nodes_Messages_NodesArray(data.Nodes, snapshot));
             }
@@ -2772,7 +2195,7 @@ namespace Foo.Bar.State
             }
 
             IGetPeople_People_Nodes_Messages returnValue = default !;
-            if (data?.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetPeople_People_Nodes_Messages_MessageConnection(MapIGetPeople_People_Nodes_Messages_NodesArray(data.Nodes, snapshot));
             }
@@ -3023,6 +2446,8 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::Foo.Bar.State.FooClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetPeopleQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.WriteMessageMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IGetPeopleQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IWriteMessageMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IFooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>("FooClient", services, serviceCollection);

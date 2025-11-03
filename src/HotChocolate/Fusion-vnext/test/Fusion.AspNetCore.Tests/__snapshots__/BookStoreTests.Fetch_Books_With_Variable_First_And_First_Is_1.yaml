@@ -1,0 +1,263 @@
+title: Fetch_Books_With_Variable_First_And_First_Is_1
+request:
+  document: |
+    query GetBooks(
+      $first: Int
+    ) {
+      books(first: $first) {
+        nodes {
+          id
+          title
+          author {
+            name
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "first": 1
+    }
+response:
+  body: |
+    {
+      "data": {
+        "books": {
+          "nodes": [
+            {
+              "id": 1,
+              "title": "C# in Depth",
+              "author": {
+                "name": "Jon Skeet"
+              }
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author @key(fields: "id") {
+        id: Int!
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+        author: Author! @shareable
+      }
+
+      "A connection to a list of items."
+      type BooksConnection @shareable {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [BooksEdge!]
+        "A flattened list of the nodes."
+        nodes: [Book!]
+      }
+
+      "An edge in a connection."
+      type BooksEdge @shareable {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: Book!
+      }
+
+      "Information about pagination in a connection."
+      type PageInfo @shareable {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+
+      type Query {
+        bookById(id: Int!): Book! @lookup
+        books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
+        formatTitle(title: String!): String!
+      }
+    interactions:
+      - request:
+          document: |
+            query GetBooks_f1bed549_1(
+              $first: Int
+            ) {
+              books(first: $first) {
+                nodes {
+                  id
+                  title
+                  author {
+                    id
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "first": 1
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "books": {
+                    "nodes": [
+                      {
+                        "id": 1,
+                        "title": "C# in Depth",
+                        "author": {
+                          "id": 1
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        books: [Book!]!
+        id: Int!
+        name: String!
+      }
+
+      "A connection to a list of items."
+      type AuthorsConnection @shareable {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [AuthorsEdge!]
+        "A flattened list of the nodes."
+        nodes: [Author!]
+      }
+
+      "An edge in a connection."
+      type AuthorsEdge @shareable {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: Author!
+      }
+
+      type Book {
+        idAndTitle(title: String! @require(field: "title")): String!
+        id: Int!
+        author: Author! @shareable
+      }
+
+      "Information about pagination in a connection."
+      type PageInfo @shareable {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+
+      type Query {
+        bookById(id: Int!): Book! @internal @lookup
+        authorById(id: Int!): Author! @internal @lookup
+        authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
+      }
+    interactions:
+      - request:
+          document: |
+            query GetBooks_f1bed549_2(
+              $__fusion_1_id: Int!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                name
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Jon Skeet"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query GetBooks(
+          $first: Int
+        ) {
+          books(first: $first) {
+            nodes {
+              id
+              title
+              author {
+                name
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: GetBooks
+      hash: f1bed549ddb5fadb135070be28b9aa58
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query GetBooks_f1bed549_1(
+          $first: Int
+        ) {
+          books(first: $first) {
+            nodes {
+              id
+              title
+              author {
+                id
+              }
+            }
+          }
+        }
+      forwardedVariables:
+        - first
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query GetBooks_f1bed549_2(
+          $__fusion_1_id: Int!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            name
+          }
+        }
+      source: $.authorById
+      target: $.books.nodes.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

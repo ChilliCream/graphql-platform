@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Extensions;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -14,12 +15,18 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Key-Invalid-Fields-Type">
 /// Specification
 /// </seealso>
-internal sealed class KeyInvalidFieldsTypeRule : IEventHandler<KeyFieldsInvalidTypeEvent>
+internal sealed class KeyInvalidFieldsTypeRule : IEventHandler<ComplexTypeEvent>
 {
-    public void Handle(KeyFieldsInvalidTypeEvent @event, CompositionContext context)
+    public void Handle(ComplexTypeEvent @event, CompositionContext context)
     {
-        var (keyDirective, entityType, schema) = @event;
+        var (complexType, schema) = @event;
 
-        context.Log.Write(KeyInvalidFieldsType(keyDirective, entityType.Name, schema));
+        foreach (var (keyDirective, keyInfo) in complexType.KeyInfoByDirective)
+        {
+            if (keyInfo.IsInvalidFieldsType)
+            {
+                context.Log.Write(KeyInvalidFieldsType(keyDirective, complexType, schema));
+            }
+        }
     }
 }

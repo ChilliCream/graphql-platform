@@ -2,8 +2,9 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
-using HotChocolate.Language;
+using HotChocolate.Fusion.Info;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
+using static HotChocolate.Language.SyntaxComparer;
 
 namespace HotChocolate.Fusion.PreMergeValidationRules;
 
@@ -19,9 +20,11 @@ internal sealed class ExternalArgumentDefaultMismatchRule : IEventHandler<Output
 {
     public void Handle(OutputFieldGroupEvent @event, CompositionContext context)
     {
-        var (fieldName, fieldGroup, typeName) = @event;
+        var (_, fieldGroup, _) = @event;
 
-        if (!fieldGroup.Any(i => i.Field.HasExternalDirective()))
+        var externalFieldGroup = fieldGroup.Where(i => i.Field.IsExternal).ToImmutableHashSet();
+
+        if (externalFieldGroup.IsEmpty)
         {
             return;
         }
@@ -32,18 +35,33 @@ internal sealed class ExternalArgumentDefaultMismatchRule : IEventHandler<Output
 
         foreach (var argumentName in argumentNames)
         {
-            var arguments = fieldGroup
-                .SelectMany(i => i.Field.Arguments.AsEnumerable().Where(a => a.Name == argumentName))
-                .ToImmutableArray();
+            var argumentGroup =
+                fieldGroup
+                    .SelectMany(
+                        i => i.Field.Arguments.AsEnumerable().Where(a => a.Name == argumentName),
+                        (i, a) => new FieldArgumentInfo(a, i.Field, i.Type, i.Schema))
+                    .ToImmutableHashSet();
 
-            var defaultValue = arguments[0].DefaultValue;
+            var externalArgumentGroup =
+                externalFieldGroup
+                    .SelectMany(
+                        i => i.Field.Arguments.AsEnumerable().Where(a => a.Name == argumentName),
+                        (i, a) => new FieldArgumentInfo(a, i.Field, i.Type, i.Schema));
 
-            foreach (var argument in arguments)
+            foreach (var (externalArgument, _, _, externalSchema) in externalArgumentGroup)
             {
-                if (!SyntaxComparer.BySyntax.Equals(argument.DefaultValue, defaultValue))
+                foreach (var (argument, _, _, schema) in argumentGroup)
                 {
-                    context.Log.Write(
-                        ExternalArgumentDefaultMismatch(argumentName, fieldName, typeName));
+                    if (!BySyntax.Equals(argument.DefaultValue, externalArgument.DefaultValue))
+                    {
+                        context.Log.Write(
+                            ExternalArgumentDefaultMismatch(
+                                externalArgument.DefaultValue,
+                                externalArgument,
+                                externalSchema,
+                                argument.DefaultValue,
+                                schema.Name));
+                    }
                 }
             }
         }

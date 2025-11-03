@@ -1,5 +1,6 @@
+using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.ApolloFederation.Types;
@@ -35,10 +36,7 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddPolicies(policies, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddPolicies(policies, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -71,14 +69,12 @@ public static class PolicyDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
 
-    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{HotChocolate.ApolloFederation.Types.Policy})"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Types.Policy})"/>
     public static IInterfaceFieldDescriptor Policy(
         this IInterfaceFieldDescriptor descriptor,
         IReadOnlyList<Policy> policies)
@@ -86,15 +82,12 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddPolicies(policies, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddPolicies(policies, def, ctx.TypeInspector));
 
         return descriptor;
     }
 
-    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IInterfaceFieldDescriptor Policy(
         this IInterfaceFieldDescriptor descriptor,
         IReadOnlyList<string> policies)
@@ -103,14 +96,12 @@ public static class PolicyDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
 
-    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{HotChocolate.ApolloFederation.Types.Policy})"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Types.Policy})"/>
     public static IInterfaceTypeDescriptor Policy(
         this IInterfaceTypeDescriptor descriptor,
         IReadOnlyList<Policy> policies)
@@ -118,15 +109,12 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddPolicies(policies, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddPolicies(policies, def, ctx.TypeInspector));
 
         return descriptor;
     }
 
-    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IInterfaceTypeDescriptor Policy(
         this IInterfaceTypeDescriptor descriptor,
         IReadOnlyList<string> policies)
@@ -135,14 +123,12 @@ public static class PolicyDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
 
-    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{HotChocolate.ApolloFederation.Types.Policy})"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Types.Policy})"/>
     public static IObjectFieldDescriptor Policy(
         this IObjectFieldDescriptor descriptor,
         IReadOnlyList<Policy> policies)
@@ -150,15 +136,12 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddPolicies(policies, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddPolicies(policies, def, ctx.TypeInspector));
 
         return descriptor;
     }
 
-    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IObjectFieldDescriptor Policy(
         this IObjectFieldDescriptor descriptor,
         IReadOnlyList<string> policies)
@@ -167,14 +150,12 @@ public static class PolicyDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
 
-    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{HotChocolate.ApolloFederation.Types.Policy})"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Types.Policy})"/>
     public static IObjectTypeDescriptor Policy(
         this IObjectTypeDescriptor descriptor,
         IReadOnlyList<Policy> policies)
@@ -182,15 +163,12 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddPolicies(policies, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddPolicies(policies, def, ctx.TypeInspector));
 
         return descriptor;
     }
 
-    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IObjectTypeDescriptor Policy(
         this IObjectTypeDescriptor descriptor,
         IReadOnlyList<string> policies)
@@ -199,16 +177,14 @@ public static class PolicyDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
 
     private static void AddPolicies(
         IReadOnlyList<Policy> policies,
-        IHasDirectiveDefinition definition,
+        IDirectiveConfigurationProvider definition,
         ITypeInspector typeInspector)
     {
         var directive = definition

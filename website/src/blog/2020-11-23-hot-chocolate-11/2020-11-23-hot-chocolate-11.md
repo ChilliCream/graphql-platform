@@ -287,7 +287,7 @@ type Query {
 
 [GraphQL Spec PR 649](https://github.com/graphql/graphql-spec/pull/649)
 
-Another feature that we think will make tooling better over time is the ability to state the scalar specification. Andi Marek from graphql-java has created a new scalar specification website that, at the moment, only hosts one scalar specification for `DateTime`. Hopefully, this will grow over time. Scalars that have a specification can point to an URL of a human-readable spec. This will allow tooling to use the spec URLs as identifiers and apply then IntelliSense or other means of validation to a GraphQL IDE.
+Another feature that we think will make tooling better over time is the ability to state the scalar specification. Andi Marek from graphql-java has created a new scalar specification website that, at the moment, only hosts one scalar specification for `DateTime`. Hopefully, this will grow over time. Scalars that have a specification can point to a URL of a human-readable spec. This will allow tooling to use the spec URLs as identifiers and apply then IntelliSense or other means of validation to a GraphQL IDE.
 
 When you implement a scalar type, you can now pass on this `specifiedBy` URL.
 

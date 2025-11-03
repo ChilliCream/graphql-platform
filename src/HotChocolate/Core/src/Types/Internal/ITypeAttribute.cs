@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Types;
 
 namespace HotChocolate.Internal;
@@ -13,15 +11,15 @@ public interface ITypeAttribute
     /// <summary>
     /// Defines if this attribute is inherited. The default is <c>false</c>.
     /// </summary>
-    public bool Inherited { get; set; }
+    bool Inherited { get; set; }
 
     /// <summary>
     /// Gets the kind of type represented by this attribute.
     /// </summary>
-    public TypeKind Kind { get; }
+    TypeKind Kind { get; }
 
     /// <summary>
     /// Defines if this attribute represents a type extension.
     /// </summary>
-    public bool IsTypeExtension { get; }
+    bool IsTypeExtension { get; }
 }

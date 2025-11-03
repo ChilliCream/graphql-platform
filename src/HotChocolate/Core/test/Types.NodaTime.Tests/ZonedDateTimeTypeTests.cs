@@ -69,7 +69,7 @@ public class ZonedDateTimeTypeIntegrationTests
                     .SetVariableValues(
                         new Dictionary<string, object?>
                         {
-                            { "arg", "2020-12-31T19:30:13 Asia/Kathmandu +05:45" },
+                            { "arg", "2020-12-31T19:30:13 Asia/Kathmandu +05:45" }
                         })
                     .Build());
         Assert.Equal(
@@ -105,7 +105,7 @@ public class ZonedDateTimeTypeIntegrationTests
                     .SetVariableValues(
                         new Dictionary<string, object?>
                         {
-                            { "arg", "2020-12-31T19:30:13 UTC" },
+                            { "arg", "2020-12-31T19:30:13 UTC" }
                         })
                     .Build());
         Assert.Null(result.ExpectOperationResult().Data);

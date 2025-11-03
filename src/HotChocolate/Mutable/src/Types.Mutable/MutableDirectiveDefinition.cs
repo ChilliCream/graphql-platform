@@ -58,7 +58,7 @@ public class MutableDirectiveDefinition
     /// Gets the arguments that are defined on this directive.
     /// </summary>
     public InputFieldDefinitionCollection Arguments
-        => _arguments ??= [];
+        => _arguments ??= new(this);
 
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IDirectiveDefinition.Arguments
         => _arguments ?? EmptyCollections.InputFieldDefinitions;
@@ -75,6 +75,11 @@ public class MutableDirectiveDefinition
     [field: AllowNull, MaybeNull]
     public IFeatureCollection Features
         => field ??= new FeatureCollection();
+
+    public SchemaCoordinate Coordinate
+        => new(Name, ofDirective: true);
+
+    public Type RuntimeType => typeof(object);
 
     /// <summary>
     /// Gets a string that represents the current object.

@@ -11,6 +11,7 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
 {
     private readonly IRabbitMQConnection _connection;
     private readonly IMessageSerializer _serializer;
+    private readonly RabbitMQSubscriptionOptions _rabbitMqSubscriptionOptions;
 
     public RabbitMQTopic(
         string name,
@@ -18,25 +19,47 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         IMessageSerializer serializer,
         int capacity,
         TopicBufferFullMode fullMode,
+        RabbitMQSubscriptionOptions rabbitMqSubscriptionOptions,
         ISubscriptionDiagnosticEvents diagnosticEvents)
         : base(name, capacity, fullMode, diagnosticEvents)
     {
         _connection = connection ?? throw new ArgumentNullException(nameof(connection));
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+        _rabbitMqSubscriptionOptions = rabbitMqSubscriptionOptions ?? throw new ArgumentNullException(nameof(rabbitMqSubscriptionOptions));
     }
 
-    protected override async ValueTask<IDisposable> OnConnectAsync(
-        CancellationToken cancellationToken)
+    protected override async ValueTask<IAsyncDisposable> OnConnectAsync(CancellationToken cancellationToken)
     {
         // We ensure that the processing is not started before the context is fully initialized.
-        Debug.Assert(_connection != null, "_connection != null");
-        Debug.Assert(_connection != null, "_serializer != null");
+        Debug.Assert(_connection != null);
+        Debug.Assert(_serializer != null);
 
-        var channel = await _connection.GetChannelAsync().ConfigureAwait(false);
-        var queueName = Guid.NewGuid().ToString();
-        var consumer = CreateConsumer(channel, queueName);
+        var channel = await _connection.GetChannelAsync(cancellationToken).ConfigureAwait(false);
 
-        Task Received(object sender, BasicDeliverEventArgs args)
+        var queueName = string.IsNullOrEmpty(_rabbitMqSubscriptionOptions.QueuePrefix)
+            ? string.Empty // use server-generated name
+            : _rabbitMqSubscriptionOptions.QueuePrefix + Guid.NewGuid();
+
+        await channel.ExchangeDeclareAsync(
+            exchange: Name,
+            type: ExchangeType.Fanout,
+            durable: true,
+            autoDelete: false,
+            cancellationToken: cancellationToken);
+        await channel.QueueDeclareAsync(
+            queue: queueName,
+            durable: true,
+            exclusive: true,
+            autoDelete: true,
+            cancellationToken: cancellationToken);
+        await channel.QueueBindAsync(
+            queue: queueName,
+            exchange: Name,
+            routingKey: string.Empty,
+            cancellationToken: cancellationToken);
+
+        var consumer = new AsyncEventingBasicConsumer(channel);
+        consumer.ReceivedAsync += async (_, args) =>
         {
             try
             {
@@ -45,64 +68,47 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
             }
             finally
             {
-                channel.BasicAck(args.DeliveryTag, false);
+                await channel.BasicAckAsync(deliveryTag: args.DeliveryTag, multiple: false, cancellationToken: cancellationToken);
             }
+        };
 
-            return Task.CompletedTask;
-        }
-
-        consumer.Received += Received;
-
-        var consumerTag = channel.BasicConsume(consumer, queueName);
+        await channel.BasicConsumeAsync(
+            queueName,
+            autoAck: false,
+            consumerTag: string.Empty,
+            noLocal: false,
+            exclusive: true,
+            arguments: null,
+            consumer,
+            cancellationToken);
 
         DiagnosticEvents.ProviderTopicInfo(Name, RabbitMQTopic_ConnectAsync_SubscribedToRabbitMQ);
 
-        return new Subscription(() =>
+        return new Subscription(async () =>
         {
-            channel.BasicCancelNoWait(consumerTag);
-            consumer.Received -= Received;
+            await channel.BasicCancelAsync(consumer.ConsumerTags.First(), noWait: false, cancellationToken);
             DiagnosticEvents.ProviderTopicInfo(Name, Subscription_UnsubscribedFromRabbitMQ);
         });
     }
 
-    private AsyncEventingBasicConsumer CreateConsumer(IModel channel, string queueName)
+    private sealed class Subscription : IAsyncDisposable
     {
-        channel.ExchangeDeclare(
-            exchange: Name,
-            type: ExchangeType.Fanout,
-            durable: true,
-            autoDelete: false);
-        channel.QueueDeclare(
-            queue: queueName,
-            durable: true,
-            exclusive: true,
-            autoDelete: false);
-        channel.QueueBind(
-            exchange: Name,
-            queue: queueName,
-            routingKey: string.Empty);
-
-        return new AsyncEventingBasicConsumer(channel);
-    }
-
-    private sealed class Subscription : IDisposable
-    {
-        private readonly Action _unsubscribe;
+        private readonly Func<Task> _unsubscribe;
         private bool _disposed;
 
-        public Subscription(Action unsubscribe)
+        public Subscription(Func<Task> unsubscribe)
         {
             _unsubscribe = unsubscribe;
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             if (_disposed)
             {
                 return;
             }
 
-            _unsubscribe();
+            await _unsubscribe();
             _disposed = true;
         }
     }

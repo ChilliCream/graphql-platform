@@ -20,22 +20,17 @@ internal sealed class FieldArgumentTypesMergeableRule : IEventHandler<FieldArgum
 {
     public void Handle(FieldArgumentGroupEvent @event, CompositionContext context)
     {
-        var (_, argumentGroup, fieldName, typeName) = @event;
+        var argumentGroup = @event.ArgumentGroup;
 
-        // Filter out arguments in inaccessible/internal types and fields.
-        var argumentGroupVisible = argumentGroup
-            .Where(
-                i =>
-                    !i.Type.HasInaccessibleDirective()
-                    && !i.Type.HasInternalDirective()
-                    && !i.Field.HasInaccessibleDirective()
-                    && !i.Field.HasInternalDirective())
+        // Filter out inaccessible arguments.
+        var argumentGroupAccessible = argumentGroup
+            .Where(i => !i.Argument.IsInaccessible)
             .ToImmutableArray();
 
-        for (var i = 0; i < argumentGroupVisible.Length - 1; i++)
+        for (var i = 0; i < argumentGroupAccessible.Length - 1; i++)
         {
-            var argumentInfoA = argumentGroupVisible[i];
-            var argumentInfoB = argumentGroupVisible[i + 1];
+            var argumentInfoA = argumentGroupAccessible[i];
+            var argumentInfoB = argumentGroupAccessible[i + 1];
             var typeA = argumentInfoA.Argument.Type;
             var typeB = argumentInfoB.Argument.Type;
 
@@ -44,8 +39,6 @@ internal sealed class FieldArgumentTypesMergeableRule : IEventHandler<FieldArgum
                 context.Log.Write(
                     FieldArgumentTypesNotMergeable(
                         argumentInfoA.Argument,
-                        fieldName,
-                        typeName,
                         argumentInfoA.Schema,
                         argumentInfoB.Schema));
             }

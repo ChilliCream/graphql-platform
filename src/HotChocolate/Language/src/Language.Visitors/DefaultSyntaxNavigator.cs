@@ -74,7 +74,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     {
         if (_ancestors.Count == 0)
         {
-            node = default;
+            node = null;
             return false;
         }
 
@@ -88,7 +88,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     {
         if (_ancestors.Count == 0)
         {
-            node = default;
+            node = null;
             return false;
         }
 
@@ -101,7 +101,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     {
         if (_ancestors.Count < count)
         {
-            node = default;
+            node = null;
             return false;
         }
 
@@ -199,8 +199,8 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
             directive = true;
             type = directiveDefinition.Name;
         }
-        else if (next is ITypeSystemDefinitionNode or ITypeSystemExtensionNode &&
-            next is NamedSyntaxNode n)
+        else if (next is ITypeSystemDefinitionNode or ITypeSystemExtensionNode
+            && next is NamedSyntaxNode n)
         {
             type = n.Name;
         }

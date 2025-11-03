@@ -32,10 +32,7 @@ public static class CacheControlInterfaceTypeDescriptorExtensions
         int? sharedMaxAge = null,
         string[]? vary = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(
             new CacheControlDirective(
@@ -62,10 +59,7 @@ public static class CacheControlInterfaceTypeDescriptorExtensions
         this IInterfaceTypeDescriptor<T> descriptor,
         int? maxAge = null, CacheControlScope? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(
             new CacheControlDirective(maxAge, scope));

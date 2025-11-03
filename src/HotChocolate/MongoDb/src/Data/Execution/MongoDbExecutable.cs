@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace HotChocolate.Data.MongoDb;
 
 /// <summary>
-/// Is the base class for a executable for the MongoDb.
+/// Is the base class for an executable for the MongoDb.
 /// </summary>
 public abstract class MongoDbExecutable<T> : IExecutable<T>, IMongoDbExecutable
 {
@@ -57,7 +57,7 @@ public abstract class MongoDbExecutable<T> : IExecutable<T>, IMongoDbExecutable
     async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        await foreach(var item in ToAsyncEnumerable(cancellationToken))
+        await foreach (var item in ToAsyncEnumerable(cancellationToken))
         {
             yield return item;
         }

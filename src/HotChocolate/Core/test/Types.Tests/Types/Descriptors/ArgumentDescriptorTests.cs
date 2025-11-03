@@ -1,3 +1,4 @@
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
@@ -26,10 +27,10 @@ public class ArgumentDescriptorTests
         // act
         descriptor
             .Type<ListType<StringType>>()
-            .Type<NativeType<IReadOnlyDictionary<string, string>>>();
+            .Type<NamedRuntimeType<IReadOnlyDictionary<string, string>>>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(typeof(ListType<StringType>),
             Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
@@ -45,7 +46,7 @@ public class ArgumentDescriptorTests
         descriptor.Type(new StringType());
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.IsType<StringType>(
             Assert.IsType<SchemaTypeReference>(typeRef).Type);
@@ -61,7 +62,7 @@ public class ArgumentDescriptorTests
         descriptor.Type<StringType>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(StringType),
@@ -78,7 +79,7 @@ public class ArgumentDescriptorTests
         descriptor.Type(typeof(StringType));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(StringType),
@@ -93,11 +94,11 @@ public class ArgumentDescriptorTests
 
         // act
         ((IArgumentDescriptor)descriptor)
-            .Type<NativeType<IReadOnlyDictionary<string, string>>>()
+            .Type<NamedRuntimeType<IReadOnlyDictionary<string, string>>>()
             .Type<ListType<StringType>>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(ListType<StringType>),
@@ -111,7 +112,7 @@ public class ArgumentDescriptorTests
         var descriptor = new ArgumentDescriptor(Context, "args");
 
         // assert
-        Assert.Equal("args", descriptor.CreateDefinition().Name);
+        Assert.Equal("args", descriptor.CreateConfiguration().Name);
     }
 
     [Fact]
@@ -122,7 +123,7 @@ public class ArgumentDescriptorTests
             Context, "args", typeof(string));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Equal("args", description.Name);
         Assert.Equal(typeof(string),
             Assert.IsType<ExtendedTypeReference>(description.Type).Type.Source);
@@ -140,7 +141,7 @@ public class ArgumentDescriptorTests
 
         // assert
         Assert.Equal(expectedDescription,
-            descriptor.CreateDefinition().Description);
+            descriptor.CreateConfiguration().Description);
     }
 
     [Fact]
@@ -153,7 +154,7 @@ public class ArgumentDescriptorTests
         descriptor.DefaultValue("string");
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Equal(typeof(string),
             Assert.IsType<ExtendedTypeReference>(description.Type).Type.Source);
         Assert.Equal("string",
@@ -170,7 +171,7 @@ public class ArgumentDescriptorTests
         descriptor.DefaultValueSyntax("[]");
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.IsType<ListValueNode>(description.DefaultValue);
     }
 
@@ -184,7 +185,7 @@ public class ArgumentDescriptorTests
         descriptor.DefaultValue(null);
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Equal(NullValueNode.Default, description.DefaultValue);
         Assert.Null(description.RuntimeDefaultValue);
     }
@@ -201,7 +202,7 @@ public class ArgumentDescriptorTests
             .DefaultValue("string");
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Null(description.DefaultValue);
         Assert.Equal("string", description.RuntimeDefaultValue);
     }
@@ -219,7 +220,7 @@ public class ArgumentDescriptorTests
             .DefaultValue(null);
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.IsType<NullValueNode>(description.DefaultValue);
         Assert.Null(description.RuntimeDefaultValue);
     }
@@ -236,7 +237,7 @@ public class ArgumentDescriptorTests
             .DefaultValue(new StringValueNode("123"));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.IsType<StringValueNode>(description.DefaultValue);
         Assert.Equal("123", ((StringValueNode)description.DefaultValue).Value);
         Assert.Null(description.RuntimeDefaultValue);
@@ -245,14 +246,14 @@ public class ArgumentDescriptorTests
     [Fact]
     public void Type_Syntax_Type_Null()
     {
-        void Error() => ArgumentDescriptor.New(Context, "foo").Type((string)null);
+        void Error() => ArgumentDescriptor.New(Context, "foo").Type((string)null!);
         Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]
     public void Type_Syntax_Descriptor_Null()
     {
-        void Error() => default(ArgumentDescriptor).Type("foo");
+        void Error() => default(ArgumentDescriptor)!.Type("foo");
         Assert.Throws<ArgumentNullException>(Error);
     }
 }

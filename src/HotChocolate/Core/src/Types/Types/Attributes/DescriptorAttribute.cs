@@ -1,11 +1,9 @@
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
-public abstract class DescriptorAttribute : Attribute
+public abstract class DescriptorAttribute : Attribute, IDescriptorConfiguration
 {
     /// <summary>
     /// Gets the order in which the attributes shall be applied.
@@ -13,12 +11,23 @@ public abstract class DescriptorAttribute : Attribute
     public int Order { get; set; } = int.MaxValue;
 
     /// <summary>
+    /// Requires the attribute provide this configuration was applied to for reflection.
+    /// </summary>
+    public bool RequiresAttributeProvider { get; protected set; }
+
+    /// <summary>
     /// Override this to implement the configuration logic for this attribute.
     /// </summary>
     protected internal abstract void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element);
+        ICustomAttributeProvider? attributeProvider);
+
+    void IDescriptorConfiguration.TryConfigure(
+        IDescriptorContext context,
+        IDescriptor descriptor,
+        ICustomAttributeProvider? attributeProvider)
+        => TryConfigure(context, descriptor, attributeProvider);
 
     /// <summary>
     /// Allows to apply a child attribute withing the context of this attribute.
@@ -26,29 +35,14 @@ public abstract class DescriptorAttribute : Attribute
     protected static void ApplyAttribute<T>(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element,
+        ICustomAttributeProvider? element,
         T attribute)
         where T : DescriptorAttribute
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (element == null)
-        {
-            throw new ArgumentNullException(nameof(element));
-        }
-
-        if (attribute == null)
-        {
-            throw new ArgumentNullException(nameof(attribute));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(element);
+        ArgumentNullException.ThrowIfNull(attribute);
 
         attribute.TryConfigure(context, descriptor, element);
     }

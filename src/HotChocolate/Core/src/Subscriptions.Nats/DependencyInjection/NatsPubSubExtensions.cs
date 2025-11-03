@@ -33,10 +33,7 @@ public static class NatsPubSubExtensions
         this IRequestExecutorBuilder builder,
         SubscriptionOptions? options = null)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.AddSubscriptionDiagnostics();
         AddNatsSubscriptions(builder.Services, options);

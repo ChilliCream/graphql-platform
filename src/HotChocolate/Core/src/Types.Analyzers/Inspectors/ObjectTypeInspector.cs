@@ -58,7 +58,11 @@ public class ObjectTypeInspector : ISyntaxInspector
 
         foreach (var member in members)
         {
-            if (member.DeclaredAccessibility is Accessibility.Public && !member.IsIgnored())
+            if (member.DeclaredAccessibility is
+                Accessibility.Public or
+                Accessibility.Internal or
+                Accessibility.ProtectedAndInternal
+                && !member.IsIgnored())
             {
                 if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
                 {
@@ -80,12 +84,16 @@ public class ObjectTypeInspector : ISyntaxInspector
 
                 if (member is IPropertySymbol)
                 {
+                    context.SemanticModel.Compilation.TryGetGraphQLDeprecationReason(member, out var deprecationReason);
+
                     resolvers[i++] = new Resolver(
                         classSymbol.Name,
+                        deprecationReason,
                         member,
                         ResolverResultKind.Pure,
-                        ImmutableArray<ResolverParameter>.Empty,
-                        member.GetMemberBindings());
+                        [],
+                        member.GetMemberBindings(),
+                        GraphQLTypeBuilder.ToSchemaType(member.GetReturnType()!, context.SemanticModel.Compilation));
                 }
             }
         }
@@ -97,34 +105,42 @@ public class ObjectTypeInspector : ISyntaxInspector
 
         if (runtimeType is not null)
         {
-            syntaxInfo = new ObjectTypeInfo(
+            var objectTypeInfo = new ObjectTypeInfo(
                 classSymbol,
                 runtimeType,
                 nodeResolver,
                 possibleType,
-                i == 0
-                    ? ImmutableArray<Resolver>.Empty
-                    : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
+                i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
+                classSymbol.GetAttributes());
+            syntaxInfo = objectTypeInfo;
 
             if (diagnostics.Length > 0)
             {
-                syntaxInfo.AddDiagnosticRange(diagnostics);
+                objectTypeInfo.AddDiagnosticRange(diagnostics);
             }
+
             return true;
         }
 
-        syntaxInfo = new RootTypeInfo(
+        var rooType = new RootTypeInfo(
             classSymbol,
             operationType!.Value,
             possibleType,
-            i == 0
-                ? ImmutableArray<Resolver>.Empty
-                : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
+            i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
+            classSymbol.GetAttributes());
+
+        rooType.SourceSchemaDetected =
+            rooType.Shareable is not DirectiveScope.None
+                || rooType.Inaccessible is not DirectiveScope.None
+                || rooType.Attributes.HasSourceSchemaAttribute()
+                || rooType.Resolvers.Any(r => r.HasSourceSchemaAttribute());
 
         if (diagnostics.Length > 0)
         {
-            syntaxInfo.AddDiagnosticRange(diagnostics);
+            rooType.AddDiagnosticRange(diagnostics);
         }
+
+        syntaxInfo = rooType;
         return true;
     }
 
@@ -134,7 +150,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         [NotNullWhen(true)] out INamedTypeSymbol? resolverTypeSymbol,
         [NotNullWhen(true)] out INamedTypeSymbol? runtimeType)
     {
-        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
+        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
         {
             foreach (var attributeListSyntax in possibleType.AttributeLists)
             {
@@ -152,10 +168,10 @@ public class ObjectTypeInspector : ISyntaxInspector
 
                     // We do a start with here to capture the generic and non-generic variant of
                     // the object type extension attribute.
-                    if (fullName.StartsWith(ObjectTypeAttribute, Ordinal) &&
-                        attributeContainingTypeSymbol.TypeArguments.Length == 1 &&
-                        attributeContainingTypeSymbol.TypeArguments[0] is INamedTypeSymbol rt &&
-                        ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rts)
+                    if (fullName.StartsWith(ObjectTypeAttribute, Ordinal)
+                        && attributeContainingTypeSymbol.TypeArguments.Length == 1
+                        && attributeContainingTypeSymbol.TypeArguments[0] is INamedTypeSymbol rt
+                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rts)
                     {
                         resolverTypeSyntax = possibleType;
                         resolverTypeSymbol = rts;
@@ -178,7 +194,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         [NotNullWhen(true)] out INamedTypeSymbol? resolverTypeSymbol,
         [NotNullWhen(true)] out OperationType? operationType)
     {
-        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
+        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
         {
             foreach (var attributeListSyntax in possibleType.AttributeLists)
             {
@@ -194,8 +210,8 @@ public class ObjectTypeInspector : ISyntaxInspector
                     var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                     var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                    if (fullName.StartsWith(QueryTypeAttribute, Ordinal) &&
-                        ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtsq)
+                    if (fullName.StartsWith(QueryTypeAttribute, Ordinal)
+                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtsq)
                     {
                         resolverTypeSyntax = possibleType;
                         resolverTypeSymbol = rtsq;
@@ -203,8 +219,8 @@ public class ObjectTypeInspector : ISyntaxInspector
                         return true;
                     }
 
-                    if (fullName.StartsWith(MutationTypeAttribute, Ordinal) &&
-                        ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtsm)
+                    if (fullName.StartsWith(MutationTypeAttribute, Ordinal)
+                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtsm)
                     {
                         resolverTypeSyntax = possibleType;
                         resolverTypeSymbol = rtsm;
@@ -212,8 +228,8 @@ public class ObjectTypeInspector : ISyntaxInspector
                         return true;
                     }
 
-                    if (fullName.StartsWith(SubscriptionTypeAttribute, Ordinal) &&
-                        ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtss)
+                    if (fullName.StartsWith(SubscriptionTypeAttribute, Ordinal)
+                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtss)
                     {
                         resolverTypeSyntax = possibleType;
                         resolverTypeSymbol = rtss;
@@ -251,14 +267,17 @@ public class ObjectTypeInspector : ISyntaxInspector
         }
 
         resolverTypeName ??= resolverType.Name;
+        compilation.TryGetGraphQLDeprecationReason(resolverMethod, out var deprecationReason);
 
         return new Resolver(
             resolverTypeName,
+            deprecationReason,
             resolverMethod,
             resolverMethod.GetResultKind(),
-            resolverParameters.ToImmutableArray(),
+            [.. resolverParameters],
             resolverMethod.GetMemberBindings(),
-            kind: resolverMethod.ReturnType.IsConnectionBase()
+            GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation),
+            kind: compilation.IsConnectionType(resolverMethod.ReturnType)
                 ? ResolverKind.ConnectionResolver
                 : ResolverKind.Default);
     }
@@ -292,7 +311,11 @@ public class ObjectTypeInspector : ISyntaxInspector
 
             if (parameter.Kind is ResolverParameterKind.Unknown && (parameter.Name == "id" || parameter.Key == "id"))
             {
-                parameter = new ResolverParameter(parameter.Parameter, parameter.Key, ResolverParameterKind.Argument);
+                parameter = new ResolverParameter(
+                    parameter.Parameter,
+                    parameter.Key,
+                    ResolverParameterKind.Argument,
+                    GraphQLTypeBuilder.ToSchemaType(parameter.Type, compilation));
             }
 
             resolverParameters[i] = parameter;
@@ -308,12 +331,16 @@ public class ObjectTypeInspector : ISyntaxInspector
                     Location.Create(location.SourceTree!, location.SourceSpan)));
         }
 
+        context.SemanticModel.Compilation.TryGetGraphQLDeprecationReason(resolverMethod, out var deprecationReason);
+
         return new Resolver(
             resolverType.Name,
+            deprecationReason,
             resolverMethod,
             resolverMethod.GetResultKind(),
-            resolverParameters.ToImmutableArray(),
+            [.. resolverParameters],
             resolverMethod.GetMemberBindings(),
+            GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation),
             kind: ResolverKind.NodeResolver);
     }
 
@@ -323,6 +350,39 @@ public class ObjectTypeInspector : ISyntaxInspector
 
 file static class Extensions
 {
+    public static bool HasSourceSchemaAttribute(this Resolver resolver)
+    {
+        if (resolver.Shareable is not DirectiveScope.None)
+        {
+            return true;
+        }
+
+        if (resolver.Inaccessible is not DirectiveScope.None)
+        {
+            return true;
+        }
+
+        return resolver.Attributes.HasSourceSchemaAttribute();
+    }
+
+    public static bool HasSourceSchemaAttribute(this ImmutableArray<AttributeData> attributes)
+    {
+        if (attributes.Length == 0)
+        {
+            return false;
+        }
+
+        return attributes.Any(
+            a => a.AttributeClass?.ToDisplayString() switch
+            {
+                InaccessibleAttribute => true,
+                InternalAttribute => true,
+                LookupAttribute => true,
+                ShareableAttribute => true,
+                _ => false
+            });
+    }
+
     public static bool IsNodeResolver(this IMethodSymbol methodSymbol)
     {
         foreach (var attribute in methodSymbol.GetAttributes())

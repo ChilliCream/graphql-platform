@@ -15,14 +15,25 @@ public sealed class ConnectionInspector : ClassWithBaseClassInspector<Connection
         INamedTypeSymbol namedType,
         [NotNullWhen(true)] out ConnectionClassInfo? syntaxInfo)
     {
-        if (namedType is { IsStatic: false, IsAbstract: false }
-            && context.IsConnectionBase(namedType))
+        if (namedType is { IsStatic: false, IsAbstract: false })
         {
-            syntaxInfo = ConnectionClassInfo.CreateConnection(
-                context.SemanticModel.Compilation,
-                namedType,
-                classDeclaration);
-            return true;
+            if (context.IsConnectionType(namedType))
+            {
+                syntaxInfo = ConnectionClassInfo.CreateConnection(
+                    context.SemanticModel.Compilation,
+                    namedType,
+                    classDeclaration);
+                return true;
+            }
+
+            if (context.IsEdgeType(namedType))
+            {
+                syntaxInfo = ConnectionClassInfo.CreateEdge(
+                    context.SemanticModel.Compilation,
+                    namedType,
+                    classDeclaration);
+                return true;
+            }
         }
 
         syntaxInfo = null;

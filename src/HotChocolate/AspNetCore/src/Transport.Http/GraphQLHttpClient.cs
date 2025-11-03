@@ -1,4 +1,8 @@
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
 /// <summary>
 /// The interface for GraphQL over HTTP client implementations.
@@ -49,6 +53,6 @@ public abstract class GraphQLHttpClient : IDisposable
     /// <returns>
     /// Returns the new &lt;see cref="GraphQLHttpClient"/&gt; instance.
     /// </returns>
-    public static GraphQLHttpClient Create(HttpClient httpClient, bool disposeHttpClient)
+    public static GraphQLHttpClient Create(HttpClient httpClient, bool disposeHttpClient = true)
         => new DefaultGraphQLHttpClient(httpClient, disposeHttpClient);
 }

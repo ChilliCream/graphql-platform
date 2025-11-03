@@ -1,0 +1,320 @@
+title: Node_Field_Selections_On_Interface_Selection_Has_Dependency
+request:
+  document: |
+    query testQuery(
+      $id: ID!
+    ) {
+      node(id: $id) {
+        __typename
+        id
+        ... on ProductList {
+          products {
+            name
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "id": "SXRlbTE6MQ=="
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "__typename": "Item1",
+          "id": "SXRlbTE6MQ==",
+          "products": [
+            {
+              "name": "Product: UHJvZHVjdDox"
+            },
+            {
+              "name": "Product: UHJvZHVjdDoy"
+            },
+            {
+              "name": "Product: UHJvZHVjdDoz"
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      interface ProductList {
+        products: [Product]
+      }
+
+      type Item1 implements Node & ProductList {
+        id: ID!
+        products: [Product]
+      }
+
+      type Item2 implements Node & ProductList {
+        id: ID!
+        products: [Product]
+      }
+
+      type Product implements Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_70eb1308_5(
+              $id: ID!
+            ) {
+              node(id: $id) {
+                __typename
+                ... on Item1 {
+                  __typename
+                  id
+                  products {
+                    id
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "id": "SXRlbTE6MQ=="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Item1",
+                    "id": "SXRlbTE6MQ==",
+                    "products": [
+                      {
+                        "id": "UHJvZHVjdDox"
+                      },
+                      {
+                        "id": "UHJvZHVjdDoy"
+                      },
+                      {
+                        "id": "UHJvZHVjdDoz"
+                      }
+                    ]
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_70eb1308_6(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoz"
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDox"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDoy"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDoz"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            id
+            ... on ProductList {
+              products {
+                name
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 70eb13080ba34e01a2aca487ab0f3a22
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: $id
+      responseName: node
+      branches:
+        - Item1: 5
+        - Item2: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query testQuery_70eb1308_2(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            id
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_70eb1308_3(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            ... on Item2 {
+              __typename
+              id
+              products {
+                id
+              }
+            }
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_70eb1308_4(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.node<Item2>.products
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+    - id: 5
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_70eb1308_5(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            ... on Item1 {
+              __typename
+              id
+              products {
+                id
+              }
+            }
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1
+    - id: 6
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_70eb1308_6(
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.node<Item1>.products
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 5

@@ -1,0 +1,66 @@
+title: Http_Request_To_Source_Schema_Hits_HttpClient_Timeout
+request:
+  document: |
+    {
+      topProduct {
+        id
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "topProduct": null
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "topProduct"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Product {
+        id: Int!
+      }
+
+      type Query {
+        topProduct: Product
+      }
+    isTimingOut: true
+    interactions:
+      - request:
+          document: |
+            query Op_486d07e5_1 {
+              topProduct {
+                id
+              }
+            }
+operationPlan:
+  operation:
+    - document: |
+        {
+          topProduct {
+            id
+          }
+        }
+      hash: 486d07e5b26a89e416bd23c75b892c79
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_486d07e5_1 {
+          topProduct {
+            id
+          }
+        }

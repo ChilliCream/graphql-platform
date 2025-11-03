@@ -47,7 +47,10 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
 
         foreach (var member in members)
         {
-            if (member.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal)
+            if (member.DeclaredAccessibility is
+                Accessibility.Public or
+                Accessibility.Internal or
+                Accessibility.ProtectedAndInternal)
             {
                 if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
                 {
@@ -57,12 +60,16 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
 
                 if (member is IPropertySymbol)
                 {
+                    context.SemanticModel.Compilation.TryGetGraphQLDeprecationReason(member, out var deprecationReason);
+
                     resolvers[i++] = new Resolver(
                         classSymbol.Name,
+                        deprecationReason,
                         member,
                         ResolverResultKind.Pure,
-                        ImmutableArray<ResolverParameter>.Empty,
-                        ImmutableArray<MemberBinding>.Empty);
+                        [],
+                        [],
+                        GraphQLTypeBuilder.ToSchemaType(member.GetReturnType()!, context.SemanticModel.Compilation));
                 }
             }
         }
@@ -72,19 +79,21 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             Array.Resize(ref resolvers, i);
         }
 
-        syntaxInfo = new InterfaceTypeInfo(
+        var interfaceTypeInfo = new InterfaceTypeInfo(
             classSymbol,
             runtimeType,
             possibleType,
             i == 0
-                ? ImmutableArray<Resolver>.Empty
-                : [..resolvers]);
+                ? []
+                : [.. resolvers],
+            classSymbol.GetAttributes());
 
         if (diagnostics.Length > 0)
         {
-            syntaxInfo.AddDiagnosticRange(diagnostics);
+            interfaceTypeInfo.AddDiagnosticRange(diagnostics);
         }
 
+        syntaxInfo = interfaceTypeInfo;
         return true;
     }
 
@@ -94,7 +103,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
         [NotNullWhen(true)] out INamedTypeSymbol? resolverTypeSymbol,
         [NotNullWhen(true)] out INamedTypeSymbol? runtimeType)
     {
-        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
+        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
         {
             foreach (var attributeListSyntax in possibleType.AttributeLists)
             {
@@ -146,11 +155,15 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             resolverParameters[i] = ResolverParameter.Create(parameters[i], compilation);
         }
 
+        context.SemanticModel.Compilation.TryGetGraphQLDeprecationReason(resolverMethod, out var deprecationReason);
+
         return new Resolver(
             resolverType.Name,
+            deprecationReason,
             resolverMethod,
             resolverMethod.GetResultKind(),
-            [..resolverParameters],
-            ImmutableArray<MemberBinding>.Empty);
+            [.. resolverParameters],
+            [],
+            GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation));
     }
 }

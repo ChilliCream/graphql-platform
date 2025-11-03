@@ -1,4 +1,4 @@
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -7,15 +7,15 @@ public class ObjectTypeDescriptor<T> : ObjectTypeDescriptorBase<T>
     protected internal ObjectTypeDescriptor(IDescriptorContext context)
         : base(context, typeof(T))
     {
-        Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
-        Definition.FieldBindingFlags = context.Options.DefaultFieldBindingFlags;
+        Configuration.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
+        Configuration.FieldBindingFlags = context.Options.DefaultFieldBindingFlags;
     }
 
     protected internal ObjectTypeDescriptor(
         IDescriptorContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
         : base(context, definition)
     {
-        Definition = definition;
+        Configuration = definition;
     }
 }

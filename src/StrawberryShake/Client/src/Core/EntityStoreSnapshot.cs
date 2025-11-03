@@ -8,7 +8,7 @@ internal sealed class EntityStoreSnapshot : IEntityStoreSnapshot
 
     public EntityStoreSnapshot()
     {
-        _entities = new();
+        _entities = [];
     }
 
     public EntityStoreSnapshot(Dictionary<EntityId, object> entities, ulong version)

@@ -113,14 +113,14 @@ public interface ISortConventionDescriptor
     ISortConventionDescriptor ArgumentName(string argumentName);
 
     /// <summary>
-    /// Add a extensions that is applied to <see cref="SortProvider{TContext}"/>
+    /// Adds an extension that is applied to <see cref="SortProvider{TContext}"/>
     /// </summary>
     /// <typeparam name="TExtension">The sort provider extension type.</typeparam>
     ISortConventionDescriptor AddProviderExtension<TExtension>()
         where TExtension : class, ISortProviderExtension;
 
     /// <summary>
-    /// Add a extensions that is applied to <see cref="SortProvider{TContext}"/>
+    /// Adds an extension that is applied to <see cref="SortProvider{TContext}"/>
     /// </summary>
     /// <param name="provider">
     /// The concrete sort provider extension that shall be used.

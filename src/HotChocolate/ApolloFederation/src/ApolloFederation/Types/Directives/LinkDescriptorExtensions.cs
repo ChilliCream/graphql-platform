@@ -113,9 +113,8 @@ public static class LinkDescriptorExtensions
 
         builder.ConfigureSchema(
             sb =>
-            {
-                sb.AddSchemaConfiguration(d => d.Directive(new LinkDirective(url, imports?.ToHashSet())));
-            });
+                sb.AddSchemaConfiguration(
+                    d => d.Directive(new LinkDirective(url, imports?.ToHashSet()))));
 
         return builder;
     }

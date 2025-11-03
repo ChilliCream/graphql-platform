@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // LocalTypesClient
 
@@ -31,6 +32,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.State.LocalTypesClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.LocalTypesQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.LocalTypesClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             return new global::StrawberryShake.ClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.State.LocalTypesClientStoreAccessor>("LocalTypesClient", services, serviceCollection);
@@ -202,133 +204,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes
 
         public static LocalTypesQueryDocument Instance { get; } = new LocalTypesQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x71,
-            0x75,
-            0x65,
-            0x72,
-            0x79,
-            0x20,
-            0x4c,
-            0x6f,
-            0x63,
-            0x61,
-            0x6c,
-            0x54,
-            0x79,
-            0x70,
-            0x65,
-            0x73,
-            0x20,
-            0x7b,
-            0x20,
-            0x6c,
-            0x6f,
-            0x63,
-            0x61,
-            0x6c,
-            0x44,
-            0x61,
-            0x74,
-            0x65,
-            0x28,
-            0x69,
-            0x6e,
-            0x70,
-            0x75,
-            0x74,
-            0x3a,
-            0x20,
-            0x22,
-            0x32,
-            0x30,
-            0x32,
-            0x31,
-            0x2d,
-            0x31,
-            0x30,
-            0x2d,
-            0x31,
-            0x30,
-            0x22,
-            0x29,
-            0x20,
-            0x6c,
-            0x6f,
-            0x63,
-            0x61,
-            0x6c,
-            0x44,
-            0x61,
-            0x74,
-            0x65,
-            0x54,
-            0x69,
-            0x6d,
-            0x65,
-            0x28,
-            0x69,
-            0x6e,
-            0x70,
-            0x75,
-            0x74,
-            0x3a,
-            0x20,
-            0x22,
-            0x32,
-            0x30,
-            0x32,
-            0x31,
-            0x2d,
-            0x31,
-            0x30,
-            0x2d,
-            0x31,
-            0x30,
-            0x54,
-            0x31,
-            0x30,
-            0x3a,
-            0x31,
-            0x30,
-            0x3a,
-            0x31,
-            0x30,
-            0x22,
-            0x29,
-            0x20,
-            0x6c,
-            0x6f,
-            0x63,
-            0x61,
-            0x6c,
-            0x54,
-            0x69,
-            0x6d,
-            0x65,
-            0x28,
-            0x69,
-            0x6e,
-            0x70,
-            0x75,
-            0x74,
-            0x3a,
-            0x20,
-            0x22,
-            0x31,
-            0x30,
-            0x3a,
-            0x31,
-            0x30,
-            0x3a,
-            0x31,
-            0x30,
-            0x22,
-            0x29,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query LocalTypes { localDate(input: \"2021-10-10\") localDateTime(input: \"2021-10-10T10:10:10\") localTime(input: \"10:10:10\") }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "761e1c1f193893db6d3f7140812321c5f1db9d85");
 
         public override global::System.String ToString()
@@ -356,16 +232,43 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes
     public partial class LocalTypesQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<ILocalTypesResult> _operationExecutor;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public LocalTypesQuery(global::StrawberryShake.IOperationExecutor<ILocalTypesResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
+        private LocalTypesQuery(global::StrawberryShake.IOperationExecutor<ILocalTypesResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ILocalTypesResult);
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.LocalTypesQuery(_operationExecutor, _configure.Add(configure));
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ILocalTypesResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -405,6 +308,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ILocalTypesQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery WithRequestUri(global::System.Uri requestUri);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ILocalTypesResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ILocalTypesResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

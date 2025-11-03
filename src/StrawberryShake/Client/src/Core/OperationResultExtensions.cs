@@ -19,10 +19,7 @@ public static class OperationResultExtensions
     /// </exception>
     public static void EnsureNoErrors(this IOperationResult result)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
+        ArgumentNullException.ThrowIfNull(result);
 
         if (result.Errors.Count > 0)
         {
@@ -42,10 +39,7 @@ public static class OperationResultExtensions
     /// </exception>
     public static bool IsErrorResult(this IOperationResult result)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
+        ArgumentNullException.ThrowIfNull(result);
 
         return result.Errors.Count > 0;
     }
@@ -62,10 +56,7 @@ public static class OperationResultExtensions
     /// </exception>
     public static bool IsSuccessResult(this IOperationResult result)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
+        ArgumentNullException.ThrowIfNull(result);
 
         return result.Errors.Count == 0;
     }

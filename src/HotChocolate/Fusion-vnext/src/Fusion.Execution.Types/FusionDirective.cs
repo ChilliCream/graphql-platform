@@ -40,4 +40,7 @@ public sealed class FusionDirective : IDirective
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => SchemaDebugFormatter.Format(this);
+
+    public T ToValue<T>() where T : notnull
+        => throw new NotImplementedException();
 }

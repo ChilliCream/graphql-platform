@@ -3,6 +3,7 @@ using HotChocolate.Fusion.Collections;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Info;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
@@ -33,6 +34,11 @@ internal sealed class PreMergeValidator(
         {
             foreach (var type in schema.Types)
             {
+                if (type is MutableObjectTypeDefinition { IsInternal: true })
+                {
+                    continue;
+                }
+
                 typeGroupByName.Add(type.Name, new TypeInfo(type, schema));
             }
         }
@@ -44,6 +50,7 @@ internal sealed class PreMergeValidator(
             MultiValueDictionary<string, InputTypeInfo> inputTypeGroupByName = [];
             MultiValueDictionary<string, InputFieldInfo> inputFieldGroupByName = [];
             MultiValueDictionary<string, OutputFieldInfo> outputFieldGroupByName = [];
+            MultiValueDictionary<string, ObjectFieldInfo> objectFieldGroupByName = [];
             MultiValueDictionary<string, EnumTypeInfo> enumTypeGroupByName = [];
 
             foreach (var (type, schema) in typeGroup)
@@ -67,9 +74,21 @@ internal sealed class PreMergeValidator(
                     case MutableComplexTypeDefinition complexType:
                         foreach (var field in complexType.Fields)
                         {
+                            if (field.IsInternal)
+                            {
+                                continue;
+                            }
+
                             outputFieldGroupByName.Add(
                                 field.Name,
                                 new OutputFieldInfo(field, complexType, schema));
+
+                            if (complexType is MutableObjectTypeDefinition objectType)
+                            {
+                                objectFieldGroupByName.Add(
+                                    field.Name,
+                                    new ObjectFieldInfo(field, objectType, schema));
+                            }
                         }
 
                         break;
@@ -118,6 +137,12 @@ internal sealed class PreMergeValidator(
                             typeName),
                         context);
                 }
+            }
+
+            foreach (var (fieldName, fieldGroup) in objectFieldGroupByName)
+            {
+                PublishEvent(
+                    new ObjectFieldGroupEvent(fieldName, [.. fieldGroup], typeName), context);
             }
 
             foreach (var (enumName, enumGroup) in enumTypeGroupByName)

@@ -1,15 +1,12 @@
-using static HotChocolate.Types.ErrorContextDataKeys;
+using HotChocolate.Features;
 
 namespace HotChocolate.Types;
 
 internal static class ErrorContextDataExtensions
 {
-    public static ExtensionData MarkAsError(this ExtensionData extensionData)
-    {
-        extensionData[IsErrorType] = true;
-        return extensionData;
-    }
+    public static ErrorTypeFeature MarkAsError(this ObjectTypeConfiguration featureProvider)
+        => featureProvider.Features.GetOrSet<ErrorTypeFeature>();
 
-    public static bool IsError(this ExtensionData extensionData)
-        => extensionData.ContainsKey(IsErrorType);
+    public static bool IsError(this ObjectTypeConfiguration featureProvider)
+        => featureProvider.Features.Get<ErrorTypeFeature>() is not null;
 }

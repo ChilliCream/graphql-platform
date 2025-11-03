@@ -1,4 +1,15 @@
+using System.Collections.Immutable;
+using System.Net.Http.Headers;
+#if FUSION
+using HotChocolate.Transport;
+using HotChocolate.Transport.Http;
+#endif
+
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
 /// <summary>
 /// Represents a GraphQL over HTTP request.
@@ -45,10 +56,10 @@ public sealed class GraphQLHttpRequest
     /// </exception>
     public GraphQLHttpRequest(OperationRequest body, Uri? requestUri = null)
     {
-        if (string.IsNullOrEmpty(body.Id) &&
-            string.IsNullOrEmpty(body.Query) &&
-            body.Extensions is null &&
-            body.ExtensionsNode is null)
+        if (string.IsNullOrEmpty(body.Id)
+            && string.IsNullOrEmpty(body.Query)
+            && body.Extensions is null
+            && body.ExtensionsNode is null)
         {
             throw new ArgumentException(
                 HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
@@ -74,10 +85,10 @@ public sealed class GraphQLHttpRequest
     /// </exception>
     public GraphQLHttpRequest(VariableBatchRequest body, Uri? requestUri = null)
     {
-        if (string.IsNullOrEmpty(body.Id) &&
-            string.IsNullOrEmpty(body.Query) &&
-            body.Extensions is null &&
-            body.ExtensionsNode is null)
+        if (string.IsNullOrEmpty(body.Id)
+            && string.IsNullOrEmpty(body.Query)
+            && body.Extensions is null
+            && body.ExtensionsNode is null)
         {
             throw new ArgumentException(
                 HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
@@ -102,7 +113,7 @@ public sealed class GraphQLHttpRequest
     /// </exception>
     public GraphQLHttpRequest(OperationBatchRequest body, Uri? requestUri = null)
     {
-        if (body.Requests is { Count: 0, })
+        if (body.Requests is { Count: 0 })
         {
             throw new ArgumentException(
                 HttpResources.GraphQLHttpRequest_RequiresOneOrMoreRequests,
@@ -111,10 +122,10 @@ public sealed class GraphQLHttpRequest
 
         foreach (var request in body.Requests)
         {
-            if (string.IsNullOrEmpty(request.Id) &&
-                string.IsNullOrEmpty(request.Query) &&
-                request.Extensions is null &&
-                request.ExtensionsNode is null)
+            if (string.IsNullOrEmpty(request.Id)
+                && string.IsNullOrEmpty(request.Query)
+                && request.Extensions is null
+                && request.ExtensionsNode is null)
             {
                 throw new ArgumentException(
                     HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
@@ -142,9 +153,19 @@ public sealed class GraphQLHttpRequest
     public Uri? Uri { get; set; }
 
     /// <summary>
+    /// Gets or sets the accepted content types.
+    /// </summary>
+    public ImmutableArray<MediaTypeWithQualityHeaderValue> Accept { get; set; } = DefaultAcceptContentTypes;
+
+    /// <summary>
     /// Gets or sets a hook that can alter the <see cref="HttpRequestMessage"/> before it is sent.
     /// </summary>
     public OnHttpRequestMessageCreated? OnMessageCreated { get; set; }
+
+    /// <summary>
+    /// Gets or sets a hook that can inspect the <see cref="HttpResponseMessage"/> after it is received.
+    /// </summary>
+    public OnHttpResponseMessageReceived? OnMessageReceived { get; set; }
 
     /// <summary>
     /// Specifies if files shall be uploaded using the multipart request spec.
@@ -156,9 +177,47 @@ public sealed class GraphQLHttpRequest
     /// </summary>
     public bool PersistedDocumentUri { get; set; }
 
+    /// <summary>
+    /// Allows to specify some custom request state, that will be passed into the request hooks.
+    /// </summary>
+    public object? State { get; set; }
+
     public static implicit operator GraphQLHttpRequest(OperationRequest body) => new(body);
 
     public static implicit operator GraphQLHttpRequest(VariableBatchRequest body) => new(body);
 
     public static implicit operator GraphQLHttpRequest(OperationBatchRequest body) => new(body);
+
+    /// <summary>
+    /// application/graphql-response+json
+    /// application/json
+    /// text/event-stream
+    /// application/graphql-response+jsonl
+    /// </summary>
+    public static ImmutableArray<MediaTypeWithQualityHeaderValue> DefaultAcceptContentTypes { get; } =
+    [
+        new(ContentType.GraphQL),
+        new(ContentType.Json),
+        new(ContentType.EventStream),
+        new(ContentType.GraphQLJsonLine)
+    ];
+
+    /// <summary>
+    /// text/event-stream
+    /// see also: https://github.com/graphql/graphql-over-http/blob/main/rfcs/GraphQLOverSSE.md
+    /// </summary>
+    public static ImmutableArray<MediaTypeWithQualityHeaderValue> GraphQLOverSse { get; } =
+    [
+        new(ContentType.EventStream)
+    ];
+
+    /// <summary>
+    /// application/graphql-response+json
+    /// application/graphql-response+jsonl
+    /// </summary>
+    public static ImmutableArray<MediaTypeWithQualityHeaderValue> GraphQLOverHttp { get; } =
+    [
+        new(ContentType.GraphQL),
+        new(ContentType.GraphQLJsonLine)
+    ];
 }

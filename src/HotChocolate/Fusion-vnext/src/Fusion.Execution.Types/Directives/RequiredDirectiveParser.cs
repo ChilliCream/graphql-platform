@@ -11,16 +11,28 @@ internal static class RequiredDirectiveParser
 
     public static RequireDirective Parse(DirectiveNode directiveNode)
     {
-        string? schemaName = null;
+        string? schemaKey = null;
+        SelectionSetNode? requirements = null;
         FieldDefinitionNode? field = null;
-        ImmutableArray<string>? map = null;
+        ImmutableArray<string?>? map = null;
 
         foreach (var argument in directiveNode.Arguments)
         {
             switch (argument.Name.Value)
             {
                 case "schema":
-                    schemaName = ((EnumValueNode)argument.Value).Value;
+                    schemaKey = ((EnumValueNode)argument.Value).Value;
+                    break;
+
+                case "requirements":
+                    var requirementsSourceText = ((StringValueNode)argument.Value).Value.Trim();
+
+                    if (!requirementsSourceText.StartsWith('{'))
+                    {
+                        requirementsSourceText = $"{{ {requirementsSourceText} }}";
+                    }
+
+                    requirements = Utf8GraphQLParser.Syntax.ParseSelectionSet(requirementsSourceText);
                     break;
 
                 case "field":
@@ -37,10 +49,16 @@ internal static class RequiredDirectiveParser
             }
         }
 
-        if (string.IsNullOrEmpty(schemaName))
+        if (string.IsNullOrEmpty(schemaKey))
         {
             throw new DirectiveParserException(
                 "The `schema` argument is required on the @require directive.");
+        }
+
+        if (requirements is null)
+        {
+            throw new DirectiveParserException(
+                "The `requirements` argument is required on the @require directive.");
         }
 
         if (field is null)
@@ -55,30 +73,39 @@ internal static class RequiredDirectiveParser
                 "The `map` argument is required on the @require directive.");
         }
 
-        return new RequireDirective(schemaName, field, map.Value);
+        return new RequireDirective(new SchemaKey(schemaKey), requirements, field, map.Value);
     }
 
-    private static ImmutableArray<string> ParseMap(IValueNode value)
+    private static ImmutableArray<string?> ParseMap(IValueNode value)
     {
-        if (value is ListValueNode listValue)
+        switch (value)
         {
-            var fields = ImmutableArray.CreateBuilder<string>();
-
-            foreach (var item in listValue.Items)
+            case ListValueNode listValue:
             {
-                fields.Add(((StringValueNode)item).Value);
+                var fields = ImmutableArray.CreateBuilder<string?>();
+
+                foreach (var item in listValue.Items)
+                {
+                    if (item is StringValueNode stringValue)
+                    {
+                        fields.Add(stringValue.Value);
+                    }
+                    else
+                    {
+                        fields.Add(null);
+                    }
+                }
+
+                return fields.ToImmutable();
             }
 
-            return fields.ToImmutable();
-        }
+            case StringValueNode stringValue:
+                return [stringValue.Value];
 
-        if (value is StringValueNode stringValue)
-        {
-            return ImmutableArray<string>.Empty.Add(stringValue.Value);
+            default:
+                throw new DirectiveParserException(
+                    "The value is expected to be a list of strings or a string.");
         }
-
-        throw new DirectiveParserException(
-            "The value is expected to be a list of strings or a string.");
     }
 
     public static ImmutableArray<RequireDirective> Parse(
@@ -96,7 +123,7 @@ internal static class RequiredDirectiveParser
             }
         }
 
-        return temp?.ToImmutable() ?? ImmutableArray<RequireDirective>.Empty;
+        return temp?.ToImmutable() ?? [];
     }
 
     public static bool TryParse(

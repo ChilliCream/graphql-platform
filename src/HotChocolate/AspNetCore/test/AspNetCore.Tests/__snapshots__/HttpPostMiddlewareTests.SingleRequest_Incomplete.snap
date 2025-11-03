@@ -4,7 +4,7 @@
   "Data": null,
   "Errors": [
     {
-      "message": "The query field must be a string or null.",
+      "message": "Expected a `String`-token, but found a `EndOfFile`-token.",
       "locations": [
         {
           "line": 1,

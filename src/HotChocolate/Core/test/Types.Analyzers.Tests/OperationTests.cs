@@ -119,4 +119,187 @@ public class OperationTests
             }
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task Root_Empty()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Relay;
+            using GreenDonut.Data;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            public static partial class Query
+            {
+
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Shareable_On_Class()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [Shareable]
+            [QueryType]
+            public static partial class Query
+            {
+                public static int GetTest(string arg)
+                {
+                    return arg.Length;
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Shareable_On_Class_Scoped()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [Shareable(scoped: true)]
+            [QueryType]
+            public static partial class Query
+            {
+                public static int GetTest(string arg)
+                {
+                    return arg.Length;
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Shareable_On_Field()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            public static partial class Query
+            {
+                [Shareable]
+                public static int GetTest(string arg)
+                {
+                    return arg.Length;
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Inaccessible_On_Class()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [Inaccessible]
+            [QueryType]
+            public static partial class Query
+            {
+                public static int GetTest(string arg)
+                {
+                    return arg.Length;
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Inaccessible_On_Class_Scoped()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [Inaccessible(scoped: true)]
+            [QueryType]
+            public static partial class Query
+            {
+                public static int GetTest(string arg)
+                {
+                    return arg.Length;
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Inaccessible_On_Field()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            public static partial class Query
+            {
+                [Inaccessible]
+                public static int GetTest(string arg)
+                {
+                    return arg.Length;
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Lookup_With_Generic_ID_Attribute()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Relay;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            public static partial class Query
+            {
+                [Lookup, Internal]
+                public static Product? GetProductById([ID<Product>] int id)
+                    => new(id);
+            }
+
+            public record Product(int Id);
+            """).MatchMarkdownAsync();
+    }
 }

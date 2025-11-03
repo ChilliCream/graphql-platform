@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
@@ -7,81 +8,106 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class SchemaRequestExecutorBuilderExtensions
 {
+    /// <summary>
+    /// Adds a GraphQL schema document to the schema builder by loading a document from a delegate.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="loadDocument">
+    /// A delegate to load the document.
+    /// </param>
+    /// <returns>
+    /// Returns the request executor builder to chain in further configuration.
+    /// </returns>
     public static IRequestExecutorBuilder AddDocument(
         this IRequestExecutorBuilder builder,
-        LoadDocumentAsync loadDocumentAsync)
+        Func<IServiceProvider, CancellationToken, ValueTask<DocumentNode>> loadDocument)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (loadDocumentAsync is null)
-        {
-            throw new ArgumentNullException(nameof(loadDocumentAsync));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(loadDocument);
 
         return builder.ConfigureSchemaAsync(async (sp, b, ct) =>
         {
-            var document = await loadDocumentAsync(sp, ct).ConfigureAwait(false);
+            var document = await loadDocument(sp, ct).ConfigureAwait(false);
             b.AddDocument(document);
         });
     }
 
+    /// <summary>
+    /// Adds a GraphQL schema document to the schema builder by loading a document from a delegate.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="document">
+    /// The document.
+    /// </param>
+    /// <returns>
+    /// Returns the request executor builder to chain in further configuration.
+    /// </returns>
     public static IRequestExecutorBuilder AddDocument(
         this IRequestExecutorBuilder builder,
         DocumentNode document)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(document);
 
         return builder.ConfigureSchema(b => b.AddDocument(document));
     }
 
+    /// <summary>
+    /// Adds a GraphQL schema document to the schema builder by loading a document from a string.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="sourceText">
+    /// The source text.
+    /// </param>
+    /// <returns>
+    /// Returns the request executor builder to chain in further configuration.
+    /// </returns>
     public static IRequestExecutorBuilder AddDocumentFromString(
         this IRequestExecutorBuilder builder,
-        string sdl)
+        [StringSyntax("graphql")] string sourceText)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(sourceText);
 
-        if (sdl is null)
-        {
-            throw new ArgumentNullException(nameof(sdl));
-        }
-
-        return builder.ConfigureSchema(b => b.AddDocumentFromString(sdl));
+        return builder.ConfigureSchema(b => b.AddDocumentFromString(sourceText));
     }
 
+    /// <summary>
+    /// Adds a GraphQL schema document to the schema builder by loading a document from a file.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="filePath">
+    /// The file path.
+    /// </param>
+    /// <returns>
+    /// Returns the request executor builder to chain in further configuration.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// The file path is null or empty.
+    /// </exception>
+    /// <exception cref="FileNotFoundException">
+    /// The file does not exist.
+    /// </exception>
     public static IRequestExecutorBuilder AddDocumentFromFile(
         this IRequestExecutorBuilder builder,
         string filePath)
     {
-        if (builder is null)
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrEmpty(filePath);
+
+        if (!File.Exists(filePath))
         {
-            throw new ArgumentNullException(nameof(builder));
+            throw new FileNotFoundException(filePath);
         }
 
-        if (string.IsNullOrEmpty(filePath))
-        {
-            throw new ArgumentException(nameof(filePath));
-        }
-
-        return builder.AddDocument(async (_, ct) =>
-        {
-            var buffer = await Task
-                .Run(() => File.ReadAllBytes(filePath), ct)
-                .ConfigureAwait(false);
-            return Utf8GraphQLParser.Parse(buffer);
-        });
+        return builder.ConfigureSchema(b => b.AddDocumentFromFile(filePath));
     }
 }

@@ -12,6 +12,6 @@ public class ServiceCollectionTests
                 .AddInMemoryOperationDocumentStorage(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>((Action)Action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 }

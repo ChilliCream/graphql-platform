@@ -36,15 +36,8 @@ public static class VariableRewriter
         IValueNode? defaultValue,
         IVariableValueCollection variableValues)
     {
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        if (variableValues is null)
-        {
-            throw new ArgumentNullException(nameof(variableValues));
-        }
+        ArgumentNullException.ThrowIfNull(node);
+        ArgumentNullException.ThrowIfNull(variableValues);
 
         return TryRewriteValue(
             node,
@@ -68,18 +61,18 @@ public static class VariableRewriter
 
         if (node.Fields.Count == 1)
         {
-            var oneOf = type.Directives.ContainsDirective(WellKnownDirectives.OneOf);
+            var oneOf = type.Directives.ContainsDirective(DirectiveNames.OneOf.Name);
             var value = node.Fields[0];
 
-            if (type.Fields.TryGetField(value.Name.Value, out var field) &&
-                TryRewriteField(value, field, variableValues, out var rewritten))
+            if (type.Fields.TryGetField(value.Name.Value, out var field)
+                && TryRewriteField(value, field, variableValues, out var rewritten))
             {
                 if (oneOf && rewritten.Value.Kind is SyntaxKind.NullValue)
                 {
                     throw ThrowHelper.OneOfFieldMustBeNonNull(field.Coordinate);
                 }
 
-                return node.WithFields(new[] { rewritten, });
+                return node.WithFields(new[] { rewritten });
             }
             else
             {
@@ -93,8 +86,8 @@ public static class VariableRewriter
         {
             var value = node.Fields[i];
 
-            if (type.Fields.TryGetField(value.Name.Value, out var field) &&
-                TryRewriteField(value, field, variableValues, out var rewritten))
+            if (type.Fields.TryGetField(value.Name.Value, out var field)
+                && TryRewriteField(value, field, variableValues, out var rewritten))
             {
                 if (rewrittenItems is null)
                 {
@@ -151,8 +144,8 @@ public static class VariableRewriter
             type.ElementType,
             NullValueNode.Default,
             variableValues,
-            out var rewritten) &&
-            rewritten is ObjectValueNode rewrittenObj
+            out var rewritten)
+            && rewritten is ObjectValueNode rewrittenObj
                 ? rewrittenObj
                 : node;
     }
@@ -175,7 +168,7 @@ public static class VariableRewriter
                 NullValueNode.Default,
                 variableValues,
                 out var rewritten)
-                ? node.WithItems(new[] { rewritten, })
+                ? node.WithItems(new[] { rewritten })
                 : node;
         }
 
@@ -281,7 +274,7 @@ public static class VariableRewriter
         VariableNode node,
         IValueNode defaultValue,
         IVariableValueCollection variableValues) =>
-        variableValues.TryGetVariable(node.Name.Value, out IValueNode? value)
+        variableValues.TryGetValue(node.Name.Value, out IValueNode? value)
             ? value ?? NullValueNode.Default
             : defaultValue;
 }

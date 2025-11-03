@@ -29,5 +29,5 @@ public abstract class MutationErrorConfiguration
     /// </param>
     public abstract void OnConfigure(
         IDescriptorContext context,
-        ObjectFieldDefinition mutationField);
+        ObjectFieldConfiguration mutationField);
 }

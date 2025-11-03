@@ -4,5 +4,5 @@ namespace HotChocolate.Fetching;
 
 public interface IDataLoaderScopeFactory
 {
-    void BeginScope(IBatchScheduler? scheduler = default);
+    void BeginScope(IBatchScheduler? scheduler = null);
 }

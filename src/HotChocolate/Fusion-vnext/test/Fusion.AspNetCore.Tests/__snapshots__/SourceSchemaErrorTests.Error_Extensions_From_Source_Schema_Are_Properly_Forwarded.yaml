@@ -1,0 +1,84 @@
+title: Error_Extensions_From_Source_Schema_Are_Properly_Forwarded
+request:
+  document: |
+    {
+      someField
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Something went wrong",
+          "path": [
+            "someField"
+          ],
+          "extensions": {
+            "code": "SOME_ERROR",
+            "exception": {
+              "message": "Some exception",
+              "stackTrace": null
+            }
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        someField: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_5fcd7a62_1 {
+              someField
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Something went wrong",
+                    "locations": [
+                      {
+                        "line": 2,
+                        "column": 3
+                      }
+                    ],
+                    "path": [
+                      "someField"
+                    ],
+                    "extensions": {
+                      "code": "SOME_ERROR",
+                      "exception": {
+                        "message": "Some exception",
+                        "stackTrace": null
+                      }
+                    }
+                  }
+                ],
+                "data": null
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          someField
+        }
+      hash: 5fcd7a626721773e96fbf2314c0d132d
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_5fcd7a62_1 {
+          someField
+        }

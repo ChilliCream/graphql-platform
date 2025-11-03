@@ -52,7 +52,7 @@ public class LatitudeType : ScalarType<double, StringValueNode>
 
             double d => ParseValue(d),
 
-            _ => throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this),
+            _ => throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this)
         };
     }
 
@@ -100,8 +100,8 @@ public class LatitudeType : ScalarType<double, StringValueNode>
     /// <inheritdoc />
     public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
     {
-        if (resultValue is string s &&
-            Latitude.TryDeserialize(s, out var value))
+        if (resultValue is string s
+            && Latitude.TryDeserialize(s, out var value))
         {
             runtimeValue = value;
             return true;
@@ -113,24 +113,24 @@ public class LatitudeType : ScalarType<double, StringValueNode>
 
     private static class Latitude
     {
-        private const double _min = -90.0;
-        private const double _max = 90.0;
-        private const int _maxPrecision = 8;
+        private const double Min = -90.0;
+        private const double Max = 90.0;
+        private const int MaxPrecision = 8;
 
-        private const string _sexagesimalRegex =
-            "^([0-9]{1,3})°\\s*([0-9]{1,3}(?:\\.(?:[0-9]{1,}))?)['′]\\s*(([0-9]{1,3}" +
-            "(\\.([0-9]{1,}))?)[\"″]\\s*)?([NEOSW]?)$";
+        private const string SexagesimalRegex =
+            "^([0-9]{1,3})°\\s*([0-9]{1,3}(?:\\.(?:[0-9]{1,}))?)['′]\\s*(([0-9]{1,3}"
+            + "(\\.([0-9]{1,}))?)[\"″]\\s*)?([NEOSW]?)$";
 
-        private static readonly Regex _validationPattern =
-            new(_sexagesimalRegex, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex s_validationPattern =
+            new(SexagesimalRegex, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        public static bool IsValid(double value) => value is > _min and < _max;
+        public static bool IsValid(double value) => value is > Min and < Max;
 
         public static bool TryDeserialize(
             string serialized,
             [NotNullWhen(true)] out double? value)
         {
-            var coords = _validationPattern.Matches(serialized);
+            var coords = s_validationPattern.Matches(serialized);
             if (coords.Count > 0)
             {
                 var minute = double.TryParse(coords[0].Groups[2].Value, out var min)
@@ -171,13 +171,13 @@ public class LatitudeType : ScalarType<double, StringValueNode>
                 var minutesDecimal = minutesWhole - minutes;
 
                 var seconds =
-                    Round(minutesDecimal * 60, _maxPrecision, MidpointRounding.AwayFromZero);
+                    Round(minutesDecimal * 60, MaxPrecision, MidpointRounding.AwayFromZero);
 
                 var serializedLatitude = degree switch
                 {
-                    >= 0 and < _max => $"{degree}° {minutes}' {seconds}\" N",
-                    < 0 and > _min => $"{Abs(degree)}° {Abs(minutes)}' {Abs(seconds)}\" S",
-                    _ => $"{degree}° {minutes}' {seconds}\"",
+                    >= 0 and < Max => $"{degree}° {minutes}' {seconds}\" N",
+                    < 0 and > Min => $"{Abs(degree)}° {Abs(minutes)}' {Abs(seconds)}\" S",
+                    _ => $"{degree}° {minutes}' {seconds}\""
                 };
 
                 resultValue = serializedLatitude;

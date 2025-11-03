@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -144,10 +142,7 @@ public class ResolverServiceTests
                 .AddGraphQL()
                 .AddQueryType<QueryService>()
                 .AddScopedServiceInitializer<SayHelloService>(
-                    (request, resolver) =>
-                    {
-                        resolver.Scope += $"_{request.Scope}";
-                    })
+                    (request, resolver) => resolver.Scope += $"_{request.Scope}")
                 .Services
                 .BuildServiceProvider();
 

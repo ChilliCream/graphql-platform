@@ -104,7 +104,7 @@ To get the id of your API, use the command `nitro api list`. This command will l
 
 Integrating the schema registry and into your Continuous Integration/Continuous Deployment (CI/CD) pipeline maximizes their benefits. It ensures that the schemas in your API are always up-to-date and tested against potential breaking changes.
 
-To interact with the schema registry from the pipeline, you will need a API key. You can generate an api key directly with Nitro CLI using the command `nitro api-key create`. Make sure to copy the key and store it in a secure location. The key will not be displayed again.
+To interact with the schema registry from the pipeline, you will need an API key. You can generate an api key directly with Nitro CLI using the command `nitro api-key create`. Make sure to copy the key and store it in a secure location. The key will not be displayed again.
 
 You can then use the key to authenticate with the schema registry using the `--api-key` option.
 

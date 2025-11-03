@@ -7,4 +7,4 @@ namespace HotChocolate.Configuration;
 /// </summary>
 public delegate void OnAfterSchemaCreate(
     IDescriptorContext descriptorContext,
-    ISchema schema);
+    Schema schema);

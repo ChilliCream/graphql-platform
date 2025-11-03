@@ -4,12 +4,12 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
 
-public interface IFilterField : IInputField
+public interface IFilterField : IInputValueDefinition, IInputValueInfo
 {
     /// <summary>
     /// The type which declares this field.
     /// </summary>
-    new IFilterInputType DeclaringType { get; }
+    IFilterInputType DeclaringType { get; }
 
     MemberInfo? Member { get; }
 
@@ -18,4 +18,6 @@ public interface IFilterField : IInputField
     IFilterFieldHandler Handler { get; }
 
     IFilterMetadata? Metadata { get; }
+
+    new IInputType Type { get; }
 }

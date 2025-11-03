@@ -12,7 +12,7 @@ _Connections_ are a standardized way to expose pagination to clients.
 
 Instead of returning a list of entries, we return a _Connection_.
 
-<Video videoId="uba7lCHA6Q4" />
+<Video videoId="8TQ2oDUQ1ng" />
 
 ```sdl
 type Query {

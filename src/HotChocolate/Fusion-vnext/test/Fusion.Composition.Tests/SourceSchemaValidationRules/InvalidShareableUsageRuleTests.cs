@@ -1,90 +1,105 @@
-using System.Collections.Immutable;
-using HotChocolate.Fusion.Logging;
-
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class InvalidShareableUsageRuleTests : CompositionTestBase
+public sealed class InvalidShareableUsageRuleTests : RuleTestBase
 {
-    private static readonly object s_rule = new InvalidShareableUsageRule();
-    private static readonly ImmutableArray<object> s_rules = [s_rule];
-    private readonly CompositionLog _log = new();
+    protected override object Rule { get; } = new InvalidShareableUsageRule();
 
-    [Theory]
-    [MemberData(nameof(ValidExamplesData))]
-    public void Examples_Valid(string[] sdl)
+    // In this example, the field "orderStatus" on the "Order" object type is marked with
+    // @shareable, which is allowed. It signals that this field can be served from multiple schemas
+    // without creating a conflict.
+    [Fact]
+    public void Validate_ValidShareableUsage_Succeeds()
     {
-        // arrange
-        var schemas = CreateSchemaDefinitions(sdl);
-        var validator = new SourceSchemaValidator(schemas, s_rules, _log);
-
-        // act
-        var result = validator.Validate();
-
-        // assert
-        Assert.True(result.IsSuccess);
-        Assert.True(_log.IsEmpty);
-    }
-
-    [Theory]
-    [MemberData(nameof(InvalidExamplesData))]
-    public void Examples_Invalid(string[] sdl, string[] errorMessages)
-    {
-        // arrange
-        var schemas = CreateSchemaDefinitions(sdl);
-        var validator = new SourceSchemaValidator(schemas, s_rules, _log);
-
-        // act
-        var result = validator.Validate();
-
-        // assert
-        Assert.True(result.IsFailure);
-        Assert.Equal(errorMessages, _log.Select(e => e.Message).ToArray());
-        Assert.True(_log.All(e => e.Code == "INVALID_SHAREABLE_USAGE"));
-        Assert.True(_log.All(e => e.Severity == LogSeverity.Error));
-    }
-
-    public static TheoryData<string[]> ValidExamplesData()
-    {
-        return new TheoryData<string[]>
-        {
-            // In this example, the field "orderStatus" on the "Order" object type is marked with
-            // @shareable, which is allowed. It signals that this field can be served from multiple
-            // schemas without creating a conflict.
-            {
-                [
-                    """
-                    type Order {
-                        id: ID!
-                        orderStatus: String @shareable
-                        total: Float
-                    }
-                    """
-                ]
+        AssertValid(
+        [
+            """
+            type Order {
+                id: ID!
+                orderStatus: String @shareable
+                total: Float
             }
-        };
+            """
+        ]);
     }
 
-    public static TheoryData<string[], string[]> InvalidExamplesData()
+    // In this example, the "InventoryItem" interface has a field "sku" marked with @shareable,
+    // which is invalid usage. Marking an interface field as shareable leads to an
+    // INVALID_SHAREABLE_USAGE error.
+    [Fact]
+    public void Validate_InvalidShareableUsageInterfaceField_Fails()
     {
-        return new TheoryData<string[], string[]>
-        {
-            // In this example, the "InventoryItem" interface has a field "sku" marked with
-            // @shareable, which is invalid usage. Marking an interface field as shareable leads to
-            // an INVALID_SHAREABLE_USAGE error.
-            {
-                [
-                    """
-                    interface InventoryItem {
-                        sku: ID! @shareable
-                        name: String
-                    }
-                    """
-                ],
-                [
-                    "The interface field 'InventoryItem.sku' in schema 'A' must not be marked as " +
-                    "shareable."
-                ]
-            }
-        };
+        AssertInvalid(
+            [
+                """
+                interface InventoryItem {
+                    sku: ID! @shareable
+                    name: String
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The field 'InventoryItem.sku' in schema 'A' must not be marked as shareable.",
+                    "code": "INVALID_SHAREABLE_USAGE",
+                    "severity": "Error",
+                    "coordinate": "InventoryItem.sku",
+                    "member": "sku",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
+
+    // By definition, root subscription fields cannot be shared across multiple schemas. In this
+    // example, both schemas define a subscription field "newOrderPlaced".
+    [Fact]
+    public void Validate_InvalidShareableUsageSubscriptionField_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                # Schema A
+                type Subscription {
+                    newOrderPlaced: Order @shareable
+                }
+
+                type Order {
+                    id: ID!
+                    items: [String]
+                }
+                """,
+                """
+                # Schema B
+                type Subscription {
+                    newOrderPlaced: Order @shareable
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The field 'Subscription.newOrderPlaced' in schema 'A' must not be marked as shareable.",
+                    "code": "INVALID_SHAREABLE_USAGE",
+                    "severity": "Error",
+                    "coordinate": "Subscription.newOrderPlaced",
+                    "member": "newOrderPlaced",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The field 'Subscription.newOrderPlaced' in schema 'B' must not be marked as shareable.",
+                    "code": "INVALID_SHAREABLE_USAGE",
+                    "severity": "Error",
+                    "coordinate": "Subscription.newOrderPlaced",
+                    "member": "newOrderPlaced",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
+            ]);
     }
 }

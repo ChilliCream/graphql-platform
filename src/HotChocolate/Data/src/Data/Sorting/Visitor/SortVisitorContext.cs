@@ -2,27 +2,21 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting;
 
-public abstract class SortVisitorContext<T>
-    : ISortVisitorContext<T>
+public abstract class SortVisitorContext<T> : ISortVisitorContext<T>
 {
-    protected SortVisitorContext(
-        ISortInputType initialType)
+    protected SortVisitorContext(ISortInputType initialType)
     {
-        if (initialType is null)
-        {
-            throw new ArgumentNullException(nameof(initialType));
-        }
-
+        ArgumentNullException.ThrowIfNull(initialType);
         Types.Push(initialType);
     }
 
-    public Stack<IType> Types { get; } = new Stack<IType>();
+    public Stack<IType> Types { get; } = [];
 
-    public Stack<IInputField> Fields { get; } = new Stack<IInputField>();
+    public Stack<IInputValueDefinition> Fields { get; } = [];
 
-    public IList<IError> Errors { get; } = new List<IError>();
+    public IList<IError> Errors { get; } = [];
 
-    public Queue<T> Operations { get; } = new Queue<T>();
+    public Queue<T> Operations { get; } = [];
 
-    public Stack<T> Instance { get; } = new Stack<T>();
+    public Stack<T> Instance { get; } = [];
 }

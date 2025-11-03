@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Reflection;
 
 namespace HotChocolate.Resolvers.Expressions;

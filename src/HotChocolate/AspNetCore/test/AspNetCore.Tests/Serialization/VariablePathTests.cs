@@ -1,3 +1,5 @@
+using HotChocolate.AspNetCore.Parsers;
+
 namespace HotChocolate.AspNetCore.Serialization;
 
 public class VariablePathTests

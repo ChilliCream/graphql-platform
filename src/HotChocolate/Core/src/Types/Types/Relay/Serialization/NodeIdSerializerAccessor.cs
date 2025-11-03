@@ -1,4 +1,3 @@
-#nullable enable
 namespace HotChocolate.Types.Relay;
 
 internal sealed class NodeIdSerializerAccessor : INodeIdSerializerAccessor
@@ -12,7 +11,7 @@ internal sealed class NodeIdSerializerAccessor : INodeIdSerializerAccessor
                 "The node id serializer has not been initialized yet.");
     }
 
-    public void OnSchemaCreated(ISchema schema)
+    public void OnSchemaCreated(Schema schema)
     {
         _serializer ??= schema.Services.GetRequiredService<INodeIdSerializer>();
     }

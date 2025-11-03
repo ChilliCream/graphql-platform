@@ -12,7 +12,7 @@ public class SessionTests
     public void Constructor_AllArgs_CreateObject()
     {
         // arrange
-        var client = new SocketClientStub { Protocol = new Mock<ISocketProtocol>().Object, };
+        var client = new SocketClientStub { Protocol = new Mock<ISocketProtocol>().Object };
 
         // act
         var exception = Record.Exception(() => new Session(client));
@@ -41,7 +41,7 @@ public class SessionTests
                 async (snapshot, ct) =>
                 {
                     // arrange
-                    var client = new SocketClientStub { Protocol = null!, };
+                    var client = new SocketClientStub { Protocol = null! };
                     var manager = new Session(client);
 
                     // act
@@ -61,7 +61,7 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
-                    var client = new SocketClientStub { Protocol = protocolMock.Object, };
+                    var client = new SocketClientStub { Protocol = protocolMock.Object };
                     protocolMock.Setup(x => x.Subscribe(It.IsAny<OnReceiveAsync>()));
                     var manager = new Session(client);
 
@@ -81,14 +81,14 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>();
-                    var client = new SocketClientStub { Protocol = protocolMock.Object, };
+                    var client = new SocketClientStub { Protocol = protocolMock.Object };
                     var manager = new Session(client);
 
                     // act
                     await manager.OpenSessionAsync(ct).ConfigureAwait(false);
 
                     // assert
-                    Assert.Equal(1, client.GetCallCount(x => x.OpenAsync(default!)));
+                    Assert.Equal(1, client.GetCallCount(x => x.OpenAsync(CancellationToken.None)));
                 })
             .RunAsync();
 
@@ -100,7 +100,7 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>();
-                    var client = new SocketClientStub { Protocol = protocolMock.Object, };
+                    var client = new SocketClientStub { Protocol = protocolMock.Object };
                     var manager = new Session(client);
 
                     // act
@@ -110,7 +110,7 @@ public class SessionTests
                     Assert.Equal(
                         1,
                         client.GetCallCount(
-                            x => x.CloseAsync(default!, default!, default!)));
+                            x => x.CloseAsync(null!, default!, CancellationToken.None)));
                 })
             .RunAsync();
 
@@ -122,7 +122,7 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
-                    var client = new SocketClientStub { Protocol = protocolMock.Object, };
+                    var client = new SocketClientStub { Protocol = protocolMock.Object };
                     protocolMock.Setup(x => x.Subscribe(It.IsAny<OnReceiveAsync>()));
                     OperationRequest request = null!;
                     var manager = new Session(client);
@@ -145,7 +145,7 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
-                    var client = new SocketClientStub { Protocol = protocolMock.Object, };
+                    var client = new SocketClientStub { Protocol = protocolMock.Object };
                     OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
                     var manager = new Session(client);
 
@@ -165,7 +165,7 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>();
-                    var client = new SocketClientStub { Protocol = protocolMock.Object, };
+                    var client = new SocketClientStub { Protocol = protocolMock.Object };
                     OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
                     var manager = new Session(client);
                     await manager.OpenSessionAsync(ct);
@@ -194,7 +194,7 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>();
-                    var client = new SocketClientStub { Protocol = protocolMock.Object, };
+                    var client = new SocketClientStub { Protocol = protocolMock.Object };
                     OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
                     var manager = new Session(client);
                     await manager.OpenSessionAsync(ct);
@@ -231,7 +231,7 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>();
-                    var client = new SocketClientStub { Protocol = protocolMock.Object, };
+                    var client = new SocketClientStub { Protocol = protocolMock.Object };
                     OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
                     var manager = new Session(client);
                     await manager.OpenSessionAsync(ct);
@@ -264,7 +264,7 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
-                    var client = new SocketClientStub() { Protocol = protocolMock.Object, };
+                    var client = new SocketClientStub() { Protocol = protocolMock.Object };
                     var manager = new Session(client);
 
                     // act
@@ -284,7 +284,7 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>();
-                    var client = new SocketClientStub { Protocol = protocolMock.Object, };
+                    var client = new SocketClientStub { Protocol = protocolMock.Object };
                     OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
                     var manager = new Session(client);
                     await manager.OpenSessionAsync(ct);
@@ -313,7 +313,7 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>();
-                    var client = new SocketClientStub() { Protocol = protocolMock.Object, };
+                    var client = new SocketClientStub() { Protocol = protocolMock.Object };
                     OnReceiveAsync listener = null!;
                     protocolMock
                         .Setup(x => x.Subscribe(It.IsAny<OnReceiveAsync>()))
@@ -346,7 +346,7 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>();
-                    var client = new SocketClientStub { Protocol = protocolMock.Object, };
+                    var client = new SocketClientStub { Protocol = protocolMock.Object };
                     protocolMock.Setup(x => x.Unsubscribe(It.IsAny<OnReceiveAsync>()));
                     var manager = new Session(client);
                     await manager.OpenSessionAsync(ct);
@@ -367,7 +367,7 @@ public class SessionTests
                 {
                     // arrange
                     var protocolMock = new Mock<ISocketProtocol>();
-                    var client = new SocketClientStub { Protocol = protocolMock.Object, };
+                    var client = new SocketClientStub { Protocol = protocolMock.Object };
                     OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
                     var manager = new Session(client);
                     await manager.OpenSessionAsync(ct);
@@ -389,7 +389,7 @@ public class SessionTests
 
     private sealed class GetHeroQueryDocument : IDocument
     {
-        private const string _bodyString =
+        private const string BodyString =
             """
             query GetHero {
                 hero {
@@ -409,17 +409,17 @@ public class SessionTests
             }
             """;
 
-        private static readonly byte[] _body = Encoding.UTF8.GetBytes(_bodyString);
+        private static readonly byte[] s_body = Encoding.UTF8.GetBytes(BodyString);
 
         private GetHeroQueryDocument() { }
 
         public OperationKind Kind => OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => _body;
+        public ReadOnlySpan<byte> Body => s_body;
 
         public DocumentHash Hash { get; } = new("MD5", "ABC");
 
-        public override string ToString() => _bodyString;
+        public override string ToString() => BodyString;
 
         public static GetHeroQueryDocument Instance { get; } = new();
     }

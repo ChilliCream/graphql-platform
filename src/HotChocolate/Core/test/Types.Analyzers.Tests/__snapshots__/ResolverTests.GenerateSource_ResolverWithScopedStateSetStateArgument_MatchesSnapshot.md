@@ -53,18 +53,31 @@ namespace TestNamespace
     {
         internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor<global::TestNamespace.Test> descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.TestType);
-            var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
+            var naming = descriptor.Extend().Context.Naming;
+
             descriptor
-                .Field(thisType.GetMember("GetTest", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("Test", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = r.GetTest();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<int>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(int);
+
+                    configuration.SetSourceGeneratorFlags();
+
+                    configuration.Resolvers = context.Resolvers.GetTest();
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
 
             Configure(descriptor);
         }

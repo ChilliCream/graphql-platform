@@ -5,8 +5,8 @@ namespace HotChocolate.Types.Mutable.Serialization;
 
 public static class SchemaFormatter
 {
-    private static readonly SchemaFormatterVisitor _visitor = new();
-    private static readonly SyntaxSerializerOptions _options =
+    private static readonly SchemaFormatterVisitor s_visitor = new();
+    private static readonly SyntaxSerializerOptions s_options =
         new()
         {
             Indented = true,
@@ -22,14 +22,14 @@ public static class SchemaFormatter
             PrintSpecScalars = options.PrintSpecScalars ?? false,
             PrintSpecDirectives = options.PrintSpecDirectives ?? false
         };
-        _visitor.VisitSchema(schema, context);
+        s_visitor.VisitSchema(schema, context);
 
         if (!options.Indented ?? true)
         {
             ((DocumentNode)context.Result!).ToString(false);
         }
 
-        return ((DocumentNode)context.Result!).ToString(_options);
+        return ((DocumentNode)context.Result!).ToString(s_options);
     }
 
     public static DocumentNode FormatAsDocument(MutableSchemaDefinition schema, SchemaFormatterOptions options = default)
@@ -41,7 +41,7 @@ public static class SchemaFormatter
             PrintSpecScalars = options.PrintSpecScalars ?? false,
             PrintSpecDirectives = options.PrintSpecDirectives ?? false
         };
-        _visitor.VisitSchema(schema, context);
+        s_visitor.VisitSchema(schema, context);
         return (DocumentNode)context.Result!;
     }
 
@@ -56,9 +56,9 @@ public static class SchemaFormatter
 
             var definitions = new List<IDefinitionNode>();
 
-            if (schema.QueryType is not null ||
-                schema.MutationType is not null ||
-                schema.SubscriptionType is not null)
+            if (schema.QueryType is not null
+                || schema.MutationType is not null
+                || schema.SubscriptionType is not null)
             {
                 var operationTypes = new List<OperationTypeDefinitionNode>();
 
@@ -176,9 +176,9 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition.OfType<MutableObjectTypeDefinition>().OrderBy(t => t.Name))
             {
-                if (context.Schema?.QueryType == type ||
-                   context.Schema?.MutationType == type ||
-                   context.Schema?.SubscriptionType == type)
+                if (context.Schema?.QueryType == type
+                    || context.Schema?.MutationType == type
+                    || context.Schema?.SubscriptionType == type)
                 {
                     continue;
                 }

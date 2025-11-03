@@ -1,0 +1,144 @@
+title: Viewer_Bug_2
+request:
+  document: |
+    query testQuery {
+      exclusiveSubgraphA {
+        __typename
+      }
+      viewer {
+        subType {
+          subgraphB
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "exclusiveSubgraphA": {
+          "__typename": "ExclusiveSubgraphA"
+        },
+        "viewer": {
+          "subType": {
+            "subgraphB": "SubType: U3ViVHlwZToy"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type ExclusiveSubgraphA {
+        id: ID!
+      }
+
+      type Query {
+        exclusiveSubgraphA: ExclusiveSubgraphA
+        viewer: Viewer @shareable
+      }
+
+      type SubType {
+        subgraphA: String
+      }
+
+      type Viewer {
+        subType: SubType @shareable
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_f3bb7334_2 {
+              exclusiveSubgraphA {
+                __typename
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "exclusiveSubgraphA": {
+                    "__typename": "ExclusiveSubgraphA"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        viewer: Viewer @shareable
+      }
+
+      type SubType {
+        subgraphB: String
+      }
+
+      type Viewer {
+        subType: SubType @shareable
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_f3bb7334_1 {
+              viewer {
+                subType {
+                  subgraphB
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "subType": {
+                      "subgraphB": "SubType: U3ViVHlwZToy"
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          exclusiveSubgraphA {
+            __typename
+          }
+          viewer {
+            subType {
+              subgraphB
+            }
+          }
+        }
+      name: testQuery
+      hash: f3bb7334daafefafae0b10d44f0d19bc
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_f3bb7334_1 {
+          viewer {
+            subType {
+              subgraphB
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_f3bb7334_2 {
+          exclusiveSubgraphA {
+            __typename
+          }
+        }

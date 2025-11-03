@@ -16,7 +16,7 @@ public abstract class ClassWithBaseClassInspector<T> : ISyntaxInspector where T 
 
     public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
-        if(context.Node is ClassDeclarationSyntax { BaseList.Types.Count: > 0 } classDeclaration
+        if (context.Node is ClassDeclarationSyntax { BaseList.Types.Count: > 0 } classDeclaration
             && context.SemanticModel.GetDeclaredSymbol(classDeclaration) is { } namedType
             && TryHandle(context, classDeclaration, classDeclaration.BaseList.Types, namedType, out var result))
         {

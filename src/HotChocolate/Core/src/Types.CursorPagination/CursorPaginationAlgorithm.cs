@@ -72,7 +72,6 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
     /// </summary>
     protected abstract TQuery ApplyTake(TQuery query, int take);
 
-
     private static CursorPagingRange SliceRange(
         CursorPagingArguments arguments,
         int totalCount)

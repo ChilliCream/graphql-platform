@@ -1,5 +1,5 @@
 using HotChocolate.Execution.Options;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Validation;
 
 namespace HotChocolate.Execution.Configuration;
 
@@ -10,16 +10,19 @@ public sealed class RequestExecutorSetup
 {
     private readonly List<OnConfigureSchemaBuilderAction> _onConfigureSchemaBuilderHooks = [];
     private readonly List<OnConfigureRequestExecutorOptionsAction> _onConfigureRequestExecutorOptionsHooks = [];
-    private readonly List<RequestCoreMiddleware> _pipeline = [];
+    private readonly List<RequestMiddlewareConfiguration> _pipeline = [];
+    private readonly List<Action<IList<RequestMiddlewareConfiguration>>> _pipelineModifiers = [];
+    private readonly List<Action<SchemaOptions>> _schemaOptionModifiers = [];
     private readonly List<OnConfigureSchemaServices> _onConfigureSchemaServicesHooks = [];
     private readonly List<OnRequestExecutorCreatedAction> _onRequestExecutorCreatedHooks = [];
     private readonly List<OnRequestExecutorEvictedAction> _onRequestExecutorEvictedHooks = [];
     private readonly List<ITypeModule> _typeModules = [];
+    private readonly List<Action<IServiceProvider, DocumentValidatorBuilder>> _onBuildDocumentValidatorHooks = [];
 
     /// <summary>
-    /// This allows to specify a schema and short-circuit the schema creation.
+    /// This allows specifying a schema and short-circuit the schema creation.
     /// </summary>
-    public ISchema? Schema { get; set; }
+    public Schema? Schema { get; set; }
 
     /// <summary>
     /// Gets or sets the schema builder that is used to create the schema.
@@ -30,6 +33,11 @@ public sealed class RequestExecutorSetup
     /// Gets or sets the request executor options.
     /// </summary>
     public RequestExecutorOptions? RequestExecutorOptions { get; set; }
+
+    /// <summary>
+    /// Gets or sets the time that the executor manager waits to dispose the schema services.
+    /// </summary>
+    public TimeSpan EvictionTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// Gets the request executor options actions.
@@ -67,6 +75,12 @@ public sealed class RequestExecutorSetup
         => _onRequestExecutorEvictedHooks;
 
     /// <summary>
+    /// Gets the actions that are invoked to configure the document validator.
+    /// </summary>
+    public IList<Action<IServiceProvider, DocumentValidatorBuilder>> OnBuildDocumentValidatorHooks
+        => _onBuildDocumentValidatorHooks;
+
+    /// <summary>
     /// Gets the type modules that are used to configure the schema.
     /// </summary>
     public IList<ITypeModule> TypeModules
@@ -75,13 +89,22 @@ public sealed class RequestExecutorSetup
     /// <summary>
     /// Gets the middleware that make up the request pipeline.
     /// </summary>
-    public IList<RequestCoreMiddleware> Pipeline
+    public IList<RequestMiddlewareConfiguration> Pipeline
         => _pipeline;
+
+    /// <summary>
+    /// Gets the pipeline modifiers that allow to mutate the pipeline before it is compiled.
+    /// </summary>
+    public IList<Action<IList<RequestMiddlewareConfiguration>>> PipelineModifiers
+        => _pipelineModifiers;
+
+    public IList<Action<SchemaOptions>> SchemaOptionModifiers
+        => _schemaOptionModifiers;
 
     /// <summary>
     /// Gets or sets the default pipeline factory.
     /// </summary>
-    public Action<IList<RequestCoreMiddleware>>? DefaultPipelineFactory { get; set; }
+    public Action<IList<RequestMiddlewareConfiguration>>? DefaultPipelineFactory { get; set; }
 
     /// <summary>
     /// Copies the options to the specified other options object.
@@ -100,15 +123,27 @@ public sealed class RequestExecutorSetup
         options._onConfigureSchemaServicesHooks.AddRange(_onConfigureSchemaServicesHooks);
         options._onRequestExecutorCreatedHooks.AddRange(_onRequestExecutorCreatedHooks);
         options._onRequestExecutorEvictedHooks.AddRange(_onRequestExecutorEvictedHooks);
+        options._onBuildDocumentValidatorHooks.AddRange(_onBuildDocumentValidatorHooks);
+        options._pipelineModifiers.AddRange(_pipelineModifiers);
+        options._schemaOptionModifiers.AddRange(_schemaOptionModifiers);
         options._typeModules.AddRange(_typeModules);
+        options.EvictionTimeout = EvictionTimeout;
 
-        if(DefaultPipelineFactory is not null)
+        if (DefaultPipelineFactory is not null)
         {
             options.DefaultPipelineFactory = DefaultPipelineFactory;
         }
     }
-}
 
-public delegate void OnConfigureSchemaServices(
-    ConfigurationContext context,
-    IServiceCollection services);
+    internal SchemaOptions CreateSchemaOptions()
+    {
+        var options = new SchemaOptions();
+
+        foreach (var configure in SchemaOptionModifiers)
+        {
+            configure(options);
+        }
+
+        return options;
+    }
+}

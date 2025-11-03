@@ -44,7 +44,7 @@ public class MongoDbProjectionProvider : ProjectionProvider
 
             if (visitorContext.Errors.Count == 0)
             {
-                if(visitorContext.TryCreateQuery(out var projectionDef))
+                if (visitorContext.TryCreateQuery(out var projectionDef))
                 {
                     return projectionDef;
                 }

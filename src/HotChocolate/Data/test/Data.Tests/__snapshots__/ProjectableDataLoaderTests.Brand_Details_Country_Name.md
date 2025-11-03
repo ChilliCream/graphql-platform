@@ -4,7 +4,7 @@
 
 ```text
 -- @__keys_0={ '1' } (DbType = Object)
-SELECT b."Name", b."Details_Country_Name" AS "Name", b."Id"
+SELECT b."Details_Country_Name" AS "Name", b."Name", b."Id"
 FROM "Brands" AS b
 WHERE b."Id" = ANY (@__keys_0)
 ```

@@ -683,7 +683,7 @@ public class PagingTests
     {
         public required string Title { get; set; }
 
-        [UsePaging] public List<Author> Authors => new();
+        [UsePaging] public List<Author> Authors => [];
     }
 
     public class Author

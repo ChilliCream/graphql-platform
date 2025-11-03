@@ -4,15 +4,15 @@ namespace GreenDonut.Data.Expressions;
 
 internal sealed class ExtractSelectExpressionVisitor : ExpressionVisitor
 {
-    private const string _selectMethod = "Select";
+    private const string SelectMethod = "Select";
 
     public LambdaExpression? Selector { get; private set; }
 
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
-        if (node.Method.Name == _selectMethod && node.Arguments.Count == 2)
+        if (node.Method.Name == SelectMethod && node.Arguments.Count == 2)
         {
-            var lambda = StripQuotes(node.Arguments[1]);
+            var lambda = ConvertToLambda(node.Arguments[1]);
             if (lambda.Type.IsGenericType
                 && lambda.Type.GetGenericTypeDefinition() == typeof(Func<,>))
             {
@@ -29,13 +29,20 @@ internal sealed class ExtractSelectExpressionVisitor : ExpressionVisitor
         return base.VisitMethodCall(node);
     }
 
-    private static LambdaExpression StripQuotes(Expression e)
+    private static LambdaExpression ConvertToLambda(Expression e)
     {
         while (e.NodeType == ExpressionType.Quote)
         {
             e = ((UnaryExpression)e).Operand;
         }
 
-        return (LambdaExpression)e;
+        if (e.NodeType != ExpressionType.MemberAccess)
+        {
+            return (LambdaExpression)e;
+        }
+
+        // Convert the property expression into a lambda expression
+        var typeArguments = e.Type.GetGenericArguments()[0].GetGenericArguments();
+        return Expression.Lambda(e, Expression.Parameter(typeArguments[0]));
     }
 }

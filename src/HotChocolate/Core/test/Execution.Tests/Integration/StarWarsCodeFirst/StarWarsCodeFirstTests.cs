@@ -22,7 +22,7 @@ public class StarWarsCodeFirstTests
         var executor = await CreateExecutorAsync();
 
         // act
-        var schema = executor.Schema.Print();
+        var schema = executor.Schema.ToString();
 
         // assert
         schema.MatchSnapshot();
@@ -64,13 +64,14 @@ public class StarWarsCodeFirstTests
     public async Task GraphQLOrgFieldArgumentExample1()
     {
         await ExpectValid(
-                @"
-                {
-                    human(id: ""1000"") {
-                        name
-                        height
-                    }
-                }")
+            """
+            {
+                human(id: "1000") {
+                    name
+                    height
+                }
+            }
+            """)
             .MatchSnapshotAsync();
     }
 
@@ -78,13 +79,14 @@ public class StarWarsCodeFirstTests
     public async Task GraphQLOrgFieldArgumentExample2()
     {
         await ExpectValid(
-                @"
-                {
-                    human(id: ""1000"") {
-                        name
-                        height(unit: FOOT)
-                    }
-                }")
+            """
+            {
+                human(id: "1000") {
+                    name
+                    height(unit: FOOT)
+                }
+            }
+            """)
             .MatchSnapshotAsync();
     }
 
@@ -163,7 +165,7 @@ public class StarWarsCodeFirstTests
                     }
                 }",
                 request: c => c.SetVariableValues(
-                    new Dictionary<string, object?> { { "episode", new EnumValueNode("JEDI") }, }))
+                    new Dictionary<string, object?> { { "episode", new EnumValueNode("JEDI") } }))
             .MatchSnapshotAsync();
     }
 
@@ -204,7 +206,7 @@ public class StarWarsCodeFirstTests
                     new Dictionary<string, object?>
                     {
                         { "episode", new EnumValueNode("JEDI") },
-                        { "withFriends", new BooleanValueNode(false) },
+                        { "withFriends", new BooleanValueNode(false) }
                     }))
             .MatchSnapshotAsync();
     }
@@ -228,7 +230,7 @@ public class StarWarsCodeFirstTests
                     new Dictionary<string, object?>
                     {
                         { "episode", new EnumValueNode("JEDI") },
-                        { "withFriends", new BooleanValueNode(true) },
+                        { "withFriends", new BooleanValueNode(true) }
                     }))
             .MatchSnapshotAsync();
     }
@@ -252,7 +254,7 @@ public class StarWarsCodeFirstTests
                     new Dictionary<string, object?>
                     {
                         { "episode", new EnumValueNode("JEDI") },
-                        { "withFriends", new BooleanValueNode(false) },
+                        { "withFriends", new BooleanValueNode(false) }
                     }))
             .MatchSnapshotAsync();
     }
@@ -276,7 +278,7 @@ public class StarWarsCodeFirstTests
                     new Dictionary<string, object?>
                     {
                         { "episode", new EnumValueNode("JEDI") },
-                        { "withFriends", new BooleanValueNode(true) },
+                        { "withFriends", new BooleanValueNode(true) }
                     }))
             .MatchSnapshotAsync();
     }
@@ -300,7 +302,7 @@ public class StarWarsCodeFirstTests
                     new Dictionary<string, object?>
                     {
                         { "episode", new EnumValueNode("JEDI") },
-                        { "withFriends", new BooleanValueNode(false) },
+                        { "withFriends", new BooleanValueNode(false) }
                     }))
             .MatchSnapshotAsync();
     }
@@ -329,7 +331,7 @@ public class StarWarsCodeFirstTests
                                     new ObjectFieldNode(
                                         "commentary",
                                         new StringValueNode("This is a great movie!")))
-                            },
+                            }
                         }))
             .MatchSnapshotAsync();
     }
@@ -348,7 +350,7 @@ public class StarWarsCodeFirstTests
                 }",
                 configure: c =>
                 {
-                    c.AddInputParser(options => { options.IgnoreAdditionalInputFields = true; });
+                    c.AddInputParser(options => options.IgnoreAdditionalInputFields = true);
                     AddDefaultConfiguration(c);
                 },
                 request: r => r
@@ -367,7 +369,7 @@ public class StarWarsCodeFirstTests
                                     new ObjectFieldNode(
                                         "commentary",
                                         new StringValueNode("This is a great movie!")))
-                            },
+                            }
                         }))
             .MatchSnapshotAsync();
     }
@@ -401,7 +403,7 @@ public class StarWarsCodeFirstTests
                                     new ObjectFieldNode(
                                         "commentary",
                                         new StringValueNode("This is a great movie!")))
-                            },
+                            }
                         }))
             .MatchSnapshotAsync();
     }
@@ -429,7 +431,7 @@ public class StarWarsCodeFirstTests
                         {
                             { "ep", new EnumValueNode("JEDI") },
                             { "stars", new IntValueNode(5) },
-                            { "commentary", new StringValueNode("This is a great movie!") },
+                            { "commentary", new StringValueNode("This is a great movie!") }
                         }))
             .MatchSnapshotAsync();
     }
@@ -452,7 +454,7 @@ public class StarWarsCodeFirstTests
                 }
                 """,
                 request: r => r.SetVariableValues(
-                    new Dictionary<string, object?> { { "ep", new EnumValueNode("JEDI") }, }))
+                    new Dictionary<string, object?> { { "ep", new EnumValueNode("JEDI") } }))
             .MatchSnapshotAsync();
     }
 
@@ -474,7 +476,7 @@ public class StarWarsCodeFirstTests
                 }
                 """,
                 request: r => r.SetVariableValues(
-                    new Dictionary<string, object?> { { "ep", new EnumValueNode("EMPIRE") }, }))
+                    new Dictionary<string, object?> { { "ep", new EnumValueNode("EMPIRE") } }))
             .MatchSnapshotAsync();
     }
 
@@ -519,7 +521,7 @@ public class StarWarsCodeFirstTests
                 request: r => r.SetVariableValues(
                     new Dictionary<string, object?>
                     {
-                        { "ep", new ListValueNode(new EnumValueNode("EMPIRE")) },
+                        { "ep", new ListValueNode(new EnumValueNode("EMPIRE")) }
                     }))
             .MatchSnapshotAsync();
     }
@@ -552,7 +554,7 @@ public class StarWarsCodeFirstTests
                     }
                 }
                 """,
-                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, }))
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }))
             .MatchSnapshotAsync();
     }
 
@@ -781,7 +783,7 @@ public class StarWarsCodeFirstTests
                     }
                 }
                 """,
-                new Dictionary<string, object?> { { "ep", "NEW_HOPE" }, },
+                new Dictionary<string, object?> { { "ep", "NEW_HOPE" } },
                 CancellationToken.None);
 
         // assert
@@ -908,12 +910,12 @@ public class StarWarsCodeFirstTests
                     }
                 }
             }",
-            request: r => { r.SetMaximumAllowedExecutionDepth(100); },
             configure: c =>
             {
                 AddDefaultConfiguration(c);
                 c.AddMaxExecutionDepthRule(3, allowRequestOverrides: true);
-            });
+            },
+            request: r => r.SetMaximumAllowedExecutionDepth(100));
     }
 
     [Fact]
@@ -958,12 +960,12 @@ public class StarWarsCodeFirstTests
                     }
                 }
             }",
-            request: r => { r.SkipExecutionDepthAnalysis(); },
             configure: c =>
             {
                 AddDefaultConfiguration(c);
                 c.AddMaxExecutionDepthRule(3, allowRequestOverrides: true);
-            });
+            },
+            request: r => r.SkipExecutionDepthAnalysis());
     }
 
     // this test ensures that overridden depth validations are not cached.
@@ -1013,11 +1015,11 @@ public class StarWarsCodeFirstTests
 
         var configurationA = new TestConfiguration
         {
-            ConfigureRequest = r => { r.SkipExecutionDepthAnalysis(); },
+            ConfigureRequest = r => r.SkipExecutionDepthAnalysis()
         };
         var configurationB = new TestConfiguration
         {
-            ConfigureRequest = _ => { },
+            ConfigureRequest = _ => { }
         };
         var executor = await CreateExecutorAsync(
             c =>
@@ -1103,7 +1105,7 @@ public class StarWarsCodeFirstTests
                     }
                 }
                 """,
-                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", ifValue }, }))
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", ifValue } }))
             .MatchSnapshotAsync(postFix: ifValue);
     }
 
@@ -1138,7 +1140,7 @@ public class StarWarsCodeFirstTests
                     }
                 }
                 """,
-                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", ifValue }, }))
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", ifValue } }))
             .MatchSnapshotAsync(postFix: ifValue);
     }
 
@@ -1154,7 +1156,7 @@ public class StarWarsCodeFirstTests
                     }
                 }
                 """,
-                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", true }, }))
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", true } }))
             .MatchSnapshotAsync();
     }
 
@@ -1199,7 +1201,7 @@ public class StarWarsCodeFirstTests
                     }
                 }
                 """,
-                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", true }, }))
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", true } }))
             .MatchSnapshotAsync();
     }
 
@@ -1235,9 +1237,9 @@ public class StarWarsCodeFirstTests
     }
 
     [Fact]
-    public async Task Ensure_Benchmark_Query_GetTwoHerosWithFriendsQuery()
+    public async Task Ensure_Benchmark_Query_GetTwoHeroesWithFriendsQuery()
     {
-        var query = FileResource.Open("GetTwoHerosWithFriendsQuery.graphql");
+        var query = FileResource.Open("GetTwoHeroesWithFriendsQuery.graphql");
         await ExpectValid(query).MatchSnapshotAsync();
     }
 
@@ -1295,7 +1297,7 @@ public class StarWarsCodeFirstTests
                     }
                 }
                 """,
-                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", true }, }))
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", true } }))
             .MatchSnapshotAsync();
     }
 }

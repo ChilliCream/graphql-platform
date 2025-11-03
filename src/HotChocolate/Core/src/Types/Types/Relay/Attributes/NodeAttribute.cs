@@ -1,8 +1,6 @@
-#nullable enable
-
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay.Descriptors;
 using static System.Reflection.BindingFlags;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -14,6 +12,11 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 public class NodeAttribute : ObjectTypeDescriptorAttribute
 {
+    public NodeAttribute()
+    {
+        RequiresAttributeProvider = true;
+    }
+
     /// <summary>
     /// The name of the member representing the ID field of the node.
     /// </summary>
@@ -32,8 +35,13 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
+        if (type is null)
+        {
+            return;
+        }
+
         var nodeDescriptor = new NodeDescriptor(descriptor, type);
 
         descriptor.Extend().OnBeforeCreate(
@@ -76,10 +84,10 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
                     completionContext.DescriptorContext,
                     definition);
                 nodeDescriptor.ConfigureNodeField(typeDescriptor);
-                typeDescriptor.CreateDefinition();
+                typeDescriptor.CreateConfiguration();
 
                 // invoke completion explicitly.
-                nodeDescriptor.OnCompleteDefinition(completionContext, definition);
+                nodeDescriptor.OnCompleteConfiguration(completionContext, definition);
             });
 
         descriptor.Extend().OnBeforeCompletion((completionContext, definition) =>
@@ -142,7 +150,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             }
 
             // invoke completion explicitly.
-            nodeDescriptor.OnCompleteDefinition(completionContext, definition);
+            nodeDescriptor.OnCompleteConfiguration(completionContext, definition);
         });
     }
 }

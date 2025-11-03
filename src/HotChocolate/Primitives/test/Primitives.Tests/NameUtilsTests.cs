@@ -1,4 +1,4 @@
-﻿using HotChocolate.Utilities;
+using HotChocolate.Utilities;
 
 namespace HotChocolate;
 
@@ -17,7 +17,7 @@ public class NameUtilsTests
             $"`{name}` is not a valid GraphQL name.{Environment.NewLine}"
             + $"https://spec.graphql.org/October2021/#sec-Names{Environment.NewLine}"
             + $" (Parameter 'name')",
-            message);
+            message.ReplaceLineEndings());
     }
 
     [Theory]

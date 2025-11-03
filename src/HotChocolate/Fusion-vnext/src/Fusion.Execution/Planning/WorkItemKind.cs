@@ -1,8 +1,7 @@
 namespace HotChocolate.Fusion.Planning;
 
-public enum WorkItemKind
+public enum OperationWorkItemKind
 {
     Root,
-    Lookup,
-    Requirement
+    Lookup
 }

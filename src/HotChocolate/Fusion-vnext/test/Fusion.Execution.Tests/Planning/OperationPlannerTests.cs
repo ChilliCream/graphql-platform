@@ -1,9 +1,3 @@
-using System.Collections.Immutable;
-using HotChocolate.Fusion.Rewriters;
-using HotChocolate.Fusion.Types;
-using HotChocolate.Language;
-using static HotChocolate.Language.Utf8GraphQLParser;
-
 namespace HotChocolate.Fusion.Planning;
 
 public class OperationPlannerTests : FusionTestBase
@@ -12,9 +6,11 @@ public class OperationPlannerTests : FusionTestBase
     public void Plan_Simple_Operation_1_Source_Schema()
     {
         // arrange
-        var schema = CreateSchema();
+        var schema = CreateCompositeSchema();
 
-        var request = Parse(
+        // act
+        var plan = PlanOperation(
+            schema,
             """
             {
                 productBySlug(slug: "1") {
@@ -28,20 +24,19 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
-        // act
-        var plan = PlanOperation(request, schema);
-
         // assert
-        Match(plan);
+        MatchSnapshot(plan);
     }
 
     [Fact]
     public void Plan_Simple_Operation_2_Source_Schema()
     {
         // arrange
-        var compositeSchema = CreateSchema();
+        var compositeSchema = CreateCompositeSchema();
 
-        var request = Parse(
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
             """
             {
                 productBySlug(slug: "1") {
@@ -56,20 +51,19 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
-        // act
-        var plan = PlanOperation(request, compositeSchema);
-
         // assert
-        Match(plan);
+        MatchSnapshot(plan);
     }
 
     [Fact]
     public void Plan_Simple_Operation_3_Source_Schema()
     {
         // arrange
-        var compositeSchema = CreateSchema();
+        var compositeSchema = CreateCompositeSchema();
 
-        var request = Parse(
+        // act
+        var plan = PlanOperation(
+            compositeSchema,
             """
             {
                 productBySlug(slug: "1") {
@@ -99,41 +93,337 @@ public class OperationPlannerTests : FusionTestBase
             }
             """);
 
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Simple_Lookup()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              topProducts: [Product!]
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String!
+            }
+            """,
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+              id: ID!
+              price: Float!
+            }
+            """);
+
         // act
-        var plan = PlanOperation(request, compositeSchema);
+        var plan = PlanOperation(
+            schema,
+            """
+            query GetTopProducts {
+              topProducts {
+                id
+                name
+                price
+              }
+            }
+            """);
 
         // assert
-        Match(plan);
+        MatchSnapshot(plan);
     }
 
-    private static ImmutableList<PlanStep> PlanOperation(DocumentNode request, FusionSchemaDefinition schema)
+    [Fact]
+    public void Plan_Simple_Interface_Lookup()
     {
-        var rewriter = new InlineFragmentOperationRewriter(schema);
-        var rewritten = rewriter.RewriteDocument(request, null);
-        var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
-
-        var planner = new OperationPlanner(schema);
-        return planner.CreatePlan(operation);
-    }
-
-    private static void Match(ImmutableList<PlanStep> plan)
-    {
-        var i = 0;
-        var snapshot = new Snapshot();
-
-        foreach (var step in plan)
-        {
-            switch (step)
-            {
-                case OperationPlanStep operation:
-                    snapshot.Add(
-                        operation.Definition.ToString(),
-                        $"{++i} {operation.SchemaName}",
-                        markdownLanguage: MarkdownLanguages.GraphQL);
-                    break;
+        // arrange
+        var schema = ComposeSchema(
+            """
+            schema {
+              query: Query
             }
-        }
 
-        snapshot.MatchMarkdown();
+            type Query {
+              topProduct: Product
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """,
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              price: Float!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query GetTopProducts {
+              topProduct {
+                id
+                name
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Simple_Union_Lookup()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              topProduct: Product
+              # Just here to satisfy satisfiability as I can't make the union lookup internal...
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """,
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              lookupUnionById(id: ID!): SomeUnion @lookup
+            }
+
+            union SomeUnion = Product
+
+            type Product {
+              id: ID!
+              price: Float!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query GetTopProducts {
+              topProduct {
+                id
+                name
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Simple_Requirement()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              topProducts: [Product!]
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String!
+              region: String!
+            }
+            """,
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+              id: ID!
+              price(region: String! @require(field: "region")): Float!
+            }
+            """);
+
+        // assert
+        var plan = PlanOperation(
+            schema,
+            """
+            query GetTopProducts {
+              topProducts {
+                id
+                name
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Requirement_That_Cannot_Be_Inlined()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              topProducts: [Product!]
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String!
+              region: String!
+            }
+            """,
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+              id: ID!
+              price(region: String! @require(field: "region")): Float!
+            }
+            """);
+
+        // assert
+        var plan = PlanOperation(
+            schema,
+            """
+            query GetTopProducts {
+              topProducts {
+                id
+                name
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Key_Requirement()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              topProducts: [Product!]
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              region: String!
+            }
+            """,
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+              id: ID!
+              sku(region: String! @require(field: "region")): String! @shareable
+            }
+            """,
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productBySku(sku: String!): Product @lookup @internal
+            }
+
+            type Product {
+              sku: String!
+              name: String!
+            }
+            """);
+
+        // assert
+        var plan = PlanOperation(
+            schema,
+            """
+            query GetTopProducts {
+              topProducts {
+                id
+                name
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
     }
 }

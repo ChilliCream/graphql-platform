@@ -115,7 +115,7 @@ public class CursorFormatterTests
 
     public class MyClass
     {
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
 
         public string? Description { get; set; }
     }

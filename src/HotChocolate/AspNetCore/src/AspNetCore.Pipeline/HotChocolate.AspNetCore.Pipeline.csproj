@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.AspNetCore.Pipeline</PackageId>
+    <AssemblyName>HotChocolate.AspNetCore.Pipeline</AssemblyName>
+    <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
+    <Description>This package contains the GraphQL ASP.NET Core middleware for Hot Chocolate.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Transport.Formatters\HotChocolate.Transport.Formatters.csproj" />
+    <ProjectReference Include="..\Transport.Sockets\HotChocolate.Transport.Sockets.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ChilliCream.Nitro.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests.Utilities" />
+    <InternalsVisibleTo Include="HotChocolate.AzureFunctions" />
+    <InternalsVisibleTo Include="HotChocolate.AzureFunctions.IsolatedProcess" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore" />
+    <InternalsVisibleTo Include="HotChocolate.AzureFunctions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="HotChocolate" />
+    <Using Include="HotChocolate.Types" />
+    <Using Include="HotChocolate.Execution" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\AspNetCorePipelineResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>AspNetCorePipelineResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\AspNetCorePipelineResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AspNetCorePipelineResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

@@ -84,7 +84,7 @@ internal static class GeneratorHelpers
             SingleCodeFile = configSettings.UseSingleFile ?? args.UseSingleFile,
             RequestStrategy = configSettings.RequestStrategy ?? args.Strategy,
             HashProvider = GetHashProvider(configSettings.HashAlgorithm ?? args.HashAlgorithm),
-            TransportProfiles = MapTransportProfiles(configSettings.TransportProfiles),
+            TransportProfiles = MapTransportProfiles(configSettings.TransportProfiles)
         };
     }
 
@@ -99,7 +99,7 @@ internal static class GeneratorHelpers
         {
             "public" => AccessModifier.Public,
             "internal" => AccessModifier.Internal,
-            _ => throw new NotSupportedException($"The access modifier `{accessModifier}` is not supported."),
+            _ => throw new NotSupportedException($"The access modifier `{accessModifier}` is not supported.")
         };
     }
 
@@ -110,7 +110,7 @@ internal static class GeneratorHelpers
             "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),
             "sha256" => new Sha256DocumentHashProvider(HashFormat.Hex),
             _ => throw new NotSupportedException(
-                $"The hash algorithm `{hashAlgorithm}` is not supported."),
+                $"The hash algorithm `{hashAlgorithm}` is not supported.")
         };
 
     private static List<TransportProfile> MapTransportProfiles(

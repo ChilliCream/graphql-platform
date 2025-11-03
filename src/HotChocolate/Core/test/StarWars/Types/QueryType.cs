@@ -17,15 +17,15 @@ public class QueryType : ObjectType<Query>
             .Type<CharacterType>();
 
         descriptor
-            .Field(t => t.GetHeroes(default!))
+            .Field(t => t.GetHeroes(null!))
             .Type<ListType<NonNullType<CharacterType>>>();
 
         descriptor
-            .Field(t => t.GetCharacter(default!, default!))
+            .Field(t => t.GetCharacter(null!, null!))
             .Type<NonNullType<ListType<NonNullType<CharacterType>>>>();
 
         descriptor
-            .Field(t => t.Search(default!))
+            .Field(t => t.Search(null!))
             .Type<ListType<SearchResultType>>();
     }
 }

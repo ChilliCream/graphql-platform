@@ -8,10 +8,12 @@ public sealed class TypeDefinitionCollection
     , IReadOnlyTypeDefinitionCollection
 {
     private readonly List<SchemaCoordinate> _schemaDefinitions;
-    private readonly OrderedDictionary<string, ITypeDefinition> _types = new();
+    private readonly OrderedDictionary<string, ITypeDefinition> _types = [];
 
     internal TypeDefinitionCollection(List<SchemaCoordinate> schemaDefinitions)
     {
+        ArgumentNullException.ThrowIfNull(schemaDefinitions);
+
         _schemaDefinitions = schemaDefinitions
             ?? throw new ArgumentNullException(nameof(schemaDefinitions));
     }
@@ -20,23 +22,57 @@ public sealed class TypeDefinitionCollection
 
     public bool IsReadOnly => false;
 
-    public ITypeDefinition this[string name] => _types[name];
+    public ITypeDefinition this[string name]
+    {
+        get
+        {
+            ArgumentException.ThrowIfNullOrEmpty(name);
+
+            return _types[name];
+        }
+    }
 
     public ITypeDefinition this[int index]
     {
-        get => _types.GetAt(index).Value;
+        get
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+            return _types.GetAt(index).Value;
+        }
         set
         {
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+            ArgumentNullException.ThrowIfNull(value);
+
             RemoveAt(index);
             Insert(index, value);
         }
     }
 
+    [return: NotNull]
+    public T GetType<T>(string typeName) where T : ITypeDefinition
+    {
+        if (_types[typeName] is T type)
+        {
+            return type;
+        }
+
+        throw new InvalidOperationException(
+            $"The type `{typeName}` is not a `{typeof(T).Name}`.");
+    }
+
     public bool TryGetType(string name, [NotNullWhen(true)] out ITypeDefinition? definition)
-        => _types.TryGetValue(name, out definition);
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
+        return _types.TryGetValue(name, out definition);
+    }
 
     public bool TryGetType<T>(string name, [NotNullWhen(true)] out T? type) where T : ITypeDefinition
     {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
         if (_types.TryGetValue(name, out var namedType)
             && namedType is T casted)
         {
@@ -50,7 +86,8 @@ public sealed class TypeDefinitionCollection
 
     public void Insert(int index, ITypeDefinition definition)
     {
-        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, _types.Count);
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
 
         var type = _types.GetAt(index);
         var definitionIndex = _schemaDefinitions.IndexOf(new SchemaCoordinate(type.Key));
@@ -60,6 +97,8 @@ public sealed class TypeDefinitionCollection
 
     public bool Remove(string name)
     {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
         if (_types.Remove(name))
         {
             _schemaDefinitions.Remove(new SchemaCoordinate(name));
@@ -71,10 +110,7 @@ public sealed class TypeDefinitionCollection
 
     public void RemoveAt(int index)
     {
-        if(_types.Count <= index)
-        {
-            throw new ArgumentOutOfRangeException(nameof(index));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
 
         var type = _types.GetAt(index);
         _schemaDefinitions.Remove(new SchemaCoordinate(type.Key));
@@ -83,12 +119,9 @@ public sealed class TypeDefinitionCollection
 
     public void Add(ITypeDefinition definition)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
 
-        if(_types.TryGetValue(definition.Name, out var existing))
+        if (_types.TryGetValue(definition.Name, out var existing))
         {
             if (ReferenceEquals(existing, definition))
             {
@@ -106,10 +139,7 @@ public sealed class TypeDefinitionCollection
 
     public bool Remove(ITypeDefinition definition)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
 
         if (_types.TryGetValue(definition.Name, out var itemToDelete)
             && ReferenceEquals(definition, itemToDelete))
@@ -132,39 +162,39 @@ public sealed class TypeDefinitionCollection
     }
 
     public bool ContainsName(string name)
-        => _types.ContainsKey(name);
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
+        return _types.ContainsKey(name);
+    }
 
     public int IndexOf(ITypeDefinition definition)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
 
         return IndexOf(definition.Name);
     }
 
     public int IndexOf(string name)
-        => _types.IndexOf(name);
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
+        return _types.IndexOf(name);
+    }
 
     public bool Contains(ITypeDefinition item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
-        if (_types.TryGetValue(item.Name, out var itemToDelete)
-            && ReferenceEquals(item, itemToDelete))
-        {
-            return true;
-        }
-
-        return false;
+        return _types.TryGetValue(item.Name, out var itemToDelete)
+            && ReferenceEquals(item, itemToDelete);
     }
 
     public void CopyTo(ITypeDefinition[] array, int arrayIndex)
     {
+        ArgumentNullException.ThrowIfNull(array);
+        ArgumentOutOfRangeException.ThrowIfNegative(arrayIndex);
+
         foreach (var item in _types)
         {
             array[arrayIndex++] = item.Value;

@@ -31,7 +31,7 @@ public class FieldMemberTests
         var member = GetMemberA();
 
         // act
-        Action action = () => new FieldMember(null, fieldName, member);
+        Action action = () => new FieldMember(null!, fieldName, member);
 
         // assert
         Assert.Throws<ArgumentException>(action);
@@ -45,7 +45,7 @@ public class FieldMemberTests
         var member = GetMemberA();
 
         // act
-        Action action = () => new FieldMember(typeName, null, member);
+        Action action = () => new FieldMember(typeName, null!, member);
 
         // assert
         Assert.Throws<ArgumentException>(action);
@@ -59,7 +59,7 @@ public class FieldMemberTests
         var fieldName = TestUtils.CreateFieldName();
 
         // act
-        Action action = () => new FieldMember(typeName, fieldName, default(MemberInfo));
+        Action action = () => new FieldMember(typeName, fieldName, default(MemberInfo)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -73,7 +73,7 @@ public class FieldMemberTests
         var fieldName = TestUtils.CreateFieldName();
 
         // act
-        Action action = () => new FieldMember(typeName, fieldName, default(Expression));
+        Action action = () => new FieldMember(typeName, fieldName, default(Expression)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -110,7 +110,7 @@ public class FieldMemberTests
             originalTypeName, fieldName, member);
 
         // act
-        Action action = () => fieldMember.WithTypeName(null);
+        Action action = () => fieldMember.WithTypeName(null!);
 
         // assert
         Assert.Throws<ArgumentException>(action);
@@ -147,7 +147,7 @@ public class FieldMemberTests
             typeName, originalFieldName, member);
 
         // act
-        Action action = () => fieldMember.WithFieldName(null);
+        Action action = () => fieldMember.WithFieldName(null!);
 
         // assert
         Assert.Throws<ArgumentException>(action);
@@ -184,7 +184,7 @@ public class FieldMemberTests
             typeName, fieldName, originalMember);
 
         // act
-        Action action = () => fieldMember.WithMember(null);
+        Action action = () => fieldMember.WithMember(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -234,7 +234,7 @@ public class FieldMemberTests
         var fieldMember_b = new FieldMember(
             fieldMember_a.TypeName,
             fieldMember_a.FieldName,
-            fieldMember_a.Member);
+            fieldMember_a.Member!);
 
         // act
         var result = fieldMember_a.Equals((object)fieldMember_b);
@@ -271,7 +271,7 @@ public class FieldMemberTests
         var fieldMember_b = new FieldMember(
             TestUtils.CreateTypeName(),
             fieldMember_a.FieldName,
-            fieldMember_a.Member);
+            fieldMember_a.Member!);
 
         // act
         var result = fieldMember_a.Equals((object)fieldMember_b);
@@ -292,7 +292,7 @@ public class FieldMemberTests
         var fieldMember_b = new FieldMember(
             fieldMember_a.TypeName,
             TestUtils.CreateFieldName(),
-            fieldMember_a.Member);
+            fieldMember_a.Member!);
 
         // act
         var result = fieldMember_a.Equals((object)fieldMember_b);
@@ -324,17 +324,17 @@ public class FieldMemberTests
 
     private MemberInfo GetMemberA()
     {
-        return typeof(Foo).GetProperty("BarA");
+        return typeof(Foo).GetProperty("BarA")!;
     }
 
     private MemberInfo GetMemberB()
     {
-        return typeof(Foo).GetProperty("BarB");
+        return typeof(Foo).GetProperty("BarB")!;
     }
 
-    private sealed class Foo
+    private sealed class Foo(string barA, string barB)
     {
-        public string BarA { get; }
-        public string BarB { get; }
+        public string BarA { get; } = barA;
+        public string BarB { get; } = barB;
     }
 }

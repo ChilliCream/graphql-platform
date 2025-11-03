@@ -1,7 +1,7 @@
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Fetching;
 
@@ -13,6 +13,6 @@ public sealed class SkipDataLoaderCacheAttribute : ObjectFieldDescriptorAttribut
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
-        => descriptor.Extend().Definition.Flags |= FieldFlags.UsesProjections;
+        MemberInfo? member)
+        => descriptor.Extend().Configuration.Flags |= CoreFieldFlags.UsesProjections;
 }

@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "Unknown type `NotInSchema`.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 8,
-        "Column": 17
+        "Line": 7,
+        "Column": 1
       }
     ],
     "Extensions": {

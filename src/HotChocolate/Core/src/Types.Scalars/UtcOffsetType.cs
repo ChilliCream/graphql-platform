@@ -43,7 +43,7 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
 
             TimeSpan ts => ParseValue(ts),
 
-            _ => throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this),
+            _ => throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this)
         };
     }
 
@@ -108,12 +108,12 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
 
     private static class OffsetLookup
     {
-        private static readonly IReadOnlyDictionary<TimeSpan, string> _timeSpanToOffset;
-        private static readonly IReadOnlyDictionary<string, TimeSpan> _offsetToTimeSpan;
+        private static readonly IReadOnlyDictionary<TimeSpan, string> s_timeSpanToOffset;
+        private static readonly IReadOnlyDictionary<string, TimeSpan> s_offsetToTimeSpan;
 
         static OffsetLookup()
         {
-            _timeSpanToOffset = new Dictionary<TimeSpan, string>
+            s_timeSpanToOffset = new Dictionary<TimeSpan, string>
                 {
                     { new TimeSpan(-12, 0, 0), "-12:00" },
                     { new TimeSpan(-11, 0, 0), "-11:00" },
@@ -152,30 +152,30 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
                     { new TimeSpan(12, 0, 0), "+12:00" },
                     { new TimeSpan(12, 45, 0), "+12:45" },
                     { new TimeSpan(13, 0, 0), "+13:00" },
-                    { new TimeSpan(14, 0, 0), "+14:00" },
+                    { new TimeSpan(14, 0, 0), "+14:00" }
                 };
 
-            var offsetToTimeSpan = _timeSpanToOffset
+            var offsetToTimeSpan = s_timeSpanToOffset
                 .Reverse()
                 .ToDictionary(x => x.Value, x => x.Key);
             offsetToTimeSpan["-00:00"] = TimeSpan.Zero;
             offsetToTimeSpan["00:00"] = TimeSpan.Zero;
 
-            _offsetToTimeSpan = offsetToTimeSpan;
+            s_offsetToTimeSpan = offsetToTimeSpan;
         }
 
         public static bool TrySerialize(
             TimeSpan value,
             [NotNullWhen(true)] out string? result)
         {
-            return _timeSpanToOffset.TryGetValue(value, out result);
+            return s_timeSpanToOffset.TryGetValue(value, out result);
         }
 
         public static bool TryDeserialize(
             string value,
             [NotNullWhen(true)] out TimeSpan result)
         {
-            return _offsetToTimeSpan.TryGetValue(value, out result);
+            return s_offsetToTimeSpan.TryGetValue(value, out result);
         }
     }
 }

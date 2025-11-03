@@ -1,0 +1,12 @@
+mutation AnnotationsWithFragment {
+  explicitNonDestructiveMutation
+  explicitIdempotentMutation
+  explicitClosedWorldMutation
+  ...Fragment
+}
+
+fragment Fragment on Mutation {
+  explicitDestructiveMutation
+  explicitNonIdempotentMutation
+  explicitOpenWorldMutation
+}

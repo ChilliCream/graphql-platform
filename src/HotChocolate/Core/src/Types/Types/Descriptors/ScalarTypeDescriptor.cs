@@ -1,13 +1,12 @@
+using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
-
-#nullable enable
 
 namespace HotChocolate.Types.Descriptors;
 
 public class ScalarTypeDescriptor
-    : DescriptorBase<ScalarTypeDefinition>
+    : DescriptorBase<ScalarTypeConfiguration>
     , IScalarTypeDescriptor
 {
     protected ScalarTypeDescriptor(IDescriptorContext context)
@@ -15,23 +14,23 @@ public class ScalarTypeDescriptor
     {
     }
 
-    protected internal override ScalarTypeDefinition Definition { get; protected set; } = new();
+    protected internal override ScalarTypeConfiguration Configuration { get; protected set; } = new();
 
-    protected override void OnCreateDefinition(ScalarTypeDefinition definition)
+    protected override void OnCreateConfiguration(ScalarTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
-        if (!Definition.AttributesAreApplied &&
-            Definition.RuntimeType != typeof(object))
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Definition.RuntimeType);
-            Definition.AttributesAreApplied = true;
+                Configuration.RuntimeType);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }
@@ -39,20 +38,20 @@ public class ScalarTypeDescriptor
     public IScalarTypeDescriptor Directive<T>(T directiveInstance)
         where T : class
     {
-        Definition.AddDirective(directiveInstance, Context.TypeInspector);
+        Configuration.AddDirective(directiveInstance, Context.TypeInspector);
         return this;
     }
 
     public IScalarTypeDescriptor Directive<T>()
         where T : class, new()
     {
-        Definition.AddDirective(new T(), Context.TypeInspector);
+        Configuration.AddDirective(new T(), Context.TypeInspector);
         return this;
     }
 
     public IScalarTypeDescriptor Directive(string name, params ArgumentNode[] arguments)
     {
-        Definition.AddDirective(name, arguments);
+        Configuration.AddDirective(name, arguments);
         return this;
     }
 
@@ -61,5 +60,5 @@ public class ScalarTypeDescriptor
         string name,
         string? description,
         Type scalarType)
-        => new(context) { Definition = { Name = name, Description = description, RuntimeType = scalarType } };
+        => new(context) { Configuration = { Name = name, Description = description, RuntimeType = scalarType } };
 }

@@ -16,7 +16,7 @@ public class DatabaseContext<T> : DbContext
         _databaseName = databaseName;
     }
 
-    public DbSet<T> Data { get; set; } = default!;
+    public DbSet<T> Data { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

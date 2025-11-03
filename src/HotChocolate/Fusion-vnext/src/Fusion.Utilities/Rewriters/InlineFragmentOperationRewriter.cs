@@ -2,11 +2,26 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Fusion.FusionUtilitiesResources;
 
 namespace HotChocolate.Fusion.Rewriters;
 
-public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
+public sealed class InlineFragmentOperationRewriter(
+    ISchemaDefinition schema,
+    bool removeStaticallyExcludedSelections = false,
+    bool ignoreMissingTypeSystemMembers = false)
 {
+    private List<ISelectionNode>? _selections;
+
+    private static readonly FieldNode s_typeNameField =
+        new FieldNode(
+            null,
+            new NameNode(IntrospectionFieldNames.TypeName),
+            null,
+            [new DirectiveNode("fusion__empty")],
+            ImmutableArray<ArgumentNode>.Empty,
+            null);
+
     public DocumentNode RewriteDocument(DocumentNode document, string? operationName = null)
     {
         var operation = document.GetOperation(operationName);
@@ -24,6 +39,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         var newOperation = new OperationDefinitionNode(
             null,
             operation.Name,
+            operation.Description,
             operation.Operation,
             operation.VariableDefinitions,
             RewriteDirectives(operation.Directives),
@@ -39,15 +55,24 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
             switch (selection)
             {
                 case FieldNode field:
-                    context.AddField(field);
+                    if (!removeStaticallyExcludedSelections || IsIncluded(field.Directives))
+                    {
+                        context.AddField(field);
+                    }
                     break;
 
                 case InlineFragmentNode inlineFragment:
-                    CollectInlineFragment(inlineFragment, context);
+                    if (!removeStaticallyExcludedSelections || IsIncluded(inlineFragment.Directives))
+                    {
+                        CollectInlineFragment(inlineFragment, context);
+                    }
                     break;
 
                 case FragmentSpreadNode fragmentSpread:
-                    CollectFragmentSpread(fragmentSpread, context);
+                    if (!removeStaticallyExcludedSelections || IsIncluded(fragmentSpread.Directives))
+                    {
+                        CollectFragmentSpread(fragmentSpread, context);
+                    }
                     break;
             }
         }
@@ -55,7 +80,13 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
 
     internal void RewriteSelections(Context context)
     {
-        var collectedSelections = context.Selections.ToImmutableArray();
+        if (context.Selections.Count == 0)
+        {
+            context.Selections.Add(s_typeNameField);
+            context.Fields.Add(IntrospectionFieldNames.TypeName, [s_typeNameField]);
+        }
+
+        var collectedSelections = context.Selections.ToArray();
         context.Selections.Clear();
 
         foreach (var selection in collectedSelections)
@@ -84,11 +115,22 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
 
                 if (mergedField.SelectionSet is not null)
                 {
-                    mergedField = mergedField.WithSelectionSet(
-                        new SelectionSetNode(
-                            field.SelectMany(t => t.SelectionSet!.Selections).ToList()));
+                    ctx.Observer.OnMerge(field);
+                    var temp = Interlocked.Exchange(ref _selections, null) ?? [];
+                    temp.AddRange(field.SelectMany(t => t.SelectionSet!.Selections));
+                    var selections = temp.ToArray();
+                    temp.Clear();
+                    Interlocked.Exchange(ref _selections, temp);
+                    mergedField = mergedField.WithSelectionSet(new SelectionSetNode(selections));
                 }
 
+                if (removeStaticallyExcludedSelections)
+                {
+                    var directives = RemoveStaticIncludeConditions(mergedField.Directives);
+                    mergedField = mergedField.WithDirectives(directives);
+                }
+
+                ctx.Observer.OnMerge(field.Key, mergedField);
                 RewriteField(mergedField, ctx);
             }
         }
@@ -107,8 +149,27 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         }
         else
         {
-            var field = ((IComplexTypeDefinition)context.Type).Fields[fieldNode.Name.Value];
-            var fieldContext = context.Branch(field.Type.AsTypeDefinition());
+            var type = (IComplexTypeDefinition)context.Type;
+            ITypeDefinition fieldType;
+
+            if (type.Fields.TryGetField(fieldNode.Name.Value, out var field))
+            {
+                fieldType = field.Type.AsTypeDefinition();
+            }
+            else if (ignoreMissingTypeSystemMembers)
+            {
+                fieldType = new MissingType("__MissingType__");
+            }
+            else
+            {
+                throw new RewriterException(
+                    string.Format(
+                        InlineFragmentOperationRewriter_FieldDoesNotExistOnType,
+                        fieldNode.Name.Value,
+                        type.Name));
+            }
+
+            var fieldContext = context.Branch(fieldType);
 
             CollectSelections(fieldNode.SelectionSet, fieldContext);
             RewriteSelections(fieldContext);
@@ -125,6 +186,8 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
                 RewriteArguments(fieldNode.Arguments),
                 newSelectionSetNode);
 
+            context.Observer.OnMerge(fieldNode, newFieldNode);
+
             if (context.Visited.Add(newFieldNode))
             {
                 context.Selections.Add(newFieldNode);
@@ -134,8 +197,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
 
     private void CollectInlineFragment(InlineFragmentNode inlineFragment, Context context)
     {
-        if ((inlineFragment.TypeCondition is null
-                || inlineFragment.TypeCondition.Name.Value.Equals(context.Type.Name, StringComparison.Ordinal))
+        if ((inlineFragment.TypeCondition?.Name.Value.Equals(context.Type.Name, StringComparison.Ordinal) != false)
             && inlineFragment.Directives.Count == 0)
         {
             CollectSelections(inlineFragment.SelectionSet, context);
@@ -147,9 +209,30 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
 
     private void RewriteInlineFragment(InlineFragmentNode inlineFragment, Context context)
     {
-        var typeCondition = inlineFragment.TypeCondition is null
-            ? context.Type
-            : schema.Types[inlineFragment.TypeCondition.Name.Value];
+        ITypeDefinition? typeCondition;
+        if (inlineFragment.TypeCondition is null)
+        {
+            typeCondition = context.Type;
+        }
+        else
+        {
+            var typeName = inlineFragment.TypeCondition.Name.Value;
+
+            if (!schema.Types.TryGetType(typeName, out typeCondition))
+            {
+                if (ignoreMissingTypeSystemMembers)
+                {
+                    typeCondition = new MissingType("__MissingType__");
+                }
+                else
+                {
+                    throw new RewriterException(string.Format(
+                        InlineFragmentOperationRewriter_InvalidTypeConditionOnInlineFragment,
+                        context.Type.Name,
+                        typeName));
+                }
+            }
+        }
 
         var inlineFragmentContext = context.Branch(typeCondition);
 
@@ -166,6 +249,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
             RewriteDirectives(inlineFragment.Directives),
             newSelectionSetNode);
 
+        context.Observer.OnMerge(inlineFragment, newInlineFragment);
         context.Selections.Add(newInlineFragment);
     }
 
@@ -174,7 +258,22 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         Context context)
     {
         var fragmentDefinition = context.GetFragmentDefinition(fragmentSpread.Name.Value);
-        var typeCondition = schema.Types[fragmentDefinition.TypeCondition.Name.Value];
+        var typeName = fragmentDefinition.TypeCondition.Name.Value;
+
+        if (!schema.Types.TryGetType(typeName, out var typeCondition))
+        {
+            if (ignoreMissingTypeSystemMembers)
+            {
+                typeCondition = new MissingType("__MissingType__");
+            }
+            else
+            {
+                throw new RewriterException(string.Format(
+                    InlineFragmentOperationRewriter_InvalidTypeConditionOnFragment,
+                    fragmentSpread.Name,
+                    typeName));
+            }
+        }
 
         if (fragmentSpread.Directives.Count == 0
             && typeCondition.IsAssignableFrom(context.Type))
@@ -207,13 +306,15 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
             RewriteDirectives(fragmentSpread.Directives),
             selectionSet);
 
+        context.Observer.OnMerge(fragmentDefinition.SelectionSet, inlineFragment.SelectionSet);
+
         if (context.Visited.Add(inlineFragment))
         {
             context.Selections.Add(inlineFragment);
         }
     }
 
-    private IReadOnlyList<DirectiveNode> RewriteDirectives(IReadOnlyList<DirectiveNode> directives)
+    private static IReadOnlyList<DirectiveNode> RewriteDirectives(IReadOnlyList<DirectiveNode> directives)
     {
         if (directives.Count == 0)
         {
@@ -237,7 +338,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         return ImmutableArray.Create(buffer);
     }
 
-    private IReadOnlyList<ArgumentNode> RewriteArguments(IReadOnlyList<ArgumentNode> arguments)
+    private static IReadOnlyList<ArgumentNode> RewriteArguments(IReadOnlyList<ArgumentNode> arguments)
     {
         if (arguments.Count == 0)
         {
@@ -258,7 +359,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         return ImmutableArray.Create(buffer);
     }
 
-    private Dictionary<string, FragmentDefinitionNode> CreateFragmentLookup(DocumentNode document)
+    private static Dictionary<string, FragmentDefinitionNode> CreateFragmentLookup(DocumentNode document)
     {
         var lookup = new Dictionary<string, FragmentDefinitionNode>();
 
@@ -273,11 +374,228 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         return lookup;
     }
 
+    private static bool IsIncluded(IReadOnlyList<DirectiveNode> directives)
+    {
+        if (directives.Count == 0)
+        {
+            return true;
+        }
+
+        var skipChecked = false;
+        var includeChecked = false;
+
+        if (directives.Count == 1)
+        {
+            return TryCheckIsIncluded(directives[0], ref skipChecked, ref includeChecked);
+        }
+
+        if (directives.Count == 2)
+        {
+            return TryCheckIsIncluded(directives[0], ref skipChecked, ref includeChecked)
+                && TryCheckIsIncluded(directives[1], ref skipChecked, ref includeChecked);
+        }
+
+        if (directives.Count == 3)
+        {
+            var included = TryCheckIsIncluded(directives[0], ref skipChecked, ref includeChecked);
+
+            if (!included)
+            {
+                return false;
+            }
+
+            included = TryCheckIsIncluded(directives[1], ref skipChecked, ref includeChecked);
+
+            if (!included)
+            {
+                return false;
+            }
+            else if (skipChecked && includeChecked)
+            {
+                return true;
+            }
+
+            return TryCheckIsIncluded(directives[2], ref skipChecked, ref includeChecked);
+        }
+
+        for (var i = 0; i < directives.Count; i++)
+        {
+            var included = TryCheckIsIncluded(directives[i], ref skipChecked, ref includeChecked);
+
+            if (!included)
+            {
+                return false;
+            }
+            else if (skipChecked && includeChecked)
+            {
+                return true;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool TryCheckIsIncluded(DirectiveNode directive, ref bool skipChecked, ref bool includeChecked)
+    {
+        if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal))
+        {
+            skipChecked = true;
+
+            if (directive.Arguments is [{ Value: BooleanValueNode { Value: true } }])
+            {
+                return false;
+            }
+        }
+        else if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal))
+        {
+            includeChecked = true;
+
+            if (directive.Arguments is [{ Value: BooleanValueNode { Value: false } }])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static IReadOnlyList<DirectiveNode> RemoveStaticIncludeConditions(
+        IReadOnlyList<DirectiveNode> directives)
+    {
+        if (directives.Count == 0)
+        {
+            return directives;
+        }
+
+        var skipChecked = false;
+        var includeChecked = false;
+
+        if (directives.Count == 1)
+        {
+            var directive = directives[0];
+            return IsStaticIncludeCondition(directive, ref skipChecked, ref includeChecked) ? [] : directives;
+        }
+
+        if (directives.Count == 2)
+        {
+            var directive1 = directives[0];
+            var directive2 = directives[1];
+
+            var remove1 = IsStaticIncludeCondition(directive1, ref skipChecked, ref includeChecked);
+
+            if (IsStaticIncludeCondition(directive2, ref skipChecked, ref includeChecked))
+            {
+                return remove1 ? [] : [directive1];
+            }
+
+            return remove1 ? [directive2] : directives;
+        }
+
+        if (directives.Count == 3)
+        {
+            var directive1 = directives[0];
+            var directive2 = directives[1];
+            var directive3 = directives[2];
+
+            var remove1 = IsStaticIncludeCondition(directive1, ref skipChecked, ref includeChecked);
+            var remove2 = IsStaticIncludeCondition(directive2, ref skipChecked, ref includeChecked);
+            var remove3 =
+                (skipChecked && includeChecked)
+                || IsStaticIncludeCondition(directive3, ref skipChecked, ref includeChecked);
+
+            switch (remove1)
+            {
+                case true when remove2 && remove3:
+                    return [];
+
+                case false when !remove2 && !remove3:
+                    return directives;
+
+                default:
+                    var list = new List<DirectiveNode>();
+
+                    if (!remove1)
+                    {
+                        list.Add(directive1);
+                    }
+
+                    if (!remove2)
+                    {
+                        list.Add(directive2);
+                    }
+
+                    if (!remove3)
+                    {
+                        list.Add(directive3);
+                    }
+
+                    return list;
+            }
+        }
+
+        List<DirectiveNode>? result = null;
+
+        for (var i = 0; i < directives.Count; i++)
+        {
+            var directive = directives[i];
+
+            if ((skipChecked && includeChecked)
+                || IsStaticIncludeCondition(directive, ref skipChecked, ref includeChecked))
+            {
+                if (result is not null)
+                {
+                    continue;
+                }
+
+                result = [];
+                for (var j = 0; j < i; j++)
+                {
+                    result.Add(directives[j]);
+                }
+            }
+            else
+            {
+                result?.Add(directive);
+            }
+        }
+
+        if (result is null)
+        {
+            return directives;
+        }
+
+        return result.Count == 0 ? [] : result;
+
+        static bool IsStaticIncludeCondition(DirectiveNode directive, ref bool skipChecked, ref bool includeChecked)
+        {
+            if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal)
+                && directive.Arguments.Count == 1
+                && directive.Arguments[0].Value is BooleanValueNode skipConstant
+                && !skipConstant.Value)
+            {
+                return true;
+            }
+            else if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal)
+                && (directive.Arguments.Count != 1
+                    || directive.Arguments[0].Value is not BooleanValueNode includeConstant
+                    || includeConstant.Value))
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+
     public readonly ref struct Context(
         ITypeDefinition type,
-        Dictionary<string, FragmentDefinitionNode> fragments)
+        Dictionary<string, FragmentDefinitionNode> fragments,
+        ISelectionSetMergeObserver? mergeObserver = null)
     {
         public ITypeDefinition Type { get; } = type;
+
+        public ISelectionSetMergeObserver Observer { get; } =
+            mergeObserver ?? NoopSelectionSetMergeObserver.Instance;
 
         public ImmutableArray<ISelectionNode>.Builder Selections { get; } =
             ImmutableArray.CreateBuilder<ISelectionNode>();
@@ -287,7 +605,16 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         public Dictionary<string, List<FieldNode>> Fields { get; } = new(StringComparer.Ordinal);
 
         public FragmentDefinitionNode GetFragmentDefinition(string name)
-            => fragments[name];
+        {
+            if (!fragments.TryGetValue(name, out var fragment))
+            {
+                throw new RewriterException(string.Format(
+                    InlineFragmentOperationRewriter_FragmentDoesNotExist,
+                    name));
+            }
+
+            return fragment;
+        }
 
         public void AddField(FieldNode field)
         {
@@ -313,7 +640,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         }
 
         public Context Branch(ITypeDefinition type)
-            => new(type, fragments);
+            => new(type, fragments, Observer);
     }
 
     private sealed class FieldComparer : IEqualityComparer<FieldNode>

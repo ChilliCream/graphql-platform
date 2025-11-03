@@ -1,14 +1,14 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Authorization;
 
 internal sealed partial class AuthorizationTypeInterceptor
 {
-    private sealed class ObjectTypeInfo : TypeInfo<ObjectTypeDefinition>
+    private sealed class ObjectTypeInfo : TypeInfo<ObjectTypeConfiguration>
     {
-        public ObjectTypeInfo(ITypeCompletionContext context, ObjectTypeDefinition typeDef)
+        public ObjectTypeInfo(ITypeCompletionContext context, ObjectTypeConfiguration typeDef)
             : base(context, typeDef)
         {
             TypeRef = TypeReg.TypeReference;

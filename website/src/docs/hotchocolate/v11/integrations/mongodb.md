@@ -5,7 +5,7 @@ title: MongoDB
 Hot Chocolate has a data integration for MongoDB.
 With this integration, you can translate paging, filtering, sorting, and projections, directly into native MongoDB queries.
 
-You can find a example project in [Hot Chocolate Examples](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/MongoDB)
+You can find an example project in [Hot Chocolate Examples](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/MongoDB)
 
 # Get Started
 

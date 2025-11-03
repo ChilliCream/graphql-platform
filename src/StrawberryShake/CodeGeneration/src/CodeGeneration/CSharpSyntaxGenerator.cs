@@ -20,15 +20,8 @@ public abstract class CSharpSyntaxGenerator<TDescriptor>
         ICodeDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (settings is null)
-        {
-            throw new ArgumentNullException(nameof(settings));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(settings);
 
         return Generate((TDescriptor)descriptor, settings);
     }

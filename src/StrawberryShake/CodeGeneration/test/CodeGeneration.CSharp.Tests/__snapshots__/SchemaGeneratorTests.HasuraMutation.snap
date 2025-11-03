@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -3543,7 +3544,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the InsertPeople GraphQL operation
     /// <code>
-    /// mutation InsertPeople($people: [people_insert_input!]!) {
+    /// mutation InsertPeople(
+    ///   $people: [people_insert_input!]!
+    /// ) {
     ///   insert_people(objects: $people) {
     ///     __typename
     ///     affected_rows
@@ -3560,129 +3563,7 @@ namespace Foo.Bar
 
         public static InsertPeopleMutationDocument Instance { get; } = new InsertPeopleMutationDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x6d,
-            0x75,
-            0x74,
-            0x61,
-            0x74,
-            0x69,
-            0x6f,
-            0x6e,
-            0x20,
-            0x49,
-            0x6e,
-            0x73,
-            0x65,
-            0x72,
-            0x74,
-            0x50,
-            0x65,
-            0x6f,
-            0x70,
-            0x6c,
-            0x65,
-            0x28,
-            0x24,
-            0x70,
-            0x65,
-            0x6f,
-            0x70,
-            0x6c,
-            0x65,
-            0x3a,
-            0x20,
-            0x5b,
-            0x70,
-            0x65,
-            0x6f,
-            0x70,
-            0x6c,
-            0x65,
-            0x5f,
-            0x69,
-            0x6e,
-            0x73,
-            0x65,
-            0x72,
-            0x74,
-            0x5f,
-            0x69,
-            0x6e,
-            0x70,
-            0x75,
-            0x74,
-            0x21,
-            0x5d,
-            0x21,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x6e,
-            0x73,
-            0x65,
-            0x72,
-            0x74,
-            0x5f,
-            0x70,
-            0x65,
-            0x6f,
-            0x70,
-            0x6c,
-            0x65,
-            0x28,
-            0x6f,
-            0x62,
-            0x6a,
-            0x65,
-            0x63,
-            0x74,
-            0x73,
-            0x3a,
-            0x20,
-            0x24,
-            0x70,
-            0x65,
-            0x6f,
-            0x70,
-            0x6c,
-            0x65,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x61,
-            0x66,
-            0x66,
-            0x65,
-            0x63,
-            0x74,
-            0x65,
-            0x64,
-            0x5f,
-            0x72,
-            0x6f,
-            0x77,
-            0x73,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "mutation InsertPeople($people: [people_insert_input!]!) { insert_people(objects: $people) { __typename affected_rows } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "c8b55152dcc4370cf6b30d4d748739527f578d0a");
 
         public override global::System.String ToString()
@@ -3699,7 +3580,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the InsertPeople GraphQL operation
     /// <code>
-    /// mutation InsertPeople($people: [people_insert_input!]!) {
+    /// mutation InsertPeople(
+    ///   $people: [people_insert_input!]!
+    /// ) {
     ///   insert_people(objects: $people) {
     ///     __typename
     ///     affected_rows
@@ -3712,17 +3595,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IInsertPeopleResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _people_Insert_InputFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public InsertPeopleMutation(global::StrawberryShake.IOperationExecutor<IInsertPeopleResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _people_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("people_insert_input");
         }
 
+        private InsertPeopleMutation(global::StrawberryShake.IOperationExecutor<IInsertPeopleResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter people_Insert_InputFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _people_Insert_InputFormatter = people_Insert_InputFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IInsertPeopleResult);
+
+        public global::Foo.Bar.IInsertPeopleMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.InsertPeopleMutation(_operationExecutor, _configure.Add(configure), _people_Insert_InputFormatter);
+        }
+
+        public global::Foo.Bar.IInsertPeopleMutation WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IInsertPeopleMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> ExecuteAsync(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(people);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -3775,7 +3686,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the InsertPeople GraphQL operation
     /// <code>
-    /// mutation InsertPeople($people: [people_insert_input!]!) {
+    /// mutation InsertPeople(
+    ///   $people: [people_insert_input!]!
+    /// ) {
     ///   insert_people(objects: $people) {
     ///     __typename
     ///     affected_rows
@@ -3786,6 +3699,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IInsertPeopleMutation : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IInsertPeopleMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IInsertPeopleMutation WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IInsertPeopleMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> ExecuteAsync(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> Watch(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -3855,7 +3771,7 @@ namespace Foo.Bar.State
             }
 
             IInsertPeople_Insert_people returnValue = default !;
-            if (data?.__typename.Equals("people_mutation_response", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("people_mutation_response", global::System.StringComparison.Ordinal))
             {
                 returnValue = new InsertPeople_Insert_people_people_mutation_response(data.Affected_rows ?? throw new global::System.ArgumentNullException());
             }
@@ -4214,6 +4130,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::Foo.Bar.State.FooClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.InsertPeopleMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IInsertPeopleMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IFooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>("FooClient", services, serviceCollection);

@@ -1,0 +1,124 @@
+title: Upload_Single_File
+request:
+  contentType: multipart/form-data; boundary="f56524ab-5626-4955-b296-234a097b44f6"
+  body: |
+    --f56524ab-5626-4955-b296-234a097b44f6
+    Content-Type: application/json; charset=utf-8
+    Content-Disposition: form-data; name=operations
+
+    {"query":"query ($file: Upload!) {\n  singleUpload(file: $file) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"file":null}}
+    --f56524ab-5626-4955-b296-234a097b44f6
+    Content-Type: application/json; charset=utf-8
+    Content-Disposition: form-data; name=map
+
+    {"0":["variables.file"]}
+    --f56524ab-5626-4955-b296-234a097b44f6
+    Content-Type: text/plain
+    Content-Disposition: form-data; name=0; filename=test.txt; filename*=utf-8''test.txt
+
+    abc
+    --f56524ab-5626-4955-b296-234a097b44f6--
+response:
+  body: |
+    {
+      "data": {
+        "singleUpload": {
+          "fileName": "test.txt",
+          "contentType": "text/plain",
+          "content": "abc"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type FileUploadResult {
+        fileName: String!
+        contentType: String
+        content: String!
+      }
+
+      type Query {
+        singleUpload(file: Upload!): FileUploadResult!
+        singleUploadWithInput(input: FileInput!): FileUploadResult!
+        multiUpload(files: [Upload!]!): [FileUploadResult!]!
+        multiUploadWithInput(input: FilesInput!): [FileUploadResult!]!
+      }
+
+      input FileInput {
+        file: Upload!
+      }
+
+      input FilesInput {
+        files: [Upload!]!
+      }
+
+      "The `Upload` scalar type represents a file upload."
+      scalar Upload
+    interactions:
+      - request:
+          contentType: multipart/form-data; boundary="f56524ab-5626-4955-b296-234a097b44f6"
+          body: |
+            --f56524ab-5626-4955-b296-234a097b44f6
+            Content-Type: application/json; charset=utf-8
+            Content-Disposition: form-data; name=operations
+
+            {"query":"query Op_6e1beb14_1(\n  $file: Upload!\n) {\n  singleUpload(file: $file) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"file":null}}
+            --f56524ab-5626-4955-b296-234a097b44f6
+            Content-Type: application/json; charset=utf-8
+            Content-Disposition: form-data; name=map
+
+            {"0":["variables.file"]}
+            --f56524ab-5626-4955-b296-234a097b44f6
+            Content-Type: text/plain
+            Content-Disposition: form-data; name=0; filename=test.txt; filename*=utf-8''test.txt
+
+            abc
+            --f56524ab-5626-4955-b296-234a097b44f6--
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "singleUpload": {
+                    "fileName": "test.txt",
+                    "contentType": "text/plain",
+                    "content": "abc"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query(
+          $file: Upload!
+        ) {
+          singleUpload(file: $file) {
+            fileName
+            contentType
+            content
+          }
+        }
+      hash: 6e1beb142822946e961b9f062df288a0
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_6e1beb14_1(
+          $file: Upload!
+        ) {
+          singleUpload(file: $file) {
+            fileName
+            contentType
+            content
+          }
+        }
+      forwardedVariables:
+        - file
+      requiresFileUpload: true

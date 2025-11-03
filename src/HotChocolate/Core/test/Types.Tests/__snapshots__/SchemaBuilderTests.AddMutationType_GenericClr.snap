@@ -1,14 +1,14 @@
-﻿schema {
+schema {
   query: Query
   mutation: Foo
 }
 
 type Bar {
-  baz: String
+  baz: String!
 }
 
 type Foo {
-  bar: Bar
+  bar: Bar!
 }
 
 type Query {

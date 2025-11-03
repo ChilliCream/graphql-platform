@@ -3,7 +3,7 @@ using System.IO.Pipelines;
 namespace StrawberryShake.Transport.WebSockets;
 
 /// <summary>
-/// Represents a client for sending and receiving messages responses over a abstract socket
+/// Represents a client for sending and receiving messages responses over an abstract socket
 /// identified by a URI and name.
 /// </summary>
 public interface ISocketClient : IAsyncDisposable

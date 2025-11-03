@@ -37,7 +37,7 @@ public static class OffsetPagingRequestExecutorBuilderExtension
             defaultProvider);
 
     /// <summary>
-    /// Adds a offset paging provider to the DI.
+    /// Adds an offset paging provider to the DI.
     /// </summary>
     /// <param name="builder">
     /// The request executor builder.
@@ -63,10 +63,7 @@ public static class OffsetPagingRequestExecutorBuilderExtension
         bool defaultProvider = false)
         where TProvider : OffsetPagingProvider
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.TryAddSingleton<TProvider>();
 
@@ -80,7 +77,7 @@ public static class OffsetPagingRequestExecutorBuilderExtension
     }
 
     /// <summary>
-    /// Adds a offset paging provider to the DI.
+    /// Adds an offset paging provider to the DI.
     /// </summary>
     /// <param name="builder">
     /// The request executor builder.
@@ -110,10 +107,7 @@ public static class OffsetPagingRequestExecutorBuilderExtension
         bool defaultProvider = false)
         where TProvider : OffsetPagingProvider
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (defaultProvider)
         {

@@ -28,11 +28,11 @@ namespace HotChocolate.ApolloFederation.Types;
 [Package(Federation25)]
 [DirectiveType(
     AuthenticatedDirective_Name,
-    DirectiveLocation.Enum |
-    DirectiveLocation.FieldDefinition |
-    DirectiveLocation.Interface |
-    DirectiveLocation.Object |
-    DirectiveLocation.Scalar)]
+    DirectiveLocation.Enum
+    | DirectiveLocation.FieldDefinition
+    | DirectiveLocation.Interface
+    | DirectiveLocation.Object
+    | DirectiveLocation.Scalar)]
 [GraphQLDescription(AuthenticatedDirective_Description)]
 public sealed class AuthenticatedDirective
 {

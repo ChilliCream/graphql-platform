@@ -3,8 +3,8 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters;
 
 public interface IOrField
-    : IInputField
+    : IInputValueDefinition
     , IHasRuntimeType
 {
-    new IFilterInputType DeclaringType { get; }
+    IFilterInputType DeclaringType { get; }
 }

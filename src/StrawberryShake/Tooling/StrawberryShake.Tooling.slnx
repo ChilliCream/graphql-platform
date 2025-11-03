@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Configuration/StrawberryShake.Tools.Configuration.csproj" />
+    <Project Path="src/dotnet-graphql/dotnet-graphql.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Configuration.Tests/StrawberryShake.Tools.Configuration.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -29,6 +29,6 @@ public class FeatureCollectionExtensionsTests
         features.Set<IThing>(thing);
 
         // Assert
-        Assert.Throws<InvalidOperationException>(() => features.GetRequired<object>());
+        Assert.Throws<InvalidOperationException>(features.GetRequired<object>);
     }
 }

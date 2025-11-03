@@ -1,7 +1,5 @@
 using HotChocolate.Language;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class UuidTypeTests
@@ -93,7 +91,7 @@ public class UuidTypeTests
     {
         // arrange
         var uuidType = new UuidType();
-        var value = 123;
+        const int value = 123;
 
         // act
         void Action() => uuidType.Serialize(value);
@@ -151,7 +149,7 @@ public class UuidTypeTests
     {
         // arrange
         var uuidType = new UuidType();
-        var value = 123;
+        const int value = 123;
 
         // act
         var success = uuidType.TryDeserialize(value, out _);
@@ -269,7 +267,7 @@ public class UuidTypeTests
     {
         // arrange
         var uuidType = new UuidType();
-        var value = 123;
+        const int value = 123;
 
         // act
         void Action() => uuidType.ParseValue(value);
@@ -411,7 +409,7 @@ public class UuidTypeTests
     public void Deserialize_Guid_String_With_Appended_String(bool enforceFormat)
     {
         // arrange
-        var input = "fbdef721-93c5-4267-8f92-ca27b60aa51f-foobar";
+        const string input = "fbdef721-93c5-4267-8f92-ca27b60aa51f-foobar";
         var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
 
         // act
@@ -427,7 +425,7 @@ public class UuidTypeTests
     public void Deserialize_Guid_Valid_Format(bool enforceFormat)
     {
         // arrange
-        var input = "fbdef721-93c5-4267-8f92-ca27b60aa51f";
+        const string input = "fbdef721-93c5-4267-8f92-ca27b60aa51f";
         var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
 
         // act

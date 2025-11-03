@@ -6,9 +6,7 @@ public class Author
 
     public string? Name { get; set; }
 
-    public virtual ICollection<Book> Books { get; set; } =
-        new List<Book>();
+    public virtual ICollection<Book> Books { get; set; } = [];
 
-    public virtual ICollection<Publisher> Publishers { get; set; } =
-        new List<Publisher>();
+    public virtual ICollection<Publisher> Publishers { get; set; } = [];
 }

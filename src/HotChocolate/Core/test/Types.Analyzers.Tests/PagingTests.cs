@@ -429,4 +429,1116 @@ public class PagingTests
             }
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task GenerateSource_Inherit_From_PageConnection()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace
+            {
+                public sealed class Author
+                {
+                    public int Id { get; set; }
+                    public string Name { get; set; }
+                }
+            }
+
+            namespace TestNamespace.Types.Root
+            {
+                [QueryType]
+                public static partial class AuthorQueries
+                {
+                    public static Task<AuthorConnection> GetAuthorsAsync(
+                        GreenDonut.Data.PagingArguments pagingArgs,
+                        CancellationToken cancellationToken)
+                        => default!;
+                }
+            }
+
+            namespace TestNamespace
+            {
+                public class AuthorConnection : PageConnection<Author>
+                {
+                    public AuthorConnection(GreenDonut.Data.Page<Author> page)
+                        : base(page)
+                    {
+                    }
+
+                    public string CustomResolver() => "Foo";
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_Inherit_From_ConnectionBase_Reuse_PageEdge()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace
+            {
+                public sealed class Author
+                {
+                    public int Id { get; set; }
+                    public string Name { get; set; }
+                }
+            }
+
+            namespace TestNamespace.Types.Root
+            {
+                [QueryType]
+                public static partial class AuthorQueries
+                {
+                    public static Task<AuthorConnection> GetAuthorsAsync(
+                        GreenDonut.Data.PagingArguments pagingArgs,
+                        CancellationToken cancellationToken)
+                        => default!;
+                }
+            }
+
+            namespace TestNamespace
+            {
+                public class AuthorConnection : ConnectionBase<Author, PageEdge<Author>, ConnectionPageInfo>
+                {
+                    public override IReadOnlyList<PageEdge<Author>>? Edges => default!;
+
+                    public IReadOnlyList<Author> Nodes => default!;
+
+                    public override ConnectionPageInfo PageInfo => default!;
+
+                    public int TotalCount => 0;
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_Inherit_From_ConnectionBase_Reuse_PageEdge_Generic()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace
+            {
+                public sealed class Author
+                {
+                    public int Id { get; set; }
+                    public string Name { get; set; }
+                }
+            }
+
+            namespace TestNamespace.Types.Root
+            {
+                [QueryType]
+                public static partial class AuthorQueries
+                {
+                    public static Task<CustomConnection<Author>> GetAuthorsAsync(
+                        GreenDonut.Data.PagingArguments pagingArgs,
+                        CancellationToken cancellationToken)
+                        => default!;
+                }
+            }
+
+            namespace TestNamespace
+            {
+                public class CustomConnection<T> : ConnectionBase<T, PageEdge<T>, ConnectionPageInfo>
+                {
+                    public override IReadOnlyList<PageEdge<T>>? Edges => default!;
+
+                    public IReadOnlyList<T> Nodes => default!;
+
+                    public override ConnectionPageInfo PageInfo => default!;
+
+                    public int TotalCount => 0;
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_Inherit_From_ConnectionBase_Inherit_PageEdge()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace
+            {
+                public sealed class Author
+                {
+                    public int Id { get; set; }
+                    public string Name { get; set; }
+                }
+            }
+
+            namespace TestNamespace.Types.Root
+            {
+                [QueryType]
+                public static partial class AuthorQueries
+                {
+                    public static Task<AuthorConnection> GetAuthorsAsync(
+                        GreenDonut.Data.PagingArguments pagingArgs,
+                        CancellationToken cancellationToken)
+                        => default!;
+                }
+            }
+
+            namespace TestNamespace
+            {
+                public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+                {
+                    public override IReadOnlyList<AuthorEdge>? Edges => default!;
+
+                    public IReadOnlyList<Author> Nodes => default!;
+
+                    public override ConnectionPageInfo PageInfo => default!;
+
+                    public int TotalCount => 0;
+                }
+
+                public class AuthorEdge(GreenDonut.Data.Page<Author> page, Author author) : PageEdge<Author>(page, author)
+                {
+                    public Author Author => Node;
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_ConnectionFlags()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace
+            {
+                public sealed class Author
+                {
+                    public int Id { get; set; }
+                    public string Name { get; set; }
+                }
+            }
+
+            namespace TestNamespace.Types.Root
+            {
+                [QueryType]
+                public static partial class AuthorQueries
+                {
+                    public static Task<AuthorConnection> GetAuthorsAsync(
+                        GreenDonut.Data.PagingArguments pagingArgs,
+                        ConnectionFlags flags,
+                        CancellationToken cancellationToken)
+                        => default!;
+                }
+            }
+
+            namespace TestNamespace
+            {
+                public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+                {
+                    public override IReadOnlyList<AuthorEdge>? Edges => default!;
+
+                    public IReadOnlyList<Author> Nodes => default!;
+
+                    public override ConnectionPageInfo PageInfo => default!;
+
+                    public int TotalCount => 0;
+                }
+
+                public class AuthorEdge(GreenDonut.Data.Page<Author> page, Author author) : PageEdge<Author>(page, author)
+                {
+                    public Author Author => Node;
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Shareable_On_Connection_Class()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            [Shareable]
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                public override IReadOnlyList<AuthorEdge> Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            public class AuthorEdge : IEdge<Author>
+            {
+                public Author Node => default!;
+
+                object? IEdge.Node => Node;
+
+                public string Cursor => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Shareable_On_Connection_Class_Scoped()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            [Shareable(scoped: true)]
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                public override IReadOnlyList<AuthorEdge> Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            public class AuthorEdge : IEdge<Author>
+            {
+                public Author Node => default!;
+
+                object? IEdge.Node => Node;
+
+                public string Cursor => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Shareable_On_Connection_Field()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                [Shareable]
+                public override IReadOnlyList<AuthorEdge> Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            public class AuthorEdge : IEdge<Author>
+            {
+                public Author Node => default!;
+
+                object? IEdge.Node => Node;
+
+                public string Cursor => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Shareable_On_Edge_Class()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                public override IReadOnlyList<AuthorEdge> Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            [Shareable]
+            public class AuthorEdge : IEdge<Author>
+            {
+                public Author Node => default!;
+
+                object? IEdge.Node => Node;
+
+                public string Cursor => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Shareable_On_Edge_Class_Scoped()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                public override IReadOnlyList<AuthorEdge> Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            [Shareable(scoped: true)]
+            public class AuthorEdge : IEdge<Author>
+            {
+                public Author Node => default!;
+
+                object? IEdge.Node => Node;
+
+                public string Cursor => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Shareable_On_Edge_Field()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                public override IReadOnlyList<AuthorEdge> Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            public class AuthorEdge : IEdge<Author>
+            {
+                [Shareable]
+                public Author Node => default!;
+
+                object? IEdge.Node => Node;
+
+                public string Cursor => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Shareable_On_PageConnection()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace
+            {
+                public sealed class Author
+                {
+                    public int Id { get; set; }
+                    public string Name { get; set; }
+                }
+            }
+
+            namespace TestNamespace.Types.Root
+            {
+                [QueryType]
+                public static partial class AuthorQueries
+                {
+                    public static Task<AuthorConnection> GetAuthorsAsync(
+                        GreenDonut.Data.PagingArguments pagingArgs,
+                        CancellationToken cancellationToken)
+                        => default!;
+                }
+            }
+
+            namespace TestNamespace
+            {
+                [Shareable]
+                public class AuthorConnection : PageConnection<Author>
+                {
+                    public AuthorConnection(GreenDonut.Data.Page<Author> page)
+                        : base(page)
+                    {
+                    }
+
+                    public string CustomResolver() => "Foo";
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Shareable_On_PageConnection_Scoped()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace
+            {
+                public sealed class Author
+                {
+                    public int Id { get; set; }
+                    public string Name { get; set; }
+                }
+            }
+
+            namespace TestNamespace.Types.Root
+            {
+                [QueryType]
+                public static partial class AuthorQueries
+                {
+                    public static Task<AuthorConnection> GetAuthorsAsync(
+                        GreenDonut.Data.PagingArguments pagingArgs,
+                        CancellationToken cancellationToken)
+                        => default!;
+                }
+            }
+
+            namespace TestNamespace
+            {
+                [Shareable(scoped: true)]
+                public class AuthorConnection : PageConnection<Author>
+                {
+                    public AuthorConnection(GreenDonut.Data.Page<Author> page)
+                        : base(page)
+                    {
+                    }
+
+                    public string CustomResolver() => "Foo";
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Inaccessible_On_Connection_Class()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            [Inaccessible]
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                public override IReadOnlyList<AuthorEdge> Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            public class AuthorEdge : IEdge<Author>
+            {
+                public Author Node => default!;
+
+                object? IEdge.Node => Node;
+
+                public string Cursor => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Inaccessible_On_Connection_Class_Scoped()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            [Inaccessible(scoped: true)]
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                public override IReadOnlyList<AuthorEdge> Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            public class AuthorEdge : IEdge<Author>
+            {
+                public Author Node => default!;
+
+                object? IEdge.Node => Node;
+
+                public string Cursor => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Inaccessible_On_Connection_Field()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                [Inaccessible]
+                public override IReadOnlyList<AuthorEdge> Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            public class AuthorEdge : IEdge<Author>
+            {
+                public Author Node => default!;
+
+                object? IEdge.Node => Node;
+
+                public string Cursor => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Inaccessible_On_Edge_Class()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                public override IReadOnlyList<AuthorEdge> Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            [Inaccessible]
+            public class AuthorEdge : IEdge<Author>
+            {
+                public Author Node => default!;
+
+                object? IEdge.Node => Node;
+
+                public string Cursor => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Inaccessible_On_Edge_Class_Scoped()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                public override IReadOnlyList<AuthorEdge> Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            [Inaccessible(scoped: true)]
+            public class AuthorEdge : IEdge<Author>
+            {
+                public Author Node => default!;
+
+                object? IEdge.Node => Node;
+
+                public string Cursor => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Inaccessible_On_Edge_Field()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                public override IReadOnlyList<AuthorEdge> Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            public class AuthorEdge : IEdge<Author>
+            {
+                [Inaccessible]
+                public Author Node => default!;
+
+                object? IEdge.Node => Node;
+
+                public string Cursor => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Inaccessible_On_PageConnection()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace
+            {
+                public sealed class Author
+                {
+                    public int Id { get; set; }
+                    public string Name { get; set; }
+                }
+            }
+
+            namespace TestNamespace.Types.Root
+            {
+                [QueryType]
+                public static partial class AuthorQueries
+                {
+                    public static Task<AuthorConnection> GetAuthorsAsync(
+                        GreenDonut.Data.PagingArguments pagingArgs,
+                        CancellationToken cancellationToken)
+                        => default!;
+                }
+            }
+
+            namespace TestNamespace
+            {
+                [Inaccessible]
+                public class AuthorConnection : PageConnection<Author>
+                {
+                    public AuthorConnection(GreenDonut.Data.Page<Author> page)
+                        : base(page)
+                    {
+                    }
+
+                    public string CustomResolver() => "Foo";
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Inaccessible_On_PageConnection_Scoped()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace
+            {
+                public sealed class Author
+                {
+                    public int Id { get; set; }
+                    public string Name { get; set; }
+                }
+            }
+
+            namespace TestNamespace.Types.Root
+            {
+                [QueryType]
+                public static partial class AuthorQueries
+                {
+                    public static Task<AuthorConnection> GetAuthorsAsync(
+                        GreenDonut.Data.PagingArguments pagingArgs,
+                        CancellationToken cancellationToken)
+                        => default!;
+                }
+            }
+
+            namespace TestNamespace
+            {
+                [Inaccessible(scoped: true)]
+                public class AuthorConnection : PageConnection<Author>
+                {
+                    public AuthorConnection(GreenDonut.Data.Page<Author> page)
+                        : base(page)
+                    {
+                    }
+
+                    public string CustomResolver() => "Foo";
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
 }

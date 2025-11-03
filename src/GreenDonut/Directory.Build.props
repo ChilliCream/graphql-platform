@@ -5,7 +5,6 @@
     <PackageTags>DataLoader Batching Caching GraphQL ChilliCream Facebook</PackageTags>
     <PackageIcon>greendonut-signet.png</PackageIcon>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
-    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
 </Project>

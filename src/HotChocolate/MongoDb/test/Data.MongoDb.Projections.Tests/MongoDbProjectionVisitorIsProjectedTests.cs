@@ -8,24 +8,24 @@ namespace HotChocolate.Data.MongoDb.Projections;
 public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
     : IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new Foo
         {
             IsProjectedTrue = true,
-            IsProjectedFalse = false,
+            IsProjectedFalse = false
         },
         new Foo
         {
             IsProjectedTrue = true,
-            IsProjectedFalse = false,
-        },
+            IsProjectedFalse = false
+        }
     ];
 
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
-        new Bar { IsProjectedFalse = false, },
-        new Bar { IsProjectedFalse = false, },
+        new Bar { IsProjectedFalse = false },
+        new Bar { IsProjectedFalse = false }
     ];
 
     private readonly SchemaCache _cache = new(resource);
@@ -34,7 +34,7 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
     public async Task IsProjected_Should_NotBeProjectedWhenSelected_When_FalseWithOneProps()
     {
         // arrange
-        var tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -53,7 +53,7 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
     public async Task IsProjected_Should_NotBeProjectedWhenSelected_When_FalseWithTwoProps()
     {
         // arrange
-        var tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -72,7 +72,7 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
     public async Task IsProjected_Should_AlwaysBeProjectedWhenSelected_When_True()
     {
         // arrange
-        var tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -91,7 +91,7 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
     public async Task IsProjected_Should_NotFailWhenSelectionSetSkippedCompletely()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

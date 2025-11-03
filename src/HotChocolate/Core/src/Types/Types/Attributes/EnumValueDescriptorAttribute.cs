@@ -1,8 +1,6 @@
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 [AttributeUsage(
@@ -14,17 +12,23 @@ public abstract class EnumValueDescriptorAttribute : DescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (descriptor is IEnumValueDescriptor d
-            && element is FieldInfo f)
+        var field = attributeProvider as FieldInfo;
+
+        if (RequiresAttributeProvider && field is null)
         {
-            OnConfigure(context, d, f);
+            throw new InvalidOperationException("The attribute provider is required to be a field.");
+        }
+
+        if (descriptor is IEnumValueDescriptor enumValueDescriptor)
+        {
+            OnConfigure(context, enumValueDescriptor, field);
         }
     }
 
     protected abstract void OnConfigure(
         IDescriptorContext context,
         IEnumValueDescriptor descriptor,
-        FieldInfo field);
+        FieldInfo? field);
 }

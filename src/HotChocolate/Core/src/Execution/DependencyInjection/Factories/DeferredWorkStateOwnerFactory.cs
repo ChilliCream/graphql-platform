@@ -30,10 +30,7 @@ internal sealed class DeferredWorkStateOwnerFactory : IFactory<DeferredWorkState
         {
             lock (_sync)
             {
-                if (_owner is null)
-                {
-                    _owner = new DeferredWorkStateOwner(_pool);
-                }
+                _owner ??= new DeferredWorkStateOwner(_pool);
             }
         }
 

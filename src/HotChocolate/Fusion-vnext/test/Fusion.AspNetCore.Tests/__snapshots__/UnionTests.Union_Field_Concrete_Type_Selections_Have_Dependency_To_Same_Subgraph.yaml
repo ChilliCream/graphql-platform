@@ -1,0 +1,214 @@
+title: Union_Field_Concrete_Type_Selections_Have_Dependency_To_Same_Subgraph
+request:
+  document: |
+    query testQuery {
+      post {
+        ... on Photo {
+          product {
+            subgraph2
+          }
+        }
+        ... on Discussion {
+          author {
+            subgraph2
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "post": {
+          "product": {
+            "subgraph2": "Product: UHJvZHVjdDoy"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+
+      type Discussion {
+        id: ID!
+        author: Author
+      }
+
+      type Photo {
+        id: ID!
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+
+      type Query {
+        post: Post
+      }
+
+      union Post = Photo | Discussion
+    interactions:
+      - request:
+          document: |
+            query testQuery_8891193d_1 {
+              post {
+                __typename
+                ... on Photo {
+                  product {
+                    id
+                  }
+                }
+                ... on Discussion {
+                  author {
+                    id
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "post": {
+                    "__typename": "Photo",
+                    "product": {
+                      "id": "UHJvZHVjdDoy"
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: ID!
+        subgraph2: String!
+      }
+
+      type Product {
+        id: ID!
+        subgraph2: String!
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup
+        authorById(id: ID!): Author @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_8891193d_3(
+              $__fusion_2_id: ID!
+            ) {
+              productById(id: $__fusion_2_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "UHJvZHVjdDoy"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoy"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          post {
+            __typename @fusion__requirement
+            ... on Photo {
+              product {
+                subgraph2
+                id @fusion__requirement
+              }
+            }
+            ... on Discussion {
+              author {
+                subgraph2
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 8891193d6a2efd1415247828bc89c072
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_8891193d_1 {
+          post {
+            __typename
+            ... on Photo {
+              product {
+                id
+              }
+            }
+            ... on Discussion {
+              author {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_8891193d_2(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            subgraph2
+          }
+        }
+      source: $.authorById
+      target: $.post<Discussion>.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_8891193d_3(
+          $__fusion_2_id: ID!
+        ) {
+          productById(id: $__fusion_2_id) {
+            subgraph2
+          }
+        }
+      source: $.productById
+      target: $.post<Photo>.product
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

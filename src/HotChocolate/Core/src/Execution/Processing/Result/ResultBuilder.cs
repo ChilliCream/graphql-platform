@@ -6,7 +6,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class ResultBuilder
 {
-    private static readonly Func<ValueTask>[] _emptyCleanupTasks = [];
+    private static readonly Func<ValueTask>[] s_emptyCleanupTasks = [];
     private readonly List<IError> _errors = [];
     private readonly HashSet<Path> _errorPaths = [];
     private readonly HashSet<ISelection> _fieldErrors = [];
@@ -14,11 +14,11 @@ internal sealed partial class ResultBuilder
     private readonly HashSet<uint> _removedResults = [];
     private readonly HashSet<uint> _patchIds = [];
 
-    private readonly Dictionary<string, object?> _extensions = new();
-    private readonly Dictionary<string, object?> _contextData = new();
+    private readonly Dictionary<string, object?> _extensions = [];
+    private readonly Dictionary<string, object?> _contextData = [];
     private readonly List<Func<ValueTask>> _cleanupTasks = [];
 
-    private ResultMemoryOwner _resultOwner = default!;
+    private ResultMemoryOwner _resultOwner = null!;
     private ObjectResult? _data;
     private IReadOnlyList<object?>? _items;
     private Path? _path;
@@ -259,13 +259,13 @@ internal sealed partial class ResultBuilder
             _errors.Count == 0 ? null : _errors.ToArray(),
             CreateExtensionData(_extensions),
             CreateExtensionData(_contextData),
-            incremental: null,
             items: _items,
+            incremental: null,
             label: _label,
             path: _path,
             hasNext: _hasNext,
             cleanupTasks: _cleanupTasks.Count == 0
-                ? _emptyCleanupTasks
+                ? s_emptyCleanupTasks
                 : _cleanupTasks.ToArray(),
             isDataSet: true,
             requestIndex: _requestIndex,

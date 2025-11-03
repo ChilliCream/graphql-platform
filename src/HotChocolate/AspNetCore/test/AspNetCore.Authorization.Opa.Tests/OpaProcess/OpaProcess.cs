@@ -15,7 +15,7 @@ public class OpaProcess
     {
         var opaProcess = new OpaProcess(new ContainerBuilder()
             .WithImage("openpolicyagent/opa")
-            .WithPortBinding(8181, 8181)
+            .WithPortBinding(8181, assignRandomHostPort: true)
             .WithCommand(
                 "run", "--server",
                 "--addr", ":8181",
@@ -27,6 +27,11 @@ public class OpaProcess
             .Build());
         await opaProcess._container.StartAsync();
         return opaProcess;
+    }
+
+    public int GetPort()
+    {
+        return _container.GetMappedPublicPort(8181);
     }
 
     public async Task DisposeAsync()

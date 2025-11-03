@@ -1,6 +1,10 @@
 using System.Net.Http.Headers;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
 /// <summary>
 /// Provides extension methods for <see cref="HttpRequestHeaders"/>.
@@ -21,10 +25,7 @@ public static class HttpRequestHeadersExtensions
     /// </exception>
     public static HttpRequestHeaders AddGraphQLPreflight(this HttpRequestHeaders headers)
     {
-        if (headers == null)
-        {
-            throw new ArgumentNullException(nameof(headers));
-        }
+        ArgumentNullException.ThrowIfNull(headers);
 
         headers.Add("GraphQL-Preflight", "1");
         return headers;

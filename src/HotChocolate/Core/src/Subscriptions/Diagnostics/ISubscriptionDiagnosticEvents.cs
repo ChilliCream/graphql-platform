@@ -16,7 +16,7 @@ public interface ISubscriptionDiagnosticEvents
     void Created(string topicName);
 
     /// <summary>
-    /// The event topic has connected to the pub/sub system and is now ready to receive
+    /// The event topic has connected to the pub-/sub-system and is now ready to receive
     /// event messages.
     /// </summary>
     /// <param name="topicName">
@@ -25,7 +25,7 @@ public interface ISubscriptionDiagnosticEvents
     void Connected(string topicName);
 
     /// <summary>
-    /// The topic was closed and has disconnected from the pub/sub system.
+    /// The topic was closed and has disconnected from the pub-/sub-system.
     /// </summary>
     /// <param name="topicName">
     /// The name of the topic.
@@ -33,7 +33,7 @@ public interface ISubscriptionDiagnosticEvents
     void Disconnected(string topicName);
 
     /// <summary>
-    /// An error occurred during message processing or while connecting to the pub/sub system.
+    /// An error occurred during message processing or while connecting to the pub-/sub-system.
     /// </summary>
     /// <param name="topicName">
     /// The name of the topic.
@@ -44,7 +44,7 @@ public interface ISubscriptionDiagnosticEvents
     void MessageProcessingError(string topicName, Exception error);
 
     /// <summary>
-    /// Received a message from the pub/sub system.
+    /// Received a message from the pub-/sub-system.
     /// </summary>
     /// <param name="topicName">
     /// The name of the topic.
@@ -87,7 +87,7 @@ public interface ISubscriptionDiagnosticEvents
     /// The name of the topic.
     /// </param>
     /// <param name="attempt">
-    /// The subscribe attempt count.
+    /// The attempt counts to subscribe.
     /// </param>
     void TrySubscribe(string topicName, int attempt);
 
@@ -108,7 +108,7 @@ public interface ISubscriptionDiagnosticEvents
     void SubscribeFailed(string topicName);
 
     /// <summary>
-    /// The GraphQL execution engine has unsubscribed form the topic.
+    /// The GraphQL execution engine has unsubscribed from the topic.
     /// </summary>
     /// <param name="topicName">
     /// The name of the topic.
@@ -117,7 +117,7 @@ public interface ISubscriptionDiagnosticEvents
     /// The shard to which the subscribers belonged to.
     /// </param>
     /// <param name="subscribers">
-    /// The amount of subscribers that have unsubscribed.
+    /// The number of subscribers that have unsubscribed.
     /// </param>
     void Unsubscribe(string topicName, int shard, int subscribers);
 
@@ -130,7 +130,7 @@ public interface ISubscriptionDiagnosticEvents
     void Close(string topicName);
 
     /// <summary>
-    /// An event message was send to the pub/sub system. (outgoing message)
+    /// An event message was sent to the pub-/sub-system. (outgoing message)
     /// </summary>
     /// <param name="topicName">
     /// The name of the topic.
@@ -144,7 +144,7 @@ public interface ISubscriptionDiagnosticEvents
     void Send<T>(string topicName, T message);
 
     /// <summary>
-    /// Provider specific information.
+    /// Provider-specific information.
     /// </summary>
     /// <param name="infoText">
     /// The information text.
@@ -152,7 +152,7 @@ public interface ISubscriptionDiagnosticEvents
     void ProviderInfo(string infoText);
 
     /// <summary>
-    /// Provider specific information with a topic context.
+    /// Provider-specific information with a topic context.
     /// </summary>
     /// <param name="topicName">
     /// The name of the topic.

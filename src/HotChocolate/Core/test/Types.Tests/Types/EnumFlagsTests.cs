@@ -88,6 +88,6 @@ public class EnumFlagsTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4,
+        Baz = 4
     }
 }

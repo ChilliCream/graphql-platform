@@ -17,6 +17,11 @@ public static class TestEnvironment
     /// The target framework identifier.
     /// </summary>
     public const string TargetFramework = "NET9_0";
+#elif NET10_0
+    /// <summary>
+    /// The target framework identifier.
+    /// </summary>
+    public const string TargetFramework = "NET10_0";
 #endif
 
     public static bool IsLocalEnvironment()
@@ -28,8 +33,8 @@ public static class TestEnvironment
     {
         return bool.TryParse(
             Environment.GetEnvironmentVariable("CI_BUILD"),
-            out var result) &&
-            result;
+            out var result)
+            && result;
     }
 
     public static CancellationTokenSource CreateCancellationTokenSource(TimeSpan? timeSpan = null)

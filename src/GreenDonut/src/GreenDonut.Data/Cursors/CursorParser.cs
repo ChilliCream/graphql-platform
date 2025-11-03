@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Buffers.Text;
 using System.Collections.Immutable;
-using System.Dynamic;
 using System.Text;
 
 namespace GreenDonut.Data.Cursors;
@@ -11,8 +10,8 @@ namespace GreenDonut.Data.Cursors;
 /// </summary>
 public static class CursorParser
 {
-    private const byte _escape = (byte)'\\';
-    private const byte _separator = (byte)':';
+    private const byte Escape = (byte)'\\';
+    private const byte Separator = (byte)':';
 
     /// <summary>
     /// Parses the cursor into its key values.
@@ -34,10 +33,7 @@ public static class CursorParser
     /// </exception>
     public static Cursor Parse(string cursor, ReadOnlySpan<CursorKey> keys)
     {
-        if (cursor == null)
-        {
-            throw new ArgumentNullException(nameof(cursor));
-        }
+        ArgumentNullException.ThrowIfNull(cursor);
 
         if (keys.Length == 0)
         {
@@ -73,7 +69,7 @@ public static class CursorParser
                     throw new ArgumentException("The number of keys must match the number of values.", nameof(cursor));
                 }
 
-                if (code == _separator)
+                if (code == Separator)
                 {
                     end--;
                 }
@@ -91,14 +87,14 @@ public static class CursorParser
 
         static bool CanParse(byte code, int pos, ReadOnlySpan<byte> buffer)
         {
-            if (code == _separator)
+            if (code == Separator)
             {
                 if (pos == 0)
                 {
                     return true;
                 }
 
-                if (buffer[pos - 1] != _escape)
+                if (buffer[pos - 1] != Escape)
                 {
                     return true;
                 }
@@ -115,18 +111,18 @@ public static class CursorParser
 
     private static CursorPageInfo ParsePageInfo(ref Span<byte> span)
     {
-        const byte Open = (byte)'{';
-        const byte Close = (byte)'}';
-        const byte Separator = (byte)'|';
+        const byte open = (byte)'{';
+        const byte close = (byte)'}';
+        const byte separator = (byte)'|';
 
         // Validate input: must start with `{` and end with `}`
-        if (span.Length < 2 || span[0] != Open)
+        if (span.Length < 2 || span[0] != open)
         {
             return default;
         }
 
         // the page info is empty
-        if (span[0] == Open && span[1] == Close)
+        if (span[0] == open && span[1] == close)
         {
             span = span[2..];
             return default;
@@ -135,19 +131,19 @@ public static class CursorParser
         // Advance span beyond opening `{`
         span = span[1..];
 
-        var separatorIndex = ExpectSeparator(span, Separator);
+        var separatorIndex = ExpectSeparator(span, separator);
         var part = span[..separatorIndex];
-        ParseNumber(part, out var offset, out var consumed);
+        ParseNumber(part, out var offset, out _);
         var start = separatorIndex + 1;
 
-        separatorIndex = ExpectSeparator(span[start..], Separator);
+        separatorIndex = ExpectSeparator(span[start..], separator);
         part = span.Slice(start, separatorIndex);
-        ParseNumber(part, out var page, out consumed);
+        ParseNumber(part, out var page, out _);
         start += separatorIndex + 1;
 
-        separatorIndex = ExpectSeparator(span[start..], Close);
+        separatorIndex = ExpectSeparator(span[start..], close);
         part = span.Slice(start, separatorIndex);
-        ParseNumber(part, out var totalCount, out consumed);
+        ParseNumber(part, out var totalCount, out _);
         start += separatorIndex + 1;
 
         // Advance span beyond closing `}`
@@ -168,7 +164,7 @@ public static class CursorParser
         {
             var index = span.IndexOf(separator);
 
-            if(index == -1)
+            if (index == -1)
             {
                 throw new InvalidOperationException(
                     "The cursor page info could not be parsed.");

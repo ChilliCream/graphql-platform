@@ -1,14 +1,10 @@
-#nullable enable
-
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Features;
 using HotChocolate.Internal;
-using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Attributes;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
@@ -26,6 +22,9 @@ internal sealed class IsSelectedParameterExpressionBuilder
     public bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(IsSelectedAttribute));
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Attributes.Any(t => t is IsSelectedAttribute);
+
     public Expression Build(ParameterExpressionBuilderContext context)
     {
         var parameter = context.Parameter;
@@ -34,8 +33,8 @@ internal sealed class IsSelectedParameterExpressionBuilder
         return Expression.Invoke(expr, context.ResolverContext);
     }
 
-    public IParameterBinding Create(ParameterBindingContext context)
-        => new IsSelectedBinding($"isSelected.{context.Parameter.Name}");
+    public IParameterBinding Create(ParameterDescriptor parameter)
+        => new IsSelectedBinding($"isSelected.{parameter.Name}");
 
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
     {
@@ -43,21 +42,15 @@ internal sealed class IsSelectedParameterExpressionBuilder
 
         if (attribute.Fields is not null)
         {
-            var definition = descriptor.Extend().Definition;
-            definition.Configurations.Add(
-                new CompleteConfiguration((ctx, def) =>
-                {
-                    if(!ctx.DescriptorContext.ContextData.TryGetValue(WellKnownContextData.PatternValidationTasks, out var value))
+            var definition = descriptor.Extend().Configuration;
+            definition.Tasks.Add(
+                new OnCompleteTypeSystemConfigurationTask((ctx, def) =>
                     {
-                        value = new List<IsSelectedPattern>();
-                        ctx.DescriptorContext.ContextData[WellKnownContextData.PatternValidationTasks] = value;
-                    }
-
-                    var patterns = (List<IsSelectedPattern>)value!;
-                    patterns.Add(new IsSelectedPattern((ObjectType)ctx.Type, def.Name, attribute.Fields));
-                },
-                definition,
-                ApplyConfigurationOn.AfterCompletion));
+                        var feature = ctx.DescriptorContext.Features.GetOrSet<IsSelectedFeature>();
+                        feature.Patterns.Add(new IsSelectedPattern((ObjectType)ctx.Type, def.Name, attribute.Fields));
+                    },
+                    definition,
+                    ApplyConfigurationOn.AfterCompletion));
 
             descriptor.Use(
                 next => async ctx =>
@@ -133,77 +126,6 @@ internal sealed class IsSelectedParameterExpressionBuilder
         }
     }
 
-    private sealed class IsSelectedVisitor : SyntaxWalker<IsSelectedContext>
-    {
-        protected override ISyntaxVisitorAction Enter(FieldNode node, IsSelectedContext context)
-        {
-            var selections = context.Selections.Peek();
-            var responseName = node.Alias?.Value ?? node.Name.Value;
-
-            if (!selections.IsSelected(responseName))
-            {
-                context.AllSelected = false;
-                return Break;
-            }
-
-            if (node.SelectionSet is not null)
-            {
-                context.Selections.Push(selections.Select(responseName));
-            }
-
-            return base.Enter(node, context);
-        }
-
-        protected override ISyntaxVisitorAction Leave(FieldNode node, IsSelectedContext context)
-        {
-            if (node.SelectionSet is not null)
-            {
-                context.Selections.Pop();
-            }
-
-            return base.Leave(node, context);
-        }
-
-        protected override ISyntaxVisitorAction Enter(InlineFragmentNode node, IsSelectedContext context)
-        {
-            if (node.TypeCondition is not null)
-            {
-                var typeContext = context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value);
-                var selections = context.Selections.Peek();
-                context.Selections.Push(selections.Select(typeContext));
-            }
-
-            return base.Enter(node, context);
-        }
-
-        protected override ISyntaxVisitorAction Leave(InlineFragmentNode node, IsSelectedContext context)
-        {
-            if (node.TypeCondition is not null)
-            {
-                context.Selections.Pop();
-            }
-
-            return base.Leave(node, context);
-        }
-
-        public static IsSelectedVisitor Instance { get; } = new();
-    }
-
-    private sealed class IsSelectedContext
-    {
-        public IsSelectedContext(ISchema schema, ISelectionCollection selections)
-        {
-            Schema = schema;
-            Selections.Push(selections);
-        }
-
-        public ISchema Schema { get; }
-
-        public Stack<ISelectionCollection> Selections { get; } = new();
-
-        public bool AllSelected { get; set; } = true;
-    }
-
     private class IsSelectedBinding(string key) : IParameterBinding
     {
         public ArgumentKind Kind => ArgumentKind.LocalState;
@@ -211,6 +133,6 @@ internal sealed class IsSelectedParameterExpressionBuilder
         public bool IsPure => false;
 
         public T Execute<T>(IResolverContext context)
-            => context.GetLocalState<T>(key)!;
+            => context.GetLocalState<T>(key);
     }
 }

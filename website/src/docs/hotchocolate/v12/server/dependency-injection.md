@@ -65,7 +65,7 @@ descriptor
     });
 ```
 
-If you are trying to inject a Entity Framework Core `DbContext`, be sure to checkout our [guidance on working with Entity Framework Core](/docs/hotchocolate/v12/integrations/entity-framework).
+If you are trying to inject an Entity Framework Core `DbContext`, be sure to checkout our [guidance on working with Entity Framework Core](/docs/hotchocolate/v12/integrations/entity-framework).
 
 # Constructor injection
 

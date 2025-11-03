@@ -1,7 +1,7 @@
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Provides the base implementation for a executable task.
+/// Provides the base implementation for an executable task.
 /// </summary>
 /// <remarks>
 /// The task is by default a parallel execution task.
@@ -10,6 +10,11 @@ public abstract class ExecutionTask : IExecutionTask
 {
     private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
     private Task? _task;
+
+    /// <summary>
+    /// Gets or sets the internal execution identifier.
+    /// </summary>
+    public uint Id { get; set; }
 
     /// <summary>
     /// Gets the execution engine task context.
@@ -41,14 +46,14 @@ public abstract class ExecutionTask : IExecutionTask
     public void BeginExecute(CancellationToken cancellationToken)
     {
         Status = ExecutionTaskStatus.Running;
-        _task = ExecuteInternalAsync(cancellationToken).AsTask();
+        _task = ExecuteInternalAsync(cancellationToken);
     }
 
     /// <inheritdoc />
     public Task WaitForCompletionAsync(CancellationToken cancellationToken)
         => _task ?? Task.CompletedTask;
 
-    private async ValueTask ExecuteInternalAsync(CancellationToken cancellationToken)
+    private async Task ExecuteInternalAsync(CancellationToken cancellationToken)
     {
         try
         {

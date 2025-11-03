@@ -9,7 +9,7 @@ public class Brand
     public int Id { get; set; }
 
     [Required]
-    public string Name { get; set; } = default!;
+    public string Name { get; set; } = null!;
 
-    public ICollection<Product> Products { get; } = new List<Product>();
+    public ICollection<Product> Products { get; } = [];
 }

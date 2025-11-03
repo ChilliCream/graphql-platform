@@ -60,6 +60,15 @@ namespace HotChocolate.Fusion {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected an input object type but found &apos;{0}&apos;..
+        /// </summary>
+        internal static string FieldSelectionMapValidator_ExpectedInputObjectType {
+            get {
+                return ResourceManager.GetString("FieldSelectionMapValidator_ExpectedInputObjectType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; does not exist on the input type &apos;{1}&apos;..
         /// </summary>
         internal static string FieldSelectionMapValidator_FieldDoesNotExistOnInputType {
@@ -114,6 +123,15 @@ namespace HotChocolate.Fusion {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected the parent type of field &apos;{0}&apos; to be a complex type but received &apos;{1}&apos;..
+        /// </summary>
+        internal static string FieldSelectionMapValidator_InvalidFieldParentType {
+            get {
+                return ResourceManager.GetString("FieldSelectionMapValidator_InvalidFieldParentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The selection on one-of input type &apos;{0}&apos; must include a single field..
         /// </summary>
         internal static string FieldSelectionMapValidator_InvalidOneOfFieldSelection {
@@ -150,11 +168,92 @@ namespace HotChocolate.Fusion {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{0}&apos; must be an object or interface..
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; does not exist on the type &apos;{1}&apos;..
         /// </summary>
-        internal static string FieldSelectionMapValidator_TypeMustBeObjectOrInterface {
+        internal static string InlineFragmentOperationRewriter_FieldDoesNotExistOnType {
             get {
-                return ResourceManager.GetString("FieldSelectionMapValidator_TypeMustBeObjectOrInterface", resourceCulture);
+                return ResourceManager.GetString("InlineFragmentOperationRewriter_FieldDoesNotExistOnType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A fragment with the name &apos;{0}&apos; does not exist..
+        /// </summary>
+        internal static string InlineFragmentOperationRewriter_FragmentDoesNotExist {
+            get {
+                return ResourceManager.GetString("InlineFragmentOperationRewriter_FragmentDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The fragment &apos;{0}&apos; has an invalid type condition. The type &apos;{1}&apos; does not exist..
+        /// </summary>
+        internal static string InlineFragmentOperationRewriter_InvalidTypeConditionOnFragment {
+            get {
+                return ResourceManager.GetString("InlineFragmentOperationRewriter_InvalidTypeConditionOnFragment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An inline fragment on type &apos;{0}&apos; has an invalid type condition. The type &apos;{1}&apos; does not exist..
+        /// </summary>
+        internal static string InlineFragmentOperationRewriter_InvalidTypeConditionOnInlineFragment {
+            get {
+                return ResourceManager.GetString("InlineFragmentOperationRewriter_InvalidTypeConditionOnInlineFragment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; does not exist on the type &apos;{1}&apos;..
+        /// </summary>
+        internal static string SelectionSetValidator_FieldDoesNotExistOnType {
+            get {
+                return ResourceManager.GetString("SelectionSetValidator_FieldDoesNotExistOnType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; does not return a composite type and cannot have subselections..
+        /// </summary>
+        internal static string SelectionSetValidator_FieldInvalidSubselections {
+            get {
+                return ResourceManager.GetString("SelectionSetValidator_FieldInvalidSubselections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; returns a composite type and must have subselections..
+        /// </summary>
+        internal static string SelectionSetValidator_FieldMissingSubselections {
+            get {
+                return ResourceManager.GetString("SelectionSetValidator_FieldMissingSubselections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; is not a possible type of type &apos;{1}&apos;..
+        /// </summary>
+        internal static string SelectionSetValidator_InvalidTypeCondition {
+            get {
+                return ResourceManager.GetString("SelectionSetValidator_InvalidTypeCondition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type condition in the selection set is invalid. Type &apos;{0}&apos; does not exist..
+        /// </summary>
+        internal static string SelectionSetValidator_InvalidTypeConditionInSelectionSet {
+            get {
+                return ResourceManager.GetString("SelectionSetValidator_InvalidTypeConditionInSelectionSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; returns a union type and must only include inline fragment selections..
+        /// </summary>
+        internal static string SelectionSetValidator_UnionFieldInvalidSelections {
+            get {
+                return ResourceManager.GetString("SelectionSetValidator_UnionFieldInvalidSelections", resourceCulture);
             }
         }
     }

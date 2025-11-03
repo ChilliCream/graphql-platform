@@ -1,0 +1,289 @@
+title: Fetch_Books_With_Requirements_To_SourceSchema1_Three_Times
+request:
+  document: |
+    {
+      books {
+        nodes {
+          idAndTitle
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "books": {
+          "nodes": [
+            {
+              "idAndTitle": "1 - C# in Depth"
+            },
+            {
+              "idAndTitle": "2 - The Lord of the Rings"
+            },
+            {
+              "idAndTitle": "3 - The Hobbit"
+            },
+            {
+              "idAndTitle": "4 - The Silmarillion"
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author @key(fields: "id") {
+        id: Int!
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+        author: Author! @shareable
+      }
+
+      "A connection to a list of items."
+      type BooksConnection @shareable {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [BooksEdge!]
+        "A flattened list of the nodes."
+        nodes: [Book!]
+      }
+
+      "An edge in a connection."
+      type BooksEdge @shareable {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: Book!
+      }
+
+      "Information about pagination in a connection."
+      type PageInfo @shareable {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+
+      type Query {
+        bookById(id: Int!): Book! @lookup
+        books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
+        formatTitle(title: String!): String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_6721fc4f_1 {
+              books {
+                nodes {
+                  id
+                  title
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "books": {
+                    "nodes": [
+                      {
+                        "id": 1,
+                        "title": "C# in Depth"
+                      },
+                      {
+                        "id": 2,
+                        "title": "The Lord of the Rings"
+                      },
+                      {
+                        "id": 3,
+                        "title": "The Hobbit"
+                      },
+                      {
+                        "id": 4,
+                        "title": "The Silmarillion"
+                      }
+                    ]
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        books: [Book!]!
+        id: Int!
+        name: String!
+      }
+
+      "A connection to a list of items."
+      type AuthorsConnection @shareable {
+        "Information to aid in pagination."
+        pageInfo: PageInfo!
+        "A list of edges."
+        edges: [AuthorsEdge!]
+        "A flattened list of the nodes."
+        nodes: [Author!]
+      }
+
+      "An edge in a connection."
+      type AuthorsEdge @shareable {
+        "A cursor for use in pagination."
+        cursor: String!
+        "The item at the end of the edge."
+        node: Author!
+      }
+
+      type Book {
+        idAndTitle(title: String! @require(field: "title")): String!
+        id: Int!
+        author: Author! @shareable
+      }
+
+      "Information about pagination in a connection."
+      type PageInfo @shareable {
+        "Indicates whether more edges exist following the set defined by the clients arguments."
+        hasNextPage: Boolean!
+        "Indicates whether more edges exist prior the set defined by the clients arguments."
+        hasPreviousPage: Boolean!
+        "When paginating backwards, the cursor to continue."
+        startCursor: String
+        "When paginating forwards, the cursor to continue."
+        endCursor: String
+      }
+
+      type Query {
+        bookById(id: Int!): Book! @internal @lookup
+        authorById(id: Int!): Author! @internal @lookup
+        authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_6721fc4f_2(
+              $__fusion_1_id: Int!
+              $__fusion_2_title: String!
+            ) {
+              bookById(id: $__fusion_1_id) {
+                idAndTitle(title: $__fusion_2_title)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": 1,
+                "__fusion_2_title": "C# in Depth"
+              },
+              {
+                "__fusion_1_id": 2,
+                "__fusion_2_title": "The Lord of the Rings"
+              },
+              {
+                "__fusion_1_id": 3,
+                "__fusion_2_title": "The Hobbit"
+              },
+              {
+                "__fusion_1_id": 4,
+                "__fusion_2_title": "The Silmarillion"
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "idAndTitle": "1 - C# in Depth"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "idAndTitle": "2 - The Lord of the Rings"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "idAndTitle": "3 - The Hobbit"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "idAndTitle": "4 - The Silmarillion"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          books {
+            nodes {
+              idAndTitle
+              id @fusion__requirement
+              title @fusion__requirement
+            }
+          }
+        }
+      hash: 6721fc4fdf70192bf4714b55074672fb
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_6721fc4f_1 {
+          books {
+            nodes {
+              id
+              title
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_6721fc4f_2(
+          $__fusion_1_id: Int!
+          $__fusion_2_title: String!
+        ) {
+          bookById(id: $__fusion_1_id) {
+            idAndTitle(title: $__fusion_2_title)
+          }
+        }
+      source: $.bookById
+      target: $.books.nodes
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+        - name: __fusion_2_title
+          selectionMap: >-
+            title
+      dependencies:
+        - id: 1

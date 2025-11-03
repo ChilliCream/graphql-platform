@@ -9,11 +9,11 @@ namespace HotChocolate.Fetching;
 // ReSharper disable once ClassNeverInstantiated.Global
 public sealed class DataLoaderParameterExpressionBuilder : CustomParameterExpressionBuilder
 {
-    private static readonly MethodInfo _dataLoader;
+    private static readonly MethodInfo s_dataLoader;
 
     static DataLoaderParameterExpressionBuilder()
     {
-        _dataLoader = typeof(DataLoaderResolverContextExtensions)
+        s_dataLoader = typeof(DataLoaderResolverContextExtensions)
             .GetMethods()
             .First(t => t.IsDefined(typeof(GetDataLoaderAttribute)));
     }
@@ -23,6 +23,6 @@ public sealed class DataLoaderParameterExpressionBuilder : CustomParameterExpres
 
     public override Expression Build(ParameterExpressionBuilderContext context)
         => Expression.Call(
-            _dataLoader.MakeGenericMethod(context.Parameter.ParameterType),
+            s_dataLoader.MakeGenericMethod(context.Parameter.ParameterType),
             context.ResolverContext);
 }

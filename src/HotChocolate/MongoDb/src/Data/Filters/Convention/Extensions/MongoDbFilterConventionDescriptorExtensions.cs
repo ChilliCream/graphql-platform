@@ -39,10 +39,7 @@ public static class MongoDbFilterConventionDescriptorExtensions
     public static IFilterConventionDescriptor AddDefaultMongoDbOperations(
         this IFilterConventionDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
         descriptor.Operation(DefaultFilterOperations.NotEquals).Name("neq");
@@ -87,10 +84,7 @@ public static class MongoDbFilterConventionDescriptorExtensions
         this IFilterConventionDescriptor descriptor,
         bool compatibilityMode = false)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (compatibilityMode)
         {

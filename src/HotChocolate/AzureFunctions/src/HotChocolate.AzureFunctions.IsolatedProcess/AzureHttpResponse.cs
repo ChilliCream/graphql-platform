@@ -1,3 +1,4 @@
+using System.IO.Pipelines;
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -7,11 +8,13 @@ namespace HotChocolate.AzureFunctions.IsolatedProcess;
 
 internal sealed class AzureHttpResponse : HttpResponse
 {
+    private static readonly StreamPipeWriterOptions s_options = new(leaveOpen: true);
     private readonly HttpResponse _response;
     private readonly HttpRequestData _requestData;
     private readonly object _sync = new();
     private HttpResponseData? _responseData;
     private AzureHeaderDictionary? _headers;
+    private PipeWriter? _writer;
 
     public AzureHttpResponse(HttpResponse response, HttpRequestData requestData)
     {
@@ -27,10 +30,7 @@ internal sealed class AzureHttpResponse : HttpResponse
             {
                 lock (_sync)
                 {
-                    if (_responseData is null)
-                    {
-                        _responseData = _requestData.CreateResponse();
-                    }
+                    _responseData ??= _requestData.CreateResponse();
                 }
             }
 
@@ -54,10 +54,7 @@ internal sealed class AzureHttpResponse : HttpResponse
             {
                 lock (_sync)
                 {
-                    if (_headers is null)
-                    {
-                        _headers = new AzureHeaderDictionary(_response, ResponseData);
-                    }
+                    _headers ??= new AzureHeaderDictionary(_response, ResponseData);
                 }
             }
             return _headers;
@@ -68,6 +65,15 @@ internal sealed class AzureHttpResponse : HttpResponse
     {
         get => ResponseData.Body;
         set => ResponseData.Body = value;
+    }
+
+    public override PipeWriter BodyWriter
+    {
+        get
+        {
+            _writer ??= PipeWriter.Create(Body, s_options);
+            return _writer;
+        }
     }
 
     public override long? ContentLength
@@ -94,4 +100,13 @@ internal sealed class AzureHttpResponse : HttpResponse
 
     public override void Redirect(string location, bool permanent)
         => throw new NotSupportedException();
+
+    public override async Task CompleteAsync()
+    {
+        if (_writer is not null)
+        {
+            await _writer.FlushAsync().ConfigureAwait(false);
+            await _writer.CompleteAsync().ConfigureAwait(false);
+        }
+    }
 }

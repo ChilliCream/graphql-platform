@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
+#if NET8_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
+#endif
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -16,6 +18,11 @@ public interface IOutputTypeInfo
     /// Gets the namespace that the generator shall use to generate the output type.
     /// </summary>
     string Namespace { get; }
+
+    /// <summary>
+    /// Gets the description of the object type.
+    /// </summary>
+    string? Description { get; }
 
     /// <summary>
     /// Defines if the type is a public.
@@ -67,11 +74,15 @@ public interface IOutputTypeInfo
 
     ImmutableArray<Diagnostic> Diagnostics { get; }
 
+    DirectiveScope Shareable { get; }
+
+    DirectiveScope Inaccessible { get; }
+
+    ImmutableArray<AttributeData> Attributes { get; }
+
     void AddDiagnostic(Diagnostic diagnostic);
 
     void AddDiagnosticRange(ImmutableArray<Diagnostic> diagnostics);
 
-     void ReplaceResolver(
-        Resolver current,
-        Resolver replacement);
+    void ReplaceResolver(Resolver current, Resolver replacement);
 }

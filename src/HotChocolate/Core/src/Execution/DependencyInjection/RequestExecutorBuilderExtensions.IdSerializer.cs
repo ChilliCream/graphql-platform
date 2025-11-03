@@ -1,5 +1,7 @@
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Options;
+using HotChocolate.Execution.Relay;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -35,24 +37,64 @@ public static partial class RequestExecutorBuilderExtensions
         int maxIdLength = 1024,
         bool outputNewIdFormat = true,
         bool useUrlSafeBase64 = false)
-    {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        => AddDefaultNodeIdSerializer(
+            builder,
+            new NodeIdSerializerOptions
+            {
+                MaxIdLength = maxIdLength,
+                OutputNewIdFormat = outputNewIdFormat,
+                Format = useUrlSafeBase64
+                    ? NodeIdSerializerFormat.UrlSafeBase64
+                    : NodeIdSerializerFormat.Base64
+            });
 
-        if (!builder.Services.Any(t =>
-            t.ServiceType == typeof(INodeIdValueSerializer)
-            && t.ImplementationType == typeof(StringNodeIdValueSerializer)))
+    /// <summary>
+    /// Adds a default node id serializer to the schema.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="options">
+    /// The serializer options.
+    /// </param>
+    /// <returns>
+    /// Returns the request executor builder.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <see langword="null"/>.
+    /// </exception>
+    public static IRequestExecutorBuilder AddDefaultNodeIdSerializer(
+        this IRequestExecutorBuilder builder,
+        NodeIdSerializerOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        var outputNewIdFormat = options.OutputNewIdFormat;
+
+        if (!builder.Services.IsImplementationTypeRegistered<StringNodeIdValueSerializer>())
         {
             builder.Services.AddSingleton<INodeIdValueSerializer, StringNodeIdValueSerializer>();
             builder.Services.AddSingleton<INodeIdValueSerializer, Int16NodeIdValueSerializer>();
             builder.Services.AddSingleton<INodeIdValueSerializer, Int32NodeIdValueSerializer>();
             builder.Services.AddSingleton<INodeIdValueSerializer, Int64NodeIdValueSerializer>();
-            builder.Services.AddSingleton<INodeIdValueSerializer>(new GuidNodeIdValueSerializer(compress: outputNewIdFormat));
             builder.Services.AddSingleton<INodeIdValueSerializer, DecimalNodeIdValueSerializer>();
             builder.Services.AddSingleton<INodeIdValueSerializer, SingleNodeIdValueSerializer>();
             builder.Services.AddSingleton<INodeIdValueSerializer, DoubleNodeIdValueSerializer>();
+            builder.Services.AddSingleton<INodeIdValueSerializer>(new GuidNodeIdValueSerializer(outputNewIdFormat));
+        }
+        else
+        {
+            // if serializers are already registered we need to replace the
+            // default guid serializer with the new one in order to make sure
+            // that we have the right settings configured for it.
+            var serviceRegistration = builder.Services.FirstOrDefault(
+                t => t.ServiceType == typeof(INodeIdValueSerializer)
+                    && t.ImplementationType == typeof(GuidNodeIdValueSerializer));
+            if (serviceRegistration is not null)
+            {
+                builder.Services.Remove(serviceRegistration);
+                builder.Services.AddSingleton<INodeIdValueSerializer>(new GuidNodeIdValueSerializer(outputNewIdFormat));
+            }
         }
 
         builder.Services.RemoveService<INodeIdSerializer>();
@@ -61,9 +103,10 @@ public static partial class RequestExecutorBuilderExtensions
             var allSerializers = sp.GetServices<INodeIdValueSerializer>().ToArray();
             return new DefaultNodeIdSerializer(
                 allSerializers,
-                maxIdLength,
+                options.MaxIdLength,
                 outputNewIdFormat,
-                useUrlSafeBase64);
+                options.Format,
+                options.MaxCachedTypeNames);
         });
 
         builder.ConfigureSchemaServices(
@@ -72,21 +115,34 @@ public static partial class RequestExecutorBuilderExtensions
                 services.RemoveService<INodeIdSerializer>();
                 services.TryAddSingleton<INodeIdSerializer>(sp =>
                 {
-                    var schema = sp.GetRequiredService<ISchema>();
+                    var schema = sp.GetRequiredService<Schema>();
                     var boundSerializers = new List<BoundNodeIdValueSerializer>();
-                    var allSerializers = sp.GetApplicationServices().GetServices<INodeIdValueSerializer>().ToArray();
+                    var allSerializers = sp.GetRootServiceProvider().GetServices<INodeIdValueSerializer>().ToArray();
+                    var feature = schema.Features.Get<NodeSchemaFeature>();
 
-                    if (schema.ContextData.TryGetValue(WellKnownContextData.SerializerTypes, out var value))
+                    if (feature is not null)
                     {
-                        var serializerTypes = (Dictionary<string, Type>)value!;
-
-                        foreach (var item in serializerTypes)
+                        var lookup = new Dictionary<Type, INodeIdValueSerializer>();
+                        foreach (var (entityType, idType) in feature.NodeIdTypes)
                         {
-                            foreach (var serializer in allSerializers)
+                            if (lookup.TryGetValue(idType, out var serializer))
                             {
-                                if (serializer.IsSupported(item.Value))
+                                boundSerializers.Add(
+                                    new BoundNodeIdValueSerializer(
+                                        entityType,
+                                        serializer));
+                                continue;
+                            }
+
+                            foreach (var possibleSerializer in allSerializers)
+                            {
+                                if (possibleSerializer.IsSupported(idType))
                                 {
-                                    boundSerializers.Add(new BoundNodeIdValueSerializer(item.Key, serializer));
+                                    lookup[idType] = possibleSerializer;
+                                    boundSerializers.Add(
+                                        new BoundNodeIdValueSerializer(
+                                            entityType,
+                                            possibleSerializer));
                                     break;
                                 }
                             }
@@ -96,9 +152,9 @@ public static partial class RequestExecutorBuilderExtensions
                     return new OptimizedNodeIdSerializer(
                         boundSerializers,
                         allSerializers,
-                        maxIdLength,
+                        options.MaxIdLength,
                         outputNewIdFormat,
-                        useUrlSafeBase64);
+                        options.Format);
                 });
             });
         return builder;
@@ -110,9 +166,6 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="builder">
     /// The request executor builder.
     /// </param>
-    /// <param name="maxIdLength">
-    /// The maximum allowed length of a node id.
-    /// </param>
     /// <returns>
     /// Returns the request executor builder.
     /// </returns>
@@ -120,13 +173,9 @@ public static partial class RequestExecutorBuilderExtensions
     /// <paramref name="builder"/> is <see langword="null"/>.
     /// </exception>
     public static IRequestExecutorBuilder AddLegacyNodeIdSerializer(
-        this IRequestExecutorBuilder builder,
-        int maxIdLength = 1024)
+        this IRequestExecutorBuilder builder)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.RemoveService<INodeIdSerializer>();
         builder.Services.TryAddSingleton<INodeIdSerializer, LegacyNodeIdSerializer>();
@@ -160,10 +209,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : class, INodeIdValueSerializer
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.AddSingleton<INodeIdValueSerializer, T>();
         return builder;
@@ -193,10 +239,7 @@ public static partial class RequestExecutorBuilderExtensions
         T serializer)
         where T : class, INodeIdValueSerializer
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.AddSingleton<INodeIdValueSerializer>(serializer);
         return builder;

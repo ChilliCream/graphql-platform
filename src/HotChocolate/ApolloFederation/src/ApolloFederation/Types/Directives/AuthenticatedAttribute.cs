@@ -27,46 +27,40 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </example>
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Enum |
-    AttributeTargets.Interface |
-    AttributeTargets.Method |
-    AttributeTargets.Property |
-    AttributeTargets.Struct)]
+    AttributeTargets.Class
+    | AttributeTargets.Enum
+    | AttributeTargets.Interface
+    | AttributeTargets.Method
+    | AttributeTargets.Property
+    | AttributeTargets.Struct)]
 public sealed class AuthenticatedAttribute : DescriptorAttribute
 {
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {
             case IEnumTypeDescriptor enumTypeDescriptor:
-            {
                 enumTypeDescriptor.Authenticated();
                 break;
-            }
+
             case IObjectTypeDescriptor objectFieldDescriptor:
-            {
                 objectFieldDescriptor.Authenticated();
                 break;
-            }
+
             case IObjectFieldDescriptor objectFieldDescriptor:
-            {
                 objectFieldDescriptor.Authenticated();
                 break;
-            }
+
             case IInterfaceTypeDescriptor interfaceTypeDescriptor:
-            {
                 interfaceTypeDescriptor.Authenticated();
                 break;
-            }
+
             case IInterfaceFieldDescriptor interfaceFieldDescriptor:
-            {
                 interfaceFieldDescriptor.Authenticated();
                 break;
-            }
         }
     }
 }

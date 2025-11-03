@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // StarWarsOnReviewSubGraphQLSSEClient
 
@@ -31,6 +32,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.State.StarWarsOnReviewSubGraphQLSSEClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.OnReviewSubSubscription>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.IOnReviewSubSubscription>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.StarWarsOnReviewSubGraphQLSSEClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.IStarWarsOnReviewSubGraphQLSSEClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             return new global::StrawberryShake.ClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.State.StarWarsOnReviewSubGraphQLSSEClientStoreAccessor>("StarWarsOnReviewSubGraphQLSSEClient", services, serviceCollection);
@@ -289,97 +291,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
 
         public static OnReviewSubSubscriptionDocument Instance { get; } = new OnReviewSubSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x73,
-            0x75,
-            0x62,
-            0x73,
-            0x63,
-            0x72,
-            0x69,
-            0x70,
-            0x74,
-            0x69,
-            0x6f,
-            0x6e,
-            0x20,
-            0x4f,
-            0x6e,
-            0x52,
-            0x65,
-            0x76,
-            0x69,
-            0x65,
-            0x77,
-            0x53,
-            0x75,
-            0x62,
-            0x20,
-            0x7b,
-            0x20,
-            0x6f,
-            0x6e,
-            0x52,
-            0x65,
-            0x76,
-            0x69,
-            0x65,
-            0x77,
-            0x28,
-            0x65,
-            0x70,
-            0x69,
-            0x73,
-            0x6f,
-            0x64,
-            0x65,
-            0x3a,
-            0x20,
-            0x4e,
-            0x45,
-            0x57,
-            0x5f,
-            0x48,
-            0x4f,
-            0x50,
-            0x45,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x73,
-            0x74,
-            0x61,
-            0x72,
-            0x73,
-            0x20,
-            0x63,
-            0x6f,
-            0x6d,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x61,
-            0x72,
-            0x79,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "subscription OnReviewSub { onReview(episode: NEW_HOPE) { __typename stars commentary } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "92220fce37342d7ade3d63a2a81342eb1fb14bac");
 
         public override global::System.String ToString()

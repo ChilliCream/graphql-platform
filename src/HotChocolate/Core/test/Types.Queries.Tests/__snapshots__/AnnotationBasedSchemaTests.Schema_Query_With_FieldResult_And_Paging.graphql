@@ -88,40 +88,6 @@ union UsersResult = UsersConnection | UserNotFound
 
 union UsersWithFilterResult = UsersWithFilterConnection | UserNotFound
 
-input AddressFilterInput {
-  and: [AddressFilterInput!]
-  or: [AddressFilterInput!]
-  id: StringOperationFilterInput
-  street: StringOperationFilterInput
-  city: StringOperationFilterInput
-}
-
-input BooleanOperationFilterInput {
-  eq: Boolean
-  neq: Boolean
-}
-
-input FieldResultOfAddressAndAddressNotFoundFilterInput {
-  and: [FieldResultOfAddressAndAddressNotFoundFilterInput!]
-  or: [FieldResultOfAddressAndAddressNotFoundFilterInput!]
-  value: AddressFilterInput
-  errors: ListFilterInputTypeOfObjectFilterInput
-  isSuccess: BooleanOperationFilterInput
-  isError: BooleanOperationFilterInput
-}
-
-input ListFilterInputTypeOfObjectFilterInput {
-  all: ObjectFilterInput
-  none: ObjectFilterInput
-  some: ObjectFilterInput
-  any: Boolean
-}
-
-input ObjectFilterInput {
-  and: [ObjectFilterInput!]
-  or: [ObjectFilterInput!]
-}
-
 input StringOperationFilterInput {
   and: [StringOperationFilterInput!]
   or: [StringOperationFilterInput!]
@@ -143,14 +109,12 @@ input UserFilterInput {
   id: StringOperationFilterInput
   name: StringOperationFilterInput
   email: StringOperationFilterInput
-  address: FieldResultOfAddressAndAddressNotFoundFilterInput
 }
 
 input UserSortInput {
   id: SortEnumType
   name: SortEnumType
   email: SortEnumType
-  address: SortEnumType
 }
 
 enum SortEnumType {

@@ -29,11 +29,11 @@ public class IdDescriptorTests
                                     guidId(id: $guidId)
                                 }")
                         .SetVariableValues(
-                            new Dictionary<string, object>
+                            new Dictionary<string, object?>
                             {
                                 { "intId", intId },
                                 { "stringId", stringId },
-                                { "guidId", guidId },
+                                { "guidId", guidId }
                             })
                         .Build());
 
@@ -66,7 +66,7 @@ public class IdDescriptorTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object>
+                        .SetVariableValues(new Dictionary<string, object?>
                         {
                             { "someId", someId },
                             { "anotherId", anotherId }
@@ -106,19 +106,19 @@ public class IdDescriptorTests
         protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
         {
             descriptor
-                .Field(t => t.IntId(default))
+                .Field(t => t.IntId(0))
                 .Argument("id", a => a.ID());
 
             descriptor
-                .Field(t => t.StringId(default))
+                .Field(t => t.StringId(null!))
                 .Argument("id", a => a.ID());
 
             descriptor
-                .Field(t => t.GuidId(default))
+                .Field(t => t.GuidId(Guid.Empty))
                 .Argument("id", a => a.ID<Another>());
 
             descriptor
-                .Field(t => t.Foo(default))
+                .Field(t => t.Foo(null!))
                 .Argument("input", a => a.Type<FooInputType>())
                 .Type<FooPayloadInterfaceType>();
         }
@@ -179,14 +179,14 @@ public class IdDescriptorTests
 
     public class FooInput
     {
-        public string SomeId { get; set; }
-        public string AnotherId { get; set; }
+        public required string SomeId { get; set; }
+        public required string AnotherId { get; set; }
     }
 
     public class FooPayload : IFooPayload
     {
-        public string SomeId { get; set; }
-        public string AnotherId { get; set; }
+        public required string SomeId { get; set; }
+        public required string AnotherId { get; set; }
     }
 
     public interface IFooPayload

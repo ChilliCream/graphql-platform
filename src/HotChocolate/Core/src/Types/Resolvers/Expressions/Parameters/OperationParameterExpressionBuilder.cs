@@ -1,5 +1,6 @@
-#nullable enable
+using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Internal;
 
@@ -16,9 +17,16 @@ internal sealed class OperationParameterExpressionBuilder()
     public override bool CanHandle(ParameterInfo parameter)
         => typeof(IOperation) == parameter.ParameterType;
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public bool CanHandle(ParameterDescriptor parameter)
+        => typeof(IOperation) == parameter.Type;
+
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)context.Operation;
+    {
+        Debug.Assert(typeof(IOperation).IsAssignableFrom(typeof(T)));
+        var operation = context.Operation;
+        return Unsafe.As<IOperation, T>(ref operation);
+    }
 }

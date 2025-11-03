@@ -1,6 +1,8 @@
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
+using StackExchange.Redis;
 using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.Redis;
@@ -46,6 +48,58 @@ public class RedisIntegrationTests : SubscriptionIntegrationTestBase, IClassFixt
     [Fact]
     public override Task Subscribe_And_Complete_Topic_With_ValueTypeMessage()
         => base.Subscribe_And_Complete_Topic_With_ValueTypeMessage();
+
+    [Fact]
+    public async Task Unsubscribe_Should_RemoveChannel()
+    {
+        using var cts = new CancellationTokenSource(Timeout);
+        await using var services = CreateServer<Subscription>();
+
+        var result = await services.ExecuteRequestAsync(
+            "subscription { onMessage }",
+            cancellationToken: cts.Token);
+
+        var activeChannelsAfterSubscribe = await GetActiveChannelsAsync();
+
+        await result.DisposeAsync();
+
+        var activeChannelsAfterUnsubscribe =
+            WaitForChannelRemoval(cts, activeChannelsAfterSubscribe.Length, GetActiveChannelsAsync);
+        Assert.True(activeChannelsAfterSubscribe.Length > activeChannelsAfterUnsubscribe);
+    }
+
+    public static int WaitForChannelRemoval(
+        CancellationTokenSource cts,
+        int currentlyActiveChannels,
+        Func<Task<RedisResult[]>> getActiveChannelsAsync)
+    {
+        var activeChannelsAfterUnsubscribe = 0;
+        var channelRemovedEvent = new ManualResetEventSlim(false);
+
+        _ = Task.Run(async () =>
+        {
+            while (!cts.Token.IsCancellationRequested)
+            {
+                var activeChannels = await getActiveChannelsAsync();
+                if (activeChannels.Length < currentlyActiveChannels)
+                {
+                    activeChannelsAfterUnsubscribe = activeChannels.Length;
+                    channelRemovedEvent.Set();
+                    break;
+                }
+
+                await Task.Delay(100, cts.Token);
+            }
+        }, cts.Token);
+
+        channelRemovedEvent.Wait(cts.Token);
+        return activeChannelsAfterUnsubscribe;
+    }
+
+    private async Task<RedisResult[]> GetActiveChannelsAsync()
+    {
+        return (RedisResult[])(await _redisResource.GetConnection().GetDatabase().ExecuteAsync("PUBSUB", "CHANNELS"))!;
+    }
 
     protected override void ConfigurePubSub(IRequestExecutorBuilder graphqlBuilder)
         => graphqlBuilder.AddRedisSubscriptions(_ => _redisResource.GetConnection());

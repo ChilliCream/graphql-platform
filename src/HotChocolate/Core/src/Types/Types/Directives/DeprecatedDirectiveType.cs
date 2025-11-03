@@ -1,3 +1,5 @@
+#nullable disable
+
 using HotChocolate.Properties;
 
 namespace HotChocolate.Types;
@@ -16,7 +18,7 @@ public sealed class DeprecatedDirectiveType : DirectiveType<DeprecatedDirective>
         IDirectiveTypeDescriptor<DeprecatedDirective> descriptor)
     {
         descriptor
-            .Name(WellKnownDirectives.Deprecated)
+            .Name(DirectiveNames.Deprecated.Name)
             .Description(TypeResources.DeprecatedDirectiveType_TypeDescription)
             .Location(DirectiveLocation.FieldDefinition)
             .Location(DirectiveLocation.ArgumentDefinition)
@@ -25,9 +27,9 @@ public sealed class DeprecatedDirectiveType : DirectiveType<DeprecatedDirective>
 
         descriptor
             .Argument(t => t.Reason)
-            .Name(WellKnownDirectives.DeprecationReasonArgument)
+            .Name(DirectiveNames.Deprecated.Arguments.Reason)
             .Description(TypeResources.DeprecatedDirectiveType_ReasonDescription)
             .Type<StringType>()
-            .DefaultValue(WellKnownDirectives.DeprecationDefaultReason);
+            .DefaultValue(DirectiveNames.Deprecated.Arguments.DefaultReason);
     }
 }

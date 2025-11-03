@@ -35,7 +35,7 @@ public class RequestExecutorBuilderTests : IClassFixture<AzureStorageBlobResourc
 
         // act
         void Action() =>
-            builder.AddAzureBlobStorageOperationDocumentStorage(default!);
+            builder.AddAzureBlobStorageOperationDocumentStorage(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);

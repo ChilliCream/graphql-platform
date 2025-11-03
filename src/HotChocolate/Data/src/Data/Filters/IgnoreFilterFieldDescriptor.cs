@@ -12,8 +12,8 @@ internal class IgnoreFilterFieldDescriptor
         MemberInfo member)
         : base(context, scope)
     {
-        Definition.Member = member;
-        Definition.Ignore = true;
+        Configuration.Member = member;
+        Configuration.Ignore = true;
     }
 
     public static new FilterFieldDescriptor New(

@@ -2,7 +2,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay;
 using static HotChocolate.Data.Filters.FilterInputTypeDescriptor;
 using static HotChocolate.Data.ThrowHelper;
@@ -11,13 +11,13 @@ namespace HotChocolate.Data.Filters;
 
 public sealed class FilterTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<string, IFilterConvention> _conventions = new();
+    private readonly Dictionary<string, IFilterConvention> _conventions = [];
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is not FilterInputTypeDefinition { EntityType: { }, } def)
+        if (configuration is not FilterInputTypeConfiguration { EntityType: { } } def)
         {
             return;
         }
@@ -30,7 +30,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
-        var extensionDefinition = descriptor.CreateDefinition();
+        var extensionDefinition = descriptor.CreateConfiguration();
 
         ApplyCorrectScope(extensionDefinition, discoveryContext);
 
@@ -41,9 +41,9 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is not FilterInputTypeDefinition def)
+        if (configuration is not FilterInputTypeConfiguration def)
         {
             return;
         }
@@ -59,19 +59,19 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         convention.ApplyConfigurations(typeReference, descriptor);
 
         DataTypeExtensionHelper
-            .MergeFilterInputTypeDefinitions(completionContext, descriptor.CreateDefinition(), def);
+            .MergeFilterInputTypeDefinitions(completionContext, descriptor.CreateConfiguration(), def);
 
         if (def.Scope is not null)
         {
-            definition.Name = $"{completionContext.Scope}_{definition.Name}";
+            configuration.Name = $"{completionContext.Scope}_{configuration.Name}";
         }
     }
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is not FilterInputTypeDefinition { EntityType: { }, } def)
+        if (configuration is not FilterInputTypeConfiguration { EntityType: { } } def)
         {
             return;
         }
@@ -80,7 +80,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
         foreach (var field in def.Fields)
         {
-            if (field is FilterFieldDefinition filterFieldDefinition)
+            if (field is FilterFieldConfiguration filterFieldDefinition)
             {
                 if (filterFieldDefinition.Type is null)
                 {
@@ -122,16 +122,16 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
     }
 
     private static void ApplyCorrectScope(
-        InputObjectTypeDefinition definition,
+        InputObjectTypeConfiguration definition,
         ITypeDiscoveryContext discoveryContext)
     {
         foreach (var field in definition.Fields)
         {
-            if (field is FilterFieldDefinition filterFieldDefinition &&
-                field.Type is not null &&
-                filterFieldDefinition.Type is { } filterFieldType &&
-                discoveryContext.TryPredictTypeKind(filterFieldType, out var kind) &&
-                kind is not TypeKind.Scalar and not TypeKind.Enum)
+            if (field is FilterFieldConfiguration filterFieldDefinition
+                && field.Type is not null
+                && filterFieldDefinition.Type is { } filterFieldType
+                && discoveryContext.TryPredictTypeKind(filterFieldType, out var kind)
+                && kind is not TypeKind.Scalar and not TypeKind.Enum)
             {
                 field.Type = field.Type.With(scope: discoveryContext.Scope);
             }
@@ -140,7 +140,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
     private static void ApplyIdAttributesToFields(
         ITypeDiscoveryContext discoveryContext,
-        FilterInputTypeDefinition def)
+        FilterInputTypeConfiguration def)
     {
         foreach (var field in def.Fields)
         {
@@ -157,9 +157,9 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
 file static class Extensions
 {
-    public static bool HasIdAttribute(this InputFieldDefinition? definition)
+    public static bool HasIdAttribute(this InputFieldConfiguration? definition)
     {
-        if (definition is not FilterFieldDefinition { Member: { } member })
+        if (definition is not FilterFieldConfiguration { Member: { } member })
         {
             return false;
         }
@@ -172,8 +172,8 @@ file static class Extensions
                 return true;
             }
 
-            if (attribute.AttributeType.IsGenericType &&
-                attribute.AttributeType.GetGenericTypeDefinition() == typeof(IDAttribute<>))
+            if (attribute.AttributeType.IsGenericType
+                && attribute.AttributeType.GetGenericTypeDefinition() == typeof(IDAttribute<>))
             {
                 return true;
             }

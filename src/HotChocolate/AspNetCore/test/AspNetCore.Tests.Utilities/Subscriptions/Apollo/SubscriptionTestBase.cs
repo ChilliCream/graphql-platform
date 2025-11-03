@@ -97,7 +97,7 @@ public class SubscriptionTestBase : ServerTestBase
         await webSocket.SendConnectionInitializeAsync(cancellationToken);
         var message = await webSocket.ReceiveServerMessageAsync(cancellationToken);
         Assert.NotNull(message);
-        Assert.Equal("connection_ack", message?[MessageProperties.Type]);
+        Assert.Equal("connection_ack", message[MessageProperties.Type]);
         return webSocket;
     }
 

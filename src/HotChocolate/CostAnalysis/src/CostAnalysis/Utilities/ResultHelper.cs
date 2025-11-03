@@ -5,12 +5,12 @@ namespace HotChocolate.CostAnalysis.Utilities;
 
 internal static class ResultHelper
 {
-    private static readonly ImmutableDictionary<string, object?> _validationError
+    private static readonly ImmutableDictionary<string, object?> s_validationError
         = ImmutableDictionary<string, object?>.Empty
-            .Add(WellKnownContextData.ValidationErrors, true);
-    private static readonly ImmutableDictionary<string, object?> _ok
+            .Add(ExecutionContextData.ValidationErrors, true);
+    private static readonly ImmutableDictionary<string, object?> s_ok
         = ImmutableDictionary<string, object?>.Empty
-            .Add(WellKnownContextData.HttpStatusCode, 200);
+            .Add(ExecutionContextData.HttpStatusCode, 200);
 
     public static IExecutionResult CreateError(IError error, CostMetrics? costMetrics)
     {
@@ -26,7 +26,7 @@ internal static class ResultHelper
                 null,
                 ImmutableArray.Create(error),
                 extensions: extensions,
-                contextData: _validationError);
+                contextData: s_validationError);
     }
 
     public static IExecutionResult CreateError(IReadOnlyList<IError> errors, CostMetrics? costMetrics)
@@ -41,7 +41,7 @@ internal static class ResultHelper
             null,
             errors,
             extensions: extensions,
-            contextData: _validationError);
+            contextData: s_validationError);
     }
 
     public static IExecutionResult CreateResult(this CostMetrics costMetrics)
@@ -52,7 +52,7 @@ internal static class ResultHelper
             data: null,
             errors: null,
             extensions: extensions,
-            contextData: _ok,
+            contextData: s_ok,
             items: null,
             incremental: null,
             label: null,
@@ -75,12 +75,9 @@ internal static class ResultHelper
                 return AddCostMetrics(r, costMetrics);
 
             case ResponseStream r:
-            {
                 return AddCostMetrics(r, costMetrics);
-            }
 
             case OperationResultBatch r:
-            {
                 var results = new IExecutionResult[r.Results.Count];
                 IImmutableDictionary<string, object?>? costMetricsMap = null;
 
@@ -103,7 +100,6 @@ internal static class ResultHelper
                 }
 
                 return new OperationResultBatch(results);
-            }
 
             default:
                 throw new NotSupportedException();
@@ -124,7 +120,7 @@ internal static class ResultHelper
     {
         var onFirstResult = responseStream.OnFirstResult;
 
-        if(onFirstResult.Count == 0)
+        if (onFirstResult.Count == 0)
         {
             onFirstResult =
                 ImmutableArray.Create<Func<IOperationResult, IOperationResult>>(
@@ -135,7 +131,7 @@ internal static class ResultHelper
             return responseStream.WithOnFirstResult(onFirstResult);
         }
 
-        if(onFirstResult is ImmutableArray<Func<IOperationResult, IOperationResult>> immutable)
+        if (onFirstResult is ImmutableArray<Func<IOperationResult, IOperationResult>> immutable)
         {
             onFirstResult = immutable.Add(
                 result => result is OperationResult operationResult
@@ -168,12 +164,12 @@ internal static class ResultHelper
     {
         const string costKey = "operationCost";
 
-        if(extensions is null || extensions.Count == 0)
+        if (extensions is null || extensions.Count == 0)
         {
             return ImmutableDictionary<string, object?>.Empty.Add(costKey, costMetrics);
         }
 
-        if(extensions is ImmutableDictionary<string, object?> immutable)
+        if (extensions is ImmutableDictionary<string, object?> immutable)
         {
             return immutable.Add(costKey, costMetrics);
         }
@@ -197,6 +193,6 @@ internal static class ResultHelper
         OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage("The query request contains no document or no document id.")
-                .SetCode(ErrorCodes.Execution.QueryNotFound)
+                .SetCode(ErrorCodes.Execution.OperationDocumentNotFound)
                 .Build());
 }

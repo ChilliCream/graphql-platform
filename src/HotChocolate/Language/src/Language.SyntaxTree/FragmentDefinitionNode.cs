@@ -25,6 +25,9 @@ public sealed class FragmentDefinitionNode : NamedSyntaxNode, IExecutableDefinit
     /// <param name="name">
     /// The name of the fragment definition.
     /// </param>
+    /// <param name="description">
+    /// The description of the fragment definition.
+    /// </param>
     /// <param name="variableDefinitions">
     /// The variables that are declared for this fragment definition.
     /// </param>
@@ -40,12 +43,14 @@ public sealed class FragmentDefinitionNode : NamedSyntaxNode, IExecutableDefinit
     public FragmentDefinitionNode(
         Location? location,
         NameNode name,
+        StringValueNode? description,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
         NamedTypeNode typeCondition,
         IReadOnlyList<DirectiveNode> directives,
         SelectionSetNode selectionSet)
         : base(location, name, directives)
     {
+        Description = description;
         VariableDefinitions = variableDefinitions
             ?? throw new ArgumentNullException(nameof(variableDefinitions));
         TypeCondition = typeCondition
@@ -56,6 +61,11 @@ public sealed class FragmentDefinitionNode : NamedSyntaxNode, IExecutableDefinit
 
     /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.FragmentDefinition;
+
+    /// <summary>
+    /// Gets the description of the fragment definition.
+    /// </summary>
+    public StringValueNode? Description { get; }
 
     /// <summary>
     /// Gets the variables that are declared for this fragment definition.
@@ -118,7 +128,14 @@ public sealed class FragmentDefinitionNode : NamedSyntaxNode, IExecutableDefinit
     /// Returns the new node with the new <paramref name="location" />.
     /// </returns>
     public FragmentDefinitionNode WithLocation(Location? location)
-        => new(location, Name, VariableDefinitions, TypeCondition, Directives, SelectionSet);
+        => new(
+            location,
+            Name,
+            Description,
+            VariableDefinitions,
+            TypeCondition,
+            Directives,
+            SelectionSet);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -131,7 +148,34 @@ public sealed class FragmentDefinitionNode : NamedSyntaxNode, IExecutableDefinit
     /// Returns the new node with the new <paramref name="name" />.
     /// </returns>
     public FragmentDefinitionNode WithName(NameNode name)
-        => new(Location, name, VariableDefinitions, TypeCondition, Directives, SelectionSet);
+        => new(
+            Location,
+            name,
+            Description,
+            VariableDefinitions,
+            TypeCondition,
+            Directives,
+            SelectionSet);
+
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the <see cref="Description" />
+    /// with <paramref name="description" />.
+    /// </summary>
+    /// <param name="description">
+    /// The description that shall be used to replace the current <see cref="Description" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="description" />.
+    /// </returns>
+    public FragmentDefinitionNode WithDescription(StringValueNode? description)
+        => new(
+            Location,
+            Name,
+            description,
+            VariableDefinitions,
+            TypeCondition,
+            Directives,
+            SelectionSet);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -146,7 +190,14 @@ public sealed class FragmentDefinitionNode : NamedSyntaxNode, IExecutableDefinit
     /// </returns>
     public FragmentDefinitionNode WithVariableDefinitions(
         IReadOnlyList<VariableDefinitionNode> variableDefinitions)
-        => new(Location, Name, variableDefinitions, TypeCondition, Directives, SelectionSet);
+        => new(
+            Location,
+            Name,
+            Description,
+            variableDefinitions,
+            TypeCondition,
+            Directives,
+            SelectionSet);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -161,7 +212,14 @@ public sealed class FragmentDefinitionNode : NamedSyntaxNode, IExecutableDefinit
     /// </returns>
     public FragmentDefinitionNode WithTypeCondition(
         NamedTypeNode typeCondition)
-        => new(Location, Name, VariableDefinitions, typeCondition, Directives, SelectionSet);
+        => new(
+            Location,
+            Name,
+            Description,
+            VariableDefinitions,
+            typeCondition,
+            Directives,
+            SelectionSet);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -176,7 +234,14 @@ public sealed class FragmentDefinitionNode : NamedSyntaxNode, IExecutableDefinit
     /// </returns>
     public FragmentDefinitionNode WithDirectives(
         IReadOnlyList<DirectiveNode> directives)
-        => new(Location, Name, VariableDefinitions, TypeCondition, directives, SelectionSet);
+        => new(
+            Location,
+            Name,
+            Description,
+            VariableDefinitions,
+            TypeCondition,
+            directives,
+            SelectionSet);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -190,5 +255,12 @@ public sealed class FragmentDefinitionNode : NamedSyntaxNode, IExecutableDefinit
     /// </returns>
     public FragmentDefinitionNode WithSelectionSet(
         SelectionSetNode selectionSet)
-        => new(Location, Name, VariableDefinitions, TypeCondition, Directives, selectionSet);
+        => new(
+            Location,
+            Name,
+            Description,
+            VariableDefinitions,
+            TypeCondition,
+            Directives,
+            selectionSet);
 }

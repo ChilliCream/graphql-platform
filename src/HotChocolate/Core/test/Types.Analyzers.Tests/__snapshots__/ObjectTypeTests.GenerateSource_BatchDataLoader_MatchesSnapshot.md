@@ -22,8 +22,10 @@ namespace TestNamespace
     {
         internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor<global::TestNamespace.Book> descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.BookNode);
-            var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
             var naming = descriptor.Extend().Context.Naming;
@@ -36,13 +38,40 @@ namespace TestNamespace
             }
 
             descriptor
-                .Field(thisType.GetMember("GetAuthorAsync", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("Author", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = r.GetAuthorAsync();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Author>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(global::TestNamespace.Author);
+
+                    configuration.SetSourceGeneratorFlags();
+
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetAuthorAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::TestNamespace.Book),
+                            typeof(global::System.Threading.CancellationToken)
+                        })!;
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.BindMemberAttribute("AuthorId"));
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
+
+                    configuration.Resolvers = context.Resolvers.GetAuthorAsync();
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
 
             Configure(descriptor);
         }

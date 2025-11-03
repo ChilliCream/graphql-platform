@@ -1,6 +1,10 @@
+using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
+using HotChocolate.Types.Helpers;
 using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Pagination;
@@ -14,52 +18,42 @@ internal sealed class EdgeType : ObjectType, IEdgeType
         string connectionName,
         TypeReference nodeType)
     {
-        if (nodeType is null)
-        {
-            throw new ArgumentNullException(nameof(nodeType));
-        }
-
-        if (string.IsNullOrEmpty(connectionName))
-        {
-            throw new ArgumentNullException(nameof(connectionName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(connectionName);
+        ArgumentNullException.ThrowIfNull(nodeType);
 
         ConnectionName = connectionName;
-        Definition = CreateTypeDefinition(nodeType);
-        Definition.Name = NameHelper.CreateEdgeName(connectionName);
-        Definition.Configurations.Add(
-            new CompleteConfiguration(
+        Configuration = CreateConfiguration(nodeType);
+        Configuration.Name = NameHelper.CreateEdgeName(connectionName);
+        Configuration.Tasks.Add(
+            new OnCompleteTypeSystemConfigurationTask(
                 (c, _) => NodeType = c.GetType<IOutputType>(nodeType),
-                Definition,
+                Configuration,
                 ApplyConfigurationOn.BeforeCompletion));
     }
 
     internal EdgeType(TypeReference nodeType)
     {
-        if (nodeType is null)
-        {
-            throw new ArgumentNullException(nameof(nodeType));
-        }
+        ArgumentNullException.ThrowIfNull(nodeType);
 
         // the property is set later in the configuration.
-        ConnectionName = default!;
-        Definition = CreateTypeDefinition(nodeType);
-        Definition.Configurations.Add(
-            new CompleteConfiguration(
+        ConnectionName = null!;
+        Configuration = CreateConfiguration(nodeType);
+        Configuration.Tasks.Add(
+            new OnCompleteTypeSystemConfigurationTask(
                 (c, d) =>
                 {
                     var type = c.GetType<IType>(nodeType);
                     ConnectionName = type.NamedType().Name;
-                    ((ObjectTypeDefinition)d).Name = NameHelper.CreateEdgeName(ConnectionName);
+                    ((ObjectTypeConfiguration)d).Name = NameHelper.CreateEdgeName(ConnectionName);
                 },
-                Definition,
+                Configuration,
                 ApplyConfigurationOn.BeforeNaming,
                 nodeType,
                 TypeDependencyFulfilled.Named));
-        Definition.Configurations.Add(
-            new CompleteConfiguration(
+        Configuration.Tasks.Add(
+            new OnCompleteTypeSystemConfigurationTask(
                 (c, _) => NodeType = c.GetType<IOutputType>(nodeType),
-                Definition,
+                Configuration,
                 ApplyConfigurationOn.BeforeCompletion));
     }
 
@@ -69,12 +63,26 @@ internal sealed class EdgeType : ObjectType, IEdgeType
     public string ConnectionName { get; private set; }
 
     /// <inheritdoc />
-    public IOutputType NodeType { get; private set; } = default!;
+    public IOutputType NodeType { get; private set; } = null!;
+
+    protected override void OnBeforeRegisterDependencies(
+        ITypeDiscoveryContext context,
+        TypeSystemConfiguration configuration)
+    {
+        if (context.DescriptorContext.Options.ApplyShareableToConnections)
+        {
+            context.Dependencies.Add(new TypeDependency(context.TypeInspector.GetOutputTypeRef(typeof(Shareable))));
+            var config = (ObjectTypeConfiguration)configuration;
+            config.AddDirective(Shareable.Instance, context.TypeInspector);
+        }
+
+        base.OnBeforeRegisterDependencies(context, configuration);
+    }
 
     /// <inheritdoc />
     public override bool IsInstanceOfType(IResolverContext context, object resolverResult)
     {
-        if (resolverResult is IEdge { Node: not null, } edge)
+        if (resolverResult is IEdge { Node: not null } edge)
         {
             IType nodeType = NodeType;
 
@@ -95,22 +103,24 @@ internal sealed class EdgeType : ObjectType, IEdgeType
         return false;
     }
 
-    private static ObjectTypeDefinition CreateTypeDefinition(TypeReference nodeType)
+    private static ObjectTypeConfiguration CreateConfiguration(TypeReference nodeType)
         => new()
         {
             Description = EdgeType_Description,
             RuntimeType = typeof(IEdge),
             Fields =
             {
-                new(Names.Cursor,
+                new ObjectFieldConfiguration(
+                    Names.Cursor,
                     EdgeType_Cursor_Description,
                     TypeReference.Parse($"{ScalarNames.String}!"),
                     pureResolver: GetCursor),
-                new(Names.Node,
+                new ObjectFieldConfiguration(
+                    Names.Node,
                     EdgeType_Node_Description,
                     nodeType,
-                    pureResolver: GetNode),
-            },
+                    pureResolver: GetNode)
+            }
         };
 
     private static string GetCursor(IResolverContext context)

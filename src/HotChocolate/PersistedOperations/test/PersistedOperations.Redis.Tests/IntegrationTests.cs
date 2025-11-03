@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
@@ -33,11 +34,12 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddRedisOperationDocumentStorage(_ => _database)
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    var documentInfo = c.OperationDocumentInfo;
+                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
                             .FromResult(r)
@@ -66,11 +68,12 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddRedisOperationDocumentStorage(_ => _database, TimeSpan.FromMilliseconds(10))
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    var documentInfo = c.OperationDocumentInfo;
+                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
                             .FromResult(r)
@@ -82,7 +85,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .BuildRequestExecutorAsync();
 
         // ... write document to cache
-        var cache = executor.Services.GetRequiredService<IOperationDocumentStorage>();
+        var cache = executor.Schema.Services.GetRequiredService<IOperationDocumentStorage>();
         await cache.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
 
         // ... wait for document to expire
@@ -114,11 +117,12 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddRedisOperationDocumentStorage(_ => _database)
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    var documentInfo = c.OperationDocumentInfo;
+                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
                             .FromResult(r)
@@ -153,11 +157,12 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 // and in the redis storage setup refer to that instance.
                 .AddRedisOperationDocumentStorage(sp => sp.GetRequiredService<IConnectionMultiplexer>())
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    var documentInfo = c.OperationDocumentInfo;
+                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
                             .FromResult(r)
@@ -192,11 +197,12 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 // and in the redis storage setup refer to that instance.
                 .AddRedisOperationDocumentStorage()
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    var documentInfo = c.OperationDocumentInfo;
+                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
                             .FromResult(r)
@@ -228,11 +234,12 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddRedisOperationDocumentStorage(_ => _database)
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    var documentInfo = c.OperationDocumentInfo;
+                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
                             .FromResult(r)

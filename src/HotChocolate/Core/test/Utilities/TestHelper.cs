@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
@@ -22,7 +23,7 @@ public static class TestHelper
     }
 
     public static Task<IExecutionResult> ExpectValid(
-        string query,
+        [StringSyntax("graphql")] string query,
         Action<IRequestExecutorBuilder>? configure = null,
         Action<OperationRequestBuilder>? request = null,
         IServiceProvider? requestServices = null)
@@ -33,7 +34,7 @@ public static class TestHelper
             {
                 ConfigureRequest = request,
                 Configure = configure,
-                Services = requestServices,
+                Services = requestServices
             });
     }
 
@@ -85,7 +86,7 @@ public static class TestHelper
             {
                 Configure = configure,
                 ConfigureRequest = request,
-                Services = requestServices,
+                Services = requestServices
             },
             elementInspectors);
     }
@@ -115,7 +116,7 @@ public static class TestHelper
     }
 
     public static async Task<T> CreateTypeAsync<T>()
-        where T : INamedType
+        where T : ITypeDefinition
     {
         var schema = await CreateSchemaAsync(
             c => c
@@ -126,14 +127,14 @@ public static class TestHelper
     }
 
     public static async Task<T> CreateTypeAsync<T>(T type)
-        where T : INamedType
+        where T : ITypeDefinition
     {
         var schema = await CreateSchemaAsync(type);
-        return schema.GetType<T>(type.Name);
+        return schema.Types.OfType<T>().Single();
     }
 
-    public static Task<ISchema> CreateSchemaAsync(
-        INamedType type)
+    public static Task<ISchemaDefinition> CreateSchemaAsync(
+        ITypeDefinition type)
     {
         return CreateSchemaAsync(
             c => c
@@ -142,7 +143,7 @@ public static class TestHelper
                 .ModifyOptions(o => o.StrictValidation = false));
     }
 
-    public static async Task<ISchema> CreateSchemaAsync(
+    public static async Task<ISchemaDefinition> CreateSchemaAsync(
         Action<IRequestExecutorBuilder> configure,
         bool strict = false)
     {
@@ -159,7 +160,7 @@ public static class TestHelper
         Action<IRequestExecutorBuilder>? configure = null,
         ITestOutputHelper? output = null)
     {
-        var configuration = new TestConfiguration { Configure = configure, };
+        var configuration = new TestConfiguration { Configure = configure };
 
         return await CreateExecutorAsync(configuration, output);
     }
@@ -181,8 +182,8 @@ public static class TestHelper
 
         return await builder.Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
     }
 
     public static IOperationRequest CreateRequest(

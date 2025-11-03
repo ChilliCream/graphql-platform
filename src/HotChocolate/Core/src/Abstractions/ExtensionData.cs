@@ -94,8 +94,8 @@ public sealed class ExtensionData
     }
 
     public bool Contains(KeyValuePair<string, object?> item)
-        => (_dict?.TryGetValue(item.Key, out var value) ?? false) &&
-            Equals(item.Value, value);
+        => (_dict?.TryGetValue(item.Key, out var value) ?? false)
+            && Equals(item.Value, value);
 
     public bool ContainsKey(string key)
         => _dict?.ContainsKey(key) ?? false;
@@ -124,7 +124,7 @@ public sealed class ExtensionData
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Dictionary<string, object?> Dict()
-        => _dict ??= new Dictionary<string, object?>();
+        => _dict ??= [];
 
     internal bool TryGetInnerDictionary(
         [NotNullWhen(true)] out Dictionary<string, object?>? dictionary)

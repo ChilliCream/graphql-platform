@@ -6,13 +6,11 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
-using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
-
-#nullable enable
+using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
 namespace HotChocolate.Configuration;
 
@@ -23,7 +21,7 @@ internal sealed class TypeInitializer
     private readonly IDescriptorContext _context;
     private readonly TypeInterceptor _interceptor;
     private readonly IsOfTypeFallback? _isOfType;
-    private readonly Func<TypeSystemObjectBase, RootTypeKind> _getTypeKind;
+    private readonly Func<TypeSystemObject, RootTypeKind> _getTypeKind;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
     private readonly TypeReferenceResolver _typeReferenceResolver;
@@ -39,13 +37,10 @@ internal sealed class TypeInitializer
         TypeRegistry typeRegistry,
         IReadOnlyList<TypeReference> initialTypes,
         IsOfTypeFallback? isOfType,
-        Func<TypeSystemObjectBase, RootTypeKind> getTypeKind,
+        Func<TypeSystemObject, RootTypeKind> getTypeKind,
         IReadOnlySchemaOptions options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         _context = descriptorContext ?? throw new ArgumentNullException(nameof(descriptorContext));
         _typeRegistry = typeRegistry ?? throw new ArgumentNullException(nameof(typeRegistry));
@@ -129,12 +124,12 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeDiscoverTypes();
 
-        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0, } errors)
+        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0 } errors)
         {
             throw new SchemaException(errors);
         }
 
-        // lets tell the type interceptors what types we have initialized.
+        // let's tell the type interceptors what types we have initialized.
         _interceptor.OnTypesInitialized();
         _interceptor.OnAfterDiscoverTypes();
     }
@@ -157,8 +152,8 @@ internal sealed class TypeInitializer
                     if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         var typeRef = interfaceType.TypeReference;
-                        ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeRef);
-                        objectType.Dependencies.Add(new(typeRef, Completed));
+                        ((ObjectType)objectType.Type).Configuration!.Interfaces.Add(typeRef);
+                        objectType.Dependencies.Add(new TypeDependency(typeRef, Completed));
                     }
                 }
             }
@@ -171,8 +166,8 @@ internal sealed class TypeInitializer
                         && interfaceType.RuntimeType.IsAssignableFrom(implementing.RuntimeType))
                     {
                         var typeRef = interfaceType.TypeReference;
-                        ((InterfaceType)implementing.Type).Definition!.Interfaces.Add(typeRef);
-                        implementing.Dependencies.Add(new(typeRef, Completed));
+                        ((InterfaceType)implementing.Type).Configuration!.Interfaces.Add(typeRef);
+                        implementing.Dependencies.Add(new TypeDependency(typeRef, Completed));
                     }
                 }
             }
@@ -189,7 +184,7 @@ internal sealed class TypeInitializer
                     if (unionType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         var typeRef = objectType.TypeReference;
-                        ((UnionType)unionType.Type).Definition!.Types.Add(typeRef);
+                        ((UnionType)unionType.Type).Configuration!.Types.Add(typeRef);
                     }
                 }
             }
@@ -222,7 +217,7 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeCompleteTypeNames();
 
-        if (ProcessTypes(Named, type => CompleteTypeName(type)))
+        if (ProcessTypes(Named, CompleteTypeName))
         {
             _interceptor.OnTypesCompletedName();
         }
@@ -239,7 +234,7 @@ internal sealed class TypeInitializer
     }
 
     internal RegisteredType InitializeType(
-        TypeSystemObjectBase type)
+        TypeSystemObject type)
     {
         var typeReg = new RegisteredType(
             type,
@@ -296,7 +291,7 @@ internal sealed class TypeInitializer
         {
             _interceptor.OnAfterResolveRootType(
                 type.Context,
-                ((ObjectType)type.Type.Type).Definition!,
+                ((ObjectType)type.Type.Type).Configuration!,
                 type.Kind);
         }
     }
@@ -319,14 +314,14 @@ internal sealed class TypeInitializer
 
             foreach (var typeName in extensions
                 .Select(t => t.Type)
-                .OfType<INamedTypeExtension>()
+                .OfType<ITypeDefinitionExtensionMerger>()
                 .Where(t => t.ExtendsType is null)
                 .Select(t => t.Name)
                 .Distinct())
             {
-                var type = types.Find(t => t.Type.Name.EqualsOrdinal(typeName));
+                var type = types.Find(t => t.Type.Name.EqualsOrdinal(typeName) && !t.IsExtension);
 
-                if (type?.Type is INamedType namedType)
+                if (type?.Type is ITypeDefinition namedType)
                 {
                     MergeTypeExtension(
                         extensions.Where(t => t.Type.Name.EqualsOrdinal(typeName)),
@@ -340,18 +335,13 @@ internal sealed class TypeInitializer
 
             foreach (var extension in extensions.Except(processed))
             {
-                if (extension.Type is INamedTypeExtension
-                    {
-                        ExtendsType: { } extendsType,
-                    } namedTypeExtension)
+                if (extension.Type is ITypeDefinitionExtensionMerger { ExtendsType: { } extendsType } namedTypeExtension)
                 {
-                    var isSchemaType = typeof(INamedType).IsAssignableFrom(extendsType);
+                    var isSchemaType = typeof(ITypeDefinition).IsAssignableFrom(extendsType);
                     extensionArray[0] = extension;
 
-                    foreach (var possibleMatchingType in types
-                        .Where(
-                            t =>
-                                t.Type is INamedType n && n.Kind == namedTypeExtension.Kind))
+                    foreach (var possibleMatchingType in types.Where(
+                        t => t.Type is ITypeDefinition n && n.Kind == namedTypeExtension.Kind && !t.IsExtension))
 
                     {
                         if (isSchemaType && extendsType.IsInstanceOfType(possibleMatchingType.Type))
@@ -359,7 +349,7 @@ internal sealed class TypeInitializer
                             MergeTypeExtension(
                                 extensionArray,
                                 possibleMatchingType,
-                                (INamedType)possibleMatchingType.Type,
+                                (ITypeDefinition)possibleMatchingType.Type,
                                 processed);
                         }
                         else if (!isSchemaType
@@ -369,7 +359,7 @@ internal sealed class TypeInitializer
                             MergeTypeExtension(
                                 extensionArray,
                                 possibleMatchingType,
-                                (INamedType)possibleMatchingType.Type,
+                                (ITypeDefinition)possibleMatchingType.Type,
                                 processed);
                         }
                     }
@@ -379,27 +369,27 @@ internal sealed class TypeInitializer
 
         _interceptor.OnAfterMergeTypeExtensions();
 
-        var mutationType = _rootTypes.FirstOrDefault(t => t.Kind == OperationType.Mutation);
+        var mutationType = _rootTypes.Find(t => t.Kind == OperationType.Mutation);
 
         if (mutationType.IsInitialized)
         {
             _interceptor.OnBeforeCompleteMutation(
                 mutationType.Type,
-                ((ObjectType)mutationType.Type.Type).Definition!);
+                ((ObjectType)mutationType.Type.Type).Configuration!);
         }
     }
 
     private void MergeTypeExtension(
         IEnumerable<RegisteredType> extensions,
         RegisteredType registeredType,
-        INamedType namedType,
+        ITypeDefinition namedType,
         HashSet<RegisteredType> processed)
     {
         foreach (var extension in extensions)
         {
             processed.Add(extension);
 
-            if (extension.Type is INamedTypeExtensionMerger m)
+            if (extension.Type is ITypeDefinitionExtensionMerger m)
             {
                 if (m.Kind != namedType.Kind)
                 {
@@ -410,7 +400,7 @@ internal sealed class TypeInitializer
                                     CultureInfo.InvariantCulture,
                                     TypeInitializer_Merge_KindDoesNotMatch,
                                     namedType.Name))
-                            .SetTypeSystemObject((ITypeSystemObject)namedType)
+                            .SetTypeSystemObject((TypeSystemObject)namedType)
                             .Build());
                 }
 
@@ -437,7 +427,7 @@ internal sealed class TypeInitializer
     {
         if (registeredType.Type is ObjectType objectType)
         {
-            foreach (var field in objectType.Definition!.Fields)
+            foreach (var field in objectType.Configuration!.Fields)
             {
                 if (!field.Resolvers.HasResolvers)
                 {
@@ -445,9 +435,9 @@ internal sealed class TypeInitializer
                 }
             }
         }
-        else if(registeredType.Type is InterfaceType interfaceType)
+        else if (registeredType.Type is InterfaceType interfaceType)
         {
-            foreach (var field in interfaceType.Definition!.Fields)
+            foreach (var field in interfaceType.Configuration!.Fields)
             {
                 if (!field.Resolvers.HasResolvers)
                 {
@@ -458,7 +448,7 @@ internal sealed class TypeInitializer
     }
 
     private static FieldResolverDelegates CompileResolver(
-        ObjectFieldDefinition definition,
+        ObjectFieldConfiguration definition,
         IResolverCompiler resolverCompiler)
     {
         var resolvers = definition.Resolvers;
@@ -509,7 +499,7 @@ internal sealed class TypeInitializer
         return resolvers;
 
         static void BuildArgumentLookup(
-            ObjectFieldDefinition definition,
+            ObjectFieldConfiguration definition,
             Dictionary<ParameterInfo, string> argumentNames)
         {
             foreach (var argument in definition.Arguments)
@@ -523,7 +513,7 @@ internal sealed class TypeInitializer
     }
 
     private static FieldResolverDelegates CompileResolver(
-        InterfaceFieldDefinition definition,
+        InterfaceFieldConfiguration definition,
         IResolverCompiler resolverCompiler)
     {
         var resolvers = definition.Resolvers;
@@ -566,7 +556,7 @@ internal sealed class TypeInitializer
         return resolvers;
 
         static void BuildArgumentLookup(
-            InterfaceFieldDefinition definition,
+            InterfaceFieldConfiguration definition,
             Dictionary<ParameterInfo, string> argumentNames)
         {
             foreach (var argument in definition.Arguments)
@@ -583,7 +573,7 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeCompleteTypes();
 
-        if(ProcessTypes(Completed, type => CompleteType(type)))
+        if (ProcessTypes(Completed, CompleteType))
         {
             _interceptor.OnTypesCompleted();
         }

@@ -1,7 +1,7 @@
+using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
-
-#nullable enable
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
@@ -16,9 +16,16 @@ internal sealed class PathParameterExpressionBuilder()
     public override bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(Path);
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public bool CanHandle(ParameterDescriptor parameter)
+        => typeof(Path) == parameter.Type;
+
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)(object)context.Path;
+    {
+        Debug.Assert(typeof(T) == typeof(Path));
+        var path = context.Path;
+        return Unsafe.As<Path, T>(ref path);
+    }
 }

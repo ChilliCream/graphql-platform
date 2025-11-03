@@ -28,7 +28,7 @@ public static class NameUtils
         var builder = new StringBuilder();
         var current = path;
 
-        while (current is not null or { IsRoot: false, })
+        while (current is not null or { IsRoot: false })
         {
             if (current is NamePathSegment nameSegment)
             {
@@ -104,7 +104,7 @@ public static class NameUtils
 
     public static string GetLeftPropertyAssignment(string property)
     {
-        if (property is { Length: >0, } && property[0] == '_')
+        if (property is { Length: > 0 } && property[0] == '_')
         {
             return $"this.{property}";
         }
@@ -138,8 +138,8 @@ public static class NameUtils
             {
                 value.Append(char.ToLower(parameterName[i], CultureInfo.InvariantCulture));
 
-                if (i + 1 < parameterName.Length &&
-                    char.IsLetter(parameterName[i + 1]))
+                if (i + 1 < parameterName.Length
+                    && char.IsLetter(parameterName[i + 1]))
                 {
                     value.Append(first
                         ? char.ToLower(parameterName[++i], CultureInfo.InvariantCulture)

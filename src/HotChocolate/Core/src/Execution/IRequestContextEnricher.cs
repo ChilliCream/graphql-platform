@@ -10,5 +10,5 @@ public interface IRequestContextEnricher
     /// Enrich the request context.
     /// </summary>
     /// <param name="context">The request context.</param>
-    void Enrich(IRequestContext context);
+    void Enrich(RequestContext context);
 }

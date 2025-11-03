@@ -30,10 +30,10 @@ internal sealed partial class ResolverTask
     internal bool Reset()
     {
         _completionStatus = ExecutionTaskStatus.Completed;
-        _operationContext = default!;
-        _selection = default!;
+        _operationContext = null!;
+        _selection = null!;
         _context.Clean();
-        ParentResult = default!;
+        ParentResult = null!;
         Status = ExecutionTaskStatus.WaitingToRun;
         IsSerial = false;
         IsRegistered = false;

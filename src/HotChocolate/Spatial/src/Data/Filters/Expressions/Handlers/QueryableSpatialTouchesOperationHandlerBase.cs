@@ -12,14 +12,14 @@ namespace HotChocolate.Data.Filters.Spatial;
 public abstract class QueryableSpatialTouchesOperationHandlerBase
     : QueryableSpatialBooleanMethodHandler
 {
-    private static readonly MethodInfo _touches =
+    private static readonly MethodInfo s_touches =
         typeof(Geometry).GetMethod(nameof(Geometry.Touches))!;
 
-    public QueryableSpatialTouchesOperationHandlerBase(
+    protected QueryableSpatialTouchesOperationHandlerBase(
         IFilterConvention convention,
         ITypeInspector inspector,
         InputParser inputParser)
-        : base(convention, inspector, inputParser, _touches)
+        : base(convention, inspector, inputParser, s_touches)
     {
     }
 

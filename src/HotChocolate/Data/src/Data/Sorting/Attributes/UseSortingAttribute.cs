@@ -10,7 +10,7 @@ namespace HotChocolate.Data;
 /// </summary>
 public class UseSortingAttribute : ObjectFieldDescriptorAttribute
 {
-    private static readonly MethodInfo _generic = typeof(SortingObjectFieldDescriptorExtensions)
+    private static readonly MethodInfo s_generic = typeof(SortingObjectFieldDescriptorExtensions)
         .GetMethods(BindingFlags.Public | BindingFlags.Static)
         .Single(m => m.Name.Equals(
                 nameof(SortingObjectFieldDescriptorExtensions.UseSorting),
@@ -40,7 +40,7 @@ public class UseSortingAttribute : ObjectFieldDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
         if (Type is null)
         {
@@ -48,7 +48,7 @@ public class UseSortingAttribute : ObjectFieldDescriptorAttribute
         }
         else
         {
-            _generic.MakeGenericMethod(Type).Invoke(null, [descriptor, Scope,]);
+            s_generic.MakeGenericMethod(Type).Invoke(null, [descriptor, Scope]);
         }
     }
 }

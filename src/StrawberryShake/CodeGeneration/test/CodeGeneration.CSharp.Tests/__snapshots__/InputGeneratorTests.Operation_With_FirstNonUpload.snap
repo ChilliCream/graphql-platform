@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -94,7 +95,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($string: String!, $upload: Upload!) {
+    /// query Test(
+    ///   $string: String!
+    ///   $upload: Upload!
+    /// ) {
     ///   foo(string: $string, upload: $upload)
     /// }
     /// </code>
@@ -108,97 +112,7 @@ namespace Foo.Bar
 
         public static TestQueryDocument Instance { get; } = new TestQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x71,
-            0x75,
-            0x65,
-            0x72,
-            0x79,
-            0x20,
-            0x54,
-            0x65,
-            0x73,
-            0x74,
-            0x28,
-            0x24,
-            0x73,
-            0x74,
-            0x72,
-            0x69,
-            0x6e,
-            0x67,
-            0x3a,
-            0x20,
-            0x53,
-            0x74,
-            0x72,
-            0x69,
-            0x6e,
-            0x67,
-            0x21,
-            0x2c,
-            0x20,
-            0x24,
-            0x75,
-            0x70,
-            0x6c,
-            0x6f,
-            0x61,
-            0x64,
-            0x3a,
-            0x20,
-            0x55,
-            0x70,
-            0x6c,
-            0x6f,
-            0x61,
-            0x64,
-            0x21,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x66,
-            0x6f,
-            0x6f,
-            0x28,
-            0x73,
-            0x74,
-            0x72,
-            0x69,
-            0x6e,
-            0x67,
-            0x3a,
-            0x20,
-            0x24,
-            0x73,
-            0x74,
-            0x72,
-            0x69,
-            0x6e,
-            0x67,
-            0x2c,
-            0x20,
-            0x75,
-            0x70,
-            0x6c,
-            0x6f,
-            0x61,
-            0x64,
-            0x3a,
-            0x20,
-            0x24,
-            0x75,
-            0x70,
-            0x6c,
-            0x6f,
-            0x61,
-            0x64,
-            0x29,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query Test($string: String!, $upload: Upload!) { foo(string: $string, upload: $upload) }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "35fd86e6fe5db1cabaf4a986a0976560add8afcd");
 
         public override global::System.String ToString()
@@ -215,7 +129,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($string: String!, $upload: Upload!) {
+    /// query Test(
+    ///   $string: String!
+    ///   $upload: Upload!
+    /// ) {
     ///   foo(string: $string, upload: $upload)
     /// }
     /// </code>
@@ -226,6 +143,7 @@ namespace Foo.Bar
         private readonly global::StrawberryShake.IOperationExecutor<ITestResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _uploadFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public TestQuery(global::StrawberryShake.IOperationExecutor<ITestResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -233,11 +151,39 @@ namespace Foo.Bar
             _uploadFormatter = serializerResolver.GetInputValueFormatter("Upload");
         }
 
+        private TestQuery(global::StrawberryShake.IOperationExecutor<ITestResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter, global::StrawberryShake.Serialization.IInputValueFormatter uploadFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _stringFormatter = @stringFormatter;
+            _uploadFormatter = uploadFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ITestResult);
+
+        public global::Foo.Bar.ITestQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.TestQuery(_operationExecutor, _configure.Add(configure), _stringFormatter, _uploadFormatter);
+        }
+
+        public global::Foo.Bar.ITestQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.ITestQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestResult>> ExecuteAsync(global::System.String @string, global::StrawberryShake.Upload upload, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(@string, upload);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -292,7 +238,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($string: String!, $upload: Upload!) {
+    /// query Test(
+    ///   $string: String!
+    ///   $upload: Upload!
+    /// ) {
     ///   foo(string: $string, upload: $upload)
     /// }
     /// </code>
@@ -300,6 +249,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ITestQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.ITestQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.ITestQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.ITestQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestResult>> ExecuteAsync(global::System.String @string, global::StrawberryShake.Upload upload, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ITestResult>> Watch(global::System.String @string, global::StrawberryShake.Upload upload, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -486,6 +438,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::Foo.Bar.State.FooClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.TestQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.ITestQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IFooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>("FooClient", services, serviceCollection);

@@ -34,6 +34,6 @@ public abstract class SortFieldHandler<TContext, T>
     /// <inheritdoc />
     public abstract bool CanHandle(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition);
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration);
 }

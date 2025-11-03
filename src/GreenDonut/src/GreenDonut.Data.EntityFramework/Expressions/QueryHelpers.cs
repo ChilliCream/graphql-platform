@@ -14,7 +14,7 @@ internal static class QueryHelpers
         }
 
         var orderByProperties = ExtractOrderProperties(query);
-        if(orderByProperties.Count == 0)
+        if (orderByProperties.Count == 0)
         {
             return query;
         }
@@ -53,7 +53,6 @@ internal static class QueryHelpers
 
             return body as MemberExpression;
         }
-
     }
 
     private static Expression<Func<T, T>>? ExtractCurrentSelector<T>(

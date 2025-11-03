@@ -12,6 +12,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
     public DataLoaderInfo(
         AttributeSyntax attributeSyntax,
         IMethodSymbol attributeSymbol,
+        AttributeData attributeData,
         IMethodSymbol methodSymbol,
         MethodDeclarationSyntax methodSyntax)
     {
@@ -22,19 +23,18 @@ public sealed class DataLoaderInfo : SyntaxInfo
         MethodSymbol = methodSymbol;
         MethodSyntax = methodSyntax;
 
-        var attribute = methodSymbol.GetDataLoaderAttribute();
-        _lookups = attribute.GetLookups();
+        _lookups = attributeData.GetLookups();
         var declaringType = methodSymbol.ContainingType;
 
-        NameWithoutSuffix = GetDataLoaderName(methodSymbol.Name, attribute);
+        NameWithoutSuffix = GetDataLoaderName(methodSymbol.Name, attributeData);
         Name = NameWithoutSuffix + "DataLoader";
         InterfaceName = $"I{Name}";
         Namespace = methodSymbol.ContainingNamespace.ToDisplayString();
         FullName = $"{Namespace}.{Name}";
         InterfaceFullName = $"{Namespace}.{InterfaceName}";
-        IsScoped = attribute.IsScoped();
-        IsPublic = attribute.IsPublic();
-        IsInterfacePublic = attribute.IsInterfacePublic();
+        IsScoped = attributeData.IsScoped();
+        IsPublic = attributeData.IsPublic();
+        IsInterfacePublic = attributeData.IsInterfacePublic();
         MethodName = methodSymbol.Name;
         KeyParameter = MethodSymbol.Parameters[0];
         ContainingType = declaringType.ToDisplayString();
@@ -90,7 +90,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
             {
                 foreach (var method in MethodSymbol.ContainingType.GetMembers()
                     .OfType<IMethodSymbol>()
-                    .Where(m => m.Name == lookup))
+                    .Where(m => m.Name == lookup && m.MethodKind is MethodKind.Ordinary))
                 {
                     if (method.Parameters.Length == 1
                         && method.Parameters[0].Type.Equals(valueType, SymbolEqualityComparer.Default)
@@ -110,7 +110,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
             return builder.ToImmutable();
         }
 
-        return ImmutableArray<CacheLookup>.Empty;
+        return [];
     }
 
     private void Validate(
@@ -290,14 +290,23 @@ public sealed class DataLoaderInfo : SyntaxInfo
 
     public static bool IsKeyValuePair(ITypeSymbol returnTypeSymbol, ITypeSymbol keyType, ITypeSymbol valueType)
     {
-        if (returnTypeSymbol is INamedTypeSymbol namedTypeSymbol
-            && namedTypeSymbol.IsGenericType
-            && namedTypeSymbol.OriginalDefinition.SpecialType == SpecialType.None
-            && namedTypeSymbol.ConstructedFrom.ToDisplayString().StartsWith(WellKnownTypes.KeyValuePair)
-            && keyType.Equals(namedTypeSymbol.TypeArguments[0], SymbolEqualityComparer.Default)
-            && valueType.Equals(namedTypeSymbol.TypeArguments[1], SymbolEqualityComparer.Default))
+        if (returnTypeSymbol is INamedTypeSymbol namedTypeSymbol)
         {
-            return true;
+            // Handle nullable types and extract the underlying type
+            var actualTypeSymbol = namedTypeSymbol;
+            if (namedTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                actualTypeSymbol = (INamedTypeSymbol)namedTypeSymbol.TypeArguments[0];
+            }
+
+            if (actualTypeSymbol.IsGenericType
+                && actualTypeSymbol.OriginalDefinition.SpecialType == SpecialType.None
+                && actualTypeSymbol.ConstructedFrom.ToDisplayString().StartsWith(WellKnownTypes.KeyValuePair)
+                && keyType.Equals(actualTypeSymbol.TypeArguments[0], SymbolEqualityComparer.Default)
+                && valueType.Equals(actualTypeSymbol.TypeArguments[1], SymbolEqualityComparer.Default))
+            {
+                return true;
+            }
         }
 
         return false;
@@ -309,13 +318,25 @@ public sealed class DataLoaderInfo : SyntaxInfo
     public override bool Equals(SyntaxInfo? obj)
         => obj is DataLoaderInfo other && Equals(other);
 
-    private bool Equals(DataLoaderInfo other)
-        => AttributeSyntax.IsEquivalentTo(other.AttributeSyntax)
-            && MethodSyntax.IsEquivalentTo(other.MethodSyntax)
-            && Groups.SequenceEqual(other.Groups, StringComparer.Ordinal);
+    private bool Equals(DataLoaderInfo? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return OrderByKey.Equals(other.OrderByKey, StringComparison.Ordinal)
+            && AttributeSyntax.IsEquivalentTo(other.AttributeSyntax)
+            && MethodSyntax.IsEquivalentTo(other.MethodSyntax);
+    }
 
     public override int GetHashCode()
-        => HashCode.Combine(AttributeSyntax, MethodSyntax);
+        => HashCode.Combine(OrderByKey, AttributeSyntax, MethodSyntax);
 
     private static string GetDataLoaderName(string name, AttributeData attribute)
     {

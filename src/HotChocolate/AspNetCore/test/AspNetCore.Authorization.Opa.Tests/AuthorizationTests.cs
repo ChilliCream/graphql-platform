@@ -33,19 +33,20 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task Policy_NotFound(Action<IRequestExecutorBuilder> configure)
+    public async Task Policy_NotFound(Action<IRequestExecutorBuilder, int> configure)
     {
         // arrange
+        var port = _opaHandle!.GetPort();
         var server = CreateTestServer(
             builder =>
             {
-                configure(builder);
+                configure(builder, port);
                 builder.Services.AddAuthorization();
             },
             SetUpHttpContext);
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -55,24 +56,25 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task Policy_NotAuthorized(Action<IRequestExecutorBuilder> configure)
+    public async Task Policy_NotAuthorized(Action<IRequestExecutorBuilder, int> configure)
     {
         // arrange
+        var port = _opaHandle!.GetPort();
         var server = CreateTestServer(
             builder =>
             {
-                configure(builder);
+                configure(builder, port);
                 builder.Services.AddAuthorization();
             },
             SetUpHttpContext + (Action<HttpContext>)(c =>
             {
                 c.Request.Headers["Authorization"] =
-                    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lI" +
-                    "iwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+                    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lI"
+                    + "iwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
             }));
 
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
-        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
+        using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{port}") };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",
@@ -80,7 +82,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
         putPolicyResponse.EnsureSuccessStatusCode();
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -90,25 +92,26 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task Policy_Authorized(Action<IRequestExecutorBuilder> configure)
+    public async Task Policy_Authorized(Action<IRequestExecutorBuilder, int> configure)
     {
         // arrange
+        var port = _opaHandle!.GetPort();
         var server = CreateTestServer(
             builder =>
             {
-                configure(builder);
+                configure(builder, port);
                 builder.Services.AddAuthorization();
             },
             SetUpHttpContext + (Action<HttpContext>)(c =>
             {
                 c.Request.Headers["Authorization"] =
-                    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lI" +
-                    "iwiaWF0IjoxNTE2MjM5MDIyLCJiaXJ0aGRhdGUiOiIxNy0xMS0yMDAwIn0.p88IUnrabPMh6LVi4DIYsDeZozjfj4Ofwg" +
-                    "jXBglnxac";
+                    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lI"
+                    + "iwiaWF0IjoxNTE2MjM5MDIyLCJiaXJ0aGRhdGUiOiIxNy0xMS0yMDAwIn0.p88IUnrabPMh6LVi4DIYsDeZozjfj4Ofwg"
+                    + "jXBglnxac";
             }));
 
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
-        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
+        using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{port}") };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",
@@ -116,7 +119,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
         putPolicyResponse.EnsureSuccessStatusCode();
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -126,13 +129,14 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task Policy_Authorized_WithExtensions(Action<IRequestExecutorBuilder> configure)
+    public async Task Policy_Authorized_WithExtensions(Action<IRequestExecutorBuilder, int> configure)
     {
         // arrange
+        var port = _opaHandle!.GetPort();
         var server = CreateTestServer(
             builder =>
             {
-                configure(builder);
+                configure(builder, port);
                 builder.Services.AddAuthorization();
                 builder.AddOpaQueryRequestExtensionsHandler(Policies.HasDefinedAge,
                     context => context.Resource is IMiddlewareContext or AuthorizationContext
@@ -145,13 +149,13 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
                 // as a result Base64 representation is not the one as expected by Rego rule
                 // See policies/has_age_defined.rego file for details
                 c.Request.Headers["Authorization"] =
-                    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9." +
-                    "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJiaXJ0aGRhdGUiOiIxNy0x" +
-                    "MS0yMDAwIn0.01Hb6X-HXl9ASf3X82Mt63RMpZ4SVJZT9hTI2dYet-k";
+                    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9."
+                    + "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJiaXJ0aGRhdGUiOiIxNy0x"
+                    + "MS0yMDAwIn0.01Hb6X-HXl9ASf3X82Mt63RMpZ4SVJZT9hTI2dYet-k";
             }));
 
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("Policies/has_age_defined.rego");
-        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
+        using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{port}") };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",
@@ -159,7 +163,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
         putPolicyResponse.EnsureSuccessStatusCode();
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);

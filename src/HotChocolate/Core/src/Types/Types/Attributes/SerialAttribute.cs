@@ -1,8 +1,6 @@
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -16,6 +14,6 @@ public sealed class SerialAttribute : ObjectFieldDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member) =>
-        descriptor.Serial();
+        MemberInfo? member)
+        => descriptor.Serial();
 }

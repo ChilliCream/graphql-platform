@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Marten.Filtering;
 /// </summary>
 internal static class MartenExpressionHelper
 {
-    private static readonly MethodInfo _in =
+    private static readonly MethodInfo s_in =
         typeof(LinqExtensions)
             .GetMethods()
             .Single(m =>
@@ -30,7 +30,7 @@ internal static class MartenExpressionHelper
         object? parsedValue)
     {
         return Expression.Call(
-            _in.MakeGenericMethod(genericType),
+            s_in.MakeGenericMethod(genericType),
             property,
             Expression.Convert(
                 Expression.Constant(parsedValue),

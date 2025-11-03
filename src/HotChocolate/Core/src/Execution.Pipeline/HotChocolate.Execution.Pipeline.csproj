@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Execution.Pipeline</PackageId>
+    <AssemblyName>HotChocolate.Execution.Pipeline</AssemblyName>
+    <RootNamespace>HotChocolate.Execution.Pipeline</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+    <ProjectReference Include="..\Validation\HotChocolate.Validation.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\ExecutionPipelineResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ExecutionPipelineResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\ExecutionPipelineResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ExecutionPipelineResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

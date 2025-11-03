@@ -7,8 +7,8 @@ public class Subscription
 {
     public Review OnReview(
         Episode episode,
-        [EventMessage]Review review,
-        [Service]ReviewRepository repository)
+        [EventMessage] Review review,
+        [Service] ReviewRepository repository)
     {
         return review;
     }

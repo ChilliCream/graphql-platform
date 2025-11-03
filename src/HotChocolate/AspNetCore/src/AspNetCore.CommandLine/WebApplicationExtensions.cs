@@ -19,7 +19,7 @@ public static class HostBuilderExtensions
     /// </example>
     /// <param name="builder">The IHostBuilder instance</param>
     /// <param name="args">Command line arguments to be passed to the host </param>
-    public static async Task RunWithGraphQLCommandsAsync(
+    public static async Task<int> RunWithGraphQLCommandsAsync(
         this IHostBuilder builder,
         string[] args)
         => await builder.Build().RunWithGraphQLCommandsAsync(args);
@@ -35,7 +35,7 @@ public static class HostBuilderExtensions
     /// </example>
     /// <param name="builder">The IHostBuilder instance</param>
     /// <param name="args">Command line arguments to be passed to the host </param>
-    public static void RunWithGraphQLCommands(
+    public static int RunWithGraphQLCommands(
         this IHostBuilder builder,
         string[] args)
         => builder.Build().RunWithGraphQLCommands(args);
@@ -57,12 +57,10 @@ public static class HostBuilderExtensions
     {
         if (args.IsGraphQLCommand())
         {
-            await new App(host).Build().InvokeAsync(args);
+            return await new App(host).Build().InvokeAsync(args);
         }
-        else
-        {
-            await host.RunAsync();
-        }
+
+        await host.RunAsync();
 
         return 0;
     }
@@ -78,20 +76,27 @@ public static class HostBuilderExtensions
     /// </example>
     /// <param name="host">The IHost instance</param>
     /// <param name="args">Command line arguments to be passed to the host </param>
-    public static void RunWithGraphQLCommands(
+    public static int RunWithGraphQLCommands(
         this IHost host,
         string[] args)
     {
         if (args.IsGraphQLCommand())
         {
-            new App(host).Build().Invoke(args);
+            return new App(host).Build().Invoke(args);
         }
-        else
-        {
-            host.Run();
-        }
+
+        host.Run();
+
+        return 0;
     }
 
-    private static bool IsGraphQLCommand(this string[] args)
-        => args is ["schema", ..,];
+    /// <summary>
+    /// Checks if the provided arguments are a GraphQL command.
+    /// </summary>
+    /// <param name="args">The command line arguments.</param>
+    /// <returns>
+    /// Returns <see langword="true"/> if the arguments are a GraphQL command; otherwise, <see langword="false"/>.
+    /// </returns>
+    public static bool IsGraphQLCommand(this string[] args)
+        => args is ["schema", ..];
 }

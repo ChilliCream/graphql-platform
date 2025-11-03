@@ -8,10 +8,7 @@ public static class SpatialProjectionsRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddSpatialProjections(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(x => x.AddSpatialProjections());
     }

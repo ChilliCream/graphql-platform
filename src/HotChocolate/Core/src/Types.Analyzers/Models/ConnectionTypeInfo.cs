@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Analyzers.Models;
 
 public sealed class ConnectionTypeInfo
     : SyntaxInfo
-        , IOutputTypeInfo
+    , IOutputTypeInfo
 {
     private ConnectionTypeInfo(
         string name,
@@ -16,7 +16,8 @@ public sealed class ConnectionTypeInfo
         string edgeTypeName,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
-        ImmutableArray<Resolver> resolvers)
+        ImmutableArray<Resolver> resolvers,
+        ImmutableArray<AttributeData> attributes)
     {
         Name = name;
         NameFormat = nameFormat;
@@ -26,6 +27,9 @@ public sealed class ConnectionTypeInfo
         Namespace = runtimeType.ContainingNamespace.ToDisplayString();
         ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        Attributes = attributes.GetUserAttributes();
     }
 
     public string Name { get; }
@@ -35,6 +39,8 @@ public sealed class ConnectionTypeInfo
     public string EdgeTypeName { get; }
 
     public string Namespace { get; }
+
+    public string? Description => null;
 
     public bool IsPublic => RuntimeType.DeclaredAccessibility == Accessibility.Public;
 
@@ -56,6 +62,12 @@ public sealed class ConnectionTypeInfo
 
     public override string OrderByKey => RuntimeTypeFullName;
 
+    public DirectiveScope Shareable { get; }
+
+    public DirectiveScope Inaccessible { get; }
+
+    public ImmutableArray<AttributeData> Attributes { get; }
+
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);
 
@@ -65,8 +77,18 @@ public sealed class ConnectionTypeInfo
     public override bool Equals(SyntaxInfo? obj)
         => obj is ConnectionTypeInfo other && Equals(other);
 
-    private bool Equals(ConnectionTypeInfo other)
+    private bool Equals(ConnectionTypeInfo? other)
     {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
         if (!string.Equals(OrderByKey, other.OrderByKey, StringComparison.Ordinal))
         {
             return false;
@@ -82,8 +104,7 @@ public sealed class ConnectionTypeInfo
             return false;
         }
 
-        return ClassDeclaration.SyntaxTree.IsEquivalentTo(
-            other.ClassDeclaration.SyntaxTree);
+        return ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
     }
 
     public override int GetHashCode()
@@ -100,8 +121,9 @@ public sealed class ConnectionTypeInfo
             nameFormat,
             edgeTypeName,
             connectionClass.RuntimeType,
-            connectionClass.ClassDeclarations,
-            connectionClass.Resolvers);
+            connectionClass.ClassDeclaration,
+            connectionClass.Resolvers,
+            connectionClass.RuntimeType.GetAttributes());
     }
 
     public static ConnectionTypeInfo CreateConnection(
@@ -125,27 +147,11 @@ public sealed class ConnectionTypeInfo
 
         var resolvers = ImmutableArray.CreateBuilder<Resolver>();
 
-        foreach (var member in runtimeType.GetMembers())
+        foreach (var member in runtimeType.AllPublicInstanceMembers())
         {
-            if (member.DeclaredAccessibility is not Accessibility.Public
-                || member.IsStatic
-                || member.IsIgnored())
-            {
-                continue;
-            }
-
             switch (member)
             {
-                case IMethodSymbol method:
-                    if (method.IsPropertyOrEventAccessor()
-                        || method.IsOperator()
-                        || method.IsConstructor()
-                        || method.IsSpecialMethod()
-                        || method.IsCompilerGenerated())
-                    {
-                        continue;
-                    }
-
+                case IMethodSymbol { MethodKind: MethodKind.Ordinary } method:
                     resolvers.Add(CreateResolver(compilation, runtimeType, method, connectionName));
                     break;
 
@@ -165,13 +171,17 @@ public sealed class ConnectionTypeInfo
                         flags |= FieldFlags.TotalCount;
                     }
 
+                    compilation.TryGetGraphQLDeprecationReason(property, out var deprecationReason);
+
                     resolvers.Add(
                         new Resolver(
                             connectionName,
+                            deprecationReason,
                             property,
                             ResolverResultKind.Pure,
-                            ImmutableArray<ResolverParameter>.Empty,
-                            GetMemberBindings(member),
+                            [],
+                            GetMemberBindings(property),
+                            GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
                             flags: flags));
                     break;
             }
@@ -183,6 +193,7 @@ public sealed class ConnectionTypeInfo
             edgeTypeName,
             runtimeType,
             classDeclaration,
-            resolvers.ToImmutable());
+            resolvers.ToImmutable(),
+            runtimeType.GetAttributes());
     }
 }

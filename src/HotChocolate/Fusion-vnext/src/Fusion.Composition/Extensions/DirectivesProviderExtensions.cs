@@ -1,15 +1,36 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
-using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.Extensions;
 
 internal static class DirectivesProviderExtensions
 {
+    public static void AddDirective(this IDirectivesProvider member, Directive directive)
+    {
+        switch (member)
+        {
+            case IMutableFieldDefinition field:
+                field.Directives.Add(directive);
+                break;
+            case IMutableTypeDefinition type:
+                type.Directives.Add(directive);
+                break;
+            case MutableEnumValue enumValue:
+                enumValue.Directives.Add(directive);
+                break;
+            case MutableSchemaDefinition schema:
+                schema.Directives.Add(directive);
+                break;
+            default:
+                throw new InvalidOperationException();
+        }
+    }
+
     public static string? GetIsFieldSelectionMap(this IDirectivesProvider type)
     {
-        var isDirective = type.Directives.FirstOrDefault(d => d.Name == DirectiveNames.Is);
+        var isDirective = type.Directives.FirstOrDefault(d => d.Name == WellKnownDirectiveNames.Is);
 
         if (isDirective?.Arguments[ArgumentNames.Field] is StringValueNode fieldArgument)
         {
@@ -22,7 +43,7 @@ internal static class DirectivesProviderExtensions
     public static string? GetProvidesSelectionSet(this IDirectivesProvider type)
     {
         var providesDirective =
-            type.Directives.FirstOrDefault(d => d.Name == DirectiveNames.Provides);
+            type.Directives.FirstOrDefault(d => d.Name == WellKnownDirectiveNames.Provides);
 
         if (providesDirective?.Arguments[ArgumentNames.Fields] is StringValueNode fieldsArgument)
         {
@@ -32,53 +53,21 @@ internal static class DirectivesProviderExtensions
         return null;
     }
 
-    public static bool HasExternalDirective(this IDirectivesProvider type)
+    public static bool ExistsInSchema(this IDirectivesProvider type, string schemaName)
     {
-        return type.Directives.ContainsName(DirectiveNames.External);
+        return type.Directives.AsEnumerable().Any(
+            d =>
+                d.Name == WellKnownDirectiveNames.FusionType
+                && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
     }
 
     public static bool HasFusionInaccessibleDirective(this IDirectivesProvider type)
     {
-        return type.Directives.ContainsName(DirectiveNames.FusionInaccessible);
-    }
-
-    public static bool HasFusionRequiresDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(DirectiveNames.FusionRequires);
+        return type.Directives.ContainsName(WellKnownDirectiveNames.FusionInaccessible);
     }
 
     public static bool HasInaccessibleDirective(this IDirectivesProvider type)
     {
-        return type.Directives.ContainsName(DirectiveNames.Inaccessible);
-    }
-
-    public static bool HasInternalDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(DirectiveNames.Internal);
-    }
-
-    public static bool HasLookupDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(DirectiveNames.Lookup);
-    }
-
-    public static bool HasOverrideDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(DirectiveNames.Override);
-    }
-
-    public static bool HasProvidesDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(DirectiveNames.Provides);
-    }
-
-    public static bool HasRequireDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(DirectiveNames.Require);
-    }
-
-    public static bool HasShareableDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(DirectiveNames.Shareable);
+        return type.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);
     }
 }

@@ -1,6 +1,7 @@
 using GreenDonut.Data;
 using HotChocolate.Data.Models;
 using HotChocolate.Types;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.Types.Products;

@@ -77,7 +77,7 @@ public interface ISortInputTypeDescriptor<T> : ISortInputTypeDescriptor
     /// <summary>
     /// Ignore the specified property.
     /// </summary>
-    /// <param  name="propertyOrMember">
+    /// <param name="propertyOrMember">
     /// The property that shall be ignored.
     /// </param>
     ISortInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> propertyOrMember);

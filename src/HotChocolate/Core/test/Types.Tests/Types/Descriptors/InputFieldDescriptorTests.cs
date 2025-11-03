@@ -1,3 +1,4 @@
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
@@ -12,15 +13,15 @@ public class InputFieldDescriptorTests
         // arrange
         var descriptor = InputFieldDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // act
         descriptor
             .Type<ListType<StringType>>()
-            .Type<NativeType<IReadOnlyDictionary<string, string>>>();
+            .Type<NamedRuntimeType<IReadOnlyDictionary<string, string>>>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(ListType<StringType>),
@@ -33,15 +34,15 @@ public class InputFieldDescriptorTests
         // arrange
         var descriptor = InputFieldDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // act
         descriptor
-            .Type<NativeType<IReadOnlyDictionary<string, string>>>()
+            .Type<NamedRuntimeType<IReadOnlyDictionary<string, string>>>()
             .Type<ListType<StringType>>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(ListType<StringType>),
@@ -54,13 +55,13 @@ public class InputFieldDescriptorTests
         // arrange
         var descriptor = InputFieldDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // act
         descriptor.Type(new StringType());
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.IsType<StringType>(
             Assert.IsType<SchemaTypeReference>(typeRef).Type);
@@ -72,13 +73,13 @@ public class InputFieldDescriptorTests
         // arrange
         var descriptor = InputFieldDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // act
         descriptor.Type<StringType>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(StringType),
@@ -91,13 +92,13 @@ public class InputFieldDescriptorTests
         // arrange
         var descriptor = InputFieldDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // act
         descriptor.Type(typeof(StringType));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(StringType),
@@ -116,7 +117,7 @@ public class InputFieldDescriptorTests
         descriptor.Name("args");
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Equal("args", description.Name);
     }
 
@@ -126,13 +127,13 @@ public class InputFieldDescriptorTests
         // arrange
         var descriptor = InputFieldDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // act
         descriptor.Name("args");
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Equal("args", description.Name);
     }
 
@@ -143,13 +144,13 @@ public class InputFieldDescriptorTests
         var expectedDescription = Guid.NewGuid().ToString();
         var descriptor = InputFieldDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // act
         descriptor.Description(expectedDescription);
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Equal(expectedDescription, description.Description);
     }
 
@@ -159,13 +160,13 @@ public class InputFieldDescriptorTests
         // arrange
         var descriptor = InputFieldDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // act
         descriptor.DefaultValue("string");
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Equal(
             typeof(string),
             Assert.IsType<ExtendedTypeReference>(description.Type).Type.Source);
@@ -178,13 +179,13 @@ public class InputFieldDescriptorTests
         // arrange
         var descriptor = InputFieldDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // act
         descriptor.DefaultValueSyntax("[]");
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.IsType<ListValueNode>(description.DefaultValue);
     }
 
@@ -194,7 +195,7 @@ public class InputFieldDescriptorTests
         // arrange
         var descriptor = InputFieldDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // act
         descriptor
@@ -202,7 +203,7 @@ public class InputFieldDescriptorTests
             .DefaultValue("string");
 
         // asser
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Null(description.DefaultValue);
         Assert.Equal("string", description.RuntimeDefaultValue);
     }
@@ -213,7 +214,7 @@ public class InputFieldDescriptorTests
         // arrange
         var descriptor = InputFieldDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // act
         ((IInputFieldDescriptor)descriptor)
@@ -222,7 +223,7 @@ public class InputFieldDescriptorTests
             .DefaultValue(null);
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.IsType<NullValueNode>(description.DefaultValue);
         Assert.Null(description.RuntimeDefaultValue);
     }
@@ -233,7 +234,7 @@ public class InputFieldDescriptorTests
         // arrange
         var descriptor = InputFieldDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // act
         ((IInputFieldDescriptor)descriptor)
@@ -241,7 +242,7 @@ public class InputFieldDescriptorTests
             .DefaultValue(new StringValueNode("123"));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.IsType<StringValueNode>(description.DefaultValue);
         Assert.Equal("123",
             ((StringValueNode)description.DefaultValue).Value);
@@ -254,11 +255,11 @@ public class InputFieldDescriptorTests
         // act
         var descriptor = InputFieldDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // assert
-        var description = descriptor.CreateDefinition();
-        Assert.Equal(typeof(FieldCollection<Argument>),
+        var description = descriptor.CreateConfiguration();
+        Assert.Equal(typeof(ArgumentCollection),
             Assert.IsType<ExtendedTypeReference>(description.Type).Type.Source);
         Assert.Equal("arguments", description.Name);
     }
@@ -266,14 +267,14 @@ public class InputFieldDescriptorTests
     [Fact]
     public void Type_Syntax_Type_Null()
     {
-        void Error() => InputFieldDescriptor.New(Context, "foo").Type((string)null);
+        void Error() => InputFieldDescriptor.New(Context, "foo").Type((string)null!);
         Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]
     public void Type_Syntax_Descriptor_Null()
     {
-        void Error() => default(InputFieldDescriptor).Type("foo");
+        void Error() => default(InputFieldDescriptor)!.Type("foo");
         Assert.Throws<ArgumentNullException>(Error);
     }
 }

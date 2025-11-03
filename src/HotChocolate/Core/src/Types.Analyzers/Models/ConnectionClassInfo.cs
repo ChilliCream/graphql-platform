@@ -10,18 +10,18 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
 {
     private ConnectionClassInfo(
         INamedTypeSymbol runtimeType,
-        ClassDeclarationSyntax classDeclarations,
+        ClassDeclarationSyntax classDeclaration,
         ImmutableArray<Resolver> resolvers)
     {
         RuntimeType = runtimeType;
-        ClassDeclarations = classDeclarations;
+        ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
         OrderByKey = runtimeType.ToFullyQualified();
     }
 
     public INamedTypeSymbol RuntimeType { get; }
 
-    public ClassDeclarationSyntax ClassDeclarations { get; }
+    public ClassDeclarationSyntax ClassDeclaration { get; }
 
     public ImmutableArray<Resolver> Resolvers { get; }
 
@@ -48,11 +48,11 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
         }
 
         return OrderByKey.Equals(other.OrderByKey, StringComparison.Ordinal)
-            && ClassDeclarations.SyntaxTree.IsEquivalentTo(other.ClassDeclarations.SyntaxTree);
+            && ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
     }
 
     public override int GetHashCode()
-        => HashCode.Combine(OrderByKey, ClassDeclarations);
+        => HashCode.Combine(OrderByKey, ClassDeclaration);
 
     public static ConnectionClassInfo CreateConnection(
         Compilation compilation,
@@ -76,27 +76,11 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
 
         var resolvers = ImmutableArray.CreateBuilder<Resolver>();
 
-        foreach (var member in runtimeType.GetMembers())
+        foreach (var member in runtimeType.AllPublicInstanceMembers())
         {
-            if (member.DeclaredAccessibility is not Accessibility.Public
-                || member.IsStatic
-                || member.IsIgnored())
-            {
-                continue;
-            }
-
             switch (member)
             {
-                case IMethodSymbol method:
-                    if (method.IsPropertyOrEventAccessor()
-                        || method.IsOperator()
-                        || method.IsConstructor()
-                        || method.IsSpecialMethod()
-                        || method.IsCompilerGenerated())
-                    {
-                        continue;
-                    }
-
+                case IMethodSymbol { MethodKind: MethodKind.Ordinary } method:
                     resolvers.Add(ObjectTypeInspector.CreateResolver(compilation, runtimeType, method, name));
                     break;
 
@@ -119,13 +103,17 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
                         }
                     }
 
+                    compilation.TryGetGraphQLDeprecationReason(property, out var deprecationReason);
+
                     resolvers.Add(
                         new Resolver(
                             name,
+                            deprecationReason,
                             property,
                             ResolverResultKind.Pure,
-                            ImmutableArray<ResolverParameter>.Empty,
+                            [],
                             ObjectTypeInspector.GetMemberBindings(member),
+                            GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
                             flags: flags));
                     break;
             }

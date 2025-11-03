@@ -96,6 +96,8 @@ public sealed class ArgumentAssignment : INameProvider, ISyntaxNodeProvider
     /// </value>
     public IValueNode Value { get; }
 
+    public SchemaCoordinate Coordinate => throw new NotImplementedException();
+
     /// <summary>
     /// Returns a string representation of the current argument assignment.
     /// </summary>

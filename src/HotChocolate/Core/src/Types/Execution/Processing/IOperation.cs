@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -62,7 +60,7 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// <summary>
     /// Gets the schema for which this operation is compiled.
     /// </summary>
-    ISchema Schema { get; }
+    ISchemaDefinition Schema { get; }
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/> and
@@ -81,7 +79,7 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// <exception cref="ArgumentException">
     /// The specified <paramref name="selection"/> has no selection set.
     /// </exception>
-    ISelectionSet GetSelectionSet(ISelection selection, IObjectType typeContext);
+    ISelectionSet GetSelectionSet(ISelection selection, ObjectType typeContext);
 
     /// <summary>
     /// Gets the possible return types for the <paramref name="selection"/>.
@@ -95,7 +93,7 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// <exception cref="ArgumentException">
     /// The specified <paramref name="selection"/> has no selection set.
     /// </exception>
-    IEnumerable<IObjectType> GetPossibleTypes(ISelection selection);
+    IEnumerable<ObjectType> GetPossibleTypes(ISelection selection);
 
     /// <summary>
     /// Creates the include flags for the specified variable values.
@@ -155,9 +153,6 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// <typeparam name="TState">
     /// The type of the state.
     /// </typeparam>
-    /// <typeparam name="TContext">
-    /// The type of the context.
-    /// </typeparam>
     /// <param name="key">
     /// The key of the state.
     /// </param>
@@ -167,7 +162,7 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// <returns>
     /// Returns the state.
     /// </returns>
-    TState GetOrAddState<TState, TContext>(
+    TState GetOrAddState<TState>(
         string key,
         Func<string, TState> createState);
 
