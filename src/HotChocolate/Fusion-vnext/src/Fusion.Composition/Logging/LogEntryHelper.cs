@@ -994,6 +994,63 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry ReferenceToInaccessibleTypeFromFieldArgument(
+        MutableInputFieldDefinition argument,
+        MutableOutputFieldDefinition field,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument,
+                argument.Name,
+                field.Coordinate.ToString(),
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToInaccessibleType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(argument)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ReferenceToInaccessibleTypeFromInputField(
+        MutableInputFieldDefinition inputField,
+        string typeName,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToInaccessibleTypeFromInputField,
+                inputField.Name,
+                typeName,
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToInaccessibleType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(inputField)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ReferenceToInaccessibleTypeFromOutputField(
+        MutableOutputFieldDefinition outputField,
+        string typeName,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField,
+                outputField.Name,
+                typeName,
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToInaccessibleType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(outputField)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry RequireInvalidFields(
         Directive requireDirective,
         MutableInputFieldDefinition argument,

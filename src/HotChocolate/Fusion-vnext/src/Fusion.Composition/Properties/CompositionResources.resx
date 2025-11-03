@@ -342,6 +342,15 @@
   <data name="LogEntryHelper_QueryRootTypeInaccessible" xml:space="preserve">
     <value>The root query type in schema '{0}' must be accessible.</value>
   </data>
+  <data name="LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument" xml:space="preserve">
+    <value>The merged field argument '{0}' on field '{1}' cannot reference the inaccessible type '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_ReferenceToInaccessibleTypeFromInputField" xml:space="preserve">
+    <value>The merged input field '{0}' in type '{1}' cannot reference the inaccessible type '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField" xml:space="preserve">
+    <value>The merged output field '{0}' in type '{1}' cannot reference the inaccessible type '{2}'.</value>
+  </data>
   <data name="LogEntryHelper_RequireInvalidFields" xml:space="preserve">
     <value>The @require directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
   </data>
