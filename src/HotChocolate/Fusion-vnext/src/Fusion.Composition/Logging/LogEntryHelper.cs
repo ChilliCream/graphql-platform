@@ -627,7 +627,7 @@ internal static class LogEntryHelper
                 type.Name,
                 schema.Name,
                 string.Join(".", fieldNamePath))
-            .SetCode(LogEntryCodes.KeyDirectiveInFieldsArg)
+            .SetCode(LogEntryCodes.KeyDirectiveInFieldsArgument)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
             .SetTypeSystemMember(keyDirective)
@@ -647,7 +647,7 @@ internal static class LogEntryHelper
                 type.Name,
                 schema.Name,
                 keyField.Coordinate.ToString())
-            .SetCode(LogEntryCodes.KeyFieldsHasArgs)
+            .SetCode(LogEntryCodes.KeyFieldsHasArguments)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
             .SetTypeSystemMember(keyDirective)
@@ -856,7 +856,7 @@ internal static class LogEntryHelper
                 coordinate.ToString(),
                 schema.Name,
                 string.Join(".", fieldNamePath))
-            .SetCode(LogEntryCodes.ProvidesDirectiveInFieldsArg)
+            .SetCode(LogEntryCodes.ProvidesDirectiveInFieldsArgument)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(coordinate)
             .SetTypeSystemMember(providesDirective)
@@ -878,7 +878,7 @@ internal static class LogEntryHelper
                 coordinate.ToString(),
                 schema.Name,
                 providedField.Coordinate.ToString())
-            .SetCode(LogEntryCodes.ProvidesFieldsHasArgs)
+            .SetCode(LogEntryCodes.ProvidesFieldsHasArguments)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(coordinate)
             .SetTypeSystemMember(providesDirective)
@@ -990,6 +990,63 @@ internal static class LogEntryHelper
             .SetCode(LogEntryCodes.QueryRootTypeInaccessible)
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(type)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ReferenceToInaccessibleTypeFromFieldArgument(
+        MutableInputFieldDefinition argument,
+        MutableOutputFieldDefinition field,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument,
+                argument.Name,
+                field.Coordinate.ToString(),
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToInaccessibleType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(argument)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ReferenceToInaccessibleTypeFromInputField(
+        MutableInputFieldDefinition inputField,
+        string typeName,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToInaccessibleTypeFromInputField,
+                inputField.Name,
+                typeName,
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToInaccessibleType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(inputField)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ReferenceToInaccessibleTypeFromOutputField(
+        MutableOutputFieldDefinition outputField,
+        string typeName,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField,
+                outputField.Name,
+                typeName,
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToInaccessibleType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(outputField)
             .SetSchema(schema)
             .Build();
     }

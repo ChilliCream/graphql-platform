@@ -1032,6 +1032,33 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The merged field argument &apos;{0}&apos; on field &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged input field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInaccessibleTypeFromInputField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromInputField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged output field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
         /// </summary>
         internal static string LogEntryHelper_RequireInvalidFields {
