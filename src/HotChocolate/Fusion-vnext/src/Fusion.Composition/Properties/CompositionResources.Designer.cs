@@ -753,15 +753,6 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The merged input field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
-        /// </summary>
-        internal static string LogEntryHelper_InputFieldReferencesInaccessibleType {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_InputFieldReferencesInaccessibleType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The input field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_InputFieldTypesNotMergeable {
@@ -1037,6 +1028,33 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_QueryRootTypeInaccessible {
             get {
                 return ResourceManager.GetString("LogEntryHelper_QueryRootTypeInaccessible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged field argument &apos;{0}&apos; on field &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged input field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInaccessibleTypeFromInputField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromInputField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged output field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField", resourceCulture);
             }
         }
         

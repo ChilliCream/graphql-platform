@@ -184,12 +184,12 @@ public sealed class SchemaComposer
         new EmptyMergedUnionTypeRule(),
         new EnumTypeDefaultValueInaccessibleRule(),
         new ImplementedByInaccessibleRule(),
-        new InputFieldReferencesInaccessibleTypeRule(),
         new InterfaceFieldNoImplementationRule(),
         new IsInvalidFieldsRule(),
         new KeyInvalidFieldsRule(),
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),
+        new ReferenceToInaccessibleTypeRule(),
         new RequireInvalidFieldsRule()
     ];
 }

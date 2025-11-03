@@ -447,27 +447,6 @@ internal static class LogEntryHelper
             .Build();
     }
 
-    public static LogEntry InputFieldReferencesInaccessibleType(
-        MutableInputFieldDefinition field,
-        string typeName,
-        string referenceTypeName,
-        MutableSchemaDefinition schema)
-    {
-        var coordinate = new SchemaCoordinate(typeName, field.Name);
-
-        return new LogEntry(
-            string.Format(
-                LogEntryHelper_InputFieldReferencesInaccessibleType,
-                field.Name,
-                typeName,
-                referenceTypeName),
-            LogEntryCodes.InputFieldReferencesInaccessibleType,
-            LogSeverity.Error,
-            coordinate,
-            field,
-            schema);
-    }
-
     public static LogEntry InputFieldTypesNotMergeable(
         MutableInputFieldDefinition field,
         MutableSchemaDefinition schemaA,
@@ -1011,6 +990,63 @@ internal static class LogEntryHelper
             .SetCode(LogEntryCodes.QueryRootTypeInaccessible)
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(type)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ReferenceToInaccessibleTypeFromFieldArgument(
+        MutableInputFieldDefinition argument,
+        MutableOutputFieldDefinition field,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument,
+                argument.Name,
+                field.Coordinate.ToString(),
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToInaccessibleType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(argument)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ReferenceToInaccessibleTypeFromInputField(
+        MutableInputFieldDefinition inputField,
+        string typeName,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToInaccessibleTypeFromInputField,
+                inputField.Name,
+                typeName,
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToInaccessibleType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(inputField)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ReferenceToInaccessibleTypeFromOutputField(
+        MutableOutputFieldDefinition outputField,
+        string typeName,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField,
+                outputField.Name,
+                typeName,
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToInaccessibleType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(outputField)
             .SetSchema(schema)
             .Build();
     }

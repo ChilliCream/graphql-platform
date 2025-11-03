@@ -25,7 +25,6 @@ public static class LogEntryCodes
     public const string FieldWithMissingRequiredArgument = "FIELD_WITH_MISSING_REQUIRED_ARGUMENT";
     public const string ImplementedByInaccessible = "IMPLEMENTED_BY_INACCESSIBLE";
     public const string InputFieldDefaultMismatch = "INPUT_FIELD_DEFAULT_MISMATCH";
-    public const string InputFieldReferencesInaccessibleType = "INPUT_FIELD_REFERENCES_INACCESSIBLE_TYPE";
     public const string InputFieldTypesNotMergeable = "INPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string InputWithMissingRequiredFields = "INPUT_WITH_MISSING_REQUIRED_FIELDS";
     public const string InterfaceFieldNoImplementation = "INTERFACE_FIELD_NO_IMPLEMENTATION";
@@ -58,6 +57,7 @@ public static class LogEntryCodes
     public const string ProvidesInvalidSyntax = "PROVIDES_INVALID_SYNTAX";
     public const string ProvidesOnNonCompositeField = "PROVIDES_ON_NON_COMPOSITE_FIELD";
     public const string QueryRootTypeInaccessible = "QUERY_ROOT_TYPE_INACCESSIBLE";
+    public const string ReferenceToInaccessibleType = "REFERENCE_TO_INACCESSIBLE_TYPE";
     public const string RequireInvalidFields = "REQUIRE_INVALID_FIELDS";
     public const string RequireInvalidFieldType = "REQUIRE_INVALID_FIELD_TYPE";
     public const string RequireInvalidSyntax = "REQUIRE_INVALID_SYNTAX";
