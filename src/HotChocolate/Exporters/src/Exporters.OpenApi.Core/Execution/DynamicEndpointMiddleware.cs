@@ -1,8 +1,9 @@
-using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +21,7 @@ internal sealed class DynamicEndpointMiddleware(
 
         try
         {
-            if (endpointDescriptor.BodyParameter is not null)
+            if (endpointDescriptor.VariableFilledThroughBody is not null)
             {
                 if (context.Request.ContentType?.StartsWith("application/json", StringComparison.OrdinalIgnoreCase) != true)
                 {
@@ -44,9 +45,12 @@ internal sealed class DynamicEndpointMiddleware(
             var formatter = context.RequestServices.GetRequiredService<IOpenApiResultFormatter>();
             var session = await proxy.GetOrCreateSessionAsync(context.RequestAborted);
 
+            using var variableBuffer = new PooledArrayWriter();
             var variables = await BuildVariables(
                 endpointDescriptor,
                 context,
+                variableBuffer,
+                session.Schema,
                 cancellationToken);
 
             var requestBuilder = OperationRequestBuilder.New()
@@ -76,9 +80,7 @@ internal sealed class DynamicEndpointMiddleware(
 
             // If the request had validation errors or execution didn't start, we return HTTP 400.
             if (operationResult.ContextData?.ContainsKey(ExecutionContextData.ValidationErrors) == true
-                // TODO: This is wrong for Fusion
-                // || !operationResult.IsDataSet
-                )
+                || operationResult is OperationResult { IsDataSet: false })
             {
                 await Results.BadRequest().ExecuteAsync(context);
                 return;
@@ -96,20 +98,22 @@ internal sealed class DynamicEndpointMiddleware(
 
             await formatter.FormatResultAsync(operationResult, context, endpointDescriptor, cancellationToken);
         }
-        catch (Exception e)
+        catch
         {
-            await Results.InternalServerError(e).ExecuteAsync(context);
+            await Results.InternalServerError().ExecuteAsync(context);
         }
     }
 
     private static async Task<IReadOnlyDictionary<string, object?>?> BuildVariables(
         OpenApiEndpointDescriptor endpointDescriptor,
         HttpContext httpContext,
+        PooledArrayWriter variableBuffer,
+        ISchemaDefinition schema,
         CancellationToken cancellationToken)
     {
         var variables = new Dictionary<string, object?>();
 
-        if (endpointDescriptor.BodyParameter is not null)
+        if (endpointDescriptor.VariableFilledThroughBody is {} bodyVariable)
         {
             const int chunkSize = 256;
             using var writer = new PooledArrayWriter();
@@ -133,13 +137,17 @@ internal sealed class DynamicEndpointMiddleware(
                 throw new InvalidOperationException("Expected to have a body");
             }
 
-            var variablesProperty = GetObjectProperty(
-                variables,
-                endpointDescriptor.BodyParameter.Variable);
+            var jsonValueParser = new JsonValueParser(buffer: variableBuffer);
 
-            ParseJsonIntoDictionary(variablesProperty, writer.WrittenSpan);
+            var bodyValue = jsonValueParser.Parse(writer.WrittenSpan);
+
+            variables[bodyVariable] = bodyValue;
         }
 
+        // TODO: Derive from parameter
+        var stringType = schema.Types["String"];
+
+        // TODO: Handle deeply nested objects
         if (endpointDescriptor.RouteParameters.Count > 0)
         {
             var routeData = httpContext.GetRouteData();
@@ -152,7 +160,7 @@ internal sealed class DynamicEndpointMiddleware(
                     continue;
                 }
 
-                MapIntoVariables(variables, parameter, value);
+                variables[parameter.Variable] = ParseValueNode(value, stringType);
             }
         }
 
@@ -166,157 +174,93 @@ internal sealed class DynamicEndpointMiddleware(
                     continue;
                 }
 
-                var value = ParseQueryStringValue(values[0]);
-
-                MapIntoVariables(variables, parameter, value);
+                variables[parameter.Variable] = ParseValueNode(values[0], stringType);
             }
         }
 
         return variables;
     }
 
-    private static void MapIntoVariables(
-        Dictionary<string, object?> variables,
-        OpenApiRouteSegmentParameter parameter,
-        object? value)
+    // TODO: This needs information about the underlying type of custom scalars like Long, etc.
+    private static IValueNode? ParseValueNode(object? value, ITypeDefinition type)
     {
-        if (parameter.InputObjectPath.HasValue)
+        if (value is null)
         {
-            var objectProperty = GetObjectProperty(variables, parameter.Variable);
-            var path = parameter.InputObjectPath.Value;
+            return null;
+        }
 
-            for (var i = 0; i < path.Length - 1; i++)
+        if (type is IEnumTypeDefinition enumType)
+        {
+            if (value is not string s)
             {
-                objectProperty = GetObjectProperty(objectProperty, path[i]);
+                throw new InvalidFormatException();
             }
 
-            objectProperty[path[^1]] = value;
-        }
-        else
-        {
-            variables[parameter.Variable] = value;
-        }
-    }
+            var matchingValue = enumType.Values.FirstOrDefault(v => v.Name == s);
 
-    private static Dictionary<string, object?> GetObjectProperty(
-        Dictionary<string, object?> @object,
-        string key)
-    {
-        if (!@object.TryGetValue(key, out var existing))
-        {
-            var newObject = new Dictionary<string, object?>();
-            @object[key] = newObject;
-            return newObject;
-        }
-
-        if (existing is Dictionary<string, object?> existingDict)
-        {
-            return existingDict;
-        }
-
-        throw new InvalidOperationException($"Path segment '{key}' is not an object");
-    }
-
-    // TODO: This is incorrect. The parsing should be done based on the type it's mapping to. Could be they want the true literal string...
-    private static object? ParseQueryStringValue(string? value)
-    {
-        if (value is "true")
-        {
-            return true;
-        }
-
-        if (value is "false")
-        {
-            return false;
-        }
-
-        if (int.TryParse(value, out var intValue))
-        {
-            return intValue;
-        }
-
-        if (double.TryParse(value, out var doubleValue))
-        {
-            return doubleValue;
-        }
-
-        return value;
-    }
-
-    // TODO: This json stuff should live elsewhere
-    // TODO: We should only parse the properties that are actually required, otherwise this could be used to try to sneak in stuff
-    private static void ParseJsonIntoDictionary(
-        Dictionary<string, object?> dictionary,
-        ReadOnlySpan<byte> utf8Json)
-    {
-        var reader = new Utf8JsonReader(utf8Json);
-
-        if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
-        {
-            throw new JsonException("Expected JSON object");
-        }
-
-        ParseObject(ref reader, dictionary);
-    }
-
-    private static void ParseObject(ref Utf8JsonReader reader, Dictionary<string, object?> dictionary)
-    {
-        while (reader.Read())
-        {
-            if (reader.TokenType == JsonTokenType.EndObject)
+            if (matchingValue is null)
             {
-                return;
+                throw new InvalidFormatException();
             }
 
-            if (reader.TokenType != JsonTokenType.PropertyName)
-            {
-                throw new JsonException("Expected property name");
-            }
-
-            var propertyName = reader.GetString()!;
-            reader.Read();
-
-            dictionary[propertyName] = ParseValue(ref reader);
-        }
-    }
-
-    private static object? ParseValue(ref Utf8JsonReader reader)
-    {
-        return reader.TokenType switch
-        {
-            JsonTokenType.String => reader.GetString(),
-            JsonTokenType.Number => reader.TryGetInt64(out var l) ? l : reader.GetDouble(),
-            JsonTokenType.True => true,
-            JsonTokenType.False => false,
-            JsonTokenType.Null => null,
-            JsonTokenType.StartObject => ParseObjectValue(ref reader),
-            JsonTokenType.StartArray => ParseArrayValue(ref reader),
-            _ => throw new JsonException($"Unexpected token: {reader.TokenType}")
-        };
-    }
-
-    private static Dictionary<string, object?> ParseObjectValue(ref Utf8JsonReader reader)
-    {
-        var obj = new Dictionary<string, object?>();
-        ParseObject(ref reader, obj);
-        return obj;
-    }
-
-    private static List<object?> ParseArrayValue(ref Utf8JsonReader reader)
-    {
-        var array = new List<object?>();
-
-        while (reader.Read())
-        {
-            if (reader.TokenType == JsonTokenType.EndArray)
-            {
-                return array;
-            }
-
-            array.Add(ParseValue(ref reader));
+            return new EnumValueNode(matchingValue.Name);
         }
 
-        throw new JsonException("Unexpected end of array");
+        if (type.Name is "String" or "ID")
+        {
+            if (value is string s)
+            {
+                return new StringValueNode(s);
+            }
+        }
+        else if (type.Name is "Boolean")
+        {
+            if (value is bool b)
+            {
+                return new BooleanValueNode(b);
+            }
+
+            if (value is string s && bool.TryParse(s, out var booleanValue))
+            {
+                return new BooleanValueNode(booleanValue);
+            }
+        }
+        else if (type.Name == "Int")
+        {
+            if (value is int i)
+            {
+                return new IntValueNode(i);
+            }
+
+            if (value is string s && int.TryParse(s, out var intValue))
+            {
+                return new IntValueNode(intValue);
+            }
+        }
+        else if (type.Name == "Float")
+        {
+            if (value is float f)
+            {
+                return new FloatValueNode(f);
+            }
+
+            if (value is double d)
+            {
+                return new FloatValueNode(d);
+            }
+
+            if (value is string s && double.TryParse(s, out var doubleValue))
+            {
+                return new FloatValueNode(doubleValue);
+            }
+        }
+
+        if (value is string stringValue)
+        {
+            return new StringValueNode(stringValue);
+        }
+
+        throw new InvalidFormatException();
     }
 
     private static IResult GetResultFromErrors(IReadOnlyList<IError> errors)

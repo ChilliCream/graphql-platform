@@ -1,5 +1,7 @@
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -87,7 +89,12 @@ internal static class VariableCoercionHelper
     {
         var root = Path.Root.Append(variableDefinition.Variable.Name.Value);
 
-        if (!ValidateValue(variableType, value, root, out error))
+        if (!ValidateValue(
+            variableType,
+            value,
+            root,
+            0,
+            out error))
         {
             variableValue = null;
             return false;
@@ -100,7 +107,12 @@ internal static class VariableCoercionHelper
         return true;
     }
 
-    private static bool ValidateValue(IInputType type, IValueNode value, Path path, [NotNullWhen(false)] out IError? error)
+    private static bool ValidateValue(
+        IInputType type,
+        IValueNode value,
+        Path path,
+        int stack,
+        [NotNullWhen(false)] out IError? error)
     {
         if (type.Kind is TypeKind.NonNull)
         {
@@ -137,7 +149,7 @@ internal static class VariableCoercionHelper
 
             for (var i = 0; i < listValue.Items.Count; i++)
             {
-                if (!ValidateValue(elementType, listValue.Items[i], path.Append(i), out error))
+                if (!ValidateValue(elementType, listValue.Items[i], path.Append(i), stack, out error))
                 {
                     return false;
                 }
@@ -158,7 +170,25 @@ internal static class VariableCoercionHelper
                 return false;
             }
 
-            var inputObjectType = (IInputObjectTypeDefinition)type;
+            // TODO: I don't like that we have to upcast here
+            var inputObjectType = (FusionInputObjectTypeDefinition)type;
+            var numberOfInputFields = inputObjectType.Fields.Count;
+
+            var processedCount = 0;
+            bool[]? processedBuffer = null;
+            var processed = stack <= 256 && numberOfInputFields <= 32
+                ? stackalloc bool[numberOfInputFields]
+                : processedBuffer = ArrayPool<bool>.Shared.Rent(numberOfInputFields);
+
+            if (processedBuffer is not null)
+            {
+                processed.Clear();
+            }
+
+            if (processedBuffer is null)
+            {
+                stack += numberOfInputFields;
+            }
 
             for (var i = 0; i < objectValue.Fields.Count; i++)
             {
@@ -175,9 +205,41 @@ internal static class VariableCoercionHelper
                     return false;
                 }
 
-                if (!ValidateValue(fieldDefinition.Type, field.Value, path.Append(field.Name.Value), out error))
+                if (!ValidateValue(
+                    fieldDefinition.Type,
+                    field.Value,
+                    path.Append(field.Name.Value),
+                    stack,
+                    out error))
                 {
                     return false;
+                }
+
+                processed[fieldDefinition.Index] = true;
+                processedCount++;
+            }
+
+            // If not all fields of the input object type were specified,
+            // we have to check if any of the ones left out are non-null
+            // and do not have a default value, and if so, raise an error.
+            if (processedCount != numberOfInputFields)
+            {
+                for (var i = 0; i < numberOfInputFields; i++)
+                {
+                    if (!processed[i])
+                    {
+                        var field = inputObjectType.Fields[i];
+
+                        if (field.Type.Kind == TypeKind.NonNull && field.DefaultValue is null)
+                        {
+                            error = ErrorBuilder.New()
+                                .SetMessage("The required input field `{0}` is missing.", field.Name)
+                                .SetPath(path.Append(field.Name))
+                                .SetExtension("field", field.Coordinate.ToString())
+                                .Build();
+                            return false;
+                        }
+                    }
                 }
             }
 

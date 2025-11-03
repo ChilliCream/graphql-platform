@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Exporters.OpenApi;
 

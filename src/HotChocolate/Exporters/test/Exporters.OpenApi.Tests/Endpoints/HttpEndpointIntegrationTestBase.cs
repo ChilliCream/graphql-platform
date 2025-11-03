@@ -7,6 +7,8 @@ namespace HotChocolate.Exporters.OpenApi;
 // TODO: With authorization also check what happens if we handle it in validation
 // TODO: Test hot reload
 // TODO: @oneOf tests
+// TODO: Test with a long value in either route or query
+// TODO: Test result with timeout
 public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 {
     #region GET
@@ -36,6 +38,54 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 
         // act
         var response = await client.GetAsync("/users/1/details?includeAddress=true");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_With_Query_Parameter_Boolean_Value_For_Boolean()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser($includeEmail: Boolean!) @http(method: GET, route: "/users", queryParameters: ["includeEmail"]) {
+              users {
+                id
+                name
+                email @include(if: $includeEmail)
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/users?includeEmail=true");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_With_Query_Parameter_Boolean_Value_For_String()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser($userId: ID!) @http(method: GET, route: "/users-details", queryParameters: ["userId"]) {
+              userById(id: $userId) {
+                id
+                name
+                email
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/users-details?userId=true");
 
         // assert
         response.MatchSnapshot();

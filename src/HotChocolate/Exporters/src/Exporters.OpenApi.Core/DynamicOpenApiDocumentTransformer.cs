@@ -80,8 +80,9 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         operation.Parameters = new List<OpenApiParameter>();
 #endif
 
-        var bodyVariable = operationDocument.BodyParameter is { } bodyParameter ? bodyParameter.Variable : null;
-        var trie = new InputObjectPathTrie();
+        var bodyParameter = operationDocument.BodyParameter;
+        var bodyVariable = bodyParameter?.Variable;
+        var bodyVariableTrie = new InputObjectPathTrie();
 
         foreach (var routeParameter in operationDocument.Route.Parameters)
         {
@@ -91,7 +92,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
             if (routeParameter.Variable == bodyVariable && routeParameter.InputObjectPath is not null)
             {
-                trie.Add(routeParameter);
+                bodyVariableTrie.Add(routeParameter);
             }
         }
 
@@ -103,16 +104,16 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
             if (queryParameter.Variable == bodyVariable && queryParameter.InputObjectPath is not null)
             {
-                trie.Add(queryParameter);
+                bodyVariableTrie.Add(queryParameter);
             }
         }
 
-        if (operationDocument.BodyParameter is { } bodyParameter2)
+        if (bodyParameter is not null)
         {
-            var graphqlType = GetGraphQLType(operationDocument.OperationDefinition, bodyParameter2, schema);
+            var graphqlType = GetGraphQLType(operationDocument.OperationDefinition, bodyParameter, schema);
             var requestBodyType = CreateOpenApiSchemaForType(graphqlType, schema);
 
-            RemovePropertiesFromSchema(requestBodyType, trie);
+            RemovePropertiesFromSchema(requestBodyType, bodyVariableTrie);
 
             var requestBody = new OpenApiRequestBody
             {

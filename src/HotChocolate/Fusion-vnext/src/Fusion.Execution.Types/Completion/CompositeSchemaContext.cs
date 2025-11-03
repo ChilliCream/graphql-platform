@@ -225,6 +225,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
     private FusionDirectiveDefinition CreateSkipDirective()
     {
         var ifField = new FusionInputFieldDefinition(
+            0,
             "if",
             "Skips this field or fragment when the condition is true.",
             defaultValue: null,
@@ -266,6 +267,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
     private FusionDirectiveDefinition CreateIncludeDirective()
     {
         var ifField = new FusionInputFieldDefinition(
+            0,
             "if",
             "Includes this field or fragment when the condition is true.",
             defaultValue: null,
