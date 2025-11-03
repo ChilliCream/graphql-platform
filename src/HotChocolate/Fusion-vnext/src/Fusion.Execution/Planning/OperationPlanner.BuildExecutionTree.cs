@@ -585,7 +585,7 @@ public sealed partial class OperationPlanner
                 }
             }
 
-            if (lookupFieldNode?.SelectionSet is not {} lookupSelectionSet)
+            if (lookupFieldNode?.SelectionSet is not { } lookupSelectionSet)
             {
                 throw new InvalidOperationException(
                     "Expected to find the lookup field with a selection set in the operation definition");

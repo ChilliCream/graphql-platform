@@ -45,12 +45,6 @@ namespace HotChocolate.Subscriptions.RabbitMQ {
             }
         }
         
-        internal static string RabbitMQPubSubExtensions_AddRabbitMQSubscriptions_PrefixInvalid {
-            get {
-                return ResourceManager.GetString("RabbitMQPubSubExtensions_AddRabbitMQSubscriptions_PrefixInvalid", resourceCulture);
-            }
-        }
-        
         internal static string RabbitMQPubSub_RabbitMQPubSub_PrefixCannotBeNull {
             get {
                 return ResourceManager.GetString("RabbitMQPubSub_RabbitMQPubSub_PrefixCannotBeNull", resourceCulture);
@@ -69,12 +63,6 @@ namespace HotChocolate.Subscriptions.RabbitMQ {
             }
         }
         
-        internal static string RabbitMQConnection_InitializeConnection_ConnectionSucceededButFailedUnexpectedly {
-            get {
-                return ResourceManager.GetString("RabbitMQConnection_InitializeConnection_ConnectionSucceededButFailedUnexpectedly", resourceCulture);
-            }
-        }
-        
         internal static string RabbitMQConnection_InitializeConnection_ConnectionAttemptFailed {
             get {
                 return ResourceManager.GetString("RabbitMQConnection_InitializeConnection_ConnectionAttemptFailed", resourceCulture);
@@ -90,13 +78,6 @@ namespace HotChocolate.Subscriptions.RabbitMQ {
         internal static string RabbitMQConnection_InitializeConnection_ConnectionFailedUnexpectedly {
             get {
                 return ResourceManager.GetString("RabbitMQConnection_InitializeConnection_ConnectionFailedUnexpectedly", resourceCulture);
-            }
-        }
-        
-        internal static string RabbitMQConnectionFailedException_RabbitMQConnectionFailedException_ConnectionFailed {
-            get {
-                return ResourceManager.GetString("RabbitMQConnectionFailedException_RabbitMQConnectionFailedException_ConnectionFai" +
-                        "led", resourceCulture);
             }
         }
     }

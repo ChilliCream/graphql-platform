@@ -105,8 +105,21 @@ public sealed class RequireInvalidFieldsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' "
-                + "specifies an invalid field selection against the composed schema."
+                """
+                {
+                    "message": "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "REQUIRE_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Book.pages(pageSize:)",
+                    "member": "require",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The field 'unknownField' does not exist on the type 'Book'."
+                        ]
+                    }
+                }
+                """
             ]);
     }
 
@@ -126,8 +139,21 @@ public sealed class RequireInvalidFieldsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' "
-                + "specifies an invalid field selection against the composed schema."
+                """
+                {
+                    "message": "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "REQUIRE_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Book.pages(pageSize:)",
+                    "member": "require",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The required field 'Book.size' must not be defined in schema 'A'."
+                        ]
+                    }
+                }
+                """
             ]);
     }
 
@@ -152,8 +178,21 @@ public sealed class RequireInvalidFieldsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' "
-                + "specifies an invalid field selection against the composed schema."
+                """
+                {
+                    "message": "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "REQUIRE_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Book.pages(pageSize:)",
+                    "member": "require",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The required field 'Book.size' must not be defined in schema 'A'."
+                        ]
+                    }
+                }
+                """
             ]);
     }
 }

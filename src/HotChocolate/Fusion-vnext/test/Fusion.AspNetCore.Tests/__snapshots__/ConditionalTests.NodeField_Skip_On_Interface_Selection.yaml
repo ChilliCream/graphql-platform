@@ -34,25 +34,25 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Authorable {
         author: Author
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Author implements Node {
         id: ID!
       }
-      
+
       type Discussion implements Node & Authorable {
         id: ID!
         title: String
         author: Author
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }
@@ -93,13 +93,13 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Author {
         id: ID!
         username: String
         rating: Int
       }
-      
+
       type Query {
         authorById(id: ID!): Author @lookup
       }

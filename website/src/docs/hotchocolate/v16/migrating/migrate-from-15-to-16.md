@@ -38,28 +38,73 @@ builder.Services.AddGraphQLServer()
     .ModifyOptions(options => options.LazyInitialization = true);
 ```
 
-## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
+## Cache size configuration
 
-**Before**
+Previously, document and operation cache sizes were globally configured through the `IServiceCollection`. In an effort to align and properly scope our configuration APIs, we've moved the configuration of these caches to the `IRequestExecutorBuilder`. If you're currently calling `AddDocumentCache` or `AddOperationCache` directly on the `IServiceCollection`, move the configuration to `ModifyOptions` on the `IRequestExecutorBuilder`:
 
-```csharp
+```diff
+-builder.Services.AddDocumentCache(200);
+-builder.Services.AddOperationCache(100);
+
 builder.Services.AddGraphQLServer()
-    .ModifyOptions(options =>
-    {
-        options.MaxAllowedNodeBatchSize = 100;
-        options.EnsureAllNodesCanBeResolved = false;
-    });
++    .ModifyOptions(options =>
++    {
++        options.OperationDocumentCacheSize = 200;
++        options.PreparedOperationCacheSize = 100;
++    });
 ```
 
-**After**
+If your application contains multiple GraphQL servers, the cache configuration has to be repeated for each one as the configuration is now scoped to a particular GraphQL server.
+
+If you were previously accessing `IDocumentCache` or `IPreparedOperationCache` through the root service provider, you now need to access it through the schema-specific service provider instead.
+For instance, to populate the document cache during startup, create a custom `IRequestExecutorWarmupTask` that injects `IDocumentCache`:
 
 ```csharp
-builder.Services.AddGraphQLServer()
-    .AddGlobalObjectIdentification(options =>
+builder.Services
+    .AddGraphQLServer()
+    .AddWarmupTask<MyWarmupTask>();
+
+public class MyWarmupTask(IDocumentCache cache) : IRequestExecutorWarmupTask
+{
+    public bool ApplyOnlyOnStartup => false;
+
+    public async Task WarmupAsync(
+        IRequestExecutor executor,
+        CancellationToken cancellationToken)
     {
-        options.MaxAllowedNodeBatchSize = 100;
-        options.EnsureAllNodesCanBeResolved = false;
-    });
+        // Modify the cache
+    }
+}
+```
+
+## Document hash provider configuration
+
+Previously, document hash providers were globally configured through the `IServiceCollection`. In an effort to align and properly scope our configuration APIs, we've moved the configuration of the hash provider to the `IRequestExecutorBuilder`. If you're currently calling `AddMD5DocumentHashProvider`, `AddSha256DocumentHashProvider` or `AddSha1DocumentHashProvider` directly on the `IServiceCollection`, move the call to the `IRequestExecutorBuilder`:
+
+```diff
+-builder.Services.AddSha256DocumentHashProvider();
+
+builder.Services.AddGraphQLServer()
++    .AddSha256DocumentHashProvider()
+```
+
+If your application contains multiple GraphQL servers, the hash provider configuration has to be repeated for each one as the configuration is now scoped to a particular GraphQL server.
+
+## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
+
+```diff
+builder.Services.AddGraphQLServer()
+-    .ModifyOptions(options =>
+-    {
+-        options.MaxAllowedNodeBatchSize = 100;
+-        options.EnsureAllNodesCanBeResolved = false;
+-    })
+-    .AddGlobalObjectIdentification()
++    .AddGlobalObjectIdentification(options =>
++    {
++        options.MaxAllowedNodeBatchSize = 100;
++        options.EnsureAllNodesCanBeResolved = false;
++    });
 ```
 
 ## IRequestContext
@@ -166,6 +211,10 @@ In addition, the default output for such errors has been standardized: earlier, 
   }
 }
 ```
+
+## DescriptorAttribute attributeProvider is nullable
+
+Previously the `TryConfigure` or `OnConfigure` methods carried a non-nullable parameter of the member the descriptor attribute was annotated to. With the new source generator we moved away from pure reflection based APIs. This means that when you use the source generator
 
 # Deprecations
 

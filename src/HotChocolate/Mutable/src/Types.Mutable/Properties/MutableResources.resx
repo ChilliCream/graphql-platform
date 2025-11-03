@@ -48,4 +48,7 @@
   <data name="SchemaParser_InvalidUnionMemberType" xml:space="preserve">
     <value>The Union type '{0}' cannot include the type '{1}'. Unions can only contain Object types.</value>
   </data>
+  <data name="TagDirective_NameArgument_Invalid" xml:space="preserve">
+    <value>The @tag directive must have a 'name' argument of type String.</value>
+  </data>
 </root>

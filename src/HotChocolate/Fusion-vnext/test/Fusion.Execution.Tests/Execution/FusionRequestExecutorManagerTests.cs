@@ -1,8 +1,6 @@
-using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -39,7 +37,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
     }
 
     [Fact]
-    public async Task CreateExecutor()
+    public async Task Create_Executor()
     {
         // arrange
         var schemaDocument =
@@ -67,7 +65,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
     }
 
     [Fact]
-    public async Task GetOperationPlanFromExecution()
+    public async Task Get_Plan_From_Execution_Result()
     {
         // arrange
         var schemaDocument =
@@ -84,7 +82,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                 .AddInMemoryConfiguration(schemaDocument)
                 .UseDefaultPipeline()
                 .InsertUseRequest(
-                    before: nameof(OperationExecutionMiddleware),
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                     (_, _) =>
                     {
                         return context =>
@@ -128,54 +126,6 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         Assert.True(result.ContextData.TryGetValue("operationPlan", out var operationPlan));
         Assert.NotNull(operationPlan);
         Assert.Equal("Test", Assert.IsType<OperationPlan>(operationPlan).OperationName);
-    }
-
-    [Fact]
-    public async Task Plan_Cache_Should_Be_Scoped_To_Executor()
-    {
-        // arrange
-        var executorEvictedResetEvent = new ManualResetEventSlim(false);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        var configProvider = new TestFusionConfigurationProvider(CreateConfiguration());
-
-        var services =
-            new ServiceCollection()
-                .AddGraphQLGateway()
-                .AddConfigurationProvider(_ => configProvider)
-                .Services
-                .BuildServiceProvider();
-
-        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
-
-        manager.Subscribe(new RequestExecutorEventObserver(@event =>
-        {
-            if (@event.Type == RequestExecutorEventType.Evicted)
-            {
-                executorEvictedResetEvent.Set();
-            }
-        }));
-
-        // act
-        var firstExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
-        var firstPlanCache = firstExecutor.Schema.Services
-            .GetRequiredService<Cache<OperationPlan>>();
-
-        configProvider.UpdateConfiguration(
-            CreateConfiguration(
-                """
-                type Query {
-                  field2: String!
-                }
-                """));
-        executorEvictedResetEvent.Wait(cts.Token);
-
-        var secondExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
-        var secondPlanCache = secondExecutor.Schema.Services
-            .GetRequiredService<Cache<OperationPlan>>();
-
-        // assert
-        Assert.NotSame(secondPlanCache, firstPlanCache);
     }
 
     [Fact]

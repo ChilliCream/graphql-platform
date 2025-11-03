@@ -18,6 +18,12 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <c>@shareable</c> is used only in contexts where shared field resolution is meaningful and
 /// unambiguous.
 /// </para>
+/// <para>
+/// Additionally, subscription root fields cannot be shared (i.e., they are effectively
+/// non-shareable), as subscription events from multiple schemas would create conflicts in the
+/// composed schema. Attempting to mark a subscription field as shareable or to define it in
+/// multiple schemas triggers the same error.
+/// </para>
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Invalid-Shareable-Usage">
 /// Specification
@@ -28,7 +34,14 @@ internal sealed class InvalidShareableUsageRule : IEventHandler<OutputFieldEvent
     {
         var (field, type, schema) = @event;
 
-        if (type is MutableInterfaceTypeDefinition && field.HasShareableDirective())
+        // Applying @shareable to interface fields is disallowed.
+        if (type is MutableInterfaceTypeDefinition && field.HasShareableDirective)
+        {
+            context.Log.Write(InvalidShareableUsage(field, schema));
+        }
+
+        // Subscription root fields cannot be shared.
+        if (type.Name == WellKnownTypeNames.Subscription && field.HasShareableDirective)
         {
             context.Log.Write(InvalidShareableUsage(field, schema));
         }

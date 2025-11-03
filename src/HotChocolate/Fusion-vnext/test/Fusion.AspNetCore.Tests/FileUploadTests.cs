@@ -319,7 +319,7 @@ public class FileUploadTests : FusionTestBase
 
     private static RawRequest GetRawRequest(HttpRequestMessage requestMessage)
     {
-        if (requestMessage.Content is not {} content)
+        if (requestMessage.Content is not { } content)
         {
             throw new InvalidOperationException("Expected content to not be null.");
         }

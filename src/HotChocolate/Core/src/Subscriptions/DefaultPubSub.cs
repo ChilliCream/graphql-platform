@@ -29,6 +29,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
     }
 
     protected ISubscriptionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
+    protected bool IsDisposed => _disposed;
 
     public ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
         string topicName,

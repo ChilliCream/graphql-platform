@@ -49,8 +49,17 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @provides directive on field 'User.profile' in schema 'A' references field "
-                + "'name', which must not include directive applications."
+                """
+                {
+                    "message": "The @provides directive on field 'User.profile' in schema 'A' references field 'name', which must not include directive applications.",
+                    "code": "PROVIDES_DIRECTIVE_IN_FIELDS_ARG",
+                    "severity": "Error",
+                    "coordinate": "User.profile",
+                    "member": "provides",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -80,8 +89,17 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @provides directive on field 'User.profile' in schema 'A' references field "
-                + "'info.name', which must not include directive applications."
+                """
+                {
+                    "message": "The @provides directive on field 'User.profile' in schema 'A' references field 'info.name', which must not include directive applications.",
+                    "code": "PROVIDES_DIRECTIVE_IN_FIELDS_ARG",
+                    "severity": "Error",
+                    "coordinate": "User.profile",
+                    "member": "provides",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -107,11 +125,28 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @provides directive on field 'User.profile' in schema 'A' references field "
-                + "'id', which must not include directive applications.",
-
-                "The @provides directive on field 'User.profile' in schema 'A' references field "
-                + "'name', which must not include directive applications."
+                """
+                {
+                    "message": "The @provides directive on field 'User.profile' in schema 'A' references field 'id', which must not include directive applications.",
+                    "code": "PROVIDES_DIRECTIVE_IN_FIELDS_ARG",
+                    "severity": "Error",
+                    "coordinate": "User.profile",
+                    "member": "provides",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The @provides directive on field 'User.profile' in schema 'A' references field 'name', which must not include directive applications.",
+                    "code": "PROVIDES_DIRECTIVE_IN_FIELDS_ARG",
+                    "severity": "Error",
+                    "coordinate": "User.profile",
+                    "member": "provides",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

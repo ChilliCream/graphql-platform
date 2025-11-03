@@ -36,15 +36,27 @@ namespace HotChocolate.Types.Composite;
     AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Method | AttributeTargets.Property)]
 public sealed class ShareableAttribute : DescriptorAttribute
 {
+    public ShareableAttribute()
+    {
+    }
+
+    public ShareableAttribute(bool scoped)
+        => IsScoped = scoped;
+
+    /// <summary>
+    /// Indicates if the directive is scoped to the current extension or type in view or to the complete type.
+    /// </summary>
+    public bool IsScoped { get; }
+
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {
             case IObjectTypeDescriptor desc:
-                desc.Shareable();
+                desc.Shareable(IsScoped);
                 break;
 
             case IObjectFieldDescriptor desc:
@@ -55,7 +67,7 @@ public sealed class ShareableAttribute : DescriptorAttribute
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
                         .SetMessage("Shareable directive is only supported on object types and object fields.")
-                        .SetExtension("member", element)
+                        .SetExtension("member", attributeProvider)
                         .SetExtension("descriptor", descriptor)
                         .Build());
         }

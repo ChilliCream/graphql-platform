@@ -32,6 +32,7 @@ public abstract partial class FusionTestBase
             {
                 services.AddRouting();
                 var builder = services.AddGraphQLServer(schemaName, disableDefaultSecurity: true);
+                builder.AddSourceSchemaDefaults();
                 configureBuilder(builder);
                 configureServices?.Invoke(services);
 

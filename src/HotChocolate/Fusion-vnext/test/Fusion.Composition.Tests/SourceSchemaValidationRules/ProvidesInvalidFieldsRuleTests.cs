@@ -43,8 +43,21 @@ public sealed class ProvidesInvalidFieldsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @provides directive on field 'User.details' in schema 'A' specifies an "
-                + "invalid field selection."
+                """
+                {
+                    "message": "The @provides directive on field 'User.details' in schema 'A' specifies an invalid field selection.",
+                    "code": "PROVIDES_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "User.details",
+                    "member": "provides",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The field 'unknownField' does not exist on the type 'UserDetails'."
+                        ]
+                    }
+                }
+                """
             ]);
     }
 }

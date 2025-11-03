@@ -22,7 +22,7 @@ internal sealed class ExternalOverrideCollisionRule : IEventHandler<OutputFieldE
     {
         var (field, _, schema) = @event;
 
-        if (field.HasExternalDirective() && field.HasOverrideDirective())
+        if (field is { HasExternalDirective: true, HasOverrideDirective: true })
         {
             context.Log.Write(ExternalOverrideCollision(field, schema));
         }

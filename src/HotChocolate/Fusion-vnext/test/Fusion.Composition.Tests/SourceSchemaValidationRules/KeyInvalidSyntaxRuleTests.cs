@@ -43,8 +43,17 @@ public sealed class KeyInvalidSyntaxRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'Product' in schema 'A' contains invalid syntax in the "
-                + "'fields' argument."
+                """
+                {
+                    "message": "A @key directive on type 'Product' in schema 'A' contains invalid syntax in the 'fields' argument.",
+                    "code": "KEY_INVALID_SYNTAX",
+                    "severity": "Error",
+                    "coordinate": "Product",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

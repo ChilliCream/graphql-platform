@@ -44,8 +44,17 @@ public sealed class OverrideFromSelfRuleTests : RuleTestBase
                 """
             ],
             [
-                "The @override directive on field 'Bill.amount' in schema 'A' must not reference "
-                + "the same schema."
+                """
+                {
+                    "message": "The @override directive on field 'Bill.amount' in schema 'A' must not reference the same schema.",
+                    "code": "OVERRIDE_FROM_SELF",
+                    "severity": "Error",
+                    "coordinate": "Bill.amount",
+                    "member": "override",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

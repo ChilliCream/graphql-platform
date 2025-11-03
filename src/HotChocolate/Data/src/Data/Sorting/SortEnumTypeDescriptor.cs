@@ -1,3 +1,4 @@
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -40,13 +41,14 @@ public class SortEnumTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
                 Configuration.RuntimeType);
-            Configuration.AttributesAreApplied = true;
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         var values = Values.Select(t => t.CreateConfiguration())

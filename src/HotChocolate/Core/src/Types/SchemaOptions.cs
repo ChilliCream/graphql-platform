@@ -127,7 +127,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool PublishRootFieldPagesToPromiseCache { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets whether the  should be initialized lazily.
+    /// Gets or sets whether the schema and request executor should be initialized lazily.
     /// <c>false</c> by default.
     /// </summary>
     /// <remarks>
@@ -140,13 +140,59 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool LazyInitialization { get; set; }
 
     /// <summary>
+    /// Gets or sets the size of the prepared operation cache.
+    /// <c>256</c> by default. <c>16</c> is the minimum.
+    /// </summary>
+    public int PreparedOperationCacheSize
+    {
+        get;
+        set
+        {
+            if (value < 16)
+            {
+                throw new ArgumentException(
+                    "The size of prepared operation cache must be at least 16.");
+            }
+
+            field = value;
+        }
+    } = 256;
+
+    /// <summary>
+    /// Gets or sets the size of the operation document cache.
+    /// <c>256</c> by default. <c>16</c> is the minimum.
+    /// </summary>
+    public int OperationDocumentCacheSize
+    {
+        get;
+        set
+        {
+            if (value < 16)
+            {
+                throw new ArgumentException(
+                    "The size of operation document cache must be at least 16.");
+            }
+
+            field = value;
+        }
+    } = 256;
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToPageInfo"/>
+    public bool ApplyShareableToPageInfo { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToConnections"/>
+    public bool ApplyShareableToConnections { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToNodeFields"/>
+    public bool ApplyShareableToNodeFields { get; set; }
+
+    /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
     /// <param name="options">The read-only options object.</param>
     /// <returns>Returns a new mutable options object.</returns>
     public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
-    {
-        return new()
+        => new()
         {
             QueryTypeName = options.QueryTypeName,
             MutationTypeName = options.MutationTypeName,
@@ -175,7 +221,11 @@ public class SchemaOptions : IReadOnlySchemaOptions
             EnableTag = options.EnableTag,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
             DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
-            LazyInitialization = options.LazyInitialization
+            LazyInitialization = options.LazyInitialization,
+            PreparedOperationCacheSize = options.PreparedOperationCacheSize,
+            OperationDocumentCacheSize = options.OperationDocumentCacheSize,
+            ApplyShareableToPageInfo = options.ApplyShareableToPageInfo,
+            ApplyShareableToConnections = options.ApplyShareableToConnections,
+            ApplyShareableToNodeFields =  options.ApplyShareableToNodeFields
         };
-    }
 }

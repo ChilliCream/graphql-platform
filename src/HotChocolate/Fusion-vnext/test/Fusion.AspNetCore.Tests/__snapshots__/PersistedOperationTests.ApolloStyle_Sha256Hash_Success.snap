@@ -1,0 +1,6 @@
+Headers:
+Content-Type: application/graphql-response+json; charset=utf-8
+-------------------------->
+Status Code: OK
+-------------------------->
+{"data":{"__typename":"Query"}}

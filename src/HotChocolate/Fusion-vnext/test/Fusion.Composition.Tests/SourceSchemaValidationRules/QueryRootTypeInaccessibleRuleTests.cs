@@ -52,7 +52,17 @@ public sealed class QueryRootTypeInaccessibleRuleTests : RuleTestBase
                 """
             ],
             [
-                "The root query type in schema 'A' must be accessible."
+                """
+                {
+                    "message": "The root query type in schema 'A' must be accessible.",
+                    "code": "QUERY_ROOT_TYPE_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "Query",
+                    "member": "Query",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

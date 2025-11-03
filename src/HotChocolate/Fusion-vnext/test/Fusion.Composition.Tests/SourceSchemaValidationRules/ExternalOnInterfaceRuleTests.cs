@@ -45,7 +45,17 @@ public sealed class ExternalOnInterfaceRuleTests : RuleTestBase
                 """
             ],
             [
-                "The interface field 'Node.id' in schema 'A' must not be marked as external."
+                """
+                {
+                    "message": "The interface field 'Node.id' in schema 'A' must not be marked as external.",
+                    "code": "EXTERNAL_ON_INTERFACE",
+                    "severity": "Error",
+                    "coordinate": "Node.id",
+                    "member": "id",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

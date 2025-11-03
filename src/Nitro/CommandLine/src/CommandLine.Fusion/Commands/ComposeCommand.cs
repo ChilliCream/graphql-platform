@@ -512,17 +512,20 @@ internal sealed class ComposeCommand : Command
 
         var schemaComposerOptions = new SchemaComposerOptions
         {
-            EnableGlobalObjectIdentification = enableGlobalObjectIdentification
-                ?? existingCompositionSettings.EnableGlobalObjectIdentification
+            Merger =
+            {
+                EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                    ?? existingCompositionSettings.EnableGlobalObjectIdentification
+            }
         };
 
         if (existingCompositionSettings.EnableGlobalObjectIdentification
-            != schemaComposerOptions.EnableGlobalObjectIdentification)
+            != schemaComposerOptions.Merger.EnableGlobalObjectIdentification)
         {
             compositionLog.Write(
                 LogEntryBuilder.New()
                     .SetMessage(
-                        schemaComposerOptions.EnableGlobalObjectIdentification
+                        schemaComposerOptions.Merger.EnableGlobalObjectIdentification
                             ? ComposeCommand_GlobalObjectIdentification_Enabled
                             : ComposeCommand_GlobalObjectIdentification_Disabled)
                     .SetCode(LogEntryCodes.ModifiedCompositionSetting)
@@ -605,9 +608,17 @@ internal sealed class ComposeCommand : Command
 
             var message = $"{emoji} [{abbreviatedSeverity}] {FormatMultilineMessage(entry.Message)} ({entry.Code})";
 
+            if (entry.ExtensionsFormatter is not null)
+            {
+                message +=
+                    Environment.NewLine
+                    + "   "
+                    + FormatMultilineMessage(entry.ExtensionsFormatter.Invoke(entry.Extensions));
+            }
+
             if (writeAsGraphQLComments)
             {
-                message = $"# {message}";
+                message = $"# {message.Replace(Environment.NewLine, Environment.NewLine + "# ")}";
             }
 
             writer.WriteLine(message);
@@ -697,7 +708,7 @@ internal sealed class ComposeCommand : Command
     {
         var settings = new CompositionSettings
         {
-            EnableGlobalObjectIdentification = options.EnableGlobalObjectIdentification
+            EnableGlobalObjectIdentification = options.Merger.EnableGlobalObjectIdentification
         };
         var settingsJson = JsonSerializer.SerializeToDocument(
             settings,

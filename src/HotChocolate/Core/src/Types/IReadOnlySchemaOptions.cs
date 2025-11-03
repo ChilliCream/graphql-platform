@@ -193,7 +193,33 @@ public interface IReadOnlySchemaOptions
 
     /// <summary>
     /// Specifies that the <see cref="IRequestExecutor"/> should be constructed
-    /// laz
+    /// lazily.
     /// </summary>
     bool LazyInitialization { get; }
+
+    /// <summary>
+    /// Specifies the size of the prepared operation cache.
+    /// </summary>
+    int PreparedOperationCacheSize { get; }
+
+    /// <summary>
+    /// Specifies the size of the operation document cache.
+    /// </summary>
+    int OperationDocumentCacheSize { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to the PageInfo type.
+    /// </summary>
+    bool ApplyShareableToPageInfo { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to all connection and edge types.
+    /// </summary>
+    bool ApplyShareableToConnections { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to the `node(id)` and `nodes(id)`
+    /// field when Global Object Identification is turned on.
+    /// </summary>
+    bool ApplyShareableToNodeFields { get; }
 }

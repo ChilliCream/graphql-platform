@@ -160,8 +160,17 @@ public sealed class FieldArgumentTypesMergeableRuleTests : RuleTestBase
                 """
             ],
             [
-                "The argument 'User.field(argument:)' has a different type shape in schema 'A' "
-                + "than it does in schema 'B'."
+                """
+                {
+                    "message": "The argument 'User.field(argument:)' has a different type shape in schema 'A' than it does in schema 'B'.",
+                    "code": "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE",
+                    "severity": "Error",
+                    "coordinate": "User.field(argument:)",
+                    "member": "argument",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -183,8 +192,17 @@ public sealed class FieldArgumentTypesMergeableRuleTests : RuleTestBase
                 """
             ],
             [
-                "The argument 'User.field(argument:)' has a different type shape in schema 'A' "
-                + "than it does in schema 'B'."
+                """
+                {
+                    "message": "The argument 'User.field(argument:)' has a different type shape in schema 'A' than it does in schema 'B'.",
+                    "code": "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE",
+                    "severity": "Error",
+                    "coordinate": "User.field(argument:)",
+                    "member": "argument",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -211,11 +229,28 @@ public sealed class FieldArgumentTypesMergeableRuleTests : RuleTestBase
                 """
             ],
             [
-                "The argument 'User.field(argument:)' has a different type shape in schema 'A' "
-                + "than it does in schema 'B'.",
-
-                "The argument 'User.field(argument:)' has a different type shape in schema 'B' "
-                + "than it does in schema 'C'."
+                """
+                {
+                    "message": "The argument 'User.field(argument:)' has a different type shape in schema 'A' than it does in schema 'B'.",
+                    "code": "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE",
+                    "severity": "Error",
+                    "coordinate": "User.field(argument:)",
+                    "member": "argument",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The argument 'User.field(argument:)' has a different type shape in schema 'B' than it does in schema 'C'.",
+                    "code": "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE",
+                    "severity": "Error",
+                    "coordinate": "User.field(argument:)",
+                    "member": "argument",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

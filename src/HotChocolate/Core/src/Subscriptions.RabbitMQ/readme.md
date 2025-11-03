@@ -53,4 +53,4 @@ AddRabbitMQSubscriptions(new()
 ```
 
 **NOTE**
-_Even so you can set the two properties `AutomaticRecoveryEnabled` and `DispatchConsumersAsync` by providing a custom `ConnectionFactory` instance, they both will be reset to `true` before creating a new connection._
+_Even so you can set the two properties `AutomaticRecoveryEnabled` and `TopologyRecoveryEnabled` by providing a custom `ConnectionFactory` instance, they both will be reset to `true` before creating a new connection._

@@ -134,7 +134,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             "A",
             b => b.AddQueryType<SourceSchema5.Query>()
                 .InsertUseRequest(
-                    before: "OperationExecutionMiddleware",
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                     middleware: (_, _) =>
                     {
                         return context =>
@@ -186,7 +186,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             "A",
             b => b.AddQueryType<SourceSchema6.Query>()
                 .InsertUseRequest(
-                    before: "OperationExecutionMiddleware",
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                     middleware: (_, _) =>
                     {
                         return context =>
@@ -666,7 +666,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema5.Query>()
                 .InsertUseRequest(
-                    before: "OperationExecutionMiddleware",
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                     middleware: (_, _) =>
                     {
                         return context =>
@@ -887,6 +887,39 @@ public class SourceSchemaErrorTests : FusionTestBase
 
     #endregion
 
+    [Fact]
+    public async Task Error_Extensions_From_Source_Schema_Are_Properly_Forwarded()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b
+                .AddQueryType<SourceSchema8.Query>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              someField
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     public static class SourceSchema1
     {
         public class Query
@@ -1001,6 +1034,23 @@ public class SourceSchemaErrorTests : FusionTestBase
         public record Product(int Id)
         {
             public string? GetName() => "Product " + Id;
+        }
+    }
+
+    public static class SourceSchema8
+    {
+        public class Query
+        {
+            public string SomeField(IResolverContext context)
+            {
+                throw new GraphQLException(
+                    ErrorBuilder.New()
+                        .SetMessage("Something went wrong")
+                        .SetCode("SOME_ERROR")
+                        .SetPath(context.Path)
+                        .SetException(new Exception("Some exception"))
+                        .Build());
+            }
         }
     }
 }

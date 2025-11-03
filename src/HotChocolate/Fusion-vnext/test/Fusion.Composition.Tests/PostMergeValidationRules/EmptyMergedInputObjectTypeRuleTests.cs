@@ -73,7 +73,17 @@ public sealed class EmptyMergedInputObjectTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "The merged input object type 'BookFilter' is empty."
+                """
+                {
+                    "message": "The merged input object type 'BookFilter' is empty.",
+                    "code": "EMPTY_MERGED_INPUT_OBJECT_TYPE",
+                    "severity": "Error",
+                    "coordinate": "BookFilter",
+                    "member": "BookFilter",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -98,7 +108,17 @@ public sealed class EmptyMergedInputObjectTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "The merged input object type 'BookFilter' is empty."
+                """
+                {
+                    "message": "The merged input object type 'BookFilter' is empty.",
+                    "code": "EMPTY_MERGED_INPUT_OBJECT_TYPE",
+                    "severity": "Error",
+                    "coordinate": "BookFilter",
+                    "member": "BookFilter",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

@@ -1,4 +1,8 @@
 using System.Collections.Immutable;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Logging;
@@ -50,7 +54,94 @@ public sealed record LogEntry
 #endif
 
     /// <summary>
-    /// Returns a string representation of the log entry.
+    /// Gets a function that formats the extensions dictionary into a string.
     /// </summary>
-    public override string ToString() => Message;
+    public Func<ImmutableDictionary<string, object?>, string>? ExtensionsFormatter { get; set; }
+
+    /// <summary>
+    /// Returns a JSON string representation of the log entry.
+    /// </summary>
+    public override unsafe string ToString()
+    {
+        using var buffer = new PooledArrayWriter();
+        using var writer = new Utf8JsonWriter(buffer, s_serializationOptions);
+
+        writer.WriteStartObject();
+        Serialize(writer);
+        writer.WriteEndObject();
+
+        writer.Flush();
+
+        fixed (byte* b = PooledArrayWriterMarshal.GetUnderlyingBuffer(buffer))
+        {
+            return Encoding.UTF8.GetString(b, buffer.Length);
+        }
+    }
+
+    private void Serialize(Utf8JsonWriter writer)
+    {
+        writer.WriteString("message", Message);
+        writer.WriteString("code", Code);
+        writer.WriteString("severity", Severity.ToString());
+
+        if (Coordinate is not null)
+        {
+            writer.WriteString("coordinate", Coordinate.ToString());
+        }
+
+        switch (TypeSystemMember)
+        {
+            case IDirectiveDefinition directiveDefinition:
+                writer.WriteString("member", $"@{directiveDefinition.Name}");
+                break;
+            case INameProvider namedMember:
+                writer.WriteString("member", namedMember.Name);
+                break;
+        }
+
+        if (Schema is not null)
+        {
+            writer.WriteString("schema", Schema.Name);
+        }
+
+        writer.WritePropertyName("extensions");
+        writer.WriteStartObject();
+
+        foreach (var item in Extensions.OrderBy(i => i.Key))
+        {
+            writer.WritePropertyName(item.Key);
+
+            switch (item.Value)
+            {
+                case null:
+                    writer.WriteNullValue();
+                    break;
+                case IEnumerable<string> strings:
+                    writer.WriteStartArray();
+                    foreach (var str in strings)
+                    {
+                        writer.WriteStringValue(str);
+                    }
+                    writer.WriteEndArray();
+                    break;
+                case IFieldDefinition field:
+                    writer.WriteStringValue(field.Name);
+                    break;
+                case ITypeDefinition type:
+                    writer.WriteStringValue(type.Name);
+                    break;
+                default:
+                    writer.WriteStringValue(item.Value.ToString());
+                    break;
+            }
+        }
+
+        writer.WriteEndObject();
+    }
+
+    private static readonly JsonWriterOptions s_serializationOptions = new()
+    {
+        Indented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
 }

@@ -126,6 +126,18 @@ public sealed class LogEntryBuilder
     }
 
     /// <summary>
+    /// Sets the <c>Extensions</c> formatter on the log entry.
+    /// </summary>
+    /// <param name="formatter">The <c>Extensions</c> formatter.</param>
+    /// <returns>The log entry builder.</returns>
+    public LogEntryBuilder SetExtensionsFormatter(
+        Func<ImmutableDictionary<string, object?>, string> formatter)
+    {
+        _logEntry.ExtensionsFormatter = formatter;
+        return this;
+    }
+
+    /// <summary>
     /// Builds the log entry.
     /// </summary>
     /// <returns>The built log entry.</returns>

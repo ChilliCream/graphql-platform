@@ -1,5 +1,3 @@
-using System.CommandLine.IO;
-
 namespace ChilliCream.Nitro.CommandLine;
 
 internal static class AnsiConsoleExtensions

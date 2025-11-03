@@ -210,6 +210,47 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry ExternalArgumentMissing(
+        MutableOutputFieldDefinition externalField,
+        MutableSchemaDefinition schema,
+        string argumentName)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ExternalArgumentMissing,
+                externalField.Coordinate.ToString(),
+                schema.Name,
+                argumentName)
+            .SetCode(LogEntryCodes.ExternalArgumentMissing)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(externalField)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ExternalArgumentTypeMismatch(
+        MutableInputFieldDefinition externalArgument,
+        SchemaCoordinate externalFieldCoordinate,
+        MutableSchemaDefinition externalSchema,
+        string otherSchemaName,
+        IInputType otherArgumentType)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ExternalArgumentTypeMismatch,
+                externalArgument.Name,
+                externalFieldCoordinate.ToString(),
+                externalSchema.Name,
+                externalArgument.Type.ToTypeNode().ToString(indented: false),
+                otherSchemaName,
+                otherArgumentType.ToTypeNode().ToString(indented: false))
+            .SetCode(LogEntryCodes.ExternalArgumentTypeMismatch)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(externalArgument)
+            .SetSchema(externalSchema)
+            .Build();
+    }
+
     public static LogEntry ExternalMissingOnBase(
         MutableOutputFieldDefinition externalField,
         MutableSchemaDefinition schema)
@@ -287,6 +328,27 @@ internal static class LogEntryHelper
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(externalField)
             .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ExternalTypeMismatch(
+        MutableOutputFieldDefinition externalField,
+        MutableSchemaDefinition externalSchema,
+        string otherSchemaName,
+        IOutputType otherFieldType)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ExternalTypeMismatch,
+                externalField.Coordinate.ToString(),
+                externalSchema.Name,
+                externalField.Type.ToTypeNode().ToString(indented: false),
+                otherSchemaName,
+                otherFieldType.ToTypeNode().ToString(indented: false))
+            .SetCode(LogEntryCodes.ExternalTypeMismatch)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(externalField)
+            .SetSchema(externalSchema)
             .Build();
     }
 
@@ -440,6 +502,22 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry InvalidFieldSharing(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InvalidFieldSharing,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.InvalidFieldSharing)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry InvalidGraphQL(string exceptionMessage, MutableSchemaDefinition schema)
     {
         return LogEntryBuilder.New()
@@ -482,6 +560,7 @@ internal static class LogEntryHelper
             .SetTypeSystemMember(isDirective)
             .SetSchema(sourceSchema)
             .SetExtension("errors", errors)
+            .SetExtensionsFormatter(ErrorFormatter)
             .Build();
     }
 
@@ -557,8 +636,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry KeyFieldsHasArguments(
-        string keyFieldName,
-        string keyFieldDeclaringTypeName,
+        MutableOutputFieldDefinition keyField,
         Directive keyDirective,
         MutableComplexTypeDefinition type,
         MutableSchemaDefinition schema)
@@ -568,7 +646,7 @@ internal static class LogEntryHelper
                 LogEntryHelper_KeyFieldsHasArguments,
                 type.Name,
                 schema.Name,
-                new SchemaCoordinate(keyFieldDeclaringTypeName, keyFieldName).ToString())
+                keyField.Coordinate.ToString())
             .SetCode(LogEntryCodes.KeyFieldsHasArgs)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
@@ -578,8 +656,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry KeyFieldsSelectInvalidType(
-        string keyFieldName,
-        string keyFieldDeclaringTypeName,
+        MutableOutputFieldDefinition keyField,
         Directive keyDirective,
         MutableComplexTypeDefinition type,
         MutableSchemaDefinition schema)
@@ -589,7 +666,7 @@ internal static class LogEntryHelper
                 LogEntryHelper_KeyFieldsSelectInvalidType,
                 type.Name,
                 schema.Name,
-                new SchemaCoordinate(keyFieldDeclaringTypeName, keyFieldName).ToString())
+                keyField.Coordinate.ToString())
             .SetCode(LogEntryCodes.KeyFieldsSelectInvalidType)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
@@ -604,20 +681,15 @@ internal static class LogEntryHelper
         MutableSchemaDefinition schema,
         ImmutableArray<string> errors)
     {
-        var message =
-            string.Format(
-                LogEntryHelper_KeyInvalidFields,
-                type.Name,
-                schema.Name)
-            + $"{Environment.NewLine}- " + string.Join($"{Environment.NewLine}- ", errors);
-
         return LogEntryBuilder.New()
-            .SetMessage(message)
+            .SetMessage(LogEntryHelper_KeyInvalidFields, type.Name, schema.Name)
             .SetCode(LogEntryCodes.KeyInvalidFields)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
             .SetTypeSystemMember(keyDirective)
             .SetSchema(schema)
+            .SetExtension("errors", errors)
+            .SetExtensionsFormatter(ErrorFormatter)
             .Build();
     }
 
@@ -793,8 +865,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry ProvidesFieldsHasArguments(
-        string providedFieldName,
-        string providedTypeName,
+        MutableOutputFieldDefinition providedField,
         Directive providesDirective,
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
@@ -806,7 +877,7 @@ internal static class LogEntryHelper
                 LogEntryHelper_ProvidesFieldsHasArguments,
                 coordinate.ToString(),
                 schema.Name,
-                new SchemaCoordinate(providedTypeName, providedFieldName).ToString())
+                providedField.Coordinate.ToString())
             .SetCode(LogEntryCodes.ProvidesFieldsHasArgs)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(coordinate)
@@ -816,8 +887,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry ProvidesFieldsMissingExternal(
-        string providedFieldName,
-        string providedTypeName,
+        MutableOutputFieldDefinition providedField,
         Directive providesDirective,
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
@@ -829,7 +899,7 @@ internal static class LogEntryHelper
                 LogEntryHelper_ProvidesFieldsMissingExternal,
                 coordinate.ToString(),
                 schema.Name,
-                new SchemaCoordinate(providedTypeName, providedFieldName).ToString())
+                providedField.Coordinate.ToString())
             .SetCode(LogEntryCodes.ProvidesFieldsMissingExternal)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(coordinate)
@@ -854,6 +924,7 @@ internal static class LogEntryHelper
             .SetTypeSystemMember(providesDirective)
             .SetSchema(schema)
             .SetExtension("errors", errors)
+            .SetExtensionsFormatter(ErrorFormatter)
             .Build();
     }
 
@@ -942,6 +1013,7 @@ internal static class LogEntryHelper
             .SetTypeSystemMember(requireDirective)
             .SetSchema(sourceSchema)
             .SetExtension("errors", errors)
+            .SetExtensionsFormatter(ErrorFormatter)
             .Build();
     }
 
@@ -1032,5 +1104,11 @@ internal static class LogEntryHelper
             .SetTypeSystemMember(type)
             .SetSchema(schemaA)
             .Build();
+    }
+
+    private static string ErrorFormatter(ImmutableDictionary<string, object?> extensions)
+    {
+        var errors = (IEnumerable<string>)extensions["errors"]!;
+        return "- " + string.Join($"{Environment.NewLine}- ", errors);
     }
 }

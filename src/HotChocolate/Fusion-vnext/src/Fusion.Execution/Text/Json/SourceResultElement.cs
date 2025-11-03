@@ -358,7 +358,7 @@ public readonly partial struct SourceResultElement
 
     /// <summary>Gets the current JSON number as an <see cref="int"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="int"/>.</exception>
-    public int GetInt32() => TryGetInt32(out var value)  ? value : throw ThrowHelper.FormatException();
+    public int GetInt32() => TryGetInt32(out var value) ? value : throw ThrowHelper.FormatException();
 
     /// <summary>Tries to get the current JSON number as a <see cref="uint"/> without throwing.</summary>
     public bool TryGetUInt32(out uint value)
@@ -468,6 +468,12 @@ public readonly partial struct SourceResultElement
         return _parent.GetRawValue(_cursor, includeQuotes: true);
     }
 
+    public ReadOnlyMemory<byte> GetRawValueAsMemory()
+    {
+        CheckValidInstance();
+        return _parent.GetRawValueAsMemory(_cursor, includeQuotes: true);
+    }
+
     internal ReadOnlySpan<byte> ValueSpan
     {
         get
@@ -503,7 +509,7 @@ public readonly partial struct SourceResultElement
         if (TokenType == JsonTokenType.Null)
         {
 #pragma warning disable CA2265
-            return utf8Text.Slice(0, 0) == default;
+            return utf8Text[..0] == default;
 #pragma warning restore CA2265
         }
         return TextEqualsHelper(utf8Text, isPropertyName: false, shouldUnescape: true);
@@ -517,7 +523,7 @@ public readonly partial struct SourceResultElement
         if (TokenType == JsonTokenType.Null)
         {
 #pragma warning disable CA2265
-            return text.Slice(0, 0) == default;
+            return text[..0] == default;
 #pragma warning restore CA2265
         }
         return TextEqualsHelper(text, isPropertyName: false);

@@ -75,7 +75,17 @@ public sealed class InputWithMissingRequiredFieldsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The input type 'BookFilter' in schema 'B' must define the required field 'title'."
+                """
+                {
+                    "message": "The input type 'BookFilter' in schema 'B' must define the required field 'title'.",
+                    "code": "INPUT_WITH_MISSING_REQUIRED_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "BookFilter",
+                    "member": "BookFilter",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -101,10 +111,28 @@ public sealed class InputWithMissingRequiredFieldsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The input type 'BookFilter' in schema 'A' must define the required field "
-                + "'author'.",
-
-                "The input type 'BookFilter' in schema 'B' must define the required field 'title'."
+                """
+                {
+                    "message": "The input type 'BookFilter' in schema 'A' must define the required field 'author'.",
+                    "code": "INPUT_WITH_MISSING_REQUIRED_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "BookFilter",
+                    "member": "BookFilter",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The input type 'BookFilter' in schema 'B' must define the required field 'title'.",
+                    "code": "INPUT_WITH_MISSING_REQUIRED_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "BookFilter",
+                    "member": "BookFilter",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

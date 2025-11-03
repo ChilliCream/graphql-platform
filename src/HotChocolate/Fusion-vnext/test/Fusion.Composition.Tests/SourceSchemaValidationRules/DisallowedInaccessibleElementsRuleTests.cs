@@ -36,7 +36,17 @@ public sealed class DisallowedInaccessibleElementsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The built-in scalar type 'String' in schema 'A' is not accessible."
+                """
+                {
+                    "message": "The built-in scalar type 'String' in schema 'A' is not accessible.",
+                    "code": "DISALLOWED_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "String",
+                    "member": "String",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -52,7 +62,17 @@ public sealed class DisallowedInaccessibleElementsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The built-in directive argument '@skip(if:)' in schema 'A' is not accessible."
+                """
+                {
+                    "message": "The built-in directive argument '@skip(if:)' in schema 'A' is not accessible.",
+                    "code": "DISALLOWED_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "@skip(if:)",
+                    "member": "if",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -73,7 +93,17 @@ public sealed class DisallowedInaccessibleElementsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The introspection type '__Type' in schema 'A' is not accessible."
+                """
+                {
+                    "message": "The introspection type '__Type' in schema 'A' is not accessible.",
+                    "code": "DISALLOWED_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "__Type",
+                    "member": "__Type",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -92,7 +122,17 @@ public sealed class DisallowedInaccessibleElementsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The introspection field '__Type.kind' in schema 'A' is not accessible."
+                """
+                {
+                    "message": "The introspection field '__Type.kind' in schema 'A' is not accessible.",
+                    "code": "DISALLOWED_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "__Type.kind",
+                    "member": "kind",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -111,8 +151,17 @@ public sealed class DisallowedInaccessibleElementsRuleTests : RuleTestBase
                 """
             ],
             [
-                "The introspection argument '__Type.fields(includeDeprecated:)' in schema 'A' is "
-                + "not accessible."
+                """
+                {
+                    "message": "The introspection argument '__Type.fields(includeDeprecated:)' in schema 'A' is not accessible.",
+                    "code": "DISALLOWED_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "__Type.fields(includeDeprecated:)",
+                    "member": "includeDeprecated",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

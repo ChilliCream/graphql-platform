@@ -70,8 +70,17 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : RuleTestBase
                 """
             ],
             [
-                "The default value '\"de\"' of external argument 'Product.name(language:)' in "
-                + "schema 'B' differs from the default value of '\"en\"' in schema 'A'."
+                """
+                {
+                    "message": "The default value '\"de\"' of external argument 'Product.name(language:)' in schema 'B' differs from the default value of '\"en\"' in schema 'A'.",
+                    "code": "EXTERNAL_ARGUMENT_DEFAULT_MISMATCH",
+                    "severity": "Error",
+                    "coordinate": "Product.name(language:)",
+                    "member": "language",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -96,8 +105,17 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : RuleTestBase
                 """
             ],
             [
-                "The default value '(null)' of external argument 'Product.name(language:)' in "
-                + "schema 'B' differs from the default value of '\"en\"' in schema 'A'."
+                """
+                {
+                    "message": "The default value '(null)' of external argument 'Product.name(language:)' in schema 'B' differs from the default value of '\"en\"' in schema 'A'.",
+                    "code": "EXTERNAL_ARGUMENT_DEFAULT_MISMATCH",
+                    "severity": "Error",
+                    "coordinate": "Product.name(language:)",
+                    "member": "language",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -120,8 +138,17 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : RuleTestBase
                 """
             ],
             [
-                "The default value '\"en\"' of external argument 'Product.name(language:)' in "
-                + "schema 'B' differs from the default value of '(null)' in schema 'A'."
+                """
+                {
+                    "message": "The default value '\"en\"' of external argument 'Product.name(language:)' in schema 'B' differs from the default value of '(null)' in schema 'A'.",
+                    "code": "EXTERNAL_ARGUMENT_DEFAULT_MISMATCH",
+                    "severity": "Error",
+                    "coordinate": "Product.name(language:)",
+                    "member": "language",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -144,8 +171,17 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : RuleTestBase
                 """
             ],
             [
-                "The default value '\"sa\"' of external argument 'Product.name(localization:)' in "
-                + "schema 'B' differs from the default value of '\"sr\"' in schema 'A'."
+                """
+                {
+                    "message": "The default value '\"sa\"' of external argument 'Product.name(localization:)' in schema 'B' differs from the default value of '\"sr\"' in schema 'A'.",
+                    "code": "EXTERNAL_ARGUMENT_DEFAULT_MISMATCH",
+                    "severity": "Error",
+                    "coordinate": "Product.name(localization:)",
+                    "member": "localization",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -168,8 +204,17 @@ public sealed class ExternalArgumentDefaultMismatchRuleTests : RuleTestBase
                 """
             ],
             [
-                "The default value '(null)' of external argument 'Product.name(localization:)' in "
-                + "schema 'B' differs from the default value of '\"sr\"' in schema 'A'."
+                """
+                {
+                    "message": "The default value '(null)' of external argument 'Product.name(localization:)' in schema 'B' differs from the default value of '\"sr\"' in schema 'A'.",
+                    "code": "EXTERNAL_ARGUMENT_DEFAULT_MISMATCH",
+                    "severity": "Error",
+                    "coordinate": "Product.name(localization:)",
+                    "member": "localization",
+                    "schema": "B",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

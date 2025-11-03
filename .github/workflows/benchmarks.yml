@@ -1,0 +1,173 @@
+name: Benchmarks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+      - main-version-*
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: benchmarks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hotchocolate-core:
+    name: "HotChocolate Core Benchmarks"
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    runs-on: benchmarking
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          show-progress: false
+
+      - name: Checkout performance data repository
+        uses: actions/checkout@v4
+        with:
+          repository: ChilliCream/graphql-platform-performance-data
+          token: ${{ secrets.PERFORMANCE_DATA_TOKEN }}
+          path: performance-data-repo
+          fetch-depth: 0
+          show-progress: false
+
+      - name: Restore dependencies
+        run: dotnet restore src/HotChocolate/AspNetCore/benchmarks/k6/eShop.slnx
+
+      - name: Start AppHost and wait for readiness
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6/Catalog.AppHost
+        run: |
+          echo "Starting AppHost..."
+          dotnet run > /tmp/apphost.log 2>&1 &
+          APPHOST_PID=$!
+          echo "APPHOST_PID=$APPHOST_PID" >> $GITHUB_ENV
+
+          echo "Waiting for server to be ready..."
+          for i in {1..15}; do
+            if curl -s -o /dev/null -w "%{http_code}" http://localhost:5224/graphql -X POST \
+              -H "Content-Type: application/json" \
+              -d '{"query": "{ __typename }"}' | grep -q "200"; then
+              echo "Server is ready!"
+              break
+            fi
+            echo "Waiting... ($i/15)"
+            sleep 2
+          done
+
+      - name: Run performance tests and collect data
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
+        run: |
+          chmod +x run-and-collect.sh
+          ./run-and-collect.sh hotchocolate-core-performance-data-current.json
+
+      - name: Stop AppHost
+        if: always()
+        run: |
+          if [ -n "$APPHOST_PID" ]; then
+            kill $APPHOST_PID 2>/dev/null || true
+            wait $APPHOST_PID 2>/dev/null || true
+          fi
+
+      - name: Fetch baseline performance data from external repo
+        if: github.event_name == 'pull_request'
+        run: |
+          if [ -f performance-data-repo/hotchocolate-core-performance-data.json ]; then
+            echo "Baseline data fetched successfully from performance data repository"
+            cp performance-data-repo/hotchocolate-core-performance-data.json baseline-performance.json
+            cat baseline-performance.json
+          else
+            echo "No baseline data found in performance data repository"
+            # Don't create the file - let the comparison script handle missing baseline
+            rm -f baseline-performance.json
+          fi
+
+      - name: Compare performance and generate report
+        if: github.event_name == 'pull_request'
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
+        run: |
+          chmod +x compare-performance.sh
+          ./compare-performance.sh hotchocolate-core-performance-data-current.json ../../../../../baseline-performance.json performance-report.md
+
+      - name: Comment PR with performance report
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const reportPath = 'src/HotChocolate/AspNetCore/benchmarks/k6/performance-report.md';
+
+            let report;
+            try {
+              report = fs.readFileSync(reportPath, 'utf8');
+            } catch (error) {
+              console.error('Failed to read performance report:', error);
+              return;
+            }
+
+            // Add timestamp and commit info to the report
+            const timestamp = new Date().toUTCString();
+            const commitSha = context.sha.substring(0, 7);
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const commentBody = `${report}\n\n---\n*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`;
+
+            // Always create a new comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: commentBody,
+            });
+
+      - name: Upload performance data as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-data
+          path: |
+            src/HotChocolate/AspNetCore/benchmarks/k6/hotchocolate-core-performance-data-current.json
+            src/HotChocolate/AspNetCore/benchmarks/k6/performance-report.md
+            /tmp/apphost.log
+          retention-days: 30
+
+      - name: Check for performance regression
+        if: github.event_name == 'pull_request'
+        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
+        run: |
+          # Fail the build if there's a significant performance regression
+          if grep -q "⚠️ \*\*Performance regression detected" performance-report.md; then
+            echo "::warning::Performance regression detected! Please review the performance report."
+            # Uncomment the next line to fail the build on regression
+            # exit 1
+          fi
+
+      - name: Store performance data to external repository
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: performance-data-repo
+        run: |
+          # Copy the new performance data
+          cp ../src/HotChocolate/AspNetCore/benchmarks/k6/hotchocolate-core-performance-data-current.json hotchocolate-core-performance-data.json
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Add and commit the performance data
+          git add hotchocolate-core-performance-data.json
+
+          # Only commit if there are changes
+          if ! git diff --staged --quiet; then
+            git commit -m "Update HotChocolate core performance data from ${{ github.sha }}"
+            git push
+          else
+            echo "No changes to performance data"
+          fi

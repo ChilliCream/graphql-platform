@@ -39,8 +39,17 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'Product' in schema 'A' references field "
-                + "'Product.featuredItem', which must not be a list, interface, or union type."
+                """
+                {
+                    "message": "A @key directive on type 'Product' in schema 'A' references field 'Product.featuredItem', which must not be a list, interface, or union type.",
+                    "code": "KEY_FIELDS_SELECT_INVALID_TYPE",
+                    "severity": "Error",
+                    "coordinate": "Product",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -59,8 +68,17 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'Product' in schema 'A' references field 'Product.tags', "
-                + "which must not be a list, interface, or union type."
+                """
+                {
+                    "message": "A @key directive on type 'Product' in schema 'A' references field 'Product.tags', which must not be a list, interface, or union type.",
+                    "code": "KEY_FIELDS_SELECT_INVALID_TYPE",
+                    "severity": "Error",
+                    "coordinate": "Product",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -85,8 +103,17 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'Product' in schema 'A' references field "
-                + "'Product.relatedItems', which must not be a list, interface, or union type."
+                """
+                {
+                    "message": "A @key directive on type 'Product' in schema 'A' references field 'Product.relatedItems', which must not be a list, interface, or union type.",
+                    "code": "KEY_FIELDS_SELECT_INVALID_TYPE",
+                    "severity": "Error",
+                    "coordinate": "Product",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -111,8 +138,17 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'Product' in schema 'A' references field "
-                + "'ProductInfo.featuredItem', which must not be a list, interface, or union type."
+                """
+                {
+                    "message": "A @key directive on type 'Product' in schema 'A' references field 'ProductInfo.featuredItem', which must not be a list, interface, or union type.",
+                    "code": "KEY_FIELDS_SELECT_INVALID_TYPE",
+                    "severity": "Error",
+                    "coordinate": "Product",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -133,8 +169,17 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'Product' in schema 'A' references field "
-                + "'ProductInfo.tags', which must not be a list, interface, or union type."
+                """
+                {
+                    "message": "A @key directive on type 'Product' in schema 'A' references field 'ProductInfo.tags', which must not be a list, interface, or union type.",
+                    "code": "KEY_FIELDS_SELECT_INVALID_TYPE",
+                    "severity": "Error",
+                    "coordinate": "Product",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -161,8 +206,17 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'Product' in schema 'A' references field "
-                + "'ProductInfo.relatedItems', which must not be a list, interface, or union type."
+                """
+                {
+                    "message": "A @key directive on type 'Product' in schema 'A' references field 'ProductInfo.relatedItems', which must not be a list, interface, or union type.",
+                    "code": "KEY_FIELDS_SELECT_INVALID_TYPE",
+                    "severity": "Error",
+                    "coordinate": "Product",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -194,14 +248,39 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests : RuleTestBase
                 """
             ],
             [
-                "A @key directive on type 'Product' in schema 'A' references field "
-                + "'Product.featuredItem', which must not be a list, interface, or union type.",
-
-                "A @key directive on type 'Product' in schema 'A' references field 'Product.tags', "
-                + "which must not be a list, interface, or union type.",
-
-                "A @key directive on type 'Product' in schema 'A' references field "
-                + "'Product.relatedItems', which must not be a list, interface, or union type."
+                """
+                {
+                    "message": "A @key directive on type 'Product' in schema 'A' references field 'Product.featuredItem', which must not be a list, interface, or union type.",
+                    "code": "KEY_FIELDS_SELECT_INVALID_TYPE",
+                    "severity": "Error",
+                    "coordinate": "Product",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "A @key directive on type 'Product' in schema 'A' references field 'Product.tags', which must not be a list, interface, or union type.",
+                    "code": "KEY_FIELDS_SELECT_INVALID_TYPE",
+                    "severity": "Error",
+                    "coordinate": "Product",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "A @key directive on type 'Product' in schema 'A' references field 'Product.relatedItems', which must not be a list, interface, or union type.",
+                    "code": "KEY_FIELDS_SELECT_INVALID_TYPE",
+                    "severity": "Error",
+                    "coordinate": "Product",
+                    "member": "key",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

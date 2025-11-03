@@ -45,8 +45,17 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests : RuleTestBase
                 """
             ],
             [
-                "The field 'User.email' in schema 'A' includes a @provides directive, but does not "
-                + "return a composite type."
+                """
+                {
+                    "message": "The field 'User.email' in schema 'A' includes a @provides directive, but does not return a composite type.",
+                    "code": "PROVIDES_ON_NON_COMPOSITE_FIELD",
+                    "severity": "Error",
+                    "coordinate": "User.email",
+                    "member": "email",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -64,8 +73,17 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests : RuleTestBase
                 """
             ],
             [
-                "The field 'User.email' in schema 'A' includes a @provides directive, but does not "
-                + "return a composite type."
+                """
+                {
+                    "message": "The field 'User.email' in schema 'A' includes a @provides directive, but does not return a composite type.",
+                    "code": "PROVIDES_ON_NON_COMPOSITE_FIELD",
+                    "severity": "Error",
+                    "coordinate": "User.email",
+                    "member": "email",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -83,8 +101,17 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests : RuleTestBase
                 """
             ],
             [
-                "The field 'User.emails' in schema 'A' includes a @provides directive, but does "
-                + "not return a composite type."
+                """
+                {
+                    "message": "The field 'User.emails' in schema 'A' includes a @provides directive, but does not return a composite type.",
+                    "code": "PROVIDES_ON_NON_COMPOSITE_FIELD",
+                    "severity": "Error",
+                    "coordinate": "User.emails",
+                    "member": "emails",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

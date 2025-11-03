@@ -99,7 +99,7 @@ public class CustomScalarTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IScalarTypeDescriptor descriptor,
-            Type type)
+            Type? type)
             => descriptor.Directive<CustomDirective>();
     }
 }

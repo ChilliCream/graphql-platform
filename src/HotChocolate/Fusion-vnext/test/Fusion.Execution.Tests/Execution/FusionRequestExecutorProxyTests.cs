@@ -56,7 +56,7 @@ public class FusionRequestExecutorProxyTests : FusionTestBase
                 .GetRequiredService<FusionRequestExecutorManager>();
 
         var proxy = new TestProxy(manager, manager, ISchemaDefinition.DefaultName);
-        proxy.ExecutorUpdated += () => executorUpdatedResetEvent.Set();
+        proxy.ExecutorUpdated += executorUpdatedResetEvent.Set;
 
         // act
         var a = await proxy.GetExecutorAsync(cts.Token);

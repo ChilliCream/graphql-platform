@@ -1,7 +1,7 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Extensions;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
-using static HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
@@ -12,13 +12,15 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Is-Invalid-Usage">
 /// Specification
 /// </seealso>
-internal sealed class IsInvalidUsageRule : IEventHandler<IsDirectiveEvent>
+internal sealed class IsInvalidUsageRule : IEventHandler<FieldArgumentEvent>
 {
-    public void Handle(IsDirectiveEvent @event, CompositionContext context)
+    public void Handle(FieldArgumentEvent @event, CompositionContext context)
     {
-        var (isDirective, argument, field, _, schema) = @event;
+        var (argument, field, _, schema) = @event;
 
-        if (!field.Directives.ContainsName(Lookup))
+        var isDirective = argument.IsInfo?.Directive;
+
+        if (isDirective is not null && !field.IsLookup)
         {
             context.Log.Write(IsInvalidUsage(isDirective, argument, schema));
         }

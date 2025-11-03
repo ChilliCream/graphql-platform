@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -58,7 +57,7 @@ public abstract partial class FusionTestBase : IDisposable
                     new Uri("http://localhost:5000/graphql"),
                     onBeforeSend: (context, node, request) =>
                     {
-                        if (request.Content is not {} content)
+                        if (request.Content is not { } content)
                         {
                             throw new InvalidOperationException("Expected content to not be null.");
                         }
@@ -96,7 +95,13 @@ public abstract partial class FusionTestBase : IDisposable
         }
 
         var compositionLog = new CompositionLog();
-        var composerOptions = new SchemaComposerOptions { EnableGlobalObjectIdentification = true };
+        var composerOptions = new SchemaComposerOptions
+        {
+            Merger =
+            {
+                EnableGlobalObjectIdentification = true
+            }
+        };
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 

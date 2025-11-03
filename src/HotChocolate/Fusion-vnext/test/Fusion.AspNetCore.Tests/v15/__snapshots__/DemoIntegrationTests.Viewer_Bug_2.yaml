@@ -38,7 +38,7 @@ sourceSchemas:
 
       type Query {
         exclusiveSubgraphA: ExclusiveSubgraphA
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
 
       type SubType {
@@ -46,7 +46,7 @@ sourceSchemas:
       }
 
       type Viewer {
-        subType: SubType
+        subType: SubType @shareable
       }
     interactions:
       - request:
@@ -73,7 +73,7 @@ sourceSchemas:
       }
 
       type Query {
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
 
       type SubType {
@@ -81,7 +81,7 @@ sourceSchemas:
       }
 
       type Viewer {
-        subType: SubType
+        subType: SubType @shareable
       }
     interactions:
       - request:

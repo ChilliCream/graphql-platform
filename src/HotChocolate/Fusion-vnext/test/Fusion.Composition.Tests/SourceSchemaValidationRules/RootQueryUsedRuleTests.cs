@@ -49,7 +49,16 @@ public sealed class RootQueryUsedRuleTests : RuleTestBase
                 """
             ],
             [
-                "The root query type in schema 'A' must be named 'Query'."
+                """
+                {
+                    "message": "The root query type in schema 'A' must be named 'Query'.",
+                    "code": "ROOT_QUERY_USED",
+                    "severity": "Error",
+                    "member": "A",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 
@@ -62,7 +71,16 @@ public sealed class RootQueryUsedRuleTests : RuleTestBase
                 "scalar Query"
             ],
             [
-                "The root query type in schema 'A' must be named 'Query'."
+                """
+                {
+                    "message": "The root query type in schema 'A' must be named 'Query'.",
+                    "code": "ROOT_QUERY_USED",
+                    "severity": "Error",
+                    "member": "A",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
             ]);
     }
 }

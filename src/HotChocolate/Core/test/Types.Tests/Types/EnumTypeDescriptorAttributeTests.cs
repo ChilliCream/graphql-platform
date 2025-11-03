@@ -58,7 +58,7 @@ public class EnumTypeDescriptorAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IEnumValueDescriptor descriptor,
-            FieldInfo field)
+            FieldInfo? field)
         {
             descriptor.Name("ABC");
         }
@@ -84,7 +84,7 @@ public class EnumTypeDescriptorAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IEnumTypeDescriptor descriptor,
-            Type type)
+            Type? type)
         {
             descriptor.Name("Abc");
         }
