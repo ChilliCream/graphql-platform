@@ -627,7 +627,7 @@ internal static class LogEntryHelper
                 type.Name,
                 schema.Name,
                 string.Join(".", fieldNamePath))
-            .SetCode(LogEntryCodes.KeyDirectiveInFieldsArg)
+            .SetCode(LogEntryCodes.KeyDirectiveInFieldsArgument)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
             .SetTypeSystemMember(keyDirective)
@@ -647,7 +647,7 @@ internal static class LogEntryHelper
                 type.Name,
                 schema.Name,
                 keyField.Coordinate.ToString())
-            .SetCode(LogEntryCodes.KeyFieldsHasArgs)
+            .SetCode(LogEntryCodes.KeyFieldsHasArguments)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
             .SetTypeSystemMember(keyDirective)
@@ -856,7 +856,7 @@ internal static class LogEntryHelper
                 coordinate.ToString(),
                 schema.Name,
                 string.Join(".", fieldNamePath))
-            .SetCode(LogEntryCodes.ProvidesDirectiveInFieldsArg)
+            .SetCode(LogEntryCodes.ProvidesDirectiveInFieldsArgument)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(coordinate)
             .SetTypeSystemMember(providesDirective)
@@ -878,7 +878,7 @@ internal static class LogEntryHelper
                 coordinate.ToString(),
                 schema.Name,
                 providedField.Coordinate.ToString())
-            .SetCode(LogEntryCodes.ProvidesFieldsHasArgs)
+            .SetCode(LogEntryCodes.ProvidesFieldsHasArguments)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(coordinate)
             .SetTypeSystemMember(providesDirective)

@@ -35,8 +35,8 @@ public static class LogEntryCodes
     public const string IsInvalidFieldType = "IS_INVALID_FIELD_TYPE";
     public const string IsInvalidSyntax = "IS_INVALID_SYNTAX";
     public const string IsInvalidUsage = "IS_INVALID_USAGE";
-    public const string KeyDirectiveInFieldsArg = "KEY_DIRECTIVE_IN_FIELDS_ARG";
-    public const string KeyFieldsHasArgs = "KEY_FIELDS_HAS_ARGS";
+    public const string KeyDirectiveInFieldsArgument = "KEY_DIRECTIVE_IN_FIELDS_ARGUMENT";
+    public const string KeyFieldsHasArguments = "KEY_FIELDS_HAS_ARGUMENTS";
     public const string KeyFieldsSelectInvalidType = "KEY_FIELDS_SELECT_INVALID_TYPE";
     public const string KeyInvalidFields = "KEY_INVALID_FIELDS";
     public const string KeyInvalidFieldsType = "KEY_INVALID_FIELDS_TYPE";
@@ -49,8 +49,8 @@ public static class LogEntryCodes
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string OverrideFromSelf = "OVERRIDE_FROM_SELF";
     public const string OverrideOnInterface = "OVERRIDE_ON_INTERFACE";
-    public const string ProvidesDirectiveInFieldsArg = "PROVIDES_DIRECTIVE_IN_FIELDS_ARG";
-    public const string ProvidesFieldsHasArgs = "PROVIDES_FIELDS_HAS_ARGS";
+    public const string ProvidesDirectiveInFieldsArgument = "PROVIDES_DIRECTIVE_IN_FIELDS_ARGUMENT";
+    public const string ProvidesFieldsHasArguments = "PROVIDES_FIELDS_HAS_ARGUMENTS";
     public const string ProvidesFieldsMissingExternal = "PROVIDES_FIELDS_MISSING_EXTERNAL";
     public const string ProvidesInvalidFields = "PROVIDES_INVALID_FIELDS";
     public const string ProvidesInvalidFieldsType = "PROVIDES_INVALID_FIELDS_TYPE";
