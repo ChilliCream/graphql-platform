@@ -3,11 +3,13 @@ using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
 
+[SerializeAs(ScalarSerializationType.Any)]
 public class AnyType : ScalarType
 {
     private readonly ObjectValueToDictionaryConverter _objectValueToDictConverter = new();

@@ -1,8 +1,10 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Types.Composite;
 
 namespace HotChocolate.Types;
 
+[SerializeAs(ScalarSerializationType.Float)]
 public class DecimalType : FloatTypeBase<decimal>
 {
     /// <summary>

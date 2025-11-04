@@ -1,10 +1,11 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Types.Composite;
 
 namespace HotChocolate.Types;
 
-public class LongType
-    : IntegerTypeBase<long>
+[SerializeAs(ScalarSerializationType.Int)]
+public class LongType : IntegerTypeBase<long>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="LongType"/> class.

@@ -18,6 +18,8 @@ public abstract partial class ScalarType
     , IHasRuntimeType
 {
     private Uri? _specifiedBy;
+    private ScalarSerializationType _serializationType;
+    private string? _pattern;
 
     /// <summary>
     /// Gets the type kind.
@@ -48,12 +50,42 @@ public abstract partial class ScalarType
         get => _specifiedBy;
         protected set
         {
-            if (IsCompleted)
+            if (IsExecutable)
             {
                 throw new InvalidOperationException(
-                    TypeResources.TypeSystemObject_DescriptionImmutable);
+                    TypeResources.TypeSystem_Immutable);
             }
             _specifiedBy = value;
+        }
+    }
+
+    /// <inheritdoc />
+    public ScalarSerializationType SerializationType
+    {
+        get => _serializationType;
+        protected set
+        {
+            if (IsExecutable)
+            {
+                throw new InvalidOperationException(
+                    TypeResources.TypeSystem_Immutable);
+            }
+            _serializationType = value;
+        }
+    }
+
+    /// <inheritdoc />
+    public string? Pattern
+    {
+        get => _pattern;
+        protected set
+        {
+            if (IsExecutable)
+            {
+                throw new InvalidOperationException(
+                    TypeResources.TypeSystem_Immutable);
+            }
+            _pattern = value;
         }
     }
 
