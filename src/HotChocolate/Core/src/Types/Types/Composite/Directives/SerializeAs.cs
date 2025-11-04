@@ -32,7 +32,7 @@ public class SerializeAs
 
     [GraphQLName(DirectiveNames.SerializeAs.Arguments.Type)]
     [GraphQLDescription("The primitive type a scalar is serialized to.")]
-    [GraphQLType<NonNullType<ListType<NonNullType<EnumType<ScalarSerializationType>>>>>]
+    [GraphQLType<NonNullType<ListType<NonNullType<ScalarSerializationTypeType>>>>]
     public ScalarSerializationType Type { get; }
 
     [GraphQLName(DirectiveNames.SerializeAs.Arguments.Pattern)]
