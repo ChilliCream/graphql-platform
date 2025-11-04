@@ -1327,7 +1327,7 @@ public class ObjectTypeTests : TypeTestBase
             .AddQueryType<QueryWithIntArg>(
                 t => t
                     .Field(f => f.GetBar(1))
-                    .Argument("foo", a => a.DefaultValue(null)))
+                    .Argument("foo", a => a.DefaultValue(0)))
             .Create();
 
         // assert
@@ -2321,7 +2321,7 @@ public class ObjectTypeTests : TypeTestBase
             string b = "abc") => null;
 
         public string? Field2(
-            [DefaultValue(null)] string a,
+            [DefaultValue(null)] string? a,
             [DefaultValue("abc")] string b) => null;
     }
 
