@@ -115,6 +115,13 @@ public static class BuiltIns
         }
     }
 
+    public static class SerializeAs
+    {
+        public const string Name = "serializeAs";
+        public const string Type = "type";
+        public const string Pattern = "pattern";
+    }
+
     public static bool IsBuiltInScalar(string name)
         => name switch
         {

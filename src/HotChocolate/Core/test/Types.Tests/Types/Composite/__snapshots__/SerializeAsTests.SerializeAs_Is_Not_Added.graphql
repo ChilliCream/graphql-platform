@@ -1,0 +1,9 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo: Custom!
+}
+
+scalar Custom

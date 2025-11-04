@@ -643,6 +643,44 @@ public static class SchemaParser
     {
         type.Description = node.Description?.Value;
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
+
+        var serializeAs = type.Directives.FirstOrDefault(BuiltIns.SerializeAs.Name);
+        if (serializeAs is not null)
+        {
+            if (serializeAs.Arguments.TryGetValue(BuiltIns.SerializeAs.Type, out var typeArg)
+                && typeArg is { Kind: SyntaxKind.ListValue or SyntaxKind.EnumValue })
+            {
+                var serializationType = ScalarSerializationType.Undefined;
+
+                if (typeArg is EnumValueNode enumValue
+                    && Enum.TryParse(enumValue.Value, ignoreCase: true, out ScalarSerializationType parsedValue))
+                {
+                    serializationType |= parsedValue;
+                }
+                else if (typeArg is ListValueNode listValue
+                    && listValue.Items.All(t => t.Kind is SyntaxKind.EnumValue))
+                {
+                    foreach (var item in listValue.Items.Cast<EnumValueNode>())
+                    {
+                        if (Enum.TryParse(item.Value, ignoreCase: true, out parsedValue))
+                        {
+                            serializationType |= parsedValue;
+                        }
+                    }
+                }
+
+                if (serializationType is not ScalarSerializationType.Undefined)
+                {
+                    type.SerializationType = serializationType;
+
+                    if (serializeAs.Arguments.TryGetValue(BuiltIns.SerializeAs.Pattern, out var patternArg)
+                        && patternArg is StringValueNode patternValue)
+                    {
+                        type.Pattern = patternValue.Value;
+                    }
+                }
+            }
+        }
     }
 
     private static void ExtendScalarType(

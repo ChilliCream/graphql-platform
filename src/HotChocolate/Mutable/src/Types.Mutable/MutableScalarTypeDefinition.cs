@@ -9,12 +9,19 @@ namespace HotChocolate.Types.Mutable;
 /// <summary>
 /// Represents a GraphQL scalar type definition.
 /// </summary>
-public class MutableScalarTypeDefinition(string name)
-    : INamedTypeSystemMemberDefinition<MutableScalarTypeDefinition>
+public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<MutableScalarTypeDefinition>
     , IScalarTypeDefinition
     , IMutableTypeDefinition
 {
     private DirectiveCollection? _directives;
+
+    /// <summary>
+    /// Represents a GraphQL scalar type definition.
+    /// </summary>
+    public MutableScalarTypeDefinition(string name)
+    {
+        Name = name.EnsureGraphQLName();
+    }
 
     /// <inheritdoc />
     public TypeKind Kind => TypeKind.Scalar;
@@ -24,7 +31,7 @@ public class MutableScalarTypeDefinition(string name)
     {
         get;
         set => field = value.EnsureGraphQLName();
-    } = name.EnsureGraphQLName();
+    }
 
     /// <inheritdoc cref="IMutableTypeDefinition.Description" />
     public string? Description { get; set; }
@@ -101,6 +108,12 @@ public class MutableScalarTypeDefinition(string name)
             return new Uri(urlValue.Value);
         }
     }
+
+    /// <inheritdoc />
+    public ScalarSerializationType SerializationType { get; set; }
+
+    /// <inheritdoc />
+    public string? Pattern { get; set; }
 
     /// <inheritdoc />
     public bool IsInstanceOfType(IValueNode value)

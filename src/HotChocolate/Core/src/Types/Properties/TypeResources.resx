@@ -449,6 +449,9 @@ Type: `{0}`</value>
   <data name="TypeSystemObject_DescriptionImmutable" xml:space="preserve">
     <value>The description becomes immutable once it was assigned.</value>
   </data>
+  <data name="TypeSystem_Immutable" xml:space="preserve">
+    <value>The type system becomes immutable once the schema has been fully initialized.</value>
+  </data>
   <data name="TypeSystemObject_NameImmutable" xml:space="preserve">
     <value>The name becomes immutable once it was assigned.</value>
   </data>

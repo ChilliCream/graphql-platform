@@ -321,9 +321,36 @@ public static class DirectiveNames
         public static class Arguments
         {
             /// <summary>
-            /// The name of the @require field argument.
+            /// The name of the field argument.
             /// </summary>
             public const string Field = "field";
+        }
+    }
+
+    /// <summary>
+    /// The name constants of the @serializeAs directive.
+    /// </summary>
+    public static class SerializeAs
+    {
+        /// <summary>
+        /// The name of the @serializeAs directive.
+        /// </summary>
+        public const string Name = "serializeAs";
+
+        /// <summary>
+        /// The argument names of the @serializeAs directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name the type argument.
+            /// </summary>
+            public const string Type = "type";
+
+            /// <summary>
+            /// The name of the pattern argument.
+            /// </summary>
+            public const string Pattern = "pattern";
         }
     }
 }
