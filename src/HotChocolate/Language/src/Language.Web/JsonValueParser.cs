@@ -10,13 +10,14 @@ namespace HotChocolate.Language;
 /// </summary>
 public ref struct JsonValueParser
 {
+    private const int DefaultMaxAllowedDepth = 64;
     private readonly int _maxAllowedDepth;
     private Utf8MemoryBuilder? _memory;
     private readonly PooledArrayWriter? _externalBuffer;
 
     public JsonValueParser()
     {
-        _maxAllowedDepth = 64;
+        _maxAllowedDepth = DefaultMaxAllowedDepth;
     }
 
     public JsonValueParser(int maxAllowedDepth)
@@ -27,6 +28,12 @@ public ref struct JsonValueParser
     public JsonValueParser(int maxAllowedDepth, PooledArrayWriter buffer)
     {
         _maxAllowedDepth = maxAllowedDepth;
+        _externalBuffer = buffer;
+    }
+
+    public JsonValueParser(PooledArrayWriter buffer)
+    {
+        _maxAllowedDepth = DefaultMaxAllowedDepth;
         _externalBuffer = buffer;
     }
 
