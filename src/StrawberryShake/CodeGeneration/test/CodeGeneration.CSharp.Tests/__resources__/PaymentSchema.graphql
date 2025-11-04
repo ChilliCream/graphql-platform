@@ -7676,7 +7676,7 @@ directive @stream("Streamed when true." if: Boolean "The initial elements that s
 scalar Date
 
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
-scalar DateTime @specifiedBy(url: "https:\/\/www.graphql-scalars.com\/date-time")
+scalar DateTime @specifiedBy(url: "https:\/\/scalars.graphql.org\/andimarek\/date-time.html")
 
 "The `Decimal` scalar type represents a decimal floating-point number."
 scalar Decimal

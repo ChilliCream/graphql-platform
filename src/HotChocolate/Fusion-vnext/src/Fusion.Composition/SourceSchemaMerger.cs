@@ -1076,7 +1076,7 @@ internal sealed class SourceSchemaMerger
         }
     }
 
-    private static T GetOrCreateType<T>(MutableSchemaDefinition mergedSchema, string typeName)
+    private T GetOrCreateType<T>(MutableSchemaDefinition mergedSchema, string typeName)
         where T : class, INamedTypeSystemMemberDefinition<T>
     {
         if (mergedSchema.Types.TryGetType(typeName, out var existingType))
@@ -1084,14 +1084,27 @@ internal sealed class SourceSchemaMerger
             return (T)existingType;
         }
 
-        var newType = T.Create(typeName);
+        var sourceTypes = _schemas.SelectMany(s => s.Types.Where(t => t.Name == typeName)).ToArray();
+        var allInternal =
+            sourceTypes.Length != 0
+            && sourceTypes.All(t => t is MutableObjectTypeDefinition { IsInternal: true });
+
+        T newType;
+        if (allInternal)
+        {
+            newType = (T)(ITypeDefinition)new InternalMutableObjectTypeDefinition(typeName);
+        }
+        else
+        {
+            newType = T.Create(typeName);
+        }
 
         mergedSchema.Types.Add((ITypeDefinition)newType);
 
         return newType;
     }
 
-    private static ITypeDefinition GetOrCreateType(
+    private ITypeDefinition GetOrCreateType(
         MutableSchemaDefinition mergedSchema,
         IType sourceType)
     {

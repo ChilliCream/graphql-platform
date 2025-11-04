@@ -190,6 +190,7 @@ public sealed class SchemaComposer
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),
         new ReferenceToInaccessibleTypeRule(),
+        new ReferenceToInternalTypeRule(),
         new RequireInvalidFieldsRule()
     ];
 }

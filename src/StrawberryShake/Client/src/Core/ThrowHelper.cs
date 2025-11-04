@@ -19,7 +19,7 @@ internal static class ThrowHelper
         string serializedValue) =>
         new(new ClientError(
             "The serialized format for DateTime must be `yyyy-MM-ddTHH\\:mm\\:ss.fffzzz`. "
-            + "For more information read: `https://www.graphql-scalars.com/date-time`.",
+            + "For more information read: `https://scalars.graphql.org/andimarek/date-time.html`.",
             extensions: new Dictionary<string, object?>
             {
                     { "serializedValue", serializedValue }
