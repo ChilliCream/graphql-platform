@@ -241,8 +241,6 @@ input StringOperationFilterInput {
 
 "Defines the possible serialization types for GraphQL scalar values."
 enum ScalarSerializationType {
-  "No serialization type is defined."
-  UNDEFINED
   "The scalar serializes to a string value."
   STRING
   "The scalar serializes to a boolean value."
@@ -255,8 +253,6 @@ enum ScalarSerializationType {
   OBJECT
   "The scalar serializes to a list value."
   LIST
-  "The scalar can serialize as any possible primitive type."
-  ANY
 }
 
 enum SortEnumType {
