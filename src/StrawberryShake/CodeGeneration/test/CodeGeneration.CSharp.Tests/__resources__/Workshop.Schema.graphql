@@ -108,7 +108,7 @@ type SessionEdge {
   node: Session!
 }
 
-"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+"The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
 scalar DateTime
 
 "The `TimeSpan` scalar represents an ISO-8601 compliant duration type."

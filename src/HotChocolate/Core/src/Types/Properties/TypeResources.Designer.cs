@@ -276,7 +276,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `DateTime` scalar represents an ISO-8601 compliant date time type..
+        ///   Looks up a localized string similar to The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone..
         /// </summary>
         internal static string DateTimeType_Description {
             get {
@@ -1349,7 +1349,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `LocalDate` scalar type represents an ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339.
+        ///   Looks up a localized string similar to The `LocalDate` scalar represents a date without a time-zone in the ISO-8601 calendar system..
         /// </summary>
         internal static string LocalDateType_Description {
             get {
@@ -2602,7 +2602,7 @@ namespace HotChocolate.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
         ///
-        ///Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose othe [rest of string was truncated]&quot;;.
+        ///Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Type_Description {
             get {
