@@ -1059,6 +1059,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The merged field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the internal type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInternalType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInternalType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
         /// </summary>
         internal static string LogEntryHelper_RequireInvalidFields {

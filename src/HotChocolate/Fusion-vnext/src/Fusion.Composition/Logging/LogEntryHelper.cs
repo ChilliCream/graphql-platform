@@ -1051,6 +1051,25 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry ReferenceToInternalType(
+        MutableOutputFieldDefinition outputField,
+        string typeName,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToInternalType,
+                outputField.Name,
+                typeName,
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToInternalType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(outputField)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry RequireInvalidFields(
         Directive requireDirective,
         MutableInputFieldDefinition argument,

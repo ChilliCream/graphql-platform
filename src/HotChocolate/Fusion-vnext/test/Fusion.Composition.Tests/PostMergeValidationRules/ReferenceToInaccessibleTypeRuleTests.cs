@@ -11,18 +11,11 @@ public sealed class ReferenceToInaccessibleTypeRuleTests : RuleTestBase
         AssertValid(
         [
             """
-            # Schema A
             input Input1 {
                 field1: String!
                 field2: Input2
             }
 
-            input Input2 {
-                field3: String
-            }
-            """,
-            """
-            # Schema B
             input Input2 {
                 field3: String
             }
@@ -37,18 +30,11 @@ public sealed class ReferenceToInaccessibleTypeRuleTests : RuleTestBase
         AssertValid(
         [
             """
-            # Schema A
             type Object1 {
                 field1: String!
                 field2: Object2
             }
 
-            type Object2 {
-                field3: String
-            }
-            """,
-            """
-            # Schema B
             type Object2 {
                 field3: String
             }
@@ -63,18 +49,11 @@ public sealed class ReferenceToInaccessibleTypeRuleTests : RuleTestBase
         AssertValid(
         [
             """
-            # Schema A
             type Object1 {
                 field1: String!
                 field2(arg: Input2): String!
             }
 
-            input Input2 {
-                field3: String
-            }
-            """,
-            """
-            # Schema B
             input Input2 {
                 field3: String
             }
@@ -89,18 +68,11 @@ public sealed class ReferenceToInaccessibleTypeRuleTests : RuleTestBase
         AssertValid(
         [
             """
-            # Schema A
             input Input1 {
                 field1: String!
                 field2: Input2 @inaccessible
             }
 
-            input Input2 {
-                field3: String
-            }
-            """,
-            """
-            # Schema B
             input Input2 @inaccessible {
                 field3: String
             }
@@ -115,18 +87,11 @@ public sealed class ReferenceToInaccessibleTypeRuleTests : RuleTestBase
         AssertValid(
         [
             """
-            # Schema A
             type Object1 {
                 field1: String!
                 field2: Object2 @inaccessible
             }
 
-            type Object2 {
-                field3: String
-            }
-            """,
-            """
-            # Schema B
             type Object2 @inaccessible {
                 field3: String
             }
@@ -141,18 +106,11 @@ public sealed class ReferenceToInaccessibleTypeRuleTests : RuleTestBase
         AssertValid(
         [
             """
-            # Schema A
             type Object1 {
                 field1: String!
                 field2(arg: Input2 @inaccessible): String!
             }
 
-            input Input2 {
-                field3: String
-            }
-            """,
-            """
-            # Schema B
             input Input2 @inaccessible {
                 field3: String
             }
@@ -161,23 +119,17 @@ public sealed class ReferenceToInaccessibleTypeRuleTests : RuleTestBase
     }
 
     // An invalid case is when an input field references an inaccessible type.
-    [Fact] public void Validate_ReferenceToInaccessibleTypeFromInputField_Fails()
+    [Fact]
+    public void Validate_ReferenceToInaccessibleTypeFromInputField_Fails()
     {
         AssertInvalid(
             [
                 """
-                # Schema A
                 input Input1 {
                     field1: String!
                     field2: Input2!
                 }
 
-                input Input2 {
-                    field3: String
-                }
-                """,
-                """
-                # Schema B
                 input Input2 @inaccessible {
                     field3: String
                 }
@@ -199,23 +151,17 @@ public sealed class ReferenceToInaccessibleTypeRuleTests : RuleTestBase
     }
 
     // An invalid case is when an output field references an inaccessible type.
-    [Fact] public void Validate_ReferenceToInaccessibleTypeFromOutputField_Fails()
+    [Fact]
+    public void Validate_ReferenceToInaccessibleTypeFromOutputField_Fails()
     {
         AssertInvalid(
             [
                 """
-                # Schema A
                 type Object1 {
                     field1: String!
                     field2: Object2!
                 }
 
-                type Object2 {
-                    field3: String
-                }
-                """,
-                """
-                # Schema B
                 type Object2 @inaccessible {
                     field3: String
                 }
@@ -237,23 +183,17 @@ public sealed class ReferenceToInaccessibleTypeRuleTests : RuleTestBase
     }
 
     // An invalid case is when a field argument references an inaccessible type.
-    [Fact] public void Validate_ReferenceToInaccessibleTypeFromFieldArgument_Fails()
+    [Fact]
+    public void Validate_ReferenceToInaccessibleTypeFromFieldArgument_Fails()
     {
         AssertInvalid(
             [
                 """
-                # Schema A
                 type Object1 {
                     field1: String!
                     field2(arg: Input2!): String!
                 }
 
-                input Input2 {
-                    field3: String
-                }
-                """,
-                """
-                # Schema B
                 input Input2 @inaccessible {
                     field3: String
                 }
