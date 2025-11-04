@@ -14,12 +14,17 @@ public ref struct JsonValueParser
     private Utf8MemoryBuilder? _memory;
     private readonly PooledArrayWriter? _externalBuffer;
 
-    public JsonValueParser(int maxAllowedDepth = 64)
+    public JsonValueParser()
+    {
+        _maxAllowedDepth = 64;
+    }
+
+    public JsonValueParser(int maxAllowedDepth)
     {
         _maxAllowedDepth = maxAllowedDepth;
     }
 
-    public JsonValueParser(int maxAllowedDepth = 64, PooledArrayWriter? buffer = null)
+    public JsonValueParser(int maxAllowedDepth, PooledArrayWriter buffer)
     {
         _maxAllowedDepth = maxAllowedDepth;
         _externalBuffer = buffer;

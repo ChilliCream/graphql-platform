@@ -239,6 +239,26 @@ input StringOperationFilterInput {
   nendsWith: String @cost(weight: "20")
 }
 
+"Defines the possible serialization types for GraphQL scalar values."
+enum ScalarSerializationType {
+  "No serialization type is defined."
+  UNDEFINED
+  "The scalar serializes to a string value."
+  STRING
+  "The scalar serializes to a boolean value."
+  BOOLEAN
+  "The scalar serializes to an integer value."
+  INT
+  "The scalar serializes to a floating-point value."
+  FLOAT
+  "The scalar serializes to an object value."
+  OBJECT
+  "The scalar serializes to a list value."
+  LIST
+  "The scalar can serialize as any possible primitive type."
+  ANY
+}
+
 enum SortEnumType {
   ASC
   DESC
@@ -278,6 +298,8 @@ a stable key.
 """
 directive @lookup on FIELD_DEFINITION
 
+directive @serializeAs("The primitive type a scalar is serialized to." type: [ScalarSerializationType!]! "The ECMA-262 regex pattern that the serialized scalar value conforms to." pattern: String) on SCALAR
+
 """
 By default, only a single source schema is allowed to contribute
 a particular field to an object type.
@@ -297,4 +319,4 @@ directive @shareable repeatable on OBJECT | FIELD_DEFINITION
 directive @shareable repeatable on OBJECT | FIELD_DEFINITION
 
 "The `Decimal` scalar type represents a decimal floating-point number."
-scalar Decimal
+scalar Decimal @serializeAs(type: FLOAT)
