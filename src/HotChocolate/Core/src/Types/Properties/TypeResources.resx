@@ -49,7 +49,7 @@
     <value>Unable to register a DataLoader with your DataLoader registry.</value>
   </data>
   <data name="DateTimeType_Description" xml:space="preserve">
-    <value>The `DateTime` scalar represents an ISO-8601 compliant date time type.</value>
+    <value>The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone.</value>
   </data>
   <data name="DateType_Description" xml:space="preserve">
     <value>The `Date` scalar represents an ISO-8601 compliant date type.</value>
@@ -985,7 +985,7 @@ Type: `{0}`</value>
     <value>The `LocalDateTime` scalar type is a local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`.</value>
   </data>
   <data name="LocalDateType_Description" xml:space="preserve">
-    <value>The `LocalDate` scalar type represents an ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339</value>
+    <value>The `LocalDate` scalar represents a date without a time-zone in the ISO-8601 calendar system.</value>
   </data>
   <data name="LocalTimeType_Description" xml:space="preserve">
     <value>The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss.</value>

@@ -105,6 +105,9 @@ namespace HotChocolate.Properties {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone..
+        /// </summary>
         internal static string DateTimeType_Description {
             get {
                 return ResourceManager.GetString("DateTimeType_Description", resourceCulture);
