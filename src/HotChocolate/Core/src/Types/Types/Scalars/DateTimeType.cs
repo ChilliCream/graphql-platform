@@ -7,8 +7,15 @@ using HotChocolate.Properties;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// This GraphQL Scalar represents an exact point in time.
-/// This point in time is specified by having an offset to UTC and does not use time zone.
+/// <para>
+/// This scalar represents an exact point in time. This point in time is specified by having an
+/// offset to UTC and does <b>not</b> use a time zone.
+/// </para>
+/// <para>
+/// It is a slightly refined version of
+/// <see href="https://tools.ietf.org/html/rfc3339">RFC 3339</see>, including the
+/// <see href="https://www.rfc-editor.org/errata/rfc3339">errata</see>.
+/// </para>
 /// </summary>
 /// <seealso href="https://scalars.graphql.org/andimarek/date-time.html">Specification</seealso>
 public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>

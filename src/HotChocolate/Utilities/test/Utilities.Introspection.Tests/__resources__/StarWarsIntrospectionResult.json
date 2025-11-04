@@ -83,7 +83,7 @@
         {
           "kind": "SCALAR",
           "name": "DateTime",
-          "description": "The `DateTime` scalar represents an ISO-8601 compliant date time type.",
+          "description": "The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
