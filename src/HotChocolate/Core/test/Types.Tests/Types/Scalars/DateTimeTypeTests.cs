@@ -432,7 +432,7 @@ public class DateTimeTypeTests
     {
         return new TheoryData<string, DateTimeOffset>
         {
-            // https://www.graphql-scalars.com/date-time/#test-cases (valid strings)
+            // https://scalars.graphql.org/andimarek/date-time.html#sec-Overview.Examples (valid examples)
             {
                 // A DateTime with UTC offset (+00:00).
                 "2011-08-30T13:22:53.108Z",
@@ -476,7 +476,7 @@ public class DateTimeTypeTests
     {
         return
         [
-            // https://www.graphql-scalars.com/date-time/#test-cases (invalid strings)
+            // https://scalars.graphql.org/andimarek/date-time.html#sec-Overview.Examples (invalid examples)
             // The minutes of the offset are missing.
             "2011-08-30T13:22:53.108-03",
             // Too many digits for fractions of a second. Exactly three expected.

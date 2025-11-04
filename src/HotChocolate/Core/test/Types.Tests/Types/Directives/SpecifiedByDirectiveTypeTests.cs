@@ -58,7 +58,7 @@ public static class SpecifiedByDirectiveTypeTests
                     directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
 
                     "The `DateTime` scalar represents an ISO-8601 compliant date time type."
-                    scalar DateTime @specifiedBy(url: "https:\/\/www.graphql-scalars.com\/date-time")
+                    scalar DateTime @specifiedBy(url: "https:\/\/scalars.graphql.org\/andimarek\/date-time.html")
                     """)
                 .UseField(next => next)
                 .BuildSchemaAsync();
