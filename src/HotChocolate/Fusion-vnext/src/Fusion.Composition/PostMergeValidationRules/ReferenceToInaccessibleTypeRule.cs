@@ -8,8 +8,8 @@ namespace HotChocolate.Fusion.PostMergeValidationRules;
 
 /// <summary>
 /// In a composed schema, fields and arguments must only reference types that are exposed. This
-/// requirement guarantees that public types do not reference <c>inaccessible</c> structures which
-/// are intended for internal use.
+/// requirement guarantees that public types do not reference inaccessible structures which are
+/// intended for internal use.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Reference-To-Inaccessible-Type">
 /// Specification

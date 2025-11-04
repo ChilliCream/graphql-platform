@@ -351,6 +351,9 @@
   <data name="LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField" xml:space="preserve">
     <value>The merged output field '{0}' in type '{1}' cannot reference the inaccessible type '{2}'.</value>
   </data>
+  <data name="LogEntryHelper_ReferenceToInternalType" xml:space="preserve">
+    <value>The merged field '{0}' in type '{1}' cannot reference the internal type '{2}'.</value>
+  </data>
   <data name="LogEntryHelper_RequireInvalidFields" xml:space="preserve">
     <value>The @require directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
   </data>
