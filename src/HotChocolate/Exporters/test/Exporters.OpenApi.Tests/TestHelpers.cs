@@ -98,6 +98,9 @@ internal static class TestHelpers
             [Authorize(Roles = [OpenApiTestBase.AdminRole])]
             public IEnumerable<User> GetUsers()
                 => [new User(1), new User(2), new User(3)];
+
+            public IEnumerable<User> GetUsersWithoutAuth()
+                => [new User(1), new User(2), new User(3)];
         }
 
         public class Mutation

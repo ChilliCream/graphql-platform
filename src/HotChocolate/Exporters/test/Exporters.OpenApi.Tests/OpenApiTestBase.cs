@@ -258,23 +258,25 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
         public async Task AddOrUpdateDocumentAsync(
             string id,
-            DocumentNode document,
+            string document,
             CancellationToken cancellationToken = default)
         {
             OpenApiDefinitionStorageEventType type;
             await _semaphore.WaitAsync(cancellationToken);
 
-            OpenApiDocumentDefinition tool;
+            OpenApiDocumentDefinition documentDefinition;
             try
             {
-                tool = new OpenApiDocumentDefinition(id, document);
-                if (_documentsById.TryAdd(id, tool))
+                var parsedDocument = Utf8GraphQLParser.Parse(document);
+
+                documentDefinition = new OpenApiDocumentDefinition(id, parsedDocument);
+                if (_documentsById.TryAdd(id, documentDefinition))
                 {
                     type = OpenApiDefinitionStorageEventType.Added;
                 }
                 else
                 {
-                    _documentsById[id] = tool;
+                    _documentsById[id] = documentDefinition;
                     type = OpenApiDefinitionStorageEventType.Modified;
                 }
             }
@@ -283,7 +285,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                 _semaphore.Release();
             }
 
-            NotifySubscribers(id, tool, type);
+            NotifySubscribers(id, documentDefinition, type);
         }
 
         public async Task RemoveDocumentAsync(

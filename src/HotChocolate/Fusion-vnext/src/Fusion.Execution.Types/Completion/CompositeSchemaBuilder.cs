@@ -682,7 +682,9 @@ internal static class CompositeSchemaBuilder
         }
 
         var directives = CompletionTools.CreateDirectiveCollection(inputObjectTypeDef.Directives, context);
-        inputObjectType.Complete(new CompositeInputObjectTypeCompletionContext(directives, FeatureCollection.Empty));
+        inputObjectType.Complete(new CompositeInputObjectTypeCompletionContext(
+            directives,
+            FeatureCollection.Empty));
     }
 
     private static void CompleteInputField(

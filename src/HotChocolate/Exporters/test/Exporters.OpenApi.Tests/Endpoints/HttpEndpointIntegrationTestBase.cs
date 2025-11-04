@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 
@@ -5,10 +6,10 @@ namespace HotChocolate.Exporters.OpenApi;
 
 // TODO: We need to validate that we can't have the same path + method twice, even if once with and without query parameters
 // TODO: With authorization also check what happens if we handle it in validation
-// TODO: Test hot reload
 // TODO: @oneOf tests
 // TODO: Test with a long value in either route or query
 // TODO: Test result with timeout
+// TODO: Test schema hot reload
 public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 {
     #region GET
@@ -332,6 +333,224 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 
         // assert
         response.MatchSnapshot();
+    }
+
+    #endregion
+
+    #region Hot Reload
+
+    [Fact]
+    public async Task HotReload_Add_New_Document()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage();
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        // assert
+        var response1 = await client.GetAsync("/users");
+
+        Assert.Equal(HttpStatusCode.NotFound, response1.StatusCode);
+
+        await storage.AddOrUpdateDocumentAsync(
+            "new",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+
+        var response2 = await client.GetAsync("/users");
+
+        Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+
+        response2.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task HotReload_Update_Existing_Document()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage();
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        // assert
+        var response1 = await client.GetAsync("/users");
+        var content1 = await response1.Content.ReadAsStringAsync();
+
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+                name
+              }
+            }
+            """);
+
+        var response2 = await client.GetAsync("/users");
+        var content2 = await response1.Content.ReadAsStringAsync();
+
+        Assert.NotEqual(content2, content1);
+
+        response2.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task HotReload_Update_Existing_Document_Different_Route()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage();
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        // assert
+        var oldRouteResponse1 = await client.GetAsync("/users");
+
+        Assert.Equal(HttpStatusCode.OK, oldRouteResponse1.StatusCode);
+
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            """
+            query GetUsers @http(method: GET, route: "/users-new") {
+              usersWithoutAuth {
+                id
+                name
+              }
+            }
+            """);
+
+        var newRouteResponse = await client.GetAsync("/users-new");
+
+        Assert.Equal(HttpStatusCode.OK, newRouteResponse.StatusCode);
+
+        var oldRouteResponse2 = await client.GetAsync("/users");
+
+        Assert.Equal(HttpStatusCode.NotFound, oldRouteResponse2.StatusCode);
+
+        newRouteResponse.MatchSnapshot();
+    }
+
+    [Fact(Skip = "Need to determine what best behavior should be")]
+    public async Task HotReload_Update_Existing_Document_With_Invalid_Document()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage();
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        // assert
+        var response1 = await client.GetAsync("/users");
+
+        Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
+
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            // This is intentionally missing the @http directive to be invalid
+            """
+            query GetUsers {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+
+        // TODO: Add assertion for after the failed update
+    }
+
+    [Fact]
+    public async Task HotReload_Remove_Existing_Document()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage();
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        // assert
+        var response1 = await client.GetAsync("/users");
+
+        Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
+
+        await storage.RemoveDocumentAsync("users");
+
+        var response2 = await client.GetAsync("/users");
+
+        Assert.Equal(HttpStatusCode.NotFound, response2.StatusCode);
+    }
+
+    [Fact]
+    public async Task HotReload_Remove_Non_Existent_Document()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage();
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        // assert
+        var response1 = await client.GetAsync("/users");
+
+        Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
+
+        await storage.RemoveDocumentAsync("non-existent-id");
+
+        var response2 = await client.GetAsync("/users");
+
+        Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
     }
 
     #endregion

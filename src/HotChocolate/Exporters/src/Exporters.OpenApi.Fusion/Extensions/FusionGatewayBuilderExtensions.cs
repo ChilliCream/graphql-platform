@@ -16,7 +16,11 @@ public static class FusionGatewayBuilderExtensions
 
         builder.AddOpenApiDocumentStorageCore();
 
-        return builder.ConfigureSchemaServices((_, s) => s.AddSingleton(storage));
+        builder.Services.AddKeyedSingleton(builder.Name, storage);
+
+        return builder;
+
+        // return builder.ConfigureSchemaServices((_, s) => s.AddSingleton(storage));
     }
 
     public static IFusionGatewayBuilder AddOpenApiDefinitionStorage<
@@ -28,8 +32,12 @@ public static class FusionGatewayBuilderExtensions
 
         builder.AddOpenApiDocumentStorageCore();
 
-        return builder.ConfigureSchemaServices(
-            static (_, s) => s.AddSingleton<IOpenApiDefinitionStorage, T>());
+        builder.Services.AddKeyedSingleton<IOpenApiDefinitionStorage, T>(builder.Name);
+
+        return builder;
+
+        // return builder.ConfigureSchemaServices(
+        //     static (_, s) => s.AddSingleton<IOpenApiDefinitionStorage, T>());
     }
 
     private static void AddOpenApiDocumentStorageCore(this IFusionGatewayBuilder builder)

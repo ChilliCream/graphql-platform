@@ -10,9 +10,14 @@ internal static class InternalServiceCollectionExtensions
     public static IServiceCollection AddOpenApiExporterServices(this IServiceCollection services, string schemaName)
     {
         services.TryAddKeyedSingleton<DynamicEndpointDataSource>(schemaName);
-
         services.TryAddKeyedSingleton<DynamicOpenApiDocumentTransformer>(schemaName);
-
+        services.TryAddKeyedSingleton(
+            schemaName,
+            static (sp, name) => new OpenApiDocumentRegistry(
+                sp.GetRequiredKeyedService<IOpenApiDefinitionStorage>(name),
+                sp.GetRequiredKeyedService<DynamicOpenApiDocumentTransformer>(name),
+                sp.GetRequiredKeyedService<DynamicEndpointDataSource>(name)
+                ));
         services.TryAddKeyedSingleton(
             schemaName,
             static (sp, name) => new HttpRequestExecutorProxy(
@@ -28,10 +33,16 @@ internal static class InternalServiceCollectionExtensions
         string schemaName,
         IServiceProvider applicationServices)
     {
-        services.AddSingleton<IDynamicEndpointDataSource>(
+        services.TryAddSingleton(
+            _ => applicationServices.GetRequiredKeyedService<IOpenApiDefinitionStorage>(schemaName));
+
+        services.TryAddSingleton(
+            _ => applicationServices.GetRequiredKeyedService<OpenApiDocumentRegistry>(schemaName));
+
+        services.TryAddSingleton<IDynamicEndpointDataSource>(
             _ => applicationServices.GetRequiredKeyedService<DynamicEndpointDataSource>(schemaName));
 
-        services.AddSingleton(
+        services.TryAddSingleton(
             _ => applicationServices.GetRequiredKeyedService<DynamicOpenApiDocumentTransformer>(schemaName));
 
         return services;

@@ -1,10 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate;
-using HotChocolate.AspNetCore;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Exporters.OpenApi;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -13,14 +9,18 @@ public static class RequestExecutorBuilderExtensions
 {
     public static IRequestExecutorBuilder AddOpenApiDefinitionStorage(
         this IRequestExecutorBuilder builder,
-        IOpenApiDefinitionStorage definitionStorage)
+        IOpenApiDefinitionStorage storage)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(definitionStorage);
+        ArgumentNullException.ThrowIfNull(storage);
 
         builder.AddOpenApiDocumentStorageCore();
 
-        return builder.ConfigureSchemaServices(s => s.AddSingleton(definitionStorage));
+        builder.Services.AddKeyedSingleton(builder.Name, storage);
+
+        return builder;
+
+        // return builder.ConfigureSchemaServices(s => s.AddSingleton(definitionStorage));
     }
 
     public static IRequestExecutorBuilder AddOpenApiDefinitionStorage<
@@ -32,8 +32,12 @@ public static class RequestExecutorBuilderExtensions
 
         builder.AddOpenApiDocumentStorageCore();
 
-        return builder.ConfigureSchemaServices(
-            static s => s.AddSingleton<IOpenApiDefinitionStorage, T>());
+        builder.Services.AddKeyedSingleton<IOpenApiDefinitionStorage, T>(builder.Name);
+
+        return builder;
+
+        // return builder.ConfigureSchemaServices(
+        //     static s => s.AddSingleton<IOpenApiDefinitionStorage, T>());
     }
 
     private static void AddOpenApiDocumentStorageCore(this IRequestExecutorBuilder builder)

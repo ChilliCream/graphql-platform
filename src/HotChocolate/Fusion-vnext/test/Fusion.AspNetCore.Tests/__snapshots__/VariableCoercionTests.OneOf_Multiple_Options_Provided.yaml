@@ -1,0 +1,60 @@
+title: OneOf_Multiple_Options_Provided
+request:
+  document: |
+    query testQuery(
+      $pet: Pet!
+    ) {
+      petName(input: $pet)
+    }
+  variables: |
+    {
+      "pet": {
+        "dog": {
+          "breed": "Rottweiler"
+        },
+        "cat": {
+          "cuteness": 100
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "More than one field of the OneOf Input Object \u0060Pet\u0060 is set. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.",
+          "path": [
+            "pet"
+          ],
+          "extensions": {
+            "code": "HC0055"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        petName(input: Pet!): String
+      }
+
+      input Cat {
+        cuteness: Float!
+      }
+
+      input Dog {
+        breed: String!
+      }
+
+      input Pet @oneOf {
+        dog: Dog
+        cat: Cat
+      }
+
+      "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
+      directive @oneOf on INPUT_OBJECT

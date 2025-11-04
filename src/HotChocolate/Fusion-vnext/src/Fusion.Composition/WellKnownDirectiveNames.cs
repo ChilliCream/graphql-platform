@@ -21,6 +21,7 @@ internal static class WellKnownDirectiveNames
     public const string Is = "is";
     public const string Key = "key";
     public const string Lookup = "lookup";
+    public const string OneOf = "oneOf";
     public const string Override = "override";
     public const string Provides = "provides";
     public const string Require = "require";

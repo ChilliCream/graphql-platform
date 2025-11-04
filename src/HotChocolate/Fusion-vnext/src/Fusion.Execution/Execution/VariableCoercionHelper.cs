@@ -170,8 +170,30 @@ internal static class VariableCoercionHelper
                 return false;
             }
 
-            // TODO: I don't like that we have to upcast here
             var inputObjectType = (FusionInputObjectTypeDefinition)type;
+
+            var oneOf = inputObjectType.IsOneOf;
+
+            if (oneOf && objectValue.Fields.Count is 0)
+            {
+                error = ErrorBuilder.New()
+                    .SetMessage("The OneOf Input Object `{0}` requires that exactly one field is supplied and that field must not be `null`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.", inputObjectType.Name)
+                    .SetCode(ErrorCodes.Execution.OneOfNoFieldSet)
+                    .SetPath(path)
+                    .Build();
+                return false;
+            }
+
+            if (oneOf && objectValue.Fields.Count > 1)
+            {
+                error = ErrorBuilder.New()
+                    .SetMessage("More than one field of the OneOf Input Object `{0}` is set. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.", inputObjectType.Name)
+                    .SetCode(ErrorCodes.Execution.OneOfMoreThanOneFieldSet)
+                    .SetPath(path)
+                    .Build();
+                return false;
+            }
+
             var numberOfInputFields = inputObjectType.Fields.Count;
 
             var processedCount = 0;
@@ -190,61 +212,82 @@ internal static class VariableCoercionHelper
                 stack += numberOfInputFields;
             }
 
-            for (var i = 0; i < objectValue.Fields.Count; i++)
+            try
             {
-                var field = objectValue.Fields[i];
-                if (!inputObjectType.Fields.TryGetField(field.Name.Value, out var fieldDefinition))
+                for (var i = 0; i < objectValue.Fields.Count; i++)
                 {
-                    error = ErrorBuilder.New()
-                        .SetMessage(
-                            "The field `{0}` is not defined on the input object type `{1}`.",
-                            field.Name.Value,
-                            inputObjectType.Name)
-                        .SetExtension("variable", $"{path}")
-                        .Build();
-                    return false;
-                }
-
-                if (!ValidateValue(
-                    fieldDefinition.Type,
-                    field.Value,
-                    path.Append(field.Name.Value),
-                    stack,
-                    out error))
-                {
-                    return false;
-                }
-
-                processed[fieldDefinition.Index] = true;
-                processedCount++;
-            }
-
-            // If not all fields of the input object type were specified,
-            // we have to check if any of the ones left out are non-null
-            // and do not have a default value, and if so, raise an error.
-            if (processedCount != numberOfInputFields)
-            {
-                for (var i = 0; i < numberOfInputFields; i++)
-                {
-                    if (!processed[i])
+                    var field = objectValue.Fields[i];
+                    if (!inputObjectType.Fields.TryGetField(field.Name.Value, out var fieldDefinition))
                     {
-                        var field = inputObjectType.Fields[i];
+                        error = ErrorBuilder.New()
+                            .SetMessage(
+                                "The field `{0}` is not defined on the input object type `{1}`.",
+                                field.Name.Value,
+                                inputObjectType.Name)
+                            .SetExtension("variable", $"{path}")
+                            .Build();
+                        return false;
+                    }
 
-                        if (field.Type.Kind == TypeKind.NonNull && field.DefaultValue is null)
+                    if (oneOf && field.Value.Kind is SyntaxKind.NullValue)
+                    {
+                        error = ErrorBuilder.New()
+                            .SetMessage("`null` was set to the field `{0}`of the OneOf Input Object `{1}`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.", field.Name, inputObjectType.Name)
+                            .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
+                            .SetPath(path)
+                            .SetCoordinate(fieldDefinition.Coordinate)
+                            .Build();
+                        return false;
+                    }
+
+                    if (!ValidateValue(
+                        fieldDefinition.Type,
+                        field.Value,
+                        path.Append(field.Name.Value),
+                        stack,
+                        out error))
+                    {
+                        return false;
+                    }
+
+                    processed[fieldDefinition.Index] = true;
+                    processedCount++;
+                }
+
+                // If not all fields of the input object type were specified,
+                // we have to check if any of the ones left out are non-null
+                // and do not have a default value, and if so, raise an error.
+                if (!oneOf && processedCount != numberOfInputFields)
+                {
+                    for (var i = 0; i < numberOfInputFields; i++)
+                    {
+                        if (!processed[i])
                         {
-                            error = ErrorBuilder.New()
-                                .SetMessage("The required input field `{0}` is missing.", field.Name)
-                                .SetPath(path.Append(field.Name))
-                                .SetExtension("field", field.Coordinate.ToString())
-                                .Build();
-                            return false;
+                            var field = inputObjectType.Fields[i];
+
+                            if (field.Type.Kind == TypeKind.NonNull && field.DefaultValue is null)
+                            {
+                                error = ErrorBuilder.New()
+                                    .SetMessage("The required input field `{0}` is missing.", field.Name)
+                                    .SetPath(path.Append(field.Name))
+                                    .SetExtension("field", field.Coordinate.ToString())
+                                    .Build();
+                                return false;
+                            }
                         }
                     }
                 }
-            }
 
-            error = null;
-            return true;
+                error = null;
+                return true;
+            }
+            finally
+            {
+                if (processedBuffer is not null)
+                {
+                    ArrayPool<bool>.Shared.Return(processedBuffer);
+                }
+            }
         }
 
         if (type is IScalarTypeDefinition scalarType)
