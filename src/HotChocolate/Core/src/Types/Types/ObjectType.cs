@@ -97,7 +97,7 @@ public partial class ObjectType
 
     /// <summary>
     /// Defines if this type is implementing the
-    /// the given <paramref name="interfaceType" />.
+    /// given <paramref name="interfaceType" />.
     /// </summary>
     /// <param name="interfaceType">
     /// The interface type.

@@ -34,24 +34,24 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Votable {
         viewerCanVote: Boolean!
       }
-      
-      type Comment implements Votable @key(fields: "id") {
+
+      type Comment implements Votable {
         id: ID!
         viewerCanVote: Boolean!
       }
-      
-      type Discussion implements Votable @key(fields: "id") {
+
+      type Discussion implements Votable {
         id: ID!
         viewerCanVote: Boolean!
       }
-      
+
       type Query {
         votables: [Votable]
-        discussionById(id: ID!): Discussion @lookup
+        discussionById(id: ID!): Discussion @lookup @shareable
       }
     interactions:
       - request:
@@ -93,14 +93,14 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
-      type Discussion @key(fields: "id") {
+
+      type Discussion {
         id: ID!
         viewerRating: Float!
       }
-      
+
       type Query {
-        discussionById(id: ID!): Discussion @lookup
+        discussionById(id: ID!): Discussion @lookup @shareable
       }
     interactions:
       - request:

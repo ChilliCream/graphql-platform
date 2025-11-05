@@ -8,3 +8,4 @@ require("prismjs/components/prism-graphql");
 require("prismjs/components/prism-json");
 require("prismjs/components/prism-bash");
 require("prismjs/components/prism-sql");
+require("prismjs/components/prism-diff");

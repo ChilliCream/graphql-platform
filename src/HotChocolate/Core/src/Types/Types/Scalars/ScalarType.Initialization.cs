@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
@@ -90,5 +91,20 @@ public abstract partial class ScalarType
     {
         var directiveDefinitions = configuration.GetDirectives();
         Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
+    }
+
+    protected override void OnAfterCompleteMetadata(
+        ITypeCompletionContext context,
+        TypeSystemConfiguration configuration)
+    {
+        var directive = Directives.FirstOrDefault<SerializeAs>();
+        if (directive is not null)
+        {
+            var serializeAs = directive.ToValue<SerializeAs>();
+            SerializationType = serializeAs.Type;
+            Pattern = serializeAs.Pattern;
+        }
+
+        base.OnAfterCompleteMetadata(context, configuration);
     }
 }

@@ -39,23 +39,23 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
-      interface Node {
+
+      interface Node @key(fields: "id") {
         id: ID!
       }
-      
+
       type Item1 {
         product: Product!
       }
-      
+
       type Item2 {
         product: Product!
       }
-      
+
       type Product implements Node {
         id: ID!
       }
-      
+
       type Query {
         item1: Item1!
         item2: Item2!
@@ -97,16 +97,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Product implements Node {
         id: ID!
         name: String!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
         nodes(ids: [ID!]!): [Node]!

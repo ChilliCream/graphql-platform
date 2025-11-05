@@ -1,6 +1,9 @@
 using System.Buffers;
 using System.Collections.Immutable;
+using System.Text;
 using System.Text.Json;
+using HotChocolate.Execution;
+using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -34,7 +37,7 @@ public sealed class SourceSchemaErrors
     /// <exception cref="InvalidOperationException">
     /// Thrown when an error path contains unsupported element types (only strings and integer are supported).
     /// </exception>
-    public static SourceSchemaErrors? From(JsonElement json)
+    public static SourceSchemaErrors? From(SourceResultElement json)
     {
         if (json.ValueKind != JsonValueKind.Array)
         {
@@ -100,7 +103,7 @@ public sealed class SourceSchemaErrors
         return new SourceSchemaErrors { RootErrors = rootErrors?.ToImmutableArray() ?? [], Trie = root };
     }
 
-    private static IError? CreateError(JsonElement jsonError)
+    private static IError? CreateError(SourceResultElement jsonError)
     {
         if (jsonError.ValueKind is not JsonValueKind.Object)
         {
@@ -118,18 +121,21 @@ public sealed class SourceSchemaErrors
                 errorBuilder.SetPath(CreatePathFromJson(path));
             }
 
-            if (jsonError.TryGetProperty("code", out var code)
-                && code.ValueKind is JsonValueKind.String)
-            {
-                errorBuilder.SetCode(code.GetString());
-            }
-
             if (jsonError.TryGetProperty("extensions", out var extensions)
                 && extensions.ValueKind is JsonValueKind.Object)
             {
                 foreach (var property in extensions.EnumerateObject())
                 {
-                    errorBuilder.SetExtension(property.Name, property.Value);
+                    if (property is { Name: "code", Value.ValueKind: JsonValueKind.String })
+                    {
+                        var code = property.Value.GetString();
+                        errorBuilder.SetCode(code);
+                        continue;
+                    }
+
+                    var valueMemory = property.Value.GetRawValueAsMemory();
+
+                    errorBuilder.SetExtension(property.Name, new RawJsonValue(valueMemory));
                 }
             }
 
@@ -139,7 +145,7 @@ public sealed class SourceSchemaErrors
         return null;
     }
 
-    private static Path CreatePathFromJson(JsonElement errorSubPath)
+    private static Path CreatePathFromJson(SourceResultElement errorSubPath)
     {
         var path = Path.Root;
 

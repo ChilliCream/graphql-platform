@@ -7,6 +7,7 @@ namespace HotChocolate.Types.Pagination;
 /// </summary>
 [GraphQLDescription(
     "Information about pagination in a connection.")]
+[ConditionalShareable]
 public abstract class PageInfo : IPageInfo
 {
     /// <summary>

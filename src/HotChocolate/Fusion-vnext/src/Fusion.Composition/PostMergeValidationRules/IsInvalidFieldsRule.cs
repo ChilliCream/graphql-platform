@@ -31,12 +31,12 @@ internal sealed class IsInvalidFieldsRule : IEventHandler<SchemaEvent>
             .SelectMany(s => s.Types.OfType<MutableObjectTypeDefinition>(), (s, o) => (s, o))
             .SelectMany(x => x.o.Fields.AsEnumerable(), (x, f) => (x.s, x.o, f))
             .SelectMany(
-                x => x.f.Arguments.AsEnumerable().Where(a => a.HasIsDirective()),
+                x => x.f.Arguments.AsEnumerable().Where(a => a.HasIsDirective),
                 (x, a) => new FieldArgumentInfo(a, x.f, x.o, x.s));
 
         var validator = new FieldSelectionMapValidator(schema);
 
-        foreach (var (sourceArgument, sourceField, sourceType, sourceSchema) in sourceArgumentGroup)
+        foreach (var (sourceArgument, sourceField, _, sourceSchema) in sourceArgumentGroup)
         {
             var isDirective = sourceArgument.Directives[Is].First();
             var fieldArgumentValue = (string)isDirective.Arguments[Field].Value!;
@@ -56,9 +56,7 @@ internal sealed class IsInvalidFieldsRule : IEventHandler<SchemaEvent>
                 context.Log.Write(
                     IsInvalidFields(
                         isDirective,
-                        sourceArgument.Name,
-                        sourceField.Name,
-                        sourceType.Name,
+                        sourceArgument,
                         sourceSchema,
                         errors));
             }

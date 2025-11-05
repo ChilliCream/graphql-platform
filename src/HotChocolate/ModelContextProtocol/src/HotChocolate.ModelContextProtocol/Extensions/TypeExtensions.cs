@@ -183,7 +183,7 @@ internal static class TypeExtensions
                 // e.g. dmFsdWU= (Base64-encoded string)
                 => @"^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$",
             DateTimeType
-                // e.g. 2011-08-30T13:22:53.108Z (https://www.graphql-scalars.com/date-time/)
+                // e.g. 2011-08-30T13:22:53.108Z (https://scalars.graphql.org/andimarek/date-time.html)
                 =>
                     @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}"
                     + @"(?:\.\d{1,7})?(?:[Zz]|[+-]\d{2}:\d{2})$",

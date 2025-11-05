@@ -32,6 +32,7 @@ public abstract partial class FusionTestBase
             {
                 services.AddRouting();
                 var builder = services.AddGraphQLServer(schemaName, disableDefaultSecurity: true);
+                builder.AddSourceSchemaDefaults();
                 configureBuilder(builder);
                 configureServices?.Invoke(services);
 
@@ -90,9 +91,12 @@ public abstract partial class FusionTestBase
 
                 yield return typeInspector.GetTypeRef(typeof(Composite.Lookup));
                 yield return typeInspector.GetTypeRef(typeof(Composite.Internal));
+                yield return typeInspector.GetTypeRef(typeof(Composite.Inaccessible));
                 yield return typeInspector.GetTypeRef(typeof(Composite.EntityKey));
                 yield return typeInspector.GetTypeRef(typeof(Composite.Require));
                 yield return typeInspector.GetTypeRef(typeof(Composite.Is));
+                yield return typeInspector.GetTypeRef(typeof(Composite.Provides));
+                yield return typeInspector.GetTypeRef(typeof(Composite.Shareable));
 
                 _registeredTypes = true;
             }

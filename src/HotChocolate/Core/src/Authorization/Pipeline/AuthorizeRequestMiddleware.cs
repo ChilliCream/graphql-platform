@@ -83,5 +83,5 @@ internal sealed class AuthorizeRequestMiddleware(
                 var middleware = new AuthorizeRequestMiddleware(next, context.Services);
                 return middleware.InvokeAsync;
             },
-            "HotChocolate.Authorization.Pipeline.AuthorizeRequest");
+            WellKnownRequestMiddleware.AuthorizeRequestMiddleware);
 }

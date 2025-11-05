@@ -65,16 +65,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Query {
-        node(id: ID!): Node @lookup
-        nodes(ids: [ID!]!): [Node]!
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
       }
-      
+
       type User implements Node {
         id: ID!
         displayName: String!
@@ -138,17 +138,17 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Query {
-        node(id: ID!): Node @lookup
-        nodes(ids: [ID!]!): [Node]! @null(atIndex: 1)
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @null(atIndex: 1) @shareable
         userBySlug(slug: String!): User
       }
-      
+
       type User implements Node {
         relativeUrl: String!
         id: ID!
@@ -229,33 +229,33 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type FeedbacksConnection {
         edges: [FeedbacksEdge!]
       }
-      
+
       type FeedbacksEdge {
         node: ResaleFeedback!
       }
-      
+
       type Query {
-        node(id: ID!): Node @lookup
-        nodes(ids: [ID!]!): [Node]!
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
       }
-      
+
       type ResaleFeedback implements Node {
         feedback: ResaleSurveyFeedback
         id: ID!
       }
-      
+
       type ResaleSurveyFeedback {
         buyer: User
       }
-      
+
       type User implements Node {
         id: ID!
         feedbacks: FeedbacksConnection

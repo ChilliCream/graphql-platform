@@ -27,16 +27,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type ExclusiveSubgraphA {
         id: ID!
       }
-      
+
       type Query {
         exclusiveSubgraphA: ExclusiveSubgraphA
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
-      
+
       type Viewer {
         name: String
       }
@@ -63,11 +63,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
-      
+
       type Viewer {
         exclusiveSubgraphB: String
       }

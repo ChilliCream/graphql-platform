@@ -37,7 +37,7 @@ internal sealed class UploadClientCommand : Command
     {
         console.Title($"Upload operations {operationsFile.FullName.EscapeMarkup()}");
 
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             await console
                 .Status()

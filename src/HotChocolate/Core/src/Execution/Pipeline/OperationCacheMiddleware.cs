@@ -67,5 +67,5 @@ internal sealed class OperationCacheMiddleware
                 var middleware = new OperationCacheMiddleware(next, diagnosticEvents, cache);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(OperationCacheMiddleware));
+            WellKnownRequestMiddleware.OperationCacheMiddleware);
 }

@@ -10,18 +10,30 @@ namespace HotChocolate.Language;
 /// </summary>
 public ref struct JsonValueParser
 {
+    private const int DefaultMaxAllowedDepth = 64;
     private readonly int _maxAllowedDepth;
     private Utf8MemoryBuilder? _memory;
     private readonly PooledArrayWriter? _externalBuffer;
 
-    public JsonValueParser(int maxAllowedDepth = 64)
+    public JsonValueParser()
+    {
+        _maxAllowedDepth = DefaultMaxAllowedDepth;
+    }
+
+    public JsonValueParser(int maxAllowedDepth)
     {
         _maxAllowedDepth = maxAllowedDepth;
     }
 
-    public JsonValueParser(int maxAllowedDepth = 64, PooledArrayWriter? buffer = null)
+    public JsonValueParser(int maxAllowedDepth, PooledArrayWriter buffer)
     {
         _maxAllowedDepth = maxAllowedDepth;
+        _externalBuffer = buffer;
+    }
+
+    public JsonValueParser(PooledArrayWriter buffer)
+    {
+        _maxAllowedDepth = DefaultMaxAllowedDepth;
         _externalBuffer = buffer;
     }
 
@@ -180,8 +192,7 @@ public ref struct JsonValueParser
     {
         try
         {
-            var parser = new JsonValueParser();
-            return parser.Parse(ref reader, 0);
+            return Parse(ref reader, 0);
         }
         catch
         {
@@ -222,8 +233,8 @@ public ref struct JsonValueParser
             case JsonTokenType.String:
             {
                 var segment = reader.HasValueSequence
-                    ? WriteValue(reader.ValueSequence.Slice(1, reader.ValueSequence.Length - 2))
-                    : WriteValue(reader.ValueSpan.Slice(1, reader.ValueSpan.Length - 2));
+                    ? WriteValue(reader.ValueSequence)
+                    : WriteValue(reader.ValueSpan);
                 return new StringValueNode(null, segment, false);
             }
 
@@ -293,11 +304,6 @@ public ref struct JsonValueParser
 
                         var name = reader.GetString()!;
                         var fieldName = name;
-
-                        if (!reader.Read())
-                        {
-                            throw new JsonException("Unexpected end of JSON after property name.");
-                        }
 
                         if (count == buffer.Length)
                         {

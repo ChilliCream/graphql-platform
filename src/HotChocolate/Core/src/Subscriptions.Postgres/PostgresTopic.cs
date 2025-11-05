@@ -22,7 +22,7 @@ internal sealed class PostgresTopic<T> : DefaultTopic<T>
     }
 
     /// <inheritdoc />
-    protected override async ValueTask<IDisposable> OnConnectAsync(
+    protected override async ValueTask<IAsyncDisposable> OnConnectAsync(
         CancellationToken cancellationToken)
     {
         await _channel.EnsureInitialized(cancellationToken);

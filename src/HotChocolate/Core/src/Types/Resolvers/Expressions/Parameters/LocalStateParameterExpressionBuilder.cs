@@ -29,6 +29,44 @@ internal class LocalStateParameterExpressionBuilder
     public override bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(LocalStateAttribute));
 
+    public override bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Attributes.Any(t => t is LocalStateAttribute);
+
     protected override string? GetKey(ParameterInfo parameter)
         => parameter.GetCustomAttribute<LocalStateAttribute>()!.Key;
+
+    public override IParameterBinding Create(ParameterDescriptor parameter)
+        => new ParameterBinding(this, parameter);
+
+    private sealed class ParameterBinding : IParameterBinding
+    {
+        private readonly ScopedStateParameterExpressionBuilder _parent;
+        private readonly string _key;
+
+        public ParameterBinding(
+            ScopedStateParameterExpressionBuilder parent,
+            ParameterDescriptor parameter)
+        {
+            _parent = parent;
+
+            LocalStateAttribute? globalState = null;
+            foreach (var attribute in parameter.Attributes)
+            {
+                if (attribute is LocalStateAttribute casted)
+                {
+                    globalState = casted;
+                    break;
+                }
+            }
+
+            _key = globalState?.Key ?? parameter.Name;
+        }
+
+        public ArgumentKind Kind => _parent.Kind;
+
+        public bool IsPure => _parent.IsPure;
+
+        public T Execute<T>(IResolverContext context)
+            => context.GetLocalStateOrDefault<T>(_key, default!);
+    }
 }

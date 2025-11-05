@@ -80,8 +80,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
         // Parse the string values of interest from the IFormCollection
         var multipartRequest = ParseMultipartRequest(form);
-        var requests = session.RequestParser.ParseRequest(
-            multipartRequest.Operations);
+        var requests = session.RequestParser.ParseRequest(multipartRequest.Operations);
 
         foreach (var graphQLRequest in requests)
         {

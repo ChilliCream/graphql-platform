@@ -1,11 +1,12 @@
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace HotChocolate.Internal;
 
 /// <summary>
 /// This interface represents an expression builder to resolver resolver parameter values.
 /// </summary>
-public interface IParameterExpressionBuilder : IParameterHandler
+public interface IParameterExpressionBuilder
 {
     /// <summary>
     /// Defines the argument kind that is handled by this builder.
@@ -22,6 +23,18 @@ public interface IParameterExpressionBuilder : IParameterHandler
     /// Specifies that this handler is run after all non-default handlers.
     /// </summary>
     bool IsDefaultHandler { get; }
+
+    /// <summary>
+    /// Checks if this expression builder can handle the following parameter.
+    /// </summary>
+    /// <param name="parameter">
+    /// The parameter that needs to be resolved.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the parameter can be handled by this expression builder;
+    /// otherwise <c>false</c>.
+    /// </returns>
+    bool CanHandle(ParameterInfo parameter);
 
     /// <summary>
     /// Builds an expression that resolves a resolver parameter.

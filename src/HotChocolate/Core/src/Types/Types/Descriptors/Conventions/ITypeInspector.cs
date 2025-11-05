@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -33,6 +34,17 @@ public interface ITypeInspector : IConvention
         bool includeIgnored = false,
         bool includeStatic = false,
         bool allowObject = false);
+
+    /// <summary>
+    /// Gets the parameters of <paramref name="method"/> in a thread-safe manner.
+    /// </summary>
+    /// <param name="method">
+    /// The method to get the parameters from.
+    /// </param>
+    /// <returns>
+    /// The parameters of the <paramref name="method"/>.
+    /// </returns>
+    ParameterInfo[] GetParameters(MethodInfo method);
 
     /// <summary>
     /// Defines if a member shall be ignored. This method interprets ignore attributes.
@@ -201,6 +213,20 @@ public interface ITypeInspector : IConvention
     MemberInfo? GetEnumValueMember(object value);
 
     /// <summary>
+    /// Gets the attributes from an attribute provider.
+    /// </summary>
+    /// <param name="attributeProvider">
+    /// The attribute provider.
+    /// </param>
+    /// <param name="inherit">
+    /// When true lookup hierarchy.
+    /// </param>
+    /// <returns>
+    /// Returns the attributes of an attribute provider.
+    /// </returns>
+    ImmutableArray<object> GetAttributes(ICustomAttributeProvider attributeProvider, bool inherit);
+
+    /// <summary>
     /// Gets the member that represents the node ID.
     /// </summary>
     /// <param name="type">
@@ -244,23 +270,6 @@ public interface ITypeInspector : IConvention
     /// <c>true</c> if the provided type is a schema type.
     /// </returns>
     bool IsSchemaType(Type type);
-
-    /// <summary>
-    /// Applies the attribute configurations to the descriptor.
-    /// </summary>
-    /// <param name="context">
-    /// The descriptor context.
-    /// </param>
-    /// <param name="descriptor">
-    /// The descriptor to which the configuration shall be applied to.
-    /// </param>
-    /// <param name="attributeProvider">
-    /// The attribute provider.
-    /// </param>
-    void ApplyAttributes(
-        IDescriptorContext context,
-        IDescriptor descriptor,
-        ICustomAttributeProvider attributeProvider);
 
     /// <summary>
     /// Tries to extract a default value from a parameter.

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Features;
 
 namespace HotChocolate.Types.Descriptors.Configurations;
@@ -26,7 +27,7 @@ public interface ITypeSystemConfiguration : IFeatureProvider
     /// <summary>
     /// Defines whether descriptor attributes are applied or not.
     /// </summary>
-    bool AttributesAreApplied { get; set; }
+    bool ConfigurationsAreApplied { get; set; }
 
     /// <summary>
     /// Gets access to additional type dependencies.

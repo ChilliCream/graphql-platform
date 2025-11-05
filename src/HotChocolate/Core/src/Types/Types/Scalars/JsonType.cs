@@ -4,6 +4,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Properties;
+using HotChocolate.Types.Composite;
 
 namespace HotChocolate.Types;
 
@@ -13,6 +14,7 @@ namespace HotChocolate.Types;
 ///
 /// The runtime representation of the JSON scalar is an <see cref="JsonElement"/>.
 /// </summary>
+[SerializeAs(ScalarSerializationType.Any)]
 public sealed class JsonType : ScalarType<JsonElement>
 {
     /// <summary>

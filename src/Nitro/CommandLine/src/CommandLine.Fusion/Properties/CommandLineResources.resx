@@ -63,4 +63,7 @@
   <data name="ComposeCommand_GlobalObjectIdentification_Disabled" xml:space="preserve">
     <value>Disabled global object identification.</value>
   </data>
+  <data name="ComposeCommand_Error_ConflictingSchemaName" xml:space="preserve">
+    <value>'{0}' conflicts with the existing source schema name '{1}'. Either rename '{0}' to '{1}' if they're the same, or rename '{0}' to something else if they're different.</value>
+  </data>
 </root>

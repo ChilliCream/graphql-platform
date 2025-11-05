@@ -21,11 +21,13 @@ namespace HotChocolate.Fetching;
 /// </summary>
 public sealed partial class BatchDispatcher : IBatchDispatcher
 {
-    private const int MaxParallelBatches = 4;
     private readonly AsyncAutoResetEvent _signal = new();
     private readonly object _sync = new();
     private readonly HashSet<Batch> _enqueuedBatches = [];
     private readonly CancellationTokenSource _coordinatorCts = new();
+    private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
+    private readonly BatchDispatcherOptions _options;
+    private List<Task>? _dispatchTasks;
     private int _openBatches;
     private long _lastSubscribed;
     private long _lastEnqueued;
@@ -36,8 +38,12 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     /// <summary>
     /// Initializes a new instance of the <see cref="BatchDispatcher"/> class.
     /// </summary>
-    public BatchDispatcher()
+    public BatchDispatcher(IDataLoaderDiagnosticEvents diagnosticEvents, BatchDispatcherOptions options = default)
     {
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
+
+        _diagnosticEvents = diagnosticEvents;
+        _options = options;
         _coordinatorCts.Token.Register(_signal.Set);
     }
 
@@ -69,6 +75,11 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
     private void EnsureCoordinatorIsRunning()
     {
+        if (_isCoordinatorRunning == 1)
+        {
+            return;
+        }
+
         if (Interlocked.CompareExchange(ref _isCoordinatorRunning, 1, 0) == 0)
         {
             CoordinatorAsync(_coordinatorCts.Token).FireAndForget();
@@ -77,14 +88,16 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
     private async Task CoordinatorAsync(CancellationToken stoppingToken)
     {
+        using var scope = _diagnosticEvents.RunBatchDispatchCoordinator();
+
         var backlog = new PriorityQueue<Batch, long>();
-        var dispatchTasks = new List<Task>(MaxParallelBatches);
+        _dispatchTasks ??= new List<Task>(_options.MaxParallelBatches);
 
         Send(BatchDispatchEventType.CoordinatorStarted);
 
         try
         {
-            while (!stoppingToken.IsCancellationRequested && !IsCompleted())
+            while (!stoppingToken.IsCancellationRequested)
             {
                 await _signal;
 
@@ -93,19 +106,18 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
                     return;
                 }
 
-                await EvaluateAndDispatchAsync(backlog, dispatchTasks, stoppingToken);
+                await EvaluateAndDispatchAsync(backlog, _dispatchTasks, stoppingToken);
             }
+        }
+        catch (Exception ex)
+        {
+            _diagnosticEvents.BatchDispatchError(ex);
+            throw;
         }
         finally
         {
             Interlocked.Exchange(ref _isCoordinatorRunning, 0);
             Send(BatchDispatchEventType.CoordinatorCompleted);
-        }
-
-        bool IsCompleted()
-        {
-            var openBatches = Volatile.Read(ref _openBatches);
-            return openBatches == 0;
         }
     }
 
@@ -114,6 +126,8 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         List<Task> dispatchTasks,
         CancellationToken stoppingToken)
     {
+        var noDispatchCycles = 0;
+
         while (!stoppingToken.IsCancellationRequested)
         {
             var openBatches = Volatile.Read(ref _openBatches);
@@ -138,18 +152,47 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
                 // We wait for all dispatch tasks to be completed before we reset the signal
                 // that lets us pause the evaluation. Only then will we send a message to
                 // the subscribed executors to reevaluate if they can continue execution.
-                await Task.WhenAll(dispatchTasks);
+                if (dispatchTasks.Count == 1)
+                {
+                    await dispatchTasks[0];
+                }
+                else
+                {
+                    if (_options.EnableParallelBatches)
+                    {
+                        await Task.WhenAll(dispatchTasks);
+                    }
+                    else
+                    {
+                        foreach (var task in dispatchTasks)
+                        {
+                            await task.ConfigureAwait(false);
+                        }
+                    }
+                }
+
+                _diagnosticEvents.BatchDispatched(dispatchTasks.Count, _options.EnableParallelBatches);
                 _signal.TryResetToIdle();
                 Send(BatchDispatchEventType.Dispatched);
                 return;
             }
 
             // Signal that we have evaluated all enqueued tasks without dispatching any.
+            _diagnosticEvents.BatchEvaluated(openBatches);
             Send(BatchDispatchEventType.Evaluated);
 
             // Spin-wait briefly to give executing resolvers time to add more
             // data requirements to the open batches.
-            WaitForMoreBatchActivity(lastModified);
+            await WaitForMoreBatchActivityAsync(lastModified);
+
+            // After 10 cycles without dispatch, we add a small delay to provide backpressure.
+            if (noDispatchCycles >= 10)
+            {
+                await Task.Delay(10, stoppingToken);
+                noDispatchCycles = 0;
+            }
+
+            noDispatchCycles++;
         }
     }
 
@@ -158,15 +201,24 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         PriorityQueue<Batch, long> backlog,
         List<Task> dispatchTasks)
     {
+        Batch? singleBatch = null;
+
         // Fill the evaluation backlog with the current enqueued batches.
         // The backlog orders batches by ModifiedTimestamp, so batches that
         // haven't been touched by a DataLoader for the longest time are evaluated first,
         // giving them the highest likelihood of being dispatched.
         lock (_enqueuedBatches)
         {
-            foreach (var batch in _enqueuedBatches)
+            if (_enqueuedBatches.Count == 1)
             {
-                backlog.Enqueue(batch, batch.ModifiedTimestamp);
+                singleBatch = _enqueuedBatches.First();
+            }
+            else
+            {
+                foreach (var batch in _enqueuedBatches)
+                {
+                    backlog.Enqueue(batch, batch.ModifiedTimestamp);
+                }
             }
         }
 
@@ -175,7 +227,31 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         // (i.e., we can touch it twice without the DataLoader resetting its status),
         // we complete the batch by dispatching it.
         //
+        // Additionally, if a batch has been waiting longer than maxBatchAgeUs,
+        // we force dispatch it regardless of its status to prevent starvation
+        // under continuous high load.
+        //
         // We stop evaluation once we've dispatched MaxParallelBatches or when we have touched all batches.
+        if (singleBatch is not null)
+        {
+            // we have an optimized path if there is only a single batch to evaluate.
+            EvaluateSingleOpenBatches(ref lastModified, singleBatch, dispatchTasks);
+        }
+        else
+        {
+            EvaluateMultipleOpenBatches(ref lastModified, backlog, dispatchTasks);
+        }
+    }
+
+    private void EvaluateMultipleOpenBatches(
+        ref long lastModified,
+        PriorityQueue<Batch, long> backlog,
+        List<Task> dispatchTasks)
+    {
+        var now = Stopwatch.GetTimestamp();
+        var maxBatchAgeUs = _options.MaxBatchWaitTimeUs;
+        var maxParallelBatches = _options.MaxParallelBatches;
+
         while (backlog.TryDequeue(out var batch, out _))
         {
             if (lastModified < batch.ModifiedTimestamp)
@@ -183,7 +259,14 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
                 lastModified = batch.ModifiedTimestamp;
             }
 
-            if (batch.Touch())
+            var shouldDispatch = batch.Touch();
+
+            if (!shouldDispatch && maxBatchAgeUs != 0)
+            {
+                shouldDispatch = TicksToUs(now - batch.CreatedTimestamp) > maxBatchAgeUs;
+            }
+
+            if (shouldDispatch)
             {
                 lock (_enqueuedBatches)
                 {
@@ -194,16 +277,48 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
                 dispatchTasks.Add(batch.DispatchAsync());
             }
 
-            if (dispatchTasks.Count == MaxParallelBatches)
+            if (dispatchTasks.Count == maxParallelBatches)
             {
                 break;
             }
         }
     }
 
-    private void WaitForMoreBatchActivity(long lastModified)
+    private void EvaluateSingleOpenBatches(
+        ref long lastModified,
+        Batch batch,
+        List<Task> dispatchTasks)
     {
-        const int maxSpinUs = 12;
+        var now = Stopwatch.GetTimestamp();
+
+        if (lastModified < batch.ModifiedTimestamp)
+        {
+            lastModified = batch.ModifiedTimestamp;
+        }
+
+        var maxBatchAgeUs = _options.MaxBatchWaitTimeUs;
+        var shouldDispatch = batch.Touch();
+
+        if (!shouldDispatch && maxBatchAgeUs != 0)
+        {
+            shouldDispatch = TicksToUs(now - batch.CreatedTimestamp) > maxBatchAgeUs;
+        }
+
+        if (shouldDispatch)
+        {
+            lock (_enqueuedBatches)
+            {
+                _enqueuedBatches.Remove(batch);
+            }
+
+            Interlocked.Decrement(ref _openBatches);
+            dispatchTasks.Add(batch.DispatchAsync());
+        }
+    }
+
+    private async Task WaitForMoreBatchActivityAsync(long lastModified)
+    {
+        const int maxSpinUs = 50;
 
         var lastSubscribed = Volatile.Read(ref _lastSubscribed);
         var lastEnqueued = Volatile.Read(ref _lastEnqueued);
@@ -219,19 +334,9 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         }
 
         var ageUs = TicksToUs(Stopwatch.GetTimestamp() - lastModified);
-        if (ageUs <= maxSpinUs && ThreadPoolHasHeadroom())
+        if (ageUs <= maxSpinUs)
         {
-            var sw = new SpinWait();
-            var start = Stopwatch.GetTimestamp();
-
-            while (TicksToUs(Stopwatch.GetTimestamp() - start) < maxSpinUs)
-            {
-                sw.SpinOnce();
-                if (sw.Count >= 8)
-                {
-                    Thread.Yield();
-                }
-            }
+            await Task.Yield();
         }
     }
 
@@ -247,14 +352,8 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static long TicksToUs(long ticks) =>
-        ticks * 1_000_000 / Stopwatch.Frequency;
-
-    private static bool ThreadPoolHasHeadroom()
-    {
-        ThreadPool.GetAvailableThreads(out var worker, out _);
-        return worker >= 2;
-    }
+    private static long TicksToUs(long ticks)
+        => ticks * 1_000_000 / Stopwatch.Frequency;
 
     public void Dispose()
     {

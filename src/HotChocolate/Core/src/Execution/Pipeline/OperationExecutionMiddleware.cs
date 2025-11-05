@@ -456,5 +456,5 @@ internal sealed class OperationExecutionMiddleware
                     await middleware.InvokeAsync(context, batchDispatcher).ConfigureAwait(false);
                 };
             },
-            nameof(OperationExecutionMiddleware));
+            WellKnownRequestMiddleware.OperationExecutionMiddleware);
 }

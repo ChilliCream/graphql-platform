@@ -28,7 +28,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 viewer {
@@ -67,7 +67,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             query($skip: Boolean!) {
                 viewer {
@@ -109,7 +109,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 interface {
@@ -150,7 +150,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 union {
@@ -191,7 +191,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 viewer {
@@ -232,7 +232,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 viewer {
@@ -278,7 +278,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 viewer {
@@ -322,7 +322,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 productById(id: 1) {
@@ -363,7 +363,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 productById(id: 1) {
@@ -407,7 +407,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 unsharedInterface {
@@ -450,7 +450,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 productById(id: 1) {
@@ -493,7 +493,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 productById(id: 1) {
@@ -538,7 +538,7 @@ public class SharedPathTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
-        var request = new Transport.OperationRequest(
+        var request = new HotChocolate.Transport.OperationRequest(
             """
             {
                 productById(id: 1) {
@@ -568,16 +568,20 @@ public class SharedPathTests : FusionTestBase
     {
         public class Query
         {
+            [Shareable]
             public Viewer Viewer => new Viewer();
 
             public string Schema1 => "schema1";
 
+            [Shareable]
             public IInterface Interface => new Review(1);
 
             public IInterface UnsharedInterface => new Product(2);
 
+            [Shareable]
             public IUnion Union => new Review(2);
 
+            [Shareable]
             public Review TopReview => new Review(3);
 
             [Lookup]
@@ -588,6 +592,7 @@ public class SharedPathTests : FusionTestBase
         {
             public string Schema1 => "schema1";
 
+            [Shareable]
             public ViewerSettings Settings => new ViewerSettings();
         }
 
@@ -600,6 +605,7 @@ public class SharedPathTests : FusionTestBase
         {
             public string Schema1 => "schema1";
 
+            [Shareable]
             public SharedProduct? Shared => new SharedProduct();
         }
 
@@ -612,6 +618,7 @@ public class SharedPathTests : FusionTestBase
         {
             public string Schema1 => "schema1";
 
+            [Shareable]
             public SharedProduct2? Shared2 => new SharedProduct2();
         }
 
@@ -620,6 +627,7 @@ public class SharedPathTests : FusionTestBase
             public string Schema1 => "schema1";
         }
 
+        [EntityKey("id")]
         public interface IInterface
         {
             int Id { get; }
@@ -633,14 +641,18 @@ public class SharedPathTests : FusionTestBase
     {
         public class Query
         {
+            [Shareable]
             public Viewer Viewer => new Viewer();
 
             public string Schema2 => "schema2";
 
+            [Shareable]
             public IInterface Interface => new Review(1);
 
+            [Shareable]
             public IUnion Union => new Review(2);
 
+            [Shareable]
             public Review TopReview => new Review(3);
 
             [Lookup]
@@ -651,6 +663,7 @@ public class SharedPathTests : FusionTestBase
         {
             public string Schema2 => "schema2";
 
+            [Shareable]
             public ViewerSettings Settings => new ViewerSettings();
         }
 
@@ -663,6 +676,7 @@ public class SharedPathTests : FusionTestBase
         {
             public string Schema2 => "schema2";
 
+            [Shareable]
             public SharedProduct? Shared => new SharedProduct();
         }
 
@@ -675,6 +689,7 @@ public class SharedPathTests : FusionTestBase
         {
             public string Schema2 => "schema2";
 
+            [Shareable]
             public SharedProduct2? Shared2 => new SharedProduct2();
         }
 
@@ -683,6 +698,7 @@ public class SharedPathTests : FusionTestBase
             public string Schema2 => "schema2";
         }
 
+        [EntityKey("id")]
         public interface IInterface
         {
             int Id { get; }
@@ -696,6 +712,7 @@ public class SharedPathTests : FusionTestBase
     {
         public class Query
         {
+            [Shareable]
             public Viewer Viewer => new Viewer();
         }
 

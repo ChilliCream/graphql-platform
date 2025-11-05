@@ -31,11 +31,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
-        viewer: Viewer!
+        viewer: Viewer! @shareable
       }
-      
+
       type Viewer {
         subgraphA: String!
       }
@@ -62,11 +62,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
-        viewer: Viewer!
+        viewer: Viewer! @shareable
       }
-      
+
       type Viewer {
         subgraphB: String!
       }
@@ -93,11 +93,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
         subgraphC: SubgraphC!
       }
-      
+
       type SubgraphC {
         someField: String!
         anotherField: String!
