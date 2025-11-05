@@ -5,7 +5,9 @@ namespace HotChocolate.Utilities.Introspection;
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     DefaultIgnoreCondition = JsonIgnoreCondition.Never)]
+[JsonSerializable(typeof(IntrospectionResult))]
 [JsonSerializable(typeof(IntrospectionData))]
+[JsonSerializable(typeof(IntrospectionError))]
 [JsonSerializable(typeof(IntrospectionError[]))]
 [JsonSerializable(typeof(Schema))]
 [JsonSerializable(typeof(FullType))]
