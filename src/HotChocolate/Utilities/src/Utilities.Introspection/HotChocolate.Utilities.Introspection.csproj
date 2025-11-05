@@ -7,6 +7,10 @@
     <Description>Contains an introspection client to download a GraphQL schema over HTTP.</Description>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <IsAotCompliant>true</IsAotCompliant>
+  </PropertyGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Utilities.Introspection.Tests" />
   </ItemGroup>
