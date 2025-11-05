@@ -1,11 +1,25 @@
+using System.Collections.Frozen;
+
 namespace HotChocolate.Types;
 
 public static class HotChocolateTypesAbstractionsScalarDefinitionExtensions
 {
+    private static readonly FrozenDictionary<string, ScalarSerializationType> s_serializationTypeLookup =
+        new Dictionary<string, ScalarSerializationType>
+            {
+                ["https://scalars.graphql.org/andimarek/date-time.html"] = ScalarSerializationType.String,
+                ["https://scalars.graphql.org/andimarek/local-date.html"] = ScalarSerializationType.String
+            }
+            .ToFrozenDictionary();
+
     public static ScalarSerializationType GetScalarSerializationType(
         this IScalarTypeDefinition scalarTypeDefinition)
     {
-        // TODO: Handle specifiedBy
+        if (scalarTypeDefinition.SpecifiedBy is not null
+            && s_serializationTypeLookup.TryGetValue(scalarTypeDefinition.SpecifiedBy.AbsoluteUri, out var scalarSerializationType))
+        {
+            return scalarSerializationType;
+        }
 
         return scalarTypeDefinition.Name switch
         {
