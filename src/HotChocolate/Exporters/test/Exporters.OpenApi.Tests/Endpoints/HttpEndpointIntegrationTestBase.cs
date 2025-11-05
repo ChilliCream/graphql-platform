@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
+using HotChocolate;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Exporters.OpenApi;
 
@@ -346,6 +349,17 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var storage = new TestOpenApiDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
+        {
+            if (@event.Type == OpenApiDocumentEventType.Updated)
+            {
+                documentUpdatedResetEvent.Set();
+            }
+        }));
 
         // act
         // assert
@@ -362,6 +376,8 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
               }
             }
             """);
+
+        documentUpdatedResetEvent.Wait(cts.Token);
 
         var response2 = await client.GetAsync("/users");
 
@@ -386,6 +402,17 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
+        {
+            if (@event.Type == OpenApiDocumentEventType.Updated)
+            {
+                documentUpdatedResetEvent.Set();
+            }
+        }));
 
         // act
         // assert
@@ -403,8 +430,10 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             }
             """);
 
+        documentUpdatedResetEvent.Wait(cts.Token);
+
         var response2 = await client.GetAsync("/users");
-        var content2 = await response1.Content.ReadAsStringAsync();
+        var content2 = await response2.Content.ReadAsStringAsync();
 
         Assert.NotEqual(content2, content1);
 
@@ -427,6 +456,17 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
+        {
+            if (@event.Type == OpenApiDocumentEventType.Updated)
+            {
+                documentUpdatedResetEvent.Set();
+            }
+        }));
 
         // act
         // assert
@@ -444,6 +484,8 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
               }
             }
             """);
+
+        documentUpdatedResetEvent.Wait(cts.Token);
 
         var newRouteResponse = await client.GetAsync("/users-new");
 
@@ -509,6 +551,17 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
+        {
+            if (@event.Type == OpenApiDocumentEventType.Updated)
+            {
+                documentUpdatedResetEvent.Set();
+            }
+        }));
 
         // act
         // assert
@@ -517,6 +570,8 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
 
         await storage.RemoveDocumentAsync("users");
+
+        documentUpdatedResetEvent.Wait(cts.Token);
 
         var response2 = await client.GetAsync("/users");
 
