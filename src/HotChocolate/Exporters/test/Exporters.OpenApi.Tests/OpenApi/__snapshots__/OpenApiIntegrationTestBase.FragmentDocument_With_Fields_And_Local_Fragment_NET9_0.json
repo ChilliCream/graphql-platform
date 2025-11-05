@@ -32,27 +32,29 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "id"
-                  ],
-                  "type": "object",
                   "allOf": [
+                    {
+                      "required": [
+                        "id"
+                      ],
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "integer"
+                            }
+                          ]
+                        }
+                      }
+                    },
                     {
                       "$ref": "#/components/schemas/User"
                     }
-                  ],
-                  "properties": {
-                    "id": {
-                      "oneOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "integer"
-                        }
-                      ]
-                    }
-                  }
+                  ]
                 }
               }
             }
@@ -64,11 +66,25 @@
   "components": {
     "schemas": {
       "User": {
-        "required": [
-          "id"
-        ],
-        "type": "object",
         "allOf": [
+          {
+            "required": [
+              "id"
+            ],
+            "type": "object",
+            "properties": {
+              "id": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              }
+            }
+          },
           {
             "required": [
               "name",
@@ -85,19 +101,7 @@
               }
             }
           }
-        ],
-        "properties": {
-          "id": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "integer"
-              }
-            ]
-          }
-        }
+        ]
       }
     }
   }

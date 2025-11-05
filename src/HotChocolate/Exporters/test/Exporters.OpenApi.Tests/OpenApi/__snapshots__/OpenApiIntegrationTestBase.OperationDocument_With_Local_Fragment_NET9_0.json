@@ -32,36 +32,31 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
                   "type": "object",
-                  "allOf": [
-                    {
-                      "required": [
-                        "id",
-                        "name",
-                        "email"
-                      ],
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "oneOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "integer"
-                            }
-                          ]
-                        },
-                        "name": {
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
                           "type": "string"
                         },
-                        "email": {
-                          "type": "string",
-                          "nullable": true
+                        {
+                          "type": "integer"
                         }
-                      }
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "nullable": true
                     }
-                  ]
+                  }
                 }
               }
             }

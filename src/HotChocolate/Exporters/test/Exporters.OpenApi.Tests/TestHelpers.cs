@@ -139,9 +139,13 @@ internal static class TestHelpers
             public string? Email { get; set; } = id + "@example.com";
 
             public Address Address { get; set; } = new Address(id + " Street");
+
+            public Preferences? Preferences { get; init; }
         }
 
         public sealed record Address(string Street);
+
+        public sealed record Preferences(string Color);
     }
 
     private class MockHttpClientFactory(TestServer subgraph) : IHttpClientFactory

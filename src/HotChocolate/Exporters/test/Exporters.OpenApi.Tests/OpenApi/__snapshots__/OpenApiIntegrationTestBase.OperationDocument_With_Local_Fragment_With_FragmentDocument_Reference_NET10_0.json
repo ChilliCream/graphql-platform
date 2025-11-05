@@ -37,47 +37,37 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "address"
+                  ],
                   "type": "object",
-                  "allOf": [
-                    {
-                      "required": [
-                        "id",
-                        "name",
-                        "email",
-                        "address"
-                      ],
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "oneOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "integer"
-                            }
-                          ]
-                        },
-                        "name": {
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
                           "type": "string"
                         },
-                        "email": {
-                          "type": [
-                            "null",
-                            "string"
-                          ]
-                        },
-                        "address": {
-                          "type": "object",
-                          "allOf": [
-                            {
-                              "$ref": "#/components/schemas/Address"
-                            }
-                          ]
+                        {
+                          "type": "integer"
                         }
-                      }
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "address": {
+                      "$ref": "#/components/schemas/Address"
                     }
-                  ]
+                  }
                 }
               }
             }

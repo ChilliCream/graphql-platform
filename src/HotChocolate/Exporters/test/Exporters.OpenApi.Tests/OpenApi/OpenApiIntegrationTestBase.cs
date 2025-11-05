@@ -108,6 +108,36 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
+    public async Task OperationDocument_With_FragmentDocument_Reference_On_Nullable_Field()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a user by their id"
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                preferences {
+                  ...Preferences
+                }
+              }
+            }
+            """,
+            """
+            fragment Preferences on Preferences {
+              color
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
     public async Task OperationDocument_With_Local_Fragment_With_FragmentDocument_Reference()
     {
         // arrange

@@ -1,14 +1,9 @@
 {
-  "openapi": "3.1.1",
+  "openapi": "3.0.1",
   "info": {
     "title": "HotChocolate.Exporters.OpenApi.Tests | v1",
     "version": "1.0.0"
   },
-  "servers": [
-    {
-      "url": "http://localhost/"
-    }
-  ],
   "paths": {
     "/users/{userId}": {
       "get": {
@@ -38,35 +33,39 @@
               "application/json": {
                 "schema": {
                   "required": [
-                    "id",
-                    "name",
-                    "email"
+                    "preferences"
                   ],
                   "type": "object",
                   "properties": {
-                    "id": {
-                      "oneOf": [
+                    "preferences": {
+                      "allOf": [
                         {
-                          "type": "string"
+                          "$ref": "#/components/schemas/Preferences"
                         },
                         {
-                          "type": "integer"
+                          "type": "null"
                         }
-                      ]
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "email": {
-                      "type": [
-                        "null",
-                        "string"
                       ]
                     }
                   }
                 }
               }
             }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Preferences": {
+        "required": [
+          "color"
+        ],
+        "type": "object",
+        "properties": {
+          "color": {
+            "type": "string"
           }
         }
       }

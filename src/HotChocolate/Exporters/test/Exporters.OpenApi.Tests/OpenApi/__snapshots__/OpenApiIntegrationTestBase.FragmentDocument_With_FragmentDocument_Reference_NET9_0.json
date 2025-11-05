@@ -32,12 +32,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/User"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/User"
                 }
               }
             }
@@ -75,12 +70,7 @@
             "nullable": true
           },
           "address": {
-            "type": "object",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Address"
-              }
-            ]
+            "$ref": "#/components/schemas/Address"
           }
         }
       },

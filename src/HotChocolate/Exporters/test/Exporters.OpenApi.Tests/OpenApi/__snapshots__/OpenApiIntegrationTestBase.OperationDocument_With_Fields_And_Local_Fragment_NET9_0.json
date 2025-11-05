@@ -32,11 +32,25 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "id"
-                  ],
-                  "type": "object",
                   "allOf": [
+                    {
+                      "required": [
+                        "id"
+                      ],
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "integer"
+                            }
+                          ]
+                        }
+                      }
+                    },
                     {
                       "required": [
                         "name",
@@ -53,19 +67,7 @@
                         }
                       }
                     }
-                  ],
-                  "properties": {
-                    "id": {
-                      "oneOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "integer"
-                        }
-                      ]
-                    }
-                  }
+                  ]
                 }
               }
             }

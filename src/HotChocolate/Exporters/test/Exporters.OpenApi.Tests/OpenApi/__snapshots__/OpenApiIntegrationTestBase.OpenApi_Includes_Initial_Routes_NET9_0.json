@@ -203,12 +203,7 @@
                       "nullable": true
                     },
                     "address": {
-                      "type": "object",
-                      "allOf": [
-                        {
-                          "$ref": "#/components/schemas/UserAddress"
-                        }
-                      ]
+                      "$ref": "#/components/schemas/UserAddress"
                     }
                   }
                 }

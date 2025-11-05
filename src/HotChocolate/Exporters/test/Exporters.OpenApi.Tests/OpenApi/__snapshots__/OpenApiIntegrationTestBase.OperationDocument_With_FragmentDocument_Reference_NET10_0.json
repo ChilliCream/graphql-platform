@@ -37,12 +37,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/User"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/User"
                 }
               }
             }

@@ -37,12 +37,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/User"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/User"
                 }
               }
             }
@@ -82,20 +77,15 @@
             ]
           },
           "address": {
+            "required": [
+              "street"
+            ],
             "type": "object",
-            "allOf": [
-              {
-                "required": [
-                  "street"
-                ],
-                "type": "object",
-                "properties": {
-                  "street": {
-                    "type": "string"
-                  }
-                }
+            "properties": {
+              "street": {
+                "type": "string"
               }
-            ]
+            }
           }
         }
       }
