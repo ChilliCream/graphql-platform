@@ -293,6 +293,18 @@ public static class DirectiveNames
     }
 
     /// <summary>
+    /// The name constants of the @external directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--external"/>
+    /// </summary>
+    public static class External
+    {
+        /// <summary>
+        /// The name of the @external directive.
+        /// </summary>
+        public const string Name = "external";
+    }
+
+    /// <summary>
     /// The name constants of the @provides directive.
     /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--provides"/>
     /// </summary>
@@ -302,6 +314,29 @@ public static class DirectiveNames
         /// The name of the @provides directive.
         /// </summary>
         public const string Name = "provides";
+    }
+
+    /// <summary>
+    /// The name constants of the @override directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--override"/>
+    /// </summary>
+    public static class Override
+    {
+        /// <summary>
+        /// The name of the @override directive.
+        /// </summary>
+        public const string Name = "override";
+
+        /// <summary>
+        /// The argument names of the @override directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the from argument.
+            /// </summary>
+            public const string From = "from";
+        }
     }
 
     /// <summary>
@@ -353,4 +388,57 @@ public static class DirectiveNames
             public const string Pattern = "pattern";
         }
     }
+
+    /// <summary>
+    /// The name constants of the @cacheControl directive.
+    /// </summary>
+    public static class CacheControl
+    {
+        /// <summary>
+        /// The name of the @cacheControl directive.
+        /// </summary>
+        public const string Name = "cacheControl";
+
+        /// <summary>
+        /// The argument names of the @cacheControl directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the inheritMaxAge argument.
+            /// </summary>
+            public const string InheritMaxAge = "inheritMaxAge";
+
+            /// <summary>
+            /// The name of the maxAge argument.
+            /// </summary>
+            public const string MaxAge = "maxAge";
+
+            /// <summary>
+            /// The name of the scope argument.
+            /// </summary>
+            public const string Scope = "scope";
+
+            /// <summary>
+            /// The name of the sharedMaxAge argument.
+            /// </summary>
+            public const string SharedMaxAge = "sharedMaxAge";
+
+            /// <summary>
+            /// The name of the vary argument.
+            /// </summary>
+            public const string Vary = "vary";
+        }
+    }
+
+    public static bool IsSpecDirective(string name)
+        => name switch
+        {
+            Include.Name => true,
+            Skip.Name => true,
+            Deprecated.Name => true,
+            SpecifiedBy.Name => true,
+            OneOf.Name => true,
+            _ => false
+        };
 }

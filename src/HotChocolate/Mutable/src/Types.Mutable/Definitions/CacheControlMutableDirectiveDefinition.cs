@@ -7,18 +7,18 @@ public sealed class CacheControlMutableDirectiveDefinition : MutableDirectiveDef
         MutableScalarTypeDefinition booleanType,
         CacheControlScopeMutableEnumTypeDefinition cacheControlScopeType,
         MutableScalarTypeDefinition stringType)
-        : base(WellKnownDirectiveNames.CacheControl)
+        : base(DirectiveNames.CacheControl.Name)
     {
         Arguments.Add(
-            new MutableInputFieldDefinition(WellKnownArgumentNames.MaxAge, intType));
+            new MutableInputFieldDefinition(DirectiveNames.CacheControl.Arguments.MaxAge, intType));
         Arguments.Add(
-            new MutableInputFieldDefinition(WellKnownArgumentNames.SharedMaxAge, intType));
+            new MutableInputFieldDefinition(DirectiveNames.CacheControl.Arguments.SharedMaxAge, intType));
         Arguments.Add(
-            new MutableInputFieldDefinition(WellKnownArgumentNames.InheritMaxAge, booleanType));
+            new MutableInputFieldDefinition(DirectiveNames.CacheControl.Arguments.InheritMaxAge, booleanType));
         Arguments.Add(
-            new MutableInputFieldDefinition(WellKnownArgumentNames.Scope, cacheControlScopeType));
+            new MutableInputFieldDefinition(DirectiveNames.CacheControl.Arguments.Scope, cacheControlScopeType));
         Arguments.Add(
-            new MutableInputFieldDefinition(WellKnownArgumentNames.Vary, new ListType(stringType)));
+            new MutableInputFieldDefinition(DirectiveNames.CacheControl.Arguments.Vary, new ListType(stringType)));
         Locations =
             DirectiveLocation.Object
             | DirectiveLocation.FieldDefinition
@@ -28,17 +28,17 @@ public sealed class CacheControlMutableDirectiveDefinition : MutableDirectiveDef
 
     public static CacheControlMutableDirectiveDefinition Create(ISchemaDefinition schema)
     {
-        if (!schema.Types.TryGetType<MutableScalarTypeDefinition>(BuiltIns.Int.Name, out var intType))
+        if (!schema.Types.TryGetType<MutableScalarTypeDefinition>(SpecScalarNames.Int.Name, out var intType))
         {
             intType = BuiltIns.Int.Create();
         }
 
-        if (!schema.Types.TryGetType<MutableScalarTypeDefinition>(BuiltIns.String.Name, out var booleanType))
+        if (!schema.Types.TryGetType<MutableScalarTypeDefinition>(SpecScalarNames.Boolean.Name, out var booleanType))
         {
             booleanType = BuiltIns.Boolean.Create();
         }
 
-        if (!schema.Types.TryGetType<MutableScalarTypeDefinition>(BuiltIns.String.Name, out var stringType))
+        if (!schema.Types.TryGetType<MutableScalarTypeDefinition>(SpecScalarNames.String.Name, out var stringType))
         {
             stringType = BuiltIns.String.Create();
         }

@@ -3,7 +3,9 @@ schema {
 }
 
 type Query {
-  foo: Custom!
+  foo: Custom1!
+  bar: Custom2!
+  baz: Custom3!
 }
 
 "Defines the possible serialization types for GraphQL scalar values."
@@ -24,4 +26,8 @@ enum ScalarSerializationType {
 
 directive @serializeAs("The primitive type a scalar is serialized to." type: [ScalarSerializationType!]! "The ECMA-262 regex pattern that the serialized scalar value conforms to." pattern: String) on SCALAR
 
-scalar Custom @serializeAs(type: STRING)
+scalar Custom1 @serializeAs(type: STRING)
+
+scalar Custom2 @serializeAs(type: [ STRING, BOOLEAN, INT, FLOAT, OBJECT, LIST ])
+
+scalar Custom3 @serializeAs(type: STRING, pattern: "\\b\\d{3}\\b")

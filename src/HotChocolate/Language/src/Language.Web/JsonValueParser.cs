@@ -305,11 +305,6 @@ public ref struct JsonValueParser
                         var name = reader.GetString()!;
                         var fieldName = name;
 
-                        // if (!reader.Read())
-                        // {
-                        //     throw new JsonException("Unexpected end of JSON after property name.");
-                        // }
-
                         if (count == buffer.Length)
                         {
                             var temp = buffer;

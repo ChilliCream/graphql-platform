@@ -145,9 +145,15 @@ internal sealed class SourceSchemaMerger
             // Ensure that all directive definitions match the canonical definition.
             var canonicalDirectiveNode = canonicalDirectiveDefinition.ToSyntaxNode();
 
-            // TODO: I think this should ignore the description
+            // We want to ignore the descriptions when comparing directives.
+            // TODO: Long-term we should do this differently
+            var canonicalDirectiveNodeWithoutDescription = canonicalDirectiveNode.WithDescription(null);
+
             if (!grouping.All(
-                d => d.DirectiveDefinition.ToSyntaxNode().Equals(canonicalDirectiveNode, SyntaxComparison.Syntax)))
+                d => d.DirectiveDefinition
+                    .ToSyntaxNode()
+                    .WithDescription(null)
+                    .Equals(canonicalDirectiveNodeWithoutDescription, SyntaxComparison.Syntax)))
             {
                 // Skip merging if there is a mismatch.
                 continue;
@@ -519,7 +525,7 @@ internal sealed class SourceSchemaMerger
 
         inputObjectType.Description = description;
 
-        var oneOfDirective = firstType.Directives.FirstOrDefault(WellKnownDirectiveNames.OneOf);
+        var oneOfDirective = firstType.Directives.FirstOrDefault(DirectiveNames.OneOf);
 
         if (oneOfDirective is not null)
         {

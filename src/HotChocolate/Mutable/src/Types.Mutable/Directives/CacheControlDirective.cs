@@ -23,14 +23,14 @@ public sealed class CacheControlDirective(
     public static CacheControlDirective From(IDirective directive)
     {
         var maxAge =
-            ((IntValueNode?)directive.Arguments.GetValueOrDefault(WellKnownArgumentNames.MaxAge))?.ToInt32();
-        var scopeArg = ((EnumValueNode?)directive.Arguments.GetValueOrDefault(WellKnownArgumentNames.Scope))?.Value;
+            ((IntValueNode?)directive.Arguments.GetValueOrDefault(DirectiveNames.CacheControl.Arguments.MaxAge))?.ToInt32();
+        var scopeArg = ((EnumValueNode?)directive.Arguments.GetValueOrDefault(DirectiveNames.CacheControl.Arguments.Scope))?.Value;
         var inheritMaxAge =
-            ((BooleanValueNode?)directive.Arguments.GetValueOrDefault(WellKnownArgumentNames.InheritMaxAge))?.Value;
+            ((BooleanValueNode?)directive.Arguments.GetValueOrDefault(DirectiveNames.CacheControl.Arguments.InheritMaxAge))?.Value;
         var sharedMaxAge =
-            ((IntValueNode?)directive.Arguments.GetValueOrDefault(WellKnownArgumentNames.SharedMaxAge))?.ToInt32();
+            ((IntValueNode?)directive.Arguments.GetValueOrDefault(DirectiveNames.CacheControl.Arguments.SharedMaxAge))?.ToInt32();
         var vary =
-            ((ListValueNode?)directive.Arguments.GetValueOrDefault(WellKnownArgumentNames.Vary))?
+            ((ListValueNode?)directive.Arguments.GetValueOrDefault(DirectiveNames.CacheControl.Arguments.Vary))?
                 .Items.OfType<StringValueNode>().Select(i => i.Value).ToImmutableArray();
 
         CacheControlScope? scope;
