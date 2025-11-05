@@ -107,4 +107,79 @@ public sealed class SourceSchemaMergerInputObjectTests : SourceSchemaMergerTestB
             }
             """);
     }
+
+    // If all of the input objects are marked as @oneOf, then the merged input object is also marked
+    // as @oneOf in the executions chema.
+    [Fact]
+    public void Merge_InputObjects_With_OneOf_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                input OrderInput @oneOf {
+                    description: String
+                    price: Float
+                }
+                """,
+                """
+                # Schema B
+                input OrderInput @oneOf {
+                    description: String
+                    price: Float
+                }
+                """
+            ],
+            """
+            input OrderInput
+              @oneOf
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              description: String
+                @fusion__inputField(schema: A)
+                @fusion__inputField(schema: B)
+              price: Float
+                @fusion__inputField(schema: A)
+                @fusion__inputField(schema: B)
+            }
+            """);
+    }
+
+    [Fact]
+    public void Merge_InputObjects_With_OneOf_If_OneOf_Directive_Is_Defined_In_Schema_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                input OrderInput @oneOf {
+                    description: String
+                    price: Float
+                }
+
+                "Some description"
+                directive @oneOf on INPUT_OBJECT
+                """,
+                """
+                # Schema B
+                input OrderInput @oneOf {
+                    description: String
+                    price: Float
+                }
+                """
+            ],
+            """
+            input OrderInput
+              @oneOf
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              description: String
+                @fusion__inputField(schema: A)
+                @fusion__inputField(schema: B)
+              price: Float
+                @fusion__inputField(schema: A)
+                @fusion__inputField(schema: B)
+            }
+            """);
+    }
 }

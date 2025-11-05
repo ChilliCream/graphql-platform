@@ -42,7 +42,15 @@ public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IInputObjectTypeDefinition.Fields => Fields;
 
     /// <inheritdoc />
-    public bool IsOneOf { get; }
+    public bool IsOneOf
+    {
+        get;
+        private set
+        {
+            EnsureNotSealed(_completed);
+            field = value;
+        }
+    }
 
     public FusionDirectiveCollection Directives
     {
@@ -73,6 +81,7 @@ public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition
 
         Directives = context.Directives;
         Features = context.Features;
+        IsOneOf = context.Directives.ContainsName(WellKnownDirectiveNames.OneOf);
 
         _completed = true;
     }

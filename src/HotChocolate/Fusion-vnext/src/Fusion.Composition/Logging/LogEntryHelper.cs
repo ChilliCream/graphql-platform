@@ -483,6 +483,24 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry InputWithMissingOneOf(
+        MutableInputObjectTypeDefinition inputType,
+        MutableSchemaDefinition schema,
+        MutableSchemaDefinition schemaWhereOneOfIsDefined)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InputWithMissingOneOf,
+                inputType.Name,
+                schema.Name,
+                schemaWhereOneOfIsDefined.Name)
+            .SetCode(LogEntryCodes.InputWithMissingOneOf)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(inputType)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry InterfaceFieldNoImplementation(
         MutableObjectTypeDefinition objectType,
         string fieldName,

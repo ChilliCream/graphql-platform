@@ -1,0 +1,81 @@
+title: InputObject_Missing_NonNull_Field_With_Default_Value
+request:
+  document: |
+    query testQuery(
+      $cat: Cat!
+    ) {
+      catName(input: $cat)
+    }
+  variables: |
+    {
+      "cat": {
+        "cute": true
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "catName": "Query"
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        catName(input: Cat!): String
+      }
+
+      input Cat {
+        name: String! = "Cat"
+        cute: Boolean!
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_d0958502_1(
+              $cat: Cat!
+            ) {
+              catName(input: $cat)
+            }
+          variables: |
+            {
+              "cat": {
+                "cute": true
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "catName": "Query"
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $cat: Cat!
+        ) {
+          catName(input: $cat)
+        }
+      name: testQuery
+      hash: d09585022f7f98654618f228ab881946
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_d0958502_1(
+          $cat: Cat!
+        ) {
+          catName(input: $cat)
+        }
+      forwardedVariables:
+        - cat

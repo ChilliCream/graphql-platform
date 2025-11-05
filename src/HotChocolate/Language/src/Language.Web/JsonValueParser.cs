@@ -192,8 +192,7 @@ public ref struct JsonValueParser
     {
         try
         {
-            var parser = new JsonValueParser();
-            return parser.Parse(ref reader, 0);
+            return Parse(ref reader, 0);
         }
         catch
         {
@@ -305,11 +304,6 @@ public ref struct JsonValueParser
 
                         var name = reader.GetString()!;
                         var fieldName = name;
-
-                        if (!reader.Read())
-                        {
-                            throw new JsonException("Unexpected end of JSON after property name.");
-                        }
 
                         if (count == buffer.Length)
                         {

@@ -1693,6 +1693,41 @@ response:
                 "FRAGMENT_SPREAD",
                 "INLINE_FRAGMENT"
               ]
+            },
+            {
+              "name": "specifiedBy",
+              "description": "The \u0060@specifiedBy\u0060 directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
+              "isRepeatable": false,
+              "args": [
+                {
+                  "name": "url",
+                  "description": "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "String",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "locations": [
+                "SCALAR"
+              ]
+            },
+            {
+              "name": "oneOf",
+              "description": "The \u0060@oneOf\u0060 directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object.",
+              "isRepeatable": false,
+              "args": [],
+              "locations": [
+                "INPUT_OBJECT"
+              ]
             }
           ]
         }
