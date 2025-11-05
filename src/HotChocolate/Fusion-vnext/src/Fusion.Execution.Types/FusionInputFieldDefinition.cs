@@ -12,12 +12,14 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
     private bool _completed;
 
     public FusionInputFieldDefinition(
+        int index,
         string name,
         string? description,
         IValueNode? defaultValue,
         bool isDeprecated,
         string? deprecationReason)
     {
+        Index = index;
         Name = name;
         Description = description;
         DefaultValue = defaultValue;
@@ -31,6 +33,8 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
         Type = null!;
         Features = null!;
     }
+
+    public int Index { get; }
 
     public string Name { get; }
 

@@ -97,6 +97,19 @@ public abstract partial class ScalarType
         ITypeCompletionContext context,
         TypeSystemConfiguration configuration)
     {
+        if (SerializationType is ScalarSerializationType.Undefined)
+        {
+            SerializationType = Name switch
+            {
+                "ID" => ScalarSerializationType.String | ScalarSerializationType.Int,
+                "String" => ScalarSerializationType.String,
+                "Int" => ScalarSerializationType.Int,
+                "Float" => ScalarSerializationType.Float,
+                "Boolean" => ScalarSerializationType.Boolean,
+                _ => ScalarSerializationType.Undefined
+            };
+        }
+
         var directive = Directives.FirstOrDefault<SerializeAs>();
         if (directive is not null)
         {

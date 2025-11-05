@@ -229,6 +229,10 @@ internal sealed class ValueCompletion
                     return false;
                 }
             }
+            else
+            {
+                target.SetNullValue();
+            }
 
             return true;
         }

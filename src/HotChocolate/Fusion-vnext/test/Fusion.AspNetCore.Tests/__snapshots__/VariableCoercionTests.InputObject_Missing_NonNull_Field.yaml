@@ -1,0 +1,45 @@
+title: InputObject_Missing_NonNull_Field
+request:
+  document: |
+    query testQuery(
+      $cat: Cat!
+    ) {
+      catName(input: $cat)
+    }
+  variables: |
+    {
+      "cat": {
+        "cute": true
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "The required input field \u0060name\u0060 is missing.",
+          "path": [
+            "cat",
+            "name"
+          ],
+          "extensions": {
+            "field": "Cat.name"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        catName(input: Cat!): String
+      }
+
+      input Cat {
+        name: String!
+        cute: Boolean!
+      }

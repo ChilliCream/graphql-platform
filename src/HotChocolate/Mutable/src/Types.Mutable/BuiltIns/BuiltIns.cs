@@ -6,35 +6,55 @@ public static class BuiltIns
     {
         public const string Name = nameof(String);
 
-        public static MutableScalarTypeDefinition Create() => new(Name) { IsSpecScalar = true };
+        public static MutableScalarTypeDefinition Create() => new(Name)
+        {
+            IsSpecScalar = true,
+            SerializationType = ScalarSerializationType.String
+        };
     }
 
     public static class Boolean
     {
         public const string Name = nameof(Boolean);
 
-        public static MutableScalarTypeDefinition Create() => new(Name) { IsSpecScalar = true };
+        public static MutableScalarTypeDefinition Create() => new(Name)
+        {
+            IsSpecScalar = true,
+            SerializationType = ScalarSerializationType.Boolean
+        };
     }
 
     public static class Float
     {
         public const string Name = nameof(Float);
 
-        public static MutableScalarTypeDefinition Create() => new(Name) { IsSpecScalar = true };
+        public static MutableScalarTypeDefinition Create() => new(Name)
+        {
+            IsSpecScalar = true,
+            SerializationType = ScalarSerializationType.Float
+        };
     }
 
     public static class ID
     {
         public const string Name = nameof(ID);
 
-        public static MutableScalarTypeDefinition Create() => new(Name) { IsSpecScalar = true };
+        public static MutableScalarTypeDefinition Create() => new(Name)
+        {
+            IsSpecScalar = true,
+            SerializationType = ScalarSerializationType.String | ScalarSerializationType.Int
+        };
     }
 
     public static class Int
     {
         public const string Name = nameof(Int);
 
-        public static MutableScalarTypeDefinition Create() => new(Name) { IsSpecScalar = true };
+        public static MutableScalarTypeDefinition Create() => new(Name)
+        {
+            IsSpecScalar = true,
+            SerializationType = ScalarSerializationType.Int
+        };
     }
 
     public static class Include
@@ -140,7 +160,6 @@ public static class BuiltIns
             Skip.Name => true,
             Deprecated.Name => true,
             SpecifiedBy.Name => true,
-            OneOf.Name => true,
             _ => false
         };
 }
