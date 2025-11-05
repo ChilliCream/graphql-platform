@@ -79,6 +79,7 @@ file sealed class SerializationAttribute : DirectiveTypeDescriptorAttribute
                     else if (typeArg is not null && listValue is null)
                     {
                         listValue = [(EnumValueNode)typeArg, map[types.Current]];
+                        typeArg = null;
                     }
                     else
                     {
