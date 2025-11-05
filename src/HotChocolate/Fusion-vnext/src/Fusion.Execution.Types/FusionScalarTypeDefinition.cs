@@ -83,16 +83,6 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
                 "Boolean" => ScalarValueKind.Boolean,
                 _ => ScalarValueKind.Any
             };
-
-            SerializationType = Name switch
-            {
-                "ID" => ScalarSerializationType.String | ScalarSerializationType.Int,
-                "String" => ScalarSerializationType.String,
-                "Int" => ScalarSerializationType.Int,
-                "Float" => ScalarSerializationType.Float,
-                "Boolean" => ScalarSerializationType.Boolean,
-                _ => ScalarSerializationType.Undefined
-            };
         }
 
         var serializeAs = Directives.FirstOrDefault(DirectiveNames.SerializeAs.Name);

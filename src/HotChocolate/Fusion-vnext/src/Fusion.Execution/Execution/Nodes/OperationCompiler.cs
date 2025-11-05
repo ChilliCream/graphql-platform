@@ -25,7 +25,7 @@ public sealed class OperationCompiler
         _schema = schema;
         _fieldsPool = fieldsPool;
         _documentRewriter = new(schema, removeStaticallyExcludedSelections: true);
-        var nonNullStringType = new NonNullType(_schema.Types.GetType<IScalarTypeDefinition>(SpecScalarNames.String));
+        var nonNullStringType = new NonNullType(_schema.Types.GetType<IScalarTypeDefinition>(SpecScalarNames.String.Name));
         _typeNameField = new TypeNameField(nonNullStringType);
     }
 

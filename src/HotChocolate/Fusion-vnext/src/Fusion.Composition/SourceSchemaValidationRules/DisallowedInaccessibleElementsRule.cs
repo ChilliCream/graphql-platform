@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
@@ -66,7 +67,7 @@ internal sealed class DisallowedInaccessibleElementsRule
         var (argument, directive, schema) = @event;
 
         // Built-in directive arguments must be accessible.
-        if (BuiltIns.IsBuiltInDirective(directive.Name) && argument.HasInaccessibleDirective())
+        if (DirectiveNames.IsSpecDirective(directive.Name) && argument.HasInaccessibleDirective())
         {
             context.Log.Write(DisallowedInaccessibleDirectiveArgument(argument, schema));
         }
