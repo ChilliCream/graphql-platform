@@ -3,7 +3,13 @@ schema {
 }
 
 type Query {
-  foo: Custom!
+  foo: Custom1!
+  bar: Custom2!
+  baz: Custom3!
 }
 
-scalar Custom
+scalar Custom1
+
+scalar Custom2
+
+scalar Custom3

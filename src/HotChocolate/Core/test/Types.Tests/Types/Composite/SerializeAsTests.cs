@@ -32,14 +32,36 @@ public static class SerializeAsTests
 
     public class Query
     {
-        [GraphQLType<NonNullType<CustomString>>]
+        [GraphQLType<NonNullType<CustomString1>>]
         public string GetFoo() => "foo";
+
+        [GraphQLType<NonNullType<CustomString2>>]
+        public string GetBar() => "foo";
+
+        [GraphQLType<NonNullType<CustomString3>>]
+        public string GetBaz() => "foo";
     }
 
     [SerializeAs(ScalarSerializationType.String)]
-    public class CustomString : StringType
+    public class CustomString1 : StringType
     {
-        public CustomString() : base("Custom")
+        public CustomString1() : base("Custom1")
+        {
+        }
+    }
+
+    [SerializeAs(ScalarSerializationType.Any)]
+    public class CustomString2 : StringType
+    {
+        public CustomString2() : base("Custom2")
+        {
+        }
+    }
+
+    [SerializeAs(ScalarSerializationType.String, "\\b\\d{3}\\b")]
+    public class CustomString3 : StringType
+    {
+        public CustomString3() : base("Custom3")
         {
         }
     }
