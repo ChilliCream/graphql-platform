@@ -22,7 +22,7 @@ public interface IScalarTypeDefinition
 
     /// <summary>
     /// Gets the ECMA-262 regex pattern that the serialized scalar value conforms
-    /// to if its of the serialization type <see cref="ScalarSerializationType.String"/>.
+    /// to, if it's of the serialization type <see cref="ScalarSerializationType.String"/>.
     /// </summary>
     string? Pattern { get; }
 

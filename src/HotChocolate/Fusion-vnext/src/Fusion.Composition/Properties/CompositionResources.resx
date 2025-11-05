@@ -450,4 +450,7 @@
   <data name="TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType" xml:space="preserve">
     <value>The specified type is not an abstract type.</value>
   </data>
+  <data name="LogEntryHelper_InputWithMissingOneOf" xml:space="preserve">
+    <value>The input type '{0}' in schema '{1}' must be annotated with the '@oneOf` directive, since the same type has been annotated with it in schema '{2}'.</value>
+  </data>
 </root>

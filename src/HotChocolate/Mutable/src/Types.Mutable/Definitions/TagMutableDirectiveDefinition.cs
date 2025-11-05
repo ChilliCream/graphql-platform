@@ -3,11 +3,11 @@ namespace HotChocolate.Types.Mutable.Definitions;
 public sealed class TagMutableDirectiveDefinition : MutableDirectiveDefinition
 {
     public TagMutableDirectiveDefinition(MutableScalarTypeDefinition stringType)
-        : base(WellKnownDirectiveNames.Tag)
+        : base(DirectiveNames.Tag.Name)
     {
         Arguments.Add(
             new MutableInputFieldDefinition(
-                WellKnownArgumentNames.Name,
+                DirectiveNames.Tag.Arguments.Name,
                 new NonNullType(stringType)));
         IsRepeatable = true;
         Locations =
@@ -26,7 +26,7 @@ public sealed class TagMutableDirectiveDefinition : MutableDirectiveDefinition
 
     public static TagMutableDirectiveDefinition Create(ISchemaDefinition schema)
     {
-        if (!schema.Types.TryGetType<MutableScalarTypeDefinition>(BuiltIns.String.Name, out var stringType))
+        if (!schema.Types.TryGetType<MutableScalarTypeDefinition>(SpecScalarNames.String.Name, out var stringType))
         {
             stringType = BuiltIns.String.Create();
         }
