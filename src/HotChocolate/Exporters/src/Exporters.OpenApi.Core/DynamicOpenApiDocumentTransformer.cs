@@ -598,8 +598,14 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     {
         if (typeDefinition.IsListType())
         {
-            var elementType = typeDefinition.ElementType();
-            var itemSchema = CreateOpenApiSchemaForType(elementType, schemaDefinition);
+            var elementType = typeDefinition.ElementType().NamedType<IComplexTypeDefinition>();
+            var itemSchema = CreateOpenApiSchemaForSelectionSet(
+                selectionSet,
+                elementType,
+                schemaDefinition,
+                fragmentLookup,
+                externalFragments,
+                optional);
 
             return CreateArraySchema(itemSchema);
         }

@@ -1,3 +1,7 @@
+using System.Threading;
+using HotChocolate;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace HotChocolate.Exporters.OpenApi;
 
 // TODO: Test with arrays, custom scalars, enum, interface, union, etc., introspection fields
@@ -406,4 +410,257 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         // assert
         openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
+
+    #region Hot Reload
+
+    [Fact]
+    public async Task HotReload_Add_New_Document()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage();
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
+        {
+            if (@event.Type == OpenApiDocumentEventType.Updated)
+            {
+                documentUpdatedResetEvent.Set();
+            }
+        }));
+
+        // act
+        // assert
+        var openApiDocument1 = await GetOpenApiDocumentAsync(client);
+
+        await storage.AddOrUpdateDocumentAsync(
+            "new",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+
+        documentUpdatedResetEvent.Wait(cts.Token);
+
+        var openApiDocument2 = await GetOpenApiDocumentAsync(client);
+
+        Assert.NotEqual(openApiDocument1, openApiDocument2);
+        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task HotReload_Update_Existing_Document()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage();
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
+        {
+            if (@event.Type == OpenApiDocumentEventType.Updated)
+            {
+                documentUpdatedResetEvent.Set();
+            }
+        }));
+
+        // act
+        // assert
+        var openApiDocument1 = await GetOpenApiDocumentAsync(client);
+
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+                name
+              }
+            }
+            """);
+
+        documentUpdatedResetEvent.Wait(cts.Token);
+
+        var openApiDocument2 = await GetOpenApiDocumentAsync(client);
+
+        Assert.NotEqual(openApiDocument2, openApiDocument1);
+        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task HotReload_Update_Existing_Document_Different_Route()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage();
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
+        {
+            if (@event.Type == OpenApiDocumentEventType.Updated)
+            {
+                documentUpdatedResetEvent.Set();
+            }
+        }));
+
+        // act
+        // assert
+        var openApiDocument1 = await GetOpenApiDocumentAsync(client);
+
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            """
+            query GetUsers @http(method: GET, route: "/users-new") {
+              usersWithoutAuth {
+                id
+                name
+              }
+            }
+            """);
+
+        documentUpdatedResetEvent.Wait(cts.Token);
+
+        var openApiDocument2 = await GetOpenApiDocumentAsync(client);
+
+        Assert.NotEqual(openApiDocument2, openApiDocument1);
+        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact(Skip = "Need to determine what best behavior should be")]
+    public async Task HotReload_Update_Existing_Document_With_Invalid_Document()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage();
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        // assert
+        var openApiDocument1 = await GetOpenApiDocumentAsync(client);
+
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            // This is intentionally missing the @http directive to be invalid
+            """
+            query GetUsers {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+
+        // TODO: Add assertion for after the failed update
+    }
+
+    [Fact]
+    public async Task HotReload_Remove_Existing_Document()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage();
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
+        {
+            if (@event.Type == OpenApiDocumentEventType.Updated)
+            {
+                documentUpdatedResetEvent.Set();
+            }
+        }));
+
+        // act
+        // assert
+        var openApiDocument1 = await GetOpenApiDocumentAsync(client);
+
+        await storage.RemoveDocumentAsync("users");
+
+        documentUpdatedResetEvent.Wait(cts.Token);
+
+        var openApiDocument2 = await GetOpenApiDocumentAsync(client);
+
+        Assert.NotEqual(openApiDocument2, openApiDocument1);
+        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task HotReload_Remove_Non_Existent_Document()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage();
+        await storage.AddOrUpdateDocumentAsync(
+            "users",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        // assert
+        var openApiDocument1 = await GetOpenApiDocumentAsync(client);
+
+        await storage.RemoveDocumentAsync("non-existent-id");
+
+        // No event should be raised, so the document should remain the same
+        var openApiDocument2 = await GetOpenApiDocumentAsync(client);
+
+        Assert.Equal(openApiDocument2, openApiDocument1);
+    }
+
+    #endregion
 }

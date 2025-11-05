@@ -230,21 +230,11 @@
                 "schema": {
                   "type": "array",
                   "items": {
+                    "required": [
+                      "id"
+                    ],
                     "type": "object",
                     "properties": {
-                      "address": {
-                        "type": "object",
-                        "properties": {
-                          "street": {
-                            "type": "string"
-                          }
-                        }
-                      },
-                      "email": {
-                        "type": "string",
-                        "nullable": true,
-                        "deprecated": true
-                      },
                       "id": {
                         "oneOf": [
                           {
@@ -254,10 +244,6 @@
                             "type": "integer"
                           }
                         ]
-                      },
-                      "name": {
-                        "type": "string",
-                        "description": "The name of the user"
                       }
                     }
                   }
