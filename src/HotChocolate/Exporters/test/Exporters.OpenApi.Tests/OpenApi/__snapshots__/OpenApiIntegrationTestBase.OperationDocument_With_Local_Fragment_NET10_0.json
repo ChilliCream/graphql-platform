@@ -20,7 +20,14 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
             }
           }
         ],
@@ -41,7 +48,14 @@
                       "type": "object",
                       "properties": {
                         "id": {
-                          "type": "string"
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "integer"
+                            }
+                          ]
                         },
                         "name": {
                           "type": "string"

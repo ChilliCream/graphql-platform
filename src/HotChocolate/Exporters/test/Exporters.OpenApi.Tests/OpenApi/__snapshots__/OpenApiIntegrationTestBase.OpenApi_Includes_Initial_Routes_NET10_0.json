@@ -20,7 +20,14 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
             }
           }
         ],
@@ -38,7 +45,14 @@
                   "type": "object",
                   "properties": {
                     "id": {
-                      "type": "string"
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
                     },
                     "name": {
                       "type": "string"
@@ -65,7 +79,14 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
             }
           }
         ],
@@ -106,7 +127,14 @@
                   "type": "object",
                   "properties": {
                     "id": {
-                      "type": "string"
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
                     },
                     "name": {
                       "type": "string"
@@ -134,7 +162,14 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
             }
           },
           {
@@ -160,7 +195,14 @@
                   "type": "object",
                   "properties": {
                     "id": {
-                      "type": "string"
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
                     },
                     "name": {
                       "type": "string"
@@ -217,7 +259,14 @@
                         "deprecated": true
                       },
                       "id": {
-                        "type": "string"
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "integer"
+                          }
+                        ]
                       },
                       "name": {
                         "type": "string",
@@ -250,7 +299,14 @@
                     "description": "The user's email"
                   },
                   "id": {
-                    "type": "string"
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
                   },
                   "name": {
                     "type": "string"
@@ -275,7 +331,14 @@
                   "type": "object",
                   "properties": {
                     "id": {
-                      "type": "string"
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
                     },
                     "name": {
                       "type": "string"

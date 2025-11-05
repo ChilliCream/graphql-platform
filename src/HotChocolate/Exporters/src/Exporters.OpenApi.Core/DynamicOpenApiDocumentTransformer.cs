@@ -442,9 +442,41 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         }
 
 #if NET10_0_OR_GREATER
-        schema.Type = GetJsonSchemaTypeFromScalar(scalarType);
+        var jsonSchemaTypes = GetJsonSchemaTypesFromScalar(scalarType);
+
+        if (jsonSchemaTypes.Count == 1)
+        {
+            schema.Type = jsonSchemaTypes[0];
+
+            if (schema.Type == JsonSchemaType.String && !string.IsNullOrEmpty(scalarType.Pattern))
+            {
+                schema.Pattern = scalarType.Pattern;
+            }
+        }
+        else
+        {
+            schema.OneOf = jsonSchemaTypes
+                .Select(IOpenApiSchema (t) => new OpenApiSchema { Type = t })
+                .ToList();
+        }
 #else
-        schema.Type = GetJsonSchemaTypeFromScalar(scalarType);
+        var jsonSchemaTypes = GetJsonSchemaTypesFromScalar(scalarType);
+
+        if (jsonSchemaTypes.Count == 1)
+        {
+            schema.Type = jsonSchemaTypes[0];
+
+            if (schema.Type == "string" && !string.IsNullOrEmpty(scalarType.Pattern))
+            {
+                schema.Pattern = scalarType.Pattern;
+            }
+        }
+        else
+        {
+            schema.OneOf = jsonSchemaTypes
+                .Select(t => new OpenApiSchema { Type = t })
+                .ToList();
+        }
 #endif
 
         schema.Format = GetFormatFromScalar(scalarType);
@@ -452,37 +484,150 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         return schema;
     }
 
+    // TODO: Handle specifiedBy
     private static string? GetFormatFromScalar(IScalarTypeDefinition scalarType)
     {
-        return scalarType.Name switch
+        if (scalarType.SerializationType is ScalarSerializationType.Undefined)
         {
-            "Int" => "int32",
-            "Float" => "float",
+            return scalarType.Name switch
+            {
+                "Int" => "int32",
+                "Float" => "float",
+                _ => null
+            };
+        }
+
+        return scalarType.SerializationType switch
+        {
+            ScalarSerializationType.Int => "int32",
+            ScalarSerializationType.Float => "float",
             _ => null
         };
     }
 
 #if NET10_0_OR_GREATER
-    private static JsonSchemaType GetJsonSchemaTypeFromScalar(IScalarTypeDefinition scalarType)
+    private static List<JsonSchemaType> GetJsonSchemaTypesFromScalar(IScalarTypeDefinition scalarType)
     {
-        return scalarType.Name switch
+        if (scalarType.SerializationType is ScalarSerializationType.Undefined)
         {
-            "Int" => JsonSchemaType.Integer,
-            "Float" => JsonSchemaType.Number,
-            "Boolean" => JsonSchemaType.Boolean,
-            _ => JsonSchemaType.String
-        };
+            if (scalarType.Name == "ID")
+            {
+                return [JsonSchemaType.String, JsonSchemaType.Integer];
+            }
+
+            var jsonSchemaType = scalarType.Name switch
+            {
+                "Int" => JsonSchemaType.Integer,
+                "Float" => JsonSchemaType.Number,
+                "Boolean" => JsonSchemaType.Boolean,
+                _ => JsonSchemaType.String
+            };
+
+            return [jsonSchemaType];
+        }
+
+        var serializationType = scalarType.SerializationType;
+
+        var possibleTypes = new List<JsonSchemaType>();
+
+        if (serializationType.HasFlag(ScalarSerializationType.String))
+        {
+            possibleTypes.Add(JsonSchemaType.String);
+        }
+
+        if (serializationType.HasFlag(ScalarSerializationType.Boolean))
+        {
+            possibleTypes.Add(JsonSchemaType.Boolean);
+        }
+
+        if (serializationType.HasFlag(ScalarSerializationType.Int))
+        {
+            possibleTypes.Add(JsonSchemaType.Integer);
+        }
+
+        if (serializationType.HasFlag(ScalarSerializationType.Float))
+        {
+            possibleTypes.Add(JsonSchemaType.Number);
+        }
+
+        if (serializationType.HasFlag(ScalarSerializationType.Object))
+        {
+            possibleTypes.Add(JsonSchemaType.Object);
+        }
+
+        if (serializationType.HasFlag(ScalarSerializationType.List))
+        {
+            possibleTypes.Add(JsonSchemaType.Array);
+        }
+
+        if (possibleTypes.Count > 0)
+        {
+            return possibleTypes;
+        }
+
+        return [JsonSchemaType.String];
     }
 #else
-    private static string GetJsonSchemaTypeFromScalar(IScalarTypeDefinition scalarType)
+    private static List<string> GetJsonSchemaTypesFromScalar(IScalarTypeDefinition scalarType)
     {
-        return scalarType.Name switch
+        if (scalarType.SerializationType is ScalarSerializationType.Undefined)
         {
-            "Int" => "integer",
-            "Float" => "number",
-            "Boolean" => "boolean",
-            _ => "string"
-        };
+            if (scalarType.Name == "ID")
+            {
+                return ["string", "integer"];
+            }
+
+            var jsonSchemaType = scalarType.Name switch
+            {
+                "Int" => "integer",
+                "Float" => "number",
+                "Boolean" => "boolean",
+                _ => "string"
+            };
+
+            return [jsonSchemaType];
+        }
+
+        var serializationType = scalarType.SerializationType;
+
+        var possibleTypes = new List<string>();
+
+        if (serializationType.HasFlag(ScalarSerializationType.String))
+        {
+            possibleTypes.Add("string");
+        }
+
+        if (serializationType.HasFlag(ScalarSerializationType.Boolean))
+        {
+            possibleTypes.Add("boolean");
+        }
+
+        if (serializationType.HasFlag(ScalarSerializationType.Int))
+        {
+            possibleTypes.Add("integer");
+        }
+
+        if (serializationType.HasFlag(ScalarSerializationType.Float))
+        {
+            possibleTypes.Add("number");
+        }
+
+        if (serializationType.HasFlag(ScalarSerializationType.Object))
+        {
+            possibleTypes.Add("object");
+        }
+
+        if (serializationType.HasFlag(ScalarSerializationType.List))
+        {
+            possibleTypes.Add("array");
+        }
+
+        if (possibleTypes.Count > 0)
+        {
+            return possibleTypes;
+        }
+
+        return ["string"];
     }
 #endif
 
