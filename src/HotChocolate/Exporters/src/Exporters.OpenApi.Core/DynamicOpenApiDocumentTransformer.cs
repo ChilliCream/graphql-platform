@@ -508,24 +508,6 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 #if NET10_0_OR_GREATER
     private static List<JsonSchemaType> GetJsonSchemaTypesFromScalar(IScalarTypeDefinition scalarType)
     {
-        if (scalarType.SerializationType is ScalarSerializationType.Undefined)
-        {
-            if (scalarType.Name == "ID")
-            {
-                return [JsonSchemaType.String, JsonSchemaType.Integer];
-            }
-
-            var jsonSchemaType = scalarType.Name switch
-            {
-                "Int" => JsonSchemaType.Integer,
-                "Float" => JsonSchemaType.Number,
-                "Boolean" => JsonSchemaType.Boolean,
-                _ => JsonSchemaType.String
-            };
-
-            return [jsonSchemaType];
-        }
-
         var serializationType = scalarType.SerializationType;
 
         var possibleTypes = new List<JsonSchemaType>();
@@ -570,24 +552,6 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 #else
     private static List<string> GetJsonSchemaTypesFromScalar(IScalarTypeDefinition scalarType)
     {
-        if (scalarType.SerializationType is ScalarSerializationType.Undefined)
-        {
-            if (scalarType.Name == "ID")
-            {
-                return ["string", "integer"];
-            }
-
-            var jsonSchemaType = scalarType.Name switch
-            {
-                "Int" => "integer",
-                "Float" => "number",
-                "Boolean" => "boolean",
-                _ => "string"
-            };
-
-            return [jsonSchemaType];
-        }
-
         var serializationType = scalarType.SerializationType;
 
         var possibleTypes = new List<string>();

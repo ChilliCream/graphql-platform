@@ -87,10 +87,10 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
     public Task InitializeAsync()
     {
-        return Initialize2Async(_testServerSession);
+        return InitializeAsync(_testServerSession);
     }
 
-    protected virtual Task Initialize2Async(TestServerSession serverSession) => Task.CompletedTask;
+    protected virtual Task InitializeAsync(TestServerSession serverSession) => Task.CompletedTask;
 
     public Task DisposeAsync()
     {
