@@ -37,7 +37,7 @@ sourceSchemas:
       }
 
       input Cat {
-        cuteness: Float!
+        cute: Boolean!
       }
 
       input Dog {

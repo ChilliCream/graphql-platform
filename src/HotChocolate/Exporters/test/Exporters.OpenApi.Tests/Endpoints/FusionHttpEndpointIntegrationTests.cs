@@ -53,8 +53,6 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
 
     protected override void ConfigureStorage(IServiceCollection services, IOpenApiDefinitionStorage storage)
     {
-        // services.AddSingleton<IHttpClientFactory>(_ => new HttpClientFactory(_subgraph));
-
         services.AddHttpClient("A")
             .ConfigurePrimaryHttpMessageHandler(() => _subgraph.CreateHandler())
             .AddHeaderPropagation();
@@ -64,12 +62,4 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
             .AddHttpClientConfiguration("A", new Uri("http://localhost:5000/graphql"))
             .AddOpenApiDefinitionStorage(storage);
     }
-
-    // private sealed class HttpClientFactory(TestServer subgraph) : IHttpClientFactory
-    // {
-    //     public HttpClient CreateClient(string name)
-    //     {
-    //         return subgraph.CreateClient();
-    //     }
-    // }
 }

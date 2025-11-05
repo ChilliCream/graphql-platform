@@ -13,7 +13,7 @@ request:
           "breed": "Rottweiler"
         },
         "cat": {
-          "cuteness": 100
+          "cute": true
         }
       }
     }
@@ -44,7 +44,7 @@ sourceSchemas:
       }
 
       input Cat {
-        cuteness: Float!
+        cute: Boolean!
       }
 
       input Dog {
