@@ -1,0 +1,31 @@
+namespace HotChocolate.Types.Mutable.Definitions;
+
+public sealed class SerializeAsMutableDirectiveDefinition : MutableDirectiveDefinition
+{
+    public SerializeAsMutableDirectiveDefinition(
+        ScalarSerializationTypeMutableEnumTypeDefinition scalarSerializationTypeType,
+        MutableScalarTypeDefinition stringType)
+        : base(DirectiveNames.SerializeAs.Name)
+    {
+        Arguments.Add(
+            new MutableInputFieldDefinition(
+                DirectiveNames.SerializeAs.Arguments.Type,
+                new NonNullType(new ListType(new NonNullType(scalarSerializationTypeType)))));
+        Arguments.Add(new MutableInputFieldDefinition(BuiltIns.SerializeAs.Pattern, stringType));
+        Locations = DirectiveLocation.Scalar;
+    }
+
+    public static SerializeAsMutableDirectiveDefinition Create(ISchemaDefinition schema)
+    {
+        if (!schema.Types.TryGetType<MutableScalarTypeDefinition>(
+            SpecScalarNames.String.Name,
+            out var stringType))
+        {
+            stringType = BuiltIns.String.Create();
+        }
+
+        return new SerializeAsMutableDirectiveDefinition(
+            ScalarSerializationTypeMutableEnumTypeDefinition.Create(),
+            stringType);
+    }
+}
