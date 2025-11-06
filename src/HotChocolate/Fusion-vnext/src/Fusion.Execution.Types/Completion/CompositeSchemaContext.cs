@@ -168,7 +168,12 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
     {
         var type = new FusionScalarTypeDefinition(name, null);
         var typeDef = new ScalarTypeDefinitionNode(null, new NameNode(name), null, []);
-        type.Complete(new CompositeScalarTypeCompletionContext(default, FusionDirectiveCollection.Empty, null));
+        type.Complete(new CompositeScalarTypeCompletionContext(
+            default,
+            FusionDirectiveCollection.Empty,
+            specifiedBy: null,
+            serializationType: ScalarSerializationType.String,
+            pattern: null));
 
         _typeDefinitionNodeLookup = _typeDefinitionNodeLookup.SetItem(name, typeDef);
         TypeDefinitions = TypeDefinitions.Add(type);
