@@ -43,6 +43,22 @@
   },
   "components": {
     "schemas": {
+      "GlobalUser": {
+        "required": [
+          "name",
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "User": {
         "allOf": [
           {
@@ -67,22 +83,6 @@
             "$ref": "#/components/schemas/GlobalUser"
           }
         ]
-      },
-      "GlobalUser": {
-        "required": [
-          "name",
-          "email"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string",
-            "nullable": true
-          }
-        }
       }
     }
   }

@@ -40,8 +40,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     }
 
     public void AddDocuments(
-        List<OpenApiOperationDocument> operations,
-        List<OpenApiFragmentDocument> fragments,
+        IReadOnlyCollection<OpenApiOperationDocument> operations,
+        IReadOnlyCollection<OpenApiFragmentDocument> fragments,
         ISchemaDefinition schema)
     {
         var operationDescriptors = new List<OperationDescriptor>();

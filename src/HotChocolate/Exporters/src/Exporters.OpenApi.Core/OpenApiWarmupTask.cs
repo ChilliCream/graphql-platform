@@ -8,12 +8,12 @@ using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.Exporters.OpenApi;
 
-internal sealed class OpenApiWarmupTask(OpenApiDocumentRegistry registry ) : IRequestExecutorWarmupTask
+internal sealed class OpenApiWarmupTask(OpenApiDocumentManager manager ) : IRequestExecutorWarmupTask
 {
     public bool ApplyOnlyOnStartup => true;
 
     public async Task WarmupAsync(IRequestExecutor executor, CancellationToken cancellationToken)
     {
-        await registry.InitializeAsync(executor.Schema, cancellationToken);
+        await manager.UpdateSchemaAsync(executor.Schema, cancellationToken);
     }
 }

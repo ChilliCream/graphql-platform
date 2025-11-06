@@ -1,10 +1,11 @@
 using HotChocolate.Exporters.OpenApi.Validation;
+using HotChocolate.Validation;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Exporters.OpenApi;
 
-internal sealed class OpenApiDocumentRegistry
-    : IDisposable, IObserver<OpenApiDefinitionStorageEventArgs>, IOpenApiValidationContext
+internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDefinitionStorageEventArgs>
 {
     private readonly IOpenApiDefinitionStorage _storage;
     private readonly DynamicOpenApiDocumentTransformer _transformer;
@@ -13,10 +14,10 @@ internal sealed class OpenApiDocumentRegistry
     private readonly SemaphoreSlim _updateSemaphore = new(1, 1);
     private readonly EventObservable _events = new();
     private ISchemaDefinition? _schema;
-    private readonly Dictionary<string, OpenApiFragmentDocument> _fragmentDocuments = new();
-    private readonly Dictionary<string, OpenApiOperationDocument> _operationDocuments = new();
+    private readonly Dictionary<string, OpenApiFragmentDocument> _fragmentsById = [];
+    private readonly Dictionary<string, OpenApiOperationDocument> _operationsById = [];
 
-    public OpenApiDocumentRegistry(
+    public OpenApiDocumentManager(
         IOpenApiDefinitionStorage storage,
         DynamicOpenApiDocumentTransformer transformer,
         IDynamicEndpointDataSource dynamicEndpointDataSource)
@@ -27,34 +28,35 @@ internal sealed class OpenApiDocumentRegistry
         _storageSubscription = storage.Subscribe(this);
     }
 
-    public async ValueTask InitializeAsync(
+    public async ValueTask UpdateSchemaAsync(
         ISchemaDefinition schema,
         CancellationToken cancellationToken = default)
     {
         await _updateSemaphore.WaitAsync(cancellationToken);
 
+        var isInitialized = _schema is not null;
+
         try
         {
             _schema = schema;
-            var initialDocuments = await _storage.GetDocumentsAsync(cancellationToken);
 
-            var parser = new OpenApiDocumentParser(schema);
+            var newDocuments = new List<IOpenApiDocument>();
 
-            foreach (var document in initialDocuments)
+            if (!isInitialized)
             {
-                var parsedDocument = parser.Parse(document.Id, document.Document);
+                var rawDocuments = await _storage.GetDocumentsAsync(cancellationToken);
 
-                if (parsedDocument is OpenApiFragmentDocument fragmentDocument)
+                var parser = new OpenApiDocumentParser(schema);
+
+                foreach (var document in rawDocuments)
                 {
-                    _fragmentDocuments[document.Id] = fragmentDocument;
-                }
-                else if (parsedDocument is OpenApiOperationDocument operationDocument)
-                {
-                    _operationDocuments[document.Id] = operationDocument;
+                    var parsedDocument = parser.Parse(document);
+
+                    newDocuments.Add(parsedDocument);
                 }
             }
 
-            await RebuildTransformsAndEndpointsAsync(cancellationToken).ConfigureAwait(false);
+            await RebuildAsync(newDocuments, cancellationToken);
         }
         finally
         {
@@ -91,13 +93,13 @@ internal sealed class OpenApiDocumentRegistry
             return;
         }
 
-        // Fire and forget async update - we can't make OnNext async as it's part of IObserver<T>
+        // TODO: Maybe we should use channels here?
         _ = Task.Run(async () =>
         {
             await _updateSemaphore.WaitAsync();
             try
             {
-                await HandleUpdateAsync(value).ConfigureAwait(false);
+                await HandleUpdateAsync(value);
             }
             finally
             {
@@ -114,7 +116,6 @@ internal sealed class OpenApiDocumentRegistry
         }
 
         var parser = new OpenApiDocumentParser(_schema);
-        var validator = new OpenApiDocumentValidator();
 
         switch (args.Type)
         {
@@ -125,37 +126,28 @@ internal sealed class OpenApiDocumentRegistry
                     return;
                 }
 
-                var parsedDocument = parser.Parse(args.Id, args.Definition.Document);
+                var parsedDocument = parser.Parse(args.Definition);
 
-                if (parsedDocument is OpenApiFragmentDocument fragmentDocument)
-                {
-                    await validator.ValidateAsync(fragmentDocument, this, CancellationToken.None).ConfigureAwait(false);
-                    _fragmentDocuments[args.Id] = fragmentDocument;
-                }
-                else if (parsedDocument is OpenApiOperationDocument operationDocument)
-                {
-                    await validator.ValidateAsync(operationDocument, this, CancellationToken.None).ConfigureAwait(false);
-                    _operationDocuments[args.Id] = operationDocument;
-                }
+                await RebuildAsync([parsedDocument], CancellationToken.None);
 
-                await RebuildTransformsAndEndpointsAsync(CancellationToken.None).ConfigureAwait(false);
                 _events.RaiseEvent(OpenApiDocumentEvent.Updated());
                 break;
 
             case OpenApiDefinitionStorageEventType.Removed:
                 var removed = false;
-                if (_fragmentDocuments.Remove(args.Id))
+                if (_fragmentsById.Remove(args.Id))
                 {
                     removed = true;
                 }
-                else if (_operationDocuments.Remove(args.Id))
+                else if (_operationsById.Remove(args.Id))
                 {
                     removed = true;
                 }
 
                 if (removed)
                 {
-                    await RebuildTransformsAndEndpointsAsync(CancellationToken.None).ConfigureAwait(false);
+                    // TODO: Remove needs to be handled specifically
+                    await RebuildAsync([], CancellationToken.None);
                     _events.RaiseEvent(OpenApiDocumentEvent.Updated());
                 }
                 break;
@@ -165,43 +157,134 @@ internal sealed class OpenApiDocumentRegistry
         }
     }
 
-    private async ValueTask RebuildTransformsAndEndpointsAsync(CancellationToken cancellationToken)
+    private async ValueTask RebuildAsync(
+        List<IOpenApiDocument> newDocuments,
+        CancellationToken cancellationToken)
     {
         if (_schema is null)
         {
             return;
         }
 
-        var fragmentDocumentLookup = _fragmentDocuments.Values.ToDictionary(f => f.Name, f => f);
-        var operationDocuments = _operationDocuments.Values.ToList();
+        var documentValidator = _schema.Services.GetRequiredService<DocumentValidator>();
 
+        var newFragments = new List<OpenApiFragmentDocument>();
+        var newOperations = new List<OpenApiOperationDocument>();
+
+        foreach (var newDocument in newDocuments)
+        {
+            if (newDocument is OpenApiOperationDocument operationDocument)
+            {
+                newOperations.Add(operationDocument);
+            }
+            else if (newDocument is OpenApiFragmentDocument fragmentDocument)
+            {
+                newFragments.Add(fragmentDocument);
+            }
+        }
+
+        var validationContext = new OpenApiValidationContext(
+            _operationsById.Values,
+            _fragmentsById.Values,
+            _schema,
+            documentValidator);
         var validator = new OpenApiDocumentValidator();
 
-        var validFragments = new List<OpenApiFragmentDocument>();
-        var validOperations = new List<OpenApiOperationDocument>();
+        // Validate fragments
+        var validatedFragments = new HashSet<string>();
+        var fragmentDependenciesByName = new Dictionary<string, HashSet<string>>();
 
-        // TODO: We need a queue mechanism here that resolves dependencies between fragment definitions
-        foreach (var (_, fragmentDocument) in fragmentDocumentLookup)
+        foreach (var newFragment in newFragments)
         {
-            await validator.ValidateAsync(fragmentDocument, this, cancellationToken).ConfigureAwait(false);
-            validFragments.Add(fragmentDocument);
+            fragmentDependenciesByName[newFragment.Name] = new HashSet<string>(newFragment.ExternalFragmentReferences);
         }
 
-        foreach (var operationDocument in operationDocuments)
+        var newFragmentsByName = newFragments.ToDictionary(f => f.Name);
+        var remainingFragments = new HashSet<string>(newFragmentsByName.Keys);
+        var previousRemainingCount = -1;
+
+        while (remainingFragments.Count > 0)
         {
-            await validator.ValidateAsync(operationDocument, this, cancellationToken).ConfigureAwait(false);
-            validOperations.Add(operationDocument);
+            if (remainingFragments.Count == previousRemainingCount)
+            {
+                // Circular dependency or missing dependencies
+                foreach (var fragmentName in remainingFragments)
+                {
+                    var fragment = newFragmentsByName[fragmentName];
+                    var validationResult = await validator.ValidateAsync(fragment, validationContext, cancellationToken);
+
+                    if (!validationResult.IsValid)
+                    {
+                        // TODO: Report
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+
+                break;
+            }
+
+            previousRemainingCount = remainingFragments.Count;
+            var fragmentNamesToValidate = new List<string>();
+
+            foreach (var fragmentName in remainingFragments)
+            {
+                var dependencies = fragmentDependenciesByName[fragmentName];
+                if (dependencies.Count == 0 || dependencies.All(d => validatedFragments.Contains(d)))
+                {
+                    fragmentNamesToValidate.Add(fragmentName);
+                }
+            }
+
+            foreach (var fragmentName in fragmentNamesToValidate)
+            {
+                var fragment = newFragmentsByName[fragmentName];
+                var validationResult = await validator.ValidateAsync(fragment, validationContext, cancellationToken);
+
+                if (validationResult.IsValid)
+                {
+                    validatedFragments.Add(fragmentName);
+                    _fragmentsById[fragment.Id] = fragment;
+                    validationContext.FragmentsByName[fragment.Name] = fragment;
+                }
+                else
+                {
+                    // TODO: Report
+                }
+
+                remainingFragments.Remove(fragmentName);
+            }
         }
 
-        _transformer.AddDocuments(validOperations, validFragments, _schema);
+        // Validate operations
+        foreach (var newOperation in newOperations)
+        {
+            var validationResult = await validator.ValidateAsync(newOperation, validationContext, cancellationToken);
 
+            if (!validationResult.IsValid)
+            {
+                // TODO: Report
+            }
+            else
+            {
+                _operationsById[newOperation.Id] = newOperation;
+                validationContext.OperationsByName[newOperation.Name] = newOperation;
+            }
+        }
+
+        // Update OpenAPI definitions
+        _transformer.AddDocuments(_operationsById.Values, _fragmentsById.Values, _schema);
+
+        // Update endpoints
         var endpoints = new List<Endpoint>();
 
-        foreach (var operationDocument in validOperations)
+        foreach (var operationDocument in _operationsById.Values)
         {
             try
             {
-                var endpoint = OpenApiEndpointFactory.Create(operationDocument, fragmentDocumentLookup, _schema);
+                var endpoint = OpenApiEndpointFactory.Create(operationDocument, validationContext.FragmentsByName, _schema);
                 endpoints.Add(endpoint);
             }
             catch

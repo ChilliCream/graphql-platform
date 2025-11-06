@@ -9,25 +9,28 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
 {
     private static readonly ExternalFragmentReferenceFinder s_externalFragmentReferenceFinder = new();
 
-    public IOpenApiDocument Parse(string id, DocumentNode document)
+    public IOpenApiDocument Parse(OpenApiDocumentDefinition document)
     {
-        var localFragments = document.Definitions
+        var documentNode = document.Document;
+
+        var localFragments = documentNode.Definitions
             .OfType<FragmentDefinitionNode>()
             .ToArray();
         var localFragmentLookup = localFragments
             .ToDictionary(f => f.Name.Value);
 
         // An operation document can only define a single operation alongside local fragment definitions.
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().SingleOrDefault();
+        var operationDefinition = documentNode.Definitions.OfType<OperationDefinitionNode>().SingleOrDefault();
 
         if (operationDefinition is not null)
         {
-            return ParseOperation(id, operationDefinition, document, localFragmentLookup);
+            return ParseOperation(document.Id, operationDefinition, documentNode, localFragmentLookup);
         }
 
         var fragmentDefinition = localFragments[0];
+        localFragmentLookup.Remove(fragmentDefinition.Name.Value);
 
-        return ParseFragment(id, fragmentDefinition, document, localFragmentLookup);
+        return ParseFragment(document.Id, fragmentDefinition, documentNode, localFragmentLookup);
     }
 
     private OpenApiFragmentDocument ParseFragment(

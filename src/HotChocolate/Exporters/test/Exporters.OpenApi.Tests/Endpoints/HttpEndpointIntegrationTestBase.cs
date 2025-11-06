@@ -349,7 +349,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var storage = new TestOpenApiDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
@@ -402,7 +402,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
@@ -456,7 +456,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
@@ -551,7 +551,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 

@@ -32,20 +32,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "name",
-                    "email"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "email": {
-                      "type": "string",
-                      "nullable": true
-                    }
-                  }
+                  "$ref": "#/components/schemas/User"
                 }
               }
             }
@@ -54,5 +41,24 @@
       }
     }
   },
-  "components": { }
+  "components": {
+    "schemas": {
+      "User": {
+        "required": [
+          "name",
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      }
+    }
+  }
 }

@@ -37,25 +37,32 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "name",
-                    "email"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "email": {
-                      "type": [
-                        "null",
-                        "string"
-                      ]
-                    }
-                  }
+                  "$ref": "#/components/schemas/User"
                 }
               }
             }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "required": [
+          "name",
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       }

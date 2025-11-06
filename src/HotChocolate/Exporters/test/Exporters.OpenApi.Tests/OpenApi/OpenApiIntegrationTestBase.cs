@@ -243,9 +243,14 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
               userById(id: $userId) {
-                name
-                email
+                ...User
               }
+            }
+            """,
+            """
+            fragment User on User {
+              name
+              email
             }
             """);
         var server = CreateTestServer(storage);
@@ -450,7 +455,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         var storage = new TestOpenApiDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
@@ -500,7 +505,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
@@ -551,7 +556,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
@@ -637,7 +642,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentRegistry>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 

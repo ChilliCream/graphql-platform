@@ -11,10 +11,10 @@ internal static class OpenApiEndpointFactory
 {
     public static Endpoint Create(
         OpenApiOperationDocument operationDocument,
-        Dictionary<string, OpenApiFragmentDocument> fragmentLookup,
+        Dictionary<string, OpenApiFragmentDocument> fragmentsByName,
         ISchemaDefinition schema)
     {
-        var endpointDescriptor = CreateEndpointDescriptor(operationDocument, fragmentLookup, schema);
+        var endpointDescriptor = CreateEndpointDescriptor(operationDocument, fragmentsByName, schema);
 
         return CreateEndpoint(schema.Name, endpointDescriptor);
     }
@@ -47,7 +47,7 @@ internal static class OpenApiEndpointFactory
 
     private static OpenApiEndpointDescriptor CreateEndpointDescriptor(
         OpenApiOperationDocument operationDocument,
-        Dictionary<string, OpenApiFragmentDocument> fragmentDocumentLookup,
+        Dictionary<string, OpenApiFragmentDocument> fragmentsByName,
         ISchemaDefinition schema)
     {
         var definitions = new List<IExecutableDefinitionNode>();
@@ -55,7 +55,7 @@ internal static class OpenApiEndpointFactory
 
         foreach (var referencedFragmentName in operationDocument.ExternalFragmentReferences)
         {
-            var fragmentDocument = fragmentDocumentLookup[referencedFragmentName];
+            var fragmentDocument = fragmentsByName[referencedFragmentName];
 
             definitions.Add(fragmentDocument.FragmentDefinition);
         }

@@ -2,7 +2,7 @@ namespace HotChocolate.Exporters.OpenApi.Validation;
 
 public interface IOpenApiDocumentValidator
 {
-    ValueTask ValidateAsync(
+    ValueTask<OpenApiValidationResult> ValidateAsync(
         IOpenApiDocument document,
         IOpenApiValidationContext context,
         CancellationToken cancellationToken);

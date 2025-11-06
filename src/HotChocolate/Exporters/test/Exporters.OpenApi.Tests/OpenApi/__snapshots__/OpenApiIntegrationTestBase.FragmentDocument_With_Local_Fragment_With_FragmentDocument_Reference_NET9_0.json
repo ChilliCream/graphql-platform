@@ -43,6 +43,17 @@
   },
   "components": {
     "schemas": {
+      "Address": {
+        "required": [
+          "street"
+        ],
+        "type": "object",
+        "properties": {
+          "street": {
+            "type": "string"
+          }
+        }
+      },
       "User": {
         "required": [
           "id",
@@ -71,17 +82,6 @@
           },
           "address": {
             "$ref": "#/components/schemas/Address"
-          }
-        }
-      },
-      "Address": {
-        "required": [
-          "street"
-        ],
-        "type": "object",
-        "properties": {
-          "street": {
-            "type": "string"
           }
         }
       }
