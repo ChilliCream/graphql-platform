@@ -1,0 +1,62 @@
+schema {
+  query: Query
+}
+
+type Product {
+  shippingEstimate(weight: Long! price: Long!): Long!
+  upc: String!
+  inStock: Boolean!
+}
+
+type Query {
+  productByUpc(upc: ID!): Product @lookup @internal
+}
+
+"Defines the possible serialization types for GraphQL scalar values."
+enum ScalarSerializationType {
+  "The scalar serializes to a string value."
+  STRING
+  "The scalar serializes to a boolean value."
+  BOOLEAN
+  "The scalar serializes to an integer value."
+  INT
+  "The scalar serializes to a floating-point value."
+  FLOAT
+  "The scalar serializes to an object value."
+  OBJECT
+  "The scalar serializes to a list value."
+  LIST
+}
+
+"""
+The @internal directive is used in combination with lookup fields and allows you
+to declare internal types and fields. Internal types and fields do not appear in
+the final client-facing composite schema and do not participate in the standard
+schema-merging process. This allows a source schema to define lookup fields for
+resolving entities that should not be accessible through the client-facing
+composite schema.
+
+
+
+
+
+type User @internal {
+  id: ID!
+  name: String!
+}
+            
+directive @internal on OBJECT | FIELD_DEFINITION
+"""
+directive @internal on OBJECT | FIELD_DEFINITION
+
+"""
+The @lookup directive is used within a source schema to specify output fields
+that can be used by the distributed GraphQL executor to resolve an entity by
+a stable key.
+"""
+directive @lookup on FIELD_DEFINITION
+
+directive @serializeAs("The primitive type a scalar is serialized to." type: [ScalarSerializationType!]! "The ECMA-262 regex pattern that the serialized scalar value conforms to." pattern: String) on SCALAR
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long @serializeAs(type: INT)

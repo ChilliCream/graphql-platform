@@ -1,4 +1,5 @@
 using HotChocolate;
+using HotChocolate.AspNetCore;
 
 [assembly: Module("ReviewTypes")]
 

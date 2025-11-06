@@ -7,6 +7,6 @@ namespace eShop.Reviews;
 [QueryType]
 public static partial class UserQueries
 {
-    [Lookup]
-    public static User GetUser([ID] string id) => new() { Id = id };
+    [Lookup, Internal]
+    public static User? GetUser([ID] string id) => new() { Id = id };
 }

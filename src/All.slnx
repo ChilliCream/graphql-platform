@@ -186,10 +186,11 @@
     <Project Path="HotChocolate/Fusion-vnext/benchmarks/Fusion.Execution.Benchmarks/Fusion.Execution.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/benchmarks/k6/">
+    <Project Path="HotChocolate/Fusion-vnext/benchmarks/k6/eShop.Gateway/eShop.Gateway.csproj" />
     <Project Path="HotChocolate\Fusion-vnext\benchmarks\k6\eShop.Accounts\eShop.Accounts.csproj" />
     <Project Path="HotChocolate\Fusion-vnext\benchmarks\k6\eShop.Inventory\eShop.Inventory.csproj" />
-    <Project Path="HotChocolate\Fusion-vnext\benchmarks\k6\eShop.Products\eShop.Products.csproj" Type="Classic C#" />
-    <Project Path="HotChocolate\Fusion-vnext\benchmarks\k6\eShop.Reviews\eShop.Reviews.csproj" Type="Classic C#" />
+    <Project Path="HotChocolate\Fusion-vnext\benchmarks\k6\eShop.Products\eShop.Products.csproj" />
+    <Project Path="HotChocolate\Fusion-vnext\benchmarks\k6\eShop.Reviews\eShop.Reviews.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/src/">
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />
