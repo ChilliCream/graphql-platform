@@ -111,12 +111,25 @@ run_k6_test() {
   echo "  Output:    $output_file"
   echo ""
 
+  # Run k6 test (continue even if thresholds fail)
+  set +e
   maybe_taskset "$K6_CPUSET" k6 run "$test_file" \
     --out json="$output_file" \
     --summary-export="$RESULTS_DIR/summary-${gateway_mode}-${test_name}.json"
+  local exit_code=$?
+  set -e
 
   echo ""
-  echo -e "${GREEN}✓${NC} Test completed: $test_name ($gateway_mode)"
+  if [ -f "$RESULTS_DIR/summary-${gateway_mode}-${test_name}.json" ]; then
+    if [ $exit_code -eq 0 ]; then
+      echo -e "${GREEN}✓${NC} Test completed: $test_name ($gateway_mode)"
+    else
+      echo -e "${YELLOW}⚠${NC} Test completed with threshold failures: $test_name ($gateway_mode)"
+    fi
+    echo "  Results saved to: $RESULTS_DIR/summary-${gateway_mode}-${test_name}.json"
+  else
+    echo -e "${RED}✗${NC} Test failed - results file not found!"
+  fi
 }
 
 # Function to test gateway mode

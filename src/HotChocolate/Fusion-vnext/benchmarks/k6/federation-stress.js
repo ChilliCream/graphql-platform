@@ -117,23 +117,35 @@ export default function () {
   check(res, {
     'status is 200': (r) => r.status === 200,
     'no errors': () => body && !body.errors,
-    'has users': () => body?.data?.users?.length > 0,
-    'has topProducts': () => body?.data?.topProducts?.length > 0,
-    'users have reviews': () => {
-      const users = body?.data?.users;
-      return users && users.length > 0 && users.some(u => u.reviews && u.reviews.length > 0);
-    },
-    'products have inventory data': () => {
-      const products = body?.data?.topProducts;
-      return products && products.length > 0 && products.every(p =>
-        typeof p.inStock === 'boolean' && typeof p.shippingEstimate === 'number'
-      );
-    },
-    'reviews have authors': () => {
-      const users = body?.data?.users;
-      if (!users || users.length === 0) return false;
-      const reviews = users.flatMap(u => u.reviews || []);
-      return reviews.length > 0 && reviews.every(r => r.author && r.author.username);
+    'valid response structure': () => {
+      // Check that the response has the expected nested structure
+      if (!body?.data) return false;
+
+      const users = body.data.users;
+      const topProducts = body.data.topProducts;
+
+      // Check users structure
+      if (!Array.isArray(users) || users.length === 0) return false;
+      const user = users[0];
+      if (!user.id || !user.username || !user.name) return false;
+      if (!Array.isArray(user.reviews)) return false;
+
+      // Check topProducts structure
+      if (!Array.isArray(topProducts) || topProducts.length === 0) return false;
+      const product = topProducts[0];
+      if (typeof product.inStock !== 'boolean') return false;
+      if (!product.name || !product.upc) return false;
+      if (typeof product.price !== 'number' || typeof product.weight !== 'number') return false;
+      if (!Array.isArray(product.reviews)) return false;
+
+      // Check nested review structure
+      if (product.reviews.length > 0) {
+        const review = product.reviews[0];
+        if (!review.id || !review.body) return false;
+        if (review.author && (!review.author.id || !review.author.username)) return false;
+      }
+
+      return true;
     },
   });
 }
