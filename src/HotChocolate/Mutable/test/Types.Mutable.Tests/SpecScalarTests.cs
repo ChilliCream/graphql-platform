@@ -6,7 +6,7 @@ public class SpecScalarTests
     public void CreateStringTypeDefinition()
     {
         var type = BuiltIns.String.Create();
-        Assert.Equal(BuiltIns.String.Name, type.Name);
+        Assert.Equal(SpecScalarNames.String.Name, type.Name);
         Assert.True(type.IsSpecScalar);
     }
 
@@ -14,7 +14,7 @@ public class SpecScalarTests
     public void CreateBooleanTypeDefinition()
     {
         var type = BuiltIns.Boolean.Create();
-        Assert.Equal(BuiltIns.Boolean.Name, type.Name);
+        Assert.Equal(SpecScalarNames.Boolean.Name, type.Name);
         Assert.True(type.IsSpecScalar);
     }
 
@@ -22,7 +22,7 @@ public class SpecScalarTests
     public void CreateFloatTypeDefinition()
     {
         var type = BuiltIns.Float.Create();
-        Assert.Equal(BuiltIns.Float.Name, type.Name);
+        Assert.Equal(SpecScalarNames.Float.Name, type.Name);
         Assert.True(type.IsSpecScalar);
     }
 
@@ -30,7 +30,7 @@ public class SpecScalarTests
     public void CreateIDTypeDefinition()
     {
         var type = BuiltIns.ID.Create();
-        Assert.Equal(BuiltIns.ID.Name, type.Name);
+        Assert.Equal(SpecScalarNames.ID.Name, type.Name);
         Assert.True(type.IsSpecScalar);
     }
 
@@ -38,7 +38,7 @@ public class SpecScalarTests
     public void CreateIntTypeDefinition()
     {
         var type = BuiltIns.Int.Create();
-        Assert.Equal(BuiltIns.Int.Name, type.Name);
+        Assert.Equal(SpecScalarNames.Int.Name, type.Name);
         Assert.True(type.IsSpecScalar);
     }
 }

@@ -115,6 +115,13 @@ internal sealed class SourceSchemaMerger
                     })
             },
             {
+                DirectiveNames.OneOf,
+                new DirectiveMergeSettings(
+                    DirectiveMergeBehavior.Include,
+                    OneOfMutableDirectiveDefinition.Create,
+                    DefaultPreprocessor)
+            },
+            {
                 DirectiveNames.Tag,
                 new DirectiveMergeSettings(
                     _options.TagMergeBehavior,
@@ -138,8 +145,15 @@ internal sealed class SourceSchemaMerger
             // Ensure that all directive definitions match the canonical definition.
             var canonicalDirectiveNode = canonicalDirectiveDefinition.ToSyntaxNode();
 
+            // We want to ignore the descriptions when comparing directives.
+            // TODO: Long-term we should do this differently
+            var canonicalDirectiveNodeWithoutDescription = canonicalDirectiveNode.WithDescription(null);
+
             if (!grouping.All(
-                d => d.DirectiveDefinition.ToSyntaxNode().Equals(canonicalDirectiveNode, SyntaxComparison.Syntax)))
+                d => d.DirectiveDefinition
+                    .ToSyntaxNode()
+                    .WithDescription(null)
+                    .Equals(canonicalDirectiveNodeWithoutDescription, SyntaxComparison.Syntax)))
             {
                 // Skip merging if there is a mismatch.
                 continue;
@@ -231,6 +245,20 @@ internal sealed class SourceSchemaMerger
                 }
             }
         }
+    }
+
+    private void AddOneOfDirective(
+        MutableInputObjectTypeDefinition inputObjectType,
+        MutableSchemaDefinition mergedSchema)
+    {
+        if (!mergedSchema.DirectiveDefinitions.TryGetDirective(DirectiveNames.OneOf, out var oneOfDirectiveDefinition))
+        {
+            // Merged definition not found.
+            return;
+        }
+
+        inputObjectType.IsOneOf = true;
+        inputObjectType.AddDirective(new Directive(oneOfDirectiveDefinition));
     }
 
     private void AddTagDirectives(
@@ -484,7 +512,7 @@ internal sealed class SourceSchemaMerger
         ImmutableArray<TypeInfo> typeGroup,
         MutableSchemaDefinition mergedSchema)
     {
-        var firstType = typeGroup[0].Type;
+        var firstType = (MutableInputObjectTypeDefinition)typeGroup[0].Type;
         var typeName = firstType.Name;
         var description = firstType.Description;
         var inputObjectType =
@@ -496,6 +524,13 @@ internal sealed class SourceSchemaMerger
         }
 
         inputObjectType.Description = description;
+
+        var oneOfDirective = firstType.Directives.FirstOrDefault(DirectiveNames.OneOf);
+
+        if (oneOfDirective is not null)
+        {
+            AddOneOfDirective(inputObjectType, mergedSchema);
+        }
 
         var memberDefinitions = typeGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
         AddTagDirectives(inputObjectType, memberDefinitions, mergedSchema);

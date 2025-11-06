@@ -9,7 +9,7 @@ public sealed class TagDirective(string name)
 
     public static TagDirective From(IDirective directive)
     {
-        if (!directive.Arguments.TryGetValue(WellKnownArgumentNames.Name, out var nameArg)
+        if (!directive.Arguments.TryGetValue(DirectiveNames.Tag.Arguments.Name, out var nameArg)
             || nameArg is not StringValueNode name)
         {
             throw new InvalidOperationException(TagDirective_NameArgument_Invalid);
