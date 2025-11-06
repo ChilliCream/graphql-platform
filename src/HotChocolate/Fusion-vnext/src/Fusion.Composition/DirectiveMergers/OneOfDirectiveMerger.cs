@@ -10,10 +10,7 @@ namespace HotChocolate.Fusion.DirectiveMergers;
 internal class OneOfDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
     : DirectiveMergerBase(mergeBehavior)
 {
-    public override string DirectiveName { get; } =
-        mergeBehavior is DirectiveMergeBehavior.IncludePrivate
-            ? $"fusion__{DirectiveNames.OneOf}"
-            : DirectiveNames.OneOf;
+    public override string DirectiveName => DirectiveNames.OneOf;
 
     public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(ISchemaDefinition schema)
     {

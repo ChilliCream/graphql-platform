@@ -15,29 +15,11 @@ namespace HotChocolate.Fusion.DirectiveMergers;
 internal class SerializeAsDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
     : DirectiveMergerBase(mergeBehavior)
 {
-    public override string DirectiveName { get; } =
-        mergeBehavior is DirectiveMergeBehavior.IncludePrivate
-            ? $"fusion__{DirectiveNames.SerializeAs}"
-            : DirectiveNames.SerializeAs;
+    public override string DirectiveName => DirectiveNames.SerializeAs;
 
     public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(ISchemaDefinition schema)
     {
         return SerializeAsMutableDirectiveDefinition.Create(schema);
-    }
-
-    public override void MergeDirectiveDefinition(
-        MutableDirectiveDefinition directiveDefinition,
-        MutableSchemaDefinition schema)
-    {
-        if (MergeBehavior is DirectiveMergeBehavior.IncludePrivate)
-        {
-            var typeArgType =
-                (MutableEnumTypeDefinition)directiveDefinition.Arguments["type"].Type.AsTypeDefinition();
-            typeArgType.Name = $"fusion__{typeArgType.Name}";
-            schema.Types.Add(typeArgType);
-        }
-
-        base.MergeDirectiveDefinition(directiveDefinition, schema);
     }
 
     public override void MergeDirectives(
