@@ -12,7 +12,7 @@ builder
 var app = builder.Build();
 
 #if RELEASE
-app.MapGraphQLHttp()
+app.MapGraphQLHttp();
 #else
 app.MapGraphQL().WithOptions(new GraphQLServerOptions { Tool = { ServeMode = GraphQLToolServeMode.Insider } });
 #endif
