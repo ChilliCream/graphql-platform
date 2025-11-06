@@ -17,7 +17,7 @@ export const options = {
       executor: 'ramping-arrival-rate',
       startRate: 50,
       timeUnit: '1s',
-      preAllocatedVUs: 600,
+      preAllocatedVUs: 50,
       stages: [
         { target: 50, duration: '10s' },
         { target: 500, duration: '20s' },
@@ -30,7 +30,7 @@ export const options = {
       duration: '1m',
       rate: 500,
       timeUnit: '1s',
-      preAllocatedVUs: 600,
+      preAllocatedVUs: 50,
       tags: { phase: 'measurement' },
     },
   },
