@@ -3,7 +3,7 @@ schema {
 }
 
 type Product {
-  shippingEstimate(weight: Long! price: Long!): Long!
+  shippingEstimate(weight: Long! @require(field: "weight") price: Long! @require(field: "price")): Long!
   upc: String!
   inStock: Boolean!
 }
@@ -56,7 +56,19 @@ a stable key.
 """
 directive @lookup on FIELD_DEFINITION
 
+"""
+The @require directive is used to express data requirements with other source schemas.
+Arguments annotated with the @require directive are removed from the composite schema
+and the value for these will be resolved by the distributed executor.
+
+
+directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+"""
+directive @require("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+
 directive @serializeAs("The primitive type a scalar is serialized to." type: [ScalarSerializationType!]! "The ECMA-262 regex pattern that the serialized scalar value conforms to." pattern: String) on SCALAR
+
+scalar FieldSelectionMap
 
 "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
 scalar Long @serializeAs(type: INT)
