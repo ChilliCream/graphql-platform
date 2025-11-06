@@ -14,6 +14,7 @@ public sealed class EdgeTypeInfo
         string name,
         string? nameFormat,
         string @namespace,
+        string? description,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
         ImmutableArray<Resolver> resolvers,
@@ -37,7 +38,7 @@ public sealed class EdgeTypeInfo
 
     public string Namespace { get; }
 
-    public string? Description => null;
+    public string? Description { get; }
 
     public bool IsPublic => RuntimeType.DeclaredAccessibility == Accessibility.Public;
 
@@ -69,13 +70,23 @@ public sealed class EdgeTypeInfo
         => Resolvers = Resolvers.Replace(current, replacement);
 
     public override bool Equals(object? obj)
-        => obj is ConnectionTypeInfo other && Equals(other);
+        => obj is EdgeTypeInfo other && Equals(other);
 
     public override bool Equals(SyntaxInfo? obj)
-        => obj is ConnectionTypeInfo other && Equals(other);
+        => obj is EdgeTypeInfo other && Equals(other);
 
-    private bool Equals(ConnectionTypeInfo other)
+    private bool Equals(EdgeTypeInfo? other)
     {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
         if (!string.Equals(OrderByKey, other.OrderByKey, StringComparison.Ordinal))
         {
             return false;
@@ -91,8 +102,7 @@ public sealed class EdgeTypeInfo
             return false;
         }
 
-        return ClassDeclaration.SyntaxTree.IsEquivalentTo(
-            other.ClassDeclaration.SyntaxTree);
+        return ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
     }
 
     public override int GetHashCode()
@@ -110,8 +120,9 @@ public sealed class EdgeTypeInfo
             (name ?? connectionClass.RuntimeType.Name) + "Type",
             nameFormat,
             @namespace,
+            null,
             connectionClass.RuntimeType,
-            connectionClass.ClassDeclarations,
+            connectionClass.ClassDeclaration,
             connectionClass.Resolvers,
             [])
         {
@@ -172,6 +183,7 @@ public sealed class EdgeTypeInfo
             edgeName,
             nameFormat,
             @namespace,
+            runtimeType.GetDescription(),
             runtimeType,
             classDeclaration,
             resolvers.ToImmutable(),

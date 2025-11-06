@@ -47,6 +47,10 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
 
     public Uri? SpecifiedBy { get; private set; }
 
+    public ScalarSerializationType SerializationType { get; private set; }
+
+    public string? Pattern { get; private set; }
+
     public ScalarValueKind ValueKind { get; private set; }
 
     public IFeatureCollection Features
@@ -79,6 +83,55 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
                 "Boolean" => ScalarValueKind.Boolean,
                 _ => ScalarValueKind.Any
             };
+        }
+
+        var serializeAs = Directives.FirstOrDefault(DirectiveNames.SerializeAs.Name);
+        if (serializeAs is { Arguments: { Count: 1 } or { Count: 2 } })
+        {
+            var type = ScalarSerializationType.Undefined;
+            string? pattern = null;
+
+            var typeArg = serializeAs.Arguments.FirstOrDefault(
+                t => t.Name.Equals(DirectiveNames.SerializeAs.Arguments.Type));
+            var patternArg = serializeAs.Arguments.FirstOrDefault(
+                t => t.Name.Equals(DirectiveNames.SerializeAs.Arguments.Pattern));
+
+            switch (typeArg?.Value)
+            {
+                case ListValueNode typeList
+                    when typeList.Items.All(t => t.Kind is SyntaxKind.EnumValue):
+                    foreach (var item in typeList.Items)
+                    {
+                        var value = (EnumValueNode)item;
+                        if (Enum.TryParse<ScalarSerializationType>(
+                            value.Value,
+                            ignoreCase: true,
+                            out var parsedType))
+                        {
+                            type |= parsedType;
+                        }
+                    }
+                    break;
+
+                case EnumValueNode singleType
+                    when Enum.TryParse<ScalarSerializationType>(
+                        singleType.Value,
+                        ignoreCase: true,
+                        out var parsedType):
+                    type = parsedType;
+                    break;
+                default:
+                    throw new InvalidOperationException(
+                        "Cannot parse the @serializeAs directive as it is missing the type argument.");
+            }
+
+            if (patternArg?.Value is StringValueNode patterValue)
+            {
+                pattern = patterValue.Value;
+            }
+
+            SerializationType = type;
+            Pattern = pattern;
         }
 
         _completed = true;

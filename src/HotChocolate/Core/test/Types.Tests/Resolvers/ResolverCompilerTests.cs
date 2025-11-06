@@ -1601,7 +1601,7 @@ public class ResolverCompilerTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Use(
                 n => c =>

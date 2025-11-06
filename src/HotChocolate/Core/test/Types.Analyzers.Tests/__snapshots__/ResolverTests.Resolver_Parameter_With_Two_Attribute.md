@@ -88,10 +88,15 @@ namespace TestNamespace
                             RuntimeType = typeof(int)
                         };
 
-                        var argumentConfigurations = argumentConfiguration.Configurations;
-                        argumentConfigurations = argumentConfigurations.Add(new global::HotChocolate.Types.Relay.IDAttribute(null));
-                        argumentConfigurations = argumentConfigurations.Add(new global::HotChocolate.Types.Relay.IDAttribute(null));
-                        argumentConfiguration.Configurations = argumentConfigurations;
+                        var argumentDescriptor = global::HotChocolate.Types.Descriptors.ArgumentDescriptor.From(field.Context, argumentConfiguration);
+                        HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                            field.Context,
+                            argumentDescriptor,
+                            null,
+                            new global::HotChocolate.Types.Relay.IDAttribute(null),
+                            new global::HotChocolate.Types.Relay.IDAttribute(null));
+                        argumentConfiguration.ConfigurationsAreApplied = true;
+                        argumentDescriptor.CreateConfiguration();
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }

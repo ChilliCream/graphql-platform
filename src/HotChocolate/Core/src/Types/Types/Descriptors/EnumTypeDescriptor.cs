@@ -1,5 +1,6 @@
 #nullable disable
 
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
@@ -46,9 +47,7 @@ public class EnumTypeDescriptor
             DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.RuntimeType,
-                Configuration.RuntimeType,
-                Configuration.Configurations);
+                Configuration.RuntimeType);
 
             Configuration.ConfigurationsAreApplied = true;
         }

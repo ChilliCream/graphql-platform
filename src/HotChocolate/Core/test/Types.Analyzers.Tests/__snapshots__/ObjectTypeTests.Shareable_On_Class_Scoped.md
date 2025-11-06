@@ -61,9 +61,14 @@ namespace TestNamespace
                             typeof(global::System.Threading.CancellationToken)
                         })!;
 
-                    var configurations = configuration.Configurations;
-                    configurations = configurations.Add(new global::HotChocolate.Types.BindMemberAttribute("AuthorId"));
-                    configuration.Configurations = configurations;
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.BindMemberAttribute("AuthorId"));
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
 
                     configuration.Resolvers = context.Resolvers.GetAuthorAsync();
                 },

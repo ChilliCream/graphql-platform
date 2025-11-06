@@ -99,11 +99,16 @@ namespace TestNamespace
                             typeof(global::TestNamespace.ProductService)
                         })!;
 
-                    var configurations = configuration.Configurations;
-                    configurations = configurations.Add(new global::HotChocolate.Data.UseProjectionAttribute(11));
-                    configurations = configurations.Add(new global::HotChocolate.Data.UseFilteringAttribute(null, 12));
-                    configurations = configurations.Add(new global::HotChocolate.Data.UseSortingAttribute(null, 13));
-                    configuration.Configurations = configurations;
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Data.UseProjectionAttribute(11),
+                        new global::HotChocolate.Data.UseFilteringAttribute(null, 12),
+                        new global::HotChocolate.Data.UseSortingAttribute(null, 13));
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
 
                     configuration.Resolvers = context.Resolvers.GetProducts();
                     configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Product>.Default;

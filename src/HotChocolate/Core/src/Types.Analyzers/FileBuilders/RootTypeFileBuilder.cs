@@ -7,6 +7,8 @@ namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class RootTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
+    protected override string OutputFieldDescriptorType => WellKnownTypes.ObjectFieldDescriptor;
+
     public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not RootTypeInfo rootType)

@@ -170,6 +170,7 @@ public sealed class SchemaComposer
         new InputFieldDefaultMismatchRule(),
         new InputFieldTypesMergeableRule(),
         new InputWithMissingRequiredFieldsRule(),
+        new InputWithMissingOneOfRule(),
         new InvalidFieldSharingRule(),
         new OutputFieldTypesMergeableRule(),
         new TypeKindMismatchRule()
@@ -189,6 +190,8 @@ public sealed class SchemaComposer
         new KeyInvalidFieldsRule(),
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),
+        new ReferenceToInaccessibleTypeRule(),
+        new ReferenceToInternalTypeRule(),
         new RequireInvalidFieldsRule()
     ];
 }

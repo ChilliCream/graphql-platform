@@ -61,11 +61,6 @@ internal static class DirectivesProviderExtensions
                 && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
     }
 
-    public static bool HasExternalDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.External);
-    }
-
     public static bool HasFusionInaccessibleDirective(this IDirectivesProvider type)
     {
         return type.Directives.ContainsName(WellKnownDirectiveNames.FusionInaccessible);
@@ -74,35 +69,5 @@ internal static class DirectivesProviderExtensions
     public static bool HasInaccessibleDirective(this IDirectivesProvider type)
     {
         return type.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);
-    }
-
-    public static bool HasIsDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.Is);
-    }
-
-    public static bool HasLookupDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.Lookup);
-    }
-
-    public static bool HasOverrideDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.Override);
-    }
-
-    public static bool HasProvidesDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.Provides);
-    }
-
-    public static bool HasRequireDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.Require);
-    }
-
-    public static bool HasShareableDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.Shareable);
     }
 }

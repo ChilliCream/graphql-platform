@@ -7,16 +7,22 @@ using HotChocolate.Properties;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// This GraphQL Scalar represents an exact point in time.
-/// This point in time is specified by having an offset to UTC and does not use time zone.
-///
-/// https://www.graphql-scalars.com/date-time/
+/// <para>
+/// This scalar represents an exact point in time. This point in time is specified by having an
+/// offset to UTC and does <b>not</b> use a time zone.
+/// </para>
+/// <para>
+/// It is a slightly refined version of
+/// <see href="https://tools.ietf.org/html/rfc3339">RFC 3339</see>, including the
+/// <see href="https://www.rfc-editor.org/errata/rfc3339">errata</see>.
+/// </para>
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/andimarek/date-time.html">Specification</seealso>
 public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
 {
     private const string UtcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
     private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
-    private const string SpecifiedByUri = "https://www.graphql-scalars.com/date-time";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/andimarek/date-time.html";
 
     private static readonly Regex s_dateTimeScalarRegex = new(
         @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?(Z|[+-][0-9]{2}:[0-9]{2})$",
@@ -196,7 +202,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         }
 
         // No "Unknown Local Offset Convention".
-        // https://www.graphql-scalars.com/date-time/#no-unknown-local-offset-convention
+        // https://scalars.graphql.org/andimarek/date-time.html#sec-Overview.No-Unknown-Local-Offset-Convention-
         if (serialized.EndsWith("-00:00"))
         {
             value = null;

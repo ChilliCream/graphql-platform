@@ -1,6 +1,7 @@
 using System.Xml;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Types.Composite;
 
 namespace HotChocolate.Types;
 
@@ -8,8 +9,8 @@ namespace HotChocolate.Types;
 /// The TimeSpan scalar type represented in two formats:
 /// <see cref="TimeSpanFormat.Iso8601"/> and <see cref="TimeSpanFormat.DotNet"/>
 /// </summary>
-public class TimeSpanType
-    : ScalarType<TimeSpan, StringValueNode>
+[SerializeAs(ScalarSerializationType.String)]
+public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
 {
     public TimeSpanFormat Format { get; }
 

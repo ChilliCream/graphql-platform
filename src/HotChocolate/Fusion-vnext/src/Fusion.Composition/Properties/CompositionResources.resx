@@ -342,6 +342,18 @@
   <data name="LogEntryHelper_QueryRootTypeInaccessible" xml:space="preserve">
     <value>The root query type in schema '{0}' must be accessible.</value>
   </data>
+  <data name="LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument" xml:space="preserve">
+    <value>The merged field argument '{0}' on field '{1}' cannot reference the inaccessible type '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_ReferenceToInaccessibleTypeFromInputField" xml:space="preserve">
+    <value>The merged input field '{0}' in type '{1}' cannot reference the inaccessible type '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField" xml:space="preserve">
+    <value>The merged output field '{0}' in type '{1}' cannot reference the inaccessible type '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_ReferenceToInternalType" xml:space="preserve">
+    <value>The merged field '{0}' in type '{1}' cannot reference the internal type '{2}'.</value>
+  </data>
   <data name="LogEntryHelper_RequireInvalidFields" xml:space="preserve">
     <value>The @require directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
   </data>
@@ -437,5 +449,8 @@
   </data>
   <data name="TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType" xml:space="preserve">
     <value>The specified type is not an abstract type.</value>
+  </data>
+  <data name="LogEntryHelper_InputWithMissingOneOf" xml:space="preserve">
+    <value>The input type '{0}' in schema '{1}' must be annotated with the '@oneOf` directive, since the same type has been annotated with it in schema '{2}'.</value>
   </data>
 </root>

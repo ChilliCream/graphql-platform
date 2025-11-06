@@ -51,7 +51,8 @@ public static class SymbolExtensions
                 }
                 catch
                 {
-                    // Fall through
+                    // XML documentation parsing is best-effort only.
+                    // Malformed XML is ignored and we fall back to no description.
                 }
             }
         }
@@ -78,7 +79,8 @@ public static class SymbolExtensions
                 }
                 catch
                 {
-                    // Fall through
+                    // XML documentation parsing is best-effort only.
+                    // Malformed XML is ignored and we fall back to no description.
                 }
             }
 
@@ -111,6 +113,8 @@ public static class SymbolExtensions
         }
         catch
         {
+            // XML documentation parsing is best-effort only.
+            // Malformed XML is ignored and we fall back to no description.
             return null;
         }
     }
@@ -138,6 +142,8 @@ public static class SymbolExtensions
         }
         catch
         {
+            // XML documentation parsing is best-effort only.
+            // Malformed XML is ignored and we fall back to no description.
             return null;
         }
     }
@@ -204,13 +210,13 @@ public static class SymbolExtensions
         }
 
         var value = typeSymbol.ToFullyQualifiedWithNullRefQualifier();
-        return value[value.Length - 1] != '?' ? value + "?" : value;
+        return value.Length > 0 && value[value.Length - 1] != '?' ? value + "?" : value;
     }
 
     public static string ToClassNonNullableFullyQualifiedWithNullRefQualifier(this ITypeSymbol typeSymbol)
     {
         var value = typeSymbol.ToFullyQualifiedWithNullRefQualifier();
-        return !typeSymbol.IsValueType && value[value.Length - 1] == '?'
+        return !typeSymbol.IsValueType && value.Length > 0 && value[value.Length - 1] == '?'
             ? value.Substring(0, value.Length - 1)
             : value;
     }

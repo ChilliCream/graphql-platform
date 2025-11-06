@@ -229,6 +229,10 @@ internal sealed class ValueCompletion
                     return false;
                 }
             }
+            else
+            {
+                target.SetNullValue();
+            }
 
             return true;
         }
@@ -457,9 +461,5 @@ file static class ValueCompletionExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNullOrUndefined(this SourceResultElement element)
-        => element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNullOrUndefined(this CompositeResultElement element)
         => element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
 }

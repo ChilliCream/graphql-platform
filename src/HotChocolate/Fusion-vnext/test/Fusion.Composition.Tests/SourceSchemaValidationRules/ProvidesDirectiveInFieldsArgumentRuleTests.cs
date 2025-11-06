@@ -52,7 +52,7 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests : RuleTestBase
                 """
                 {
                     "message": "The @provides directive on field 'User.profile' in schema 'A' references field 'name', which must not include directive applications.",
-                    "code": "PROVIDES_DIRECTIVE_IN_FIELDS_ARG",
+                    "code": "PROVIDES_DIRECTIVE_IN_FIELDS_ARGUMENT",
                     "severity": "Error",
                     "coordinate": "User.profile",
                     "member": "provides",
@@ -92,7 +92,7 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests : RuleTestBase
                 """
                 {
                     "message": "The @provides directive on field 'User.profile' in schema 'A' references field 'info.name', which must not include directive applications.",
-                    "code": "PROVIDES_DIRECTIVE_IN_FIELDS_ARG",
+                    "code": "PROVIDES_DIRECTIVE_IN_FIELDS_ARGUMENT",
                     "severity": "Error",
                     "coordinate": "User.profile",
                     "member": "provides",
@@ -128,7 +128,7 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests : RuleTestBase
                 """
                 {
                     "message": "The @provides directive on field 'User.profile' in schema 'A' references field 'id', which must not include directive applications.",
-                    "code": "PROVIDES_DIRECTIVE_IN_FIELDS_ARG",
+                    "code": "PROVIDES_DIRECTIVE_IN_FIELDS_ARGUMENT",
                     "severity": "Error",
                     "coordinate": "User.profile",
                     "member": "provides",
@@ -139,7 +139,7 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests : RuleTestBase
                 """
                 {
                     "message": "The @provides directive on field 'User.profile' in schema 'A' references field 'name', which must not include directive applications.",
-                    "code": "PROVIDES_DIRECTIVE_IN_FIELDS_ARG",
+                    "code": "PROVIDES_DIRECTIVE_IN_FIELDS_ARGUMENT",
                     "severity": "Error",
                     "coordinate": "User.profile",
                     "member": "provides",

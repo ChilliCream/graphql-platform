@@ -239,6 +239,7 @@ internal static class CompositeSchemaBuilder
                 arguments: new FusionInputFieldDefinitionCollection(
                 [
                     new FusionInputFieldDefinition(
+                        0,
                         "name",
                         null,
                         null,
@@ -301,6 +302,7 @@ internal static class CompositeSchemaBuilder
             var isDeprecated = DeprecatedDirectiveParser.TryParse(argument.Directives, out var deprecated);
 
             temp[i] = new FusionInputFieldDefinition(
+                i,
                 argument.Name.Value,
                 argument.Description?.Value,
                 argument.DefaultValue,
@@ -327,6 +329,7 @@ internal static class CompositeSchemaBuilder
             var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
 
             sourceFields[i] = new FusionInputFieldDefinition(
+                i,
                 field.Name.Value,
                 field.Description?.Value,
                 field.DefaultValue,
@@ -679,7 +682,9 @@ internal static class CompositeSchemaBuilder
         }
 
         var directives = CompletionTools.CreateDirectiveCollection(inputObjectTypeDef.Directives, context);
-        inputObjectType.Complete(new CompositeInputObjectTypeCompletionContext(directives, FeatureCollection.Empty));
+        inputObjectType.Complete(new CompositeInputObjectTypeCompletionContext(
+            directives,
+            FeatureCollection.Empty));
     }
 
     private static void CompleteInputField(

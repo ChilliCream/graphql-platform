@@ -483,6 +483,24 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry InputWithMissingOneOf(
+        MutableInputObjectTypeDefinition inputType,
+        MutableSchemaDefinition schema,
+        MutableSchemaDefinition schemaWhereOneOfIsDefined)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InputWithMissingOneOf,
+                inputType.Name,
+                schema.Name,
+                schemaWhereOneOfIsDefined.Name)
+            .SetCode(LogEntryCodes.InputWithMissingOneOf)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(inputType)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry InterfaceFieldNoImplementation(
         MutableObjectTypeDefinition objectType,
         string fieldName,
@@ -627,7 +645,7 @@ internal static class LogEntryHelper
                 type.Name,
                 schema.Name,
                 string.Join(".", fieldNamePath))
-            .SetCode(LogEntryCodes.KeyDirectiveInFieldsArg)
+            .SetCode(LogEntryCodes.KeyDirectiveInFieldsArgument)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
             .SetTypeSystemMember(keyDirective)
@@ -636,8 +654,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry KeyFieldsHasArguments(
-        string keyFieldName,
-        string keyFieldDeclaringTypeName,
+        MutableOutputFieldDefinition keyField,
         Directive keyDirective,
         MutableComplexTypeDefinition type,
         MutableSchemaDefinition schema)
@@ -647,8 +664,8 @@ internal static class LogEntryHelper
                 LogEntryHelper_KeyFieldsHasArguments,
                 type.Name,
                 schema.Name,
-                new SchemaCoordinate(keyFieldDeclaringTypeName, keyFieldName).ToString())
-            .SetCode(LogEntryCodes.KeyFieldsHasArgs)
+                keyField.Coordinate.ToString())
+            .SetCode(LogEntryCodes.KeyFieldsHasArguments)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
             .SetTypeSystemMember(keyDirective)
@@ -657,8 +674,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry KeyFieldsSelectInvalidType(
-        string keyFieldName,
-        string keyFieldDeclaringTypeName,
+        MutableOutputFieldDefinition keyField,
         Directive keyDirective,
         MutableComplexTypeDefinition type,
         MutableSchemaDefinition schema)
@@ -668,7 +684,7 @@ internal static class LogEntryHelper
                 LogEntryHelper_KeyFieldsSelectInvalidType,
                 type.Name,
                 schema.Name,
-                new SchemaCoordinate(keyFieldDeclaringTypeName, keyFieldName).ToString())
+                keyField.Coordinate.ToString())
             .SetCode(LogEntryCodes.KeyFieldsSelectInvalidType)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(type.Coordinate)
@@ -858,7 +874,7 @@ internal static class LogEntryHelper
                 coordinate.ToString(),
                 schema.Name,
                 string.Join(".", fieldNamePath))
-            .SetCode(LogEntryCodes.ProvidesDirectiveInFieldsArg)
+            .SetCode(LogEntryCodes.ProvidesDirectiveInFieldsArgument)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(coordinate)
             .SetTypeSystemMember(providesDirective)
@@ -867,8 +883,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry ProvidesFieldsHasArguments(
-        string providedFieldName,
-        string providedTypeName,
+        MutableOutputFieldDefinition providedField,
         Directive providesDirective,
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
@@ -880,8 +895,8 @@ internal static class LogEntryHelper
                 LogEntryHelper_ProvidesFieldsHasArguments,
                 coordinate.ToString(),
                 schema.Name,
-                new SchemaCoordinate(providedTypeName, providedFieldName).ToString())
-            .SetCode(LogEntryCodes.ProvidesFieldsHasArgs)
+                providedField.Coordinate.ToString())
+            .SetCode(LogEntryCodes.ProvidesFieldsHasArguments)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(coordinate)
             .SetTypeSystemMember(providesDirective)
@@ -890,8 +905,7 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry ProvidesFieldsMissingExternal(
-        string providedFieldName,
-        string providedTypeName,
+        MutableOutputFieldDefinition providedField,
         Directive providesDirective,
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
@@ -903,7 +917,7 @@ internal static class LogEntryHelper
                 LogEntryHelper_ProvidesFieldsMissingExternal,
                 coordinate.ToString(),
                 schema.Name,
-                new SchemaCoordinate(providedTypeName, providedFieldName).ToString())
+                providedField.Coordinate.ToString())
             .SetCode(LogEntryCodes.ProvidesFieldsMissingExternal)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(coordinate)
@@ -994,6 +1008,82 @@ internal static class LogEntryHelper
             .SetCode(LogEntryCodes.QueryRootTypeInaccessible)
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(type)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ReferenceToInaccessibleTypeFromFieldArgument(
+        MutableInputFieldDefinition argument,
+        MutableOutputFieldDefinition field,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument,
+                argument.Name,
+                field.Coordinate.ToString(),
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToInaccessibleType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(argument)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ReferenceToInaccessibleTypeFromInputField(
+        MutableInputFieldDefinition inputField,
+        string typeName,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToInaccessibleTypeFromInputField,
+                inputField.Name,
+                typeName,
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToInaccessibleType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(inputField)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ReferenceToInaccessibleTypeFromOutputField(
+        MutableOutputFieldDefinition outputField,
+        string typeName,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField,
+                outputField.Name,
+                typeName,
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToInaccessibleType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(outputField)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ReferenceToInternalType(
+        MutableOutputFieldDefinition outputField,
+        string typeName,
+        string referencedTypeName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_ReferenceToInternalType,
+                outputField.Name,
+                typeName,
+                referencedTypeName)
+            .SetCode(LogEntryCodes.ReferenceToInternalType)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(outputField)
             .SetSchema(schema)
             .Build();
     }

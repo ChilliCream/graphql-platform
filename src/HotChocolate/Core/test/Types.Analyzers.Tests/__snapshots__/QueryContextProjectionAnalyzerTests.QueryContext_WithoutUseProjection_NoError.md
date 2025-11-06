@@ -102,11 +102,16 @@ namespace TestNamespace
                             typeof(global::System.Threading.CancellationToken)
                         })!;
 
-                    var configurations = configuration.Configurations;
-                    configurations = configurations.Add(new global::HotChocolate.Types.UsePagingAttribute(null, 14));
-                    configurations = configurations.Add(new global::HotChocolate.Data.UseFilteringAttribute(null, 15));
-                    configurations = configurations.Add(new global::HotChocolate.Data.UseSortingAttribute(null, 16));
-                    configuration.Configurations = configurations;
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.UsePagingAttribute(null, 14),
+                        new global::HotChocolate.Data.UseFilteringAttribute(null, 15),
+                        new global::HotChocolate.Data.UseSortingAttribute(null, 16));
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
 
                     configuration.Resolvers = context.Resolvers.GetProductsAsync();
                 },

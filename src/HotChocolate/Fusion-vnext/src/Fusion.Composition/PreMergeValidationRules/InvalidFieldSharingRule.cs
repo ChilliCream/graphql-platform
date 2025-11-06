@@ -31,12 +31,7 @@ internal sealed class InvalidFieldSharingRule : IEventHandler<ObjectFieldGroupEv
         // Exclude external and overridden fields.
         var filteredFieldGroup =
             fieldGroup
-                .Where(
-                    i => i.Field.GetRequiredSourceFieldMetadata() is
-                    {
-                        IsExternal: false,
-                        IsOverridden: false
-                    })
+                .Where(i => i.Field is { IsExternal: false, IsOverridden: false })
                 .ToImmutableArray();
 
         if (filteredFieldGroup.Length < 2)
@@ -47,7 +42,7 @@ internal sealed class InvalidFieldSharingRule : IEventHandler<ObjectFieldGroupEv
         // Remaining fields must be shareable.
         foreach (var (field, _, schema) in filteredFieldGroup)
         {
-            if (!field.GetRequiredSourceFieldMetadata().IsShareable)
+            if (!field.IsShareable)
             {
                 context.Log.Write(InvalidFieldSharing(field, schema));
             }
