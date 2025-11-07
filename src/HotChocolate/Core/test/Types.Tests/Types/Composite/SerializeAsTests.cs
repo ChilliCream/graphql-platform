@@ -42,27 +42,28 @@ public static class SerializeAsTests
         public string GetBaz() => "foo";
     }
 
-    [SerializeAs(ScalarSerializationType.String)]
     public class CustomString1 : StringType
     {
         public CustomString1() : base("Custom1")
         {
+            SerializationType = ScalarSerializationType.String;
         }
     }
 
-    [SerializeAs(ScalarSerializationType.Any)]
     public class CustomString2 : StringType
     {
         public CustomString2() : base("Custom2")
         {
+            SerializationType = ScalarSerializationType.Any;
         }
     }
 
-    [SerializeAs(ScalarSerializationType.String, "\\b\\d{3}\\b")]
     public class CustomString3 : StringType
     {
         public CustomString3() : base("Custom3")
         {
+            SerializationType = ScalarSerializationType.String;
+            Pattern = "\\b\\d{3}\\b";
         }
     }
 }
