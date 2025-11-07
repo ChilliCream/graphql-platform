@@ -177,7 +177,7 @@ public class MemoryPoolCollector : EventListener
         }
 
         var parts = new List<string>();
-        for (int i = 0; i < eventData.PayloadNames.Count && i < eventData.Payload.Count; i++)
+        for (var i = 0; i < eventData.PayloadNames.Count && i < eventData.Payload.Count; i++)
         {
             parts.Add($"{eventData.PayloadNames[i]}={eventData.Payload[i]}");
         }
@@ -308,7 +308,7 @@ public class MetaDbCollector : EventListener
         }
 
         var parts = new List<string>();
-        for (int i = 0; i < eventData.PayloadNames.Count && i < eventData.Payload.Count; i++)
+        for (var i = 0; i < eventData.PayloadNames.Count && i < eventData.Payload.Count; i++)
         {
             parts.Add($"{eventData.PayloadNames[i]}={eventData.Payload[i]}");
         }
