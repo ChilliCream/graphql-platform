@@ -105,6 +105,10 @@ public sealed class ObjectValueNode : IValueNode<IReadOnlyList<ObjectFieldNode>>
     public ObjectValueNode WithLocation(Location? location)
         => new(location, Fields);
 
+    /// <inheritdoc />
+    IValueNode IValueNode.WithLocation(Location? location)
+        => WithLocation(location);
+
     /// <summary>
     /// Creates a new node from the current instance and replaces the
     /// <see cref="Fields" /> with <paramref name="fields" />.

@@ -958,6 +958,10 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
     public IntValueNode WithLocation(Location? location)
         => new(location) { _memorySegment = _memorySegment, _value = _value };
 
+    /// <inheritdoc />
+    IValueNode IValueNode.WithLocation(Location? location)
+        => WithLocation(location);
+
     /// <summary>
     /// Creates a new node from the current instance and replaces the
     /// <see cref="Value" /> with <paramref name="value" />.
