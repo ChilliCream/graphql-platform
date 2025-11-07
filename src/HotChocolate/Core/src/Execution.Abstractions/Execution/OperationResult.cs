@@ -15,7 +15,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         string? label,
         Path? path,
         bool? hasNext,
-        Func<ValueTask>[] cleanupTasks,
+        (Func<ValueTask>[] Tasks, int Length) cleanupTasks,
         bool isDataSet,
         int? requestIndex,
         int? variableIndex,
@@ -138,7 +138,8 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
     /// </returns>
     public OperationResult WithExtensions(
         IReadOnlyDictionary<string, object?>? extensions)
-        => new OperationResult(
+    {
+        return new OperationResult(
             data: Data,
             errors: Errors,
             extensions: extensions,
@@ -148,10 +149,11 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
             label: Label,
             path: Path,
             hasNext: HasNext,
-            cleanupTasks: CleanupTasks,
+            cleanupTasks: TakeCleanUpTasks(),
             isDataSet: IsDataSet,
             requestIndex: RequestIndex,
             variableIndex: VariableIndex);
+    }
 
     /// <summary>
     /// Creates a new <see cref="OperationResult"/> with the specified context data.
@@ -174,7 +176,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
             label: Label,
             path: Path,
             hasNext: HasNext,
-            cleanupTasks: CleanupTasks,
+            cleanupTasks: TakeCleanUpTasks(),
             isDataSet: IsDataSet,
             requestIndex: RequestIndex,
             variableIndex: VariableIndex);
