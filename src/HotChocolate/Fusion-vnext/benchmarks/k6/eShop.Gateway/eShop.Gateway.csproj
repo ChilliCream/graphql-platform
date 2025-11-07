@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>eShop.Gateway</RootNamespace>
-    <IsAotCompliant>true</IsAotCompliant>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
