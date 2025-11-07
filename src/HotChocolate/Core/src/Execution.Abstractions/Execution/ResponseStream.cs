@@ -70,9 +70,17 @@ public sealed class ResponseStream : ExecutionResult, IResponseStream
             ContextData,
             onFirstResult);
 
-        foreach (var cleanupTask in CleanupTasks)
+        var (tasks, length) = TakeCleanUpTasks();
+
+        if (length > 0)
         {
-            newStream.RegisterForCleanup(cleanupTask);
+            for (var i = 0; i < length; i++)
+            {
+                newStream.RegisterForCleanup(tasks[i]);
+            }
+
+            tasks.AsSpan(0, length).Clear();
+            CleanUpTaskPool.Return(tasks);
         }
 
         return newStream;
