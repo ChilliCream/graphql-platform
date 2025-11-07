@@ -229,7 +229,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             OperationDocumentCacheSize = options.OperationDocumentCacheSize,
             ApplyShareableToPageInfo = options.ApplyShareableToPageInfo,
             ApplyShareableToConnections = options.ApplyShareableToConnections,
-            ApplyShareableToNodeFields =  options.ApplyShareableToNodeFields,
+            ApplyShareableToNodeFields = options.ApplyShareableToNodeFields,
             ApplySerializeAsToScalars = options.ApplySerializeAsToScalars
         };
 }

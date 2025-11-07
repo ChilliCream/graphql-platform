@@ -56,7 +56,8 @@ public sealed class InvalidFieldSharingRuleTests : RuleTestBase
 
     // In the following example, "User.fullName" is marked as @external in one schema and therefore
     // the field can be defined in the other schema without being marked as @shareable.
-    [Fact] public void Validate_ValidFieldSharingOneDefinitionExternal_Succeeds()
+    [Fact]
+    public void Validate_ValidFieldSharingOneDefinitionExternal_Succeeds()
     {
         AssertValid(
         [
