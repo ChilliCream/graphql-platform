@@ -108,7 +108,7 @@ internal static partial class TestHelper
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute).Assembly.Location),
 
             // HotChocolate.Authorization
-            MetadataReference.CreateFromFile(typeof(HotChocolate.Authorization.AuthorizeAttribute).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(Authorization.AuthorizeAttribute).Assembly.Location)
         ];
 
         // Create a Roslyn compilation for the syntax tree.

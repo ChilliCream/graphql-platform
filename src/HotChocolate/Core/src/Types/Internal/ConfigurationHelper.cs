@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;

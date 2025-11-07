@@ -13,7 +13,7 @@ public sealed class SchemaComposerOptions
     /// <summary>
     /// Configuration options for preprocessing source schemas.
     /// </summary>
-    public Dictionary<string, SourceSchemaPreprocessorOptions> Preprocessor { get; } = new();
+    public Dictionary<string, SourceSchemaPreprocessorOptions> Preprocessor { get; } = [];
 
     /// <summary>
     /// Configuration options for merging source schemas.

@@ -169,8 +169,10 @@ public sealed class NodeResolverIdParameterCodeFixProvider : CodeFixProvider
         var newParametersAndSeparators = new List<SyntaxNodeOrToken>();
 
         // Build the new ordered list of parameters
-        var orderedParams = new List<ParameterSyntax>();
-        orderedParams.Add(parameterToMove);
+        var orderedParams = new List<ParameterSyntax>
+        {
+            parameterToMove
+        };
         for (var i = 0; i < parameters.Count; i++)
         {
             if (i != parameterIndex)

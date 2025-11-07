@@ -15,8 +15,187 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  fusion-gateway:
+    name: "Fusion Gateway Benchmarks"
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    runs-on: benchmarking
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          show-progress: false
+
+      - name: Checkout performance data repository
+        uses: actions/checkout@v4
+        with:
+          repository: ChilliCream/graphql-platform-performance-data
+          token: ${{ secrets.PERFORMANCE_DATA_TOKEN }}
+          path: performance-data-repo
+          fetch-depth: 0
+          show-progress: false
+
+      - name: Install k6
+        run: |
+          if ! command -v k6 &> /dev/null; then
+            echo "Installing k6..."
+            sudo gpg -k
+            sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+            echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+            sudo apt-get update
+            sudo apt-get install k6 -y
+          fi
+          k6 version
+
+      - name: Install jq for result parsing
+        run: |
+          if ! command -v jq &> /dev/null; then
+            sudo apt-get install jq -y
+          fi
+
+      - name: Make scripts executable
+        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
+        run: chmod +x *.sh
+
+      - name: Run Fusion benchmarks
+        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
+        run: |
+          echo "Starting Fusion Gateway benchmarks..."
+          ./run-benchmarks.sh 2>&1 | tee /tmp/fusion-benchmark.log
+
+      - name: Generate performance report
+        if: always()
+        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
+        run: |
+          # Create a markdown report from the results
+          cat > fusion-performance-report.md << 'EOF'
+          # Fusion Gateway Performance Report
+
+          ## Test Results
+
+          ### Single Fetch Test (Simple Query)
+
+          EOF
+
+          # Add single fetch results if they exist
+          if [ -f results/summary-aot-single.json ] && [ -f results/summary-release-single.json ]; then
+            echo "#### AOT Mode" >> fusion-performance-report.md
+            echo '```' >> fusion-performance-report.md
+            jq -r '.metrics.http_req_duration | "p50: \(.values."p(50)")ms, p95: \(.values."p(95)")ms, p99: \(.values."p(99)")ms"' results/summary-aot-single.json >> fusion-performance-report.md
+            echo '```' >> fusion-performance-report.md
+            echo "" >> fusion-performance-report.md
+
+            echo "#### Release Mode" >> fusion-performance-report.md
+            echo '```' >> fusion-performance-report.md
+            jq -r '.metrics.http_req_duration | "p50: \(.values."p(50)")ms, p95: \(.values."p(95)")ms, p99: \(.values."p(99)")ms"' results/summary-release-single.json >> fusion-performance-report.md
+            echo '```' >> fusion-performance-report.md
+            echo "" >> fusion-performance-report.md
+          fi
+
+          echo "### No Recursion Test (Complex Query)" >> fusion-performance-report.md
+          echo "" >> fusion-performance-report.md
+
+          # Add no recursion results if they exist
+          if [ -f results/summary-aot-no-recursion.json ] && [ -f results/summary-release-no-recursion.json ]; then
+            echo "#### AOT Mode" >> fusion-performance-report.md
+            echo '```' >> fusion-performance-report.md
+            jq -r '.metrics.http_req_duration | "p50: \(.values."p(50)")ms, p95: \(.values."p(95)")ms, p99: \(.values."p(99)")ms"' results/summary-aot-no-recursion.json >> fusion-performance-report.md
+            echo '```' >> fusion-performance-report.md
+            echo "" >> fusion-performance-report.md
+
+            echo "#### Release Mode" >> fusion-performance-report.md
+            echo '```' >> fusion-performance-report.md
+            jq -r '.metrics.http_req_duration | "p50: \(.values."p(50)")ms, p95: \(.values."p(95)")ms, p99: \(.values."p(99)")ms"' results/summary-release-no-recursion.json >> fusion-performance-report.md
+            echo '```' >> fusion-performance-report.md
+            echo "" >> fusion-performance-report.md
+          fi
+
+          # Run the comparison script if available
+          if [ -x compare-results.sh ]; then
+            echo "## AOT vs Release Comparison" >> fusion-performance-report.md
+            echo "" >> fusion-performance-report.md
+            echo '```' >> fusion-performance-report.md
+            ./compare-results.sh >> fusion-performance-report.md 2>&1 || true
+            echo '```' >> fusion-performance-report.md
+          fi
+
+          cat fusion-performance-report.md
+
+      - name: Comment PR with performance report
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const reportPath = 'src/HotChocolate/Fusion-vnext/benchmarks/k6/fusion-performance-report.md';
+
+            let report;
+            try {
+              report = fs.readFileSync(reportPath, 'utf8');
+            } catch (error) {
+              console.log('No performance report found, skipping comment');
+              return;
+            }
+
+            const timestamp = new Date().toUTCString();
+            const commitSha = context.sha.substring(0, 7);
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const commentBody = `${report}\n\n---\n*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: commentBody,
+            });
+
+      - name: Upload performance data as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fusion-performance-data
+          path: |
+            src/HotChocolate/Fusion-vnext/benchmarks/k6/results/*.json
+            src/HotChocolate/Fusion-vnext/benchmarks/k6/fusion-performance-report.md
+            /tmp/fusion-benchmark.log
+          retention-days: 30
+
+      - name: Store performance data to external repository
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: performance-data-repo
+        run: |
+          # Create directory for Fusion data if it doesn't exist
+          mkdir -p fusion-gateway
+
+          # Copy the new performance data
+          if [ -d ../src/HotChocolate/Fusion-vnext/benchmarks/k6/results ]; then
+            cp -r ../src/HotChocolate/Fusion-vnext/benchmarks/k6/results/* fusion-gateway/
+          fi
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Add and commit the performance data
+          git add fusion-gateway/
+
+          # Only commit if there are changes
+          if ! git diff --staged --quiet; then
+            git commit -m "Update Fusion Gateway performance data from ${{ github.sha }}"
+            git push
+          else
+            echo "No changes to Fusion performance data"
+          fi
+
   hotchocolate-core:
     name: "HotChocolate Core Benchmarks"
+    needs: fusion-gateway
     if: github.event_name == 'push' || github.event.pull_request.draft == false
     runs-on: benchmarking
     permissions:

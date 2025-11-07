@@ -1,10 +1,13 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Composite;
 
 namespace HotChocolate.Types;
 
-[SerializeAs(ScalarSerializationType.Int)]
+/// <summary>
+/// Represents a scalar type for 64-bit signed integers (long) in GraphQL.
+/// This type serializes as an integer and supports values from -9,223,372,036,854,775,808
+/// to 9,223,372,036,854,775,807.
+/// </summary>
 public class LongType : IntegerTypeBase<long>
 {
     /// <summary>
@@ -32,6 +35,7 @@ public class LongType : IntegerTypeBase<long>
         : base(name, min, max, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.Int;
     }
 
     /// <summary>

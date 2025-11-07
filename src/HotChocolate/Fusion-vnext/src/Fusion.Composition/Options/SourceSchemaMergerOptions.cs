@@ -13,7 +13,7 @@ public sealed class SourceSchemaMergerOptions
     /// <summary>
     /// Defines how to handle <c>@cacheControl</c> directives when merging source schemas.
     /// </summary>
-    public DirectiveMergeBehavior CacheControlMergeBehavior { get; set; }
+    public DirectiveMergeBehavior CacheControlMergeBehavior { get; set; } = DirectiveMergeBehavior.Include;
 
     /// <summary>
     /// Enables the inclusion of Global Object Identification fields.

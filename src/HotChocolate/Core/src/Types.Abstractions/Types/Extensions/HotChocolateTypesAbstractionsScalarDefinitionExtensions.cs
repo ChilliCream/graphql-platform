@@ -6,11 +6,11 @@ public static class HotChocolateTypesAbstractionsScalarDefinitionExtensions
 {
     private static readonly FrozenDictionary<string, ScalarSerializationType> s_serializationTypeLookup =
         new Dictionary<string, ScalarSerializationType>
-            {
-                ["https://scalars.graphql.org/andimarek/date-time.html"] = ScalarSerializationType.String,
-                ["https://scalars.graphql.org/andimarek/local-date.html"] = ScalarSerializationType.String
-            }
-            .ToFrozenDictionary();
+        {
+            ["https://scalars.graphql.org/andimarek/date-time.html"] = ScalarSerializationType.String,
+            ["https://scalars.graphql.org/andimarek/local-date.html"] = ScalarSerializationType.String
+        }
+        .ToFrozenDictionary();
 
     public static ScalarSerializationType GetScalarSerializationType(
         this IScalarTypeDefinition scalarTypeDefinition)

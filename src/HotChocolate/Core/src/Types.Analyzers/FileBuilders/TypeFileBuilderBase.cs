@@ -636,7 +636,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             return;
         }
 
-        foreach (var parameter in  resolver.Parameters)
+        foreach (var parameter in resolver.Parameters)
         {
             if (parameter.Kind is ResolverParameterKind.Unknown)
             {
