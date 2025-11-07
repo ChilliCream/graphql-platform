@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.IO.Pipelines;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using static HotChocolate.Execution.ExecutionResultKind;
@@ -42,31 +43,13 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
     /// <summary>
     /// Formats an <see cref="IExecutionResult"/> into a multipart stream.
     /// </summary>
-    /// <param name="result">
-    /// The result that shall be formatted.
-    /// </param>
-    /// <param name="outputStream">
-    /// The stream to which the result shall be written.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
-    /// </param>
-    /// <returns>
-    /// A task representing the asynchronous operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="result"/> is <c>null</c>.
-    /// </exception>
-    /// <exception cref="NotSupportedException">
-    /// The formatter does not support the specified result.
-    /// </exception>
     public ValueTask FormatAsync(
         IExecutionResult result,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(outputStream);
+        ArgumentNullException.ThrowIfNull(writer);
 
         if (result.Kind == SubscriptionResult)
         {
@@ -77,39 +60,37 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         return result switch
         {
             IOperationResult operationResult
-                => FormatOperationResultAsync(operationResult, outputStream, cancellationToken),
+                => FormatOperationResultAsync(operationResult, writer, cancellationToken),
             OperationResultBatch resultBatch
-                => FormatResultBatchAsync(resultBatch, outputStream, cancellationToken),
+                => FormatResultBatchAsync(resultBatch, writer, cancellationToken),
             IResponseStream responseStream
-                => FormatResponseStreamAsync(responseStream, outputStream, cancellationToken),
+                => FormatResponseStreamAsync(responseStream, writer, cancellationToken),
             _ => throw new NotSupportedException()
         };
     }
 
     private async ValueTask FormatOperationResultAsync(
         IOperationResult result,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken ct = default)
     {
-        using var buffer = new PooledArrayWriter();
-        MessageHelper.WriteNext(buffer);
+        MessageHelper.WriteNext(writer);
 
         // First, we write the header of the part.
-        MessageHelper.WriteResultHeader(buffer);
+        MessageHelper.WriteResultHeader(writer);
 
         // Next, we write the payload of the part.
-        MessageHelper.WritePayload(buffer, result, _payloadFormatter);
+        MessageHelper.WritePayload(writer, result, _payloadFormatter);
 
         // Last we write the end of the part.
-        MessageHelper.WriteEnd(buffer);
+        MessageHelper.WriteEnd(writer);
 
-        await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
-        await outputStream.FlushAsync(ct).ConfigureAwait(false);
+        await writer.FlushAsync(ct).ConfigureAwait(false);
     }
 
     private async ValueTask FormatResultBatchAsync(
         OperationResultBatch resultBatch,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken ct = default)
     {
         PooledArrayWriter? buffer = null;
@@ -123,12 +104,11 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
                     MessageHelper.WriteResultHeader(buffer);
                     MessageHelper.WritePayload(buffer, operationResult, _payloadFormatter);
                     MessageHelper.WriteEnd(buffer);
-                    await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
-                    await outputStream.FlushAsync(ct).ConfigureAwait(false);
+                    await writer.FlushAsync(ct).ConfigureAwait(false);
                     break;
 
                 case IResponseStream responseStream:
-                    await FormatResponseStreamAsync(responseStream, outputStream, ct).ConfigureAwait(false);
+                    await FormatResponseStreamAsync(responseStream, writer, ct).ConfigureAwait(false);
                     break;
             }
         }
@@ -138,11 +118,10 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 
     private async ValueTask FormatResponseStreamAsync(
         IResponseStream responseStream,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken ct = default)
     {
         // first, we create the iterator.
-        using var buffer = new PooledArrayWriter();
         await using var enumerator = responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);
         var first = true;
 
@@ -150,30 +129,27 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         {
             try
             {
-                buffer.Reset();
-
                 if (first || responseStream.Kind is not DeferredResult)
                 {
-                    MessageHelper.WriteNext(buffer);
+                    MessageHelper.WriteNext(writer);
                     first = false;
                 }
 
                 // First, we write the header of the part.
-                MessageHelper.WriteResultHeader(buffer);
+                MessageHelper.WriteResultHeader(writer);
 
                 // Next, we write the payload of the part.
-                MessageHelper.WritePayload(buffer, enumerator.Current, _payloadFormatter);
+                MessageHelper.WritePayload(writer, enumerator.Current, _payloadFormatter);
 
                 if (responseStream.Kind is DeferredResult && (enumerator.Current.HasNext ?? false))
                 {
                     // If the result is a deferred result and has a next result, we need to
                     // write a new part so that the client knows that there is more to come.
-                    MessageHelper.WriteNext(buffer);
+                    MessageHelper.WriteNext(writer);
                 }
 
                 // Now we can write the part to the output stream and flush this chunk.
-                await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
-                await outputStream.FlushAsync(ct).ConfigureAwait(false);
+                await writer.FlushAsync(ct).ConfigureAwait(false);
             }
             finally
             {
@@ -184,10 +160,8 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         }
 
         // After all parts have been written, we need to write the final boundary.
-        buffer.Reset();
-        MessageHelper.WriteEnd(buffer);
-        await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
-        await outputStream.FlushAsync(ct).ConfigureAwait(false);
+        MessageHelper.WriteEnd(writer);
+        await writer.FlushAsync(ct).ConfigureAwait(false);
     }
 
     private static class MessageHelper

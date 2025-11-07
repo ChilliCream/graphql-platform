@@ -1,4 +1,12 @@
+#if FUSION
+using HotChocolate.Transport;
+#endif
+
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
 /// <summary>
 /// Provides extension methods for <see cref="GraphQLHttpClient"/>.

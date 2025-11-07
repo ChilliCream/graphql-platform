@@ -8,8 +8,7 @@ namespace HotChocolate.Types;
 /// The TimeSpan scalar type represented in two formats:
 /// <see cref="TimeSpanFormat.Iso8601"/> and <see cref="TimeSpanFormat.DotNet"/>
 /// </summary>
-public class TimeSpanType
-    : ScalarType<TimeSpan, StringValueNode>
+public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
 {
     public TimeSpanFormat Format { get; }
 
@@ -29,6 +28,7 @@ public class TimeSpanType
     {
         Format = format;
         Description = description;
+        SerializationType = ScalarSerializationType.String;
     }
 
     [ActivatorUtilitiesConstructor]

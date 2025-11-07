@@ -45,31 +45,31 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       interface ProductList {
         products: [Product]
       }
-      
-      type Item1 implements Node & ProductList @key(fields: "id") {
+
+      type Item1 implements Node & ProductList {
         id: ID!
         products: [Product]
       }
-      
-      type Item2 implements Node & ProductList @key(fields: "id") {
+
+      type Item2 implements Node & ProductList {
         id: ID!
         products: [Product]
       }
-      
-      type Product implements Node @key(fields: "id") {
+
+      type Product implements Node {
         id: ID!
       }
-      
+
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
@@ -119,18 +119,18 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
-      type Product implements Node @key(fields: "id") {
+
+      type Product implements Node {
         id: ID!
         name: String
       }
-      
+
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
@@ -226,6 +226,8 @@ operationPlan:
             id
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 3
@@ -246,6 +248,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 4
@@ -288,6 +292,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 6

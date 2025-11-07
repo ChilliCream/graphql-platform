@@ -20,6 +20,11 @@ public interface IOutputTypeInfo
     string Namespace { get; }
 
     /// <summary>
+    /// Gets the description of the object type.
+    /// </summary>
+    string? Description { get; }
+
+    /// <summary>
     /// Defines if the type is a public.
     /// </summary>
     bool IsPublic { get; }
@@ -69,11 +74,15 @@ public interface IOutputTypeInfo
 
     ImmutableArray<Diagnostic> Diagnostics { get; }
 
+    DirectiveScope Shareable { get; }
+
+    DirectiveScope Inaccessible { get; }
+
+    ImmutableArray<AttributeData> Attributes { get; }
+
     void AddDiagnostic(Diagnostic diagnostic);
 
     void AddDiagnosticRange(ImmutableArray<Diagnostic> diagnostics);
 
-    void ReplaceResolver(
-        Resolver current,
-        Resolver replacement);
+    void ReplaceResolver(Resolver current, Resolver replacement);
 }

@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Reflection;
-using HotChocolate.Types;
 
 namespace HotChocolate.Internal;
 
@@ -10,7 +9,7 @@ namespace HotChocolate.Internal;
 public sealed partial class ExtendedType : IExtendedType
 {
     internal static ImmutableHashSet<Type> NonEssentialWrapperTypes { get; set; } =
-        [typeof(ValueTask<>), typeof(Task<>), typeof(NativeType<>), typeof(Optional<>)];
+        [typeof(ValueTask<>), typeof(Task<>), typeof(NamedRuntimeType<>), typeof(Optional<>)];
 
     private ExtendedType(
         Type type,
@@ -205,12 +204,16 @@ public sealed partial class ExtendedType : IExtendedType
         return Members.FromMember(member, cache);
     }
 
-    internal static ExtendedMethodInfo FromMethod(MethodInfo method, TypeCache cache)
+    internal static ExtendedMethodInfo FromMethod(
+        MethodInfo method,
+        ParameterInfo[] parameters,
+        TypeCache cache)
     {
         ArgumentNullException.ThrowIfNull(method);
+        ArgumentNullException.ThrowIfNull(parameters);
         ArgumentNullException.ThrowIfNull(cache);
 
-        return Members.FromMethod(method, cache);
+        return Members.FromMethod(method, parameters, cache);
     }
 
     /// <summary>

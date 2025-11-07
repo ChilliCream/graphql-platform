@@ -58,7 +58,7 @@ internal static class ResultHelper
             label: null,
             path: null,
             hasNext: null,
-            cleanupTasks: [],
+            cleanupTasks: ([], 0),
             isDataSet: false,
             requestIndex: null,
             variableIndex: null,

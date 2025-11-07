@@ -1,0 +1,179 @@
+title: Unresolvable_Subgraph_Is_Not_Chosen_If_Data_Is_Available_In_Resolvable_Subgraph
+request:
+  document: |
+    {
+      viewer {
+        product {
+          id
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "viewer": {
+          "product": {
+            "id": "UHJvZHVjdDoy",
+            "name": "Product: UHJvZHVjdDoy"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node @key(fields: "id") {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+      }
+
+      type Query {
+        viewer: Viewer
+      }
+
+      type Viewer {
+        product: Product!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_ab5a0549_1 {
+              viewer {
+                product {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "product": {
+                      "id": "UHJvZHVjdDoy"
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        name: String! @shareable
+      }
+
+      type Query {
+        test: Test!
+      }
+
+      type Test {
+        id: ID!
+      }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String! @shareable
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_ab5a0549_2(
+              $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "UHJvZHVjdDoy"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDoy"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          viewer {
+            product {
+              id
+              id @fusion__requirement
+              name
+            }
+          }
+        }
+      hash: ab5a05497f5464d885f19433725b3475
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_ab5a0549_1 {
+          viewer {
+            product {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: C
+      operation: |
+        query Op_ab5a0549_2(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.viewer.product
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

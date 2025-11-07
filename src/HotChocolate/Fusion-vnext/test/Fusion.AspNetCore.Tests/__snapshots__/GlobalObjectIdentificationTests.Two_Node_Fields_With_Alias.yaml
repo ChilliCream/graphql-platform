@@ -33,18 +33,18 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Discussion implements Node {
         id: ID!
         title: String!
       }
-      
+
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
     interactions:
@@ -93,18 +93,18 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Discussion implements Node {
         id: ID!
         commentCount: Int!
       }
-      
+
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
         discussion(id: ID!): Discussion @lookup
       }
     interactions:
@@ -143,11 +143,11 @@ operationPlan:
           }
           b: node(id: "RGlzY3Vzc2lvbjoy") {
             __typename @fusion__requirement
+            id @fusion__requirement
             ... on Discussion {
               title
               commentCount
             }
-            id @fusion__requirement
           }
         }
       hash: a361113ff8d3c2a57d63e65e469e73a7

@@ -17,19 +17,19 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
-      type Author {
+
+      type Author @key(fields: "id") {
         id: Int!
       }
-      
+
       type Book {
         id: Int!
         title: String!
-        author: Author!
+        author: Author! @shareable
       }
-      
+
       "A connection to a list of items."
-      type BooksConnection {
+      type BooksConnection @shareable {
         "Information to aid in pagination."
         pageInfo: PageInfo!
         "A list of edges."
@@ -37,17 +37,17 @@ sourceSchemas:
         "A flattened list of the nodes."
         nodes: [Book!]
       }
-      
+
       "An edge in a connection."
-      type BooksEdge {
+      type BooksEdge @shareable {
         "A cursor for use in pagination."
         cursor: String!
         "The item at the end of the edge."
         node: Book!
       }
-      
+
       "Information about pagination in a connection."
-      type PageInfo {
+      type PageInfo @shareable {
         "Indicates whether more edges exist following the set defined by the clients arguments."
         hasNextPage: Boolean!
         "Indicates whether more edges exist prior the set defined by the clients arguments."
@@ -57,7 +57,7 @@ sourceSchemas:
         "When paginating forwards, the cursor to continue."
         endCursor: String
       }
-      
+
       type Query {
         bookById(id: Int!): Book! @lookup
         books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
@@ -82,15 +82,15 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Author {
         books: [Book!]!
         id: Int!
         name: String!
       }
-      
+
       "A connection to a list of items."
-      type AuthorsConnection {
+      type AuthorsConnection @shareable {
         "Information to aid in pagination."
         pageInfo: PageInfo!
         "A list of edges."
@@ -98,23 +98,23 @@ sourceSchemas:
         "A flattened list of the nodes."
         nodes: [Author!]
       }
-      
+
       "An edge in a connection."
-      type AuthorsEdge {
+      type AuthorsEdge @shareable {
         "A cursor for use in pagination."
         cursor: String!
         "The item at the end of the edge."
         node: Author!
       }
-      
+
       type Book {
         idAndTitle(title: String! @require(field: "title")): String!
         id: Int!
-        author: Author!
+        author: Author! @shareable
       }
-      
+
       "Information about pagination in a connection."
-      type PageInfo {
+      type PageInfo @shareable {
         "Indicates whether more edges exist following the set defined by the clients arguments."
         hasNextPage: Boolean!
         "Indicates whether more edges exist prior the set defined by the clients arguments."
@@ -124,7 +124,7 @@ sourceSchemas:
         "When paginating forwards, the cursor to continue."
         endCursor: String
       }
-      
+
       type Query {
         bookById(id: Int!): Book! @internal @lookup
         authorById(id: Int!): Author! @internal @lookup

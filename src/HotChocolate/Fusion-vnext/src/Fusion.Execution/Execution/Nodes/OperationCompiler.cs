@@ -1,3 +1,4 @@
+using System.Buffers;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -9,9 +10,10 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public sealed class OperationCompiler
 {
     private readonly ISchemaDefinition _schema;
-    private readonly InlineFragmentOperationRewriter _inlineRewriter;
+    private readonly DocumentRewriter _documentRewriter;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
     private readonly TypeNameField _typeNameField;
+    private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
 
     public OperationCompiler(
         ISchemaDefinition schema,
@@ -22,8 +24,8 @@ public sealed class OperationCompiler
 
         _schema = schema;
         _fieldsPool = fieldsPool;
-        _inlineRewriter = new InlineFragmentOperationRewriter(schema, removeStaticallyExcludedSelections: true);
-        var nonNullStringType = new NonNullType(_schema.Types.GetType<IScalarTypeDefinition>(SpecScalarNames.String));
+        _documentRewriter = new(schema, removeStaticallyExcludedSelections: true);
+        var nonNullStringType = new NonNullType(_schema.Types.GetType<IScalarTypeDefinition>(SpecScalarNames.String.Name));
         _typeNameField = new TypeNameField(nonNullStringType);
     }
 
@@ -33,16 +35,18 @@ public sealed class OperationCompiler
         ArgumentNullException.ThrowIfNull(operationDefinition);
 
         var document = new DocumentNode(new IDefinitionNode[] { operationDefinition });
-        document = _inlineRewriter.RewriteDocument(document);
+        document = _documentRewriter.RewriteDocument(document);
         operationDefinition = (OperationDefinitionNode)document.Definitions[0];
 
         var includeConditions = new IncludeConditionCollection();
         IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
         var fields = _fieldsPool.Get();
 
+        var compilationContext = new CompilationContext(s_objectArrayPool.Rent(128));
+
         try
         {
-            var lastId = 0u;
+            var lastId = 0;
             const ulong parentIncludeFlags = 0ul;
             var rootType = _schema.GetOperationType(operationDefinition.Operation);
 
@@ -56,7 +60,10 @@ public sealed class OperationCompiler
             var selectionSet = BuildSelectionSet(
                 fields,
                 rootType,
+                compilationContext,
                 ref lastId);
+
+            compilationContext.Register(selectionSet, selectionSet.Id);
 
             return new Operation(
                 id,
@@ -67,7 +74,8 @@ public sealed class OperationCompiler
                 selectionSet,
                 this,
                 includeConditions,
-                lastId);
+                lastId,
+                compilationContext.ElementsById); // Pass the populated array
         }
         finally
         {
@@ -79,9 +87,12 @@ public sealed class OperationCompiler
         Selection selection,
         IObjectTypeDefinition objectType,
         IncludeConditionCollection includeConditions,
-        ref uint lastId)
+        ref object[] elementsById,
+        ref int lastId)
     {
+        var compilationContext = new CompilationContext(elementsById);
         var fields = _fieldsPool.Get();
+        fields.Clear();
 
         try
         {
@@ -110,7 +121,10 @@ public sealed class OperationCompiler
                 }
             }
 
-            return BuildSelectionSet(fields, objectType, ref lastId);
+            var selectionSet = BuildSelectionSet(fields, objectType, compilationContext, ref lastId);
+            compilationContext.Register(selectionSet, selectionSet.Id);
+            elementsById = compilationContext.ElementsById;
+            return selectionSet;
         }
         finally
         {
@@ -173,12 +187,14 @@ public sealed class OperationCompiler
     private SelectionSet BuildSelectionSet(
         OrderedDictionary<string, List<FieldSelectionNode>> fieldMap,
         IObjectTypeDefinition typeContext,
-        ref uint lastId)
+        CompilationContext compilationContext,
+        ref int lastId)
     {
         var i = 0;
         var selections = new Selection[fieldMap.Count];
         var isConditional = false;
         var includeFlags = new List<ulong>();
+        var selectionSetId = ++lastId;
 
         foreach (var (responseName, nodes) in fieldMap)
         {
@@ -225,7 +241,7 @@ public sealed class OperationCompiler
                 ? _typeNameField
                 : typeContext.Fields[first.Node.Name.Value];
 
-            selections[i++] = new Selection(
+            var selection = new Selection(
                 ++lastId,
                 responseName,
                 field,
@@ -233,13 +249,17 @@ public sealed class OperationCompiler
                 includeFlags.ToArray(),
                 isInternal);
 
+            // Register the selection in the elements array
+            compilationContext.Register(selection, selection.Id);
+            selections[i++] = selection;
+
             if (includeFlags.Count > 1)
             {
                 isConditional = true;
             }
         }
 
-        return new SelectionSet(++lastId, typeContext, selections, isConditional);
+        return new SelectionSet(selectionSetId, typeContext, selections, isConditional);
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)
@@ -314,7 +334,7 @@ public sealed class OperationCompiler
         return false;
     }
 
-    private bool IsInternal(FieldNode fieldNode)
+    private static bool IsInternal(FieldNode fieldNode)
     {
         const string isInternal = "fusion__requirement";
         var directives = fieldNode.Directives;
@@ -381,6 +401,26 @@ public sealed class OperationCompiler
             }
 
             return base.Enter(node, context);
+        }
+    }
+
+    private class CompilationContext(object[] elementsById)
+    {
+        private object[] _elementsById = elementsById;
+
+        public object[] ElementsById => _elementsById;
+
+        public void Register(object element, int id)
+        {
+            if (id >= _elementsById.Length)
+            {
+                var newArray = s_objectArrayPool.Rent(_elementsById.Length * 2);
+                _elementsById.AsSpan().CopyTo(newArray);
+                s_objectArrayPool.Return(_elementsById);
+                _elementsById = newArray;
+            }
+
+            _elementsById[id] = element;
         }
     }
 }

@@ -1336,11 +1336,10 @@ public class AnnotationBasedMutations
                 .BuildSchemaAsync();
 
         // act & assert
-        var exception =
-            (SchemaException?)(await Assert.ThrowsAsync<SchemaException>(Act)).Errors[0].Exception;
+        var exception = (SchemaException?)(await Assert.ThrowsAsync<SchemaException>(Act)).Errors[0].Exception;
 
         Assert.Equal(
-            "The mutation field 'DoSomething' must return a value.",
+            "The mutation field 'doSomething' must return a value.",
             exception?.Errors[0].Message);
     }
 
@@ -1854,12 +1853,12 @@ public class AnnotationBasedMutations
 
     public interface IInterfaceError
     {
-        public string Name { get; }
+        string Name { get; }
     }
 
     public interface IInterfaceError2
     {
-        public string Name { get; }
+        string Name { get; }
     }
 
     public class ErrorWithInterface : IInterfaceError, IInterfaceError2
@@ -1871,7 +1870,7 @@ public class AnnotationBasedMutations
 
     public interface IErrorInterface
     {
-        public string Message { get; }
+        string Message { get; }
     }
 
     public class MutationWithVoidResult

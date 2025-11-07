@@ -1,36 +1,22 @@
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Caching;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Internal;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
-using Microsoft.Extensions.Options;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 internal static class InternalServiceCollectionExtensions
 {
-    internal static IServiceCollection TryAddRequestExecutorFactoryOptionsMonitor(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton<IRequestExecutorOptionsMonitor>(
-            sp => new DefaultRequestExecutorOptionsMonitor(
-                sp.GetRequiredService<IOptionsMonitor<RequestExecutorSetup>>(),
-                sp.GetServices<IRequestExecutorOptionsProvider>()));
-        return services;
-    }
-
     internal static IServiceCollection TryAddVariableCoercion(
         this IServiceCollection services)
     {
@@ -154,35 +140,22 @@ internal static class InternalServiceCollectionExtensions
     {
         services.TryAddSingleton<RequestExecutorManager>();
         services.TryAddSingleton<IRequestExecutorProvider>(sp => sp.GetRequiredService<RequestExecutorManager>());
-        services.TryAddSingleton<IRequestExecutorWarmup>(sp => sp.GetRequiredService<RequestExecutorManager>());
         services.TryAddSingleton<IRequestExecutorEvents>(sp => sp.GetRequiredService<RequestExecutorManager>());
         services.TryAddSingleton<IRequestExecutorManager>(sp => sp.GetRequiredService<RequestExecutorManager>());
         return services;
     }
 
-    internal static IServiceCollection TryAddDefaultCaches(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton(_ => new PreparedOperationCacheOptions { Capacity = 256 });
-        services.TryAddSingleton<IDocumentCache>(
-            sp => new DefaultDocumentCache(
-                sp.GetRequiredService<PreparedOperationCacheOptions>().Capacity));
-        return services;
-    }
-
-    internal static IServiceCollection TryAddDefaultDocumentHashProvider(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton<IDocumentHashProvider>(
-            _ => new MD5DocumentHashProvider(HashFormat.Hex));
-        return services;
-    }
-
     internal static IServiceCollection TryAddDefaultBatchDispatcher(
-        this IServiceCollection services)
+        this IServiceCollection services,
+        BatchDispatcherOptions options)
     {
         services.TryAddScoped<IBatchScheduler, AutoBatchScheduler>();
-        services.TryAddScoped<IBatchDispatcher, BatchDispatcher>();
+
+        services.RemoveAll<IBatchDispatcher>();
+        services.AddScoped<IBatchDispatcher>(
+            sp => new BatchDispatcher(
+                sp.GetRequiredService<IDataLoaderDiagnosticEvents>(),
+                options));
         return services;
     }
 
@@ -193,8 +166,7 @@ internal static class InternalServiceCollectionExtensions
         services.RemoveAll<IDataLoaderScope>();
         services.TryAddSingleton<DataLoaderScopeHolder>();
         services.TryAddScoped<IDataLoaderScopeFactory, ExecutionDataLoaderScopeFactory>();
-        services.TryAddScoped(
-            sp => sp.GetRequiredService<DataLoaderScopeHolder>().GetOrCreateScope(sp));
+        services.TryAddScoped(sp => sp.GetRequiredService<DataLoaderScopeHolder>().GetOrCreateScope(sp));
         return services;
     }
 

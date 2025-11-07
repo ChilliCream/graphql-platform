@@ -67,5 +67,5 @@ internal sealed class QueryCacheMiddleware
                 var middleware = new QueryCacheMiddleware(next, options);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(QueryCacheMiddleware));
+            WellKnownRequestMiddleware.QueryCacheMiddleware);
 }

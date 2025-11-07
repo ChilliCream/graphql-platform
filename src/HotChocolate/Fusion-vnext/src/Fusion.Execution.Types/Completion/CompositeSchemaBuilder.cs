@@ -9,6 +9,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static System.Runtime.InteropServices.ImmutableCollectionsMarshal;
+using static HotChocolate.Types.DirectiveNames;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
@@ -22,8 +23,9 @@ internal static class CompositeSchemaBuilder
     {
         services ??= EmptyServiceProvider.Instance;
         var typeInterceptor = CreateTypeInterceptor(services);
-        var context = CreateTypes(name, schemaDocument, services, features, typeInterceptor);
-        return CompleteTypes(context);
+        var options = FusionSchemaOptions.From(features?.Get<IFusionSchemaOptions>());
+        var context = CreateTypes(name, schemaDocument, services, features, options, typeInterceptor);
+        return CompleteTypes(context, options);
     }
 
     private static CompositeSchemaBuilderContext CreateTypes(
@@ -31,6 +33,7 @@ internal static class CompositeSchemaBuilder
         DocumentNode schemaDocument,
         IServiceProvider services,
         IFeatureCollection? features,
+        FusionSchemaOptions options,
         CompositeTypeInterceptor typeInterceptor)
     {
         string? description = null;
@@ -113,8 +116,11 @@ internal static class CompositeSchemaBuilder
                     break;
 
                 case DirectiveDefinitionNode directiveType:
-                    directiveTypes.Add(CreateDirectiveType(directiveType));
-                    directiveDefinitions.Add(directiveType.Name.Value, directiveType);
+                    if (options.ApplySerializeAsToScalars || !directiveType.Name.Value.Equals(SerializeAs.Name))
+                    {
+                        directiveTypes.Add(CreateDirectiveType(directiveType));
+                        directiveDefinitions.Add(directiveType.Name.Value, directiveType);
+                    }
                     break;
             }
         }
@@ -239,6 +245,7 @@ internal static class CompositeSchemaBuilder
                 arguments: new FusionInputFieldDefinitionCollection(
                 [
                     new FusionInputFieldDefinition(
+                        0,
                         "name",
                         null,
                         null,
@@ -301,6 +308,7 @@ internal static class CompositeSchemaBuilder
             var isDeprecated = DeprecatedDirectiveParser.TryParse(argument.Directives, out var deprecated);
 
             temp[i] = new FusionInputFieldDefinition(
+                i,
                 argument.Name.Value,
                 argument.Description?.Value,
                 argument.DefaultValue,
@@ -327,6 +335,7 @@ internal static class CompositeSchemaBuilder
             var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
 
             sourceFields[i] = new FusionInputFieldDefinition(
+                i,
                 field.Name.Value,
                 field.Description?.Value,
                 field.DefaultValue,
@@ -362,7 +371,9 @@ internal static class CompositeSchemaBuilder
         return new FusionEnumValueCollection(sourceFields);
     }
 
-    private static FusionSchemaDefinition CompleteTypes(CompositeSchemaBuilderContext context)
+    private static FusionSchemaDefinition CompleteTypes(
+        CompositeSchemaBuilderContext context,
+        FusionSchemaOptions options)
     {
         foreach (var type in context.TypeDefinitions)
         {
@@ -407,6 +418,7 @@ internal static class CompositeSchemaBuilder
                     CompleteScalarType(
                         scalarType,
                         context.GetTypeDefinition<ScalarTypeDefinitionNode>(scalarType.Name),
+                        options,
                         context);
                     break;
             }
@@ -679,7 +691,9 @@ internal static class CompositeSchemaBuilder
         }
 
         var directives = CompletionTools.CreateDirectiveCollection(inputObjectTypeDef.Directives, context);
-        inputObjectType.Complete(new CompositeInputObjectTypeCompletionContext(directives, FeatureCollection.Empty));
+        inputObjectType.Complete(new CompositeInputObjectTypeCompletionContext(
+            directives,
+            FeatureCollection.Empty));
     }
 
     private static void CompleteInputField(
@@ -739,9 +753,13 @@ internal static class CompositeSchemaBuilder
     private static void CompleteScalarType(
         FusionScalarTypeDefinition typeDefinition,
         ScalarTypeDefinitionNode typeDefinitionNode,
+        FusionSchemaOptions options,
         CompositeSchemaBuilderContext context)
     {
-        var directives = CompletionTools.CreateDirectiveCollection(typeDefinitionNode.Directives, context);
+        var directives = CompletionTools.CreateDirectiveCollection(
+            typeDefinitionNode.Directives,
+            context,
+            options.ApplySerializeAsToScalars);
         var specifiedByDirective = directives.FirstOrDefault("specifiedBy");
         Uri? specifiedBy = null;
 
@@ -755,11 +773,62 @@ internal static class CompositeSchemaBuilder
             specifiedBy = new Uri(url.Value);
         }
 
+        // if we have a @serializeAs directive we're going to set the
+        // SerializationType and Pattern property.
+        ScalarSerializationType type = ScalarSerializationType.Undefined;
+        string? pattern = null;
+        var serializeAs = typeDefinitionNode.Directives.FirstOrDefault(
+            t => t.Name.Value.Equals(SerializeAs.Name));
+        if (serializeAs is { Arguments: { Count: 1 } or { Count: 2 } })
+        {
+            var typeArg = serializeAs.Arguments.FirstOrDefault(
+                t => t.Name.Value.Equals(SerializeAs.Arguments.Type));
+            var patternArg = serializeAs.Arguments.FirstOrDefault(
+                t => t.Name.Value.Equals(SerializeAs.Arguments.Pattern));
+
+            switch (typeArg?.Value)
+            {
+                case ListValueNode typeList
+                    when typeList.Items.All(t => t.Kind is SyntaxKind.EnumValue):
+                    foreach (var item in typeList.Items)
+                    {
+                        var value = (EnumValueNode)item;
+                        if (Enum.TryParse<ScalarSerializationType>(
+                            value.Value,
+                            ignoreCase: true,
+                            out var parsedType))
+                        {
+                            type |= parsedType;
+                        }
+                    }
+                    break;
+
+                case EnumValueNode singleType
+                    when Enum.TryParse<ScalarSerializationType>(
+                        singleType.Value,
+                        ignoreCase: true,
+                        out var parsedType):
+                    type = parsedType;
+                    break;
+
+                default:
+                    throw new InvalidOperationException(
+                        "Cannot parse the @serializeAs directive as it is missing the type argument.");
+            }
+
+            if (patternArg?.Value is StringValueNode patterValue)
+            {
+                pattern = patterValue.Value;
+            }
+        }
+
         typeDefinition.Complete(
             new CompositeScalarTypeCompletionContext(
                 default,
                 directives,
-                specifiedBy));
+                specifiedBy,
+                type,
+                pattern));
     }
 
     private static void CompleteDirectiveType(

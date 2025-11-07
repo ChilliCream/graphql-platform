@@ -40,7 +40,7 @@ internal sealed class UnpublishClientCommand : Command
 
         console.Title(title);
 
-        if (console.IsHumandReadable())
+        if (console.IsHumanReadable())
         {
             await console
                 .Status()

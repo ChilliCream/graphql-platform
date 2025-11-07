@@ -31,22 +31,22 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type ExclusiveSubgraphA {
         id: ID!
       }
-      
+
       type Query {
         exclusiveSubgraphA: ExclusiveSubgraphA
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
-      
+
       type SubType {
         subgraphA: String
       }
-      
+
       type Viewer {
-        subType: SubType
+        subType: SubType @shareable
       }
     interactions:
       - request:
@@ -71,17 +71,17 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
-      
+
       type SubType {
         subgraphB: String
       }
-      
+
       type Viewer {
-        subType: SubType
+        subType: SubType @shareable
       }
     interactions:
       - request:

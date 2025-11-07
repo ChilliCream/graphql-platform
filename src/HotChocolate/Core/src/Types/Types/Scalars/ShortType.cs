@@ -3,6 +3,10 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Represents a scalar type for 16-bit signed integers (short) in GraphQL.
+/// This type serializes as an integer and supports values from -32,768 to 32,767.
+/// </summary>
 public class ShortType : IntegerTypeBase<short>
 {
     /// <summary>
@@ -30,6 +34,7 @@ public class ShortType : IntegerTypeBase<short>
         : base(name, min, max, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.Int;
     }
 
     /// <summary>

@@ -33,8 +33,9 @@ public sealed class SchemaComposer
     public CompositionResult<MutableSchemaDefinition> Compose()
     {
         // Parse Source Schemas
+        var parserOptions = _schemaComposerOptions.Parser;
         var (_, isParseFailure, schemas, parseErrors) =
-            new SourceSchemaParser(_sourceSchemas, _log).Parse();
+            new SourceSchemaParser(_sourceSchemas, _log, parserOptions).Parse();
 
         if (isParseFailure)
         {
@@ -42,9 +43,21 @@ public sealed class SchemaComposer
         }
 
         // Preprocess Source Schemas
-        var preprocessorOptions = _schemaComposerOptions.Preprocessor;
         var preprocessResult =
-            schemas.Select(schema => new SourceSchemaPreprocessor(schema, preprocessorOptions).Process()).Combine();
+            schemas.Select(schema =>
+            {
+                var optionsExist =
+                    _schemaComposerOptions.Preprocessor.TryGetValue(
+                        schema.Name,
+                        out var preprocessorOptions);
+
+                if (!optionsExist)
+                {
+                    preprocessorOptions = new SourceSchemaPreprocessorOptions();
+                }
+
+                return new SourceSchemaPreprocessor(schema, preprocessorOptions).Process();
+            }).Combine();
 
         if (preprocessResult.IsFailure)
         {
@@ -52,7 +65,8 @@ public sealed class SchemaComposer
         }
 
         // Enrich Source Schemas
-        var enrichmentResult = schemas.Select(schema => new SourceSchemaEnricher(schema).Enrich()).Combine();
+        var enrichmentResult =
+            schemas.Select(schema => new SourceSchemaEnricher(schema, schemas).Enrich()).Combine();
 
         if (enrichmentResult.IsFailure)
         {
@@ -78,10 +92,7 @@ public sealed class SchemaComposer
         }
 
         // Merge Source Schemas
-        var sourceSchemaMergerOptions = new SourceSchemaMergerOptions
-        {
-            EnableGlobalObjectIdentification = _schemaComposerOptions.EnableGlobalObjectIdentification
-        };
+        var sourceSchemaMergerOptions = _schemaComposerOptions.Merger;
         var (_, isMergeFailure, mergedSchema, mergeErrors) =
             new SourceSchemaMerger(schemas, sourceSchemaMergerOptions).Merge();
 
@@ -114,6 +125,9 @@ public sealed class SchemaComposer
     [
         new DisallowedInaccessibleElementsRule(),
         new ExternalOnInterfaceRule(),
+        new ExternalOverrideCollisionRule(),
+        new ExternalProvidesCollisionRule(),
+        new ExternalRequireCollisionRule(),
         new ExternalUnusedRule(),
         new InvalidShareableUsageRule(),
         new IsInvalidFieldTypeRule(),
@@ -147,12 +161,17 @@ public sealed class SchemaComposer
     [
         new EnumValuesMismatchRule(),
         new ExternalArgumentDefaultMismatchRule(),
+        new ExternalArgumentMissingRule(),
+        new ExternalArgumentTypeMismatchRule(),
         new ExternalMissingOnBaseRule(),
+        new ExternalTypeMismatchRule(),
         new FieldArgumentTypesMergeableRule(),
         new FieldWithMissingRequiredArgumentRule(),
         new InputFieldDefaultMismatchRule(),
         new InputFieldTypesMergeableRule(),
         new InputWithMissingRequiredFieldsRule(),
+        new InputWithMissingOneOfRule(),
+        new InvalidFieldSharingRule(),
         new OutputFieldTypesMergeableRule(),
         new TypeKindMismatchRule()
     ];
@@ -171,6 +190,8 @@ public sealed class SchemaComposer
         new KeyInvalidFieldsRule(),
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),
+        new ReferenceToInaccessibleTypeRule(),
+        new ReferenceToInternalTypeRule(),
         new RequireInvalidFieldsRule()
     ];
 }

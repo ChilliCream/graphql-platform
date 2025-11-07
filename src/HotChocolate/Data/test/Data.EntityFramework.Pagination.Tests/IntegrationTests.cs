@@ -472,7 +472,7 @@ public class IntegrationTests(PostgreSqlResource resource)
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Use(next => async ctx =>
             {

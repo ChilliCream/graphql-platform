@@ -143,8 +143,8 @@ public sealed partial class OperationPlanner
         {
             foreach (var nodeField in result.NodeFields)
             {
-                var nodeWorkItem = new NodeWorkItem(nodeField);
-                backlog = backlog.Push(nodeWorkItem);
+                var workItem = new NodeFieldWorkItem(nodeField);
+                backlog = backlog.Push(workItem);
             }
         }
 
@@ -285,7 +285,7 @@ public sealed partial class OperationPlanner
                     PlanFieldWithRequirement(wi, wi.Lookup, current, possiblePlans, backlog);
                     break;
 
-                case NodeWorkItem wi:
+                case NodeFieldWorkItem wi:
                     PlanNode(wi, current, possiblePlans, backlog);
                     break;
 
@@ -404,7 +404,8 @@ public sealed partial class OperationPlanner
             Dependents = workItem.Dependents,
             Requirements = requirements,
             Target = workItem.SelectionSet.Path,
-            Source = source
+            Source = source,
+            Lookup = lookup
         };
 
         var next = new PlanNode
@@ -808,7 +809,8 @@ public sealed partial class OperationPlanner
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, indexBuilder),
             Requirements = requirements,
             Target = workItem.Selection.Path,
-            Source = source
+            Source = source,
+            Lookup = lookup
         };
 
         var next = new PlanNode
@@ -902,11 +904,12 @@ public sealed partial class OperationPlanner
             Requirements = ImmutableDictionary<string, OperationRequirement>.Empty,
 #endif
             Target = SelectionPath.Root,
-            Source = SelectionPath.Root
+            Source = SelectionPath.Root,
+            Lookup = lookup
         };
 
-        var nodePlanStep = current.Steps.OfType<NodePlanStep>().LastOrDefault() ??
-            throw new InvalidOperationException($"Expected to find a {nameof(NodePlanStep)} in the existing steps.");
+        var nodePlanStep = current.Steps.OfType<NodeFieldPlanStep>().LastOrDefault() ??
+            throw new InvalidOperationException($"Expected to find a {nameof(NodeFieldPlanStep)} in the existing steps.");
 
         var steps = current.Steps;
 
@@ -937,7 +940,7 @@ public sealed partial class OperationPlanner
     }
 
     private void PlanNode(
-        NodeWorkItem workItem,
+        NodeFieldWorkItem workItem,
         PlanNode current,
         PriorityQueue<PlanNode, double> possiblePlans,
         ImmutableStack<WorkItem> backlog)
@@ -945,7 +948,7 @@ public sealed partial class OperationPlanner
         var stepId = current.Steps.NextId();
         var fallbackQueryStepId = stepId + 1;
         var index = current.SelectionSetIndex;
-        var nodeField = workItem.NodeField;
+        var nodeField = workItem.NodeField.Field;
         var responseName = nodeField.Alias?.Value ?? nodeField.Name.Value;
         var selectionPath = SelectionPath.Root.AppendField(responseName);
 
@@ -1003,12 +1006,13 @@ public sealed partial class OperationPlanner
             Source = SelectionPath.Root
         };
 
-        var nodeStep = new NodePlanStep
+        var nodeStep = new NodeFieldPlanStep
         {
             Id = stepId,
-            FallbackQuery = fallbackQueryStep,
             ResponseName = responseName,
-            IdValue = idArgumentValue
+            IdValue = idArgumentValue,
+            Conditions = ExtractConditions(workItem.NodeField),
+            FallbackQuery = fallbackQueryStep
         };
 
         foreach (var (type, selectionSetNode) in selectionSetsByType)
@@ -1044,6 +1048,64 @@ public sealed partial class OperationPlanner
         };
 
         possiblePlans.Enqueue(next, _schema);
+    }
+
+    private static ExecutionNodeCondition[] ExtractConditions(NodeField nodeField)
+    {
+        var conditions = new List<ExecutionNodeCondition>();
+
+        if (nodeField.ParentFragments is not null)
+        {
+            foreach (var fragment in nodeField.ParentFragments)
+            {
+                var fragmentConditions = ExtractConditions(fragment.Directives);
+
+                if (fragmentConditions is not null)
+                {
+                    conditions.AddRange(fragmentConditions);
+                }
+            }
+        }
+
+        var nodeFieldConditions = ExtractConditions(nodeField.Field.Directives);
+
+        if (nodeFieldConditions is not null)
+        {
+            conditions.AddRange(nodeFieldConditions);
+        }
+
+        return conditions.ToArray();
+    }
+
+    private static List<ExecutionNodeCondition>? ExtractConditions(IReadOnlyList<DirectiveNode> directives)
+    {
+        List<ExecutionNodeCondition>? conditions = null;
+
+        foreach (var directive in directives)
+        {
+            var passingValue = directive.Name.Value switch
+            {
+                "skip" => false,
+                "include" => true,
+                _ => (bool?)null
+            };
+
+            if (passingValue.HasValue)
+            {
+                var ifArgument = directive.Arguments[0];
+                var condition = new ExecutionNodeCondition
+                {
+                    VariableName = ((VariableNode)ifArgument.Value).Name.Value,
+                    PassingValue = passingValue.Value,
+                    Directive = directive
+                };
+
+                conditions ??= [];
+                conditions.Add(condition);
+            }
+        }
+
+        return conditions;
     }
 
     private static List<ArgumentNode> GetLookupArguments(Lookup lookup, string requirementKey)
@@ -1276,6 +1338,7 @@ public sealed partial class OperationPlanner
         bool inlineInternal = false)
     {
         List<SelectionSetNode>? backlog = null;
+        var didInline = false;
 
         var rewriter = SyntaxRewriter.Create<List<ISyntaxNode>>(
             rewrite: (node, path) =>
@@ -1337,6 +1400,8 @@ public sealed partial class OperationPlanner
                         index);
                 }
 
+                didInline = true;
+
                 index.Register(originalSelectionSet, newSelectionSet);
                 return newSelectionSet;
             },
@@ -1347,7 +1412,16 @@ public sealed partial class OperationPlanner
             },
             leave: (_, path) => path.Pop());
 
-        return (OperationDefinitionNode)rewriter.Rewrite(operation, [])!;
+        var rewrittenOperation = (OperationDefinitionNode)rewriter.Rewrite(operation, [])!;
+
+        if (!didInline)
+        {
+            throw new InvalidOperationException(
+                $"Selections `{selectionsToInline}` could not be inlined into selection set of type "
+                + $"'{selectionSetType.Name}', as no selection set with the id {targetSelectionSetId} was found.");
+        }
+
+        return rewrittenOperation;
 
         static IReadOnlyList<DirectiveNode> AddInternalDirective(IHasDirectives selection)
         {
@@ -1590,7 +1664,7 @@ file static class Extensions
         switch (nextWorkItem)
         {
             case null:
-            case NodeWorkItem:
+            case NodeFieldWorkItem:
                 possiblePlans.Enqueue(planNodeTemplate);
                 break;
 

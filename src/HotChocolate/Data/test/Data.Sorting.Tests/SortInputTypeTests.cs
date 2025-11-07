@@ -343,8 +343,8 @@ public class SortInputTypeTests : SortTestBase
 
     public interface ITest
     {
-        public string? Prop { get; set; }
-        public string? Prop2 { get; set; }
+        string? Prop { get; set; }
+        string? Prop2 { get; set; }
     }
 
     public interface ITest<T>

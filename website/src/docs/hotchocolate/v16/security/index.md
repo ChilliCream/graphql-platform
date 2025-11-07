@@ -98,7 +98,8 @@ Per default Hot Chocolate uses MD5 to create a unique document hash. Since MD5 i
 Fortunately, we offer the option to use the FIPS compliant SHA256 hashing algorithm to create document hashes.
 
 ```csharp
-builder.Services.AddSha256DocumentHashProvider();
+builder.Services.AddGraphQLServer()
+    .AddSha256DocumentHashProvider();
 ```
 
 [Learn more about document hashing providers](/docs/hotchocolate/v16/performance/persisted-operations#hashing-algorithms)

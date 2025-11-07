@@ -27,7 +27,7 @@ request:
         }
       }
     }
-    
+
     fragment FullType on __Type {
       kind
       name
@@ -61,7 +61,7 @@ request:
         ... TypeRef
       }
     }
-    
+
     fragment InputValue on __InputValue {
       name
       description
@@ -72,7 +72,7 @@ request:
       isDeprecated
       deprecationReason
     }
-    
+
     fragment TypeRef on __Type {
       kind
       name
@@ -110,7 +110,7 @@ response:
             "name": "Mutation"
           },
           "subscriptionType": {
-            "name": "Mutation"
+            "name": "Subscription"
           },
           "types": [
             {
@@ -1153,8 +1153,8 @@ response:
                         "ofType": null
                       },
                       "defaultValue": null,
-                      "isDeprecated": false,
-                      "deprecationReason": null
+                      "isDeprecated": true,
+                      "deprecationReason": "No longer supported"
                     }
                   ],
                   "type": {
@@ -1198,8 +1198,8 @@ response:
                       }
                     }
                   },
-                  "isDeprecated": false,
-                  "deprecationReason": null
+                  "isDeprecated": true,
+                  "deprecationReason": "No longer supported"
                 }
               ],
               "inputFields": null,
@@ -1508,8 +1508,8 @@ response:
                     "ofType": null
                   },
                   "defaultValue": null,
-                  "isDeprecated": false,
-                  "deprecationReason": null
+                  "isDeprecated": true,
+                  "deprecationReason": "No longer supported"
                 }
               ],
               "interfaces": null,
@@ -1580,8 +1580,8 @@ response:
                 {
                   "name": "PHOTO",
                   "description": null,
-                  "isDeprecated": false,
-                  "deprecationReason": null
+                  "isDeprecated": true,
+                  "deprecationReason": "No longer supported"
                 },
                 {
                   "name": "STORY",
@@ -1642,7 +1642,24 @@ response:
               "name": "skip",
               "description": "Directs the executor to skip this field or fragment when the \u0060if\u0060 argument is true.",
               "isRepeatable": false,
-              "args": null,
+              "args": [
+                {
+                  "name": "if",
+                  "description": "Skips this field or fragment when the condition is true.",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
               "locations": [
                 "FIELD",
                 "FRAGMENT_SPREAD",
@@ -1653,11 +1670,63 @@ response:
               "name": "include",
               "description": "Directs the executor to include this field or fragment when the \u0060if\u0060 argument is true.",
               "isRepeatable": false,
-              "args": null,
+              "args": [
+                {
+                  "name": "if",
+                  "description": "Includes this field or fragment when the condition is true.",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
               "locations": [
                 "FIELD",
                 "FRAGMENT_SPREAD",
                 "INLINE_FRAGMENT"
+              ]
+            },
+            {
+              "name": "specifiedBy",
+              "description": "The \u0060@specifiedBy\u0060 directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
+              "isRepeatable": false,
+              "args": [
+                {
+                  "name": "url",
+                  "description": "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "String",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "locations": [
+                "SCALAR"
+              ]
+            },
+            {
+              "name": "oneOf",
+              "description": "The \u0060@oneOf\u0060 directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object.",
+              "isRepeatable": false,
+              "args": [],
+              "locations": [
+                "INPUT_OBJECT"
               ]
             }
           ]
@@ -1673,27 +1742,27 @@ sourceSchemas:
         mutation: Mutation
         subscription: Subscription
       }
-      
+
       interface Node @test(arg: "value") {
         id: ID!
       }
-      
+
       "Interface description"
       interface Votable implements Node {
         "Interface field description"
         id: ID!
       }
-      
+
       type Mutation @test(arg: "value") {
         postReview(input: PostReviewInput): Review @test(arg: "value")
       }
-      
+
       type Post implements Votable & Node @key(fields: "id") {
         id: ID!
         postKind: PostKind @shareable
         location: String @inaccessible
       }
-      
+
       "Object type description"
       type Query @test(arg: "value") {
         "Object field description"
@@ -1703,43 +1772,43 @@ sourceSchemas:
         postById(postId: ID! @is(field: "id")): Post @lookup
         node(id: ID!): Node @lookup
       }
-      
+
       type Review implements Votable & Node @test(arg: "value") {
         id: ID!
       }
-      
+
       type Subscription @test(arg: "value") {
         onNewReview: Review
       }
-      
+
       "Union description"
       union UserCreation @test(arg: "value") = Post | Review
-      
+
       input PostReviewInput @oneOf {
         scalar: String @deprecated(reason: "No longer supported")
         pros: [PostReviewPro]
       }
-      
+
       input PostReviewPro {
         scalar: Int!
       }
-      
+
       "Input object type description"
       input PostsFilter @test(arg: "value") {
         "Input field description"
         scalar: String = "test" @test(arg: "value")
       }
-      
+
       "Enum description"
       enum PostKind @test(arg: "value") {
         "Enum value description"
         STORY @test(arg: "value")
         PHOTO @deprecated(reason: "No longer supported")
       }
-      
+
       "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
       directive @oneOf on INPUT_OBJECT
-      
+
       "Directive description"
       directive @test("Directive argument description" arg: String! = "default") repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD | FRAGMENT_DEFINITION | FRAGMENT_SPREAD | INLINE_FRAGMENT | VARIABLE_DEFINITION | SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
 operationPlan:
@@ -1955,6 +2024,6 @@ operationPlan:
     - id: 1
       type: Introspection
       selections:
-        - id: 1
+        - id: 2
           responseName: __schema
           fieldName: __schema

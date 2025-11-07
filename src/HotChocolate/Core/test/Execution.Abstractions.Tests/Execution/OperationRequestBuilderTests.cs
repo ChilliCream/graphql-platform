@@ -83,6 +83,63 @@ public class OperationRequestBuilderTests
     }
 
     [Fact]
+    public void BuildRequest_QueryAndSetNewVariableJson_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                      foo
+                    }
+                    """)
+                .SetVariableValuesJson(
+                    """
+                    {
+                      "one": "bar"
+                    }
+                    """)
+                .Build();
+
+        // assert
+        // one should be bar
+        request.MatchSnapshot();
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndSetNewVariableSetJson_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                      foo
+                    }
+                    """)
+                .SetVariableValuesSetJson(
+                    """
+                    [
+                      {
+                        "one": "bar"
+                      },
+                      {
+                        "one": "baz"
+                      }
+                    ]
+                    """)
+                .Build();
+
+        // assert
+        // one should be bar
+        request.MatchSnapshot();
+    }
+
+    [Fact]
     public void BuildRequest_QueryAndResetVariables_RequestIsCreated()
     {
         // arrange

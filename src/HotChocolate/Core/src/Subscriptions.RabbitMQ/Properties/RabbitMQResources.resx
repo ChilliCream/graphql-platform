@@ -21,9 +21,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="RabbitMQPubSubExtensions_AddRabbitMQSubscriptions_PrefixInvalid" xml:space="preserve">
-    <value>Prefix can only contain letters and numbers.</value>
-  </data>
   <data name="RabbitMQPubSub_RabbitMQPubSub_PrefixCannotBeNull" xml:space="preserve">
     <value>Value cannot be null or whitespace.</value>
   </data>
@@ -33,9 +30,6 @@
   <data name="RabbitMQTopic_ConnectAsync_SubscribedToRabbitMQ" xml:space="preserve">
     <value>Subscribed to RabbitMQ.</value>
   </data>
-  <data name="RabbitMQConnection_InitializeConnection_ConnectionSucceededButFailedUnexpectedly" xml:space="preserve">
-    <value>Although the connection was successful, something went wrong.</value>
-  </data>
   <data name="RabbitMQConnection_InitializeConnection_ConnectionAttemptFailed" xml:space="preserve">
     <value>Connection could not be established. Connection attempt: {0}</value>
   </data>
@@ -44,8 +38,5 @@
   </data>
   <data name="RabbitMQConnection_InitializeConnection_ConnectionFailedUnexpectedly" xml:space="preserve">
     <value>Something went completely wrong,</value>
-  </data>
-  <data name="RabbitMQConnectionFailedException_RabbitMQConnectionFailedException_ConnectionFailed" xml:space="preserve">
-    <value>Connection could not be established after {0} attempts.</value>
   </data>
 </root>

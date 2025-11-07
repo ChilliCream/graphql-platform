@@ -28,6 +28,6 @@ public sealed class UseProjectionAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
         => descriptor.UseProjection(Scope);
 }

@@ -35,29 +35,29 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Product implements Node {
         id: ID!
         subgraph1Only: ProductAvailability
       }
-      
+
       type ProductAvailability implements Node {
         id: ID!
-        sharedLinked: ProductAvailabilityMail!
+        sharedLinked: ProductAvailabilityMail! @shareable
       }
-      
+
       type ProductAvailabilityMail {
         subgraph1Only: String!
       }
-      
+
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
         productById(id: ID!): Product @lookup
-        productAvailabilityById(id: ID!): ProductAvailability @lookup
+        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
       }
     interactions:
       - request:
@@ -98,23 +98,23 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type ProductAvailability implements Node {
         id: ID!
-        sharedLinked: ProductAvailabilityMail!
+        sharedLinked: ProductAvailabilityMail! @shareable
       }
-      
+
       type ProductAvailabilityMail {
         subgraph2Only: Boolean!
       }
-      
+
       type Query {
-        node("ID of the object." id: ID!): Node @lookup
-        productAvailabilityById(id: ID!): ProductAvailability @lookup
+        node("ID of the object." id: ID!): Node @lookup @shareable
+        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
       }
     interactions:
       - request:
@@ -178,6 +178,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - productId
     - id: 2
       type: Operation
       schema: B

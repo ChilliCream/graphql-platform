@@ -1,5 +1,9 @@
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Logging;
@@ -19,6 +23,18 @@ public abstract class FusionTestBase : IDisposable
 {
     private readonly TestServerSession _testServerSession = new();
     private bool _disposed;
+
+    protected static FusionConfiguration CreateFusionConfiguration(
+        [StringSyntax("graphql")] params string[] schemas)
+    {
+        var compositeSchema = ComposeSchemaDocument(schemas);
+
+        return new FusionConfiguration(
+            compositeSchema,
+            new JsonDocumentOwner(
+                JsonDocument.Parse("{ }"),
+                new EmptyMemoryOwner()));
+    }
 
     protected static FusionSchemaDefinition CreateCompositeSchema()
     {
@@ -41,7 +57,7 @@ public abstract class FusionTestBase : IDisposable
               id: ID!
             }
 
-            type PageInfo {
+            type PageInfo @shareable {
               hasNextPage: Boolean!
               hasPreviousPage: Boolean!
               startCursor: String
@@ -49,8 +65,8 @@ public abstract class FusionTestBase : IDisposable
             }
 
             type Query {
-              node("ID of the object." id: ID!): Node @lookup
-              nodes("The list of node IDs." ids: [ID!]!): [Node]!
+              node("ID of the object." id: ID!): Node @lookup @shareable
+              nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable
               userById(id: ID!): User @lookup
               userByUsername(username: String!): User @lookup
               users(first: Int after: String last: Int before: String): UsersConnection
@@ -58,7 +74,7 @@ public abstract class FusionTestBase : IDisposable
 
             type User implements Node {
               id: ID!
-              name: String!
+              name: String! @shareable
               birthdate: String!
               username: String!
             }
@@ -96,8 +112,8 @@ public abstract class FusionTestBase : IDisposable
             }
 
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
               inventoryItemById(id: ID!): InventoryItem @lookup
               productByIdAsync(id: ID!): Product @lookup @internal
             }
@@ -140,14 +156,14 @@ public abstract class FusionTestBase : IDisposable
               order: Order
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
 
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
-              orderById(id: ID!): Order @lookup
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+              orderById(id: ID!): Order @lookup @shareable
               userById(id: ID!): User! @lookup @internal
             }
 
@@ -195,10 +211,10 @@ public abstract class FusionTestBase : IDisposable
             }
 
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
               paymentById(id: ID!): Payment @lookup
-              orderById(id: ID!): Order! @lookup
+              orderById(id: ID!): Order! @lookup @shareable
             }
 
             input CreatePaymentInput {
@@ -225,7 +241,7 @@ public abstract class FusionTestBase : IDisposable
               uploadProductPicture(input: UploadProductPictureInput!): UploadProductPicturePayload!
             }
 
-            type PageInfo {
+            type PageInfo @shareable {
               hasNextPage: Boolean!
               hasPreviousPage: Boolean!
               startCursor: String
@@ -260,8 +276,8 @@ public abstract class FusionTestBase : IDisposable
             }
 
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
               productById(id: ID!): Product @lookup
               products(first: Int after: String last: Int before: String): ProductsConnection
             }
@@ -296,7 +312,7 @@ public abstract class FusionTestBase : IDisposable
               createReview(input: CreateReviewInput!): CreateReviewPayload!
             }
 
-            type PageInfo {
+            type PageInfo @shareable {
               hasNextPage: Boolean!
               hasPreviousPage: Boolean!
               startCursor: String
@@ -320,8 +336,8 @@ public abstract class FusionTestBase : IDisposable
             }
 
             type Query {
-              node(id: ID!): Node @lookup
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
               productById(id: ID!): Product! @lookup @internal
               reviewById(id: ID!): Review @lookup
               userById(id: ID!): User @lookup @internal
@@ -343,7 +359,7 @@ public abstract class FusionTestBase : IDisposable
             type User {
               reviews(first: Int after: String last: Int before: String): UserReviewsConnection
               id: ID!
-              name: String!
+              name: String! @shareable
             }
 
             type UserReviewsConnection {
@@ -402,7 +418,10 @@ public abstract class FusionTestBase : IDisposable
         var compositionLog = new CompositionLog();
         var composerOptions = new SchemaComposerOptions
         {
-            EnableGlobalObjectIdentification = true
+            Merger =
+            {
+                EnableGlobalObjectIdentification = true
+            }
         };
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
@@ -425,7 +444,13 @@ public abstract class FusionTestBase : IDisposable
         var sourceSchemas = CreateSourceSchemaTexts(schemas);
 
         var compositionLog = new CompositionLog();
-        var composerOptions = new SchemaComposerOptions { EnableGlobalObjectIdentification = false };
+        var composerOptions = new SchemaComposerOptions
+        {
+            Merger =
+            {
+                EnableGlobalObjectIdentification = false
+            }
+        };
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 
@@ -471,7 +496,7 @@ public abstract class FusionTestBase : IDisposable
 
         var operationDoc = Utf8GraphQLParser.Parse(operationText);
 
-        var rewriter = new InlineFragmentOperationRewriter(schema);
+        var rewriter = new DocumentRewriter(schema);
         var rewritten = rewriter.RewriteDocument(operationDoc, operationName: null);
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
 
@@ -549,4 +574,49 @@ public abstract class FusionTestBase : IDisposable
     }
 
     protected record TestSourceSchema([StringSyntax("graphql")] string Schema);
+
+    protected sealed class TestFusionConfigurationProvider(FusionConfiguration initialConfig) : IFusionConfigurationProvider
+    {
+        private readonly List<IObserver<FusionConfiguration>> _observers = [];
+
+        public IDisposable Subscribe(IObserver<FusionConfiguration> observer)
+        {
+            if (Configuration is not null)
+            {
+                observer.OnNext(Configuration);
+            }
+
+            _observers.Add(observer);
+
+            return new Observer();
+        }
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+        public FusionConfiguration? Configuration { get; private set; } = initialConfig;
+
+        public void UpdateConfiguration(FusionConfiguration configuration)
+        {
+            Configuration = configuration;
+
+            foreach (var observer in _observers)
+            {
+                observer.OnNext(Configuration);
+            }
+        }
+
+        private sealed class Observer : IDisposable
+        {
+            public void Dispose()
+            {
+            }
+        }
+    }
+
+    private class EmptyMemoryOwner : IMemoryOwner<byte>
+    {
+        public Memory<byte> Memory => default;
+
+        public void Dispose() { }
+    }
 }

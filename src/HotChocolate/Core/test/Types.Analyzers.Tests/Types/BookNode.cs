@@ -1,8 +1,13 @@
+using System.Reflection;
+using HotChocolate.Types.Composite;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Types;
 
+[Shareable]
+[Foo]
 [ObjectType<Book>]
 public static partial class BookNode
 {
@@ -44,4 +49,15 @@ public static partial class BookNode
         BookRepository repository,
         CancellationToken cancellationToken)
         => await repository.GetBookAsync(id, cancellationToken);
+}
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+public class FooAttribute : DescriptorAttribute
+{
+    protected override void TryConfigure(
+        IDescriptorContext context,
+        IDescriptor descriptor,
+        ICustomAttributeProvider? attributeProvider)
+    {
+    }
 }

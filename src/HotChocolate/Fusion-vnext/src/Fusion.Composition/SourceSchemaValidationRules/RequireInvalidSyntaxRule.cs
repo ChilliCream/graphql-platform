@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Extensions;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -13,18 +14,15 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Require-Invalid-Syntax">
 /// Specification
 /// </seealso>
-internal sealed class RequireInvalidSyntaxRule : IEventHandler<RequireFieldInvalidSyntaxEvent>
+internal sealed class RequireInvalidSyntaxRule : IEventHandler<FieldArgumentEvent>
 {
-    public void Handle(RequireFieldInvalidSyntaxEvent @event, CompositionContext context)
+    public void Handle(FieldArgumentEvent @event, CompositionContext context)
     {
-        var (requireDirective, argument, field, type, schema) = @event;
+        var (argument, _, _, schema) = @event;
 
-        context.Log.Write(
-            RequireInvalidSyntax(
-                requireDirective,
-                argument.Name,
-                field.Name,
-                type.Name,
-                schema));
+        if (argument.RequireInfo is { IsInvalidFieldSyntax: true } requireInfo)
+        {
+            context.Log.Write(RequireInvalidSyntax(requireInfo.Directive, argument, schema));
+        }
     }
 }

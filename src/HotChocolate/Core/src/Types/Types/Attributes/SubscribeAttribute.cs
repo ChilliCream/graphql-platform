@@ -15,6 +15,11 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
     private static readonly MethodInfo s_subscribeFactory =
         typeof(SubscribeAttribute).GetMethod(nameof(SubscribeFactory), NonPublic | Static)!;
 
+    public SubscribeAttribute()
+    {
+        RequiresAttributeProvider = true;
+    }
+
     /// <summary>
     /// The type of the message.
     /// </summary>
@@ -28,14 +33,17 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
-        var method = (MethodInfo)member;
+        if (member is not MethodInfo method)
+        {
+            return;
+        }
 
         if (MessageType is null)
         {
             var messageParameter =
-                method.GetParameters()
+                context.TypeInspector.GetParameters(method)
                     .FirstOrDefault(t => t.IsDefined(typeof(EventMessageAttribute)));
 
             if (messageParameter is null)
@@ -60,7 +68,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
         else
         {
             descriptor.Extend().OnBeforeNaming(
-                (c, d) =>
+                (_, d) =>
                 {
                     var subscribeResolver = member.DeclaringType?.GetMethod(
                         With!,

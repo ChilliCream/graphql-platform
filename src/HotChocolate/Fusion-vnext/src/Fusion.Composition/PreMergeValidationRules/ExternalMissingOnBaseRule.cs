@@ -21,17 +21,15 @@ internal sealed class ExternalMissingOnBaseRule : IEventHandler<OutputFieldGroup
     {
         var fieldGroup = @event.FieldGroup;
 
-        var externalFields = fieldGroup
-            .Where(i => i.Field.HasExternalDirective())
-            .ToImmutableArray();
+        var externalFields = fieldGroup.Where(i => i.Field.IsExternal).ToImmutableArray();
 
         var nonExternalFieldCount = fieldGroup.Length - externalFields.Length;
 
-        foreach (var (field, type, schema) in externalFields)
+        foreach (var (field, _, schema) in externalFields)
         {
             if (nonExternalFieldCount == 0)
             {
-                context.Log.Write(ExternalMissingOnBase(field, type, schema));
+                context.Log.Write(ExternalMissingOnBase(field, schema));
             }
         }
     }

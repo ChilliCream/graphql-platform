@@ -59,6 +59,11 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         List<string>? objectTypeExtensions = null;
         List<string>? interfaceTypeExtensions = null;
 
+        if (syntaxInfos.Any(t => t is RootTypeInfo { SourceSchemaDetected: true }))
+        {
+            generator.WriteAddSourceSchemaDefaults();
+        }
+
         foreach (var syntaxInfo in syntaxInfos.OrderBy(s => s.OrderByKey))
         {
             if (syntaxInfo.Diagnostics.Length > 0)

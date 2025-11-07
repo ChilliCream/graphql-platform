@@ -138,8 +138,7 @@ internal static class NameFormattingHelpers
         this ICustomAttributeProvider attributeProvider,
         out string? reason)
     {
-        var deprecatedAttribute =
-            GetAttributeIfDefined<GraphQLDeprecatedAttribute>(attributeProvider);
+        var deprecatedAttribute = GetAttributeIfDefined<GraphQLDeprecatedAttribute>(attributeProvider);
 
         if (deprecatedAttribute is not null)
         {
@@ -147,8 +146,7 @@ internal static class NameFormattingHelpers
             return true;
         }
 
-        var obsoleteAttribute =
-            GetAttributeIfDefined<ObsoleteAttribute>(attributeProvider);
+        var obsoleteAttribute = GetAttributeIfDefined<ObsoleteAttribute>(attributeProvider);
 
         if (obsoleteAttribute is not null)
         {
@@ -269,8 +267,7 @@ internal static class NameFormattingHelpers
 
         if (attributeProvider.IsDefined(attributeType, false))
         {
-            return (TAttribute)attributeProvider
-                .GetCustomAttributes(attributeType, false)[0];
+            return (TAttribute)attributeProvider.GetCustomAttributes(attributeType, false)[0];
         }
 
         return null;

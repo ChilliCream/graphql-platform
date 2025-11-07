@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Extensions;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -13,18 +14,15 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Is-Invalid-Field-Type">
 /// Specification
 /// </seealso>
-internal sealed class IsInvalidFieldTypeRule : IEventHandler<IsFieldInvalidTypeEvent>
+internal sealed class IsInvalidFieldTypeRule : IEventHandler<FieldArgumentEvent>
 {
-    public void Handle(IsFieldInvalidTypeEvent @event, CompositionContext context)
+    public void Handle(FieldArgumentEvent @event, CompositionContext context)
     {
-        var (isDirective, argument, field, type, schema) = @event;
+        var (argument, _, _, schema) = @event;
 
-        context.Log.Write(
-            IsInvalidFieldType(
-                isDirective,
-                argument.Name,
-                field.Name,
-                type.Name,
-                schema));
+        if (argument.IsInfo is { IsInvalidFieldType: true } isInfo)
+        {
+            context.Log.Write(IsInvalidFieldType(isInfo.Directive, argument, schema));
+        }
     }
 }

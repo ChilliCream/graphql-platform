@@ -207,7 +207,12 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                 [.. errors]);
 
             log.Write(
-                new LogEntry(error.ToString(), LogEntryCodes.Unsatisfiable, extension: error));
+                LogEntryBuilder.New()
+                    .SetMessage(error.ToString())
+                    .SetCode(LogEntryCodes.Unsatisfiable)
+                    .SetSeverity(LogSeverity.Error)
+                    .SetExtension("error", error)
+                    .Build());
         }
     }
 
@@ -261,7 +266,13 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                 var error = new SatisfiabilityError(
                     string.Format(SatisfiabilityValidator_NodeTypeHasNoNodeLookup, possibleType.Name));
 
-                log.Write(new LogEntry(error.ToString(), LogEntryCodes.Unsatisfiable, extension: error));
+                log.Write(
+                    LogEntryBuilder.New()
+                        .SetMessage(error.ToString())
+                        .SetCode(LogEntryCodes.Unsatisfiable)
+                        .SetSeverity(LogSeverity.Error)
+                        .SetExtension("error", error)
+                        .Build());
             }
 
             context.Path.Pop();

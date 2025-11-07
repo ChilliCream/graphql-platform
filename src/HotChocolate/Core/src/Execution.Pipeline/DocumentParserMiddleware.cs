@@ -45,6 +45,12 @@ internal sealed class DocumentParserMiddleware
             {
                 documentInfo.Hash = CreateDocumentHash(documentInfo, context.Request);
                 documentInfo.Document = parsed.Document;
+
+                if (documentInfo.Id.IsEmpty)
+                {
+                    documentInfo.Id = new OperationDocumentId(documentInfo.Hash.Value);
+                }
+
                 success = true;
             }
             else if (query is OperationDocumentSourceText source)
@@ -55,6 +61,12 @@ internal sealed class DocumentParserMiddleware
                     {
                         documentInfo.Hash = CreateDocumentHash(documentInfo, context.Request);
                         documentInfo.Document = Utf8GraphQLParser.Parse(source.SourceText, _parserOptions);
+
+                        if (documentInfo.Id.IsEmpty)
+                        {
+                            documentInfo.Id = new OperationDocumentId(documentInfo.Hash.Value);
+                        }
+
                         success = true;
                     }
                     catch (SyntaxException ex)
@@ -80,11 +92,6 @@ internal sealed class DocumentParserMiddleware
 
             if (success)
             {
-                if (documentInfo.Id.IsEmpty)
-                {
-                    documentInfo.Id = new OperationDocumentId(documentInfo.Hash.Value);
-                }
-
                 await _next(context).ConfigureAwait(false);
             }
         }
@@ -122,7 +129,7 @@ internal sealed class DocumentParserMiddleware
                 var middleware = Create(next, diagnosticEvents, documentHashProvider, errorHandler, parserOptions);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(DocumentParserMiddleware));
+            WellKnownRequestMiddleware.DocumentParserMiddleware);
 
     internal static DocumentParserMiddleware Create(
         RequestDelegate next,

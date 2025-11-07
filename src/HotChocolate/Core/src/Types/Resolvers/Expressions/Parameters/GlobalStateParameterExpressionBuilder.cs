@@ -9,7 +9,6 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 internal sealed class GlobalStateParameterExpressionBuilder
     : IParameterExpressionBuilder
     , IParameterBindingFactory
-    , IParameterBinding
 {
     private static readonly PropertyInfo s_contextData =
         typeof(IHasContextData).GetProperty(
@@ -35,6 +34,9 @@ internal sealed class GlobalStateParameterExpressionBuilder
 
     public bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(GlobalStateAttribute));
+
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Attributes.Any(t => t is GlobalStateAttribute);
 
     public Expression Build(ParameterExpressionBuilderContext context)
     {
@@ -96,10 +98,38 @@ internal sealed class GlobalStateParameterExpressionBuilder
                         .GetFlags(parameter).FirstOrDefault() ?? false,
                     typeof(bool)));
     }
+    public IParameterBinding Create(ParameterDescriptor parameter)
+        => new ParameterBinding(this, parameter);
 
-    public IParameterBinding Create(ParameterBindingContext context)
-        => this;
+    private sealed class ParameterBinding : IParameterBinding
+    {
+        private readonly GlobalStateParameterExpressionBuilder _parent;
+        private readonly string _key;
 
-    public T Execute<T>(IResolverContext context)
-        => throw new NotSupportedException();
+        public ParameterBinding(
+            GlobalStateParameterExpressionBuilder parent,
+            ParameterDescriptor parameter)
+        {
+            _parent = parent;
+
+            GlobalStateAttribute? globalState = null;
+            foreach (var attribute in parameter.Attributes)
+            {
+                if (attribute is GlobalStateAttribute casted)
+                {
+                    globalState = casted;
+                    break;
+                }
+            }
+
+            _key = globalState?.Key ?? parameter.Name;
+        }
+
+        public ArgumentKind Kind => _parent.Kind;
+
+        public bool IsPure => _parent.IsPure;
+
+        public T Execute<T>(IResolverContext context)
+            => context.GetGlobalStateOrDefault<T>(_key, default!);
+    }
 }

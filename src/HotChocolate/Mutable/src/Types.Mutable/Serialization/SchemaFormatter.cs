@@ -125,7 +125,7 @@ public static class SchemaFormatter
                 if (definition is MutableDirectiveDefinition directiveDefinition)
                 {
                     if (!context.PrintSpecDirectives
-                        && BuiltIns.IsBuiltInDirective(directiveDefinition.Name))
+                        && DirectiveNames.IsSpecDirective(directiveDefinition.Name))
                     {
                         continue;
                     }
@@ -139,7 +139,7 @@ public static class SchemaFormatter
                     if (!context.PrintSpecScalars
                         && namedTypeDefinition is MutableScalarTypeDefinition scalarType
                         && (scalarType is { IsSpecScalar: true }
-                            || BuiltIns.IsBuiltInScalar(scalarType.Name)))
+                            || SpecScalarNames.IsSpecScalar(scalarType.Name)))
                     {
                         continue;
                     }
@@ -215,7 +215,7 @@ public static class SchemaFormatter
             {
                 if (!context.PrintSpecScalars
                     && (type is { IsSpecScalar: true }
-                        || BuiltIns.IsBuiltInScalar(type.Name)))
+                        || SpecScalarNames.IsSpecScalar(type.Name)))
                 {
                     continue;
                 }
@@ -235,7 +235,7 @@ public static class SchemaFormatter
 
             foreach (var type in directiveTypes.AsEnumerable().OrderBy(t => t.Name, context.OrderByName))
             {
-                if (BuiltIns.IsBuiltInDirective(type.Name))
+                if (DirectiveNames.IsSpecDirective(type.Name))
                 {
                     continue;
                 }
@@ -557,16 +557,14 @@ public static class SchemaFormatter
 
         private static DirectiveNode CreateDeprecatedDirective(string? reason = null)
         {
-            const string defaultReason = "No longer supported.";
-
             if (string.IsNullOrEmpty(reason))
             {
-                reason = defaultReason;
+                reason = DirectiveNames.Deprecated.Arguments.DefaultReason;
             }
 
             return new DirectiveNode(
-                new NameNode(BuiltIns.Deprecated.Name),
-                new[] { new ArgumentNode(BuiltIns.Deprecated.Reason, reason) });
+                new NameNode(DirectiveNames.Deprecated.Name),
+                new[] { new ArgumentNode(DirectiveNames.Deprecated.Arguments.Reason, reason) });
         }
 
         private static StringValueNode? CreateDescription(string? description)

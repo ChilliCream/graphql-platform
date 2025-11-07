@@ -1,3 +1,4 @@
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Introspection;
@@ -53,7 +54,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         // act
         descriptor
             .Type<ListType<StringType>>()
-            .Type<NativeType<IReadOnlyDictionary<string, string>>>();
+            .Type<NamedRuntimeType<IReadOnlyDictionary<string, string>>>();
 
         // assert
         var description = descriptor.CreateConfiguration();
@@ -71,7 +72,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
 
         // act
         descriptor
-            .Type<NativeType<IReadOnlyDictionary<string, string>>>()
+            .Type<NamedRuntimeType<IReadOnlyDictionary<string, string>>>()
             .Type<ListType<StringType>>();
 
         // assert

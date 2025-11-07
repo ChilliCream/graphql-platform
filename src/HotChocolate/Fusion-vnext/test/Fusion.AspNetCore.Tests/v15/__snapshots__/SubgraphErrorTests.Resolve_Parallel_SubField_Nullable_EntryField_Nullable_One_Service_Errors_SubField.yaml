@@ -36,11 +36,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
         viewer: Viewer
       }
-      
+
       type Viewer {
         name: String
       }
@@ -67,11 +67,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Other {
         userId: ID @error
       }
-      
+
       type Query {
         other: Other
       }

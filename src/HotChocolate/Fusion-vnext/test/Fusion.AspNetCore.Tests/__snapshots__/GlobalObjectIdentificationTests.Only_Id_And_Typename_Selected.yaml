@@ -23,16 +23,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
-      type Discussion implements Node @key(fields: "id") {
+
+      type Discussion implements Node {
         id: ID!
         title: String!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }
@@ -72,7 +72,6 @@ operationPlan:
       type: Node
       idValue: "RGlzY3Vzc2lvbjox"
       responseName: node
-      branches:
       fallback: 2
     - id: 2
       type: Operation

@@ -38,22 +38,22 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
-      type Discussion implements Node @key(fields: "id") {
+
+      type Discussion implements Node {
         id: ID!
         product: Product
       }
-      
+
       type Product @key(fields: "id") {
         id: ID!
       }
-      
+
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
@@ -93,20 +93,20 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Product @key(fields: "id") {
         id: ID!
       }
-      
+
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
-      
-      type Review implements Node @key(fields: "id") {
+
+      type Review implements Node {
         id: ID!
         product: Product
       }
@@ -115,18 +115,18 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
-      type Product implements Node @key(fields: "id") {
+
+      type Product implements Node {
         id: ID!
         name: String
       }
-      
+
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
@@ -200,6 +200,8 @@ operationPlan:
             __typename
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 3
@@ -219,6 +221,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 4
@@ -260,6 +264,8 @@ operationPlan:
             }
           }
         }
+      forwardedVariables:
+        - id
       dependencies:
         - id: 1
     - id: 6
