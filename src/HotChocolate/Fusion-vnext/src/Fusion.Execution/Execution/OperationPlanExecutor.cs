@@ -43,7 +43,7 @@ internal sealed class OperationPlanExecutor
         return context.Complete();
     }
 
-    public static async Task<IExecutionResult> SubscribeAsync(
+    public async Task<IExecutionResult> SubscribeAsync(
         RequestContext requestContext,
         OperationPlan operationPlan,
         CancellationToken cancellationToken)

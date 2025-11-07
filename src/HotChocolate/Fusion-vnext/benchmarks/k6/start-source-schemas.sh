@@ -12,11 +12,8 @@ else
   echo "⚠ taskset not available - services will run without CPU pinning"
 fi
 
-# CPU core assignments
-ACCOUNTS_CPUSET="${ACCOUNTS_CPUSET:-8-9}"
-INVENTORY_CPUSET="${INVENTORY_CPUSET:-10-11}"
-PRODUCTS_CPUSET="${PRODUCTS_CPUSET:-12-13}"
-REVIEWS_CPUSET="${REVIEWS_CPUSET:-14-15}"
+# CPU core assignment - all source schemas share these cores
+SOURCES_CPUSET="${SOURCES_CPUSET:-8-15}"
 
 # Helper function for optional CPU pinning
 maybe_taskset() {
@@ -59,8 +56,8 @@ echo ""
 echo "Building eShop.Accounts..."
 cd "$SCRIPT_DIR/eShop.Accounts"
 dotnet build -c Release --nologo -v quiet
-echo "Starting eShop.Accounts on cores $ACCOUNTS_CPUSET (port 5221)..."
-maybe_taskset "$ACCOUNTS_CPUSET" dotnet run -c Release --no-build --no-restore > /dev/null 2>&1 &
+echo "Starting eShop.Accounts on cores $SOURCES_CPUSET (port 5221)..."
+maybe_taskset "$SOURCES_CPUSET" dotnet run -c Release --no-build --no-restore > /dev/null 2>&1 &
 ACCOUNTS_PID=$!
 echo "  PID: $ACCOUNTS_PID"
 
@@ -69,8 +66,8 @@ echo ""
 echo "Building eShop.Inventory..."
 cd "$SCRIPT_DIR/eShop.Inventory"
 dotnet build -c Release --nologo -v quiet
-echo "Starting eShop.Inventory on cores $INVENTORY_CPUSET (port 5222)..."
-maybe_taskset "$INVENTORY_CPUSET" dotnet run -c Release --no-build --no-restore > /dev/null 2>&1 &
+echo "Starting eShop.Inventory on cores $SOURCES_CPUSET (port 5222)..."
+maybe_taskset "$SOURCES_CPUSET" dotnet run -c Release --no-build --no-restore > /dev/null 2>&1 &
 INVENTORY_PID=$!
 echo "  PID: $INVENTORY_PID"
 
@@ -79,8 +76,8 @@ echo ""
 echo "Building eShop.Products..."
 cd "$SCRIPT_DIR/eShop.Products"
 dotnet build -c Release --nologo -v quiet
-echo "Starting eShop.Products on cores $PRODUCTS_CPUSET (port 5223)..."
-maybe_taskset "$PRODUCTS_CPUSET" dotnet run -c Release --no-build --no-restore > /dev/null 2>&1 &
+echo "Starting eShop.Products on cores $SOURCES_CPUSET (port 5223)..."
+maybe_taskset "$SOURCES_CPUSET" dotnet run -c Release --no-build --no-restore > /dev/null 2>&1 &
 PRODUCTS_PID=$!
 echo "  PID: $PRODUCTS_PID"
 
@@ -89,8 +86,8 @@ echo ""
 echo "Building eShop.Reviews..."
 cd "$SCRIPT_DIR/eShop.Reviews"
 dotnet build -c Release --nologo -v quiet
-echo "Starting eShop.Reviews on cores $REVIEWS_CPUSET (port 5224)..."
-maybe_taskset "$REVIEWS_CPUSET" dotnet run -c Release --no-build --no-restore > /dev/null 2>&1 &
+echo "Starting eShop.Reviews on cores $SOURCES_CPUSET (port 5224)..."
+maybe_taskset "$SOURCES_CPUSET" dotnet run -c Release --no-build --no-restore > /dev/null 2>&1 &
 REVIEWS_PID=$!
 echo "  PID: $REVIEWS_PID"
 
@@ -107,10 +104,10 @@ wait_for_service "Reviews" 5224
 echo ""
 echo "✓ All source schemas are running!"
 echo ""
-echo "PIDs:"
-echo "  Accounts:  $ACCOUNTS_PID (cores $ACCOUNTS_CPUSET)"
-echo "  Inventory: $INVENTORY_PID (cores $INVENTORY_CPUSET)"
-echo "  Products:  $PRODUCTS_PID (cores $PRODUCTS_CPUSET)"
-echo "  Reviews:   $REVIEWS_PID (cores $REVIEWS_CPUSET)"
+echo "PIDs (all sharing cores $SOURCES_CPUSET):"
+echo "  Accounts:  $ACCOUNTS_PID"
+echo "  Inventory: $INVENTORY_PID"
+echo "  Products:  $PRODUCTS_PID"
+echo "  Reviews:   $REVIEWS_PID"
 echo ""
 echo "To stop: ./stop-services.sh"

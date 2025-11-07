@@ -83,12 +83,9 @@ echo "HotChocolate Fusion Benchmark Suite"
 echo "============================================"
 echo ""
 echo "Architecture:"
-echo "  Cores 0-1:   K6 load generator"
-echo "  Cores 2-7:   Gateway"
-echo "  Cores 8-9:   Accounts source schema"
-echo "  Cores 10-11: Inventory source schema"
-echo "  Cores 12-13: Products source schema"
-echo "  Cores 14-15: Reviews source schema"
+echo "  Cores 0-1:  K6 load generator"
+echo "  Cores 2-7:  Gateway"
+echo "  Cores 8-15: All source schemas (Accounts, Inventory, Products, Reviews)"
 echo ""
 
 # Start source schemas (once, reused for both gateway modes)
@@ -158,14 +155,8 @@ test_gateway_mode() {
   sleep 2
 }
 
-# Run benchmarks for both gateway modes
+# Run benchmarks
 test_gateway_mode "release"
-
-# TODO: Enable AOT once HotChocolate dependencies target net9.0+
-# Currently blocked by netstandard2.0 dependencies which don't support AOT:
-# - HotChocolate.Utilities.Buffers
-# - HotChocolate.Language.*
-# test_gateway_mode "aot"
 
 echo ""
 echo "============================================"
@@ -173,11 +164,4 @@ echo "Benchmark Complete!"
 echo "============================================"
 echo ""
 echo "Results saved to: $RESULTS_DIR"
-echo ""
-if [ -f "$RESULTS_DIR/summary-aot-single.json" ]; then
-  echo "To compare AOT vs Release performance:"
-  echo "  ./compare-results.sh"
-else
-  echo "Note: AOT benchmarks skipped (HotChocolate dependencies need net9.0+ target)"
-fi
 echo ""

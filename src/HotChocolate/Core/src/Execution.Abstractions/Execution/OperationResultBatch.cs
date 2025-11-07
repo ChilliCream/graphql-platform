@@ -23,7 +23,6 @@ public sealed class OperationResultBatch : ExecutionResult
     public OperationResultBatch(
         IReadOnlyList<IExecutionResult> results,
         IReadOnlyDictionary<string, object?>? contextData = null)
-        : base(cleanupTasks: ([() => RunCleanUp(results)], 1))
     {
         ArgumentNullException.ThrowIfNull(results);
 
@@ -39,6 +38,8 @@ public sealed class OperationResultBatch : ExecutionResult
 
         Results = results ?? throw new ArgumentNullException(nameof(results));
         ContextData = contextData;
+
+        RegisterForCleanup(() => RunCleanUp(results));
     }
 
     /// <summary>

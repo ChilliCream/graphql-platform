@@ -45,7 +45,7 @@ internal sealed class OperationExecutionMiddleware
                     return;
                 }
 
-                context.Result = await OperationPlanExecutor.SubscribeAsync(context, operationPlan, cancellationToken);
+                context.Result = await _planExecutor.SubscribeAsync(context, operationPlan, cancellationToken);
             }
             else
             {
