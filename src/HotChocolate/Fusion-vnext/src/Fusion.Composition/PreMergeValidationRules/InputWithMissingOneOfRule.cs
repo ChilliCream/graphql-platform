@@ -2,7 +2,6 @@ using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging;
-using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.PreMergeValidationRules;
 
