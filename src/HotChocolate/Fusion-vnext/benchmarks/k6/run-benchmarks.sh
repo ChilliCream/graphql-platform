@@ -149,7 +149,7 @@ test_gateway_mode() {
 
   # Run both k6 tests
   run_k6_test "single" "$SCRIPT_DIR/single-fetch.js" "$mode"
-  run_k6_test "stress" "$SCRIPT_DIR/federation-stress.js" "$mode"
+  run_k6_test "no-recursion" "$SCRIPT_DIR/no-recursion.js" "$mode"
 
   # Stop gateway
   echo ""
@@ -160,7 +160,12 @@ test_gateway_mode() {
 
 # Run benchmarks for both gateway modes
 test_gateway_mode "release"
-test_gateway_mode "aot"
+
+# TODO: Enable AOT once HotChocolate dependencies target net9.0+
+# Currently blocked by netstandard2.0 dependencies which don't support AOT:
+# - HotChocolate.Utilities.Buffers
+# - HotChocolate.Language.*
+# test_gateway_mode "aot"
 
 echo ""
 echo "============================================"
@@ -169,6 +174,10 @@ echo "============================================"
 echo ""
 echo "Results saved to: $RESULTS_DIR"
 echo ""
-echo "To compare AOT vs Release performance:"
-echo "  ./compare-results.sh"
+if [ -f "$RESULTS_DIR/summary-aot-single.json" ]; then
+  echo "To compare AOT vs Release performance:"
+  echo "  ./compare-results.sh"
+else
+  echo "Note: AOT benchmarks skipped (HotChocolate dependencies need net9.0+ target)"
+fi
 echo ""

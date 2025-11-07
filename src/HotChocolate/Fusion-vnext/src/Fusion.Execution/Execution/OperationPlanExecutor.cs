@@ -18,7 +18,7 @@ internal sealed class OperationPlanExecutor
         // without also cancelling the entire request pipeline.
         using var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        var context = new OperationPlanContext(requestContext, variables, operationPlan, executionCts);
+        await using var context = new OperationPlanContext(requestContext, variables, operationPlan, executionCts);
         context.Begin();
 
         switch (operationPlan.Operation.Definition.Operation)
@@ -43,7 +43,7 @@ internal sealed class OperationPlanExecutor
         return context.Complete();
     }
 
-    public async Task<IExecutionResult> SubscribeAsync(
+    public static async Task<IExecutionResult> SubscribeAsync(
         RequestContext requestContext,
         OperationPlan operationPlan,
         CancellationToken cancellationToken)
@@ -254,7 +254,7 @@ internal sealed class OperationPlanExecutor
                 // so we throw here to properly cancel the request execution.
                 requestCancellationToken.ThrowIfCancellationRequested();
 
-                result = context.Complete();
+                result = context.Complete(reusable: true);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {

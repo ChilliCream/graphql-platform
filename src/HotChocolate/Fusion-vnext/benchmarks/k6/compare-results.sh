@@ -145,7 +145,7 @@ compare_test() {
 
 # Compare both tests
 compare_test "single" "Single Fetch (Top Product)"
-compare_test "stress" "Federation Stress (Complex Query)"
+compare_test "no-recursion" "No Recursion (Top Products and Reviews)"
 
 echo "────────────────────────────────────────────"
 echo ""

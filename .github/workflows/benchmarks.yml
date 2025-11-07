@@ -96,20 +96,20 @@ jobs:
             echo "" >> fusion-performance-report.md
           fi
 
-          echo "### Federation Stress Test (Complex Query)" >> fusion-performance-report.md
+          echo "### No Recursion Test (Complex Query)" >> fusion-performance-report.md
           echo "" >> fusion-performance-report.md
 
-          # Add federation stress results if they exist
-          if [ -f results/summary-aot-stress.json ] && [ -f results/summary-release-stress.json ]; then
+          # Add no recursion results if they exist
+          if [ -f results/summary-aot-no-recursion.json ] && [ -f results/summary-release-no-recursion.json ]; then
             echo "#### AOT Mode" >> fusion-performance-report.md
             echo '```' >> fusion-performance-report.md
-            jq -r '.metrics.http_req_duration | "p50: \(.values."p(50)")ms, p95: \(.values."p(95)")ms, p99: \(.values."p(99)")ms"' results/summary-aot-stress.json >> fusion-performance-report.md
+            jq -r '.metrics.http_req_duration | "p50: \(.values."p(50)")ms, p95: \(.values."p(95)")ms, p99: \(.values."p(99)")ms"' results/summary-aot-no-recursion.json >> fusion-performance-report.md
             echo '```' >> fusion-performance-report.md
             echo "" >> fusion-performance-report.md
 
             echo "#### Release Mode" >> fusion-performance-report.md
             echo '```' >> fusion-performance-report.md
-            jq -r '.metrics.http_req_duration | "p50: \(.values."p(50)")ms, p95: \(.values."p(95)")ms, p99: \(.values."p(99)")ms"' results/summary-release-stress.json >> fusion-performance-report.md
+            jq -r '.metrics.http_req_duration | "p50: \(.values."p(50)")ms, p95: \(.values."p(95)")ms, p99: \(.values."p(99)")ms"' results/summary-release-no-recursion.json >> fusion-performance-report.md
             echo '```' >> fusion-performance-report.md
             echo "" >> fusion-performance-report.md
           fi

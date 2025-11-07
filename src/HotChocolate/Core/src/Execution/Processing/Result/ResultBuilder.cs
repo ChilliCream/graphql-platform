@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Resolvers;
@@ -6,7 +7,6 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class ResultBuilder
 {
-    private static readonly Func<ValueTask>[] s_emptyCleanupTasks = [];
     private readonly List<IError> _errors = [];
     private readonly HashSet<Path> _errorPaths = [];
     private readonly HashSet<ISelection> _fieldErrors = [];
@@ -254,6 +254,17 @@ internal sealed partial class ResultBuilder
             _contextData.Add(WellKnownContextData.ExpectedPatches, _patchIds.ToArray());
         }
 
+        Func<ValueTask>[] cleanupTasks = [];
+        var cleanupTasksLength = _cleanupTasks.Count;
+        if (cleanupTasksLength > 0)
+        {
+            cleanupTasks = ArrayPool<Func<ValueTask>>.Shared.Rent(cleanupTasksLength);
+            for (var i = 0; i < cleanupTasksLength; i++)
+            {
+                cleanupTasks[i] = _cleanupTasks[i];
+            }
+        }
+
         var result = new OperationResult(
             _data,
             _errors.Count == 0 ? null : _errors.ToArray(),
@@ -264,9 +275,7 @@ internal sealed partial class ResultBuilder
             label: _label,
             path: _path,
             hasNext: _hasNext,
-            cleanupTasks: _cleanupTasks.Count == 0
-                ? s_emptyCleanupTasks
-                : _cleanupTasks.ToArray(),
+            cleanupTasks: (cleanupTasks, cleanupTasksLength),
             isDataSet: true,
             requestIndex: _requestIndex,
             variableIndex: _variableIndex);

@@ -23,7 +23,7 @@ public sealed class OperationResultBatch : ExecutionResult
     public OperationResultBatch(
         IReadOnlyList<IExecutionResult> results,
         IReadOnlyDictionary<string, object?>? contextData = null)
-        : base(cleanupTasks: [() => RunCleanUp(results)])
+        : base(cleanupTasks: ([() => RunCleanUp(results)], 1))
     {
         ArgumentNullException.ThrowIfNull(results);
 
@@ -69,10 +69,17 @@ public sealed class OperationResultBatch : ExecutionResult
     public OperationResultBatch WithResults(IReadOnlyList<IExecutionResult> results)
     {
         var newBatch = new OperationResultBatch(results, ContextData);
+        var (tasks, length) = TakeCleanUpTasks();
 
-        foreach (var cleanupTask in CleanupTasks)
+        if (length > 0)
         {
-            newBatch.RegisterForCleanup(cleanupTask);
+            foreach (var cleanupTask in tasks)
+            {
+                newBatch.RegisterForCleanup(cleanupTask);
+            }
+
+            tasks.AsSpan(0, length).Clear();
+            CleanUpTaskPool.Return(tasks);
         }
 
         return newBatch;
