@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -29,9 +30,8 @@ public abstract partial class ScalarType
     protected ScalarType(string name, BindingBehavior bind = BindingBehavior.Explicit)
     {
         Name = name.EnsureGraphQLName();
-        Bind = bind;
-
         Directives = null!;
+        Bind = bind;
     }
 
     protected override ScalarTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
@@ -49,11 +49,20 @@ public abstract partial class ScalarType
     {
         base.OnRegisterDependencies(context, configuration);
 
+        var inspector = context.TypeInspector;
+        var options = context.DescriptorContext.Options;
+
         if (SpecifiedBy is not null)
         {
-            var inspector = context.TypeInspector;
             var specifiedByTypeRef = inspector.GetTypeRef(typeof(SpecifiedByDirectiveType));
             context.Dependencies.Add(new TypeDependency(specifiedByTypeRef));
+        }
+
+        if (options.ApplySerializeAsToScalars && SerializationType is not ScalarSerializationType.Undefined)
+        {
+            var serializedAsTypeRef = inspector.GetTypeRef(typeof(SerializeAs));
+            context.Dependencies.Add(new TypeDependency(serializedAsTypeRef));
+            configuration.AddDirective(new SerializeAs(SerializationType, Pattern), inspector);
         }
 
         if (configuration.HasDirectives)
@@ -91,33 +100,5 @@ public abstract partial class ScalarType
     {
         var directiveDefinitions = configuration.GetDirectives();
         Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
-    }
-
-    protected override void OnAfterCompleteMetadata(
-        ITypeCompletionContext context,
-        TypeSystemConfiguration configuration)
-    {
-        if (SerializationType is ScalarSerializationType.Undefined)
-        {
-            SerializationType = Name switch
-            {
-                "ID" => ScalarSerializationType.String | ScalarSerializationType.Int,
-                "String" => ScalarSerializationType.String,
-                "Int" => ScalarSerializationType.Int,
-                "Float" => ScalarSerializationType.Float,
-                "Boolean" => ScalarSerializationType.Boolean,
-                _ => ScalarSerializationType.Undefined
-            };
-        }
-
-        var directive = Directives.FirstOrDefault<SerializeAs>();
-        if (directive is not null)
-        {
-            var serializeAs = directive.ToValue<SerializeAs>();
-            SerializationType = serializeAs.Type;
-            Pattern = serializeAs.Pattern;
-        }
-
-        base.OnAfterCompleteMetadata(context, configuration);
     }
 }

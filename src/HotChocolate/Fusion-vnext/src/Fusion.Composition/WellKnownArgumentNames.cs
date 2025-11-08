@@ -16,11 +16,13 @@ internal static class WellKnownArgumentNames
     public const string Name = "name";
     public const string Partial = "partial";
     public const string Path = "path";
+    public const string Pattern = "pattern";
     public const string Provides = "provides";
     public const string Requirements = "requirements";
     public const string Schema = "schema";
     public const string Scope = "scope";
     public const string SharedMaxAge = "sharedMaxAge";
     public const string SourceType = "sourceType";
+    public const string Type = "type";
     public const string Vary = "vary";
 }

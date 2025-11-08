@@ -1,0 +1,8 @@
+{
+  "name": "products-api",
+  "transports": {
+    "http": {
+      "url": "http://localhost:5223/graphql"
+    }
+  }
+}

@@ -9,7 +9,6 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
-using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Pagination;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.Types.TagHelper;

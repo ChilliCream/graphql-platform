@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Reflection;
-using HotChocolate.Types;
 
 namespace HotChocolate.Internal;
 

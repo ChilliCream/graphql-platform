@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Features;
 
 namespace HotChocolate.Types.Descriptors.Configurations;

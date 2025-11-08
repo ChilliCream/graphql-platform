@@ -5,7 +5,6 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
-using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Types.Pagination.PagingDefaults;
