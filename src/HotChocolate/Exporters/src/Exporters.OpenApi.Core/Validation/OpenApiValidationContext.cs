@@ -1,7 +1,6 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Validation;
 
-namespace HotChocolate.Exporters.OpenApi.Validation;
+namespace HotChocolate.Exporters.OpenApi;
 
 internal sealed class OpenApiValidationContext(
     IReadOnlyCollection<OpenApiOperationDocument> operations,
@@ -14,10 +13,10 @@ internal sealed class OpenApiValidationContext(
     public DocumentValidator DocumentValidator { get; } = documentValidator;
 
     public Dictionary<string, OpenApiOperationDocument> OperationsByName { get; } =
-        operations.ToDictionary(o => o.Name, o => o);
+        operations.ToDictionary(o => o.Name, StringComparer.OrdinalIgnoreCase);
 
     public Dictionary<string, OpenApiFragmentDocument> FragmentsByName { get; } =
-        fragments.ToDictionary(o => o.Name, o => o);
+        fragments.ToDictionary(o => o.Name, StringComparer.OrdinalIgnoreCase);
 
     public ValueTask<OpenApiFragmentDocument?> GetFragmentAsync(string fragmentName)
     {

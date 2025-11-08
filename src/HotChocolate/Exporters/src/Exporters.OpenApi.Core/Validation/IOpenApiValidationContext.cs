@@ -1,7 +1,6 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Validation;
 
-namespace HotChocolate.Exporters.OpenApi.Validation;
+namespace HotChocolate.Exporters.OpenApi;
 
 /// <summary>
 /// Provides context for OpenAPI document validation.

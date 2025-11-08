@@ -20,16 +20,14 @@ internal sealed class OperationMustHaveSingleRootFieldRule : IOpenApiOperationDo
             result = OpenApiValidationResult.Failure(
                 new OpenApiValidationError(
                     $"Operation '{document.Name}' must have exactly one root field selection, but found {selectionSet.Selections.Count}.",
-                    document.Id,
-                    document.Name));
+                    document));
         }
         else if (selectionSet.Selections[0] is not FieldNode)
         {
             result = OpenApiValidationResult.Failure(
                 new OpenApiValidationError(
                     $"Operation '{document.Name}' must have a single root field selection, but found a fragment spread or inline fragment.",
-                    document.Id,
-                    document.Name));
+                    document));
         }
         else
         {

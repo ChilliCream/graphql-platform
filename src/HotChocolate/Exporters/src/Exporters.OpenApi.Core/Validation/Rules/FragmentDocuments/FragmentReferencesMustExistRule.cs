@@ -20,8 +20,7 @@ internal sealed class FragmentReferencesMustExistRule : IOpenApiFragmentDocument
             {
                 errors.Add(new OpenApiValidationError(
                     $"Fragment '{fragmentName}' referenced by fragment document '{document.Name}' does not exist.",
-                    document.Id,
-                    document.Name));
+                    document));
             }
         }
 

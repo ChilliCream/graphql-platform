@@ -98,7 +98,10 @@ public abstract class OpenApiTestBase : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    protected abstract void ConfigureStorage(IServiceCollection services, IOpenApiDefinitionStorage storage);
+    protected abstract void ConfigureStorage(
+        IServiceCollection services,
+        IOpenApiDefinitionStorage storage,
+        IOpenApiDiagnosticEventListener? eventListener);
 
     protected virtual void ConfigureOpenApi(OpenApiOptions options)
     {
@@ -110,7 +113,9 @@ public abstract class OpenApiTestBase : IAsyncLifetime
         endpoints.MapGraphQLEndpoints();
     }
 
-    protected TestServer CreateTestServer(IOpenApiDefinitionStorage storage)
+    protected TestServer CreateTestServer(
+        IOpenApiDefinitionStorage storage,
+        IOpenApiDiagnosticEventListener? eventListener = null)
     {
         return _testServerSession.CreateServer(
             services =>
@@ -134,7 +139,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
                 services.AddOpenApi(ConfigureOpenApi);
 
-                ConfigureStorage(services, storage);
+                ConfigureStorage(services, storage, eventListener);
             },
             app =>
             {

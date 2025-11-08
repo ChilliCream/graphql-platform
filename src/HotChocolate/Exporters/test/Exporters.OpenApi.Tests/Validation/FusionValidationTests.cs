@@ -9,7 +9,7 @@ using Xunit.Sdk;
 
 namespace HotChocolate.Exporters.OpenApi;
 
-public class FusionOpenApiIntegrationTest : OpenApiIntegrationTestBase
+public class FusionValidationTests : ValidationTestBase
 {
     private DocumentNode _compositeSchema = null!;
 
@@ -48,10 +48,18 @@ public class FusionOpenApiIntegrationTest : OpenApiIntegrationTestBase
         _compositeSchema = result.Value.ToSyntaxNode();
     }
 
-    protected override void ConfigureStorage(IServiceCollection services, IOpenApiDefinitionStorage storage)
+    protected override void ConfigureStorage(
+        IServiceCollection services,
+        IOpenApiDefinitionStorage storage,
+        IOpenApiDiagnosticEventListener? eventListener)
     {
-        services.AddGraphQLGatewayServer()
+        var builder = services.AddGraphQLGatewayServer()
             .AddInMemoryConfiguration(_compositeSchema)
             .AddOpenApiDefinitionStorage(storage);
+
+        if (eventListener is not null)
+        {
+            builder.AddOpenApiDiagnosticEventListener(eventListener);
+        }
     }
 }

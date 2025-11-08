@@ -72,7 +72,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         var operation = new OpenApiOperation
         {
             Description = operationDocument.Description,
-            OperationId = GetOperationId(operationDocument.Name),
+            OperationId = OpenApiHelpers.GetOperationId(operationDocument.Name),
             Responses = new OpenApiResponses()
         };
 
@@ -869,20 +869,6 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         }
 
         return lastField!.Type;
-    }
-
-    private static string GetOperationId(string input)
-    {
-        if (char.IsLower(input[0]))
-        {
-            return input;
-        }
-
-        return string.Create(input.Length, input, (span, str) =>
-        {
-            str.AsSpan().CopyTo(span);
-            span[0] = char.ToLowerInvariant(span[0]);
-        });
     }
 
     private sealed record OperationDescriptor(string Path, string HttpMethod, OpenApiOperation Operation);

@@ -26,11 +26,7 @@ internal sealed class OperationMustCompileAgainstSchemaRule : IOpenApiOperationD
             if (fragment is not null)
             {
                 definitions.Add(fragment.FragmentDefinition);
-
-                foreach (var localFragment in fragment.LocalFragmentLookup.Values)
-                {
-                    definitions.Add(localFragment);
-                }
+                definitions.AddRange(fragment.LocalFragmentLookup.Values);
 
                 foreach (var fragmentReference in fragment.ExternalFragmentReferences)
                 {
@@ -45,13 +41,13 @@ internal sealed class OperationMustCompileAgainstSchemaRule : IOpenApiOperationD
 
         if (validationResult.HasErrors)
         {
-            var errors = validationResult.Errors.Select(error =>
-                new OpenApiValidationError(
-                    $"Operation '{document.Name}' does not compile against the schema: {error.Message}",
-                    document.Id,
-                    document.Name)).ToList();
+            var firstError = validationResult.Errors
+                .Select(error =>
+                    new OpenApiValidationError(
+                        $"Operation '{document.Name}' does not compile against the schema: {error.Message}", document))
+                .First();
 
-            return OpenApiValidationResult.Failure(errors);
+            return OpenApiValidationResult.Failure(firstError);
         }
 
         return OpenApiValidationResult.Success();

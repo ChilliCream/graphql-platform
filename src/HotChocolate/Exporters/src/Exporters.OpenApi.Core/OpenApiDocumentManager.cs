@@ -1,4 +1,3 @@
-using HotChocolate.Exporters.OpenApi.Validation;
 using HotChocolate.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +11,7 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
     private readonly IDynamicEndpointDataSource _dynamicEndpointDataSource;
     private readonly IDisposable _storageSubscription;
     private readonly SemaphoreSlim _updateSemaphore = new(1, 1);
-    private readonly EventObservable _events = new();
+    private readonly EventObservable _eventObservable = new();
     private ISchemaDefinition? _schema;
     private readonly Dictionary<string, OpenApiFragmentDocument> _fragmentsById = [];
     private readonly Dictionary<string, OpenApiOperationDocument> _operationsById = [];
@@ -67,13 +66,13 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
     public IDisposable Subscribe(IObserver<OpenApiDocumentEvent> observer)
     {
         ArgumentNullException.ThrowIfNull(observer);
-        return _events.Subscribe(observer);
+        return _eventObservable.Subscribe(observer);
     }
 
     public void Dispose()
     {
         _storageSubscription.Dispose();
-        _events.Dispose();
+        _eventObservable.Dispose();
         _updateSemaphore.Dispose();
     }
 
@@ -130,7 +129,7 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
 
                 await RebuildAsync([parsedDocument], CancellationToken.None);
 
-                _events.RaiseEvent(OpenApiDocumentEvent.Updated());
+                _eventObservable.RaiseEvent(OpenApiDocumentEvent.Updated());
                 break;
 
             case OpenApiDefinitionStorageEventType.Removed:
@@ -148,7 +147,7 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
                 {
                     // TODO: Remove needs to be handled specifically
                     await RebuildAsync([], CancellationToken.None);
-                    _events.RaiseEvent(OpenApiDocumentEvent.Updated());
+                    _eventObservable.RaiseEvent(OpenApiDocumentEvent.Updated());
                 }
                 break;
 
@@ -183,6 +182,7 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
             }
         }
 
+        var events = _schema.Services.GetRequiredService<IOpenApiDiagnosticEvents>();
         var validationContext = new OpenApiValidationContext(
             _operationsById.Values,
             _fragmentsById.Values,
@@ -215,7 +215,7 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
 
                     if (!validationResult.IsValid)
                     {
-                        // TODO: Report
+                        events.ValidationErrors(validationResult.Errors);
                     }
                     else
                     {
@@ -251,7 +251,7 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
                 }
                 else
                 {
-                    // TODO: Report
+                    events.ValidationErrors(validationResult.Errors);
                 }
 
                 remainingFragments.Remove(fragmentName);
@@ -265,7 +265,7 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
 
             if (!validationResult.IsValid)
             {
-                // TODO: Report
+                events.ValidationErrors(validationResult.Errors);
             }
             else
             {

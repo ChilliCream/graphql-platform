@@ -19,8 +19,6 @@ public static class RequestExecutorBuilderExtensions
         builder.Services.AddKeyedSingleton(builder.Name, storage);
 
         return builder;
-
-        // return builder.ConfigureSchemaServices(s => s.AddSingleton(definitionStorage));
     }
 
     public static IRequestExecutorBuilder AddOpenApiDefinitionStorage<
@@ -35,9 +33,29 @@ public static class RequestExecutorBuilderExtensions
         builder.Services.AddKeyedSingleton<IOpenApiDefinitionStorage, T>(builder.Name);
 
         return builder;
+    }
 
-        // return builder.ConfigureSchemaServices(
-        //     static s => s.AddSingleton<IOpenApiDefinitionStorage, T>());
+    public static IRequestExecutorBuilder AddOpenApiDiagnosticEventListener(
+        this IRequestExecutorBuilder builder,
+        IOpenApiDiagnosticEventListener listener)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(listener);
+
+        builder.ConfigureSchemaServices(s => s.AddSingleton(listener));
+
+        return builder;
+    }
+
+    public static IRequestExecutorBuilder AddOpenApiDiagnosticEventListener<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IRequestExecutorBuilder builder) where T : class, IOpenApiDiagnosticEventListener
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.ConfigureSchemaServices(s => s.AddSingleton<IOpenApiDiagnosticEventListener, T>());
+
+        return builder;
     }
 
     private static void AddOpenApiDocumentStorageCore(this IRequestExecutorBuilder builder)

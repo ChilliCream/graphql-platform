@@ -19,8 +19,7 @@ internal sealed class OperationNameUniquenessRule : IOpenApiOperationDocumentVal
 
         return OpenApiValidationResult.Failure(
             new OpenApiValidationError(
-                $"Operation name '{document.Name}' is already being used by a operation document with the Id '{existingOperation.Id}'.",
-                document.Id,
-                document.Name));
+                $"Operation name '{document.Name}' is already being used by a operation document with the Id '{existingOperation.Id}' ('{existingOperation.Name}').",
+                document));
     }
 }

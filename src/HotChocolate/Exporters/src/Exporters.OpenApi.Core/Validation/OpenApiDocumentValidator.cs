@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
+using HotChocolate.Exporters.OpenApi.Validation;
 
-namespace HotChocolate.Exporters.OpenApi.Validation;
+namespace HotChocolate.Exporters.OpenApi;
 
 internal sealed class OpenApiDocumentValidator : IOpenApiDocumentValidator
 {

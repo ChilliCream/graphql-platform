@@ -45,6 +45,17 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddSingleton(
             _ => applicationServices.GetRequiredKeyedService<DynamicOpenApiDocumentTransformer>(schemaName));
 
+        services.TryAddSingleton<IOpenApiDiagnosticEvents>(sp =>
+        {
+            var listeners = sp.GetServices<IOpenApiDiagnosticEventListener>().ToArray();
+            return listeners.Length switch
+            {
+                0 => new NoOpOpenApiDiagnosticEventListener(),
+                1 => listeners[0],
+                _ => new AggregateOpenApiDiagnosticEventListener(listeners)
+            };
+        });
+
         return services;
     }
 }

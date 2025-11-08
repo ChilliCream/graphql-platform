@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Exporters.OpenApi;
 
-public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
+public class OpenApiIntegrationTests : OpenApiIntegrationTestBase
 {
     protected override void ConfigureStorage(
         IServiceCollection services,

@@ -1,48 +1,19 @@
-namespace HotChocolate.Exporters.OpenApi.Validation;
+namespace HotChocolate.Exporters.OpenApi;
 
-/// <summary>
-/// Represents a validation error.
-/// </summary>
-public sealed class OpenApiValidationError
+public sealed class OpenApiValidationError( string message, IOpenApiDocument document)
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="OpenApiValidationError" />.
+    /// Gets the document.
     /// </summary>
-    public OpenApiValidationError(string message, string? documentId = null, string? documentName = null)
-    {
-        Message = message;
-        DocumentId = documentId;
-        DocumentName = documentName;
-    }
+    public IOpenApiDocument Document { get; } = document;
 
     /// <summary>
     /// Gets the error message.
     /// </summary>
-    public string Message { get; }
+    public string Message { get; } = message;
 
-    /// <summary>
-    /// Gets the document ID where the error occurred, if applicable.
-    /// </summary>
-    public string? DocumentId { get; }
-
-    /// <summary>
-    /// Gets the document name where the error occurred, if applicable.
-    /// </summary>
-    public string? DocumentName { get; }
-
-    /// <inheritdoc />
     public override string ToString()
     {
-        if (DocumentName is not null)
-        {
-            return $"[{DocumentName}] {Message}";
-        }
-
-        if (DocumentId is not null)
-        {
-            return $"[{DocumentId}] {Message}";
-        }
-
         return Message;
     }
 }

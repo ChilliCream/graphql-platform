@@ -4,15 +4,13 @@ using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Language;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Sdk;
 
 namespace HotChocolate.Exporters.OpenApi;
 
-public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
+public class FusionOpenApiIntegrationTests : OpenApiIntegrationTestBase
 {
-    private TestServer _subgraph = null!;
     private DocumentNode _compositeSchema = null!;
 
     protected override async Task InitializeAsync(TestServerSession serverSession)
@@ -47,7 +45,6 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
             throw new XunitException(sb.ToString());
         }
 
-        _subgraph = server;
         _compositeSchema = result.Value.ToSyntaxNode();
     }
 
@@ -56,13 +53,8 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
         IOpenApiDefinitionStorage storage,
         IOpenApiDiagnosticEventListener? eventListener)
     {
-        services.AddHttpClient("A")
-            .ConfigurePrimaryHttpMessageHandler(() => _subgraph.CreateHandler())
-            .AddHeaderPropagation();
-
         services.AddGraphQLGatewayServer()
             .AddInMemoryConfiguration(_compositeSchema)
-            .AddHttpClientConfiguration("A", new Uri("http://localhost:5000/graphql"))
             .AddOpenApiDefinitionStorage(storage);
     }
 }

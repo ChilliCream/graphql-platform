@@ -1,6 +1,6 @@
-namespace HotChocolate.Exporters.OpenApi.Validation;
+namespace HotChocolate.Exporters.OpenApi;
 
-public interface IOpenApiDocumentValidator
+internal interface IOpenApiDocumentValidator
 {
     ValueTask<OpenApiValidationResult> ValidateAsync(
         IOpenApiDocument document,

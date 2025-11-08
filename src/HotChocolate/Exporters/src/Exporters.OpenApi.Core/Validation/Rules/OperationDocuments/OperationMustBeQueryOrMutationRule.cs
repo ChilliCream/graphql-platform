@@ -19,8 +19,7 @@ internal sealed class OperationMustBeQueryOrMutationRule : IOpenApiOperationDocu
             return ValueTask.FromResult(OpenApiValidationResult.Failure(
                 new OpenApiValidationError(
                     $"Operation '{document.Name}' is a subscription. Only queries and mutations are allowed for OpenAPI operations.",
-                    document.Id,
-                    document.Name)));
+                    document)));
         }
 
         return ValueTask.FromResult(OpenApiValidationResult.Success());

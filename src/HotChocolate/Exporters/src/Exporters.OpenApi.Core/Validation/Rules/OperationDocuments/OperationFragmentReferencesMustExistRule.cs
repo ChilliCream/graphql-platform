@@ -19,9 +19,8 @@ internal sealed class OperationFragmentReferencesMustExistRule : IOpenApiOperati
             if (fragment is null)
             {
                 errors.Add(new OpenApiValidationError(
-                    $"Fragment '{fragmentName}' referenced by fragment document '{document.Name}' does not exist.",
-                    document.Id,
-                    document.Name));
+                    $"Fragment '{fragmentName}' referenced by operation document '{document.Name}' does not exist.",
+                    document));
             }
         }
 

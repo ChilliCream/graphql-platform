@@ -19,8 +19,7 @@ internal sealed class FragmentNameUniquenessRule : IOpenApiFragmentDocumentValid
 
         return OpenApiValidationResult.Failure(
             new OpenApiValidationError(
-                $"Fragment name '{document.Name}' is already being used by a fragment document with the Id '{existingFragment.Id}'.",
-                document.Id,
-                document.Name));
+                $"Fragment name '{document.Name}' is already being used by a fragment document with the Id '{existingFragment.Id}' ('{existingFragment.Name}').",
+                document));
     }
 }

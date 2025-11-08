@@ -1,4 +1,4 @@
-namespace HotChocolate.Exporters.OpenApi.Validation;
+namespace HotChocolate.Exporters.OpenApi;
 
 internal interface IOpenApiOperationDocumentValidationRule
 {
