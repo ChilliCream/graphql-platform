@@ -303,4 +303,94 @@ public class ObjectTypeTests
             }
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task XmlDocumentation_With_InheritdocFromBaseClass()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Query>]
+            public static partial class QueryType
+            {
+            }
+
+            public abstract class BaseQuery
+            {
+                /// <summary>
+                /// Gets the user by their unique identifier.
+                /// </summary>
+                public virtual string GetUser() => "User";
+            }
+
+            public class Query : BaseQuery
+            {
+                /// <inheritdoc />
+                public override string GetUser() => "Query User";
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task XmlDocumentation_With_InheritdocFromInterface()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Query>]
+            public static partial class QueryType
+            {
+            }
+
+            public interface IQuery
+            {
+                /// <summary>
+                /// Retrieves the current user from the context.
+                /// </summary>
+                string GetCurrentUser();
+            }
+
+            public class Query : IQuery
+            {
+                /// <inheritdoc />
+                public string GetCurrentUser() => "Current User";
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task XmlDocumentation_With_InheritdocCref()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [ObjectType<Query>]
+            public static partial class QueryType
+            {
+            }
+
+            public interface IUserResolver
+            {
+                /// <summary>
+                /// Resolves user information by ID.
+                /// </summary>
+                string ResolveUser();
+            }
+
+            public class Query
+            {
+                /// <inheritdoc cref="IUserResolver.ResolveUser"/>
+                public string GetUserInfo() => "User Info";
+            }
+            """).MatchMarkdownAsync();
+    }
 }
