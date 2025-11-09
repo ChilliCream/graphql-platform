@@ -311,11 +311,13 @@ public class ObjectTypeInspector : ISyntaxInspector
 
             if (parameter.Kind is ResolverParameterKind.Unknown && (parameter.Name == "id" || parameter.Key == "id"))
             {
+                compilation.TryGetGraphQLDeprecationReason(parameter.Parameter, out var paramDeprecationReason);
                 parameter = new ResolverParameter(
                     parameter.Parameter,
                     parameter.Key,
                     ResolverParameterKind.Argument,
-                    GraphQLTypeBuilder.ToSchemaType(parameter.Type, compilation));
+                    GraphQLTypeBuilder.ToSchemaType(parameter.Type, compilation),
+                    paramDeprecationReason);
             }
 
             resolverParameters[i] = parameter;

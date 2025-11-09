@@ -39,15 +39,11 @@ public static class SymbolExtensions
                 try
                 {
                     var doc = XDocument.Parse(xml);
-                    methodDescription = doc.Descendants("summary")
+                    var summaryText = doc.Descendants("summary")
                         .FirstOrDefault()?
-                        .Value
-                        .Trim();
+                        .Value;
 
-                    if (string.IsNullOrEmpty(methodDescription))
-                    {
-                        methodDescription = null;
-                    }
+                    methodDescription = GeneratorUtils.NormalizeXmlDocumentation(summaryText);
                 }
                 catch
                 {
@@ -72,10 +68,9 @@ public static class SymbolExtensions
                     var doc = XDocument.Parse(commentXml);
                     var paramDoc = doc.Descendants("param")
                         .FirstOrDefault(p => p.Attribute("name")?.Value == param.Name)?
-                        .Value
-                        .Trim();
+                        .Value;
 
-                    paramDescription = string.IsNullOrEmpty(paramDoc) ? null : paramDoc;
+                    paramDescription = GeneratorUtils.NormalizeXmlDocumentation(paramDoc);
                 }
                 catch
                 {
@@ -108,8 +103,8 @@ public static class SymbolExtensions
         {
             var doc = XDocument.Parse(commentXml);
             var summaryElement = doc.Descendants("summary").FirstOrDefault();
-            var text = summaryElement?.Value.Trim();
-            return string.IsNullOrEmpty(text) ? null : text;
+            var text = summaryElement?.Value;
+            return GeneratorUtils.NormalizeXmlDocumentation(text);
         }
         catch
         {
@@ -137,8 +132,8 @@ public static class SymbolExtensions
         {
             var doc = XDocument.Parse(xml);
             var summaryElement = doc.Descendants("summary").FirstOrDefault();
-            var text = summaryElement?.Value.Trim();
-            return string.IsNullOrEmpty(text) ? null : text;
+            var text = summaryElement?.Value;
+            return GeneratorUtils.NormalizeXmlDocumentation(text);
         }
         catch
         {
