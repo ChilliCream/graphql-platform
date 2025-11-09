@@ -19,8 +19,8 @@ builder
     {
         o.CollectOperationPlanTelemetry = true;
         o.IncludeExceptionDetails = true;
-    });
-// .AddDiagnosticEventListener(_ => new ErrorCollector());
+    })
+    .AddDiagnosticEventListener(_ => new ErrorCollector());
 
 var app = builder.Build();
 
