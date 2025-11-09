@@ -171,17 +171,15 @@ public sealed class ConnectionTypeInfo
                         flags |= FieldFlags.TotalCount;
                     }
 
-                    compilation.TryGetGraphQLDeprecationReason(property, out var deprecationReason);
-
                     resolvers.Add(
                         new Resolver(
                             connectionName,
-                            deprecationReason,
                             property,
                             ResolverResultKind.Pure,
                             [],
                             GetMemberBindings(property),
                             GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
+                            compilation,
                             flags: flags));
                     break;
             }

@@ -60,16 +60,14 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
 
                 if (member is IPropertySymbol)
                 {
-                    context.SemanticModel.Compilation.TryGetGraphQLDeprecationReason(member, out var deprecationReason);
-
                     resolvers[i++] = new Resolver(
                         classSymbol.Name,
-                        deprecationReason,
                         member,
                         ResolverResultKind.Pure,
                         [],
                         [],
-                        GraphQLTypeBuilder.ToSchemaType(member.GetReturnType()!, context.SemanticModel.Compilation));
+                        GraphQLTypeBuilder.ToSchemaType(member.GetReturnType()!, context.SemanticModel.Compilation),
+                        context.SemanticModel.Compilation);
                 }
             }
         }
@@ -155,15 +153,13 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             resolverParameters[i] = ResolverParameter.Create(parameters[i], compilation);
         }
 
-        context.SemanticModel.Compilation.TryGetGraphQLDeprecationReason(resolverMethod, out var deprecationReason);
-
         return new Resolver(
             resolverType.Name,
-            deprecationReason,
             resolverMethod,
             resolverMethod.GetResultKind(),
             [.. resolverParameters],
             [],
-            GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation));
+            GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation),
+            compilation);
     }
 }
