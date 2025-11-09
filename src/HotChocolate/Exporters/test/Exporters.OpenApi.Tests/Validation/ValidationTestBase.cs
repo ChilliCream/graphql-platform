@@ -2,9 +2,99 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Exporters.OpenApi;
 
-// TODO: parameter mismatch with different input paths
 public abstract class ValidationTestBase : OpenApiTestBase
 {
+    #region Fragment Document
+
+    [Fact]
+    public async Task Fragment_Name_Not_Unique_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            fragment User on User {
+              id
+              name
+            }
+            """,
+            """
+            # This fragment name is intentionally duplicate
+            fragment User on User {
+              id
+              email
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Fragment name 'User' is already being used by a fragment document with the Id '0' ('User').",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Fragment_Reference_Does_Not_Exist_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            fragment User on User {
+              id
+              name
+              ...NonExistentFragment
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Fragment 'NonExistentFragment' referenced by fragment document 'User' does not exist.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Fragment_Invalid_TypeCondition_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            fragment User on NonExistentType {
+              id
+              name
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Type condition 'NonExistentType' not found in schema.", error.Message);
+    }
+
+    #endregion
+
+    #region Operation Document
+
     [Fact]
     public async Task Operation_Name_Not_Unique_RaisesError()
     {
@@ -35,69 +125,10 @@ public abstract class ValidationTestBase : OpenApiTestBase
         eventListener.HasReportedErrors.Wait(cts.Token);
 
         // assert
-        Assert.Contains(
-            eventListener.Errors,
-            e => e.Message == "Operation name 'getUserById' is already being used by a operation document with the Id '0' ('GetUserById').");
-    }
-
-    [Fact]
-    public async Task Fragment_Name_Not_Unique_RaisesError()
-    {
-        // arrange
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
-            """
-            fragment User on User {
-              id
-              name
-            }
-            """,
-            """
-            # This fragment name is intentionally duplicate
-            fragment User on User {
-              id
-              email
-            }
-            """);
-        var eventListener = new TestOpenApiDiagnosticEventListener();
-        var server = CreateTestServer(storage, eventListener);
-
-        // act
-        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
-
-        eventListener.HasReportedErrors.Wait(cts.Token);
-
-        // assert
-        Assert.Contains(
-            eventListener.Errors,
-            e => e.Message.Contains("Fragment name 'User' is already being used"));
-    }
-
-    [Fact]
-    public async Task Fragment_Reference_Does_Not_Exist_RaisesError()
-    {
-        // arrange
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
-            """
-            fragment User on User {
-              id
-              name
-              ...NonExistentFragment
-            }
-            """);
-        var eventListener = new TestOpenApiDiagnosticEventListener();
-        var server = CreateTestServer(storage, eventListener);
-
-        // act
-        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
-
-        eventListener.HasReportedErrors.Wait(cts.Token);
-
-        // assert
-        Assert.Contains(
-            eventListener.Errors,
-            e => e.Message == "Fragment 'NonExistentFragment' referenced by fragment document 'User' does not exist.");
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Operation name 'getUserById' is already being used by a operation document with the Id '0' ('GetUserById').",
+            error.Message);
     }
 
     [Fact]
@@ -122,9 +153,9 @@ public abstract class ValidationTestBase : OpenApiTestBase
         eventListener.HasReportedErrors.Wait(cts.Token);
 
         // assert
-        Assert.Contains(
-            eventListener.Errors,
-            e => e.Message == "Fragment 'NonExistentFragment' referenced by operation document 'GetUser' does not exist.");
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Fragment 'NonExistentFragment' referenced by operation document 'GetUser' does not exist.",
+            error.Message);
     }
 
     [Fact]
@@ -150,9 +181,10 @@ public abstract class ValidationTestBase : OpenApiTestBase
         eventListener.HasReportedErrors.Wait(cts.Token);
 
         // assert
-        Assert.Contains(
-            eventListener.Errors,
-            e => e.Message == "Operation 'OnUserUpdated' is a subscription. Only queries and mutations are allowed for OpenAPI operations.");
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Operation 'OnUserUpdated' is a subscription. Only queries and mutations are allowed for OpenAPI operations.",
+            error.Message);
     }
 
     [Fact]
@@ -180,9 +212,8 @@ public abstract class ValidationTestBase : OpenApiTestBase
         eventListener.HasReportedErrors.Wait(cts.Token);
 
         // assert
-        Assert.Contains(
-            eventListener.Errors,
-            e => e.Message == "Operation 'GetUsers' must have exactly one root field selection, but found 2.");
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Operation 'GetUsers' must have exactly one root field selection, but found 2.", error.Message);
     }
 
     [Fact]
@@ -211,9 +242,10 @@ public abstract class ValidationTestBase : OpenApiTestBase
         eventListener.HasReportedErrors.Wait(cts.Token);
 
         // assert
-        Assert.Contains(
-            eventListener.Errors,
-            e => e.Message == "Operation 'GetUser' must have a single root field selection, but found a fragment spread or inline fragment.");
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Operation 'GetUser' must have a single root field selection, but found a fragment spread or inline fragment.",
+            error.Message);
     }
 
     [Fact]
@@ -238,9 +270,36 @@ public abstract class ValidationTestBase : OpenApiTestBase
         eventListener.HasReportedErrors.Wait(cts.Token);
 
         // assert
-        Assert.Contains(
-            eventListener.Errors,
-            e => e.Message == "Operation 'GetUser' has conflicting parameters that map to 'userId': route parameter 'userId', query parameter 'userId'.");
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Operation 'GetUser' has conflicting parameters that map to '$userId'.", error.Message);
+    }
+
+    [Fact]
+    public async Task Operation_Parameter_Conflict_Same_Location_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            mutation UpdateUser($user: UserInput! @body) @http(method: PUT, route: "/users/{userId:$user.id}", queryParameters: ["id:$user.id"]) {
+              updateUser(user: $user) {
+                id
+                name
+                email
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Operation 'UpdateUser' has conflicting parameters that map to '$user.id'.", error.Message);
     }
 
     [Fact]
@@ -265,18 +324,318 @@ public abstract class ValidationTestBase : OpenApiTestBase
         eventListener.HasReportedErrors.Wait(cts.Token);
 
         // assert
-        Assert.Contains(
-            eventListener.Errors,
-            e => e.Message == "Operation 'GetUser' does not compile against the schema: The field `nonExistentField` does not exist on the type `Query`.");
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Operation 'GetUser' does not compile against the schema: The field `nonExistentField` does not exist on the type `Query`.",
+            error.Message);
     }
+
+    [Fact]
+    public async Task Operation_Missing_Name_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query @http(method: GET, route: "/users") {
+              users {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Operation must have a name.", error.Message);
+    }
+
+    [Fact]
+    public async Task Operation_Missing_HttpDirective_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers {
+              users {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Operation 'GetUsers' must be annotated with @http directive.", error.Message);
+    }
+
+    [Fact]
+    public async Task Operation_Missing_Method_Argument_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(route: "/users") {
+              users {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("@http directive for operation 'GetUsers' must have a 'method' argument.", error.Message);
+    }
+
+    [Fact]
+    public async Task Operation_Missing_Route_Argument_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET) {
+              users {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("@http directive for operation 'GetUsers' must have a 'route' argument.", error.Message);
+    }
+
+    [Fact]
+    public async Task Operation_Invalid_HttpMethod_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: INVALID, route: "/users") {
+              users {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Invalid HTTP method value 'INVALID' on @http directive for operation 'GetUsers'.", error.Message);
+    }
+
+    [Fact]
+    public async Task Operation_Empty_Route_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "") {
+              users {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Route argument on @http directive for operation 'GetUsers' must be a non-empty string.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Operation_Invalid_Route_Parameter_Syntax_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser @http(method: GET, route: "/users/{userId:invalid}") {
+              userById(id: $userId) {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Explicit route segment variable mappings must start with '$', got 'userId:invalid' in operation 'GetUser'.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Operation_Invalid_QueryParameters_Type_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "/users", queryParameters: 123) {
+              users {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Query parameters argument on @http directive for operation 'GetUsers' must be a list of strings.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Operation_Invalid_QueryParameters_Item_Type_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "/users", queryParameters: [123, "valid"]) {
+              users {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal(
+            "Query parameters argument on @http directive for operation 'GetUsers' must contain only string values.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Document_Multiple_Operations_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              users {
+                id
+              }
+            }
+            query GetUser @http(method: GET, route: "/user") {
+              user {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("An operation document can only define a single operation alongside local fragment definitions.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Document_No_Operation_Or_Fragment_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            type Query {
+              users: [User]
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Document must contain either a single operation or at least one fragment definition.",
+            error.Message);
+    }
+
+    #endregion
 
     private sealed class TestOpenApiDiagnosticEventListener : OpenApiDiagnosticEventListener
     {
-        public List<OpenApiValidationError> Errors { get; } = [];
+        public List<IOpenApiError> Errors { get; } = [];
 
         public ManualResetEventSlim HasReportedErrors { get; } = new(false);
 
-        public override void ValidationErrors(IReadOnlyList<OpenApiValidationError> errors)
+        public override void ValidationErrors(IReadOnlyList<IOpenApiError> errors)
         {
             Errors.AddRange(errors);
             HasReportedErrors.Set();

@@ -46,12 +46,20 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
                 var rawDocuments = await _storage.GetDocumentsAsync(cancellationToken);
 
                 var parser = new OpenApiDocumentParser(schema);
+                var events = schema.Services.GetRequiredService<IOpenApiDiagnosticEvents>();
 
                 foreach (var document in rawDocuments)
                 {
-                    var parsedDocument = parser.Parse(document);
+                    var parseResult = parser.Parse(document);
 
-                    newDocuments.Add(parsedDocument);
+                    if (parseResult.IsValid && parseResult.Document is not null)
+                    {
+                        newDocuments.Add(parseResult.Document);
+                    }
+                    else if (!parseResult.IsValid)
+                    {
+                        events.ValidationErrors(parseResult.Errors);
+                    }
                 }
             }
 
@@ -115,6 +123,7 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
         }
 
         var parser = new OpenApiDocumentParser(_schema);
+        var events = _schema.Services.GetRequiredService<IOpenApiDiagnosticEvents>();
 
         switch (args.Type)
         {
@@ -125,9 +134,16 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
                     return;
                 }
 
-                var parsedDocument = parser.Parse(args.Definition);
+                var parseResult = parser.Parse(args.Definition);
 
-                await RebuildAsync([parsedDocument], CancellationToken.None);
+                if (parseResult.IsValid && parseResult.Document is not null)
+                {
+                    await RebuildAsync([parseResult.Document], CancellationToken.None);
+                }
+                else if (!parseResult.IsValid)
+                {
+                    events.ValidationErrors(parseResult.Errors);
+                }
 
                 _eventObservable.RaiseEvent(OpenApiDocumentEvent.Updated());
                 break;
@@ -192,15 +208,25 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
 
         // Validate fragments
         var validatedFragments = new HashSet<string>();
+        var validatedFragmentIds = new HashSet<string>();
         var fragmentDependenciesByName = new Dictionary<string, HashSet<string>>();
 
+        // Group fragments by name for dependency resolution
+        // Use first occurrence for dependency tracking, but validate all fragments
+        var fragmentsByName = new Dictionary<string, List<OpenApiFragmentDocument>>();
         foreach (var newFragment in newFragments)
         {
-            fragmentDependenciesByName[newFragment.Name] = new HashSet<string>(newFragment.ExternalFragmentReferences);
+            if (!fragmentsByName.TryGetValue(newFragment.Name, out var fragmentsWithName))
+            {
+                fragmentsWithName = [];
+                fragmentsByName[newFragment.Name] = fragmentsWithName;
+                fragmentDependenciesByName[newFragment.Name] = new HashSet<string>(newFragment.ExternalFragmentReferences);
+            }
+
+            fragmentsWithName.Add(newFragment);
         }
 
-        var newFragmentsByName = newFragments.ToDictionary(f => f.Name);
-        var remainingFragments = new HashSet<string>(newFragmentsByName.Keys);
+        var remainingFragments = new HashSet<string>(fragmentsByName.Keys);
         var previousRemainingCount = -1;
 
         while (remainingFragments.Count > 0)
@@ -210,16 +236,25 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
                 // Circular dependency or missing dependencies
                 foreach (var fragmentName in remainingFragments)
                 {
-                    var fragment = newFragmentsByName[fragmentName];
-                    var validationResult = await validator.ValidateAsync(fragment, validationContext, cancellationToken);
+                    var fragmentsWithName = fragmentsByName[fragmentName];
+                    foreach (var fragment in fragmentsWithName)
+                    {
+                        if (validatedFragmentIds.Contains(fragment.Id))
+                        {
+                            continue;
+                        }
 
-                    if (!validationResult.IsValid)
-                    {
-                        events.ValidationErrors(validationResult.Errors);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException();
+                        var validationResult = await validator.ValidateAsync(fragment, validationContext, cancellationToken);
+
+                        if (!validationResult.IsValid)
+                        {
+                            events.ValidationErrors(validationResult.Errors.Value);
+                            validatedFragmentIds.Add(fragment.Id);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException();
+                        }
                     }
                 }
 
@@ -240,18 +275,40 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
 
             foreach (var fragmentName in fragmentNamesToValidate)
             {
-                var fragment = newFragmentsByName[fragmentName];
-                var validationResult = await validator.ValidateAsync(fragment, validationContext, cancellationToken);
+                var fragmentsWithName = fragmentsByName[fragmentName];
+                var allValid = true;
 
-                if (validationResult.IsValid)
+                foreach (var fragment in fragmentsWithName)
+                {
+                    if (validatedFragmentIds.Contains(fragment.Id))
+                    {
+                        continue;
+                    }
+
+                    var validationResult = await validator.ValidateAsync(fragment, validationContext, cancellationToken);
+
+                    if (validationResult.IsValid)
+                    {
+                        validatedFragmentIds.Add(fragment.Id);
+                        _fragmentsById[fragment.Id] = fragment;
+                        // Only add first valid fragment with this name to context
+                        // Subsequent duplicates will be caught by validation rules
+                        if (!validationContext.FragmentsByName.ContainsKey(fragment.Name))
+                        {
+                            validationContext.FragmentsByName[fragment.Name] = fragment;
+                        }
+                    }
+                    else
+                    {
+                        allValid = false;
+                        events.ValidationErrors(validationResult.Errors.Value);
+                        validatedFragmentIds.Add(fragment.Id);
+                    }
+                }
+
+                if (allValid && fragmentsWithName.Count > 0)
                 {
                     validatedFragments.Add(fragmentName);
-                    _fragmentsById[fragment.Id] = fragment;
-                    validationContext.FragmentsByName[fragment.Name] = fragment;
-                }
-                else
-                {
-                    events.ValidationErrors(validationResult.Errors);
                 }
 
                 remainingFragments.Remove(fragmentName);
@@ -265,7 +322,7 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
 
             if (!validationResult.IsValid)
             {
-                events.ValidationErrors(validationResult.Errors);
+                events.ValidationErrors(validationResult.Errors.Value);
             }
             else
             {

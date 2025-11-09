@@ -13,38 +13,28 @@ internal sealed class OperationParameterConflictRule : IOpenApiOperationDocument
     {
         var errors = new List<OpenApiValidationError>();
 
-        var parameterMappings = new Dictionary<string, List<string>>();
+        var parameterMappings = new Dictionary<string, int>();
 
         foreach (var routeParam in document.Route.Parameters)
         {
             var key = GetParameterKey(routeParam);
-            if (!parameterMappings.TryGetValue(key, out var value))
-            {
-                value = new List<string>();
-                parameterMappings[key] = value;
-            }
-
-            value.Add($"route parameter '{routeParam.Key}'");
+            parameterMappings.TryGetValue(key, out var count);
+            parameterMappings[key] = count + 1;
         }
 
         foreach (var queryParam in document.QueryParameters)
         {
             var key = GetParameterKey(queryParam);
-            if (!parameterMappings.TryGetValue(key, out var value))
-            {
-                value = new List<string>();
-                parameterMappings[key] = value;
-            }
-
-            value.Add($"query parameter '{queryParam.Key}'");
+            parameterMappings.TryGetValue(key, out var count);
+            parameterMappings[key] = count + 1;
         }
 
-        foreach (var (key, sources) in parameterMappings)
+        foreach (var (key, count) in parameterMappings)
         {
-            if (sources is { Count: > 1 })
+            if (count > 1)
             {
                 errors.Add(new OpenApiValidationError(
-                    $"Operation '{document.Name}' has conflicting parameters that map to '{key}': {string.Join(", ", sources)}.",
+                    $"Operation '{document.Name}' has conflicting parameters that map to '${key}'.",
                     document));
             }
         }

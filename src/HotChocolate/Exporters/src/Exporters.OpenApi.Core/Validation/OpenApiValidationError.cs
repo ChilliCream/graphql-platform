@@ -1,16 +1,30 @@
 namespace HotChocolate.Exporters.OpenApi;
 
-public sealed class OpenApiValidationError( string message, IOpenApiDocument document)
+/// <summary>
+/// Represents a validation error that occurred while validating an OpenAPI document.
+/// </summary>
+public sealed class OpenApiValidationError : IOpenApiError
 {
     /// <summary>
-    /// Gets the document.
+    /// Initializes a new instance of <see cref="OpenApiValidationError" />.
     /// </summary>
-    public IOpenApiDocument Document { get; } = document;
+    public OpenApiValidationError(string message, IOpenApiDocument document)
+    {
+        Message = message;
+        DocumentId = document.Id;
+        Document = document;
+    }
+
+    /// <inheritdoc />
+    public string Message { get; }
+
+    /// <inheritdoc />
+    public string DocumentId { get; }
 
     /// <summary>
-    /// Gets the error message.
+    /// Gets the document where the error occurred.
     /// </summary>
-    public string Message { get; } = message;
+    public IOpenApiDocument Document { get; }
 
     public override string ToString()
     {

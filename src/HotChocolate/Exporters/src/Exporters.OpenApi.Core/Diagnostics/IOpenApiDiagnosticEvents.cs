@@ -1,5 +1,3 @@
-using HotChocolate.Exporters.OpenApi.Validation;
-
 namespace HotChocolate.Exporters.OpenApi;
 
 /// <summary>
@@ -8,8 +6,8 @@ namespace HotChocolate.Exporters.OpenApi;
 public interface IOpenApiDiagnosticEvents
 {
     /// <summary>
-    /// Called when errors occur while validating an open api document.
+    /// Called when errors occur while parsing or validating an OpenAPI document.
     /// </summary>
-    /// <param name="errors">The validation errors.</param>
-    void ValidationErrors(IReadOnlyList<OpenApiValidationError> errors);
+    /// <param name="errors">The errors.</param>
+    void ValidationErrors(IReadOnlyList<IOpenApiError> errors);
 }

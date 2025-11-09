@@ -17,7 +17,7 @@ internal sealed class OpenApiDocumentValidator : IOpenApiDocumentValidator
         new OperationMustBeQueryOrMutationRule(),
         new OperationMustHaveSingleRootFieldRule(),
         new OperationFragmentReferencesMustExistRule(),
-        new ParameterConflictRule(),
+        new OperationParameterConflictRule(),
         new OperationMustCompileAgainstSchemaRule()
     ];
 
