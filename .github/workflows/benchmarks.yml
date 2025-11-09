@@ -61,26 +61,9 @@ jobs:
         working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
         run: chmod +x *.sh
 
-      - name: Start Fusion Gateway and source services
-        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
-        run: |
-          echo "Starting source schemas and gateway..."
-          ./start-source-schemas.sh
-          ./start-gateway.sh
-
-          echo "Waiting for services to be ready..."
-          sleep 5
-
       - name: Run performance tests and collect data
         working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
-        run: |
-          chmod +x run-and-collect-gateway.sh
-          ./run-and-collect-gateway.sh fusion-gateway-performance-data-current.json
-
-      - name: Stop services
-        if: always()
-        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
-        run: ./stop-services.sh
+        run: ./run-and-collect-gateway.sh fusion-gateway-performance-data-current.json
 
       - name: Fetch baseline performance data from external repo
         if: github.event_name == 'pull_request'

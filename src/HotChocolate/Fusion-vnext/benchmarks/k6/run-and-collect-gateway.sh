@@ -11,7 +11,36 @@ NC='\033[0m' # No Color
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 OUTPUT_FILE="${1:-$SCRIPT_DIR/fusion-gateway-performance-data.json}"
-NUM_RUNS=5
+NUM_RUNS=3
+
+# Check for taskset availability
+HAS_TASKSET=false
+if command -v taskset &> /dev/null; then
+  HAS_TASKSET=true
+  echo "✓ taskset available - CPU pinning enabled"
+else
+  echo "⚠ taskset not available - k6 will run without CPU pinning"
+fi
+
+# Helper function for optional CPU pinning
+maybe_taskset() {
+  local cpus="$1"; shift
+  if $HAS_TASKSET && [[ -n "${cpus:-}" ]]; then
+    taskset -c "$cpus" "$@"
+  else
+    "$@"
+  fi
+}
+
+# Cleanup function to stop services on exit
+cleanup() {
+    echo ""
+    echo -e "${YELLOW}Cleaning up - stopping any running services...${NC}"
+    "$SCRIPT_DIR/stop-services.sh" > /dev/null 2>&1 || true
+}
+
+# Register cleanup function to run on exit
+trap cleanup EXIT
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}Fusion Gateway k6 Performance Collector${NC}"
@@ -19,6 +48,13 @@ echo -e "${BLUE}========================================${NC}"
 echo ""
 echo "Output file: $OUTPUT_FILE"
 echo "Running each test ${NUM_RUNS} times to reduce variance"
+if $HAS_TASKSET; then
+  echo "CPU Assignments:"
+  echo "  k6:                cores 0-1"
+  echo "  Gateway:           cores 2-3 (no-recursion test)"
+  echo "  Source Schemas:    cores 4-15 (no-recursion test)"
+  echo "  Inventory Service: cores 2-3 (variable-batch test)"
+fi
 echo ""
 
 # Function to calculate median from multiple values
@@ -33,18 +69,57 @@ calculate_median() {
     echo "${sorted[$middle_index]}"
 }
 
+# Function to start infrastructure for no-recursion test
+# Gateway on cores 2-3, all source schemas on cores 4-15
+start_infrastructure_no_recursion() {
+    echo -e "${YELLOW}    Starting source schemas on cores 4-15...${NC}"
+    export SOURCES_CPUSET="4-15"
+    "$SCRIPT_DIR/start-source-schemas.sh" > /dev/null 2>&1
+
+    echo -e "${YELLOW}    Starting gateway on cores 2-3...${NC}"
+    export GATEWAY_CPUSET="2-3"
+    "$SCRIPT_DIR/start-gateway.sh" > /dev/null 2>&1
+
+    echo -e "${YELLOW}    Waiting for services to be ready...${NC}"
+    sleep 5
+}
+
+# Function to start infrastructure for variable-batch test
+# Only inventory service on cores 2-3
+start_infrastructure_variable_batch() {
+    echo -e "${YELLOW}    Starting inventory service on cores 2-3...${NC}"
+    export INVENTORY_CPUSET="2-3"
+    "$SCRIPT_DIR/start-inventory-only.sh" > /dev/null 2>&1
+
+    echo -e "${YELLOW}    Waiting for service to be ready...${NC}"
+    sleep 5
+}
+
+# Function to stop infrastructure
+stop_infrastructure() {
+    echo -e "${YELLOW}    Stopping services...${NC}"
+    "$SCRIPT_DIR/stop-services.sh" > /dev/null 2>&1
+    sleep 2
+}
+
 # Run no-recursion test multiple times
+# k6 on cores 0-1, gateway on 2-3, sources on 4-15
 echo -e "${BLUE}Running No Recursion Test (${NUM_RUNS} runs)...${NC}"
 for i in $(seq 1 $NUM_RUNS); do
     echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
-    k6 run --summary-export=/tmp/no-recursion-summary-${i}.json "$SCRIPT_DIR/no-recursion.js"
+    start_infrastructure_no_recursion
+    maybe_taskset "0-1" k6 run --summary-export=/tmp/no-recursion-summary-${i}.json "$SCRIPT_DIR/no-recursion.js"
+    stop_infrastructure
 done
 
 # Run variable-batch-throughput test multiple times
+# k6 on cores 0-1, inventory service on 2-3
 echo -e "${BLUE}Running Variable Batch Throughput Test (${NUM_RUNS} runs)...${NC}"
 for i in $(seq 1 $NUM_RUNS); do
     echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
-    k6 run --summary-export=/tmp/variable-batch-summary-${i}.json "$SCRIPT_DIR/variable-batch-throughput.js"
+    start_infrastructure_variable_batch
+    maybe_taskset "0-1" k6 run --summary-export=/tmp/variable-batch-summary-${i}.json "$SCRIPT_DIR/variable-batch-throughput.js"
+    stop_infrastructure
 done
 
 # Parse the summary statistics from k6 JSON output
