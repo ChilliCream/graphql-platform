@@ -9,7 +9,6 @@ using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
@@ -21,7 +20,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         SourceProductionContext context,
         string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos,
-        Action<string, SourceText> addSource)
+        Action<string, string> addSource)
     {
         if (syntaxInfos.IsEmpty)
         {
@@ -41,7 +40,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
     private static void WriteTypes(
         ImmutableArray<SyntaxInfo> syntaxInfos,
-        Action<string, SourceText> addSource)
+        Action<string, string> addSource)
     {
         var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
         var namespaces = PooledObjects.GetStringDictionary();
@@ -64,7 +63,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                                 WriteFile(file, objectType, typeLookup);
                                 addSource(
                                     CreateFileName(namespaces, objectType),
-                                    SourceText.From(sb.ToString(), Encoding.UTF8));
+                                    sb.ToString());
                                 break;
                             }
                             case InterfaceTypeInfo interfaceType:
@@ -73,7 +72,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                                 WriteFile(file, interfaceType, typeLookup);
                                 addSource(
                                     CreateFileName(namespaces, interfaceType),
-                                    SourceText.From(sb.ToString(), Encoding.UTF8));
+                                    sb.ToString());
                                 break;
                             }
                             case RootTypeInfo rootType:
@@ -82,7 +81,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                                 WriteFile(file, rootType, typeLookup);
                                 addSource(
                                     CreateFileName(namespaces, rootType),
-                                    SourceText.From(sb.ToString(), Encoding.UTF8));
+                                    sb.ToString());
                                 break;
                             }
                             case ConnectionTypeInfo connectionType:
@@ -91,7 +90,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                                 WriteFile(file, connectionType, typeLookup);
                                 addSource(
                                     CreateFileName(namespaces, connectionType),
-                                    SourceText.From(sb.ToString(), Encoding.UTF8));
+                                    sb.ToString());
                                 break;
                             }
                             case EdgeTypeInfo edgeType:
@@ -100,7 +99,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                                 WriteFile(file, edgeType, typeLookup);
                                 addSource(
                                     CreateFileName(namespaces, edgeType),
-                                    SourceText.From(sb.ToString(), Encoding.UTF8));
+                                    sb.ToString());
                                 break;
                             }
                         }
