@@ -53,7 +53,7 @@ public sealed class OperationToolDefinition
             if (operation is not null)
             {
                 throw new ArgumentException(
-                    Document_Must_Have_Single_Op,
+                    OperationToolDefinition_DocumentMustContainSingleOperation,
                     nameof(document));
             }
 
@@ -63,7 +63,7 @@ public sealed class OperationToolDefinition
         if (operation is null)
         {
             throw new ArgumentException(
-                Document_Must_Have_Single_Op,
+                OperationToolDefinition_DocumentMustContainSingleOperation,
                 nameof(document));
         }
 

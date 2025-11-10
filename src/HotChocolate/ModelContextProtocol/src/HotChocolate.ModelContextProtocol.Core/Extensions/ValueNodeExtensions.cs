@@ -15,24 +15,19 @@ internal static class ValueNodeExtensions
         {
             BooleanValueNode booleanValueNode => JsonValue.Create(booleanValueNode.Value),
             EnumValueNode enumValueNode => JsonValue.Create(enumValueNode.Value),
-            FloatValueNode floatValueNode => nullableType switch
-            {
-                DecimalType => JsonValue.Create(floatValueNode.ToDecimal()),
-                FloatType => JsonValue.Create(floatValueNode.ToDouble()),
-                // TODO: Treating all unknown scalar types as strings is a temporary solution.
-                _ => JsonValue.Create(floatValueNode.Value)
-            },
-            IntValueNode intValueNode => nullableType switch
-            {
-                ByteType => JsonValue.Create(intValueNode.ToByte()),
-                DecimalType => JsonValue.Create(intValueNode.ToDecimal()),
-                FloatType => JsonValue.Create(intValueNode.ToDouble()),
-                IntType => JsonValue.Create(intValueNode.ToInt32()),
-                LongType => JsonValue.Create(intValueNode.ToInt64()),
-                ShortType => JsonValue.Create(intValueNode.ToInt16()),
-                // TODO: Treating all unknown scalar types as strings is a temporary solution.
-                _ => JsonValue.Create(intValueNode.Value)
-            },
+            FloatValueNode floatValueNode when nullableType is IScalarTypeDefinition scalarType
+                => scalarType.GetScalarSerializationType() switch
+                {
+                    ScalarSerializationType.Float => JsonValue.Create(floatValueNode.ToDecimal()),
+                    _ => JsonValue.Create(floatValueNode.Value)
+                },
+            IntValueNode intValueNode when nullableType is IScalarTypeDefinition scalarType
+                => scalarType.GetScalarSerializationType() switch
+                {
+                    ScalarSerializationType.Float => JsonValue.Create(intValueNode.ToDecimal()),
+                    ScalarSerializationType.Int => JsonValue.Create(intValueNode.ToInt64()),
+                    _ => JsonValue.Create(intValueNode.Value)
+                },
             ListValueNode listValueNode => listValueNode.ToJsonNode(nullableType),
             NullValueNode => null,
             ObjectValueNode objectValueNode => objectValueNode.ToJsonNode(nullableType),
@@ -65,7 +60,8 @@ internal static class ValueNodeExtensions
         {
             var graphQLFieldType = objectType is IInputObjectTypeDefinition inputObjectType
                 ? inputObjectType.Fields[field.Name.Value].Type
-                : new AnyType(); // Types like JsonType or AnyType have no schema.
+                // Placeholder for fields of scalar types like JsonType or AnyType.
+                : new MissingType("");
 
             jsonObject.Add(field.Name.Value, field.Value.ToJsonNode(graphQLFieldType));
         }

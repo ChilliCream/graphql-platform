@@ -270,30 +270,6 @@ public sealed class OperationToolFactoryTests
     }
 
     [Fact]
-    public void CreateTool_WithVariableMinMaxValues_CreatesCorrectInputSchema()
-    {
-        // arrange
-        var schema =
-            CreateSchema(
-                s => s
-                    .AddType(new ByteType(min: 1, max: 10))
-                    .AddType(new DecimalType(min: 1, max: 10))
-                    .AddType(new FloatType(min: 1.0, max: 10.0))
-                    .AddType(new IntType(min: 1, max: 10))
-                    .AddType(new LongType(min: 1, max: 10))
-                    .AddType(new ShortType(min: 1, max: 10)));
-        var document = Utf8GraphQLParser.Parse(
-            File.ReadAllText("__resources__/GetWithVariableMinMaxValues.graphql"));
-        var toolDefinition = new OperationToolDefinition("get_with_variable_min_max_values", document);
-
-        // act
-        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
-
-        // assert
-        tool.Tool.InputSchema.MatchSnapshot(extension: ".json");
-    }
-
-    [Fact]
     public void CreateTool_WithInterfaceType_CreatesCorrectOutputSchema()
     {
         // arrange

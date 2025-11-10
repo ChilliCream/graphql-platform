@@ -8,7 +8,12 @@ internal static class InputValueDefinitionExtensions
     public static JsonSchema ToJsonSchema(this IInputValueDefinition inputField)
     {
         var type = inputField.Type;
-        var schemaBuilder = type.ToJsonSchemaBuilder(isOneOf: inputField.DeclaringType.IsOneOf);
+        var schemaBuilder =
+            type.ToJsonSchemaBuilder(
+                isOneOf: inputField.DeclaringMember is IInputObjectTypeDefinition
+                {
+                    IsOneOf: true
+                });
 
         // Description.
         if (inputField.Description is not null)

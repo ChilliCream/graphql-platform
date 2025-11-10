@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.ModelContextProtocol.Fusion</AssemblyName>
+    <AssemblyName>HotChocolate.Fusion.ModelContextProtocol</AssemblyName>
     <RootNamespace>HotChocolate.ModelContextProtocol</RootNamespace>
   </PropertyGroup>
 

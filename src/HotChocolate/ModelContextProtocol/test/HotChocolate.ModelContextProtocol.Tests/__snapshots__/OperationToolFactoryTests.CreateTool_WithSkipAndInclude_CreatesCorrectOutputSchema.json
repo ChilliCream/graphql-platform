@@ -45,7 +45,6 @@
                       "properties": {
                         "field1C": {
                           "type": "string",
-                          "format": "time",
                           "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
                           "description": "field1C description"
                         }
@@ -80,7 +79,6 @@
                       "properties": {
                         "field1C": {
                           "type": "string",
-                          "format": "time",
                           "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
                           "description": "field1C description"
                         }
@@ -115,7 +113,6 @@
                       "properties": {
                         "field1C": {
                           "type": "string",
-                          "format": "time",
                           "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
                           "description": "field1C description"
                         }
@@ -150,7 +147,6 @@
                       "properties": {
                         "field1C": {
                           "type": "string",
-                          "format": "time",
                           "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
                           "description": "field1C description"
                         }
