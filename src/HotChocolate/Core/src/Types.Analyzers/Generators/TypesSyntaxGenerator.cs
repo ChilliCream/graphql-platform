@@ -14,6 +14,8 @@ namespace HotChocolate.Types.Analyzers.Generators;
 
 public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 {
+    private static readonly MD5 s_md5 = MD5.Create();
+
     public void Generate(
         SourceProductionContext context,
         string assemblyName,
@@ -33,60 +35,67 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
             return;
         }
 
-        var sb = PooledObjects.GetStringBuilder();
-
-        WriteTypes(syntaxInfos, sb, addSource);
-
-        sb.Clear();
-        PooledObjects.Return(sb);
+        WriteTypes(syntaxInfos, addSource);
     }
 
     private static void WriteTypes(
         ImmutableArray<SyntaxInfo> syntaxInfos,
-        StringBuilder sb,
         Action<string, SourceText> addSource)
     {
         var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
 
-        foreach (var type in syntaxInfos.OrderBy(t => t.OrderByKey).OfType<IOutputTypeInfo>())
-        {
-            sb.Clear();
-
-            if (type is ObjectTypeInfo objectType)
+        Parallel.ForEach(
+            syntaxInfos.OrderBy(t => t.OrderByKey).OfType<IOutputTypeInfo>(),
+            type =>
             {
-                var file = new ObjectTypeFileBuilder(sb);
-                WriteFile(file, objectType, typeLookup);
-                addSource(CreateFileName(objectType), SourceText.From(sb.ToString(), Encoding.UTF8));
-            }
+                var sb = PooledObjects.GetStringBuilder();
 
-            if (type is InterfaceTypeInfo interfaceType)
-            {
-                var file = new InterfaceTypeFileBuilder(sb);
-                WriteFile(file, interfaceType, typeLookup);
-                addSource(CreateFileName(interfaceType), SourceText.From(sb.ToString(), Encoding.UTF8));
-            }
-
-            if (type is RootTypeInfo rootType)
-            {
-                var file = new RootTypeFileBuilder(sb);
-                WriteFile(file, rootType, typeLookup);
-                addSource(CreateFileName(rootType), SourceText.From(sb.ToString(), Encoding.UTF8));
-            }
-
-            if (type is ConnectionTypeInfo connectionType)
-            {
-                var file = new ConnectionTypeFileBuilder(sb);
-                WriteFile(file, connectionType, typeLookup);
-                addSource(CreateFileName(connectionType), SourceText.From(sb.ToString(), Encoding.UTF8));
-            }
-
-            if (type is EdgeTypeInfo edgeType)
-            {
-                var file = new EdgeTypeFileBuilder(sb);
-                WriteFile(file, edgeType, typeLookup);
-                addSource(CreateFileName(edgeType), SourceText.From(sb.ToString(), Encoding.UTF8));
-            }
-        }
+                try
+                {
+                    switch (type)
+                    {
+                        case ObjectTypeInfo objectType:
+                        {
+                            var file = new ObjectTypeFileBuilder(sb);
+                            WriteFile(file, objectType, typeLookup);
+                            addSource(CreateFileName(objectType), SourceText.From(sb.ToString(), Encoding.UTF8));
+                            break;
+                        }
+                        case InterfaceTypeInfo interfaceType:
+                        {
+                            var file = new InterfaceTypeFileBuilder(sb);
+                            WriteFile(file, interfaceType, typeLookup);
+                            addSource(CreateFileName(interfaceType), SourceText.From(sb.ToString(), Encoding.UTF8));
+                            break;
+                        }
+                        case RootTypeInfo rootType:
+                        {
+                            var file = new RootTypeFileBuilder(sb);
+                            WriteFile(file, rootType, typeLookup);
+                            addSource(CreateFileName(rootType), SourceText.From(sb.ToString(), Encoding.UTF8));
+                            break;
+                        }
+                        case ConnectionTypeInfo connectionType:
+                        {
+                            var file = new ConnectionTypeFileBuilder(sb);
+                            WriteFile(file, connectionType, typeLookup);
+                            addSource(CreateFileName(connectionType), SourceText.From(sb.ToString(), Encoding.UTF8));
+                            break;
+                        }
+                        case EdgeTypeInfo edgeType:
+                        {
+                            var file = new EdgeTypeFileBuilder(sb);
+                            WriteFile(file, edgeType, typeLookup);
+                            addSource(CreateFileName(edgeType), SourceText.From(sb.ToString(), Encoding.UTF8));
+                            break;
+                        }
+                    }
+                }
+                finally
+                {
+                    PooledObjects.Return(sb);
+                }
+            });
 
         static string CreateFileName(IOutputTypeInfo type)
         {
@@ -117,9 +126,14 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
             return $"{type.Name}.{Encoding.UTF8.GetString(hash)}.hc.g.cs";
 #else
             var bytes = Encoding.UTF8.GetBytes(type.Namespace);
-            var md5 = MD5.Create();
-            var hash = md5.ComputeHash(bytes);
-            var hashString = Convert.ToBase64String(hash, Base64FormattingOptions.None);
+            byte[] hashBytes;
+
+            lock (s_md5)
+            {
+                hashBytes = s_md5.ComputeHash(bytes);
+            }
+
+            var hashString = Convert.ToBase64String(hashBytes, Base64FormattingOptions.None);
             hashString = hashString.Replace("+", "-").Replace("/", "_").TrimEnd('=');
             return $"{type.Name}.{hashString}.hc.g.cs";
 #endif

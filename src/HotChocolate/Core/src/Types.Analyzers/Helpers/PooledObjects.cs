@@ -46,10 +46,18 @@ public static class PooledObjects
 
     public static void Return(StringBuilder stringBuilder)
     {
-        stringBuilder.Clear();
+        // Don't pool oversized objects to avoid memory bloat
+        // 128KB should accommodate most generated files while protecting against truly massive outliers
+        const int maxCapacity = 128 * 1024;
+        if (stringBuilder.Capacity > maxCapacity)
+        {
+            return;
+        }
 
         lock (s_lock)
         {
+            stringBuilder.Clear();
+
             if (s_nextStringBuilderIndex + 1 < s_stringBuilders.Length)
             {
                 s_nextStringBuilderIndex++;
@@ -60,10 +68,17 @@ public static class PooledObjects
 
     public static void Return(HashSet<string> stringSet)
     {
-        stringSet.Clear();
+        // Don't pool oversized objects to avoid memory bloat
+        const int maxCount = 256;
+        if (stringSet.Count > maxCount)
+        {
+            return;
+        }
 
         lock (s_lock)
         {
+            stringSet.Clear();
+
             if (s_nextStringSetIndex + 1 < s_stringSets.Length)
             {
                 s_nextStringSetIndex++;
