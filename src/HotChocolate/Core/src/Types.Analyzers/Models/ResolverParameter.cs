@@ -10,7 +10,8 @@ public sealed class ResolverParameter
         IParameterSymbol parameter,
         string? key,
         ResolverParameterKind kind,
-        string schemaTypeName)
+        string schemaTypeName,
+        string? deprecationReason)
     {
         Parameter = parameter;
         Kind = kind;
@@ -18,7 +19,7 @@ public sealed class ResolverParameter
         SchemaTypeName = schemaTypeName;
         Key = key;
         IsNullable = !parameter.IsNonNullable();
-        DeprecationReason = null;
+        DeprecationReason = deprecationReason;
         Attributes = parameter.GetAttributes();
 
         // if this is the parent attribute we will check if we have requirements for the parent model.
@@ -81,7 +82,8 @@ public sealed class ResolverParameter
     {
         var kind = GetParameterKind(parameter, compilation, out var key);
         var schemaTypeName = GraphQLTypeBuilder.ToSchemaType(parameter.Type, compilation);
-        return new ResolverParameter(parameter, key, kind, schemaTypeName);
+        compilation.TryGetGraphQLDeprecationReason(parameter, out var deprecationReason);
+        return new ResolverParameter(parameter, key, kind, schemaTypeName, deprecationReason);
     }
 
     private static ResolverParameterKind GetParameterKind(

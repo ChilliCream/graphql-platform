@@ -103,17 +103,15 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
                         }
                     }
 
-                    compilation.TryGetGraphQLDeprecationReason(property, out var deprecationReason);
-
                     resolvers.Add(
                         new Resolver(
                             name,
-                            deprecationReason,
                             property,
                             ResolverResultKind.Pure,
                             [],
                             ObjectTypeInspector.GetMemberBindings(member),
                             GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
+                            compilation,
                             flags: flags));
                     break;
             }

@@ -84,16 +84,14 @@ public class ObjectTypeInspector : ISyntaxInspector
 
                 if (member is IPropertySymbol)
                 {
-                    context.SemanticModel.Compilation.TryGetGraphQLDeprecationReason(member, out var deprecationReason);
-
                     resolvers[i++] = new Resolver(
                         classSymbol.Name,
-                        deprecationReason,
                         member,
                         ResolverResultKind.Pure,
                         [],
                         member.GetMemberBindings(),
-                        GraphQLTypeBuilder.ToSchemaType(member.GetReturnType()!, context.SemanticModel.Compilation));
+                        GraphQLTypeBuilder.ToSchemaType(member.GetReturnType()!, context.SemanticModel.Compilation),
+                        context.SemanticModel.Compilation);
                 }
             }
         }
@@ -267,16 +265,15 @@ public class ObjectTypeInspector : ISyntaxInspector
         }
 
         resolverTypeName ??= resolverType.Name;
-        compilation.TryGetGraphQLDeprecationReason(resolverMethod, out var deprecationReason);
 
         return new Resolver(
             resolverTypeName,
-            deprecationReason,
             resolverMethod,
             resolverMethod.GetResultKind(),
             [.. resolverParameters],
             resolverMethod.GetMemberBindings(),
             GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation),
+            compilation,
             kind: compilation.IsConnectionType(resolverMethod.ReturnType)
                 ? ResolverKind.ConnectionResolver
                 : ResolverKind.Default);
@@ -311,11 +308,13 @@ public class ObjectTypeInspector : ISyntaxInspector
 
             if (parameter.Kind is ResolverParameterKind.Unknown && (parameter.Name == "id" || parameter.Key == "id"))
             {
+                compilation.TryGetGraphQLDeprecationReason(parameter.Parameter, out var paramDeprecationReason);
                 parameter = new ResolverParameter(
                     parameter.Parameter,
                     parameter.Key,
                     ResolverParameterKind.Argument,
-                    GraphQLTypeBuilder.ToSchemaType(parameter.Type, compilation));
+                    GraphQLTypeBuilder.ToSchemaType(parameter.Type, compilation),
+                    paramDeprecationReason);
             }
 
             resolverParameters[i] = parameter;
@@ -331,16 +330,14 @@ public class ObjectTypeInspector : ISyntaxInspector
                     Location.Create(location.SourceTree!, location.SourceSpan)));
         }
 
-        context.SemanticModel.Compilation.TryGetGraphQLDeprecationReason(resolverMethod, out var deprecationReason);
-
         return new Resolver(
             resolverType.Name,
-            deprecationReason,
             resolverMethod,
             resolverMethod.GetResultKind(),
             [.. resolverParameters],
             resolverMethod.GetMemberBindings(),
             GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation),
+            compilation,
             kind: ResolverKind.NodeResolver);
     }
 

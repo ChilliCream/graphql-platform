@@ -144,6 +144,7 @@ internal static partial class TestHelper
             driver.GetRunResult()
                 .Results
                 .SelectMany(r => r.GeneratedSources)
+                .OrderBy(gs => gs.HintName)
                 .Select(gs => CSharpSyntaxTree.ParseText(gs.SourceText, parseOptions, path: gs.HintName))
         );
 
