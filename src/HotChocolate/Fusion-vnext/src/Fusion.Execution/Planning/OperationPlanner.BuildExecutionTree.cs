@@ -705,6 +705,22 @@ file static class Extensions
         {
             FieldNode? lookupFieldNode = null;
 
+            if (!step.Lookup.Path.IsEmpty)
+            {
+                foreach (var fieldName in step.Lookup.Path)
+                {
+                    var fieldNode = selectionSetNode.Selections.FirstOrDefault(
+                        selection => selection is FieldNode fieldNode && fieldNode.Name.Value == fieldName);
+
+                    if (fieldNode is not FieldNode { SelectionSet: { } nextSelectionSetNode })
+                    {
+                        throw new InvalidOperationException("Unable to resolve the lookup path.");
+                    }
+
+                    selectionSetNode = nextSelectionSetNode;
+                }
+            }
+
             foreach (var selection in selectionSetNode.Selections)
             {
                 if (selection is FieldNode fieldNode && fieldNode.Name.Value == step.Lookup.FieldName)
