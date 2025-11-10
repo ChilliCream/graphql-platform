@@ -11,7 +11,8 @@ public static class PooledObjects
     private static readonly StringBuilder?[] s_stringBuilders = new StringBuilder[8];
     private static int s_nextStringBuilderIndex = -1;
 
-    private static readonly ConcurrentDictionary<string, string>?[] s_stringDictionaries = new ConcurrentDictionary<string, string>[8];
+    private static readonly ConcurrentDictionary<string, string>?[] s_stringDictionaries =
+        new ConcurrentDictionary<string, string>[8];
     private static int s_nextStringDictionaryIndex = -1;
 
     private static readonly object s_lock = new();

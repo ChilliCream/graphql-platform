@@ -1,6 +1,7 @@
 #if NET8_0_OR_GREATER
 using System.Buffers.Text;
 #endif
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
@@ -43,100 +44,96 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         Action<string, SourceText> addSource)
     {
         var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
+        var namespaces = PooledObjects.GetStringDictionary();
 
-        Parallel.ForEach(
-            syntaxInfos.OrderBy(t => t.OrderByKey).OfType<IOutputTypeInfo>(),
-            type =>
-            {
-                var sb = PooledObjects.GetStringBuilder();
-
-                try
+        try
+        {
+            Parallel.ForEach(
+                syntaxInfos.OrderBy(t => t.OrderByKey).OfType<IOutputTypeInfo>(),
+                type =>
                 {
-                    switch (type)
+                    var sb = PooledObjects.GetStringBuilder();
+
+                    try
                     {
-                        case ObjectTypeInfo objectType:
+                        switch (type)
                         {
-                            var file = new ObjectTypeFileBuilder(sb);
-                            WriteFile(file, objectType, typeLookup);
-                            addSource(CreateFileName(objectType), SourceText.From(sb.ToString(), Encoding.UTF8));
-                            break;
-                        }
-                        case InterfaceTypeInfo interfaceType:
-                        {
-                            var file = new InterfaceTypeFileBuilder(sb);
-                            WriteFile(file, interfaceType, typeLookup);
-                            addSource(CreateFileName(interfaceType), SourceText.From(sb.ToString(), Encoding.UTF8));
-                            break;
-                        }
-                        case RootTypeInfo rootType:
-                        {
-                            var file = new RootTypeFileBuilder(sb);
-                            WriteFile(file, rootType, typeLookup);
-                            addSource(CreateFileName(rootType), SourceText.From(sb.ToString(), Encoding.UTF8));
-                            break;
-                        }
-                        case ConnectionTypeInfo connectionType:
-                        {
-                            var file = new ConnectionTypeFileBuilder(sb);
-                            WriteFile(file, connectionType, typeLookup);
-                            addSource(CreateFileName(connectionType), SourceText.From(sb.ToString(), Encoding.UTF8));
-                            break;
-                        }
-                        case EdgeTypeInfo edgeType:
-                        {
-                            var file = new EdgeTypeFileBuilder(sb);
-                            WriteFile(file, edgeType, typeLookup);
-                            addSource(CreateFileName(edgeType), SourceText.From(sb.ToString(), Encoding.UTF8));
-                            break;
+                            case ObjectTypeInfo objectType:
+                            {
+                                var file = new ObjectTypeFileBuilder(sb);
+                                WriteFile(file, objectType, typeLookup);
+                                addSource(
+                                    CreateFileName(namespaces, objectType),
+                                    SourceText.From(sb.ToString(), Encoding.UTF8));
+                                break;
+                            }
+                            case InterfaceTypeInfo interfaceType:
+                            {
+                                var file = new InterfaceTypeFileBuilder(sb);
+                                WriteFile(file, interfaceType, typeLookup);
+                                addSource(
+                                    CreateFileName(namespaces, interfaceType),
+                                    SourceText.From(sb.ToString(), Encoding.UTF8));
+                                break;
+                            }
+                            case RootTypeInfo rootType:
+                            {
+                                var file = new RootTypeFileBuilder(sb);
+                                WriteFile(file, rootType, typeLookup);
+                                addSource(
+                                    CreateFileName(namespaces, rootType),
+                                    SourceText.From(sb.ToString(), Encoding.UTF8));
+                                break;
+                            }
+                            case ConnectionTypeInfo connectionType:
+                            {
+                                var file = new ConnectionTypeFileBuilder(sb);
+                                WriteFile(file, connectionType, typeLookup);
+                                addSource(
+                                    CreateFileName(namespaces, connectionType),
+                                    SourceText.From(sb.ToString(), Encoding.UTF8));
+                                break;
+                            }
+                            case EdgeTypeInfo edgeType:
+                            {
+                                var file = new EdgeTypeFileBuilder(sb);
+                                WriteFile(file, edgeType, typeLookup);
+                                addSource(
+                                    CreateFileName(namespaces, edgeType),
+                                    SourceText.From(sb.ToString(), Encoding.UTF8));
+                                break;
+                            }
                         }
                     }
-                }
-                finally
-                {
-                    PooledObjects.Return(sb);
-                }
-            });
-
-        static string CreateFileName(IOutputTypeInfo type)
+                    finally
+                    {
+                        PooledObjects.Return(sb);
+                    }
+                });
+        }
+        finally
         {
-#if NET8_0_OR_GREATER
-            Span<byte> hash = stackalloc byte[64];
-            var bytes = Encoding.UTF8.GetBytes(type.Namespace);
-            MD5.HashData(bytes, hash);
-            Base64.EncodeToUtf8InPlace(hash, 16, out var written);
-            hash = hash[..written];
+            PooledObjects.Return(namespaces);
+        }
 
-            for (var i = 0; i < hash.Length; i++)
+        static string CreateFileName(ConcurrentDictionary<string, string> namespaces, IOutputTypeInfo type)
+        {
+            if (!namespaces.TryGetValue(type.Namespace, out var hashString))
             {
-                if (hash[i] == (byte)'+')
+                lock (s_md5)
                 {
-                    hash[i] = (byte)'-';
-                }
-                else if (hash[i] == (byte)'/')
-                {
-                    hash[i] = (byte)'_';
-                }
-                else if (hash[i] == (byte)'=')
-                {
-                    hash = hash[..i];
-                    break;
+                    if (!namespaces.TryGetValue(type.Namespace, out hashString))
+                    {
+                        var bytes = Encoding.UTF8.GetBytes(type.Namespace);
+                        var hashBytes = s_md5.ComputeHash(bytes);
+                        hashString = Convert.ToBase64String(hashBytes, Base64FormattingOptions.None);
+                        hashString = hashString.Replace("+", "-").Replace("/", "_").TrimEnd('=');
+                        namespaces.TryAdd(type.Namespace, hashString);
+                    }
                 }
             }
 
-            return $"{type.Name}.{Encoding.UTF8.GetString(hash)}.hc.g.cs";
-#else
-            var bytes = Encoding.UTF8.GetBytes(type.Namespace);
-            byte[] hashBytes;
-
-            lock (s_md5)
-            {
-                hashBytes = s_md5.ComputeHash(bytes);
-            }
-
-            var hashString = Convert.ToBase64String(hashBytes, Base64FormattingOptions.None);
-            hashString = hashString.Replace("+", "-").Replace("/", "_").TrimEnd('=');
             return $"{type.Name}.{hashString}.hc.g.cs";
-#endif
         }
     }
 
