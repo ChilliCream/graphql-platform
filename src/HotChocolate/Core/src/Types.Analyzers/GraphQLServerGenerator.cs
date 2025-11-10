@@ -135,7 +135,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos)
     {
-        var processedFiles = PooledObjects.GetStringSet();
+        var processedFiles = PooledObjects.GetStringDictionary();
 
         try
         {
@@ -162,7 +162,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
 
         void AddSource(string fileName, SourceText sourceText)
         {
-            if (processedFiles.Add(fileName))
+            if (processedFiles.TryAdd(fileName, string.Empty))
             {
                 context.AddSource(fileName, sourceText);
             }
