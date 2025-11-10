@@ -214,7 +214,8 @@ internal static class CompletionTools
                         lookup.Field.Type.NamedType().Name.Value,
                         lookup.Internal,
                         arguments.ToImmutable(),
-                        fields));
+                        fields,
+                        lookup.Path));
             }
         }
 
