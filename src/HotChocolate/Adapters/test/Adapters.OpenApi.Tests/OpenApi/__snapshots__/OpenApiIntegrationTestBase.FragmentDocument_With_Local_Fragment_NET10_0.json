@@ -49,7 +49,12 @@
   "components": {
     "schemas": {
       "User": {
-        "required": ["id", "name", "email", "address"],
+        "required": [
+          "id",
+          "name",
+          "email",
+          "address"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -66,10 +71,15 @@
             "type": "string"
           },
           "email": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "address": {
-            "required": ["street"],
+            "required": [
+              "street"
+            ],
             "type": "object",
             "properties": {
               "street": {

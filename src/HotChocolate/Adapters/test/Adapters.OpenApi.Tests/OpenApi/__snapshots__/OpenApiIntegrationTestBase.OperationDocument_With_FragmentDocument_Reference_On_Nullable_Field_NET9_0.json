@@ -32,7 +32,9 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": ["preferences"],
+                  "required": [
+                    "preferences"
+                  ],
                   "type": "object",
                   "properties": {
                     "preferences": {
@@ -57,7 +59,9 @@
   "components": {
     "schemas": {
       "Preferences": {
-        "required": ["color"],
+        "required": [
+          "color"
+        ],
         "type": "object",
         "properties": {
           "color": {

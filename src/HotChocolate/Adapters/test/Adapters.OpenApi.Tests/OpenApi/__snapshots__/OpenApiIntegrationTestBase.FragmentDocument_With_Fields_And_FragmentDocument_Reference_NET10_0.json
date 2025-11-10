@@ -49,21 +49,29 @@
   "components": {
     "schemas": {
       "GlobalUser": {
-        "required": ["name", "email"],
+        "required": [
+          "name",
+          "email"
+        ],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
           "email": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "User": {
         "allOf": [
           {
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "type": "object",
             "properties": {
               "id": {

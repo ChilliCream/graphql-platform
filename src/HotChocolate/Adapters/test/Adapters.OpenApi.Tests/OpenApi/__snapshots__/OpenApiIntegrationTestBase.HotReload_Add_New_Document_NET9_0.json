@@ -16,7 +16,9 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "required": ["id"],
+                    "required": [
+                      "id"
+                    ],
                     "type": "object",
                     "properties": {
                       "id": {
@@ -39,5 +41,5 @@
       }
     }
   },
-  "components": {}
+  "components": { }
 }

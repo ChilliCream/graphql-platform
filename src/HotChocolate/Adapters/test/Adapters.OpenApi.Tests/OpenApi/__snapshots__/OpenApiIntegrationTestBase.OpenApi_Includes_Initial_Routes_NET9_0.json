@@ -32,7 +32,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": ["id", "name", "email"],
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
                   "type": "object",
                   "properties": {
                     "id": {
@@ -83,7 +87,10 @@
           "content": {
             "application/json": {
               "schema": {
-                "required": ["email", "name"],
+                "required": [
+                  "email",
+                  "name"
+                ],
                 "type": "object",
                 "properties": {
                   "email": {
@@ -105,7 +112,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": ["id", "name", "email"],
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
                   "type": "object",
                   "properties": {
                     "id": {
@@ -167,7 +178,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": ["id", "name", "email"],
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
                   "type": "object",
                   "properties": {
                     "id": {
@@ -210,7 +225,9 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "required": ["id"],
+                    "required": [
+                      "id"
+                    ],
                     "type": "object",
                     "properties": {
                       "id": {
@@ -238,7 +255,11 @@
           "content": {
             "application/json": {
               "schema": {
-                "required": ["email", "id", "name"],
+                "required": [
+                  "email",
+                  "id",
+                  "name"
+                ],
                 "type": "object",
                 "properties": {
                   "email": {
@@ -270,7 +291,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": ["id", "name", "email"],
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
                   "type": "object",
                   "properties": {
                     "id": {
@@ -302,7 +327,9 @@
   "components": {
     "schemas": {
       "UserAddress": {
-        "required": ["street"],
+        "required": [
+          "street"
+        ],
         "type": "object",
         "properties": {
           "street": {

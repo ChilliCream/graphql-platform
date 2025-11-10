@@ -434,7 +434,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         }
 
 #if NET10_0_OR_GREATER
-        var jsonSchemaTypes = GetJsonSchemaTypesFromScalar(scalarType);
+        var jsonSchemaTypes = GetJsonSchemaTypes(scalarType);
 
         if (jsonSchemaTypes.Count == 1)
         {
@@ -452,7 +452,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 .ToList();
         }
 #else
-        var jsonSchemaTypes = GetJsonSchemaTypesFromScalar(scalarType);
+        var jsonSchemaTypes = GetJsonSchemaTypes(scalarType);
 
         if (jsonSchemaTypes.Count == 1)
         {
@@ -471,26 +471,52 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         }
 #endif
 
-        schema.Format = GetFormatFromScalar(scalarType);
+        schema.Format = GetJsonSchemaFormat(scalarType);
+        schema.Pattern = GetJsonSchemaPattern(scalarType);
 
         return schema;
     }
 
-    // TODO: Handle specifiedBy
-    private static string? GetFormatFromScalar(IScalarTypeDefinition scalarType)
+    private static string? GetJsonSchemaFormat(IScalarTypeDefinition scalarType)
     {
-        var serializationType = scalarType.GetScalarSerializationType();
-
-        return serializationType switch
+        var format = scalarType.SpecifiedBy?.OriginalString switch
         {
-            ScalarSerializationType.Int => "int32",
-            ScalarSerializationType.Float => "float",
+            "https://scalars.graphql.org/andimarek/date-time.html" => "date-time",
+            "https://scalars.graphql.org/andimarek/local-date.html" => "date",
             _ => null
         };
+
+        if (format is null)
+        {
+            var serializationType = scalarType.GetScalarSerializationType();
+
+            return serializationType switch
+            {
+                ScalarSerializationType.Int => "int32",
+                ScalarSerializationType.Float => "float",
+                _ => null
+            };
+        }
+
+        return format;
+    }
+
+    private static string? GetJsonSchemaPattern(IScalarTypeDefinition scalarType)
+    {
+        var pattern = scalarType.SpecifiedBy?.OriginalString switch
+        {
+            "https://scalars.graphql.org/andimarek/date-time.html"
+                => @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:[Zz]|[+-]\d{2}:\d{2})$",
+            "https://scalars.graphql.org/andimarek/local-date.html"
+                => @"^\d{4}-\d{2}-\d{2}$",
+            _ => null
+        };
+
+        return pattern ?? scalarType.Pattern;
     }
 
 #if NET10_0_OR_GREATER
-    private static List<JsonSchemaType> GetJsonSchemaTypesFromScalar(IScalarTypeDefinition scalarType)
+    private static List<JsonSchemaType> GetJsonSchemaTypes(IScalarTypeDefinition scalarType)
     {
         var serializationType = scalarType.GetScalarSerializationType();
 
@@ -534,7 +560,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         return [JsonSchemaType.String];
     }
 #else
-    private static List<string> GetJsonSchemaTypesFromScalar(IScalarTypeDefinition scalarType)
+    private static List<string> GetJsonSchemaTypes(IScalarTypeDefinition scalarType)
     {
         var serializationType = scalarType.GetScalarSerializationType();
 

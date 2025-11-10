@@ -44,7 +44,10 @@
   "components": {
     "schemas": {
       "User": {
-        "required": ["name", "email"],
+        "required": [
+          "name",
+          "email"
+        ],
         "type": "object",
         "properties": {
           "name": {

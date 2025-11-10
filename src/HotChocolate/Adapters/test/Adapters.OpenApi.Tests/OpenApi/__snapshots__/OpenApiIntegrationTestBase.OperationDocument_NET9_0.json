@@ -32,7 +32,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": ["name", "email"],
+                  "required": [
+                    "name",
+                    "email"
+                  ],
                   "type": "object",
                   "properties": {
                     "name": {
@@ -51,5 +54,5 @@
       }
     }
   },
-  "components": {}
+  "components": { }
 }
