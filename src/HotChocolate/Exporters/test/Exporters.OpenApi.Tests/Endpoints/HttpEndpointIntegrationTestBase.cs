@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Exporters.OpenApi;
 
-// TODO: We need to validate that we can't have the same path + method twice, even if once with and without query parameters
 // TODO: With authorization also check what happens if we handle it in validation
 // TODO: @oneOf tests
 // TODO: Test with a long value in either route or query

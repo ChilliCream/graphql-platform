@@ -71,7 +71,6 @@ internal sealed class DynamicEndpointMiddleware(
             }
 
             // If we do not have an operation result, something went wrong and we return HTTP 500.
-            // TODO: We need to ensure these requests don't contain incremental directives like @stream and @defer
             if (executionResult is not IOperationResult operationResult)
             {
                 await Results.InternalServerError().ExecuteAsync(context);

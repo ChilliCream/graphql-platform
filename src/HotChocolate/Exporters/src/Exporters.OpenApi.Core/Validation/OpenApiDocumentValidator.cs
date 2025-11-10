@@ -8,6 +8,7 @@ internal sealed class OpenApiDocumentValidator : IOpenApiDocumentValidator
     private static readonly ImmutableArray<IOpenApiFragmentDocumentValidationRule> s_fragmentDocumentValidationRules =
     [
         new FragmentNameUniquenessRule(),
+        new FragmentNoDeferStreamDirectiveRule(),
         new FragmentReferencesMustExistRule()
     ];
 
@@ -16,8 +17,10 @@ internal sealed class OpenApiDocumentValidator : IOpenApiDocumentValidator
         new OperationNameUniquenessRule(),
         new OperationMustBeQueryOrMutationRule(),
         new OperationMustHaveSingleRootFieldRule(),
+        new OperationNoDeferStreamDirectiveRule(),
         new OperationFragmentReferencesMustExistRule(),
         new OperationParameterConflictRule(),
+        new OperationRouteUniquenessRule(),
         new OperationMustCompileAgainstSchemaRule()
     ];
 

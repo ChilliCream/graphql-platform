@@ -31,4 +31,19 @@ internal sealed class OpenApiValidationContext(
 
         return ValueTask.FromResult(document);
     }
+
+    public ValueTask<OpenApiOperationDocument?> GetOperationByRouteAndMethodAsync(string routePattern, string httpMethod)
+    {
+        foreach (var operation in OperationsByName.Values)
+        {
+            var operationRoutePattern = operation.Route.ToOpenApiPath();
+            if (string.Equals(routePattern, operationRoutePattern, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(httpMethod, operation.HttpMethod, StringComparison.OrdinalIgnoreCase))
+            {
+                return ValueTask.FromResult<OpenApiOperationDocument?>(operation);
+            }
+        }
+
+        return ValueTask.FromResult<OpenApiOperationDocument?>(null);
+    }
 }

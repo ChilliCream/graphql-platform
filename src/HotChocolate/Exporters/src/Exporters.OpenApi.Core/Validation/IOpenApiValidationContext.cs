@@ -14,4 +14,6 @@ public interface IOpenApiValidationContext
     ValueTask<OpenApiFragmentDocument?> GetFragmentAsync(string fragmentName);
 
     ValueTask<OpenApiOperationDocument?> GetOperationAsync(string operationName);
+
+    ValueTask<OpenApiOperationDocument?> GetOperationByRouteAndMethodAsync(string routePattern, string httpMethod);
 }

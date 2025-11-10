@@ -91,6 +91,59 @@ public abstract class ValidationTestBase : OpenApiTestBase
         Assert.Equal("Type condition 'NonExistentType' not found in schema.", error.Message);
     }
 
+    [Fact]
+    public async Task Fragment_Contains_Defer_Directive_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            fragment User on User {
+              id
+              ... @defer {
+                name
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Fragment document 'User' contains the '@defer' directive, which is not allowed in OpenAPI documents.", error.Message);
+    }
+
+    [Fact]
+    public async Task Fragment_Contains_Stream_Directive_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            fragment Query on Query {
+              users @stream {
+                name
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Fragment document 'Query' contains the '@stream' directive, which is not allowed in OpenAPI documents.", error.Message);
+    }
+
     #endregion
 
     #region Operation Document
@@ -625,6 +678,159 @@ public abstract class ValidationTestBase : OpenApiTestBase
         var error = Assert.Single(eventListener.Errors);
         Assert.Equal("Document must contain either a single operation or at least one fragment definition.",
             error.Message);
+    }
+
+    [Fact]
+    public async Task Operation_Route_Pattern_Duplicate_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                id
+              }
+            }
+            """,
+            """
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Route pattern '/users/{userId}' with HTTP method 'GET' is already being used by operation document 'GetUser' with Id '0'.", error.Message);
+    }
+
+    [Fact]
+    public async Task Operation_Route_Pattern_Duplicate_CaseInsensitive_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser($userId: ID!) @http(method: GET, route: "/Users/{userId}") {
+              userById(id: $userId) {
+                id
+              }
+            }
+            """,
+            """
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Route pattern '/users/{userId}' with HTTP method 'GET' is already being used by operation document 'GetUser' with Id '0'.", error.Message);
+    }
+
+    [Fact]
+    public async Task Operation_Route_Pattern_Same_With_Different_Method_Does_Not_RaiseError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                id
+              }
+            }
+            """,
+            """
+            mutation UpdateUser($user: UserInput! @body) @http(method: PUT, route: "/users/{userId:$user.id}") {
+              updateUser(user: $user) {
+                id
+                name
+                email
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        // assert
+        Assert.Empty(eventListener.Errors);
+    }
+
+    [Fact]
+    public async Task Operation_Contains_Defer_Directive_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) @defer {
+                id
+                ... @defer {
+                  name
+                }
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Operation document 'GetUser' contains the '@defer' directive, which is not allowed in OpenAPI documents.", error.Message);
+    }
+
+    [Fact]
+    public async Task Operation_Contains_Stream_Directive_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              users @stream {
+                name
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Operation document 'GetUsers' contains the '@stream' directive, which is not allowed in OpenAPI documents.", error.Message);
     }
 
     #endregion

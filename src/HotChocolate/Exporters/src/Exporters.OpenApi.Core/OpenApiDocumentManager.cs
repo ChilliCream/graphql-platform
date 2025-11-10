@@ -52,7 +52,7 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
                 {
                     var parseResult = parser.Parse(document);
 
-                    if (parseResult.IsValid && parseResult.Document is not null)
+                    if (parseResult.IsValid)
                     {
                         newDocuments.Add(parseResult.Document);
                     }
@@ -136,7 +136,7 @@ internal sealed class OpenApiDocumentManager : IDisposable, IObserver<OpenApiDef
 
                 var parseResult = parser.Parse(args.Definition);
 
-                if (parseResult.IsValid && parseResult.Document is not null)
+                if (parseResult.IsValid)
                 {
                     await RebuildAsync([parseResult.Document], CancellationToken.None);
                 }

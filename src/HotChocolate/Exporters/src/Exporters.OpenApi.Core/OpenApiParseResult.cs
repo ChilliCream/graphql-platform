@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Exporters.OpenApi;
 
@@ -17,6 +18,8 @@ public sealed class OpenApiParseResult
     /// <summary>
     /// Gets a value indicating whether the parsing was successful.
     /// </summary>
+    [MemberNotNullWhen(false, nameof(Errors))]
+    [MemberNotNullWhen(true, nameof(Document))]
     public bool IsValid { get; }
 
     /// <summary>
@@ -39,11 +42,11 @@ public sealed class OpenApiParseResult
     /// Creates a parse result with errors.
     /// </summary>
     public static OpenApiParseResult Failure(params OpenApiParsingError[] errors)
-        => new(false, null, errors.ToImmutableArray());
+        => new(false, null, [..errors]);
 
     /// <summary>
     /// Creates a parse result with errors.
     /// </summary>
     public static OpenApiParseResult Failure(IEnumerable<OpenApiParsingError> errors)
-        => new(false, null, errors.ToImmutableArray());
+        => new(false, null, [..errors]);
 }
