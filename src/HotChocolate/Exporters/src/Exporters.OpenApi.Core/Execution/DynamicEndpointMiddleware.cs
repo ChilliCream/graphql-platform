@@ -97,6 +97,10 @@ internal sealed class DynamicEndpointMiddleware(
 
             await formatter.FormatResultAsync(operationResult, context, endpointDescriptor, cancellationToken);
         }
+        catch (InvalidFormatException)
+        {
+            await Results.BadRequest().ExecuteAsync(context);
+        }
         catch
         {
             await Results.InternalServerError().ExecuteAsync(context);
@@ -143,44 +147,49 @@ internal sealed class DynamicEndpointMiddleware(
             variables[bodyVariable] = bodyValue;
         }
 
-        // TODO: Derive from parameter
-        var stringType = schema.Types["String"];
-
-        // TODO: Handle deeply nested objects
-        if (endpointDescriptor.RouteParameters.Count > 0)
+        RouteData? routeData = null;
+        if (endpointDescriptor.HasRouteParameters)
         {
-            var routeData = httpContext.GetRouteData();
-
-            foreach (var parameter in endpointDescriptor.RouteParameters)
-            {
-                if (!routeData.Values.TryGetValue(parameter.Key, out var value))
-                {
-                    // We just skip here and let the GraphQL execution take care of the validation
-                    continue;
-                }
-
-                variables[parameter.Variable] = ParseValueNode(value, stringType);
-            }
+            routeData = httpContext.GetRouteData();
         }
 
-        if (endpointDescriptor.QueryParameters.Count > 0)
+        foreach (var parameter in endpointDescriptor.Parameters)
         {
-            foreach (var parameter in endpointDescriptor.QueryParameters)
+            IValueNode? coercedValue;
+
+            if (parameter.ParameterType is OpenApiEndpointParameterType.Route)
             {
-                if (!httpContext.Request.Query.TryGetValue(parameter.Key, out var values))
+                if (!routeData!.Values.TryGetValue(parameter.ParameterKey, out var value))
                 {
                     // We just skip here and let the GraphQL execution take care of the validation
                     continue;
                 }
 
-                variables[parameter.Variable] = ParseValueNode(values[0], stringType);
+                coercedValue = ParseValueNode(value, parameter.Type);
             }
+            else if (parameter.ParameterType is OpenApiEndpointParameterType.Query)
+            {
+                if (!httpContext.Request.Query.TryGetValue(parameter.ParameterKey, out var values)
+                    || values is not [{} value])
+                {
+                    // We just skip here and let the GraphQL execution take care of the validation
+                    continue;
+                }
+
+                coercedValue = ParseValueNode(value, parameter.Type);
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+
+            variables[parameter.VariableName] = coercedValue;
         }
 
         return variables;
     }
 
-    // TODO: This needs information about the underlying type of custom scalars like Long, etc.
+    // TODO: Maybe we can optimize this further, so we don't have to perform a lot of checks at runtime
     private static IValueNode? ParseValueNode(object? value, ITypeDefinition type)
     {
         if (value is null)
@@ -192,65 +201,73 @@ internal sealed class DynamicEndpointMiddleware(
         {
             if (value is not string s)
             {
-                throw new InvalidFormatException();
+                throw new InvalidFormatException("Expected a string value");
             }
 
             var matchingValue = enumType.Values.FirstOrDefault(v => v.Name == s);
 
             if (matchingValue is null)
             {
-                throw new InvalidFormatException();
+                throw new InvalidFormatException("Expected to find a matching enum value for string");
             }
 
             return new EnumValueNode(matchingValue.Name);
         }
 
-        if (type.Name is "String" or "ID")
+        if (type is IScalarTypeDefinition scalarType)
         {
-            if (value is string s)
+            var serializationType = scalarType.GetScalarSerializationType();
+
+            if (serializationType.HasFlag(ScalarSerializationType.String))
             {
-                return new StringValueNode(s);
-            }
-        }
-        else if (type.Name is "Boolean")
-        {
-            if (value is bool b)
-            {
-                return new BooleanValueNode(b);
+                if (value is string s)
+                {
+                    return new StringValueNode(s);
+                }
             }
 
-            if (value is string s && bool.TryParse(s, out var booleanValue))
+            if (serializationType.HasFlag(ScalarSerializationType.Int))
             {
-                return new BooleanValueNode(booleanValue);
-            }
-        }
-        else if (type.Name == "Int")
-        {
-            if (value is int i)
-            {
-                return new IntValueNode(i);
+                if (value is int i)
+                {
+                    return new IntValueNode(i);
+                }
+
+                if (value is string s && int.TryParse(s, out var intValue))
+                {
+                    return new IntValueNode(intValue);
+                }
             }
 
-            if (value is string s && int.TryParse(s, out var intValue))
+            if (serializationType.HasFlag(ScalarSerializationType.Boolean))
             {
-                return new IntValueNode(intValue);
-            }
-        }
-        else if (type.Name == "Float")
-        {
-            if (value is float f)
-            {
-                return new FloatValueNode(f);
+                if (value is bool b)
+                {
+                    return new BooleanValueNode(b);
+                }
+
+                if (value is string s && bool.TryParse(s, out var booleanValue))
+                {
+                    return new BooleanValueNode(booleanValue);
+                }
             }
 
-            if (value is double d)
+            if (serializationType.HasFlag(ScalarSerializationType.Float))
             {
-                return new FloatValueNode(d);
-            }
+                if (value is float f)
+                {
+                    return new FloatValueNode(f);
+                }
 
-            if (value is string s && double.TryParse(s, out var doubleValue))
-            {
-                return new FloatValueNode(doubleValue);
+                if (value is double d)
+                {
+                    return new FloatValueNode(d);
+                }
+
+                if (value is string s && double.TryParse(s, out var doubleValue))
+                {
+                    return new FloatValueNode(doubleValue);
+                }
             }
         }
 

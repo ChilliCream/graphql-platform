@@ -5,8 +5,7 @@ namespace HotChocolate.Exporters.OpenApi;
 
 public static class OpenApiOptionsExtensions
 {
-    // TODO: Better name
-    public static OpenApiOptions AddGraphQL(this OpenApiOptions options, string? schemaName = null)
+    public static OpenApiOptions AddGraphQLTransformer(this OpenApiOptions options, string? schemaName = null)
     {
         schemaName ??= ISchemaDefinition.DefaultName;
 

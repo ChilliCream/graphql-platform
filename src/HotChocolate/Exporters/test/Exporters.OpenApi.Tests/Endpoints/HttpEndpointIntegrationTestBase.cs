@@ -52,8 +52,8 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
             """
-            query GetUser($includeEmail: Boolean!) @http(method: GET, route: "/users", queryParameters: ["includeEmail"]) {
-              users {
+            query GetUsers($includeEmail: Boolean!) @http(method: GET, route: "/users", queryParameters: ["includeEmail"]) {
+              usersWithoutAuth {
                 id
                 name
                 email @include(if: $includeEmail)
@@ -76,8 +76,8 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
             """
-            query GetUser($userId: ID!) @http(method: GET, route: "/users-details", queryParameters: ["userId"]) {
-              userById(id: $userId) {
+            query GetUser($userName: String!) @http(method: GET, route: "/users-details", queryParameters: ["userName"]) {
+              userByName(name: $userName) {
                 id
                 name
                 email
@@ -88,7 +88,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users-details?userId=true");
+        var response = await client.GetAsync("/users-details?userName=true");
 
         // assert
         response.MatchSnapshot();

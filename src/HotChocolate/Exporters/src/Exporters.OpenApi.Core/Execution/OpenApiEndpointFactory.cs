@@ -1,5 +1,7 @@
+using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
@@ -70,14 +72,62 @@ internal static class OpenApiEndpointFactory
 
         var route = CreateRoutePattern(operationDocument.Route);
 
+        var numberOfParameters = operationDocument.Route.Parameters.Length + operationDocument.QueryParameters.Length;
+        var parameters = ImmutableArray.CreateBuilder<OpenApiEndpointParameterDescriptor>(numberOfParameters);
+        var hasRouteParameters = false;
+
+        foreach (var routeParameter in operationDocument.Route.Parameters)
+        {
+            var inputType = GetTypeFromParameter(routeParameter, operationDocument.OperationDefinition, schema);
+            var parameterDescriptor = new OpenApiEndpointParameterDescriptor(
+                routeParameter.Key,
+                routeParameter.Variable,
+                inputType,
+                OpenApiEndpointParameterType.Route);
+
+            parameters.Add(parameterDescriptor);
+
+            if (!hasRouteParameters)
+            {
+                hasRouteParameters = true;
+            }
+        }
+
+        foreach (var queryParameter in operationDocument.QueryParameters)
+        {
+            var inputType = GetTypeFromParameter(queryParameter, operationDocument.OperationDefinition, schema);
+            var parameterDescriptor = new OpenApiEndpointParameterDescriptor(
+                queryParameter.Key,
+                queryParameter.Variable,
+                inputType,
+                OpenApiEndpointParameterType.Query);
+
+            parameters.Add(parameterDescriptor);
+        }
+
         return new OpenApiEndpointDescriptor(
             document,
             operationDocument.HttpMethod,
             route,
-            operationDocument.Route.Parameters.ToList(),
-            operationDocument.QueryParameters,
+            parameters.MoveToImmutable(),
+            hasRouteParameters,
             operationDocument.BodyParameter?.Variable,
             responseNameToExtract);
+    }
+
+    private static ITypeDefinition GetTypeFromParameter(
+        OpenApiRouteSegmentParameter parameter,
+        OperationDefinitionNode operation,
+        ISchemaDefinition schema)
+    {
+        var variable = operation.VariableDefinitions
+            .First(v => v.Variable.Name.Value == parameter.Variable);
+
+        var variableType = schema.Types[variable.Type.NamedType().Name.Value];
+
+        // TODO: Visit input object path
+
+        return variableType;
     }
 
     private static RoutePattern CreateRoutePattern(OpenApiRoute route)

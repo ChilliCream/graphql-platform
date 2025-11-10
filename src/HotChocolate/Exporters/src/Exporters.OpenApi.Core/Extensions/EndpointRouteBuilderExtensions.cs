@@ -5,8 +5,7 @@ namespace HotChocolate.Exporters.OpenApi;
 
 public static class EndpointRouteBuilderExtensions
 {
-    // TODO: Better name
-    public static IEndpointRouteBuilder MapGraphQLEndpoints(
+    public static IEndpointRouteBuilder MapOpenApiEndpoints(
         this IEndpointRouteBuilder endpoints,
         string? schemaName = null)
     {

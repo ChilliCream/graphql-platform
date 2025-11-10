@@ -410,10 +410,6 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
         }
 
         if (stringValue != HttpMethods.Get
-            // TODO: Might not even want to support that
-#if NET10_0_OR_GREATER
-            && stringValue != HttpMethods.Query
-#endif
             && stringValue != HttpMethods.Post
             && stringValue != HttpMethods.Put
             && stringValue != HttpMethods.Patch

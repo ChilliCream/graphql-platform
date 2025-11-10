@@ -105,12 +105,12 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
     protected virtual void ConfigureOpenApi(OpenApiOptions options)
     {
-        options.AddGraphQL();
+        options.AddGraphQLTransformer();
     }
 
     protected virtual void ConfigureEndpoints(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGraphQLEndpoints();
+        endpoints.MapOpenApiEndpoints();
     }
 
     protected TestServer CreateTestServer(

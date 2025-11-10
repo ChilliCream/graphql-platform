@@ -15,55 +15,6 @@ namespace HotChocolate.Exporters.OpenApi;
 
 internal static class TestHelpers
 {
-    public static async Task<IFusionGatewayBuilder> AddBasicServerAsync(
-        this IFusionGatewayBuilder builder,
-        TestServerSession session)
-    {
-        // TODO: This should also have auth like the regular stuff
-        var subgraph = session.CreateServer(
-            services =>
-            {
-                services
-                    .AddGraphQLServer()
-                    .AddBasicServer();
-            },
-            app =>
-            {
-                app
-                    .UseRouting()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQL());
-            });
-
-        var schema = await subgraph.Services.GetSchemaAsync();
-
-        var sourceSchema = new SourceSchemaText("A", schema.ToString());
-
-        builder.Services.AddSingleton<IHttpClientFactory>(_ => new MockHttpClientFactory(subgraph));
-
-        builder
-            .AddHttpClientConfiguration("A", new Uri("http://localhost:5000/graphql"));
-
-        var compositionLog = new CompositionLog();
-        var composerOptions = new SchemaComposerOptions
-        {
-            Merger =
-            {
-                EnableGlobalObjectIdentification = true
-            }
-        };
-        var composer = new SchemaComposer([sourceSchema], composerOptions, compositionLog);
-        var result = composer.Compose();
-
-        if (!result.IsSuccess)
-        {
-            throw new InvalidOperationException("Failed to compose schema.");
-        }
-
-        builder.AddInMemoryConfiguration(result.Value.ToSyntaxNode());
-
-        return builder;
-    }
-
     public static IRequestExecutorBuilder AddBasicServer(this IRequestExecutorBuilder builder)
     {
         return builder.AddAuthorization()
@@ -87,13 +38,16 @@ internal static class TestHelpers
                             .Build());
                 }
 
-                if (id < 1 || id > 3)
+                if (id is < 1 or > 3)
                 {
                     return null;
                 }
 
                 return new User(id);
             }
+
+            public User? GetUserByName(string name)
+                => new(1) { Name = name };
 
             [Authorize(Roles = [OpenApiTestBase.AdminRole])]
             public IEnumerable<User> GetUsers()
@@ -146,13 +100,5 @@ internal static class TestHelpers
         public sealed record Address(string Street);
 
         public sealed record Preferences(string Color);
-    }
-
-    private class MockHttpClientFactory(TestServer subgraph) : IHttpClientFactory
-    {
-        public HttpClient CreateClient(string name)
-        {
-            return subgraph.CreateClient();
-        }
     }
 }
