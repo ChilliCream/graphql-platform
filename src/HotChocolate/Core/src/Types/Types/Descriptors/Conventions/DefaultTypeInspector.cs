@@ -279,7 +279,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             {
                 if (!_attributes.TryGetValue((attributeProvider, inherit), out attributes))
                 {
-                    attributes = [..attributeProvider.GetCustomAttributes(inherit)];
+                    attributes = [.. attributeProvider.GetCustomAttributes(inherit)];
                     _attributes[(attributeProvider, inherit)] = attributes;
                 }
             }

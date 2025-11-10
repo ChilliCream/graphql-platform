@@ -314,6 +314,7 @@ internal sealed class FusionRequestExecutorManager
         var features = new FeatureCollection();
 
         features.Set(options);
+        features.Set<IFusionSchemaOptions>(options);
         features.Set(requestOptions);
         features.Set(requestOptions.PersistedOperations);
         features.Set(parserOptions);

@@ -4,7 +4,6 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
-using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Factories;

@@ -246,13 +246,13 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         var description = resolver.Description;
         if (!string.IsNullOrEmpty(description))
         {
-            Writer.WriteIndentedLine("configuration.Description = \"{0}\";", description);
+            Writer.WriteIndentedLine("configuration.Description = \"{0}\";", GeneratorUtils.EscapeForStringLiteral(description));
         }
 
         var deprecationReason = resolver.DeprecationReason;
         if (!string.IsNullOrEmpty(deprecationReason))
         {
-            Writer.WriteIndentedLine("configuration.DeprecationReason = \"{0}\";", deprecationReason);
+            Writer.WriteIndentedLine("configuration.DeprecationReason = \"{0}\";", GeneratorUtils.EscapeForStringLiteral(deprecationReason));
         }
 
         WriteResolverBindingDescriptor(type, resolver);
@@ -333,13 +333,21 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         description = parameter.Description;
                         if (!string.IsNullOrEmpty(description))
                         {
-                            Writer.WriteIndentedLine("Description = \"{0}\",", description);
+                            Writer.WriteIndentedLine("Description = \"{0}\",", GeneratorUtils.EscapeForStringLiteral(description));
                         }
 
                         deprecationReason = parameter.DeprecationReason;
                         if (!string.IsNullOrEmpty(deprecationReason))
                         {
-                            Writer.WriteIndentedLine("DeprecationReason = \"{0}\",", deprecationReason);
+                            Writer.WriteIndentedLine("DeprecationReason = \"{0}\",", GeneratorUtils.EscapeForStringLiteral(deprecationReason));
+                        }
+
+                        if (parameter.Parameter.HasExplicitDefaultValue)
+                        {
+                            var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(
+                                parameter.Parameter.ExplicitDefaultValue,
+                                parameter.Type);
+                            Writer.WriteIndentedLine("RuntimeDefaultValue = {0},", defaultValueString);
                         }
 
                         Writer.WriteIndentedLine(
@@ -636,7 +644,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             return;
         }
 
-        foreach (var parameter in  resolver.Parameters)
+        foreach (var parameter in resolver.Parameters)
         {
             if (parameter.Kind is ResolverParameterKind.Unknown)
             {

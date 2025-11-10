@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using static HotChocolate.Fusion.Text.Json.MetaDbEventSource;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -12,6 +13,8 @@ public sealed partial class SourceResultDocument
     {
         private const int SizeOrLengthOffset = 4;
         private const int NumberOfRowsOffset = 8;
+
+        private static readonly ArrayPool<byte[]> s_arrayPool = ArrayPool<byte[]>.Shared;
 
         private byte[][] _chunks;
         private Cursor _cursor;
@@ -27,10 +30,14 @@ public sealed partial class SourceResultDocument
         internal static MetaDb CreateForEstimatedRows(int estimatedRows)
         {
             var chunksNeeded = Math.Max(4, (estimatedRows / Cursor.RowsPerChunk) + 1);
-            var chunks = ArrayPool<byte[]>.Shared.Rent(chunksNeeded);
+            var chunks = s_arrayPool.Rent(chunksNeeded);
+            var log = Log;
+
+            log.MetaDbCreated(1, estimatedRows, 1);
 
             // Rent the first chunk now to avoid branching on first append
             chunks[0] = MetaDbMemory.Rent();
+            log.ChunkAllocated(1, 0);
 
             for (var i = 1; i < chunks.Length; i++)
             {
@@ -51,6 +58,7 @@ public sealed partial class SourceResultDocument
             int length = DbRow.UnknownSize,
             bool hasComplexChildren = false)
         {
+            var log = Log;
             var cursor = _cursor;
             var chunks = _chunks.AsSpan();
             var chunksLength = chunks.Length;
@@ -69,7 +77,8 @@ public sealed partial class SourceResultDocument
                 // if we do not have enough space we will double the size we have for
                 // chunks of memory.
                 var nextChunksLength = chunksLength * 2;
-                var newChunks = ArrayPool<byte[]>.Shared.Rent(nextChunksLength);
+                var newChunks = s_arrayPool.Rent(nextChunksLength);
+                log.ChunksExpanded(2, chunksLength, nextChunksLength);
 
                 Array.Copy(_chunks, newChunks, chunksLength);
 
@@ -78,6 +87,11 @@ public sealed partial class SourceResultDocument
                     newChunks[i] = [];
                 }
 
+                // clear and return old chunks buffer
+                chunks.Clear();
+                s_arrayPool.Return(_chunks);
+
+                // assign new chunks buffer
                 _chunks = newChunks;
                 chunks = newChunks.AsSpan();
             }
@@ -88,6 +102,7 @@ public sealed partial class SourceResultDocument
             if (chunk.Length == 0)
             {
                 chunk = chunks[chunkIndex] = MetaDbMemory.Rent();
+                log.ChunkAllocated(1, chunkIndex);
             }
 
             var byteOffset = cursor.ByteOffset;
@@ -189,7 +204,9 @@ public sealed partial class SourceResultDocument
             if (!_disposed)
             {
                 var cursor = _cursor;
-                var chunks = _chunks.AsSpan(0, cursor.Chunk + 1);
+                var chunksLength = cursor.Chunk + 1;
+                var chunks = _chunks.AsSpan(0, chunksLength);
+                Log.MetaDbDisposed(1, chunksLength, cursor.Row);
 
                 foreach (var chunk in chunks)
                 {
@@ -202,7 +219,7 @@ public sealed partial class SourceResultDocument
                 }
 
                 chunks.Clear();
-                ArrayPool<byte[]>.Shared.Return(_chunks);
+                s_arrayPool.Return(_chunks);
 
                 _chunks = [];
                 _disposed = true;

@@ -8,12 +8,12 @@ public sealed class Resolver
 {
     public Resolver(
         string typeName,
-        string? deprecationReason,
         ISymbol member,
         ResolverResultKind resultKind,
         ImmutableArray<ResolverParameter> parameters,
         ImmutableArray<MemberBinding> bindings,
         string schemaTypeName,
+        Compilation? compilation = null,
         ResolverKind kind = ResolverKind.Default,
         FieldFlags flags = FieldFlags.None)
     {
@@ -30,11 +30,11 @@ public sealed class Resolver
         switch (member)
         {
             case IPropertySymbol property:
-                Description = property.GetDescription();
+                Description = property.GetDescription(compilation);
                 break;
 
             case IMethodSymbol method:
-                var description = method.GetDescription();
+                var description = method.GetDescription(compilation);
                 Description = description.Description;
                 if (description.ParameterDescriptions.Length == parameters.Length)
                 {
@@ -46,7 +46,11 @@ public sealed class Resolver
                 break;
         }
 
+        // Infer deprecation reason from the member if compilation is available
+        string? deprecationReason = null;
+        compilation?.TryGetGraphQLDeprecationReason(member, out deprecationReason);
         DeprecationReason = deprecationReason;
+        Compilation = compilation;
 
         var attributes = member.GetAttributes();
         Shareable = attributes.GetShareableScope();
@@ -60,6 +64,8 @@ public sealed class Resolver
     public string TypeName { get; }
 
     public string? Description { get; }
+
+    public Compilation? Compilation { get; }
 
     public string? DeprecationReason { get; }
 
@@ -102,12 +108,12 @@ public sealed class Resolver
     {
         return new Resolver(
             TypeName,
-            DeprecationReason,
             Member,
             ResultKind,
             Parameters,
             Bindings,
             schemaTypeName,
+            Compilation,
             Kind,
             Flags);
     }

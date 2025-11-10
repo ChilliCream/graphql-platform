@@ -13,9 +13,10 @@ internal static class CompletionTools
 {
     public static FusionDirectiveCollection CreateDirectiveCollection(
         IReadOnlyList<DirectiveNode> directives,
-        CompositeSchemaBuilderContext context)
+        CompositeSchemaBuilderContext context,
+        bool applySerializeAsToScalars = false)
     {
-        directives = DirectiveTools.GetUserDirectives(directives);
+        directives = DirectiveTools.GetUserDirectives(directives, applySerializeAsToScalars);
 
         if (directives.Count == 0)
         {

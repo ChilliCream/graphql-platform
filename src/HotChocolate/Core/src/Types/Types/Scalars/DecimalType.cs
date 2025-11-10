@@ -1,10 +1,13 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Composite;
 
 namespace HotChocolate.Types;
 
-[SerializeAs(ScalarSerializationType.Float)]
+/// <summary>
+/// Represents a scalar type for high-precision decimal numbers in GraphQL.
+/// This type serializes as a floating-point number and is suitable for financial calculations
+/// where precision is critical.
+/// </summary>
 public class DecimalType : FloatTypeBase<decimal>
 {
     /// <summary>
@@ -32,6 +35,7 @@ public class DecimalType : FloatTypeBase<decimal>
         : base(name, min, max, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.Float;
     }
 
     /// <summary>
@@ -43,9 +47,9 @@ public class DecimalType : FloatTypeBase<decimal>
     {
     }
 
-    protected override decimal ParseLiteral(IFloatValueLiteral valueSyntax) =>
-        valueSyntax.ToDecimal();
+    protected override decimal ParseLiteral(IFloatValueLiteral valueSyntax)
+        => valueSyntax.ToDecimal();
 
-    protected override FloatValueNode ParseValue(decimal runtimeValue) =>
-        new(runtimeValue);
+    protected override FloatValueNode ParseValue(decimal runtimeValue)
+        => new(runtimeValue);
 }
