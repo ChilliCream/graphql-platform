@@ -15,12 +15,14 @@ public sealed class FusionEnumValue : IEnumValue
         string name,
         string? description,
         bool isDeprecated,
-        string? deprecationReason)
+        string? deprecationReason,
+        bool isInaccessible)
     {
         Name = name;
         Description = description;
         IsDeprecated = isDeprecated;
         DeprecationReason = deprecationReason;
+        IsInaccessible = isInaccessible;
 
         // these properties are initialized
         // in the type complete step.
@@ -48,6 +50,8 @@ public sealed class FusionEnumValue : IEnumValue
     public bool IsDeprecated { get; }
 
     public string? DeprecationReason { get; }
+
+    public bool IsInaccessible { get; }
 
     public FusionDirectiveCollection Directives
     {

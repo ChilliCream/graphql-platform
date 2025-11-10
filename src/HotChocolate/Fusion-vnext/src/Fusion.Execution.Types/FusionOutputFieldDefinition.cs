@@ -8,7 +8,7 @@ using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition
+public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IFusionFieldDefinition
 {
     private bool _completed;
 
@@ -17,6 +17,7 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition
         string? description,
         bool isDeprecated,
         string? deprecationReason,
+        bool isInaccessible,
         FusionInputFieldDefinitionCollection arguments)
     {
         Name = name;
@@ -24,6 +25,7 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition
         IsDeprecated = isDeprecated;
         IsIntrospectionField = name.StartsWith("__");
         DeprecationReason = deprecationReason;
+        IsInaccessible = isInaccessible;
         Arguments = arguments;
 
         // these properties are initialized
@@ -60,6 +62,8 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition
     public bool IsIntrospectionField { get; }
 
     public string? DeprecationReason { get; }
+
+    public bool IsInaccessible { get; }
 
     public FusionDirectiveCollection Directives
     {

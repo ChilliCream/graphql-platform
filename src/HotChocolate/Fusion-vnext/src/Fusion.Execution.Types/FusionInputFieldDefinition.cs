@@ -7,7 +7,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class FusionInputFieldDefinition : IInputValueDefinition
+public sealed class FusionInputFieldDefinition : IInputValueDefinition, IFusionFieldDefinition
 {
     private bool _completed;
 
@@ -81,6 +81,8 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
 
     public string? DeprecationReason { get; }
 
+    public bool IsInaccessible { get; private set; }
+
     public FusionDirectiveCollection Directives
     {
         get;
@@ -124,6 +126,7 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
         Directives = context.Directives;
         Type = context.Type;
         Features = context.Features;
+        IsInaccessible = context.IsInaccessible;
         _completed = true;
     }
 

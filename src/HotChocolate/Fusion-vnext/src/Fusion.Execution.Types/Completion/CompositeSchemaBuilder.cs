@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.ComponentModel;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Rewriters;
@@ -235,6 +236,7 @@ internal static class CompositeSchemaBuilder
                 null,
                 isDeprecated: false,
                 deprecationReason: null,
+                isInaccessible: false,
                 arguments: FusionInputFieldDefinitionCollection.Empty);
 
             sourceFields[1] = new FusionOutputFieldDefinition(
@@ -242,6 +244,7 @@ internal static class CompositeSchemaBuilder
                 null,
                 isDeprecated: false,
                 deprecationReason: null,
+                isInaccessible: false,
                 arguments: new FusionInputFieldDefinitionCollection(
                 [
                     new FusionInputFieldDefinition(
@@ -258,18 +261,21 @@ internal static class CompositeSchemaBuilder
                 null,
                 isDeprecated: false,
                 deprecationReason: null,
+                isInaccessible: false,
                 arguments: FusionInputFieldDefinitionCollection.Empty);
 
             for (var i = 0; i < fields.Count; i++)
             {
                 var field = fields[i];
                 var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
+                var isInaccessible = InaccessibleDirectiveParser.Parse(field.Directives);
 
                 sourceFields[i + 3] = new FusionOutputFieldDefinition(
                     field.Name.Value,
                     field.Description?.Value,
                     isDeprecated,
                     deprecated?.Reason,
+                    isInaccessible: isInaccessible,
                     CreateOutputFieldArguments(field.Arguments));
             }
         }
@@ -279,12 +285,14 @@ internal static class CompositeSchemaBuilder
             {
                 var field = fields[i];
                 var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
+                var isInaccessible = InaccessibleDirectiveParser.Parse(field.Directives);
 
                 sourceFields[i] = new FusionOutputFieldDefinition(
                     field.Name.Value,
                     field.Description?.Value,
                     isDeprecated,
                     deprecated?.Reason,
+                    isInaccessible: isInaccessible,
                     CreateOutputFieldArguments(field.Arguments));
             }
         }
@@ -347,25 +355,27 @@ internal static class CompositeSchemaBuilder
     }
 
     private static FusionEnumValueCollection CreateEnumValues(
-        IReadOnlyList<EnumValueDefinitionNode> fields)
+        IReadOnlyList<EnumValueDefinitionNode> values)
     {
-        if (fields.Count == 0)
+        if (values.Count == 0)
         {
             return FusionEnumValueCollection.Empty;
         }
 
-        var sourceFields = new FusionEnumValue[fields.Count];
+        var sourceFields = new FusionEnumValue[values.Count];
 
-        for (var i = 0; i < fields.Count; i++)
+        for (var i = 0; i < values.Count; i++)
         {
-            var field = fields[i];
-            var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
+            var value = values[i];
+            var isDeprecated = DeprecatedDirectiveParser.TryParse(value.Directives, out var deprecated);
+            var isInaccessible = InaccessibleDirectiveParser.Parse(value.Directives);
 
             sourceFields[i] = new FusionEnumValue(
-                field.Name.Value,
-                field.Description?.Value,
+                value.Name.Value,
+                value.Description?.Value,
                 isDeprecated,
-                deprecated?.Reason);
+                deprecated?.Reason,
+                isInaccessible);
         }
 
         return new FusionEnumValueCollection(sourceFields);
@@ -477,7 +487,7 @@ internal static class CompositeSchemaBuilder
             CompleteOutputField(
                 type,
                 operationType,
-                type.Fields[fieldDef.Name.Value],
+                type.Fields.GetField(fieldDef.Name.Value, allowInaccessibleFields: true),
                 fieldDef,
                 context);
         }
@@ -530,7 +540,7 @@ internal static class CompositeSchemaBuilder
             CompleteOutputField(
                 type,
                 operationType,
-                type.Fields[fieldDef.Name.Value],
+                type.Fields.GetField(fieldDef.Name.Value, allowInaccessibleFields: true),
                 fieldDef,
                 context);
         }
@@ -687,7 +697,11 @@ internal static class CompositeSchemaBuilder
     {
         foreach (var fieldDef in inputObjectTypeDef.Fields)
         {
-            CompleteInputField(inputObjectType, inputObjectType.Fields[fieldDef.Name.Value], fieldDef, context);
+            CompleteInputField(
+                inputObjectType,
+                inputObjectType.Fields.GetField(fieldDef.Name.Value, allowInaccessibleFields: true),
+                fieldDef,
+                context);
         }
 
         var directives = CompletionTools.CreateDirectiveCollection(inputObjectTypeDef.Directives, context);
@@ -704,12 +718,14 @@ internal static class CompositeSchemaBuilder
     {
         var directives = CompletionTools.CreateDirectiveCollection(argumentDef.Directives, context);
         var type = context.GetType(argumentDef.Type).ExpectInputType();
+        var isInaccessible = InaccessibleDirectiveParser.Parse(argumentDef.Directives);
 
         inputField.Complete(
             new CompositeInputFieldCompletionContext(
                 declaringMember,
                 directives,
                 type,
+                isInaccessible,
                 FeatureCollection.Empty));
     }
 
@@ -724,7 +740,7 @@ internal static class CompositeSchemaBuilder
         {
             CompleteEnumValue(
                 typeDefinition,
-                typeDefinition.Values[value.Name.Value],
+                typeDefinition.Values.GetValue(value.Name.Value, allowInaccessibleFields: true),
                 value,
                 context);
         }
@@ -775,7 +791,7 @@ internal static class CompositeSchemaBuilder
 
         // if we have a @serializeAs directive we're going to set the
         // SerializationType and Pattern property.
-        ScalarSerializationType type = ScalarSerializationType.Undefined;
+        var type = ScalarSerializationType.Undefined;
         string? pattern = null;
         var serializeAs = typeDefinitionNode.Directives.FirstOrDefault(
             t => t.Name.Value.Equals(SerializeAs.Name));

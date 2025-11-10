@@ -64,7 +64,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                     {
                         if (type == schema.QueryType)
                         {
-                            var field = complexType!.Fields[fieldNode.Name.Value];
+                            var field = complexType!.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
 
                             if (field.IsIntrospectionField)
                             {
@@ -222,7 +222,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         FieldNode fieldNode,
         FieldNode? providedFieldNode)
     {
-        var field = complexType.Fields[fieldNode.Name.Value];
+        var field = complexType.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
 
         if (providedFieldNode is null)
         {
@@ -340,7 +340,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 if (field is null)
                 {
                     field = SelectionSetIndex.ToBuilder();
-                    this.SelectionSetIndex = field;
+                    SelectionSetIndex = field;
                 }
 
                 return field;

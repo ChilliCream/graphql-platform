@@ -217,7 +217,7 @@ internal static class VariableCoercionHelper
                 for (var i = 0; i < objectValue.Fields.Count; i++)
                 {
                     var field = objectValue.Fields[i];
-                    if (!inputObjectType.Fields.TryGetField(field.Name.Value, out var fieldDefinition))
+                    if (!inputObjectType.Fields.TryGetField(field.Name.Value, allowInaccessibleFields: true, out var fieldDefinition))
                     {
                         error = ErrorBuilder.New()
                             .SetMessage(
@@ -308,7 +308,7 @@ internal static class VariableCoercionHelper
             return true;
         }
 
-        if (type is IEnumTypeDefinition enumType)
+        if (type is FusionEnumTypeDefinition enumType)
         {
             if (value is not StringValueNode stringValue)
             {
@@ -319,7 +319,7 @@ internal static class VariableCoercionHelper
                 return false;
             }
 
-            if (!enumType.Values.ContainsName(stringValue.Value))
+            if (!enumType.Values.ContainsName(stringValue.Value, allowInaccessibleFields: true))
             {
                 error = ErrorBuilder.New()
                     .SetMessage("The value `{0}` is not a valid value for the enum type `{1}`.", value.Value ?? "null", enumType.Name)

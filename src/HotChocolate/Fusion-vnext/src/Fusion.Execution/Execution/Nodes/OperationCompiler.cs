@@ -1,5 +1,6 @@
 using System.Buffers;
 using HotChocolate.Fusion.Rewriters;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -237,9 +238,9 @@ public sealed class OperationCompiler
                 CollapseIncludeFlags(includeFlags);
             }
 
-            var field = first.Node.Name.Value.Equals(IntrospectionFieldNames.TypeName)
+            IOutputFieldDefinition field = first.Node.Name.Value.Equals(IntrospectionFieldNames.TypeName)
                 ? _typeNameField
-                : typeContext.Fields[first.Node.Name.Value];
+                : ((FusionObjectTypeDefinition)typeContext).Fields.GetField(first.Node.Name.Value, allowInaccessibleFields: true);
 
             var selection = new Selection(
                 ++lastId,
