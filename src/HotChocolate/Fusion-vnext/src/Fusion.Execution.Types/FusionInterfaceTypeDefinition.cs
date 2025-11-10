@@ -10,19 +10,13 @@ namespace HotChocolate.Fusion.Types;
 public sealed class FusionInterfaceTypeDefinition(
     string name,
     string? description,
+    bool isInaccessible,
     FusionOutputFieldDefinitionCollection fieldsDefinition)
-    : FusionComplexTypeDefinition(name, description, fieldsDefinition)
+    : FusionComplexTypeDefinition(name, description, isInaccessible, fieldsDefinition)
     , IInterfaceTypeDefinition
 {
-    private bool _isEntity;
-
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Interface;
-
-    /// <summary>
-    /// Defines is this interface is an entity.
-    /// </summary>
-    public override bool IsEntity => _isEntity;
 
     /// <summary>
     /// Gets source schema metadata for this interface.
@@ -36,7 +30,6 @@ public sealed class FusionInterfaceTypeDefinition(
         Implements = context.Interfaces;
         base.Sources = context.Sources;
         Features = context.Features;
-        _isEntity = Sources.Any(t => t.Lookups.Length > 0);
 
         Complete();
     }

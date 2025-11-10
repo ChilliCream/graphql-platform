@@ -7,7 +7,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class FusionEnumValue : IEnumValue
+public sealed class FusionEnumValue : IEnumValue, IInaccessibleProvider
 {
     private bool _completed;
 

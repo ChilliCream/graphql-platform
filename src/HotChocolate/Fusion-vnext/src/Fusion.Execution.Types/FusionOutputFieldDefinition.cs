@@ -8,7 +8,7 @@ using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IFusionFieldDefinition
+public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInaccessibleProvider
 {
     private bool _completed;
 

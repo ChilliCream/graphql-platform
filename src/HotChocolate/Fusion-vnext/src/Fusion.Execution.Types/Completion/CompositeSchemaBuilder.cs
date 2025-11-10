@@ -161,18 +161,24 @@ internal static class CompositeSchemaBuilder
         ObjectTypeDefinitionNode definition,
         bool isQuery)
     {
+        var isInaccessible = InaccessibleDirectiveParser.Parse(definition.Directives);
+
         return new FusionObjectTypeDefinition(
             definition.Name.Value,
             definition.Description?.Value,
+            isInaccessible,
             CreateOutputFields(definition.Fields, isQuery));
     }
 
     private static FusionInterfaceTypeDefinition CreateInterfaceType(
         InterfaceTypeDefinitionNode definition)
     {
+        var isInaccessible = InaccessibleDirectiveParser.Parse(definition.Directives);
+
         return new FusionInterfaceTypeDefinition(
             definition.Name.Value,
             definition.Description?.Value,
+            isInaccessible,
             CreateOutputFields(definition.Fields, false));
     }
 

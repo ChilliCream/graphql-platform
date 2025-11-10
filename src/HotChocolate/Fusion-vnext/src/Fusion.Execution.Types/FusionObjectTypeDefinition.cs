@@ -10,15 +10,12 @@ namespace HotChocolate.Fusion.Types;
 public sealed class FusionObjectTypeDefinition(
     string name,
     string? description,
+    bool isInaccessible,
     FusionOutputFieldDefinitionCollection fieldsDefinition)
-    : FusionComplexTypeDefinition(name, description, fieldsDefinition)
+    : FusionComplexTypeDefinition(name, description, isInaccessible, fieldsDefinition)
     , IObjectTypeDefinition
 {
-    private bool _isEntity;
-
     public override TypeKind Kind => TypeKind.Object;
-
-    public override bool IsEntity => _isEntity;
 
     public new ISourceComplexTypeCollection<SourceObjectType> Sources
         => Unsafe.As<ISourceComplexTypeCollection<SourceObjectType>>(base.Sources);
@@ -29,7 +26,6 @@ public sealed class FusionObjectTypeDefinition(
         Implements = context.Interfaces;
         base.Sources = context.Sources;
         Features = context.Features;
-        _isEntity = Sources.Any(t => t.Lookups.Length > 0);
 
         Complete();
     }

@@ -7,7 +7,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class FusionInputFieldDefinition : IInputValueDefinition, IFusionFieldDefinition
+public sealed class FusionInputFieldDefinition : IInputValueDefinition, IInaccessibleProvider
 {
     private bool _completed;
 
