@@ -1,9 +1,7 @@
-using System.Collections.Immutable;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -47,7 +45,7 @@ internal sealed class DynamicEndpointMiddleware(
             var session = await proxy.GetOrCreateSessionAsync(context.RequestAborted);
 
             using var variableBuffer = new PooledArrayWriter();
-            var variables = await BuildVariables(
+            var variables = await BuildVariablesAsync(
                 endpointDescriptor,
                 context,
                 variableBuffer,
@@ -107,7 +105,7 @@ internal sealed class DynamicEndpointMiddleware(
         }
     }
 
-    private static async Task<IReadOnlyDictionary<string, object?>?> BuildVariables(
+    private static async Task<IReadOnlyDictionary<string, object?>> BuildVariablesAsync(
         OpenApiEndpointDescriptor endpointDescriptor,
         HttpContext httpContext,
         PooledArrayWriter variableBuffer,
@@ -146,93 +144,150 @@ internal sealed class DynamicEndpointMiddleware(
             variables[bodyVariable] = bodyValue;
         }
 
-        // Group parameters by variable name and build tries for efficient path insertion
-        // Only parameters with InputObjectPath need trie processing
-        var variableTries = new Dictionary<string, VariableValueTrie>();
-
-        RouteData? routeData = null;
-
-        foreach (var parameter in endpointDescriptor.Parameters)
-        {
-            IValueNode? coercedValue;
-
-            if (parameter.ParameterType is OpenApiEndpointParameterType.Route)
-            {
-                routeData ??= httpContext.GetRouteData();
-
-                if (!routeData.Values.TryGetValue(parameter.ParameterKey, out var value))
-                {
-                    // We just skip here and let the GraphQL execution take care of the validation
-                    continue;
-                }
-
-                coercedValue = ParseValueNode(value, parameter.Type);
-            }
-            else if (parameter.ParameterType is OpenApiEndpointParameterType.Query)
-            {
-                if (!httpContext.Request.Query.TryGetValue(parameter.ParameterKey, out var values)
-                    || values is not [{} value])
-                {
-                    // We just skip here and let the GraphQL execution take care of the validation
-                    continue;
-                }
-
-                coercedValue = ParseValueNode(value, parameter.Type);
-            }
-            else
-            {
-                throw new NotSupportedException();
-            }
-
-            if (coercedValue is null)
-            {
-                // Skip if we couldn't parse the value - GraphQL execution will handle validation
-                continue;
-            }
-
-            // Direct variable assignment (no path) - assign directly without trie
-            if (parameter.InputObjectPath is not { Length: > 0 })
-            {
-                variables[parameter.VariableName] = coercedValue;
-                continue;
-            }
-
-            // Path-based assignment - use trie for efficient handling of overlapping paths
-            if (!variableTries.TryGetValue(parameter.VariableName, out var trie))
-            {
-                trie = new VariableValueTrie();
-                variableTries[parameter.VariableName] = trie;
-            }
-
-            trie.Add(parameter.InputObjectPath, coercedValue);
-        }
-
-        // Build variable values from tries, handling overlapping paths efficiently
-        foreach (var (variableName, trie) in variableTries)
-        {
-            var trieValue = trie.BuildValueNode();
-
-            // If this variable was already set (e.g., from body or direct assignment), merge the values
-            if (variables.TryGetValue(variableName, out var existingValue) && existingValue is ObjectValueNode existingObject)
-            {
-                // Merge trie-built value into existing object at the root level
-                variables[variableName] = MergeObjectValues(existingObject, trieValue);
-            }
-            else if (trieValue is not null)
-            {
-                variables[variableName] = trieValue;
-            }
-        }
+        InsertParametersIntoVariables(variables, endpointDescriptor, httpContext);
 
         return variables;
     }
 
+    private static void InsertParametersIntoVariables(
+        Dictionary<string, object?> variables,
+        OpenApiEndpointDescriptor endpointDescriptor,
+        HttpContext httpContext)
+    {
+        var routeData = httpContext.GetRouteData();
+        var query = httpContext.Request.Query;
+
+        foreach (var (variableName, segment) in endpointDescriptor.ParameterTrie)
+        {
+            if (segment is VariableValueInsertionTrieLeaf leaf)
+            {
+                variables[variableName] = GetValueForParameter(leaf, routeData, query);
+            }
+            else if (segment is VariableValueInsertionTrie trie
+                && variables[variableName] is ObjectValueNode objectValue)
+            {
+                variables[variableName] = RewriteObjectValueNode(
+                    objectValue,
+                    trie,
+                    routeData,
+                    query);
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
+        }
+    }
+
+    private static IValueNode RewriteObjectValueNode(
+        ObjectValueNode objectValueNode,
+        VariableValueInsertionTrie trie,
+        RouteData routeData,
+        IQueryCollection query)
+    {
+        var newFields = new List<ObjectFieldNode>();
+        var processedFields = new HashSet<string>(objectValueNode.Fields.Count);
+
+        foreach (var field in objectValueNode.Fields)
+        {
+            var fieldName = field.Name.Value;
+
+            if (trie.TryGetValue(fieldName, out var segment))
+            {
+                if (segment is not VariableValueInsertionTrie trieSegment)
+                {
+                    throw new InvalidOperationException(
+                        "Did not expect to have a value for a field supposed to be filled by a parameter");
+                }
+
+                if (field.Value is not ObjectValueNode fieldObject)
+                {
+                    throw new InvalidOperationException($"Expected field '{fieldName}' to be an object");
+                }
+
+                var newFieldValue = RewriteObjectValueNode(fieldObject, trieSegment, routeData, query);
+
+                newFields.Add(field.WithValue(newFieldValue));
+            }
+            else
+            {
+                newFields.Add(field);
+            }
+
+            processedFields.Add(fieldName);
+        }
+
+        if (trie.Keys.Count != processedFields.Count)
+        {
+            foreach (var (fieldName, segment) in trie)
+            {
+                if (processedFields.Contains(fieldName))
+                {
+                    continue;
+                }
+
+                IValueNode newValue;
+                if (segment is VariableValueInsertionTrieLeaf leaf)
+                {
+                    newValue = GetValueForParameter(leaf, routeData, query);
+                }
+                else if (segment is VariableValueInsertionTrie trieSegment)
+                {
+                    newValue = RewriteObjectValueNode(
+                        new ObjectValueNode(),
+                        trieSegment,
+                        routeData,
+                        query);
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+
+                newFields.Add(new ObjectFieldNode(fieldName, newValue));
+            }
+        }
+
+        return objectValueNode.WithFields(newFields);
+    }
+
+    private static readonly NullValueNode s_nullValueNode = new(null);
+
+    private static IValueNode GetValueForParameter(
+        VariableValueInsertionTrieLeaf leaf,
+        RouteData routeData,
+        IQueryCollection query)
+    {
+        if (leaf.ParameterType is OpenApiEndpointParameterType.Route)
+        {
+            if (!routeData.Values.TryGetValue(leaf.ParameterKey, out var value))
+            {
+                return s_nullValueNode;
+            }
+
+            return ParseValueNode(value, leaf.Type);
+        }
+
+        if (leaf.ParameterType is OpenApiEndpointParameterType.Query)
+        {
+            if (!query.TryGetValue(leaf.ParameterKey, out var values)
+                || values is not [{} value])
+            {
+                return s_nullValueNode;
+            }
+
+            return ParseValueNode(value, leaf.Type);
+        }
+
+        throw new NotSupportedException();
+    }
+
     // TODO: Maybe we can optimize this further, so we don't have to perform a lot of checks at runtime
-    private static IValueNode? ParseValueNode(object? value, ITypeDefinition type)
+    private static IValueNode ParseValueNode(object? value, ITypeDefinition type)
     {
         if (value is null)
         {
-            return null;
+            return s_nullValueNode;
         }
 
         if (type is IEnumTypeDefinition enumType)
@@ -333,137 +388,5 @@ internal sealed class DynamicEndpointMiddleware(
         }
 
         return Results.InternalServerError();
-    }
-
-    /// <summary>
-    /// Merges a trie-built value into an existing object value.
-    /// </summary>
-    private static ObjectValueNode MergeObjectValues(ObjectValueNode existing, IValueNode? trieValue)
-    {
-        if (trieValue is not ObjectValueNode trieObject)
-        {
-            return existing;
-        }
-
-        var mergedFields = new List<ObjectFieldNode>(existing.Fields);
-        var existingKeys = new HashSet<string>(existing.Fields.Select(f => f.Name.Value));
-
-        foreach (var field in trieObject.Fields)
-        {
-            if (existingKeys.Contains(field.Name.Value))
-            {
-                // Merge nested objects if both are objects, otherwise replace
-                var existingField = mergedFields.First(f => f.Name.Value == field.Name.Value);
-                var mergedValue = existingField.Value is ObjectValueNode existingFieldObject
-                    && field.Value is ObjectValueNode fieldObject
-                    ? MergeObjectValues(existingFieldObject, fieldObject)
-                    : field.Value;
-
-                var index = mergedFields.FindIndex(f => f.Name.Value == field.Name.Value);
-                mergedFields[index] = new ObjectFieldNode(field.Name.Value, mergedValue);
-            }
-            else
-            {
-                // Add new field
-                mergedFields.Add(field);
-            }
-        }
-
-        return new ObjectValueNode(mergedFields);
-    }
-
-    /// <summary>
-    /// A trie structure for efficiently building IValueNode hierarchies from overlapping paths.
-    /// </summary>
-    private sealed class VariableValueTrie : Dictionary<string, VariableValueTrie>
-    {
-        public IValueNode? TerminalValue { get; private set; }
-
-        /// <summary>
-        /// Adds a value at the specified path.
-        /// </summary>
-        public void Add(ImmutableArray<string>? path, IValueNode value)
-        {
-            if (path is not { Length: > 0 } inputObjectPath)
-            {
-                // Direct variable assignment (no path)
-                TerminalValue = value;
-                return;
-            }
-
-            var currentNode = this;
-
-            foreach (var segment in inputObjectPath)
-            {
-                if (!currentNode.TryGetValue(segment, out var nextNode))
-                {
-                    nextNode = new VariableValueTrie();
-                    currentNode[segment] = nextNode;
-                }
-
-                currentNode = nextNode;
-            }
-
-            currentNode.TerminalValue = value;
-        }
-
-        /// <summary>
-        /// Builds the IValueNode hierarchy from the trie structure.
-        /// </summary>
-        public IValueNode? BuildValueNode()
-        {
-            if (TerminalValue is not null && Count == 0)
-            {
-                // Leaf node with direct value
-                return TerminalValue;
-            }
-
-            if (Count == 0)
-            {
-                // Empty node
-                return TerminalValue;
-            }
-
-            // Build object from child nodes
-            var fields = new List<ObjectFieldNode>(Count);
-
-            foreach (var (key, childTrie) in this)
-            {
-                var childValue = childTrie.BuildValueNode();
-
-                if (childValue is not null)
-                {
-                    fields.Add(new ObjectFieldNode(key, childValue));
-                }
-            }
-
-            if (fields.Count == 0)
-            {
-                return TerminalValue;
-            }
-
-            var objectValue = new ObjectValueNode(fields);
-
-            // If we also have a terminal value, we need to merge it
-            // This shouldn't happen in normal cases, but handle it gracefully
-            if (TerminalValue is ObjectValueNode terminalObject)
-            {
-                // Merge terminal object fields with trie fields (trie takes precedence)
-                var mergedFields = new List<ObjectFieldNode>(terminalObject.Fields);
-                var existingKeys = new HashSet<string>(fields.Select(f => f.Name.Value));
-
-                foreach (var field in terminalObject.Fields)
-                {
-                    if (!existingKeys.Contains(field.Name.Value))
-                    {
-                        mergedFields.Add(field);
-                    }
-                }
-
-                return new ObjectValueNode(mergedFields);
-            }
-
-            return objectValue;
-        }
     }
 }

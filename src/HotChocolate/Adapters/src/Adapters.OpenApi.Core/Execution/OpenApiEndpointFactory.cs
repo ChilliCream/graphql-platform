@@ -72,49 +72,81 @@ internal static class OpenApiEndpointFactory
 
         var route = CreateRoutePattern(operationDocument.Route);
 
-        var numberOfParameters = operationDocument.Route.Parameters.Length + operationDocument.QueryParameters.Length;
-        var parameters = ImmutableArray.CreateBuilder<OpenApiEndpointParameterDescriptor>(numberOfParameters);
-        var hasRouteParameters = false;
+        var parameterTrie = new VariableValueInsertionTrie();
 
-        foreach (var routeParameter in operationDocument.Route.Parameters)
-        {
-            var inputType = GetTypeFromParameter(routeParameter, operationDocument.OperationDefinition, schema);
-            var parameterDescriptor = new OpenApiEndpointParameterDescriptor(
-                routeParameter.Key,
-                routeParameter.Variable,
-                routeParameter.InputObjectPath,
-                inputType,
-                OpenApiEndpointParameterType.Route);
-
-            parameters.Add(parameterDescriptor);
-
-            if (!hasRouteParameters)
-            {
-                hasRouteParameters = true;
-            }
-        }
-
-        foreach (var queryParameter in operationDocument.QueryParameters)
-        {
-            var inputType = GetTypeFromParameter(queryParameter, operationDocument.OperationDefinition, schema);
-            var parameterDescriptor = new OpenApiEndpointParameterDescriptor(
-                queryParameter.Key,
-                queryParameter.Variable,
-                queryParameter.InputObjectPath,
-                inputType,
-                OpenApiEndpointParameterType.Query);
-
-            parameters.Add(parameterDescriptor);
-        }
+        InsertParametersIntoTrie(operationDocument.Route.Parameters, OpenApiEndpointParameterType.Route);
+        InsertParametersIntoTrie(operationDocument.QueryParameters, OpenApiEndpointParameterType.Query);
 
         return new OpenApiEndpointDescriptor(
             document,
             operationDocument.HttpMethod,
             route,
-            parameters.MoveToImmutable(),
-            hasRouteParameters,
-            operationDocument.BodyParameter?.Variable,
+            parameterTrie,
+            operationDocument.BodyParameter?.VariableName,
             responseNameToExtract);
+
+        void InsertParametersIntoTrie(
+            IEnumerable<OpenApiRouteSegmentParameter> parameters,
+            OpenApiEndpointParameterType parameterType)
+        {
+            foreach (var parameter in parameters)
+            {
+                var inputType = GetTypeFromParameter(parameter, operationDocument.OperationDefinition, schema);
+
+                var leaf = new VariableValueInsertionTrieLeaf(
+                    parameter.Key,
+                    inputType,
+                    parameterType);
+
+                var inputObjectPath = parameter.InputObjectPath;
+
+                if (!inputObjectPath.HasValue)
+                {
+                    parameterTrie[parameter.VariableName] = leaf;
+                }
+                else
+                {
+                    VariableValueInsertionTrie variableTrie;
+                    if (!parameterTrie.TryGetValue(parameter.VariableName, out var existingVariableSegment))
+                    {
+                        variableTrie = new VariableValueInsertionTrie();
+                        parameterTrie[parameter.VariableName] = variableTrie;
+                    }
+                    else if (existingVariableSegment is VariableValueInsertionTrie existingVariableTrie)
+                    {
+                        variableTrie = existingVariableTrie;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    var currentTrie = variableTrie;
+                    var path = inputObjectPath.Value;
+
+                    for (var i = 0; i < path.Length - 1; i++)
+                    {
+                        var fieldName = path[i];
+                        if (!currentTrie.TryGetValue(fieldName, out var existingSegment))
+                        {
+                            var newTrie = new VariableValueInsertionTrie();
+                            currentTrie[fieldName] = newTrie;
+                            currentTrie = newTrie;
+                        }
+                        else if (existingSegment is VariableValueInsertionTrie existingTrie)
+                        {
+                            currentTrie = existingTrie;
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException();
+                        }
+                    }
+
+                    currentTrie[path[^1]] = leaf;
+                }
+            }
+        }
     }
 
     private static ITypeDefinition GetTypeFromParameter(
@@ -123,13 +155,26 @@ internal static class OpenApiEndpointFactory
         ISchemaDefinition schema)
     {
         var variable = operation.VariableDefinitions
-            .First(v => v.Variable.Name.Value == parameter.Variable);
+            .First(v => v.Variable.Name.Value == parameter.VariableName);
 
-        var variableType = schema.Types[variable.Type.NamedType().Name.Value];
+        var currentType = schema.Types[variable.Type.NamedType().Name.Value];
 
-        // TODO: Visit input object path
+        if (parameter.InputObjectPath is { Length: > 0 })
+        {
+            foreach (var fieldName in parameter.InputObjectPath)
+            {
+                if (currentType is not IInputObjectTypeDefinition inputObjectType
+                    || !inputObjectType.Fields.TryGetField(fieldName, out var field))
+                {
+                    throw new InvalidOperationException(
+                        $"Expected type '{currentType.Name}' to have a field named '{fieldName}'.");
+                }
 
-        return variableType;
+                currentType = field.Type.NamedType();
+            }
+        }
+
+        return currentType;
     }
 
     private static RoutePattern CreateRoutePattern(OpenApiRoute route)

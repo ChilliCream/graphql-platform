@@ -9,17 +9,20 @@ internal sealed record OpenApiEndpointDescriptor(
     DocumentNode Document,
     string HttpMethod,
     RoutePattern Route,
-    ImmutableArray<OpenApiEndpointParameterDescriptor> Parameters,
-    bool HasRouteParameters,
+    VariableValueInsertionTrie ParameterTrie,
     string? VariableFilledThroughBody,
     string ResponseNameToExtract);
 
-internal sealed record OpenApiEndpointParameterDescriptor(
+internal interface IVariableValueInsertionTrieSegment;
+
+internal sealed class VariableValueInsertionTrie
+    : Dictionary<string, IVariableValueInsertionTrieSegment>,
+        IVariableValueInsertionTrieSegment;
+
+internal sealed record VariableValueInsertionTrieLeaf(
     string ParameterKey,
-    string VariableName,
-    ImmutableArray<string>? InputObjectPath,
     ITypeDefinition Type,
-    OpenApiEndpointParameterType ParameterType);
+    OpenApiEndpointParameterType ParameterType) : IVariableValueInsertionTrieSegment;
 
 internal enum OpenApiEndpointParameterType
 {

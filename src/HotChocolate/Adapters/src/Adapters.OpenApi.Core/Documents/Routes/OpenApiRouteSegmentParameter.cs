@@ -5,7 +5,7 @@ namespace HotChocolate.Adapters.OpenApi;
 
 public sealed record OpenApiRouteSegmentParameter(
     string Key,
-    string Variable,
+    string VariableName,
     ImmutableArray<string>? InputObjectPath)
     : IOpenApiRouteSegment
 {
@@ -17,11 +17,11 @@ public sealed record OpenApiRouteSegmentParameter(
 
         sb.Append(Key);
 
-        if (Variable != Key)
+        if (VariableName != Key)
         {
             sb.Append(':');
             sb.Append('$');
-            sb.Append(Variable);
+            sb.Append(VariableName);
 
             if (InputObjectPath is not null)
             {

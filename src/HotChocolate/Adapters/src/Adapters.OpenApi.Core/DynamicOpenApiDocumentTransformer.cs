@@ -83,7 +83,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 #endif
 
         var bodyParameter = operationDocument.BodyParameter;
-        var bodyVariable = bodyParameter?.Variable;
+        var bodyVariable = bodyParameter?.VariableName;
         var bodyVariableTrie = new InputObjectPathTrie();
 
         foreach (var routeParameter in operationDocument.Route.Parameters)
@@ -92,7 +92,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
             operation.Parameters.Add(parameter);
 
-            if (routeParameter.Variable == bodyVariable && routeParameter.InputObjectPath is not null)
+            if (routeParameter.VariableName == bodyVariable && routeParameter.InputObjectPath is not null)
             {
                 bodyVariableTrie.Add(routeParameter);
             }
@@ -104,7 +104,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
             operation.Parameters.Add(parameter);
 
-            if (queryParameter.Variable == bodyVariable && queryParameter.InputObjectPath is not null)
+            if (queryParameter.VariableName == bodyVariable && queryParameter.InputObjectPath is not null)
             {
                 bodyVariableTrie.Add(queryParameter);
             }
@@ -856,11 +856,11 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         ISchemaDefinition schema)
     {
         var variable = operation.VariableDefinitions
-            .FirstOrDefault(v => v.Variable.Name.Value == parameter.Variable);
+            .FirstOrDefault(v => v.Variable.Name.Value == parameter.VariableName);
 
         if (variable is null)
         {
-            throw new InvalidOperationException($"Expected to find variable named '{parameter.Variable}'.");
+            throw new InvalidOperationException($"Expected to find variable named '{parameter.VariableName}'.");
         }
 
         var namedVariableType = variable.Type.NamedType().Name.Value;

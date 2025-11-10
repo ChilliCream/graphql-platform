@@ -48,9 +48,9 @@ internal sealed class OperationParameterConflictRule : IOpenApiOperationDocument
     {
         if (parameter.InputObjectPath is { Length: > 0 } inputObjectPath)
         {
-            return $"{parameter.Variable}.{string.Join(".", inputObjectPath)}";
+            return $"{parameter.VariableName}.{string.Join(".", inputObjectPath)}";
         }
 
-        return parameter.Variable;
+        return parameter.VariableName;
     }
 }
