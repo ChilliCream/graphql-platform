@@ -10,14 +10,14 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class OperationCompiler
 {
-    private readonly ISchemaDefinition _schema;
+    private readonly FusionSchemaDefinition _schema;
     private readonly DocumentRewriter _documentRewriter;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
     private readonly TypeNameField _typeNameField;
     private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
 
     public OperationCompiler(
-        ISchemaDefinition schema,
+        FusionSchemaDefinition schema,
         ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> fieldsPool)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -86,7 +86,7 @@ public sealed class OperationCompiler
 
     internal SelectionSet CompileSelectionSet(
         Selection selection,
-        IObjectTypeDefinition objectType,
+        FusionObjectTypeDefinition objectType,
         IncludeConditionCollection includeConditions,
         ref object[] elementsById,
         ref int lastId)
@@ -187,7 +187,7 @@ public sealed class OperationCompiler
 
     private SelectionSet BuildSelectionSet(
         OrderedDictionary<string, List<FieldSelectionNode>> fieldMap,
-        IObjectTypeDefinition typeContext,
+        FusionObjectTypeDefinition typeContext,
         CompilationContext compilationContext,
         ref int lastId)
     {
@@ -240,7 +240,7 @@ public sealed class OperationCompiler
 
             IOutputFieldDefinition field = first.Node.Name.Value.Equals(IntrospectionFieldNames.TypeName)
                 ? _typeNameField
-                : ((FusionObjectTypeDefinition)typeContext).Fields.GetField(first.Node.Name.Value, allowInaccessibleFields: true);
+                : typeContext.Fields.GetField(first.Node.Name.Value, allowInaccessibleFields: true);
 
             var selection = new Selection(
                 ++lastId,

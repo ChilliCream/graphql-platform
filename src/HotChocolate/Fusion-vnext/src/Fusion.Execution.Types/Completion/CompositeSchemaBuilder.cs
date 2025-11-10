@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.ComponentModel;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Rewriters;
