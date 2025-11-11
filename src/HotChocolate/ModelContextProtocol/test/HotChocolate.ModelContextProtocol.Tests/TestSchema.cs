@@ -446,12 +446,6 @@ public sealed class TestSchema
         public int ExplicitOpenWorldField() => 1;
     }
 
-    public sealed class ImplicitClosedWorld
-    {
-        // Defaults to closed-world, because the parent (query) field is closed-world.
-        public int ImplicitClosedWorldField() => 1;
-    }
-
     public sealed class ExplicitClosedWorld
     {
         [McpToolAnnotations(OpenWorldHint = false)]
