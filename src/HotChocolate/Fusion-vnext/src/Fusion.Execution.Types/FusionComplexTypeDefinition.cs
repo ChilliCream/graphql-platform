@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Types;
 
@@ -22,6 +23,9 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition, IFus
         bool isInaccessible,
         FusionOutputFieldDefinitionCollection fieldsDefinition)
     {
+        name.EnsureGraphQLName();
+        ArgumentNullException.ThrowIfNull(fieldsDefinition);
+
         Name = name;
         Description = description;
         IsInaccessible = isInaccessible;
@@ -99,11 +103,10 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition, IFus
         => Fields;
 
     /// <summary>
-    /// Gets the source type definition of this type.
+    /// Gets metadata about this complex type in its source schemas.
+    /// Each entry in the collection provides information about this complex type
+    /// that is specific to the source schemas the type was composed of.
     /// </summary>
-    /// <value>
-    /// The source type definition of this type.
-    /// </value>
     public ISourceComplexTypeCollection<ISourceComplexType> Sources
     {
         get;

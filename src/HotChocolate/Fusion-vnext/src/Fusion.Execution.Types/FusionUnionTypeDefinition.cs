@@ -88,6 +88,12 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition
     {
         EnsureNotSealed(_completed);
 
+        if (context.Directives is null || context.Types is null
+            || context.Sources is null || context.Features is null)
+        {
+            InvalidCompletionContext();
+        }
+
         Directives = context.Directives;
         Types = context.Types;
         Sources = context.Sources;
