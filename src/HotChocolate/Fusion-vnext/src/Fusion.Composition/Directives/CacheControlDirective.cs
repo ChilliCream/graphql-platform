@@ -1,7 +1,8 @@
 using System.Collections.Immutable;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
-namespace HotChocolate.Types.Mutable.Directives;
+namespace HotChocolate.Fusion.Directives;
 
 public sealed class CacheControlDirective(
     int? maxAge = null,

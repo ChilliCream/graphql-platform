@@ -1,7 +1,8 @@
 using HotChocolate.Language;
+using HotChocolate.Types;
 using ArgumentNames = HotChocolate.Types.DirectiveNames.SerializeAs.Arguments;
 
-namespace HotChocolate.Types.Mutable.Directives;
+namespace HotChocolate.Fusion.Directives;
 
 public sealed class SerializeAsDirective(ScalarSerializationType type, string? pattern)
 {

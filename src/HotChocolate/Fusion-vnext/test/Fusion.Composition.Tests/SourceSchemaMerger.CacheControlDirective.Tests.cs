@@ -1,7 +1,7 @@
+using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
-using HotChocolate.Types.Mutable.Definitions;
 
 namespace HotChocolate.Fusion;
 
