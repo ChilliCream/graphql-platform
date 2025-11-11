@@ -214,7 +214,7 @@ In addition, the default output for such errors has been standardized: earlier, 
 
 ## Generic `ID<Type>`-attribute now infers the actual GraphQL type name
 
-Previously, `[ID<Type>]` used the CLR type name (`nameof(Type)`), even when a different GraphQL name was configured via `[GraphQLName]` or `descriptor.Name()`.
+Previously, `[ID<Type>]` used the CLR type name (`nameof(Type)`), even when a different GraphQL type name was configured via `[GraphQLName]` or `descriptor.Name()`.
 It now uses the actual GraphQL type name if one is defined, f. e.:
 
 ```csharp
