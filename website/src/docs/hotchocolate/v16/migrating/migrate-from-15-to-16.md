@@ -212,6 +212,21 @@ In addition, the default output for such errors has been standardized: earlier, 
 }
 ```
 
+## Generic `ID<Type>`-attribute now infers the actual GraphQL type name
+
+Previously, `[ID<Type>]` used the CLR type name (`nameof(Type)`), even when a different GraphQL name was configured via `[GraphQLName]` or `descriptor.Name()`.
+It now uses the actual GraphQL type name if one is defined, f. e.:
+
+```csharp
+[GraphQLName("Book")]
+public sealed class BookDTO { }
+
+[ID<BookDTO>] // uses "Book" now, not "BookDTO" anymore
+```
+
+Note that this change implies that all type parameters of the generic `ID<Type>`-attribute must now be valid GraphQL types.
+If you need the old behavior, use can still use the non-generic `ID`-attribute and set the type name explicitly: `[ID("BookDTO")]`.
+
 ## DescriptorAttribute attributeProvider is nullable
 
 Previously the `TryConfigure` or `OnConfigure` methods carried a non-nullable parameter of the member the descriptor attribute was annotated to. With the new source generator we moved away from pure reflection based APIs. This means that when you use the source generator
