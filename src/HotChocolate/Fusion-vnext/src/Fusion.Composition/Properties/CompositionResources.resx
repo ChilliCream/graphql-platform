@@ -447,6 +447,9 @@
   <data name="ShareableMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked.</value>
   </data>
+  <data name="TagDirective_NameArgument_Invalid" xml:space="preserve">
+    <value>The @tag directive must have a 'name' argument of type String.</value>
+  </data>
   <data name="TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType" xml:space="preserve">
     <value>The specified type is not an abstract type.</value>
   </data>

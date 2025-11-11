@@ -1,10 +1,10 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Definitions;
+using HotChocolate.Fusion.Directives;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
-using HotChocolate.Types.Mutable.Definitions;
-using HotChocolate.Types.Mutable.Directives;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 

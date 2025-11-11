@@ -1,4 +1,6 @@
-namespace HotChocolate.Types.Mutable.Definitions;
+using HotChocolate.Types.Mutable;
+
+namespace HotChocolate.Fusion.Definitions;
 
 public sealed class CacheControlScopeMutableEnumTypeDefinition : MutableEnumTypeDefinition
 {
