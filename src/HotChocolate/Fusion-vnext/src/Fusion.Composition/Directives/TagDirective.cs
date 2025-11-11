@@ -1,7 +1,8 @@
 using HotChocolate.Language;
-using static HotChocolate.Types.Mutable.Properties.MutableResources;
+using HotChocolate.Types;
+using static HotChocolate.Fusion.Properties.CompositionResources;
 
-namespace HotChocolate.Types.Mutable.Directives;
+namespace HotChocolate.Fusion.Directives;
 
 public sealed class TagDirective(string name)
 {
