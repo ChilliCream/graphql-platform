@@ -30,6 +30,7 @@ public class InstantType : StringToStructBaseType<Instant>
             allowedPatterns,
             NodaTimeResources.InstantType_Description,
             NodaTimeResources.InstantType_Description_Extended);
+        SerializationType = ScalarSerializationType.String;
     }
 
     /// <summary>

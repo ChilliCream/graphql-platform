@@ -28,7 +28,6 @@
                                 "string",
                                 "null"
                               ],
-                              "format": "time",
                               "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
                               "description": "field1C description"
                             }
@@ -70,7 +69,6 @@
                               "string",
                               "null"
                             ],
-                            "format": "time",
                             "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
                             "description": "field1C description"
                           }
@@ -132,7 +130,6 @@
                               "string",
                               "null"
                             ],
-                            "format": "time",
                             "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
                             "description": "field1C description"
                           }

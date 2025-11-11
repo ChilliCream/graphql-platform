@@ -18,6 +18,7 @@ public class DateTimeZoneType : StringToClassBaseType<DateTimeZone>
     public DateTimeZoneType() : base("DateTimeZone")
     {
         Description = NodaTimeResources.DateTimeZoneType_Description;
+        SerializationType = ScalarSerializationType.String;
     }
 
     /// <inheritdoc />

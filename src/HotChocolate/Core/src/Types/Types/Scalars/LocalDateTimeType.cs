@@ -23,6 +23,8 @@ public class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.String;
+        Pattern = @"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$";
     }
 
     /// <summary>

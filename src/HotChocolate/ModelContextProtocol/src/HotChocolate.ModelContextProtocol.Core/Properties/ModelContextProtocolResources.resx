@@ -21,28 +21,19 @@
   <data name="CallToolHandler_ToolNotFound" xml:space="preserve">
     <value>The tool '{0}' was not found.</value>
   </data>
-  <data name="InMemoryMcpOperationDocumentStorage_ToolDocumentMustContainSingleOperation" xml:space="preserve">
-    <value>A tool document must contain a single operation definition.</value>
-  </data>
-  <data name="InMemoryMcpOperationDocumentStorage_ToolDocumentOperationAlreadyExists" xml:space="preserve">
-    <value>A tool document operation with the same name already exists.</value>
-  </data>
-  <data name="InMemoryMcpOperationDocumentStorage_ToolDocumentOperationMustBeNamed" xml:space="preserve">
-    <value>A tool document operation must be named.</value>
-  </data>
   <data name="McpToolDirectiveParser_ArgumentNotSupportedOnMcpToolDirective" xml:space="preserve">
     <value>The argument `{0}` is not supported on @mcpTool.</value>
+  </data>
+  <data name="OperationToolDefinition_DocumentMustContainSingleOperation" xml:space="preserve">
+    <value>An operation tool document must have exactly one operation definition.</value>
   </data>
   <data name="TypeExtensions_UnableToDetermineJsonSchemaValueType" xml:space="preserve">
     <value>Unable to determine the JSON schema value type for the GraphQL type '{0}'.</value>
   </data>
-  <data name="TypeNodeExtensions_UnableToFindGraphQLTypeInSchemaOrTypeMap" xml:space="preserve">
-    <value>Unable to find GraphQL type '{0}' in the schema or type map.</value>
+  <data name="TypeNodeExtensions_UnableToFindGraphQLTypeInSchema" xml:space="preserve">
+    <value>Unable to find GraphQL type '{0}' in the schema.</value>
   </data>
   <data name="ValueNodeExtensions_UnableToConvertValueNodeToJsonNode" xml:space="preserve">
     <value>Unable to convert value node of type '{0}' to JSON node.</value>
-  </data>
-  <data name="OperationToolDefinition_OperationToolDefinition_An_operation_tool_document_must_have_exactly_one_operation_definition_" xml:space="preserve">
-    <value>An operation tool document must have exactly one operation definition.</value>
   </data>
 </root>

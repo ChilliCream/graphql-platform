@@ -34,7 +34,6 @@ public class UuidType : ScalarType<Guid, StringValueNode>
             enforceFormat: enforceFormat,
             bind: BindingBehavior.Implicit)
     {
-        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>
@@ -72,6 +71,8 @@ public class UuidType : ScalarType<Guid, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.String;
+        SpecifiedBy = new Uri(SpecifiedByUri);
         _format = CreateFormatString(defaultFormat);
         _enforceFormat = enforceFormat;
     }
