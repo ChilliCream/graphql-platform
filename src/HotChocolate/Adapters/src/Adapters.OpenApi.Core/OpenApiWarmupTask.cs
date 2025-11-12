@@ -8,9 +8,9 @@ using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-internal sealed class OpenApiWarmupTask(OpenApiDocumentManager manager ) : IRequestExecutorWarmupTask
+internal sealed class OpenApiWarmupTask(OpenApiDocumentManager manager) : IRequestExecutorWarmupTask
 {
-    public bool ApplyOnlyOnStartup => true;
+    public bool ApplyOnlyOnStartup => false;
 
     public async Task WarmupAsync(IRequestExecutor executor, CancellationToken cancellationToken)
     {

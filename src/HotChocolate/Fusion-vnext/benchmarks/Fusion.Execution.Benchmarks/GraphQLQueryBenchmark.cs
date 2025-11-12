@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using HotChocolate.Fusion.Text.Json;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Columns;
-using BenchmarkDotNet.Adapters.Csv;
+using BenchmarkDotNet.Exporters.Csv;
 using BenchmarkDotNet.Exporters;
 
 namespace Fusion.Execution.Benchmarks;
