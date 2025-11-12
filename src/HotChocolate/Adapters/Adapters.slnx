@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Adapters.OpenApi/">
+    <Project Path="src\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
+    <Project Path="src\Adapters.OpenApi.Fusion\HotChocolate.Fusion.Adapters.OpenApi.csproj" />
+    <Project Path="src\Adapters.OpenApi\HotChocolate.Adapters.OpenApi.csproj" />
+  </Folder>
+  <Folder Name="/test/" />
+  <Folder Name="/test/Adapters.OpenApi.Tests/">
+    <Project Path="test\Adapters.OpenApi.Tests\HotChocolate.Adapters.OpenApi.Tests.csproj" />
+  </Folder>
+</Solution>
