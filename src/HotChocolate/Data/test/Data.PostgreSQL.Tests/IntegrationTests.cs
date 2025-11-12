@@ -225,6 +225,29 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
+            """);
+
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+    [Fact]
+    public async Task Project_Into_1to1_Relation()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                products(first: 2) {
+                    nodes {
+                        name
+                        brandName
+                    }
+                }
+            }
 
             """);
 

@@ -15,6 +15,7 @@ public static class WellKnownTypes
     public const string InputObjectTypeExtension = "HotChocolate.Types.InputObjectTypeExtension";
     public const string EnumTypeExtension = "HotChocolate.Types.EnumTypeExtension";
     public const string DataLoader = "GreenDonut.IDataLoader";
+    public const string DbContext = "Microsoft.EntityFrameworkCore.DbContext";
     public const string CancellationToken = "System.Threading.CancellationToken";
     public const string GlobalCancellationToken = "global::System.Threading.CancellationToken";
     public const string ReadOnlyList = "System.Collections.Generic.IReadOnlyList";

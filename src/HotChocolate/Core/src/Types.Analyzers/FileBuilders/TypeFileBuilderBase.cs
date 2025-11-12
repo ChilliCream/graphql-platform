@@ -271,10 +271,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             Writer.WriteIndentedLine("configuration.Features.Set(pagingOptions);");
         }
 
-        if (resolver.Parameters.Any(p => p.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
+        if (!resolver.Parameters.IsEmpty)
         {
-            var firstParameter = true;
-
             var parentInfo = resolver.Parameters.GetParentInfo();
             if (parentInfo.HasValue)
             {
@@ -283,7 +281,11 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     SymbolDisplay.FormatLiteral(parentInfo.Value.Requirements ?? "", quote: true),
                     parentInfo.Value.Type);
             }
+        }
 
+        if (resolver.Parameters.Any(p => p.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
+        {
+            var firstParameter = true;
             foreach (var parameter in resolver.Parameters)
             {
                 if (parameter.Kind is not (ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
