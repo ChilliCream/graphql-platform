@@ -4,7 +4,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using HotChocolate.Authorization;
 using HotChocolate.Language;
-using HotChocolate.ModelContextProtocol.Attributes;
+using HotChocolate.ModelContextProtocol.Directives;
 using HotChocolate.Types;
 
 namespace HotChocolate.ModelContextProtocol;
@@ -444,12 +444,6 @@ public sealed class TestSchema
     {
         [McpToolAnnotations(OpenWorldHint = true)]
         public int ExplicitOpenWorldField() => 1;
-    }
-
-    public sealed class ImplicitClosedWorld
-    {
-        // Defaults to closed-world, because the parent (query) field is closed-world.
-        public int ImplicitClosedWorldField() => 1;
     }
 
     public sealed class ExplicitClosedWorld

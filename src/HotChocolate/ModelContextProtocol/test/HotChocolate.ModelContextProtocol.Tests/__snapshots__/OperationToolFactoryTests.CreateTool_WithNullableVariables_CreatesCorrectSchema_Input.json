@@ -40,7 +40,7 @@
         "string",
         "null"
       ],
-      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
       "description": "Date description"
     },
     "dateTime": {
@@ -81,6 +81,7 @@
     "id": {
       "type": [
         "string",
+        "integer",
         "null"
       ],
       "description": "ID description"
@@ -123,6 +124,7 @@
         "null"
       ],
       "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
       "description": "LocalDate description"
     },
     "localDateTime": {
@@ -130,7 +132,6 @@
         "string",
         "null"
       ],
-      "format": "date-time",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$",
       "description": "LocalDateTime description"
     },
@@ -139,7 +140,6 @@
         "string",
         "null"
       ],
-      "format": "time",
       "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
       "description": "LocalTime description"
     },
@@ -173,7 +173,6 @@
                     "string",
                     "null"
                   ],
-                  "format": "time",
                   "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
                   "description": "field1C description"
                 }
@@ -223,7 +222,6 @@
         "string",
         "null"
       ],
-      "format": "uri-reference",
       "description": "URL description"
     },
     "uuid": {
@@ -231,7 +229,6 @@
         "string",
         "null"
       ],
-      "format": "uuid",
       "description": "UUID description"
     }
   },

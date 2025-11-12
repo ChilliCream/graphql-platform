@@ -33,7 +33,7 @@
     },
     "date": {
       "type": "string",
-      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
       "description": "Date description",
       "default": "2000-01-01"
     },
@@ -64,7 +64,10 @@
       "default": 1.5
     },
     "id": {
-      "type": "string",
+      "type": [
+        "string",
+        "integer"
+      ],
       "description": "ID description",
       "default": "default"
     },
@@ -100,19 +103,18 @@
     "localDate": {
       "type": "string",
       "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
       "description": "LocalDate description",
       "default": "2000-01-01"
     },
     "localDateTime": {
       "type": "string",
-      "format": "date-time",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$",
       "description": "LocalDateTime description",
       "default": "2000-01-01T12:00:00"
     },
     "localTime": {
       "type": "string",
-      "format": "time",
       "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
       "description": "LocalTime description",
       "default": "12:00:00"
@@ -133,7 +135,6 @@
               "properties": {
                 "field1C": {
                   "type": "string",
-                  "format": "time",
                   "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
                   "description": "field1C description",
                   "default": "12:00:00"
@@ -188,13 +189,11 @@
     },
     "url": {
       "type": "string",
-      "format": "uri-reference",
       "description": "URL description",
       "default": "https://example.com"
     },
     "uuid": {
       "type": "string",
-      "format": "uuid",
       "description": "UUID description",
       "default": "00000000-0000-0000-0000-000000000000"
     }

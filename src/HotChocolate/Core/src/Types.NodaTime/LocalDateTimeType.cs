@@ -30,6 +30,7 @@ public class LocalDateTimeType : StringToStructBaseType<LocalDateTime>
             _allowedPatterns,
             NodaTimeResources.LocalDateTimeType_Description,
             NodaTimeResources.LocalDateTimeType_Description_Extended);
+        SerializationType = ScalarSerializationType.String;
     }
 
     /// <summary>

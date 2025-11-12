@@ -1,5 +1,5 @@
+using HotChocolate.Fusion.Definitions;
 using HotChocolate.Types.Mutable;
-using HotChocolate.Types.Mutable.Definitions;
 
 namespace HotChocolate.Fusion;
 

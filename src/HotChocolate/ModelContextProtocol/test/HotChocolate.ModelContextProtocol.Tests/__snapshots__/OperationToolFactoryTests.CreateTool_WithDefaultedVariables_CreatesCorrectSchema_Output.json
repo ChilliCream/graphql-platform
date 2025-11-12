@@ -32,7 +32,7 @@
             },
             "date": {
               "type": "string",
-              "format": "date"
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
             },
             "dateTime": {
               "type": "string",
@@ -53,7 +53,10 @@
               "type": "number"
             },
             "id": {
-              "type": "string"
+              "type": [
+                "string",
+                "integer"
+              ]
             },
             "int": {
               "type": "integer"
@@ -76,16 +79,15 @@
             },
             "localDate": {
               "type": "string",
-              "format": "date"
+              "format": "date",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
             },
             "localDateTime": {
               "type": "string",
-              "format": "date-time",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$"
             },
             "localTime": {
               "type": "string",
-              "format": "time",
               "pattern": "^\\d{2}:\\d{2}:\\d{2}$"
             },
             "long": {
@@ -102,7 +104,6 @@
                       "properties": {
                         "field1C": {
                           "type": "string",
-                          "format": "time",
                           "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
                           "description": "field1C description"
                         }
@@ -140,12 +141,10 @@
               "type": "string"
             },
             "url": {
-              "type": "string",
-              "format": "uri-reference"
+              "type": "string"
             },
             "uuid": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             }
           },
           "required": [

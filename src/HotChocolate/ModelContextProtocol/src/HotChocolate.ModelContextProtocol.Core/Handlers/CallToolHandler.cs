@@ -1,9 +1,11 @@
 using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
@@ -18,7 +20,8 @@ internal static class CallToolHandler
         RequestContext<CallToolRequestParams> context,
         CancellationToken cancellationToken)
     {
-        var registry = context.Services!.GetRequiredService<ToolRegistry>();
+        var services = context.Services!;
+        var registry = services.GetRequiredService<ToolRegistry>();
 
         if (!registry.TryGetTool(context.Params!.Name, out var tool))
         {
@@ -35,7 +38,7 @@ internal static class CallToolHandler
             };
         }
 
-        var requestExecutor = context.Services!.GetRequiredService<IRequestExecutor>();
+        var requestExecutor = services.GetRequiredService<IRequestExecutor>();
         var arguments = context.Params?.Arguments ?? Enumerable.Empty<KeyValuePair<string, JsonElement>>();
 
         Dictionary<string, object?> variableValues = [];
@@ -47,8 +50,8 @@ internal static class CallToolHandler
             variableValues.Add(name, jsonValueParser.Parse(value));
         }
 
-        var httpContext =
-            context.Services!.GetRootServiceProvider().GetRequiredService<IHttpContextAccessor>().HttpContext!;
+        var rootServiceProvider = services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
+        var httpContext = rootServiceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext!;
         var requestBuilder = CreateRequestBuilder(httpContext);
         var request =
             requestBuilder
@@ -57,7 +60,11 @@ internal static class CallToolHandler
                 .Build();
         var result = await requestExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         var operationResult = result.ExpectOperationResult();
-        var jsonOperationResult = operationResult.ToJson();
+
+        using var writer = new PooledArrayWriter();
+
+        JsonResultFormatter.Indented.Format(operationResult, writer);
+        var jsonOperationResult = Encoding.UTF8.GetString(writer.WrittenSpan);
 
         return new CallToolResult
         {

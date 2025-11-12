@@ -1,6 +1,8 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/HotChocolate.Fusion.ModelContextProtocol/HotChocolate.Fusion.ModelContextProtocol.csproj" />
     <Project Path="src/HotChocolate.ModelContextProtocol/HotChocolate.ModelContextProtocol.csproj" />
+    <Project Path="src/HotChocolate.ModelContextProtocol.Core/HotChocolate.ModelContextProtocol.Core.csproj" />
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/HotChocolate.ModelContextProtocol.Tests/HotChocolate.ModelContextProtocol.Tests.csproj" />
