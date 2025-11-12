@@ -21,6 +21,7 @@ internal static class WellKnownDirectiveNames
     public const string Is = DirectiveNames.Is.Name;
     public const string Key = DirectiveNames.Key.Name;
     public const string Lookup = DirectiveNames.Lookup.Name;
+    public const string McpToolAnnotations = "mcpToolAnnotations";
     public const string OneOf = DirectiveNames.OneOf.Name;
     public const string Override = DirectiveNames.Override.Name;
     public const string Provides = DirectiveNames.Provides.Name;

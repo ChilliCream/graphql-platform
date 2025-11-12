@@ -2,7 +2,7 @@ using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Definitions;
 
-public sealed class ScalarSerializationTypeMutableEnumTypeDefinition : MutableEnumTypeDefinition
+internal sealed class ScalarSerializationTypeMutableEnumTypeDefinition : MutableEnumTypeDefinition
 {
     public ScalarSerializationTypeMutableEnumTypeDefinition()
         : base(WellKnownTypeNames.ScalarSerializationType)

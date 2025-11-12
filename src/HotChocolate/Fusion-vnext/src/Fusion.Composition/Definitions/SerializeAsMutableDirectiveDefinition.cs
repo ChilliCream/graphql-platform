@@ -3,7 +3,7 @@ using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Definitions;
 
-public sealed class SerializeAsMutableDirectiveDefinition : MutableDirectiveDefinition
+internal sealed class SerializeAsMutableDirectiveDefinition : MutableDirectiveDefinition
 {
     public SerializeAsMutableDirectiveDefinition(
         ScalarSerializationTypeMutableEnumTypeDefinition scalarSerializationTypeType,

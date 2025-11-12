@@ -50,10 +50,26 @@ internal sealed class SourceSchemaMerger
         _directiveMergers =
             new Dictionary<string, IDirectiveMerger>
             {
-                { DirectiveNames.CacheControl, new CacheControlDirectiveMerger(_options.CacheControlMergeBehavior) },
-                { DirectiveNames.OneOf, new OneOfDirectiveMerger(DirectiveMergeBehavior.Include) },
-                { DirectiveNames.SerializeAs, new SerializeAsDirectiveMerger(DirectiveMergeBehavior.Include) },
-                { DirectiveNames.Tag, new TagDirectiveMerger(_options.TagMergeBehavior) }
+                {
+                    DirectiveNames.CacheControl,
+                    new CacheControlDirectiveMerger(_options.CacheControlMergeBehavior)
+                },
+                {
+                    DirectiveNames.McpToolAnnotations,
+                    new McpToolAnnotationsDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
+                    DirectiveNames.OneOf,
+                    new OneOfDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
+                    DirectiveNames.SerializeAs,
+                    new SerializeAsDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
+                    DirectiveNames.Tag,
+                    new TagDirectiveMerger(_options.TagMergeBehavior)
+                }
             }.ToFrozenDictionary();
     }
 
@@ -791,8 +807,12 @@ internal sealed class SourceSchemaMerger
 
         // Merge directives.
         var memberDefinitions = fieldGroup.Select(g => g.Field).ToImmutableArray<IDirectivesProvider>();
-        _directiveMergers[DirectiveNames.CacheControl].MergeDirectives(outputField, memberDefinitions, mergedSchema);
-        _directiveMergers[DirectiveNames.Tag].MergeDirectives(outputField, memberDefinitions, mergedSchema);
+        _directiveMergers[DirectiveNames.CacheControl]
+            .MergeDirectives(outputField, memberDefinitions, mergedSchema);
+        _directiveMergers[DirectiveNames.McpToolAnnotations]
+            .MergeDirectives(outputField, memberDefinitions, mergedSchema);
+        _directiveMergers[DirectiveNames.Tag]
+            .MergeDirectives(outputField, memberDefinitions, mergedSchema);
 
         AddFusionFieldDirectives(outputField, fieldGroup);
 

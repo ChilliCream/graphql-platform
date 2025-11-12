@@ -11,6 +11,6 @@ internal static class OutputFieldDefinitionExtensions
     {
         var directive = outputField.Directives[McpToolAnnotations].SingleOrDefault();
 
-        return directive?.ToValue<McpToolAnnotationsDirective>();
+        return directive is null ? null : McpToolAnnotationsDirective.From(directive);
     }
 }

@@ -2,17 +2,13 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.ModelContextProtocol.Diagnostics;
-using HotChocolate.ModelContextProtocol.Extensions;
+using HotChocolate.ModelContextProtocol.Storage;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Configurations;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -23,7 +19,7 @@ using ModelContextProtocol.Server;
 
 namespace HotChocolate.ModelContextProtocol;
 
-public sealed class IntegrationTests
+public abstract class IntegrationTestBase
 {
     [Fact]
     public async Task ListTools_Valid_ReturnsTools()
@@ -36,7 +32,7 @@ public sealed class IntegrationTests
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNonNullableVariables.graphql")));
-        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
+        var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -52,82 +48,9 @@ public sealed class IntegrationTests
                         t.Title,
                         t.Description
                     }),
-                s_jsonSerializerOptions)
+                JsonSerializerOptions)
             .ReplaceLineEndings("\n")
             .MatchSnapshot(extension: ".json");
-    }
-
-    [Fact]
-    public async Task ListTools_AfterSchemaUpdate_ReturnsUpdatedTools()
-    {
-        // arrange
-        var storage = new TestOperationToolStorage();
-        await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetSingleField.graphql")));
-        var typeModule = new TestTypeModule();
-        var builder = new WebHostBuilder()
-            .ConfigureServices(
-                services => services
-                    .AddRouting()
-                    .AddGraphQL()
-                    .AddTypeModule(_ => typeModule)
-                    .AddMcp()
-                    .AddMcpToolStorage(storage))
-            .Configure(
-                app => app
-                    .UseRouting()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
-        var server = new TestServer(builder);
-        var mcpClient1 = await CreateMcpClientAsync(server.CreateClient());
-        var mcpClient2 = await CreateMcpClientAsync(server.CreateClient());
-        var listChangedResetEvent1 = new ManualResetEventSlim(false);
-        var listChangedResetEvent2 = new ManualResetEventSlim(false);
-        mcpClient1.RegisterNotificationHandler(
-            NotificationMethods.ToolListChangedNotification,
-            async (_, _) =>
-            {
-                listChangedResetEvent1.Set();
-                await ValueTask.CompletedTask;
-            });
-        mcpClient2.RegisterNotificationHandler(
-            NotificationMethods.ToolListChangedNotification,
-            async (_, _) =>
-            {
-                listChangedResetEvent2.Set();
-                await ValueTask.CompletedTask;
-            });
-
-        // act
-        var tools = await mcpClient1.ListToolsAsync();
-        typeModule.TriggerChange();
-        IList<McpClientTool>? updatedTools = null;
-
-        if (listChangedResetEvent1.Wait(TimeSpan.FromSeconds(5)))
-        {
-            var mcpClient3 = await CreateMcpClientAsync(server.CreateClient());
-            updatedTools = await mcpClient3.ListToolsAsync();
-        }
-
-        var secondClientNotified = listChangedResetEvent2.Wait(TimeSpan.FromSeconds(5));
-
-        // assert
-        Assert.NotNull(updatedTools);
-        JsonSerializer.Serialize(
-                tools.Concat(updatedTools).Select(
-                    t =>
-                        new
-                        {
-                            t.Name,
-                            t.Title,
-                            t.Description,
-                            t.JsonSchema,
-                            t.ReturnJsonSchema
-                        }),
-                s_jsonSerializerOptions)
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
-        Assert.True(secondClientNotified);
     }
 
     [Fact]
@@ -137,21 +60,8 @@ public sealed class IntegrationTests
         var storage = new TestOperationToolStorage();
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetSingleField.graphql")));
-        var typeModule = new TestTypeModule();
-        var builder = new WebHostBuilder()
-            .ConfigureServices(
-                services => services
-                    .AddRouting()
-                    .AddGraphQL()
-                    .AddTypeModule(_ => typeModule)
-                    .AddMcp()
-                    .AddMcpToolStorage(storage))
-            .Configure(
-                app => app
-                    .UseRouting()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
-        var server = new TestServer(builder);
+                await File.ReadAllTextAsync("__resources__/GetBooksWithTitle1.graphql")));
+        var server = await CreateTestServerAsync(storage);
         var mcpClient1 = await CreateMcpClientAsync(server.CreateClient());
         var listChangedResetEvent = new ManualResetEventSlim(false);
         mcpClient1.RegisterNotificationHandler(
@@ -168,7 +78,7 @@ public sealed class IntegrationTests
 
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetSingleFieldWithAlias.graphql")));
+                await File.ReadAllTextAsync("__resources__/GetBooksWithTitle2.graphql")));
 
         if (listChangedResetEvent.Wait(TimeSpan.FromSeconds(5)))
         {
@@ -188,7 +98,7 @@ public sealed class IntegrationTests
                             t.JsonSchema,
                             t.ReturnJsonSchema
                         }),
-                s_jsonSerializerOptions)
+                JsonSerializerOptions)
             .ReplaceLineEndings("\n")
             .MatchSnapshot(extension: ".json");
     }
@@ -201,8 +111,8 @@ public sealed class IntegrationTests
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse("query GetBooks { books { title } }"));
         var server =
-            CreateTestServer(
-                configureRequestExecutor: b => b.AddMcpToolStorage(storage),
+            await CreateTestServerAsync(
+                storage,
                 configureMcpServer: b => b.WithTools([typeof(TestTool)]));
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -220,8 +130,15 @@ public sealed class IntegrationTests
         // arrange
         var storage = new TestOperationToolStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse("""query GetBooks @mcpTool(title: "Custom Title") { books { title } }"""));
-        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
+            Utf8GraphQLParser.Parse(
+                """
+                query GetBooks @mcpTool(title: "Custom Title") {
+                    books {
+                        title
+                    }
+                }
+                """));
+        var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -232,7 +149,7 @@ public sealed class IntegrationTests
     }
 
     [Fact]
-    public async Task ListTools_SetAnnotations_ReturnsExpectedResult()
+    public async Task ListTools_SetAnnotationsInDocument_ReturnsExpectedResult()
     {
         // arrange
         var storage = new TestOperationToolStorage();
@@ -243,7 +160,33 @@ public sealed class IntegrationTests
                     addBook { title }
                 }
                 """));
-        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync();
+
+        // assert
+        Assert.Equal(false, tools[0].ProtocolTool.Annotations?.DestructiveHint);
+        Assert.Equal(true, tools[0].ProtocolTool.Annotations?.IdempotentHint);
+        Assert.Equal(false, tools[0].ProtocolTool.Annotations?.OpenWorldHint);
+    }
+
+    [Fact]
+    public async Task ListTools_SetAnnotationsInSchema_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new TestOperationToolStorage();
+        await storage.AddOrUpdateToolAsync(
+            Utf8GraphQLParser.Parse(
+                await File.ReadAllTextAsync("__resources__/ExplicitNonDestructiveTool.graphql")));
+        await storage.AddOrUpdateToolAsync(
+            Utf8GraphQLParser.Parse(
+                await File.ReadAllTextAsync("__resources__/ExplicitIdempotentTool.graphql")));
+        await storage.AddOrUpdateToolAsync(
+            Utf8GraphQLParser.Parse(
+                await File.ReadAllTextAsync("__resources__/ExplicitClosedWorldTool.graphql")));
+        var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -265,11 +208,7 @@ public sealed class IntegrationTests
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse("query Valid { books { title } }"));
         var listener = new TestMcpDiagnosticEventListener();
-        var server =
-            CreateTestServer(
-                b => b
-                    .AddMcpDiagnosticEventListener(listener)
-                    .AddMcpToolStorage(storage));
+        var server = await CreateTestServerAsync(storage, diagnosticEventListener: listener);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -293,11 +232,7 @@ public sealed class IntegrationTests
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse("""query Tool @mcpTool(title: "BEFORE") { books { title } }"""));
         var listener = new TestMcpDiagnosticEventListener();
-        var server =
-            CreateTestServer(
-                b => b
-                    .AddMcpDiagnosticEventListener(listener)
-                    .AddMcpToolStorage(storage));
+        var server = await CreateTestServerAsync(storage, diagnosticEventListener: listener);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -324,7 +259,7 @@ public sealed class IntegrationTests
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql")));
-        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
+        var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -374,7 +309,7 @@ public sealed class IntegrationTests
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNonNullableVariables.graphql")));
-        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
+        var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -425,7 +360,7 @@ public sealed class IntegrationTests
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithDefaultedVariables.graphql")));
-        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
+        var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -446,11 +381,7 @@ public sealed class IntegrationTests
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithComplexVariables.graphql")));
-        var server =
-            CreateTestServer(
-                b => b
-                    .AddMcpToolStorage(storage)
-                    .AddType(new TimeSpanType(TimeSpanFormat.DotNet)));
+        var server = await CreateTestServerAsync(storage, [new TimeSpanType(TimeSpanFormat.DotNet)]);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -497,7 +428,7 @@ public sealed class IntegrationTests
         var storage = new TestOperationToolStorage();
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse("query GetWithErrors { withErrors }"));
-        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
+        var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -505,6 +436,7 @@ public sealed class IntegrationTests
 
         // assert
         result.StructuredContent!
+            .RemoveLocations()
             .ToString()
             .ReplaceLineEndings("\n")
             .MatchSnapshot(extension: ".json");
@@ -516,7 +448,7 @@ public sealed class IntegrationTests
         // arrange
         var storage = new TestOperationToolStorage();
         await storage.AddOrUpdateToolAsync(Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }"));
-        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
+        var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient(), TestJwtTokenHelper.GenerateToken());
 
         // act
@@ -536,7 +468,7 @@ public sealed class IntegrationTests
         // arrange
         var storage = new TestOperationToolStorage();
         await storage.AddOrUpdateToolAsync(Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }"));
-        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
+        var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -544,6 +476,7 @@ public sealed class IntegrationTests
 
         // assert
         result.StructuredContent!
+            .RemoveLocations()
             .ToString()
             .ReplaceLineEndings("\n")
             .MatchSnapshot(extension: ".json");
@@ -554,8 +487,8 @@ public sealed class IntegrationTests
     {
         // arrange
         var server =
-            CreateTestServer(
-                configureRequestExecutor: b => b.AddMcpToolStorage(new TestOperationToolStorage()),
+            await CreateTestServerAsync(
+                new TestOperationToolStorage(),
                 configureMcpServer: b => b.WithTools([typeof(TestTool)]));
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -576,8 +509,8 @@ public sealed class IntegrationTests
     {
         // arrange & act
         var server =
-            CreateTestServer(
-                configureRequestExecutor: b => b.AddMcpToolStorage(new TestOperationToolStorage()),
+            await CreateTestServerAsync(
+                new TestOperationToolStorage(),
                 configureMcpServerOptions: o => o.InitializationTimeout = TimeSpan.FromSeconds(10));
         await CreateMcpClientAsync(server.CreateClient());
         var executor = await server.Services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
@@ -588,61 +521,16 @@ public sealed class IntegrationTests
         Assert.Equal(TimeSpan.FromSeconds(10), options.InitializationTimeout);
     }
 
-    private static readonly JsonSerializerOptions s_jsonSerializerOptions =
-        new()
-        {
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            WriteIndented = true
-        };
-
-    private static readonly string[] s_list = ["test"];
-
-    private static TestServer CreateTestServer(
-        Action<IRequestExecutorBuilder>? configureRequestExecutor = null,
+    protected abstract Task<TestServer> CreateTestServerAsync(
+        IOperationToolStorage storage,
+        ITypeDefinition[]? additionalTypes = null,
+        IMcpDiagnosticEventListener? diagnosticEventListener = null,
         Action<McpServerOptions>? configureMcpServerOptions = null,
-        Action<IMcpServerBuilder>? configureMcpServer = null)
-    {
-        var builder = new WebHostBuilder()
-            .ConfigureServices(
-                services =>
-                {
-                    services
-                        .AddAuthentication()
-                        .AddJwtBearer(
-                            o => o.TokenValidationParameters =
-                                new TokenValidationParameters
-                                {
-                                    ValidIssuer = TokenIssuer,
-                                    ValidAudience = TokenAudience,
-                                    IssuerSigningKey = s_tokenKey
-                                });
+        Action<IMcpServerBuilder>? configureMcpServer = null);
 
-                    var executor =
-                        services
-                            .AddLogging()
-                            .AddRouting()
-                            .AddGraphQL()
-                            .AddAuthorization()
-                            .AddMcp(configureMcpServerOptions, configureMcpServer)
-                            .AddQueryType<TestSchema.Query>()
-                            .AddMutationType<TestSchema.Mutation>()
-                            .AddInterfaceType<TestSchema.IPet>()
-                            .AddUnionType<TestSchema.IPet>()
-                            .AddObjectType<TestSchema.Cat>()
-                            .AddObjectType<TestSchema.Dog>();
-
-                    configureRequestExecutor?.Invoke(executor);
-                })
-            .Configure(
-                app => app
-                    .UseRouting()
-                    .UseAuthentication()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
-
-        return new TestServer(builder);
-    }
-
-    private static async Task<IMcpClient> CreateMcpClientAsync(HttpClient httpClient, string? token = null)
+    protected static async Task<IMcpClient> CreateMcpClientAsync(
+        HttpClient httpClient,
+        string? token = null)
     {
         return
             await McpClientFactory.CreateAsync(
@@ -658,40 +546,25 @@ public sealed class IntegrationTests
                     httpClient));
     }
 
+    protected static readonly JsonSerializerOptions JsonSerializerOptions =
+        new()
+        {
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            WriteIndented = true
+        };
+
+    protected const string TokenIssuer = "test-issuer";
+    protected const string TokenAudience = "test-audience";
+    protected static readonly SymmetricSecurityKey TokenKey = new("test-secret-key-at-least-32-bytes"u8.ToArray());
+
+    private static readonly string[] s_list = ["test"];
+
     [McpServerToolType]
     private static class TestTool
     {
         [McpServerTool]
         // ReSharper disable once UnusedMember.Local
         public static string Test(string message) => message;
-    }
-
-    private class TestTypeModule : TypeModule
-    {
-        private int _executionCount;
-
-        public override ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
-            IDescriptorContext context,
-            CancellationToken cancellationToken)
-        {
-            var types = new List<ITypeSystemMember>();
-
-            var queryType = new ObjectTypeConfiguration(OperationTypeNames.Query);
-
-            queryType.Fields.Add(
-                new ObjectFieldConfiguration(
-                    "field",
-                    $"Field description {_executionCount}.",
-                    type: TypeReference.Parse(_executionCount == 0 ? "Int!" : "String"),
-                    pureResolver: _ => _executionCount));
-            types.Add(ObjectType.CreateUnsafe(queryType));
-
-            _executionCount++;
-
-            return new ValueTask<IReadOnlyCollection<ITypeSystemMember>>(types);
-        }
-
-        public void TriggerChange() => OnTypesChanged();
     }
 
     private static class TestJwtTokenHelper
@@ -709,15 +582,11 @@ public sealed class IntegrationTests
                 audience: TokenAudience,
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(30),
-                signingCredentials: new SigningCredentials(s_tokenKey, SecurityAlgorithms.HmacSha256));
+                signingCredentials: new SigningCredentials(TokenKey, SecurityAlgorithms.HmacSha256));
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
-
-    private const string TokenIssuer = "test-issuer";
-    private const string TokenAudience = "test-audience";
-    private static readonly SymmetricSecurityKey s_tokenKey = new("test-secret-key-at-least-32-bytes"u8.ToArray());
 }
 
 public sealed class TestMcpDiagnosticEventListener : McpDiagnosticEventListener
@@ -727,5 +596,24 @@ public sealed class TestMcpDiagnosticEventListener : McpDiagnosticEventListener
     public override void ValidationErrors(IReadOnlyList<IError> errors)
     {
         ValidationErrorLog.AddRange(errors);
+    }
+}
+
+file static class JsonNodeExtensions
+{
+    public static JsonNode RemoveLocations(this JsonNode node)
+    {
+        if (node["errors"] is JsonArray errors)
+        {
+            foreach (var error in errors)
+            {
+                if (error is JsonObject errorObject)
+                {
+                    errorObject.Remove("locations");
+                }
+            }
+        }
+
+        return node;
     }
 }
