@@ -215,11 +215,17 @@ In addition, the default output for such errors has been standardized: earlier, 
 ## Generic `ID<Type>`-attribute now infers the actual GraphQL type name
 
 Previously, `[ID<Type>]` used the CLR type name (`nameof(Type)`), even when a different GraphQL type name was configured via `[GraphQLName]` or `descriptor.Name()`.
-It now uses the actual GraphQL type name if one is defined, f. e.:
+It now uses the actual GraphQL type name if one is defined, for example:
 
 ```csharp
 [GraphQLName("Book")]
-public sealed class BookDTO { }
+public sealed class BookDTO
+{
+    [ID]
+    public int Id { get; set; }
+
+    public string Title { get; set; }
+}
 
 [ID<BookDTO>] // uses "Book" now, not "BookDTO" anymore
 ```
