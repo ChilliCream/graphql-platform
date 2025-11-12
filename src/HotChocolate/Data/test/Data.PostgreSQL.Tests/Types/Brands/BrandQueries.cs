@@ -29,4 +29,13 @@ public static partial class BrandQueries
         BrandService brandService,
         CancellationToken cancellationToken)
         => await brandService.GetBrandByIdAsync(id, query, cancellationToken);
+
+    [Lookup]
+    [NodeResolver]
+    public static async Task<Brand?> GetBrandByIdWithDLAsync(
+        int id,
+        QueryContext<Brand> query,
+        IBrandByIdDataLoader brandById,
+        CancellationToken cancellationToken)
+        => await brandById.With(query).LoadAsync(id, cancellationToken);
 }

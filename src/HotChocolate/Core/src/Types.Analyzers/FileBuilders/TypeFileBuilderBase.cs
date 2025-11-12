@@ -285,10 +285,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
         if (resolver.Parameters.Any(p => p.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
         {
+            var resolverMethod = (IMethodSymbol)resolver.Member;
             var firstParameter = true;
             foreach (var parameter in resolver.Parameters)
             {
-                if (parameter.Kind is not (ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
+                if (parameter.Type.TypeKind is TypeKind.Error
+                    || parameter.Kind is not (ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
                 {
                     continue;
                 }
@@ -322,6 +324,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 using (Writer.WriteIfClause(
                     "parameterInfo.Kind is global::HotChocolate.Internal.ArgumentKind.Argument"))
                 {
+                    var parameterTypeString = ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup);
+
                     Writer.WriteIndentedLine(
                         "var argumentConfiguration = new global::{0}",
                         WellKnownTypes.ArgumentConfiguration);
@@ -335,7 +339,9 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         description = parameter.Description;
                         if (!string.IsNullOrEmpty(description))
                         {
-                            Writer.WriteIndentedLine("Description = \"{0}\",", GeneratorUtils.EscapeForStringLiteral(description));
+                            Writer.WriteIndentedLine(
+                                "Description = \"{0}\",",
+                                GeneratorUtils.EscapeForStringLiteral(description));
                         }
 
                         deprecationReason = parameter.DeprecationReason;
@@ -357,9 +363,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                             parameter.SchemaTypeName,
                             WellKnownTypes.TypeContext);
 
-                        Writer.WriteIndentedLine(
-                            "RuntimeType = typeof({0})",
-                            parameter.Parameter.Type.ToClassNonNullableFullyQualifiedWithNullRefQualifier());
+                        Writer.WriteIndentedLine("RuntimeType = typeof({0})", parameterTypeString);
                     }
 
                     Writer.WriteIndentedLine("};");
@@ -696,7 +700,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                             Writer.WriteIndentedLine("\"{0}\",", parameter.Name);
                             Writer.WriteIndentedLine(
                                 "typeof({0}),",
-                                parameter.Type.ToClassNonNullableFullyQualifiedWithNullRefQualifier());
+                                ToFullyQualifiedString(parameter.Type, (IMethodSymbol)resolver.Member, typeLookup));
                             Writer.WriteIndentedLine(
                                 parameter.Type.IsNullableType()
                                     ? "isNullable: true,"
