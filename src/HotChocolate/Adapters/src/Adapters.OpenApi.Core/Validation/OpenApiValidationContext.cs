@@ -1,10 +1,11 @@
+using System.Collections.Immutable;
 using HotChocolate.Validation;
 
 namespace HotChocolate.Adapters.OpenApi;
 
 internal sealed class OpenApiValidationContext(
-    IReadOnlyCollection<OpenApiOperationDocument> operations,
-    IReadOnlyCollection<OpenApiFragmentDocument> fragments,
+    IImmutableDictionary<string, OpenApiOperationDocument> operationsById,
+    IImmutableDictionary<string, OpenApiFragmentDocument> fragmentsById,
     ISchemaDefinition schema,
     DocumentValidator documentValidator) : IOpenApiValidationContext
 {
@@ -13,10 +14,16 @@ internal sealed class OpenApiValidationContext(
     public DocumentValidator DocumentValidator { get; } = documentValidator;
 
     public Dictionary<string, OpenApiOperationDocument> OperationsByName { get; } =
-        operations.ToDictionary(o => o.Name, StringComparer.OrdinalIgnoreCase);
+        operationsById.ToDictionary(
+            o => o.Value.Name,
+            o => o.Value,
+            StringComparer.OrdinalIgnoreCase);
 
     public Dictionary<string, OpenApiFragmentDocument> FragmentsByName { get; } =
-        fragments.ToDictionary(o => o.Name, StringComparer.OrdinalIgnoreCase);
+        fragmentsById.ToDictionary(
+            f => f.Value.Name,
+            f => f.Value,
+            StringComparer.OrdinalIgnoreCase);
 
     public ValueTask<OpenApiFragmentDocument?> GetFragmentAsync(string fragmentName)
     {

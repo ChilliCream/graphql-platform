@@ -60,9 +60,14 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
             .ConfigurePrimaryHttpMessageHandler(() => _subgraph.CreateHandler())
             .AddHeaderPropagation();
 
-        services.AddGraphQLGatewayServer()
+        var builder = services.AddGraphQLGatewayServer()
             .AddInMemoryConfiguration(_compositeSchema)
             .AddHttpClientConfiguration("A", new Uri("http://localhost:5000/graphql"))
             .AddOpenApiDefinitionStorage(storage);
+
+        if (eventListener is not null)
+        {
+            builder.AddOpenApiDiagnosticEventListener(eventListener);
+        }
     }
 }

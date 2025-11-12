@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.OpenApi;
@@ -40,20 +41,20 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     }
 
     public void AddDocuments(
-        IReadOnlyCollection<OpenApiOperationDocument> operations,
-        IReadOnlyCollection<OpenApiFragmentDocument> fragments,
+        IEnumerable<OpenApiOperationDocument> operationsById,
+        IEnumerable<OpenApiFragmentDocument> fragmentsById,
         ISchemaDefinition schema)
     {
         var operationDescriptors = new List<OperationDescriptor>();
         var componentDescriptors = new List<ComponentDescriptor>();
 
-        foreach (var operation in operations)
+        foreach (var operation in operationsById)
         {
             var operationDescriptor = CreateOperationDescriptor(operation, schema);
             operationDescriptors.Add(operationDescriptor);
         }
 
-        foreach (var fragment in fragments)
+        foreach (var fragment in fragmentsById)
         {
             var componentDescriptor = CreateComponentDescriptor(fragment, schema);
             componentDescriptors.Add(componentDescriptor);
@@ -153,8 +154,6 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         {
             Content = new ConcurrentDictionary<string, OpenApiMediaType> { [JsonContentType] = responseBody }
         };
-
-        // TODO: Add other response codes
 
         return new OperationDescriptor(
             operationDocument.Route.ToOpenApiPath(),

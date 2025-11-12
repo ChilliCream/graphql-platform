@@ -471,7 +471,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         // assert
         var openApiDocument1 = await GetOpenApiDocumentAsync(client);
 
-        await storage.AddOrUpdateDocumentAsync(
+        storage.AddOrUpdateDocument(
             "new",
             """
             query GetUsers @http(method: GET, route: "/users") {
@@ -494,7 +494,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage();
-        await storage.AddOrUpdateDocumentAsync(
+        storage.AddOrUpdateDocument(
             "users",
             """
             query GetUsers @http(method: GET, route: "/users") {
@@ -521,7 +521,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         // assert
         var openApiDocument1 = await GetOpenApiDocumentAsync(client);
 
-        await storage.AddOrUpdateDocumentAsync(
+        storage.AddOrUpdateDocument(
             "users",
             """
             query GetUsers @http(method: GET, route: "/users") {
@@ -545,7 +545,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage();
-        await storage.AddOrUpdateDocumentAsync(
+        storage.AddOrUpdateDocument(
             "users",
             """
             query GetUsers @http(method: GET, route: "/users") {
@@ -572,7 +572,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         // assert
         var openApiDocument1 = await GetOpenApiDocumentAsync(client);
 
-        await storage.AddOrUpdateDocumentAsync(
+        storage.AddOrUpdateDocument(
             "users",
             """
             query GetUsers @http(method: GET, route: "/users-new") {
@@ -596,7 +596,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage();
-        await storage.AddOrUpdateDocumentAsync(
+        storage.AddOrUpdateDocument(
             "users",
             """
             query GetUsers @http(method: GET, route: "/users") {
@@ -612,7 +612,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         // assert
         var openApiDocument1 = await GetOpenApiDocumentAsync(client);
 
-        await storage.AddOrUpdateDocumentAsync(
+        storage.AddOrUpdateDocument(
             "users",
             // This is intentionally missing the @http directive to be invalid
             """
@@ -627,11 +627,11 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
-    public async Task HotReload_Remove_Existing_Document()
+    public async Task HotReload_Remove_Existing_Operation()
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage();
-        await storage.AddOrUpdateDocumentAsync(
+        storage.AddOrUpdateDocument(
             "users",
             """
             query GetUsers @http(method: GET, route: "/users") {
@@ -658,7 +658,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         // assert
         var openApiDocument1 = await GetOpenApiDocumentAsync(client);
 
-        await storage.RemoveDocumentAsync("users");
+        storage.RemoveDocument("users");
 
         documentUpdatedResetEvent.Wait(cts.Token);
 
@@ -673,7 +673,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage();
-        await storage.AddOrUpdateDocumentAsync(
+        storage.AddOrUpdateDocument(
             "users",
             """
             query GetUsers @http(method: GET, route: "/users") {
@@ -689,7 +689,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         // assert
         var openApiDocument1 = await GetOpenApiDocumentAsync(client);
 
-        await storage.RemoveDocumentAsync("non-existent-id");
+        storage.RemoveDocument("non-existent-id");
 
         // No event should be raised, so the document should remain the same
         var openApiDocument2 = await GetOpenApiDocumentAsync(client);

@@ -144,6 +144,41 @@ public abstract class ValidationTestBase : OpenApiTestBase
         Assert.Equal("Fragment document 'Query' contains the '@stream' directive, which is not allowed in OpenAPI documents.", error.Message);
     }
 
+    [Fact]
+    public async Task Fragment_Removal_When_Referenced_By_Operation_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            fragment User on User {
+              id
+              name
+            }
+            """,
+            """
+            query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                ...User
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        storage.RemoveDocument("0");
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Cannot remove fragment 'User' because it is still referenced by the following operations: 'GetUser'.",
+            error.Message);
+    }
+
     #endregion
 
     #region Operation Document
@@ -834,17 +869,4 @@ public abstract class ValidationTestBase : OpenApiTestBase
     }
 
     #endregion
-
-    private sealed class TestOpenApiDiagnosticEventListener : OpenApiDiagnosticEventListener
-    {
-        public List<IOpenApiError> Errors { get; } = [];
-
-        public ManualResetEventSlim HasReportedErrors { get; } = new(false);
-
-        public override void ValidationErrors(IReadOnlyList<IOpenApiError> errors)
-        {
-            Errors.AddRange(errors);
-            HasReportedErrors.Set();
-        }
-    }
 }

@@ -1,5 +1,3 @@
-using System.Collections.Immutable;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;
@@ -13,7 +11,7 @@ internal static class OpenApiEndpointFactory
 {
     public static Endpoint Create(
         OpenApiOperationDocument operationDocument,
-        Dictionary<string, OpenApiFragmentDocument> fragmentsByName,
+        IDictionary<string, OpenApiFragmentDocument> fragmentsByName,
         ISchemaDefinition schema)
     {
         var endpointDescriptor = CreateEndpointDescriptor(operationDocument, fragmentsByName, schema);
@@ -28,7 +26,6 @@ internal static class OpenApiEndpointFactory
         var builder = new RouteEndpointBuilder(
             requestDelegate: requestDelegate,
             routePattern: endpointDescriptor.Route,
-            // TODO: What does this control?
             order: 0)
         {
             DisplayName = endpointDescriptor.Route.RawText
@@ -49,7 +46,7 @@ internal static class OpenApiEndpointFactory
 
     private static OpenApiEndpointDescriptor CreateEndpointDescriptor(
         OpenApiOperationDocument operationDocument,
-        Dictionary<string, OpenApiFragmentDocument> fragmentsByName,
+        IDictionary<string, OpenApiFragmentDocument> fragmentsByName,
         ISchemaDefinition schema)
     {
         var definitions = new List<IExecutableDefinitionNode>();

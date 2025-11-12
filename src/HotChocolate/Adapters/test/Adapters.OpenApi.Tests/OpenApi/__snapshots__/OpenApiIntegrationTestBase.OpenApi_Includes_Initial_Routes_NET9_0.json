@@ -5,6 +5,185 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/users": {
+      "post": {
+        "description": "Creates a user",
+        "operationId": "createUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "email",
+                  "id",
+                  "name"
+                ],
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "The user's email"
+                  },
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "description": "Fetches all users",
+        "operationId": "getUsers",
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "required": [
+                      "id"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "integer"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userId}/details": {
+      "get": {
+        "operationId": "getFullUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            }
+          },
+          {
+            "name": "includeAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "address": {
+                      "$ref": "#/components/schemas/UserAddress"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/{userId}": {
       "get": {
         "description": "Fetches a user by their id",
@@ -96,185 +275,6 @@
                   "email": {
                     "type": "string",
                     "description": "The user's email"
-                  },
-                  "name": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": null,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "required": [
-                    "id",
-                    "name",
-                    "email"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "oneOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "integer"
-                        }
-                      ]
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "email": {
-                      "type": "string",
-                      "nullable": true
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/users/{userId}/details": {
-      "get": {
-        "operationId": "getFullUser",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "oneOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                }
-              ]
-            }
-          },
-          {
-            "name": "includeAddress",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": null,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "required": [
-                    "id",
-                    "name",
-                    "email"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "oneOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "integer"
-                        }
-                      ]
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "email": {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    "address": {
-                      "$ref": "#/components/schemas/UserAddress"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/users": {
-      "get": {
-        "description": "Fetches all users",
-        "operationId": "getUsers",
-        "responses": {
-          "200": {
-            "description": null,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "required": [
-                      "id"
-                    ],
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "oneOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "integer"
-                          }
-                        ]
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "description": "Creates a user",
-        "operationId": "createUser",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "required": [
-                  "email",
-                  "id",
-                  "name"
-                ],
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "description": "The user's email"
-                  },
-                  "id": {
-                    "oneOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "integer"
-                      }
-                    ]
                   },
                   "name": {
                     "type": "string"

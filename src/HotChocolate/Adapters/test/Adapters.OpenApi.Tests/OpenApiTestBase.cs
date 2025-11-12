@@ -199,6 +199,19 @@ public abstract class OpenApiTestBase : IAsyncLifetime
         return await response.Content.ReadAsStringAsync();
     }
 
+    protected sealed class TestOpenApiDiagnosticEventListener : OpenApiDiagnosticEventListener
+    {
+        public List<IOpenApiError> Errors { get; } = [];
+
+        public ManualResetEventSlim HasReportedErrors { get; } = new(false);
+
+        public override void ValidationErrors(IReadOnlyList<IOpenApiError> errors)
+        {
+            Errors.AddRange(errors);
+            HasReportedErrors.Set();
+        }
+    }
+
     protected static class TestJwtTokenHelper
     {
         public static string GenerateToken(string? role = null)
@@ -220,7 +233,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
     protected sealed class TestOpenApiDefinitionStorage : IOpenApiDefinitionStorage, IDisposable
     {
-        private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
+        private readonly Lock _lock = new();
         private readonly Dictionary<string, OpenApiDocumentDefinition> _documentsById = [];
         private ImmutableList<ObserverSession> _sessions = [];
         private bool _disposed;
@@ -241,18 +254,14 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             }
         }
 
-        public async ValueTask<IEnumerable<OpenApiDocumentDefinition>> GetDocumentsAsync(
+        public ValueTask<IEnumerable<OpenApiDocumentDefinition>> GetDocumentsAsync(
             CancellationToken cancellationToken)
         {
-            await _semaphore.WaitAsync(cancellationToken);
+            lock (_lock)
+            {
+                var documents = _documentsById.Values.ToList();
 
-            try
-            {
-                return _documentsById.Values.ToList();
-            }
-            finally
-            {
-                _semaphore.Release();
+                return ValueTask.FromResult<IEnumerable<OpenApiDocumentDefinition>>(documents);
             }
         }
 
@@ -261,20 +270,14 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             return new ObserverSession(this, observer);
         }
 
-        public async Task AddOrUpdateDocumentAsync(
-            string id,
-            string document,
-            CancellationToken cancellationToken = default)
+        public void AddOrUpdateDocument(string id, string document)
         {
-            OpenApiDefinitionStorageEventType type;
-            await _semaphore.WaitAsync(cancellationToken);
-
-            OpenApiDocumentDefinition documentDefinition;
-            try
+            lock (_lock)
             {
                 var parsedDocument = Utf8GraphQLParser.Parse(document);
 
-                documentDefinition = new OpenApiDocumentDefinition(id, parsedDocument);
+                var documentDefinition = new OpenApiDocumentDefinition(id, parsedDocument);
+                OpenApiDefinitionStorageEventType type;
                 if (_documentsById.TryAdd(id, documentDefinition))
                 {
                     type = OpenApiDefinitionStorageEventType.Added;
@@ -284,34 +287,21 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                     _documentsById[id] = documentDefinition;
                     type = OpenApiDefinitionStorageEventType.Modified;
                 }
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
 
-            NotifySubscribers(id, documentDefinition, type);
+                NotifySubscribers(id, documentDefinition, type);
+            }
         }
 
-        public async Task RemoveDocumentAsync(
-            string id,
-            CancellationToken cancellationToken = default)
+        public void RemoveDocument(string id)
         {
-            bool removed;
-            await _semaphore.WaitAsync(cancellationToken);
+            lock (_lock)
+            {
+                var removed = _documentsById.Remove(id);
 
-            try
-            {
-                removed = _documentsById.Remove(id);
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-
-            if (removed)
-            {
-                NotifySubscribers(id, null, OpenApiDefinitionStorageEventType.Removed);
+                if (removed)
+                {
+                    NotifySubscribers(id, null, OpenApiDefinitionStorageEventType.Removed);
+                }
             }
         }
 

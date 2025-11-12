@@ -3,7 +3,7 @@ using HotChocolate.Adapters.OpenApi.Validation;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-internal sealed class OpenApiDocumentValidator : IOpenApiDocumentValidator
+public sealed class OpenApiDocumentValidator
 {
     private static readonly ImmutableArray<IOpenApiFragmentDocumentValidationRule> s_fragmentDocumentValidationRules =
     [

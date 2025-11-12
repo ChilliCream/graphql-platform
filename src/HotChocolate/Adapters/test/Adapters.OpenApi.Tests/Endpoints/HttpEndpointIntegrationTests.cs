@@ -1,3 +1,5 @@
+using System.Net;
+using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
@@ -9,8 +11,13 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
         IOpenApiDefinitionStorage storage,
         IOpenApiDiagnosticEventListener? eventListener)
     {
-        services.AddGraphQLServer()
+        var builder = services.AddGraphQLServer()
             .AddOpenApiDefinitionStorage(storage)
             .AddBasicServer();
+
+        if (eventListener is not null)
+        {
+            builder.AddOpenApiDiagnosticEventListener(eventListener);
+        }
     }
 }
