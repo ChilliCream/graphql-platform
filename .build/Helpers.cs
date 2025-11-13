@@ -11,6 +11,7 @@ static class Helpers
     static readonly string[] Directories =
     {
         "GreenDonut",
+        Path.Combine("HotChocolate", "Adapters"),
         Path.Combine("HotChocolate", "ApolloFederation"),
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "AzureFunctions"),

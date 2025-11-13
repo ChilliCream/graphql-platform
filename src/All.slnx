@@ -181,6 +181,15 @@
   <Folder Name="/HotChocolate/Diagnostics/test/">
     <Project Path="HotChocolate/Diagnostics/test/Diagnostics.Tests/HotChocolate.Diagnostics.Tests.csproj" />
   </Folder>
+  <Folder Name="/HotChocolate/Adapters/" />
+  <Folder Name="/HotChocolate/Adapters/src/">
+    <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi/HotChocolate.Adapters.OpenApi.csproj" />
+    <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi.Core/HotChocolate.Adapters.OpenApi.Core.csproj" />
+    <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi.Fusion/HotChocolate.Fusion.Adapters.OpenApi.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Adapters/test/">
+    <Project Path="HotChocolate/Adapters/test/Adapters.OpenApi.Tests/HotChocolate.Adapters.OpenApi.Tests.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/" />
   <Folder Name="/HotChocolate/Fusion-vnext/benchmarks/">
     <Project Path="HotChocolate/Fusion-vnext/benchmarks/Fusion.Execution.Benchmarks/Fusion.Execution.Benchmarks.csproj" />
