@@ -1,0 +1,77 @@
+title: Inaccessible_Fields_Cannot_Be_Queried_Via_Introspection
+request:
+  document: |
+    {
+      __type(name: "Author") {
+        fields {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "__type": {
+          "fields": [
+            {
+              "name": "name"
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author @key(fields: "id") {
+        id: Int! @inaccessible
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+        author: Author!
+      }
+
+      type Query {
+        bookById(id: Int!): Book! @lookup
+        books: [Book!]!
+      }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: Int!
+        name: String!
+      }
+
+      type Query {
+        authorById(id: Int!): Author! @internal @lookup
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          __type(name: "Author") {
+            fields {
+              name
+            }
+          }
+        }
+      hash: 2786e1aea90d29982bc53df69741f161
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: __type
+          fieldName: __type

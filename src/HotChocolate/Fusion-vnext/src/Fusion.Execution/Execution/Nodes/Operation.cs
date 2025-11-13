@@ -1,8 +1,10 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Features;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -146,6 +148,7 @@ public sealed class Operation : IOperation
     {
         ArgumentNullException.ThrowIfNull(selection);
         ArgumentNullException.ThrowIfNull(typeContext);
+        Debug.Assert(typeContext is FusionObjectTypeDefinition);
 
         var key = (selection.Id, typeContext.Name);
 
@@ -158,7 +161,7 @@ public sealed class Operation : IOperation
                     selectionSet =
                         _compiler.CompileSelectionSet(
                             selection,
-                            typeContext,
+                            (FusionObjectTypeDefinition)typeContext,
                             _includeConditions,
                             ref _elementsById,
                             ref _lastId);

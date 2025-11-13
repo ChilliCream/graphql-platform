@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Types;
 
@@ -14,12 +15,23 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     /// <summary>
     /// Represents a GraphQL directive definition.
     /// </summary>
-    public FusionDirectiveDefinition(string name,
+    public FusionDirectiveDefinition(
+        string name,
         string? description,
         bool isRepeatable,
         FusionInputFieldDefinitionCollection arguments,
         DirectiveLocation locations)
     {
+        name.EnsureGraphQLName();
+        ArgumentNullException.ThrowIfNull(arguments);
+
+        if (locations == 0)
+        {
+            throw new ArgumentException(
+                "At least one directive location must be specified.",
+                nameof(locations));
+        }
+
         Name = name;
         Description = description;
         IsRepeatable = isRepeatable;

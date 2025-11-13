@@ -166,7 +166,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
 
     private FusionScalarTypeDefinition CreateSpecScalar(string name)
     {
-        var type = new FusionScalarTypeDefinition(name, null);
+        var type = new FusionScalarTypeDefinition(name, null, isInaccessible: false);
         var typeDef = new ScalarTypeDefinitionNode(null, new NameNode(name), null, []);
         type.Complete(new CompositeScalarTypeCompletionContext(
             default,
@@ -243,7 +243,8 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             "Skips this field or fragment when the condition is true.",
             defaultValue: null,
             isDeprecated: false,
-            deprecationReason: null);
+            deprecationReason: null,
+            isInaccessible: false);
 
         var skipDirective = new FusionDirectiveDefinition(
             DirectiveNames.Skip.Name,
@@ -285,7 +286,8 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             "Includes this field or fragment when the condition is true.",
             defaultValue: null,
             isDeprecated: false,
-            deprecationReason: null);
+            deprecationReason: null,
+            isInaccessible: false);
 
         var includeDirective = new FusionDirectiveDefinition(
             DirectiveNames.Include.Name,
@@ -327,7 +329,8 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
             defaultValue: null,
             isDeprecated: false,
-            deprecationReason: null);
+            deprecationReason: null,
+            isInaccessible: false);
 
         var specifiedByDirective = new FusionDirectiveDefinition(
             DirectiveNames.SpecifiedBy.Name,

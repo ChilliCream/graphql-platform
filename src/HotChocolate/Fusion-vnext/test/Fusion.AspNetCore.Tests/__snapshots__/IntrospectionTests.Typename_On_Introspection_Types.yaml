@@ -337,9 +337,6 @@ response:
                 },
                 {
                   "__typename": "__Field"
-                },
-                {
-                  "__typename": "__Field"
                 }
               ],
               "enumValues": null,

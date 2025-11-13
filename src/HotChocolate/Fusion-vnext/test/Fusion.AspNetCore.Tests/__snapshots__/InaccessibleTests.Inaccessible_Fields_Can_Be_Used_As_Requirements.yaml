@@ -1,0 +1,146 @@
+title: Inaccessible_Fields_Can_Be_Used_As_Requirements
+request:
+  document: |
+    {
+      bookById(id: 1) {
+        author {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "bookById": {
+          "author": {
+            "name": "Jon Skeet"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author @key(fields: "id") {
+        id: Int! @inaccessible
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+        author: Author!
+      }
+
+      type Query {
+        bookById(id: Int!): Book! @lookup
+        books: [Book!]!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_2f49c6c6_1 {
+              bookById(id: 1) {
+                author {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "author": {
+                      "id": 1
+                    }
+                  }
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: Int!
+        name: String!
+      }
+
+      type Query {
+        authorById(id: Int!): Author! @internal @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_2f49c6c6_2(
+              $__fusion_1_id: Int!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                name
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Jon Skeet"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          bookById(id: 1) {
+            author {
+              name
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: 2f49c6c626f685fb744ca6d2c2d853a8
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_2f49c6c6_1 {
+          bookById(id: 1) {
+            author {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: b
+      operation: |
+        query Op_2f49c6c6_2(
+          $__fusion_1_id: Int!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            name
+          }
+        }
+      source: $.authorById
+      target: $.bookById.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
