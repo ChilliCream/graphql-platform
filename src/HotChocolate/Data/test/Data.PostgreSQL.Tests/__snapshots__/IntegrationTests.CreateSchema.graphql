@@ -92,6 +92,7 @@ type PageInfo @shareable {
 type Product implements Node {
   id: ID!
   brand: Brand @cost(weight: "10")
+  brandName: String
   name: String!
   description: String
   price: Decimal!
