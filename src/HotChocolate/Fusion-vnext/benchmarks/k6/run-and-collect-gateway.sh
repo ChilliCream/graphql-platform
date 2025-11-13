@@ -115,7 +115,7 @@ done
 # Run no-recursion test once in ramping mode
 echo -e "${BLUE}Running No Recursion Test - Ramping Mode (1 run)...${NC}"
 start_infrastructure_no_recursion
-maybe_taskset "0-1" MODE=ramping k6 run --summary-export=/tmp/no-recursion-ramping-summary.json "$SCRIPT_DIR/no-recursion.js"
+MODE=ramping maybe_taskset "0-1" k6 run --summary-export=/tmp/no-recursion-ramping-summary.json "$SCRIPT_DIR/no-recursion.js"
 stop_infrastructure
 
 # Run deep-recursion test multiple times (constant mode)
@@ -131,7 +131,7 @@ done
 # Run deep-recursion test once in ramping mode
 echo -e "${BLUE}Running Deep Recursion Test - Ramping Mode (1 run)...${NC}"
 start_infrastructure_no_recursion
-maybe_taskset "0-1" MODE=ramping k6 run --summary-export=/tmp/deep-recursion-ramping-summary.json "$SCRIPT_DIR/deep-recursion.js"
+MODE=ramping maybe_taskset "0-1" k6 run --summary-export=/tmp/deep-recursion-ramping-summary.json "$SCRIPT_DIR/deep-recursion.js"
 stop_infrastructure
 
 # Run variable-batch-throughput test multiple times (constant mode)
@@ -147,7 +147,7 @@ done
 # Run variable-batch-throughput test once in ramping mode
 echo -e "${BLUE}Running Variable Batch Throughput Test - Ramping Mode (1 run)...${NC}"
 start_infrastructure_variable_batch
-maybe_taskset "0-1" MODE=ramping k6 run --summary-export=/tmp/variable-batch-ramping-summary.json "$SCRIPT_DIR/variable-batch-throughput.js"
+MODE=ramping maybe_taskset "0-1" k6 run --summary-export=/tmp/variable-batch-ramping-summary.json "$SCRIPT_DIR/variable-batch-throughput.js"
 stop_infrastructure
 
 # Parse the summary statistics from k6 JSON output
