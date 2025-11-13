@@ -248,7 +248,6 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-
             """);
 
         // assert
