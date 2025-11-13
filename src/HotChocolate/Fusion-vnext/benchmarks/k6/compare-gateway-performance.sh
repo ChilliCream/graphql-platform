@@ -36,35 +36,65 @@ format_number() {
     printf "%.2f" "$num" 2>/dev/null || echo "$num"
 }
 
-# Extract metrics for no-recursion test
-NO_REC_RPS=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".throughput.requests_per_second")")
-NO_REC_MIN=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".response_time.min")")
-NO_REC_P50=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".response_time.p50")")
-NO_REC_MAX=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".response_time.max")")
-NO_REC_AVG=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".response_time.avg")")
-NO_REC_P90=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".response_time.p90")")
-NO_REC_P95=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".response_time.p95")")
-NO_REC_ERR=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".reliability.error_rate")")
+# Extract metrics for no-recursion test - constant mode
+NO_REC_RPS=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".constant.throughput.requests_per_second")")
+NO_REC_MIN=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".constant.response_time.min")")
+NO_REC_P50=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".constant.response_time.p50")")
+NO_REC_MAX=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".constant.response_time.max")")
+NO_REC_AVG=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".constant.response_time.avg")")
+NO_REC_P90=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".constant.response_time.p90")")
+NO_REC_P95=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".constant.response_time.p95")")
+NO_REC_ERR=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".constant.reliability.error_rate")")
 
-# Extract metrics for deep-recursion test
-DEEP_REC_RPS=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".throughput.requests_per_second")")
-DEEP_REC_MIN=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".response_time.min")")
-DEEP_REC_P50=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".response_time.p50")")
-DEEP_REC_MAX=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".response_time.max")")
-DEEP_REC_AVG=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".response_time.avg")")
-DEEP_REC_P90=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".response_time.p90")")
-DEEP_REC_P95=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".response_time.p95")")
-DEEP_REC_ERR=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".reliability.error_rate")")
+# Extract metrics for no-recursion test - ramping mode
+NO_REC_RAMP_RPS=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".ramping.throughput.requests_per_second")")
+NO_REC_RAMP_MIN=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".ramping.response_time.min")")
+NO_REC_RAMP_P50=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".ramping.response_time.p50")")
+NO_REC_RAMP_MAX=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".ramping.response_time.max")")
+NO_REC_RAMP_AVG=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".ramping.response_time.avg")")
+NO_REC_RAMP_P90=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".ramping.response_time.p90")")
+NO_REC_RAMP_P95=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".ramping.response_time.p95")")
+NO_REC_RAMP_ERR=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".ramping.reliability.error_rate")")
 
-# Extract metrics for variable-batch-throughput test
-VAR_BATCH_RPS=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".throughput.requests_per_second")")
-VAR_BATCH_MIN=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".response_time.min")")
-VAR_BATCH_P50=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".response_time.p50")")
-VAR_BATCH_MAX=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".response_time.max")")
-VAR_BATCH_AVG=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".response_time.avg")")
-VAR_BATCH_P90=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".response_time.p90")")
-VAR_BATCH_P95=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".response_time.p95")")
-VAR_BATCH_ERR=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".reliability.error_rate")")
+# Extract metrics for deep-recursion test - constant mode
+DEEP_REC_RPS=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".constant.throughput.requests_per_second")")
+DEEP_REC_MIN=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".constant.response_time.min")")
+DEEP_REC_P50=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".constant.response_time.p50")")
+DEEP_REC_MAX=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".constant.response_time.max")")
+DEEP_REC_AVG=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".constant.response_time.avg")")
+DEEP_REC_P90=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".constant.response_time.p90")")
+DEEP_REC_P95=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".constant.response_time.p95")")
+DEEP_REC_ERR=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".constant.reliability.error_rate")")
+
+# Extract metrics for deep-recursion test - ramping mode
+DEEP_REC_RAMP_RPS=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".ramping.throughput.requests_per_second")")
+DEEP_REC_RAMP_MIN=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".ramping.response_time.min")")
+DEEP_REC_RAMP_P50=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".ramping.response_time.p50")")
+DEEP_REC_RAMP_MAX=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".ramping.response_time.max")")
+DEEP_REC_RAMP_AVG=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".ramping.response_time.avg")")
+DEEP_REC_RAMP_P90=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".ramping.response_time.p90")")
+DEEP_REC_RAMP_P95=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".ramping.response_time.p95")")
+DEEP_REC_RAMP_ERR=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".ramping.reliability.error_rate")")
+
+# Extract metrics for variable-batch-throughput test - constant mode
+VAR_BATCH_RPS=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".constant.throughput.requests_per_second")")
+VAR_BATCH_MIN=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".constant.response_time.min")")
+VAR_BATCH_P50=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".constant.response_time.p50")")
+VAR_BATCH_MAX=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".constant.response_time.max")")
+VAR_BATCH_AVG=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".constant.response_time.avg")")
+VAR_BATCH_P90=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".constant.response_time.p90")")
+VAR_BATCH_P95=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".constant.response_time.p95")")
+VAR_BATCH_ERR=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".constant.reliability.error_rate")")
+
+# Extract metrics for variable-batch-throughput test - ramping mode
+VAR_BATCH_RAMP_RPS=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".ramping.throughput.requests_per_second")")
+VAR_BATCH_RAMP_MIN=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".ramping.response_time.min")")
+VAR_BATCH_RAMP_P50=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".ramping.response_time.p50")")
+VAR_BATCH_RAMP_MAX=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".ramping.response_time.max")")
+VAR_BATCH_RAMP_AVG=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".ramping.response_time.avg")")
+VAR_BATCH_RAMP_P90=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".ramping.response_time.p90")")
+VAR_BATCH_RAMP_P95=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".ramping.response_time.p95")")
+VAR_BATCH_RAMP_ERR=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".ramping.reliability.error_rate")")
 
 # Start building markdown report
 cat > "$OUTPUT_MD" <<'EOF'
@@ -76,6 +106,8 @@ EOF
 
 # Add table with metrics
 cat >> "$OUTPUT_MD" <<EOF
+**Constant Load (50 VUs)**
+
 | Requests/sec | Error Rate |
 |--------------|------------|
 | ${NO_REC_RPS} req/s | ${NO_REC_ERR}% |
@@ -86,6 +118,21 @@ cat >> "$OUTPUT_MD" <<EOF
 | Min | Med | Max | Avg | P90 | P95 |
 |-----|-----|-----|-----|-----|-----|
 | ${NO_REC_MIN}ms | ${NO_REC_P50}ms | ${NO_REC_MAX}ms | ${NO_REC_AVG}ms | ${NO_REC_P90}ms | ${NO_REC_P95}ms |
+
+</details>
+
+**Ramping Load (0→50→500→50 VUs)**
+
+| Requests/sec | Error Rate |
+|--------------|------------|
+| ${NO_REC_RAMP_RPS} req/s | ${NO_REC_RAMP_ERR}% |
+
+<details>
+<summary>📊 Response Time Metrics</summary>
+
+| Min | Med | Max | Avg | P90 | P95 |
+|-----|-----|-----|-----|-----|-----|
+| ${NO_REC_RAMP_MIN}ms | ${NO_REC_RAMP_P50}ms | ${NO_REC_RAMP_MAX}ms | ${NO_REC_RAMP_AVG}ms | ${NO_REC_RAMP_P90}ms | ${NO_REC_RAMP_P95}ms |
 
 **Executed Query**
 
@@ -127,6 +174,8 @@ query TestQuery {
 
 #### Deep Recursion Query
 
+**Constant Load (50 VUs)**
+
 | Requests/sec | Error Rate |
 |--------------|------------|
 | ${DEEP_REC_RPS} req/s | ${DEEP_REC_ERR}% |
@@ -137,6 +186,21 @@ query TestQuery {
 | Min | Med | Max | Avg | P90 | P95 |
 |-----|-----|-----|-----|-----|-----|
 | ${DEEP_REC_MIN}ms | ${DEEP_REC_P50}ms | ${DEEP_REC_MAX}ms | ${DEEP_REC_AVG}ms | ${DEEP_REC_P90}ms | ${DEEP_REC_P95}ms |
+
+</details>
+
+**Ramping Load (0→50→500→50 VUs)**
+
+| Requests/sec | Error Rate |
+|--------------|------------|
+| ${DEEP_REC_RAMP_RPS} req/s | ${DEEP_REC_RAMP_ERR}% |
+
+<details>
+<summary>📊 Response Time Metrics</summary>
+
+| Min | Med | Max | Avg | P90 | P95 |
+|-----|-----|-----|-----|-----|-----|
+| ${DEEP_REC_RAMP_MIN}ms | ${DEEP_REC_RAMP_P50}ms | ${DEEP_REC_RAMP_MAX}ms | ${DEEP_REC_RAMP_AVG}ms | ${DEEP_REC_RAMP_P90}ms | ${DEEP_REC_RAMP_P95}ms |
 
 **Executed Query**
 
@@ -205,6 +269,8 @@ query TestQuery {
 
 #### Variable Batching Throughput
 
+**Constant Load (50 VUs)**
+
 | Requests/sec | Error Rate |
 |--------------|------------|
 | ${VAR_BATCH_RPS} req/s | ${VAR_BATCH_ERR}% |
@@ -215,6 +281,21 @@ query TestQuery {
 | Min | Med | Max | Avg | P90 | P95 |
 |-----|-----|-----|-----|-----|-----|
 | ${VAR_BATCH_MIN}ms | ${VAR_BATCH_P50}ms | ${VAR_BATCH_MAX}ms | ${VAR_BATCH_AVG}ms | ${VAR_BATCH_P90}ms | ${VAR_BATCH_P95}ms |
+
+</details>
+
+**Ramping Load (0→50→500→50 VUs)**
+
+| Requests/sec | Error Rate |
+|--------------|------------|
+| ${VAR_BATCH_RAMP_RPS} req/s | ${VAR_BATCH_RAMP_ERR}% |
+
+<details>
+<summary>📊 Response Time Metrics</summary>
+
+| Min | Med | Max | Avg | P90 | P95 |
+|-----|-----|-----|-----|-----|-----|
+| ${VAR_BATCH_RAMP_MIN}ms | ${VAR_BATCH_RAMP_P50}ms | ${VAR_BATCH_RAMP_MAX}ms | ${VAR_BATCH_RAMP_AVG}ms | ${VAR_BATCH_RAMP_P90}ms | ${VAR_BATCH_RAMP_P95}ms |
 
 **Executed Query**
 

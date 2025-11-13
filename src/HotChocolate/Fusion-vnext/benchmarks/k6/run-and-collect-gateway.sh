@@ -102,9 +102,9 @@ stop_infrastructure() {
     sleep 2
 }
 
-# Run no-recursion test multiple times
+# Run no-recursion test multiple times (constant mode)
 # k6 on cores 0-1, gateway on 2-3, sources on 4-15
-echo -e "${BLUE}Running No Recursion Test (${NUM_RUNS} runs)...${NC}"
+echo -e "${BLUE}Running No Recursion Test - Constant Mode (${NUM_RUNS} runs)...${NC}"
 for i in $(seq 1 $NUM_RUNS); do
     echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
     start_infrastructure_no_recursion
@@ -112,9 +112,15 @@ for i in $(seq 1 $NUM_RUNS); do
     stop_infrastructure
 done
 
-# Run deep-recursion test multiple times
+# Run no-recursion test once in ramping mode
+echo -e "${BLUE}Running No Recursion Test - Ramping Mode (1 run)...${NC}"
+start_infrastructure_no_recursion
+maybe_taskset "0-1" MODE=ramping k6 run --summary-export=/tmp/no-recursion-ramping-summary.json "$SCRIPT_DIR/no-recursion.js"
+stop_infrastructure
+
+# Run deep-recursion test multiple times (constant mode)
 # k6 on cores 0-1, gateway on 2-3, sources on 4-15
-echo -e "${BLUE}Running Deep Recursion Test (${NUM_RUNS} runs)...${NC}"
+echo -e "${BLUE}Running Deep Recursion Test - Constant Mode (${NUM_RUNS} runs)...${NC}"
 for i in $(seq 1 $NUM_RUNS); do
     echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
     start_infrastructure_no_recursion
@@ -122,15 +128,27 @@ for i in $(seq 1 $NUM_RUNS); do
     stop_infrastructure
 done
 
-# Run variable-batch-throughput test multiple times
+# Run deep-recursion test once in ramping mode
+echo -e "${BLUE}Running Deep Recursion Test - Ramping Mode (1 run)...${NC}"
+start_infrastructure_no_recursion
+maybe_taskset "0-1" MODE=ramping k6 run --summary-export=/tmp/deep-recursion-ramping-summary.json "$SCRIPT_DIR/deep-recursion.js"
+stop_infrastructure
+
+# Run variable-batch-throughput test multiple times (constant mode)
 # k6 on cores 0-1, inventory service on 2-3
-echo -e "${BLUE}Running Variable Batch Throughput Test (${NUM_RUNS} runs)...${NC}"
+echo -e "${BLUE}Running Variable Batch Throughput Test - Constant Mode (${NUM_RUNS} runs)...${NC}"
 for i in $(seq 1 $NUM_RUNS); do
     echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
     start_infrastructure_variable_batch
     maybe_taskset "0-1" k6 run --summary-export=/tmp/variable-batch-summary-${i}.json "$SCRIPT_DIR/variable-batch-throughput.js"
     stop_infrastructure
 done
+
+# Run variable-batch-throughput test once in ramping mode
+echo -e "${BLUE}Running Variable Batch Throughput Test - Ramping Mode (1 run)...${NC}"
+start_infrastructure_variable_batch
+maybe_taskset "0-1" MODE=ramping k6 run --summary-export=/tmp/variable-batch-ramping-summary.json "$SCRIPT_DIR/variable-batch-throughput.js"
+stop_infrastructure
 
 # Parse the summary statistics from k6 JSON output
 echo ""
@@ -352,6 +370,42 @@ VAR_BATCH_RPS=$(calculate_median "${VAR_BATCH_RPS_VALUES[@]}")
 VAR_BATCH_ERROR_RATE=$(calculate_median "${VAR_BATCH_ERROR_VALUES[@]}")
 VAR_BATCH_ITERATIONS=$(calculate_median "${VAR_BATCH_ITERATIONS_VALUES[@]}")
 
+# Extract metrics from ramping mode runs
+echo -e "${YELLOW}Extracting ramping mode metrics...${NC}"
+
+# No-recursion ramping
+NO_REC_RAMP_MIN=$(extract_metric "/tmp/no-recursion-ramping-summary.json" "http_req_duration" "min")
+NO_REC_RAMP_P50=$(extract_metric "/tmp/no-recursion-ramping-summary.json" "http_req_duration" "p(50)")
+NO_REC_RAMP_MAX=$(extract_metric "/tmp/no-recursion-ramping-summary.json" "http_req_duration" "max")
+NO_REC_RAMP_AVG=$(extract_metric "/tmp/no-recursion-ramping-summary.json" "http_req_duration" "avg")
+NO_REC_RAMP_P90=$(extract_metric "/tmp/no-recursion-ramping-summary.json" "http_req_duration" "p(90)")
+NO_REC_RAMP_P95=$(extract_metric "/tmp/no-recursion-ramping-summary.json" "http_req_duration" "p(95)")
+NO_REC_RAMP_RPS=$(extract_metric "/tmp/no-recursion-ramping-summary.json" "http_reqs" "rate")
+NO_REC_RAMP_ERROR_RATE=$(extract_metric "/tmp/no-recursion-ramping-summary.json" "http_req_failed" "rate")
+NO_REC_RAMP_ITERATIONS=$(extract_metric "/tmp/no-recursion-ramping-summary.json" "iterations" "count")
+
+# Deep-recursion ramping
+DEEP_REC_RAMP_MIN=$(extract_metric "/tmp/deep-recursion-ramping-summary.json" "http_req_duration" "min")
+DEEP_REC_RAMP_P50=$(extract_metric "/tmp/deep-recursion-ramping-summary.json" "http_req_duration" "p(50)")
+DEEP_REC_RAMP_MAX=$(extract_metric "/tmp/deep-recursion-ramping-summary.json" "http_req_duration" "max")
+DEEP_REC_RAMP_AVG=$(extract_metric "/tmp/deep-recursion-ramping-summary.json" "http_req_duration" "avg")
+DEEP_REC_RAMP_P90=$(extract_metric "/tmp/deep-recursion-ramping-summary.json" "http_req_duration" "p(90)")
+DEEP_REC_RAMP_P95=$(extract_metric "/tmp/deep-recursion-ramping-summary.json" "http_req_duration" "p(95)")
+DEEP_REC_RAMP_RPS=$(extract_metric "/tmp/deep-recursion-ramping-summary.json" "http_reqs" "rate")
+DEEP_REC_RAMP_ERROR_RATE=$(extract_metric "/tmp/deep-recursion-ramping-summary.json" "http_req_failed" "rate")
+DEEP_REC_RAMP_ITERATIONS=$(extract_metric "/tmp/deep-recursion-ramping-summary.json" "iterations" "count")
+
+# Variable-batch ramping
+VAR_BATCH_RAMP_MIN=$(extract_metric "/tmp/variable-batch-ramping-summary.json" "http_req_duration" "min")
+VAR_BATCH_RAMP_P50=$(extract_metric "/tmp/variable-batch-ramping-summary.json" "http_req_duration" "p(50)")
+VAR_BATCH_RAMP_MAX=$(extract_metric "/tmp/variable-batch-ramping-summary.json" "http_req_duration" "max")
+VAR_BATCH_RAMP_AVG=$(extract_metric "/tmp/variable-batch-ramping-summary.json" "http_req_duration" "avg")
+VAR_BATCH_RAMP_P90=$(extract_metric "/tmp/variable-batch-ramping-summary.json" "http_req_duration" "p(90)")
+VAR_BATCH_RAMP_P95=$(extract_metric "/tmp/variable-batch-ramping-summary.json" "http_req_duration" "p(95)")
+VAR_BATCH_RAMP_RPS=$(extract_metric "/tmp/variable-batch-ramping-summary.json" "http_reqs" "rate")
+VAR_BATCH_RAMP_ERROR_RATE=$(extract_metric "/tmp/variable-batch-ramping-summary.json" "http_req_failed" "rate")
+VAR_BATCH_RAMP_ITERATIONS=$(extract_metric "/tmp/variable-batch-ramping-summary.json" "iterations" "count")
+
 # Create JSON output
 cat > "$OUTPUT_FILE" <<EOF
 {
@@ -361,56 +415,113 @@ cat > "$OUTPUT_FILE" <<EOF
   "tests": {
     "no-recursion": {
       "name": "Simple Composite Query Test",
-      "response_time": {
-        "min": ${NO_REC_MIN},
-        "p50": ${NO_REC_P50},
-        "max": ${NO_REC_MAX},
-        "avg": ${NO_REC_AVG},
-        "p90": ${NO_REC_P90},
-        "p95": ${NO_REC_P95}
+      "constant": {
+        "response_time": {
+          "min": ${NO_REC_MIN},
+          "p50": ${NO_REC_P50},
+          "max": ${NO_REC_MAX},
+          "avg": ${NO_REC_AVG},
+          "p90": ${NO_REC_P90},
+          "p95": ${NO_REC_P95}
+        },
+        "throughput": {
+          "requests_per_second": ${NO_REC_RPS},
+          "total_iterations": ${NO_REC_ITERATIONS}
+        },
+        "reliability": {
+          "error_rate": ${NO_REC_ERROR_RATE}
+        }
       },
-      "throughput": {
-        "requests_per_second": ${NO_REC_RPS},
-        "total_iterations": ${NO_REC_ITERATIONS}
-      },
-      "reliability": {
-        "error_rate": ${NO_REC_ERROR_RATE}
+      "ramping": {
+        "response_time": {
+          "min": ${NO_REC_RAMP_MIN},
+          "p50": ${NO_REC_RAMP_P50},
+          "max": ${NO_REC_RAMP_MAX},
+          "avg": ${NO_REC_RAMP_AVG},
+          "p90": ${NO_REC_RAMP_P90},
+          "p95": ${NO_REC_RAMP_P95}
+        },
+        "throughput": {
+          "requests_per_second": ${NO_REC_RAMP_RPS},
+          "total_iterations": ${NO_REC_RAMP_ITERATIONS}
+        },
+        "reliability": {
+          "error_rate": ${NO_REC_RAMP_ERROR_RATE}
+        }
       }
     },
     "deep-recursion": {
       "name": "Complex Nested Query Test",
-      "response_time": {
-        "min": ${DEEP_REC_MIN},
-        "p50": ${DEEP_REC_P50},
-        "max": ${DEEP_REC_MAX},
-        "avg": ${DEEP_REC_AVG},
-        "p90": ${DEEP_REC_P90},
-        "p95": ${DEEP_REC_P95}
+      "constant": {
+        "response_time": {
+          "min": ${DEEP_REC_MIN},
+          "p50": ${DEEP_REC_P50},
+          "max": ${DEEP_REC_MAX},
+          "avg": ${DEEP_REC_AVG},
+          "p90": ${DEEP_REC_P90},
+          "p95": ${DEEP_REC_P95}
+        },
+        "throughput": {
+          "requests_per_second": ${DEEP_REC_RPS},
+          "total_iterations": ${DEEP_REC_ITERATIONS}
+        },
+        "reliability": {
+          "error_rate": ${DEEP_REC_ERROR_RATE}
+        }
       },
-      "throughput": {
-        "requests_per_second": ${DEEP_REC_RPS},
-        "total_iterations": ${DEEP_REC_ITERATIONS}
-      },
-      "reliability": {
-        "error_rate": ${DEEP_REC_ERROR_RATE}
+      "ramping": {
+        "response_time": {
+          "min": ${DEEP_REC_RAMP_MIN},
+          "p50": ${DEEP_REC_RAMP_P50},
+          "max": ${DEEP_REC_RAMP_MAX},
+          "avg": ${DEEP_REC_RAMP_AVG},
+          "p90": ${DEEP_REC_RAMP_P90},
+          "p95": ${DEEP_REC_RAMP_P95}
+        },
+        "throughput": {
+          "requests_per_second": ${DEEP_REC_RAMP_RPS},
+          "total_iterations": ${DEEP_REC_RAMP_ITERATIONS}
+        },
+        "reliability": {
+          "error_rate": ${DEEP_REC_RAMP_ERROR_RATE}
+        }
       }
     },
     "variable-batch-throughput": {
       "name": "Variable Batching Throughput Test",
-      "response_time": {
-        "min": ${VAR_BATCH_MIN},
-        "p50": ${VAR_BATCH_P50},
-        "max": ${VAR_BATCH_MAX},
-        "avg": ${VAR_BATCH_AVG},
-        "p90": ${VAR_BATCH_P90},
-        "p95": ${VAR_BATCH_P95}
+      "constant": {
+        "response_time": {
+          "min": ${VAR_BATCH_MIN},
+          "p50": ${VAR_BATCH_P50},
+          "max": ${VAR_BATCH_MAX},
+          "avg": ${VAR_BATCH_AVG},
+          "p90": ${VAR_BATCH_P90},
+          "p95": ${VAR_BATCH_P95}
+        },
+        "throughput": {
+          "requests_per_second": ${VAR_BATCH_RPS},
+          "total_iterations": ${VAR_BATCH_ITERATIONS}
+        },
+        "reliability": {
+          "error_rate": ${VAR_BATCH_ERROR_RATE}
+        }
       },
-      "throughput": {
-        "requests_per_second": ${VAR_BATCH_RPS},
-        "total_iterations": ${VAR_BATCH_ITERATIONS}
-      },
-      "reliability": {
-        "error_rate": ${VAR_BATCH_ERROR_RATE}
+      "ramping": {
+        "response_time": {
+          "min": ${VAR_BATCH_RAMP_MIN},
+          "p50": ${VAR_BATCH_RAMP_P50},
+          "max": ${VAR_BATCH_RAMP_MAX},
+          "avg": ${VAR_BATCH_RAMP_AVG},
+          "p90": ${VAR_BATCH_RAMP_P90},
+          "p95": ${VAR_BATCH_RAMP_P95}
+        },
+        "throughput": {
+          "requests_per_second": ${VAR_BATCH_RAMP_RPS},
+          "total_iterations": ${VAR_BATCH_RAMP_ITERATIONS}
+        },
+        "reliability": {
+          "error_rate": ${VAR_BATCH_RAMP_ERROR_RATE}
+        }
       }
     }
   }
@@ -426,6 +537,9 @@ for i in $(seq 1 $NUM_RUNS); do
     rm -f /tmp/deep-recursion-summary-${i}.json
     rm -f /tmp/variable-batch-summary-${i}.json
 done
+rm -f /tmp/no-recursion-ramping-summary.json
+rm -f /tmp/deep-recursion-ramping-summary.json
+rm -f /tmp/variable-batch-ramping-summary.json
 
 echo ""
 echo -e "${GREEN}Performance test collection complete!${NC}"
