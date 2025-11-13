@@ -44,8 +44,17 @@ NO_REC_MAX=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\"
 NO_REC_AVG=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".response_time.avg")")
 NO_REC_P90=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".response_time.p90")")
 NO_REC_P95=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".response_time.p95")")
-NO_REC_P99=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".response_time.p99")")
 NO_REC_ERR=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"no-recursion\".reliability.error_rate")")
+
+# Extract metrics for deep-recursion test
+DEEP_REC_RPS=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".throughput.requests_per_second")")
+DEEP_REC_MIN=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".response_time.min")")
+DEEP_REC_P50=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".response_time.p50")")
+DEEP_REC_MAX=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".response_time.max")")
+DEEP_REC_AVG=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".response_time.avg")")
+DEEP_REC_P90=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".response_time.p90")")
+DEEP_REC_P95=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".response_time.p95")")
+DEEP_REC_ERR=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"deep-recursion\".reliability.error_rate")")
 
 # Extract metrics for variable-batch-throughput test
 VAR_BATCH_RPS=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".throughput.requests_per_second")")
@@ -55,7 +64,6 @@ VAR_BATCH_MAX=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-ba
 VAR_BATCH_AVG=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".response_time.avg")")
 VAR_BATCH_P90=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".response_time.p90")")
 VAR_BATCH_P95=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".response_time.p95")")
-VAR_BATCH_P99=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".response_time.p99")")
 VAR_BATCH_ERR=$(format_number "$(get_value "$CURRENT_FILE" ".tests.\"variable-batch-throughput\".reliability.error_rate")")
 
 # Start building markdown report
@@ -75,9 +83,9 @@ cat >> "$OUTPUT_MD" <<EOF
 <details>
 <summary>📊 Response Time Metrics</summary>
 
-| Min | Med | Max | Avg | P90 | P95 | P99 |
-|-----|-----|-----|-----|-----|-----|-----|
-| ${NO_REC_MIN}ms | ${NO_REC_P50}ms | ${NO_REC_MAX}ms | ${NO_REC_AVG}ms | ${NO_REC_P90}ms | ${NO_REC_P95}ms | ${NO_REC_P99}ms |
+| Min | Med | Max | Avg | P90 | P95 |
+|-----|-----|-----|-----|-----|-----|
+| ${NO_REC_MIN}ms | ${NO_REC_P50}ms | ${NO_REC_MAX}ms | ${NO_REC_AVG}ms | ${NO_REC_P90}ms | ${NO_REC_P95}ms |
 
 **Executed Query**
 
@@ -117,6 +125,84 @@ query TestQuery {
 
 </details>
 
+#### Deep Recursion Query
+
+| Requests/sec | Error Rate |
+|--------------|------------|
+| ${DEEP_REC_RPS} req/s | ${DEEP_REC_ERR}% |
+
+<details>
+<summary>📊 Response Time Metrics</summary>
+
+| Min | Med | Max | Avg | P90 | P95 |
+|-----|-----|-----|-----|-----|-----|
+| ${DEEP_REC_MIN}ms | ${DEEP_REC_P50}ms | ${DEEP_REC_MAX}ms | ${DEEP_REC_AVG}ms | ${DEEP_REC_P90}ms | ${DEEP_REC_P95}ms |
+
+**Executed Query**
+
+\`\`\`graphql
+fragment User on User {
+  id
+  username
+  name
+}
+
+fragment Review on Review {
+  id
+  body
+}
+
+fragment Product on Product {
+  inStock
+  name
+  price
+  shippingEstimate
+  upc
+  weight
+}
+
+query TestQuery {
+  users {
+    ...User
+    reviews {
+      ...Review
+      product {
+        ...Product
+        reviews {
+          ...Review
+          author {
+            ...User
+            reviews {
+              ...Review
+              product {
+                ...Product
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  topProducts(first: 5) {
+    ...Product
+    reviews {
+      ...Review
+      author {
+        ...User
+        reviews {
+          ...Review
+          product {
+            ...Product
+          }
+        }
+      }
+    }
+  }
+}
+\`\`\`
+
+</details>
+
 #### Variable Batching Throughput
 
 | Requests/sec | Error Rate |
@@ -126,9 +212,9 @@ query TestQuery {
 <details>
 <summary>📊 Response Time Metrics</summary>
 
-| Min | Med | Max | Avg | P90 | P95 | P99 |
-|-----|-----|-----|-----|-----|-----|-----|
-| ${VAR_BATCH_MIN}ms | ${VAR_BATCH_P50}ms | ${VAR_BATCH_MAX}ms | ${VAR_BATCH_AVG}ms | ${VAR_BATCH_P90}ms | ${VAR_BATCH_P95}ms | ${VAR_BATCH_P99}ms |
+| Min | Med | Max | Avg | P90 | P95 |
+|-----|-----|-----|-----|-----|-----|
+| ${VAR_BATCH_MIN}ms | ${VAR_BATCH_P50}ms | ${VAR_BATCH_MAX}ms | ${VAR_BATCH_AVG}ms | ${VAR_BATCH_P90}ms | ${VAR_BATCH_P95}ms |
 
 **Executed Query**
 

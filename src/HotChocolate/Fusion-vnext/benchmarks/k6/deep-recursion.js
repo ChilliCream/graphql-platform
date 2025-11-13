@@ -19,7 +19,6 @@ const summaryTrendStats = [
   "max",
   "p(90)",
   "p(95)",
-  "p(99.9)",
 ];
 
 export const options = isConstant

@@ -51,8 +51,8 @@ echo "Running each test ${NUM_RUNS} times to reduce variance"
 if $HAS_TASKSET; then
   echo "CPU Assignments:"
   echo "  k6:                cores 0-1"
-  echo "  Gateway:           cores 2-3 (no-recursion test)"
-  echo "  Source Schemas:    cores 4-15 (no-recursion test)"
+  echo "  Gateway:           cores 2-3 (no-recursion, deep-recursion tests)"
+  echo "  Source Schemas:    cores 4-15 (no-recursion, deep-recursion tests)"
   echo "  Inventory Service: cores 2-3 (variable-batch test)"
 fi
 echo ""
@@ -109,6 +109,16 @@ for i in $(seq 1 $NUM_RUNS); do
     echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
     start_infrastructure_no_recursion
     maybe_taskset "0-1" k6 run --summary-export=/tmp/no-recursion-summary-${i}.json "$SCRIPT_DIR/no-recursion.js"
+    stop_infrastructure
+done
+
+# Run deep-recursion test multiple times
+# k6 on cores 0-1, gateway on 2-3, sources on 4-15
+echo -e "${BLUE}Running Deep Recursion Test (${NUM_RUNS} runs)...${NC}"
+for i in $(seq 1 $NUM_RUNS); do
+    echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
+    start_infrastructure_no_recursion
+    maybe_taskset "0-1" k6 run --summary-export=/tmp/deep-recursion-summary-${i}.json "$SCRIPT_DIR/deep-recursion.js"
     stop_infrastructure
 done
 
@@ -182,7 +192,7 @@ echo -e "${YELLOW}Calculating median values from ${NUM_RUNS} runs...${NC}"
 
 # Arrays to store values from each run
 declare -a NO_REC_MIN_VALUES NO_REC_P50_VALUES NO_REC_MAX_VALUES NO_REC_AVG_VALUES
-declare -a NO_REC_P90_VALUES NO_REC_P95_VALUES NO_REC_P99_VALUES NO_REC_RPS_VALUES
+declare -a NO_REC_P90_VALUES NO_REC_P95_VALUES NO_REC_RPS_VALUES
 declare -a NO_REC_ERROR_VALUES NO_REC_ITERATIONS_VALUES
 
 # Extract metrics from each run
@@ -213,10 +223,6 @@ for i in $(seq 1 $NUM_RUNS); do
     [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "p(95)")
     NO_REC_P95_VALUES+=("$val")
 
-    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "p(99)")
-    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "p(99)")
-    NO_REC_P99_VALUES+=("$val")
-
     val=$(extract_metric "$file" "http_reqs{phase:measurement}" "rate")
     [ "$val" == "0" ] && val=$(extract_metric "$file" "http_reqs" "rate")
     NO_REC_RPS_VALUES+=("$val")
@@ -237,14 +243,61 @@ NO_REC_MAX=$(calculate_median "${NO_REC_MAX_VALUES[@]}")
 NO_REC_AVG=$(calculate_median "${NO_REC_AVG_VALUES[@]}")
 NO_REC_P90=$(calculate_median "${NO_REC_P90_VALUES[@]}")
 NO_REC_P95=$(calculate_median "${NO_REC_P95_VALUES[@]}")
-NO_REC_P99=$(calculate_median "${NO_REC_P99_VALUES[@]}")
 NO_REC_RPS=$(calculate_median "${NO_REC_RPS_VALUES[@]}")
 NO_REC_ERROR_RATE=$(calculate_median "${NO_REC_ERROR_VALUES[@]}")
 NO_REC_ITERATIONS=$(calculate_median "${NO_REC_ITERATIONS_VALUES[@]}")
 
+# Extract metrics from deep-recursion test (all runs) and calculate medians
+declare -a DEEP_REC_MIN_VALUES DEEP_REC_P50_VALUES DEEP_REC_MAX_VALUES DEEP_REC_AVG_VALUES
+declare -a DEEP_REC_P90_VALUES DEEP_REC_P95_VALUES DEEP_REC_RPS_VALUES
+declare -a DEEP_REC_ERROR_VALUES DEEP_REC_ITERATIONS_VALUES
+
+# Extract metrics from each run
+for i in $(seq 1 $NUM_RUNS); do
+    file="/tmp/deep-recursion-summary-${i}.json"
+
+    val=$(extract_metric "$file" "http_req_duration" "min")
+    DEEP_REC_MIN_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "http_req_duration" "p(50)")
+    DEEP_REC_P50_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "http_req_duration" "max")
+    DEEP_REC_MAX_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "http_req_duration" "avg")
+    DEEP_REC_AVG_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "http_req_duration" "p(90)")
+    DEEP_REC_P90_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "http_req_duration" "p(95)")
+    DEEP_REC_P95_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "http_reqs" "rate")
+    DEEP_REC_RPS_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "http_req_failed" "rate")
+    DEEP_REC_ERROR_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "iterations" "count")
+    DEEP_REC_ITERATIONS_VALUES+=("$val")
+done
+
+# Calculate medians
+DEEP_REC_MIN=$(calculate_median "${DEEP_REC_MIN_VALUES[@]}")
+DEEP_REC_P50=$(calculate_median "${DEEP_REC_P50_VALUES[@]}")
+DEEP_REC_MAX=$(calculate_median "${DEEP_REC_MAX_VALUES[@]}")
+DEEP_REC_AVG=$(calculate_median "${DEEP_REC_AVG_VALUES[@]}")
+DEEP_REC_P90=$(calculate_median "${DEEP_REC_P90_VALUES[@]}")
+DEEP_REC_P95=$(calculate_median "${DEEP_REC_P95_VALUES[@]}")
+DEEP_REC_RPS=$(calculate_median "${DEEP_REC_RPS_VALUES[@]}")
+DEEP_REC_ERROR_RATE=$(calculate_median "${DEEP_REC_ERROR_VALUES[@]}")
+DEEP_REC_ITERATIONS=$(calculate_median "${DEEP_REC_ITERATIONS_VALUES[@]}")
+
 # Extract metrics from variable-batch-throughput test (all runs) and calculate medians
 declare -a VAR_BATCH_MIN_VALUES VAR_BATCH_P50_VALUES VAR_BATCH_MAX_VALUES VAR_BATCH_AVG_VALUES
-declare -a VAR_BATCH_P90_VALUES VAR_BATCH_P95_VALUES VAR_BATCH_P99_VALUES VAR_BATCH_RPS_VALUES
+declare -a VAR_BATCH_P90_VALUES VAR_BATCH_P95_VALUES VAR_BATCH_RPS_VALUES
 declare -a VAR_BATCH_ERROR_VALUES VAR_BATCH_ITERATIONS_VALUES
 
 # Extract metrics from each run
@@ -275,10 +328,6 @@ for i in $(seq 1 $NUM_RUNS); do
     [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "p(95)")
     VAR_BATCH_P95_VALUES+=("$val")
 
-    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "p(99)")
-    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "p(99)")
-    VAR_BATCH_P99_VALUES+=("$val")
-
     val=$(extract_metric "$file" "http_reqs{phase:measurement}" "rate")
     [ "$val" == "0" ] && val=$(extract_metric "$file" "http_reqs" "rate")
     VAR_BATCH_RPS_VALUES+=("$val")
@@ -299,7 +348,6 @@ VAR_BATCH_MAX=$(calculate_median "${VAR_BATCH_MAX_VALUES[@]}")
 VAR_BATCH_AVG=$(calculate_median "${VAR_BATCH_AVG_VALUES[@]}")
 VAR_BATCH_P90=$(calculate_median "${VAR_BATCH_P90_VALUES[@]}")
 VAR_BATCH_P95=$(calculate_median "${VAR_BATCH_P95_VALUES[@]}")
-VAR_BATCH_P99=$(calculate_median "${VAR_BATCH_P99_VALUES[@]}")
 VAR_BATCH_RPS=$(calculate_median "${VAR_BATCH_RPS_VALUES[@]}")
 VAR_BATCH_ERROR_RATE=$(calculate_median "${VAR_BATCH_ERROR_VALUES[@]}")
 VAR_BATCH_ITERATIONS=$(calculate_median "${VAR_BATCH_ITERATIONS_VALUES[@]}")
@@ -319,8 +367,7 @@ cat > "$OUTPUT_FILE" <<EOF
         "max": ${NO_REC_MAX},
         "avg": ${NO_REC_AVG},
         "p90": ${NO_REC_P90},
-        "p95": ${NO_REC_P95},
-        "p99": ${NO_REC_P99}
+        "p95": ${NO_REC_P95}
       },
       "throughput": {
         "requests_per_second": ${NO_REC_RPS},
@@ -328,6 +375,24 @@ cat > "$OUTPUT_FILE" <<EOF
       },
       "reliability": {
         "error_rate": ${NO_REC_ERROR_RATE}
+      }
+    },
+    "deep-recursion": {
+      "name": "Complex Nested Query Test",
+      "response_time": {
+        "min": ${DEEP_REC_MIN},
+        "p50": ${DEEP_REC_P50},
+        "max": ${DEEP_REC_MAX},
+        "avg": ${DEEP_REC_AVG},
+        "p90": ${DEEP_REC_P90},
+        "p95": ${DEEP_REC_P95}
+      },
+      "throughput": {
+        "requests_per_second": ${DEEP_REC_RPS},
+        "total_iterations": ${DEEP_REC_ITERATIONS}
+      },
+      "reliability": {
+        "error_rate": ${DEEP_REC_ERROR_RATE}
       }
     },
     "variable-batch-throughput": {
@@ -338,8 +403,7 @@ cat > "$OUTPUT_FILE" <<EOF
         "max": ${VAR_BATCH_MAX},
         "avg": ${VAR_BATCH_AVG},
         "p90": ${VAR_BATCH_P90},
-        "p95": ${VAR_BATCH_P95},
-        "p99": ${VAR_BATCH_P99}
+        "p95": ${VAR_BATCH_P95}
       },
       "throughput": {
         "requests_per_second": ${VAR_BATCH_RPS},
@@ -359,6 +423,7 @@ cat "$OUTPUT_FILE"
 # Clean up temp files
 for i in $(seq 1 $NUM_RUNS); do
     rm -f /tmp/no-recursion-summary-${i}.json
+    rm -f /tmp/deep-recursion-summary-${i}.json
     rm -f /tmp/variable-batch-summary-${i}.json
 done
 
