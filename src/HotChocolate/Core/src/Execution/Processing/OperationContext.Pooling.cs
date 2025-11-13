@@ -53,6 +53,8 @@ internal sealed partial class OperationContext
 
     public bool IsInitialized => _isInitialized;
 
+    public bool IsSharedScheduler => !ReferenceEquals(_workScheduler, _currentWorkScheduler);
+
     public void Initialize(
         RequestContext requestContext,
         IServiceProvider scopedServices,
@@ -155,6 +157,14 @@ internal sealed partial class OperationContext
             _resolveQueryRootValue = null!;
             _batchDispatcher = null!;
             _isInitialized = false;
+        }
+    }
+
+    public void ResetScheduler()
+    {
+        if (_isInitialized)
+        {
+            _currentWorkScheduler = _workScheduler;
         }
     }
 
