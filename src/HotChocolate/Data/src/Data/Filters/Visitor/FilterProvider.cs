@@ -104,6 +104,8 @@ public abstract class FilterProvider<TContext>
 
             try
             {
+                // Can we pass it as parameters?
+                // What happens when concerete type is requested?
                 var optimizers = (IFilterFieldHandler<TContext>)ActivatorUtilities.GetServiceOrCreateInstance(services, type);
                 _fieldHandlers.Add(optimizers);
             }

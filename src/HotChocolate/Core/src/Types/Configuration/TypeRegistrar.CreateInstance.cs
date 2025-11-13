@@ -9,7 +9,7 @@ internal sealed partial class TypeRegistrar
     {
         try
         {
-            return (TypeSystemObject)ActivatorUtilities.CreateInstance(_combinedServices, namedSchemaType);
+            return (TypeSystemObject)ActivatorUtilities.CreateInstance(_applicationServices, namedSchemaType);
         }
         catch (Exception ex)
         {
