@@ -41,6 +41,7 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
     /// <returns>
     /// Returns the GraphQL configuration builder.
     /// </returns>
+    // TODO: Also for Fusion
     public static IRequestExecutorBuilder AddInstrumentation(
         this IRequestExecutorBuilder builder,
         Action<IServiceProvider, InstrumentationOptions> options)
