@@ -40,11 +40,11 @@ public sealed class Resolver
             }
         }
 
-        var attributes = member.GetAttributes();
-        Shareable = attributes.GetShareableScope();
-        Inaccessible = attributes.GetInaccessibleScope();
-        IsNodeResolver = attributes.IsNodeResolver();
-        Attributes = attributes.GetUserAttributes();
+        Attributes = member.GetAttributes();
+        Shareable = Attributes.GetShareableScope();
+        Inaccessible = Attributes.GetInaccessibleScope();
+        IsNodeResolver = Attributes.IsNodeResolver();
+        DescriptorAttributes = Attributes.GetUserAttributes();
     }
 
     public string FieldName { get; }
@@ -89,6 +89,8 @@ public sealed class Resolver
     public DirectiveScope Inaccessible { get; }
 
     public ImmutableArray<AttributeData> Attributes { get; }
+
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
 
     public Resolver WithSchemaTypeName(SchemaTypeReference schemaTypeRef)
         => new Resolver(

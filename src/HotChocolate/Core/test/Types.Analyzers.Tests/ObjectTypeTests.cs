@@ -477,6 +477,86 @@ public class ObjectTypeTests
     }
 
     [Fact]
+    public async Task GraphQLType_String_On_Parameter_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Book
+            {
+                public int Id { get; set; }
+                public string Title { get; set; }
+                public int AuthorId { get; set; }
+            }
+
+            [ObjectType<Book>]
+            internal static partial class BookNode
+            {
+                [BindMember(nameof(Book.AuthorId))]
+                public static Task<Author?> GetAuthorAsync(
+                    [Parent] Book book,
+                    [GraphQLType("[String]")] int version,
+                    CancellationToken cancellationToken)
+                    => default;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GraphQLType_NonGeneric_On_Parameter_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Book
+            {
+                public int Id { get; set; }
+                public string Title { get; set; }
+                public int AuthorId { get; set; }
+            }
+
+            [ObjectType<Book>]
+            internal static partial class BookNode
+            {
+                [BindMember(nameof(Book.AuthorId))]
+                public static Task<Author?> GetAuthorAsync(
+                    [Parent] Book book,
+                    [GraphQLType(typeof(StringType))] int version,
+                    CancellationToken cancellationToken)
+                    => default;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task GraphQLType_On_Resolver_MatchesSnapshot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

@@ -1,4 +1,4 @@
-# GraphQLType_On_Parameter_MatchesSnapshot
+# GraphQLType_NonGeneric_On_Parameter_MatchesSnapshot
 
 ## BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs
 
@@ -110,7 +110,7 @@ namespace TestNamespace
                     typeof(int),
                     isNullable: false,
                     [
-                        new global::HotChocolate.GraphQLTypeAttribute<global::HotChocolate.Types.StringType>()
+                        new global::HotChocolate.GraphQLTypeAttribute(typeof(global::HotChocolate.Types.StringType))
                     ]);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetAuthorAsync()

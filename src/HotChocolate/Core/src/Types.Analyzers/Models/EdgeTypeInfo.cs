@@ -28,9 +28,10 @@ public sealed class EdgeTypeInfo
         Description = description;
         ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
+        Attributes = attributes;
         Shareable = attributes.GetShareableScope();
         Inaccessible = attributes.GetInaccessibleScope();
-        Attributes = attributes.GetUserAttributes();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string Name { get; }
@@ -64,6 +65,8 @@ public sealed class EdgeTypeInfo
     public DirectiveScope Inaccessible { get; private set; }
 
     public ImmutableArray<AttributeData> Attributes { get; }
+
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
 
     public override string OrderByKey => RuntimeTypeFullName;
 

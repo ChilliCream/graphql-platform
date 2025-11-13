@@ -133,7 +133,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         rooType.SourceSchemaDetected =
             rooType.Shareable is not DirectiveScope.None
                 || rooType.Inaccessible is not DirectiveScope.None
-                || rooType.Attributes.HasSourceSchemaAttribute()
+                || rooType.DescriptorAttributes.HasSourceSchemaAttribute()
                 || rooType.Resolvers.Any(r => r.HasSourceSchemaAttribute());
 
         if (diagnostics.Length > 0)
@@ -385,7 +385,7 @@ file static class Extensions
             return true;
         }
 
-        return resolver.Attributes.HasSourceSchemaAttribute();
+        return resolver.DescriptorAttributes.HasSourceSchemaAttribute();
     }
 
     public static bool HasSourceSchemaAttribute(this ImmutableArray<AttributeData> attributes)

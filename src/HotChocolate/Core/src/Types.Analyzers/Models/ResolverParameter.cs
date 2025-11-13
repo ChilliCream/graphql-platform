@@ -42,7 +42,7 @@ public sealed class ResolverParameter
             Requirements = requiresArg.Value as string;
         }
 
-        Attributes = Attributes.GetUserAttributes();
+        DescriptorAttributes = Attributes.GetUserAttributes();
     }
 
     public string Name { get; }
@@ -65,6 +65,8 @@ public sealed class ResolverParameter
     public ResolverParameterKind Kind { get; }
 
     public ImmutableArray<AttributeData> Attributes { get; }
+
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
 
     public string? Requirements { get; }
 

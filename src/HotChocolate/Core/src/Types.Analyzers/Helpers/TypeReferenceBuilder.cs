@@ -16,41 +16,52 @@ public static class TypeReferenceBuilder
     public static SchemaTypeReference CreateTypeReference(this Compilation compilation, ISymbol member)
     {
         var typeAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.GraphQLTypeAttribute);
+        var genericTypeAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.GraphQLTypeAttribute + "`1");
 
         if (typeAttribute is not null)
         {
             foreach (var attributeData in member.GetAttributes())
             {
-                // Check if this is GraphQLTypeAttribute or derived (like GraphQLTypeAttribute<T>)
                 var attributeClass = attributeData.AttributeClass;
-                while (attributeClass is not null)
+
+                if (attributeClass is null)
                 {
-                    if (SymbolEqualityComparer.Default.Equals(attributeClass.OriginalDefinition, typeAttribute))
+                    continue;
+                }
+
+                // we check first if it is the generic type attribute GraphQLTypeAttribute<T>
+                if (SymbolEqualityComparer.Default.Equals(attributeClass.OriginalDefinition, genericTypeAttribute))
+                {
+                    var typeArgument = attributeClass.TypeArguments[0];
+                    return new SchemaTypeReference(
+                        SchemaTypeReferenceKind.ExtendedTypeReference,
+                        typeArgument.ToFullyQualified());
+                }
+
+                // next we check if it is the non-generic type attribute GraphQLTypeAttribute
+                if (SymbolEqualityComparer.Default.Equals(attributeClass, typeAttribute))
+                {
+                    // if no constructor args are set we skip the attribute
+                    if (attributeData.ConstructorArguments.Length == 0)
                     {
-                        // Check constructor arguments
-                        if (attributeData.ConstructorArguments.Length > 0)
-                        {
-                            var argument = attributeData.ConstructorArguments[0];
-
-                            // Type argument (Type type)
-                            if (argument is { Kind: TypedConstantKind.Type, Value: ITypeSymbol typeSymbol })
-                            {
-                                return new SchemaTypeReference(
-                                    SchemaTypeReferenceKind.ExtendedTypeReference,
-                                    typeSymbol.ToFullyQualified());
-                            }
-
-                            // String argument (string typeSyntax)
-                            if (argument is { Kind: TypedConstantKind.Primitive, Value: string syntax })
-                            {
-                                return new SchemaTypeReference(
-                                    SchemaTypeReferenceKind.ExtendedTypeReference,
-                                    syntax);
-                            }
-                        }
+                        continue;
                     }
 
-                    attributeClass = attributeClass.BaseType;
+                    var argument = attributeData.ConstructorArguments[0];
+
+                    if (argument is { Kind: TypedConstantKind.Type, Value: ITypeSymbol typeSymbol })
+                    {
+                        return new SchemaTypeReference(
+                            SchemaTypeReferenceKind.ExtendedTypeReference,
+                            typeSymbol.ToFullyQualified());
+                    }
+
+                    if (argument is { Kind: TypedConstantKind.Primitive, Value: string syntax })
+                    {
+                        return new SchemaTypeReference(
+                            SchemaTypeReferenceKind.SyntaxTypeReference,
+                            syntax);
+                    }
                 }
             }
         }

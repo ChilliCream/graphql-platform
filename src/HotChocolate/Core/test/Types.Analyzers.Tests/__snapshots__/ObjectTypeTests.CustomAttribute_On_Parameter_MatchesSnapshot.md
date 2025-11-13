@@ -109,7 +109,9 @@ namespace TestNamespace
                     "version",
                     typeof(int),
                     isNullable: false,
-                    []);
+                    [
+                        new global::TestNamespace.FooAttribute()
+                    ]);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetAuthorAsync()
                 => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetAuthorAsync);

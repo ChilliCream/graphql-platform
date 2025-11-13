@@ -388,7 +388,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                     Writer.WriteIndentedLine("};");
 
-                    if (parameter.Attributes.Length > 0)
+                    if (parameter.DescriptorAttributes.Length > 0)
                     {
                         Writer.WriteLine();
                         Writer.WriteIndentedLine(
@@ -404,7 +404,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                             Writer.WriteIndentedLine("null,");
 
                             var first = true;
-                            foreach (var attribute in parameter.Attributes)
+                            foreach (var attribute in parameter.DescriptorAttributes)
                             {
                                 if (!first)
                                 {
@@ -429,7 +429,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             }
         }
 
-        if (resolver.Attributes.Length > 0 || resolver.IsNodeResolver)
+        if (resolver.DescriptorAttributes.Length > 0 || resolver.IsNodeResolver)
         {
             Writer.WriteLine();
             Writer.WriteIndentedLine("configuration.Member = context.ThisType.GetMethod(");
@@ -477,7 +477,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             }
         }
 
-        if (resolver.Attributes.Length > 0)
+        if (resolver.DescriptorAttributes.Length > 0)
         {
             Writer.WriteLine();
             Writer.WriteIndentedLine(
@@ -493,7 +493,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 Writer.WriteIndentedLine("configuration.Member,");
 
                 var first = true;
-                foreach (var attribute in resolver.Attributes)
+                foreach (var attribute in resolver.DescriptorAttributes)
                 {
                     if (!first)
                     {

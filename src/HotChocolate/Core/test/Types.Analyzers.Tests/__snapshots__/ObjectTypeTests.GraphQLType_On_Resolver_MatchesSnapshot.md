@@ -60,7 +60,7 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("version", global::HotChocolate.Types.MemberKind.Argument),
-                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<int>>>), HotChocolate.Types.TypeContext.Input),
+                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.StringType), HotChocolate.Types.TypeContext.Input),
                             RuntimeType = typeof(int)
                         };
 
@@ -109,7 +109,9 @@ namespace TestNamespace
                     "version",
                     typeof(int),
                     isNullable: false,
-                    []);
+                    [
+                        new global::HotChocolate.GraphQLTypeAttribute<global::HotChocolate.Types.StringType>()
+                    ]);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetAuthorAsync()
                 => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetAuthorAsync);
