@@ -169,7 +169,7 @@ internal sealed class SelectionExpressionBuilder
     {
         var assignments = ImmutableArray.CreateBuilder<MemberAssignment>();
 
-        // order by property name so expressions evalutate to the same hash regardless of selection order
+        // order by property name so expressions evaluate to the same hash regardless of selection order
         foreach (var property in parent.Nodes.OrderBy(node => node.Property.Name))
         {
             var assignment = BuildAssignmentExpression(property, context);
