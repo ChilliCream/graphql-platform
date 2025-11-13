@@ -115,6 +115,7 @@ NSwag
 ntouches
 nwithin
 oncall
+opencover
 OpenIddict
 opensgid
 OPTOUT
