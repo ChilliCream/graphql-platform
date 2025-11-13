@@ -37,6 +37,7 @@ public static class WellKnownAttributes
     public const string DescriptorAttribute = "HotChocolate.Types.DescriptorAttribute";
     public const string GraphQLDeprecatedAttribute = "HotChocolate.GraphQLDeprecatedAttribute";
     public const string ObsoleteAttribute = "System.ObsoleteAttribute";
+    public const string GraphQLTypeAttribute = "HotChocolate.GraphQLTypeAttribute";
 
     public static HashSet<string> BindAttributes { get; } =
     [
