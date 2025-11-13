@@ -4,6 +4,7 @@ namespace HotChocolate;
 /// Allows access to the root service provider.
 /// This allows schema services to access application level services.
 /// </summary>
+// TODO: Remove this
 public interface IRootServiceProviderAccessor
 {
     /// <summary>
