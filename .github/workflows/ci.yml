@@ -91,7 +91,7 @@ jobs:
         name: Setup node
         with:
           node-version: 22
-      - run: npm install -g markdownlint-cli2
+      - run: npm install -g markdownlint-cli2@0.19.0
         name: Install markdownlint-cli2
       - run: markdownlint-cli2 "*.md" "website/src/**/*.md"
         name: run Markdownlint
