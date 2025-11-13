@@ -1,8 +1,10 @@
+using System.Diagnostics;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.Helpers;
 
-public static class GraphQLTypeBuilder
+public static class TypeReferenceBuilder
 {
     private static readonly HashSet<string> s_nonEssentialWrapperTypes =
     [
@@ -11,13 +13,57 @@ public static class GraphQLTypeBuilder
         "HotChocolate.Optional<T>"
     ];
 
-    public static string ToSchemaType(ITypeSymbol typeSymbol, Compilation compilation)
+    public static SchemaTypeReference CreateTypeReference(this Compilation compilation, ISymbol member)
     {
+        var typeAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.GraphQLTypeAttribute);
+
+        if (typeAttribute is not null)
+        {
+            foreach (var attributeData in member.GetAttributes())
+            {
+                // Check if this is GraphQLTypeAttribute or derived (like GraphQLTypeAttribute<T>)
+                var attributeClass = attributeData.AttributeClass;
+                while (attributeClass is not null)
+                {
+                    if (SymbolEqualityComparer.Default.Equals(attributeClass.OriginalDefinition, typeAttribute))
+                    {
+                        // Check constructor arguments
+                        if (attributeData.ConstructorArguments.Length > 0)
+                        {
+                            var argument = attributeData.ConstructorArguments[0];
+
+                            // Type argument (Type type)
+                            if (argument is { Kind: TypedConstantKind.Type, Value: ITypeSymbol typeSymbol })
+                            {
+                                return new SchemaTypeReference(
+                                    SchemaTypeReferenceKind.ExtendedTypeReference,
+                                    typeSymbol.ToFullyQualified());
+                            }
+
+                            // String argument (string typeSyntax)
+                            if (argument is { Kind: TypedConstantKind.Primitive, Value: string syntax })
+                            {
+                                return new SchemaTypeReference(
+                                    SchemaTypeReferenceKind.ExtendedTypeReference,
+                                    syntax);
+                            }
+                        }
+                    }
+
+                    attributeClass = attributeClass.BaseType;
+                }
+            }
+        }
+
+        Debug.Assert(member.GetReturnType() is not null);
+
         // First, we unwrap any non-essential wrapper types and IFieldResult implementations.
-        var unwrapped = UnwrapNonEssentialTypes(typeSymbol, compilation);
+        var unwrapped = UnwrapNonEssentialTypes(member.GetReturnType()!, compilation);
 
         // Then we build the GraphQL type string.
-        return $"global::HotChocolate.Internal.SourceGeneratedType<{BuildTypeCore(unwrapped)}>";
+        return new SchemaTypeReference(
+            SchemaTypeReferenceKind.ExtendedTypeReference,
+            $"global::HotChocolate.Internal.SourceGeneratedType<{BuildTypeCore(unwrapped)}>");
     }
 
     private static ITypeSymbol UnwrapNonEssentialTypes(ITypeSymbol typeSymbol, Compilation compilation)

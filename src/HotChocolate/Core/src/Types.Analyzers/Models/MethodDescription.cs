@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Analyzers.Models;
 /// <summary>
 /// Contains documentation extracted from XML comments for a method.
 /// </summary>
-public readonly struct MethodDescription
+public readonly struct MethodDescription : IMemberDescription
 {
     /// <summary>
     /// Initializes a new instance of <see cref="MethodDescription"/>.
@@ -32,4 +32,19 @@ public readonly struct MethodDescription
     /// Each element is <c>null</c> if the parameter is not documented.
     /// </summary>
     public ImmutableArray<string?> ParameterDescriptions { get; }
+}
+
+public readonly struct PropertyDescription : IMemberDescription
+{
+    public PropertyDescription(string? description)
+    {
+        Description = description;
+    }
+
+    public string? Description { get; }
+}
+
+public interface IMemberDescription
+{
+    string? Description { get; }
 }

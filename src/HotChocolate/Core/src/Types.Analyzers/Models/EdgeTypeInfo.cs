@@ -25,6 +25,7 @@ public sealed class EdgeTypeInfo
         RuntimeTypeFullName = runtimeType.ToDisplayString();
         RuntimeType = runtimeType;
         Namespace = @namespace;
+        Description = description;
         ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
         Shareable = attributes.GetShareableScope();
@@ -167,11 +168,12 @@ public sealed class EdgeTypeInfo
                         new Resolver(
                             edgeName,
                             property,
+                            compilation.GetDescription(property, []),
+                            compilation.GetDeprecationReason(property),
                             ResolverResultKind.Pure,
                             [],
                             ObjectTypeInspector.GetMemberBindings(member),
-                            GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
-                            compilation,
+                            compilation.CreateTypeReference(property),
                             flags: FieldFlags.None));
                     break;
             }

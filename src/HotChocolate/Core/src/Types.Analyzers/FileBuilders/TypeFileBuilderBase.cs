@@ -226,10 +226,23 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         IOutputTypeInfo type,
         Resolver resolver)
     {
-        Writer.WriteIndentedLine(
-            "configuration.Type = typeInspector.GetTypeRef(typeof({0}), {1}.Output);",
-            resolver.SchemaTypeName,
-            WellKnownTypes.TypeContext);
+        switch (resolver.SchemaTypeRef.Kind)
+        {
+            case SchemaTypeReferenceKind.ExtendedTypeReference:
+                Writer.WriteIndentedLine(
+                    "configuration.Type = typeInspector.GetTypeRef(typeof({0}), {1}.Output);",
+                    resolver.SchemaTypeRef.TypeString,
+                    WellKnownTypes.TypeContext);
+                break;
+            case SchemaTypeReferenceKind.SyntaxTypeReference:
+                Writer.WriteIndentedLine(
+                    "configuration.Type = TypeReference.Create(\"{0}\", {1}.Output));",
+                    resolver.SchemaTypeRef.TypeString,
+                    WellKnownTypes.TypeContext);
+                break;
+            default:
+                throw new NotSupportedException();
+        }
     }
 
     private void WriteResolverBindingExtendsWith(
@@ -350,10 +363,23 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                             Writer.WriteIndentedLine("RuntimeDefaultValue = {0},", defaultValueString);
                         }
 
-                        Writer.WriteIndentedLine(
-                            "Type = typeInspector.GetTypeRef(typeof({0}), {1}.Input),",
-                            parameter.SchemaTypeName,
-                            WellKnownTypes.TypeContext);
+                        switch (parameter.SchemaTypeRef.Kind)
+                        {
+                            case SchemaTypeReferenceKind.ExtendedTypeReference:
+                                Writer.WriteIndentedLine(
+                                    "Type = typeInspector.GetTypeRef(typeof({0}), {1}.Input),",
+                                    parameter.SchemaTypeRef.TypeString,
+                                    WellKnownTypes.TypeContext);
+                                break;
+                            case SchemaTypeReferenceKind.SyntaxTypeReference:
+                                Writer.WriteIndentedLine(
+                                    "Type = TypeReference.Create(\"{0}\", {1}.Input)),",
+                                    parameter.SchemaTypeRef.TypeString,
+                                    WellKnownTypes.TypeContext);
+                                break;
+                            default:
+                                throw new NotSupportedException();
+                        }
 
                         Writer.WriteIndentedLine(
                             "RuntimeType = typeof({0})",

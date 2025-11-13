@@ -175,11 +175,12 @@ public sealed class ConnectionTypeInfo
                         new Resolver(
                             connectionName,
                             property,
+                            compilation.GetDescription(property, []),
+                            compilation.GetDeprecationReason(property),
                             ResolverResultKind.Pure,
                             [],
                             GetMemberBindings(property),
-                            GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
-                            compilation,
+                            compilation.CreateTypeReference(property),
                             flags: flags));
                     break;
             }
