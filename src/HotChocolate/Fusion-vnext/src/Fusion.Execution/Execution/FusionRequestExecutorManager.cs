@@ -375,6 +375,9 @@ internal sealed class FusionRequestExecutorManager
         FusionOptions options,
         FusionRequestOptions requestOptions)
     {
+        services.AddSingleton<IRootServiceProviderAccessor>(
+            new RootServiceProviderAccessor(_applicationServices));
+
         services.AddSingleton(static _ => new RequestExecutorAccessor());
         services.AddSingleton(static sp => sp.GetRequiredService<RequestExecutorAccessor>().RequestExecutor);
         services.AddSingleton<IRequestExecutor>(sp => sp.GetRequiredService<FusionRequestExecutor>());
