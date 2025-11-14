@@ -19,6 +19,9 @@ public sealed class SourceSchemaPreprocessorTests
                     productById(id: ID!): Product @lookup
                     productByIdAgain(id: ID!): Product @lookup
                     productByIdAndCategoryId(id: ID!, categoryId: Int): Product @lookup
+                    productByIdOrCategoryId(
+                        idOrCategoryId: IdOrCategoryIdInput! @is(field: "{ id } | { categoryId }")
+                    ): Product @lookup
                     petById(id: ID!): Pet @lookup # interface
                     fruitById(id: ID!): Fruit @lookup # union
                 }
@@ -34,6 +37,11 @@ public sealed class SourceSchemaPreprocessorTests
 
                 type Product {
                     id: ID!
+                    categoryId: Int
+                }
+
+                input IdOrCategoryIdInput @oneOf {
+                    id: ID
                     categoryId: Int
                 }
 
