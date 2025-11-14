@@ -3,7 +3,7 @@ using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Definitions;
 
-public sealed class CacheControlMutableDirectiveDefinition : MutableDirectiveDefinition
+internal sealed class CacheControlMutableDirectiveDefinition : MutableDirectiveDefinition
 {
     public CacheControlMutableDirectiveDefinition(
         MutableScalarTypeDefinition intType,

@@ -2,7 +2,7 @@ using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Definitions;
 
-public sealed class CacheControlScopeMutableEnumTypeDefinition : MutableEnumTypeDefinition
+internal sealed class CacheControlScopeMutableEnumTypeDefinition : MutableEnumTypeDefinition
 {
     public CacheControlScopeMutableEnumTypeDefinition()
         : base(WellKnownTypeNames.CacheControlScope)

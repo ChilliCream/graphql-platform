@@ -4,7 +4,7 @@ using static HotChocolate.Fusion.Properties.CompositionResources;
 
 namespace HotChocolate.Fusion.Directives;
 
-public sealed class TagDirective(string name)
+internal sealed class TagDirective(string name)
 {
     public string Name { get; set; } = name;
 

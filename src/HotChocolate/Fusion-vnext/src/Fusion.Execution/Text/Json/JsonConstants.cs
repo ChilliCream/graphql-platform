@@ -12,7 +12,7 @@ internal static class JsonConstants
     public const byte CarriageReturn = (byte)'\r';
     public const byte LineFeed = (byte)'\n';
     public const byte Tab = (byte)'\t';
-    public const byte ListSeparator = (byte)',';
+    public const byte Comma = (byte)',';
     public const byte KeyValueSeparator = (byte)':';
     public const byte Quote = (byte)'"';
     public const byte BackSlash = (byte)'\\';
@@ -27,12 +27,15 @@ internal static class JsonConstants
     public const byte UtcOffsetToken = (byte)'Z';
     public const byte TimePrefix = (byte)'T';
 
-    public const string NewLineLineFeed = "\n";
-    public const string NewLineCarriageReturnLineFeed = "\r\n";
+    public const byte NewLineLineFeed = (byte)'\n';
 
     // \u2028 and \u2029 are considered respectively line and paragraph separators
     // UTF-8 representation for them is E2, 80, A8/A9
     public const byte StartingByteOfNonStandardSeparator = 0xE2;
+
+    public static ReadOnlySpan<byte> Data => "data"u8;
+    public static ReadOnlySpan<byte> Errors => "errors"u8;
+    public static ReadOnlySpan<byte> Extensions => "extensions"u8;
 
     public static ReadOnlySpan<byte> Utf8Bom => [0xEF, 0xBB, 0xBF];
     public static ReadOnlySpan<byte> TrueValue => "true"u8;
