@@ -32,11 +32,11 @@ public sealed class OpenApiValidationResult
     /// Creates a validation result with errors.
     /// </summary>
     public static OpenApiValidationResult Failure(params OpenApiValidationError[] errors)
-        => new(false, [..errors]);
+        => new(false, [.. errors]);
 
     /// <summary>
     /// Creates a validation result with errors.
     /// </summary>
     public static OpenApiValidationResult Failure(IEnumerable<OpenApiValidationError> errors)
-        => new(false, [..errors]);
+        => new(false, [.. errors]);
 }

@@ -91,7 +91,7 @@ internal sealed class DynamicEndpointMiddleware(
                 await result.ExecuteAsync(context);
                 return;
             }
-            
+
             var formatter = session.Schema.Services.GetRequiredService<IOpenApiResultFormatter>();
 
             await formatter.FormatResultAsync(operationResult, context, endpointDescriptor, cancellationToken);
@@ -114,7 +114,7 @@ internal sealed class DynamicEndpointMiddleware(
     {
         var variables = new Dictionary<string, object?>();
 
-        if (endpointDescriptor.VariableFilledThroughBody is {} bodyVariable)
+        if (endpointDescriptor.VariableFilledThroughBody is { } bodyVariable)
         {
             const int chunkSize = 256;
             using var writer = new PooledArrayWriter();
@@ -272,7 +272,7 @@ internal sealed class DynamicEndpointMiddleware(
         if (leaf.ParameterType is OpenApiEndpointParameterType.Query)
         {
             if (!query.TryGetValue(leaf.ParameterKey, out var values)
-                || values is not [{} value])
+                || values is not [{ } value])
             {
                 return s_nullValueNode;
             }

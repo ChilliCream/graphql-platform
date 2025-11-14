@@ -13,8 +13,10 @@ internal sealed class OperationMustCompileAgainstSchemaRule : IOpenApiOperationD
         IOpenApiValidationContext context,
         CancellationToken cancellationToken)
     {
-        var definitions = new List<IDefinitionNode>();
-        definitions.Add(document.OperationDefinition);
+        var definitions = new List<IDefinitionNode>
+        {
+            document.OperationDefinition
+        };
         definitions.AddRange(document.LocalFragmentLookup.Values);
 
         var fragmentReferences = new Queue<string>(document.ExternalFragmentReferences);

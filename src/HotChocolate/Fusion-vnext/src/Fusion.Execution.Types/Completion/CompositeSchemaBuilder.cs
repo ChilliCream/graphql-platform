@@ -775,7 +775,7 @@ internal static class CompositeSchemaBuilder
 
         // if we have a @serializeAs directive we're going to set the
         // SerializationType and Pattern property.
-        ScalarSerializationType type = ScalarSerializationType.Undefined;
+        var type = ScalarSerializationType.Undefined;
         string? pattern = null;
         var serializeAs = typeDefinitionNode.Directives.FirstOrDefault(
             t => t.Name.Value.Equals(SerializeAs.Name));
