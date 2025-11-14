@@ -79,16 +79,20 @@ internal static class MutableOutputFieldDefinitionExtensions
         return ParseSelectionSet($"{{ {requirements} }}");
     }
 
+    /// <summary>
+    /// Rewrites the provided value selections into a selection set string that can be used in a key
+    /// directive.
+    /// <example>["a", "b.c"] -> "a b { c }"</example>
+    /// </summary>
     public static string GetKeyFields(
         this MutableOutputFieldDefinition field,
-        List<string> lookupMap,
+        List<IValueSelectionNode> valueSelections,
         MutableSchemaDefinition schema)
     {
-        var selectedValues = lookupMap.Select(a => new FieldSelectionMapParser(a).Parse());
         var valueSelectionToSelectionSetRewriter =
             new ValueSelectionToSelectionSetRewriter(schema, ignoreMissingTypeSystemMembers: true);
         var fieldType = field.Type.AsTypeDefinition();
-        var selectionSets = selectedValues
+        var selectionSets = valueSelections
             .Select(s => valueSelectionToSelectionSetRewriter.Rewrite(s, fieldType))
             .ToImmutableArray();
         var mergedSelectionSet = selectionSets.Length == 1
@@ -104,6 +108,35 @@ internal static class MutableOutputFieldDefinitionExtensions
             field.Directives.AsEnumerable().SingleOrDefault(d => d.Name == DirectiveNames.Override);
 
         return (string?)overrideDirective?.Arguments[ArgumentNames.From].Value;
+    }
+
+    /// <summary>
+    /// Gets all combinations of value selections after splitting choice nodes.
+    /// <example>["a", "{ b } | { c }"] -> [["a", "b"], ["a", "c"]]</example>
+    /// </summary>
+    public static List<List<IValueSelectionNode>> GetValueSelectionGroups(
+        this MutableOutputFieldDefinition field)
+    {
+        var lookupMap = field.GetFusionLookupMap();
+        var valueSelections = lookupMap.Select(a => new FieldSelectionMapParser(a).Parse());
+
+        var valueSelectionGroups = valueSelections.Select(v =>
+        {
+            List<IValueSelectionNode> items = [];
+
+            if (v is ChoiceValueSelectionNode choiceValueSelectionNode)
+            {
+                items.AddRange(choiceValueSelectionNode.Branches.ToArray());
+            }
+            else
+            {
+                items.Add(v);
+            }
+
+            return items.ToArray();
+        });
+
+        return GetAllCombinations(valueSelectionGroups.ToArray());
     }
 
     public static bool IsPartial(this MutableOutputFieldDefinition field, string schemaName)
@@ -170,5 +203,33 @@ internal static class MutableOutputFieldDefinitionExtensions
 
         public ProvidesInfo? ProvidesInfo
             => outputField.Features.GetRequired<SourceOutputFieldMetadata>().ProvidesInfo;
+    }
+
+    private static List<List<T>> GetAllCombinations<T>(params T[][] arrays)
+    {
+        if (arrays.Length == 0)
+        {
+            return [[]];
+        }
+
+        var result = new List<List<T>> { new() };
+
+        foreach (var array in arrays)
+        {
+            var temp = new List<List<T>>();
+
+            foreach (var item in array)
+            {
+                foreach (var combination in result)
+                {
+                    var newCombination = new List<T>(combination) { item };
+                    temp.Add(newCombination);
+                }
+            }
+
+            result = temp;
+        }
+
+        return result;
     }
 }

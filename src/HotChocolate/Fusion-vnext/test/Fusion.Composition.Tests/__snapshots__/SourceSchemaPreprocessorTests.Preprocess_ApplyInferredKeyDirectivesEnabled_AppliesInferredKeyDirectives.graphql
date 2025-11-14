@@ -18,6 +18,9 @@ type Query {
     @lookup
   productByIdAndCategoryId(categoryId: Int id: ID!): Product
     @lookup
+  productByIdOrCategoryId(idOrCategoryId: IdOrCategoryIdInput!
+    @is(field: "{ id } | { categoryId }")): Product
+    @lookup
 }
 
 type Address {
@@ -53,7 +56,8 @@ type Person
 
 type Product
   @key(fields: "id")
-  @key(fields: "id categoryId") {
+  @key(fields: "id categoryId")
+  @key(fields: "categoryId") {
   categoryId: Int
   id: ID!
 }
@@ -64,3 +68,9 @@ interface Pet
 }
 
 union Fruit = Apple | Orange
+
+input IdOrCategoryIdInput
+  @oneOf {
+  categoryId: Int
+  id: ID
+}

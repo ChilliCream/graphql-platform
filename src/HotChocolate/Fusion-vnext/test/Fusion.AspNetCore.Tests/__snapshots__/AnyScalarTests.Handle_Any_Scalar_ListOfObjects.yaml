@@ -1,0 +1,106 @@
+title: Handle_Any_Scalar_ListOfObjects
+request:
+  document: |
+    {
+      listOfObjects
+    }
+response:
+  body: |
+    {
+      "data": {
+        "listOfObjects": [
+          {
+            "id": 1,
+            "name": "Alice"
+          },
+          {
+            "id": 2,
+            "name": "Bob"
+          },
+          {
+            "id": 3,
+            "name": "Charlie"
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        object: Any
+        simpleValues: Any
+        list: Any
+        nestedObject: Any
+        listOfObjects: Any
+        objectWithLists: Any
+        complexNested: Any
+        nullValue: Any
+      }
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      directive @serializeAs("The primitive type a scalar is serialized to." type: [ScalarSerializationType!]! "The ECMA-262 regex pattern that the serialized scalar value conforms to." pattern: String) on SCALAR
+
+      scalar Any @serializeAs(type: [ STRING, BOOLEAN, INT, FLOAT, OBJECT, LIST ])
+    interactions:
+      - request:
+          document: |
+            query Op_d853a8aa_1 {
+              listOfObjects
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "listOfObjects": [
+                    {
+                      "id": 1,
+                      "name": "Alice"
+                    },
+                    {
+                      "id": 2,
+                      "name": "Bob"
+                    },
+                    {
+                      "id": 3,
+                      "name": "Charlie"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          listOfObjects
+        }
+      hash: d853a8aa7d990a8ba4de1b89fd155352
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_d853a8aa_1 {
+          listOfObjects
+        }

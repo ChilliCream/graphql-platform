@@ -179,29 +179,36 @@ internal sealed class SourceSchemaMerger
 
             foreach (var (typeName, lookupFieldGroup) in lookupFieldGroupByTypeName)
             {
-                if (mergedSchema.Types.TryGetType<IMutableTypeDefinition>(
+                if (!mergedSchema.Types.TryGetType<IMutableTypeDefinition>(
                     typeName,
                     out var mergedType))
                 {
-                    foreach (var (sourceField, sourcePath, sourceSchema) in lookupFieldGroup)
-                    {
-                        var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema]);
-                        var lookupMap = sourceField.GetFusionLookupMap();
-                        var keyArgument = sourceField.GetKeyFields(lookupMap, sourceSchema);
+                    continue;
+                }
 
-                        var fieldArgument =
-                            s_fieldDefinitionRewriter
-                                .Rewrite(sourceField.ToSyntaxNode())!
-                                .ToString(indented: false);
+                foreach (var (sourceField, sourcePath, sourceSchema) in lookupFieldGroup)
+                {
+                    var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema]);
+
+                    var fieldArgument =
+                        s_fieldDefinitionRewriter
+                            .Rewrite(sourceField.ToSyntaxNode())!
+                            .ToString(indented: false);
+
+                    IValueNode pathArgument = sourcePath is null
+                        ? NullValueNode.Default
+                        : new StringValueNode(sourcePath);
+
+                    var @internal = sourceField.IsInternal;
+
+                    foreach (var valueSelectionGroup in sourceField.GetValueSelectionGroups())
+                    {
+                        var keyArgument = sourceField.GetKeyFields(valueSelectionGroup, sourceSchema);
 
                         var mapArgument =
-                            new ListValueNode(lookupMap.ConvertAll(a => new StringValueNode(a)));
-
-                        IValueNode pathArgument = sourcePath is null
-                            ? NullValueNode.Default
-                            : new StringValueNode(sourcePath);
-
-                        var @internal = sourceField.IsInternal;
+                            new ListValueNode(
+                                valueSelectionGroup.ConvertAll(
+                                    a => new StringValueNode(a.ToString(indented: false))));
 
                         mergedType.Directives.Add(
                             new Directive(
