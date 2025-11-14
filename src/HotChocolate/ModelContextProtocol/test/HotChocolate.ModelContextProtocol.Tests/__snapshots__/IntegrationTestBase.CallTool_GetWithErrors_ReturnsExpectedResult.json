@@ -8,15 +8,6 @@
       "extensions": {
         "code": "Code 1"
       }
-    },
-    {
-      "message": "Error 2",
-      "path": [
-        "withErrors"
-      ],
-      "extensions": {
-        "code": "Code 2"
-      }
     }
   ],
   "data": null
