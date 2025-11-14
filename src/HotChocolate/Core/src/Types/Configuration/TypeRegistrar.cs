@@ -12,7 +12,8 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
     private readonly TypeLookup _typeLookup;
     private readonly IDescriptorContext _context;
     private readonly TypeInterceptor _interceptor;
-    private readonly IServiceProvider _applicationServices;
+    private readonly IServiceProvider _schemaServices;
+    private readonly IServiceProvider? _applicationServices;
 
     public TypeRegistrar(IDescriptorContext context,
         TypeRegistry typeRegistry,
@@ -27,8 +28,8 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
             throw new ArgumentNullException(nameof(context));
         _interceptor = typeInterceptor ??
             throw new ArgumentNullException(nameof(typeInterceptor));
-        // TODO: Maybe this is not always present?
-        _applicationServices = context.Services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
+        _schemaServices = context.Services;
+        _applicationServices = context.Services.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
     }
 
     public ISet<string> Scalars { get; } = new HashSet<string>();

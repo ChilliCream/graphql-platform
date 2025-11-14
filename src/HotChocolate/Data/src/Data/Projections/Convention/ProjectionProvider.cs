@@ -79,12 +79,13 @@ public abstract class ProjectionProvider
             throw ProjectionProvider_NoHandlersConfigured(this);
         }
 
-        var services = new CombinedServiceProvider(
-            new DictionaryServiceProvider(
-                (typeof(IConventionContext), context),
-                (typeof(IDescriptorContext), context.DescriptorContext),
-                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
-            context.Services);
+        var services = context.Services;
+        // var services = new CombinedServiceProvider(
+        //     new DictionaryServiceProvider(
+        //         (typeof(IConventionContext), context),
+        //         (typeof(IDescriptorContext), context.DescriptorContext),
+        //         (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
+        //     context.Services);
 
         foreach (var (type, instance) in Configuration.Handlers)
         {
