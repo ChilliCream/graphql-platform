@@ -59,7 +59,7 @@ public class FusionValidationTests : ValidationTestBase
 
         if (eventListener is not null)
         {
-            builder.AddOpenApiDiagnosticEventListener(eventListener);
+            builder.AddDiagnosticEventListener(_ => eventListener);
         }
     }
 }

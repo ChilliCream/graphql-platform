@@ -292,6 +292,26 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         }
     }
 
+    public IDisposable OnSubscriptionEvent(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId)
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].OnSubscriptionEvent(
+                context,
+                node,
+                schemaName,
+                subscriptionId);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
     public IDisposable ExecuteNodeFieldNode(OperationPlanContext context, NodeFieldExecutionNode node)
     {
         var scopes = new IDisposable[listeners.Length];
