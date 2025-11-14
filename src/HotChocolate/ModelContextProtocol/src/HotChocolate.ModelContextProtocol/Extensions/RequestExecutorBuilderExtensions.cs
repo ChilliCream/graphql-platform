@@ -114,29 +114,6 @@ public static class RequestExecutorBuilderExtensions
         return builder;
     }
 
-    public static IRequestExecutorBuilder AddMcpDiagnosticEventListener(
-        this IRequestExecutorBuilder builder,
-        IMcpDiagnosticEventListener listener)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(listener);
-
-        builder.ConfigureSchemaServices(s => s.AddSingleton(listener));
-
-        return builder;
-    }
-
-    public static IRequestExecutorBuilder AddMcpDiagnosticEventListener<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
-        this IRequestExecutorBuilder builder) where T : class, IMcpDiagnosticEventListener
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        builder.ConfigureSchemaServices(s => s.AddSingleton<IMcpDiagnosticEventListener, T>());
-
-        return builder;
-    }
-
     public static IRequestExecutorBuilder AddMcpToolStorage(
         this IRequestExecutorBuilder builder,
         IOperationToolStorage storage)

@@ -101,7 +101,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
     protected abstract void ConfigureStorage(
         IServiceCollection services,
         IOpenApiDefinitionStorage storage,
-        IOpenApiDiagnosticEventListener? eventListener);
+        OpenApiDiagnosticEventListener? eventListener);
 
     protected virtual void ConfigureOpenApi(OpenApiOptions options)
     {
@@ -115,7 +115,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
     protected TestServer CreateTestServer(
         IOpenApiDefinitionStorage storage,
-        IOpenApiDiagnosticEventListener? eventListener = null)
+        OpenApiDiagnosticEventListener? eventListener = null)
     {
         return _testServerSession.CreateServer(
             services =>
