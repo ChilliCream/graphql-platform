@@ -1,13 +1,9 @@
 using System.Collections.Immutable;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using HotChocolate.Authorization;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;

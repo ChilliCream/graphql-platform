@@ -1,11 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Threading;
-using HotChocolate;
-using HotChocolate.Execution.Configuration;
-using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
@@ -233,7 +228,9 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         // act
         var content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["id"] = "6", ["name"] = "Test", ["email"] = "Email"
+            ["id"] = "6",
+            ["name"] = "Test",
+            ["email"] = "Email"
         });
 
         var response = await client.PostAsync("/users", content);

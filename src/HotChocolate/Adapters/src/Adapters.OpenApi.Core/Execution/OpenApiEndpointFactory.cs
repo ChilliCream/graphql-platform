@@ -41,7 +41,7 @@ internal static class OpenApiEndpointFactory
         OpenApiEndpointDescriptor endpointDescriptor)
     {
         var middleware = new DynamicEndpointMiddleware(schemaName, endpointDescriptor);
-        return context => middleware.InvokeAsync(context);
+        return middleware.InvokeAsync;
     }
 
     private static OpenApiEndpointDescriptor CreateEndpointDescriptor(
@@ -49,8 +49,10 @@ internal static class OpenApiEndpointFactory
         IDictionary<string, OpenApiFragmentDocument> fragmentsByName,
         ISchemaDefinition schema)
     {
-        var definitions = new List<IExecutableDefinitionNode>();
-        definitions.Add(operationDocument.OperationDefinition);
+        var definitions = new List<IExecutableDefinitionNode>
+        {
+            operationDocument.OperationDefinition
+        };
 
         foreach (var referencedFragmentName in operationDocument.ExternalFragmentReferences)
         {
@@ -106,7 +108,7 @@ internal static class OpenApiEndpointFactory
                     VariableValueInsertionTrie variableTrie;
                     if (!parameterTrie.TryGetValue(parameter.VariableName, out var existingVariableSegment))
                     {
-                        variableTrie = new VariableValueInsertionTrie();
+                        variableTrie = [];
                         parameterTrie[parameter.VariableName] = variableTrie;
                     }
                     else if (existingVariableSegment is VariableValueInsertionTrie existingVariableTrie)

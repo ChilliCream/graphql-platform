@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using Microsoft.AspNetCore.Http;
@@ -281,7 +280,7 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
         {
             if (segment.StartsWith("{") && segment.EndsWith("}"))
             {
-                var parameter = segment.Substring(1, segment.Length - 2);
+                var parameter = segment[1..^1];
                 if (!TryParseParameter(parameter, documentId, operationName, document, out var parsedParameter, out error))
                 {
                     return false;
@@ -367,7 +366,7 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
             builder.Add(segment.ToString());
 
             pathSpan = dotIndex == -1
-                ? ReadOnlySpan<char>.Empty
+                ? []
                 : pathSpan[(dotIndex + 1)..];
         }
 

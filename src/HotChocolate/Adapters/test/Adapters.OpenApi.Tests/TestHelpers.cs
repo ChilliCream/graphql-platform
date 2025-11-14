@@ -1,14 +1,7 @@
 using HotChocolate.Authorization;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Fusion;
-using HotChocolate.Fusion.Configuration;
-using HotChocolate.Fusion.Logging;
-using HotChocolate.Fusion.Options;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
@@ -27,7 +20,7 @@ internal static class TestHelpers
     {
         public class Query
         {
-            public User? GetUserById([GraphQLDescription("The id of the user")] [ID] int id, IResolverContext context)
+            public User? GetUserById([GraphQLDescription("The id of the user")][ID] int id, IResolverContext context)
             {
                 if (id == 5)
                 {

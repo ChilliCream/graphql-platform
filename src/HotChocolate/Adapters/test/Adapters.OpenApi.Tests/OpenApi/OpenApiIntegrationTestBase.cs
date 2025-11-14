@@ -1,5 +1,3 @@
-using System.Threading;
-using HotChocolate;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;

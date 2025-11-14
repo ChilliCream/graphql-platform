@@ -1,18 +1,16 @@
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.OpenApi;
 #if NET10_0_OR_GREATER
-using Microsoft.OpenApi;
 using System.Text.Json.Nodes;
+using Microsoft.OpenApi;
 using OpenApiSchemaAbstraction = Microsoft.OpenApi.IOpenApiSchema;
-
 #else
-using Microsoft.OpenApi.Models;
-using OperationType = Microsoft.OpenApi.Models.OperationType;
 using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
 using OpenApiSchemaAbstraction = Microsoft.OpenApi.Models.OpenApiSchema;
+using OperationType = Microsoft.OpenApi.Models.OperationType;
 #endif
 
 namespace HotChocolate.Adapters.OpenApi;
@@ -74,14 +72,9 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         {
             Description = operationDocument.Description,
             OperationId = OpenApiHelpers.GetOperationId(operationDocument.Name),
-            Responses = new OpenApiResponses()
+            Parameters = [],
+            Responses = []
         };
-
-#if NET10_0_OR_GREATER
-        operation.Parameters = new List<IOpenApiParameter>();
-#else
-        operation.Parameters = new List<OpenApiParameter>();
-#endif
 
         var bodyParameter = operationDocument.BodyParameter;
         var bodyVariable = bodyParameter?.VariableName;
@@ -272,7 +265,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         if (namedType is IEnumTypeDefinition enumType)
         {
-            return CreatEnumSchema(enumType);
+            return CreateEnumSchema(enumType);
         }
 
         if (namedType is IObjectTypeDefinition objectType)
@@ -408,7 +401,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         return schema;
     }
 
-    private static OpenApiSchema CreatEnumSchema(IEnumTypeDefinition enumType)
+    private static OpenApiSchema CreateEnumSchema(IEnumTypeDefinition enumType)
     {
         var schema = new OpenApiSchema { Description = enumType.Description };
 
@@ -684,7 +677,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     externalFragments,
                     optional: optional || isDifferentType || isSelectionConditional);
 
-                fragmentSchemas ??= new List<OpenApiSchemaAbstraction>();
+                fragmentSchemas ??= [];
                 fragmentSchemas.Add(typeConditionSchema);
             }
             else if (selection is FragmentSpreadNode fragmentSpread)
@@ -693,13 +686,15 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
                 if (externalFragments.Contains(fragmentName))
                 {
-                    fragmentSchemas ??= new List<OpenApiSchemaAbstraction>();
+                    fragmentSchemas ??= [];
 
 #if NET10_0_OR_GREATER
                     fragmentSchemas.Add(new OpenApiSchemaReference(fragmentName));
 #else
-                    var externalReference = new OpenApiSchema {
-                        Reference = new OpenApiReference {
+                    var externalReference = new OpenApiSchema
+                    {
+                        Reference = new OpenApiReference
+                        {
                             Type = ReferenceType.Schema,
                             Id = fragmentName
                         }
@@ -722,7 +717,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                         externalFragments,
                         optional: optional || isDifferentType || isSelectionConditional);
 
-                    fragmentSchemas ??= new List<OpenApiSchemaAbstraction>();
+                    fragmentSchemas ??= [];
                     fragmentSchemas.Add(typeConditionSchema);
                 }
             }
@@ -739,7 +734,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         }
 
         var mergedSchema = new OpenApiSchema();
-        mergedSchema.AllOf = new List<OpenApiSchemaAbstraction>();
+        mergedSchema.AllOf = [];
 
         if (fieldSchema is not null)
         {
@@ -764,15 +759,17 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 #if NET10_0_OR_GREATER
             if (schema is OpenApiSchemaReference schemaReference)
             {
-                var nullableSchema = new OpenApiSchema();
-                nullableSchema.AllOf = new List<IOpenApiSchema>();
-                nullableSchema.AllOf.Add(schemaReference);
-                nullableSchema.AllOf.Add(new OpenApiSchema
+                return new OpenApiSchema
                 {
-                    Type = JsonSchemaType.Null
-                });
-
-                return nullableSchema;
+                    AllOf =
+                    [
+                        schemaReference,
+                        new OpenApiSchema
+                        {
+                            Type = JsonSchemaType.Null
+                        }
+                    ]
+                };
             }
 
             if (schema is OpenApiSchema objectSchema)
@@ -874,7 +871,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             return variableType;
         }
 
-        ITypeDefinition currentType = variableType.NamedType();
+        var currentType = variableType.NamedType();
         IInputValueDefinition? lastField = null;
 
         foreach (var segment in inputObjectPath)
