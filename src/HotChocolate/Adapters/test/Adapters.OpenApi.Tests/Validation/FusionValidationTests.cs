@@ -51,7 +51,7 @@ public class FusionValidationTests : ValidationTestBase
     protected override void ConfigureStorage(
         IServiceCollection services,
         IOpenApiDefinitionStorage storage,
-        IOpenApiDiagnosticEventListener? eventListener)
+        OpenApiDiagnosticEventListener? eventListener)
     {
         var builder = services.AddGraphQLGatewayServer()
             .AddInMemoryConfiguration(_compositeSchema)
@@ -59,7 +59,7 @@ public class FusionValidationTests : ValidationTestBase
 
         if (eventListener is not null)
         {
-            builder.AddOpenApiDiagnosticEventListener(eventListener);
+            builder.AddDiagnosticEventListener(_ => eventListener);
         }
     }
 }

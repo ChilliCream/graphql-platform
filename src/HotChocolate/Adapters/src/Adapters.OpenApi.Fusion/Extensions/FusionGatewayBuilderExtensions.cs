@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Adapters.OpenApi;
 using HotChocolate.Fusion.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -35,38 +36,17 @@ public static class FusionGatewayBuilderExtensions
         return builder;
     }
 
-    public static IFusionGatewayBuilder AddOpenApiDiagnosticEventListener(
-        this IFusionGatewayBuilder builder,
-        IOpenApiDiagnosticEventListener listener)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(listener);
-
-        builder.ConfigureSchemaServices((_, s) => s.AddSingleton(listener));
-
-        return builder;
-    }
-
-    public static IFusionGatewayBuilder AddOpenApiDiagnosticEventListener<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
-        this IFusionGatewayBuilder builder) where T : class, IOpenApiDiagnosticEventListener
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        builder.ConfigureSchemaServices((_, s) => s.AddSingleton<IOpenApiDiagnosticEventListener, T>());
-
-        return builder;
-    }
-
     private static void AddOpenApiDocumentStorageCore(this IFusionGatewayBuilder builder)
     {
         var schemaName = builder.Name;
 
-        builder.Services.AddSingleton<IOpenApiResultFormatter, FusionOpenApiResultFormatter>();
         builder.Services.AddOpenApiExporterServices(schemaName);
 
-        builder.ConfigureSchemaServices((applicationServices, services)
-            => services.AddOpenApiExporterSchemaServices(schemaName, applicationServices));
+        builder.ConfigureSchemaServices((applicationServices, services) =>
+        {
+            services.TryAddSingleton<IOpenApiResultFormatter, FusionOpenApiResultFormatter>();
+            services.AddOpenApiExporterSchemaServices(schemaName, applicationServices);
+        });
 
         builder.AddWarmupTask<OpenApiWarmupTask>();
     }

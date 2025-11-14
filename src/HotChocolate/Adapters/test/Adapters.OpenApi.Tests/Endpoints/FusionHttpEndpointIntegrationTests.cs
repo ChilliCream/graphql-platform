@@ -54,7 +54,7 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
     protected override void ConfigureStorage(
         IServiceCollection services,
         IOpenApiDefinitionStorage storage,
-        IOpenApiDiagnosticEventListener? eventListener)
+        OpenApiDiagnosticEventListener? eventListener)
     {
         services.AddHttpClient("A")
             .ConfigurePrimaryHttpMessageHandler(() => _subgraph.CreateHandler())
@@ -67,7 +67,7 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
 
         if (eventListener is not null)
         {
-            builder.AddOpenApiDiagnosticEventListener(eventListener);
+            builder.AddDiagnosticEventListener(_ => eventListener);
         }
     }
 }

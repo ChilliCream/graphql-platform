@@ -41,7 +41,6 @@ internal sealed class DynamicEndpointMiddleware(
             }
 
             var proxy = context.RequestServices.GetRequiredKeyedService<HttpRequestExecutorProxy>(schemaName);
-            var formatter = context.RequestServices.GetRequiredService<IOpenApiResultFormatter>();
             var session = await proxy.GetOrCreateSessionAsync(context.RequestAborted);
 
             using var variableBuffer = new PooledArrayWriter();
@@ -92,6 +91,8 @@ internal sealed class DynamicEndpointMiddleware(
                 await result.ExecuteAsync(context);
                 return;
             }
+            
+            var formatter = session.Schema.Services.GetRequiredService<IOpenApiResultFormatter>();
 
             await formatter.FormatResultAsync(operationResult, context, endpointDescriptor, cancellationToken);
         }

@@ -268,7 +268,7 @@ public sealed class IntegrationTests
         var server =
             CreateTestServer(
                 b => b
-                    .AddMcpDiagnosticEventListener(listener)
+                    .AddDiagnosticEventListener(_ => listener)
                     .AddMcpToolStorage(storage));
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -296,7 +296,7 @@ public sealed class IntegrationTests
         var server =
             CreateTestServer(
                 b => b
-                    .AddMcpDiagnosticEventListener(listener)
+                    .AddDiagnosticEventListener(_ => listener)
                     .AddMcpToolStorage(storage));
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
