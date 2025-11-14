@@ -3,7 +3,7 @@ using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Definitions;
 
-public sealed class TagMutableDirectiveDefinition : MutableDirectiveDefinition
+internal sealed class TagMutableDirectiveDefinition : MutableDirectiveDefinition
 {
     public TagMutableDirectiveDefinition(MutableScalarTypeDefinition stringType)
         : base(DirectiveNames.Tag.Name)

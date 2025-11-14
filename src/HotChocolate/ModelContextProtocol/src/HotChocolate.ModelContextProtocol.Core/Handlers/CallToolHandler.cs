@@ -59,7 +59,7 @@ internal static class CallToolHandler
                 .SetVariableValues(variableValues)
                 .Build();
         var result = await requestExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
-        var operationResult = result.ExpectOperationResult();
+        var operationResult = (IOperationResult)result;
 
         using var writer = new PooledArrayWriter();
 

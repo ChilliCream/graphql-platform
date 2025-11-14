@@ -4,7 +4,7 @@ using ArgumentNames = HotChocolate.Types.DirectiveNames.SerializeAs.Arguments;
 
 namespace HotChocolate.Fusion.Directives;
 
-public sealed class SerializeAsDirective(ScalarSerializationType type, string? pattern)
+internal sealed class SerializeAsDirective(ScalarSerializationType type, string? pattern)
 {
     public ScalarSerializationType Type { get; } = type;
 
