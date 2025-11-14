@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Directives;
 
-public sealed class CacheControlDirective(
+internal sealed class CacheControlDirective(
     int? maxAge = null,
     CacheControlScope? scope = null,
     bool? inheritMaxAge = null,

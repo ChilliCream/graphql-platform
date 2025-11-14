@@ -1,4 +1,5 @@
 using System.Reflection;
+using HotChocolate.ModelContextProtocol.Extensions;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -52,13 +53,7 @@ public sealed class McpToolAnnotationsAttribute : DescriptorAttribute
     {
         if (descriptor is IObjectFieldDescriptor objectFieldDescriptor)
         {
-            objectFieldDescriptor.Directive(
-                new McpToolAnnotationsDirective
-                {
-                    DestructiveHint = _destructiveHint,
-                    IdempotentHint = _idempotentHint,
-                    OpenWorldHint = _openWorldHint
-                });
+            objectFieldDescriptor.McpToolAnnotations(_destructiveHint, _idempotentHint, _openWorldHint);
         }
     }
 }

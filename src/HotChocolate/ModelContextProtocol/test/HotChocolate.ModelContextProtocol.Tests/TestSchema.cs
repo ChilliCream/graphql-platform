@@ -225,12 +225,6 @@ public sealed class TestSchema
                     .SetMessage("Error 1")
                     .SetCode("Code 1")
                     .SetException(new Exception("Exception 1"))
-                    .Build(),
-                ErrorBuilder
-                    .New()
-                    .SetMessage("Error 2")
-                    .SetCode("Code 2")
-                    .SetException(new Exception("Exception 2"))
                     .Build());
         }
 

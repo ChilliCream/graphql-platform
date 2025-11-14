@@ -1,10 +1,4 @@
 using HotChocolate.Execution;
-using HotChocolate.Adapters.OpenApi.Validation;
-using HotChocolate.Language;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Routing.Patterns;
-using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.Adapters.OpenApi;
 

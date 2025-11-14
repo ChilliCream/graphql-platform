@@ -22,7 +22,9 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
         Channel.CreateBounded<OpenApiDefinitionStorageEventArgs>(
             new BoundedChannelOptions(1)
             {
-                FullMode = BoundedChannelFullMode.Wait, SingleReader = true, SingleWriter = false
+                FullMode = BoundedChannelFullMode.Wait,
+                SingleReader = true,
+                SingleWriter = false
             });
 
     private ISchemaDefinition? _schema;
@@ -35,7 +37,11 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
         = ImmutableSortedDictionary<string, OpenApiOperationDocument>.Empty;
 
     private ImmutableDictionary<string, OpenApiFragmentDocument> _fragmentsByName
+#if NET10_0_OR_GREATER
+        = [];
+#else
         = ImmutableDictionary<string, OpenApiFragmentDocument>.Empty;
+#endif
 
     public OpenApiDocumentManager(
         IOpenApiDefinitionStorage storage,
@@ -399,8 +405,7 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
             {
                 fragmentsWithName = [];
                 fragmentsByName[newFragment.Name] = fragmentsWithName;
-                fragmentDependenciesByName[newFragment.Name] =
-                    new HashSet<string>(newFragment.ExternalFragmentReferences);
+                fragmentDependenciesByName[newFragment.Name] = [.. newFragment.ExternalFragmentReferences];
             }
 
             fragmentsWithName.Add(newFragment);
@@ -449,7 +454,7 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
             foreach (var fragmentName in remainingFragments)
             {
                 var dependencies = fragmentDependenciesByName[fragmentName];
-                if (dependencies.Count == 0 || dependencies.All(d => validatedFragmentNames.Contains(d)))
+                if (dependencies.Count == 0 || dependencies.All(validatedFragmentNames.Contains))
                 {
                     fragmentNamesToValidate.Add(fragmentName);
                 }

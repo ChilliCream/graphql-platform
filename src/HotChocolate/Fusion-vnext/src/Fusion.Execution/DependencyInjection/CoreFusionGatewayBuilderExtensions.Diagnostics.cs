@@ -21,8 +21,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// The fusion gateway builder.
     /// </returns>
     public static IFusionGatewayBuilder AddDiagnosticEventListener<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-        T>(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder)
         where T : class
     {

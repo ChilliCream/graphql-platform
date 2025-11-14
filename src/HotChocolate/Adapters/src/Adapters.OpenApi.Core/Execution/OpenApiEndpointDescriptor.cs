@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Routing.Patterns;
