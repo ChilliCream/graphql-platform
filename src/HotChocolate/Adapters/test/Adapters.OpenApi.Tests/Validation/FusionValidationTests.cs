@@ -51,7 +51,7 @@ public class FusionValidationTests : ValidationTestBase
     protected override void ConfigureStorage(
         IServiceCollection services,
         IOpenApiDefinitionStorage storage,
-        IOpenApiDiagnosticEventListener? eventListener)
+        OpenApiDiagnosticEventListener? eventListener)
     {
         var builder = services.AddGraphQLGatewayServer()
             .AddInMemoryConfiguration(_compositeSchema)

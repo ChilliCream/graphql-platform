@@ -7,7 +7,7 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
     protected override void ConfigureStorage(
         IServiceCollection services,
         IOpenApiDefinitionStorage storage,
-        IOpenApiDiagnosticEventListener? eventListener)
+        OpenApiDiagnosticEventListener? eventListener)
     {
         var builder = services.AddGraphQLServer()
             .AddOpenApiDefinitionStorage(storage)
