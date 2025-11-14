@@ -214,6 +214,11 @@ internal static class InternalServiceCollectionExtensions
                 return true;
             }
 
+            if (obj.IsSharedScheduler)
+            {
+                obj.ResetScheduler();
+            }
+
             // if work related to the operation context has completed we can
             // reuse the operation context.
             if (!obj.Scheduler.IsInitialized || obj.Scheduler.IsCompleted)

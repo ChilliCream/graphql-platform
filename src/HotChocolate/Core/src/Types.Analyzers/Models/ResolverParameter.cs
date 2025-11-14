@@ -8,15 +8,27 @@ public sealed class ResolverParameter
 {
     public ResolverParameter(
         IParameterSymbol parameter,
-        string? key,
         ResolverParameterKind kind,
-        string schemaTypeName,
-        string? deprecationReason)
+        SchemaTypeReference schemaTypeRef,
+        string? description,
+        string? deprecationReason,
+        string? key)
+        : this(parameter, kind, schemaTypeRef, deprecationReason, key)
+    {
+        Description = description;
+    }
+
+    public ResolverParameter(
+        IParameterSymbol parameter,
+        ResolverParameterKind kind,
+        SchemaTypeReference schemaTypeRef,
+        string? deprecationReason,
+        string? key)
     {
         Parameter = parameter;
         Kind = kind;
         Name = parameter.Name;
-        SchemaTypeName = schemaTypeName;
+        SchemaTypeRef = schemaTypeRef;
         Key = key;
         IsNullable = !parameter.IsNonNullable();
         DeprecationReason = deprecationReason;
@@ -29,6 +41,8 @@ public sealed class ResolverParameter
             var requiresArg = parentAttribute.ConstructorArguments[0];
             Requirements = requiresArg.Value as string;
         }
+
+        DescriptorAttributes = Attributes.GetUserAttributes();
     }
 
     public string Name { get; }
@@ -41,7 +55,7 @@ public sealed class ResolverParameter
 
     public ITypeSymbol Type => Parameter.Type;
 
-    public string SchemaTypeName { get; }
+    public SchemaTypeReference SchemaTypeRef { get; }
 
     public ImmutableArray<ITypeSymbol> TypeParameters
         => GetGenericTypeArgument(Type);
@@ -52,24 +66,26 @@ public sealed class ResolverParameter
 
     public ImmutableArray<AttributeData> Attributes { get; }
 
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
+
     public string? Requirements { get; }
 
     public bool IsPure
-        => Kind is ResolverParameterKind.Argument
-            or ResolverParameterKind.Parent
-            or ResolverParameterKind.Service
-            or ResolverParameterKind.GetGlobalState
-            or ResolverParameterKind.SetGlobalState
-            or ResolverParameterKind.GetScopedState
-            or ResolverParameterKind.HttpContext
-            or ResolverParameterKind.HttpRequest
-            or ResolverParameterKind.HttpResponse
-            or ResolverParameterKind.DocumentNode
-            or ResolverParameterKind.EventMessage
-            or ResolverParameterKind.FieldNode
-            or ResolverParameterKind.OutputField
-            or ResolverParameterKind.ClaimsPrincipal
-            or ResolverParameterKind.ConnectionFlags;
+        => Kind is ResolverParameterKind.Argument or
+            ResolverParameterKind.Parent or
+            ResolverParameterKind.Service or
+            ResolverParameterKind.GetGlobalState or
+            ResolverParameterKind.SetGlobalState or
+            ResolverParameterKind.GetScopedState or
+            ResolverParameterKind.HttpContext or
+            ResolverParameterKind.HttpRequest or
+            ResolverParameterKind.HttpResponse or
+            ResolverParameterKind.DocumentNode or
+            ResolverParameterKind.EventMessage or
+            ResolverParameterKind.FieldNode or
+            ResolverParameterKind.OutputField or
+            ResolverParameterKind.ClaimsPrincipal or
+            ResolverParameterKind.ConnectionFlags;
 
     public bool RequiresBinding
         => Kind == ResolverParameterKind.Unknown;
@@ -78,123 +94,18 @@ public sealed class ResolverParameter
 
     public bool IsNullable { get; }
 
-    public static ResolverParameter Create(IParameterSymbol parameter, Compilation compilation)
-    {
-        var kind = GetParameterKind(parameter, compilation, out var key);
-        var schemaTypeName = GraphQLTypeBuilder.ToSchemaType(parameter.Type, compilation);
-        compilation.TryGetGraphQLDeprecationReason(parameter, out var deprecationReason);
-        return new ResolverParameter(parameter, key, kind, schemaTypeName, deprecationReason);
-    }
-
-    private static ResolverParameterKind GetParameterKind(
-        IParameterSymbol parameter,
-        Compilation compilation,
-        out string? key)
-    {
-        key = null;
-
-        if (parameter.IsParent())
-        {
-            return ResolverParameterKind.Parent;
-        }
-
-        if (parameter.IsCancellationToken())
-        {
-            return ResolverParameterKind.CancellationToken;
-        }
-
-        if (parameter.IsClaimsPrincipal())
-        {
-            return ResolverParameterKind.ClaimsPrincipal;
-        }
-
-        if (parameter.IsDocumentNode())
-        {
-            return ResolverParameterKind.DocumentNode;
-        }
-
-        if (parameter.IsEventMessage())
-        {
-            return ResolverParameterKind.EventMessage;
-        }
-
-        if (parameter.IsFieldNode())
-        {
-            return ResolverParameterKind.FieldNode;
-        }
-
-        if (parameter.IsOutputField(compilation))
-        {
-            return ResolverParameterKind.OutputField;
-        }
-
-        if (parameter.IsHttpContext())
-        {
-            return ResolverParameterKind.HttpContext;
-        }
-
-        if (parameter.IsHttpRequest())
-        {
-            return ResolverParameterKind.HttpRequest;
-        }
-
-        if (parameter.IsHttpResponse())
-        {
-            return ResolverParameterKind.HttpResponse;
-        }
-
-        if (parameter.IsGlobalState(out key))
-        {
-            return parameter.IsSetState()
-                ? ResolverParameterKind.SetGlobalState
-                : ResolverParameterKind.GetGlobalState;
-        }
-
-        if (parameter.IsScopedState(out key))
-        {
-            return parameter.IsSetState()
-                ? ResolverParameterKind.SetScopedState
-                : ResolverParameterKind.GetScopedState;
-        }
-
-        if (parameter.IsLocalState(out key))
-        {
-            return parameter.IsSetState()
-                ? ResolverParameterKind.SetLocalState
-                : ResolverParameterKind.GetLocalState;
-        }
-
-        if (parameter.IsService(out key))
-        {
-            return ResolverParameterKind.Service;
-        }
-
-        if (parameter.IsArgument(out key))
-        {
-            return ResolverParameterKind.Argument;
-        }
-
-        if (parameter.IsQueryContext())
-        {
-            return ResolverParameterKind.QueryContext;
-        }
-
-        if (parameter.IsPagingArguments())
-        {
-            return ResolverParameterKind.PagingArguments;
-        }
-
-        if (compilation.IsConnectionFlagsType(parameter.Type))
-        {
-            return ResolverParameterKind.ConnectionFlags;
-        }
-
-        return ResolverParameterKind.Unknown;
-    }
+    public ResolverParameter WithKind(ResolverParameterKind kind)
+        => new ResolverParameter(
+            Parameter,
+            kind,
+            SchemaTypeRef,
+            Description,
+            DeprecationReason,
+            Key);
 
     private static ImmutableArray<ITypeSymbol> GetGenericTypeArgument(ITypeSymbol typeSymbol)
     {
-        if (typeSymbol is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
+        if (typeSymbol is INamedTypeSymbol { IsGenericType: true } namedTypeSymbol)
         {
             return namedTypeSymbol.TypeArguments;
         }
