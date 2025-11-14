@@ -5,6 +5,7 @@ namespace HotChocolate.Adapters.OpenApi;
 /// implementations, so that they only have to override the methods they
 /// are interested in instead of having to provide implementations for all of them.
 /// </summary>
+[DiagnosticEventSource(typeof(IOpenApiDiagnosticEventListener))]
 public class OpenApiDiagnosticEventListener : IOpenApiDiagnosticEventListener
 {
     /// <summary>

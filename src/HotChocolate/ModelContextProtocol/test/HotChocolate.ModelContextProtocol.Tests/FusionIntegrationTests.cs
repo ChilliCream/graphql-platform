@@ -120,7 +120,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
     protected override async Task<TestServer> CreateTestServerAsync(
         IOperationToolStorage storage,
         ITypeDefinition[]? additionalTypes = null,
-        IMcpDiagnosticEventListener? diagnosticEventListener = null,
+        McpDiagnosticEventListener? diagnosticEventListener = null,
         Action<McpServerOptions>? configureMcpServerOptions = null,
         Action<IMcpServerBuilder>? configureMcpServer = null)
     {
@@ -161,7 +161,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
 
                     if (diagnosticEventListener is not null)
                     {
-                        builder.AddMcpDiagnosticEventListener(diagnosticEventListener);
+                        builder.AddDiagnosticEventListener(_ => diagnosticEventListener);
                     }
                 })
             .Configure(

@@ -7,7 +7,7 @@ public class OpenApiIntegrationTests : OpenApiIntegrationTestBase
     protected override void ConfigureStorage(
         IServiceCollection services,
         IOpenApiDefinitionStorage storage,
-        IOpenApiDiagnosticEventListener? eventListener)
+        OpenApiDiagnosticEventListener? eventListener)
     {
         services.AddGraphQLServer()
             .AddOpenApiDefinitionStorage(storage)

@@ -211,6 +211,12 @@ internal sealed class OperationPlanExecutor
 
         await foreach (var eventArgs in stream)
         {
+            using var scope = context.DiagnosticEvents.OnSubscriptionEvent(
+                context,
+                subscriptionNode,
+                subscriptionNode.SchemaName ?? context.GetDynamicSchemaName(subscriptionNode),
+                subscriptionResult.Id);
+
             IOperationResult result;
 
             try

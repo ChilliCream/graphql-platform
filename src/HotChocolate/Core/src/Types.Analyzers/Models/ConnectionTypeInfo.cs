@@ -27,9 +27,10 @@ public sealed class ConnectionTypeInfo
         Namespace = runtimeType.ContainingNamespace.ToDisplayString();
         ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
+        Attributes = attributes;
         Shareable = attributes.GetShareableScope();
         Inaccessible = attributes.GetInaccessibleScope();
-        Attributes = attributes.GetUserAttributes();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string Name { get; }
@@ -67,6 +68,8 @@ public sealed class ConnectionTypeInfo
     public DirectiveScope Inaccessible { get; }
 
     public ImmutableArray<AttributeData> Attributes { get; }
+
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
 
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);
@@ -175,11 +178,12 @@ public sealed class ConnectionTypeInfo
                         new Resolver(
                             connectionName,
                             property,
+                            compilation.GetDescription(property, []),
+                            compilation.GetDeprecationReason(property),
                             ResolverResultKind.Pure,
                             [],
                             GetMemberBindings(property),
-                            GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
-                            compilation,
+                            compilation.CreateTypeReference(property),
                             flags: flags));
                     break;
             }

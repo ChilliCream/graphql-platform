@@ -25,6 +25,10 @@ public static partial class ProductNode
         CancellationToken cancellationToken)
         => await brandService.GetBrandByIdAsync(product.BrandId, query, cancellationToken);
 
+    public static string? GetBrandName(
+        [Parent(requires: "Brand { Name }")] Product product)
+        => product.Brand?.Name;
+
     [NodeResolver]
     public static async Task<Product?> GetProductAsync(
         int id,

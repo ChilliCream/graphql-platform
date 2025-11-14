@@ -5,6 +5,7 @@ namespace HotChocolate.ModelContextProtocol.Diagnostics;
 /// implementations, so that they only have to override the methods they
 /// are interested in instead of having to provide implementations for all of them.
 /// </summary>
+[DiagnosticEventSource(typeof(IMcpDiagnosticEventListener))]
 public class McpDiagnosticEventListener : IMcpDiagnosticEventListener
 {
     /// <summary>

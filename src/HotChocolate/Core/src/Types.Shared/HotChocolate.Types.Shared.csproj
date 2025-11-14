@@ -8,8 +8,7 @@
 </PropertyGroup>
 
 <PropertyGroup>
-  <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-  <IsTrimmable>true</IsTrimmable>
+  <IsAotCompatible>true</IsAotCompatible>
 </PropertyGroup>
 
 <ItemGroup>

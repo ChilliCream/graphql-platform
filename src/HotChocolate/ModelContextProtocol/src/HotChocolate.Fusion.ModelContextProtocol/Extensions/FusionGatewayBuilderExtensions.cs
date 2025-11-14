@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.ModelContextProtocol.Diagnostics;
@@ -105,29 +104,6 @@ public static class FusionGatewayBuilderExtensions
             var storageObserver = schema.Services.GetRequiredService<ToolStorageObserver>();
             await storageObserver.StartAsync(cancellationToken);
         });
-
-        return builder;
-    }
-
-    public static IFusionGatewayBuilder AddMcpDiagnosticEventListener(
-        this IFusionGatewayBuilder builder,
-        IMcpDiagnosticEventListener listener)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(listener);
-
-        builder.ConfigureSchemaServices((_, s) => s.AddSingleton(listener));
-
-        return builder;
-    }
-
-    public static IFusionGatewayBuilder AddMcpDiagnosticEventListener<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
-        this IFusionGatewayBuilder builder) where T : class, IMcpDiagnosticEventListener
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        builder.ConfigureSchemaServices((_, s) => s.AddSingleton<IMcpDiagnosticEventListener, T>());
 
         return builder;
     }

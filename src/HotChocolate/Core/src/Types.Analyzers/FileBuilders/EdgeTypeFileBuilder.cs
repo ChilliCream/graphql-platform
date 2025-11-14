@@ -37,7 +37,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
 
         using (Writer.IncreaseIndent())
         {
-            if (edgeType.Resolvers.Length > 0 || edgeType.Attributes.Length > 0)
+            if (edgeType.Resolvers.Length > 0 || edgeType.DescriptorAttributes.Length > 0)
             {
                 Writer.WriteIndentedLine("var extension = descriptor.Extend();");
                 Writer.WriteIndentedLine("var configuration = extension.Configuration;");
@@ -56,7 +56,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
                         : "var resolvers = new __Resolvers();");
             }
 
-            if (edgeType.Attributes.Length > 0)
+            if (edgeType.DescriptorAttributes.Length > 0)
             {
                 Writer.WriteLine();
                 Writer.WriteIndentedLine(
@@ -69,7 +69,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
                     Writer.WriteIndentedLine("null,");
 
                     var first = true;
-                    foreach (var attribute in edgeType.Attributes)
+                    foreach (var attribute in edgeType.DescriptorAttributes)
                     {
                         if (!first)
                         {

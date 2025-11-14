@@ -92,7 +92,7 @@ ORDER BY t."BrandId", t0."BrandId", t0."Name" DESC, t0."Id"
 
 ```sql
 -- @__ids_0={ '11', '13' } (DbType = Object)
-SELECT b."Id", b."Name"
+SELECT b."Name", b."Id"
 FROM "Brands" AS b
 WHERE b."Id" = ANY (@__ids_0)
 ```

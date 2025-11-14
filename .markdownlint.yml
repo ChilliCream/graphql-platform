@@ -28,3 +28,5 @@ MD033:
     - Video
 MD036: false # Rationale: Possibly too strict, used frequently in documentation.
 MD059: false # Rationale: Already used in many places in the documentation.
+MD060:
+  style: aligned

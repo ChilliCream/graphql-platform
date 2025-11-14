@@ -95,21 +95,21 @@ public static class SymbolExtensions
         return new MethodDescription(methodDescription, paramDescriptions.ToImmutable());
     }
 
-    public static string? GetDescription(this IPropertySymbol property)
+    public static PropertyDescription? GetDescription(this IPropertySymbol property)
         => property.GetDescription(null);
 
-    public static string? GetDescription(this IPropertySymbol property, Compilation? compilation)
+    public static PropertyDescription? GetDescription(this IPropertySymbol property, Compilation? compilation)
     {
         var description = GetDescriptionFromAttribute(property);
         if (description != null)
         {
-            return description;
+            return new PropertyDescription(description);
         }
 
         if (compilation != null)
         {
             // Try inheritance-aware resolution with Compilation
-            return GetDocumentationWithInheritance(property, compilation);
+            return new PropertyDescription(GetDocumentationWithInheritance(property, compilation));
         }
 
         // Fallback to simple XML extraction without inheritdoc support
@@ -124,7 +124,7 @@ public static class SymbolExtensions
             var doc = XDocument.Parse(commentXml);
             var summaryElement = doc.Descendants("summary").FirstOrDefault();
             var text = summaryElement?.Value;
-            return GeneratorUtils.NormalizeXmlDocumentation(text);
+            return new PropertyDescription(GeneratorUtils.NormalizeXmlDocumentation(text));
         }
         catch
         {
@@ -173,7 +173,7 @@ public static class SymbolExtensions
         }
     }
 
-    private static string? GetDescriptionFromAttribute(ISymbol symbol)
+    public static string? GetDescriptionFromAttribute(this ISymbol symbol)
     {
         var attribute = symbol.GetAttributes()
             .FirstOrDefault(a => a.AttributeClass?.Name == "GraphQLDescriptionAttribute");
@@ -754,6 +754,29 @@ public static class SymbolExtensions
             }
         }
 
+        // DataLoaders are always services
+        if (parameter.Type is INamedTypeSymbol namedTypeSymbol)
+        {
+            foreach (var @interface in namedTypeSymbol.AllInterfaces)
+            {
+                if (@interface.ToDisplayString().StartsWith(WellKnownTypes.DataLoader))
+                {
+                    return true;
+                }
+            }
+
+            // DbContext types are always services
+            var current = namedTypeSymbol.BaseType;
+            while (current is not null)
+            {
+                if (current.ToDisplayString() == WellKnownTypes.DbContext)
+                {
+                    return true;
+                }
+                current = current.BaseType;
+            }
+        }
+
         return false;
     }
 
@@ -1020,6 +1043,10 @@ public static class SymbolExtensions
 
             case IPropertySymbol property:
                 returnType = property.Type;
+                break;
+
+            case IParameterSymbol parameter:
+                returnType = parameter.Type;
                 break;
 
             default:

@@ -29,7 +29,7 @@ public sealed class RootTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
                 rootType.SchemaSchemaType.ToFullyQualified(),
                 rootType.Resolvers.Length > 0,
                 rootType.Resolvers.Any(t => t.RequiresParameterBindings),
-                rootType.Attributes,
+                rootType.DescriptorAttributes,
                 rootType.Inaccessible);
 
             if (rootType.Shareable is DirectiveScope.Type)

@@ -524,7 +524,7 @@ public abstract class IntegrationTestBase
     protected abstract Task<TestServer> CreateTestServerAsync(
         IOperationToolStorage storage,
         ITypeDefinition[]? additionalTypes = null,
-        IMcpDiagnosticEventListener? diagnosticEventListener = null,
+        McpDiagnosticEventListener? diagnosticEventListener = null,
         Action<McpServerOptions>? configureMcpServerOptions = null,
         Action<IMcpServerBuilder>? configureMcpServer = null);
 

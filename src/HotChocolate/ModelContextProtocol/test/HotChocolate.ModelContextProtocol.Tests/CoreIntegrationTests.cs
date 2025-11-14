@@ -97,7 +97,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
     protected override Task<TestServer> CreateTestServerAsync(
         IOperationToolStorage storage,
         ITypeDefinition[]? additionalTypes = null,
-        IMcpDiagnosticEventListener? diagnosticEventListener = null,
+        McpDiagnosticEventListener? diagnosticEventListener = null,
         Action<McpServerOptions>? configureMcpServerOptions = null,
         Action<IMcpServerBuilder>? configureMcpServer = null)
     {
@@ -138,7 +138,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
 
                     if (diagnosticEventListener is not null)
                     {
-                        builder.AddMcpDiagnosticEventListener(diagnosticEventListener);
+                        builder.AddDiagnosticEventListener(_ => diagnosticEventListener);
                     }
                 })
             .Configure(
