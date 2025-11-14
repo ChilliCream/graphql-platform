@@ -103,6 +103,51 @@ public sealed partial class SourceResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteRawValueTo(IBufferWriter<byte> writer, DbRow row)
+    {
+        if (row.TokenType is JsonTokenType.String)
+        {
+            WriteRawValueTo(writer, row.Location - 1, row.SizeOrLength + 2);
+            return;
+        }
+
+        WriteRawValueTo(writer, row.Location, row.SizeOrLength);
+    }
+
+    internal void WriteRawValueTo(IBufferWriter<byte> writer, int location, int size)
+    {
+        var startChunkIndex = location / JsonMemory.BufferSize;
+        var offsetInStartChunk = location % JsonMemory.BufferSize;
+
+        if (offsetInStartChunk + size <= JsonMemory.BufferSize)
+        {
+            var span = writer.GetSpan(size);
+            _dataChunks[startChunkIndex].AsSpan(offsetInStartChunk, size).CopyTo(span);
+            writer.Advance(size);
+            return;
+        }
+
+        var bytesRead = 0;
+        var currentLocation = location;
+
+        while (bytesRead < size)
+        {
+            var chunkIndex = currentLocation / JsonMemory.BufferSize;
+            var offsetInChunk = currentLocation % JsonMemory.BufferSize;
+            var chunk = _dataChunks[chunkIndex];
+
+            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, JsonMemory.BufferSize - offsetInChunk);
+            var chunkSpan = chunk.AsSpan(offsetInChunk, bytesToCopyFromThisChunk);
+
+            var span = writer.GetSpan(chunkSpan.Length);
+            chunkSpan.CopyTo(span);
+            writer.Advance(chunkSpan.Length);
+            bytesRead += bytesToCopyFromThisChunk;
+            currentLocation += bytesToCopyFromThisChunk;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ReadOnlySpan<byte> ReadRawValue(DbRow row)
         => ReadRawValue(row.Location, row.SizeOrLength);
 
