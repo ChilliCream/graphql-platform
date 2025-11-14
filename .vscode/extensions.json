@@ -2,7 +2,6 @@
   "recommendations": [
     "davidanson.vscode-markdownlint",
     "ms-dotnettools.csdevkit",
-    "EditorConfig.EditorConfig",
     "dbaeumer.vscode-eslint",
     "streetsidesoftware.code-spell-checker",
     "graphql.vscode-graphql"
