@@ -9,7 +9,6 @@ using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Language;
 using HotChocolate.ModelContextProtocol.Diagnostics;
-using HotChocolate.ModelContextProtocol.Directives;
 using HotChocolate.ModelContextProtocol.Extensions;
 using HotChocolate.ModelContextProtocol.Storage;
 using HotChocolate.Types;
@@ -209,9 +208,6 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                     {
                         builder.AddTypes(additionalTypes);
                     }
-
-                    // FIXME: Where/when to add this?
-                    builder.AddDirectiveType<McpToolAnnotationsDirectiveType>();
                 })
             .Configure(
                 app => app
