@@ -6,19 +6,15 @@ namespace HotChocolate.AspNetCore.Authorization;
 
 internal sealed class AuthorizationPolicyCache
 {
-    private readonly ConcurrentDictionary<string, AuthorizationPolicy> _cache = new();
+    private readonly ConcurrentDictionary<AuthorizeDirective, AuthorizationPolicy> _cache = new();
 
     public AuthorizationPolicy? LookupPolicy(AuthorizeDirective directive)
     {
-        var cacheKey = directive.GetPolicyCacheKey();
-
-        return _cache.GetValueOrDefault(cacheKey);
+        return _cache.GetValueOrDefault(directive);
     }
 
     public void CachePolicy(AuthorizeDirective directive, AuthorizationPolicy policy)
     {
-        var cacheKey = directive.GetPolicyCacheKey();
-
-        _cache.TryAdd(cacheKey, policy);
+        _cache.TryAdd(directive, policy);
     }
 }

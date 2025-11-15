@@ -143,7 +143,10 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
 
             if (authorizationPolicy is null)
             {
-                authorizationPolicy = await BuildAuthorizationPolicy(directive.Policy, directive.Roles);
+                authorizationPolicy = await BuildAuthorizationPolicy(
+                    directive.Policy,
+                    directive.Roles,
+                    directive.Metadata);
 
                 if (_canCachePolicies)
                 {
@@ -165,7 +168,8 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
 
     private async Task<AuthorizationPolicy> BuildAuthorizationPolicy(
         string? policyName,
-        IReadOnlyList<string>? roles)
+        IReadOnlyList<string>? roles,
+        IReadOnlyList<object>? metadata)
     {
         var policyBuilder = new AuthorizationPolicyBuilder();
 
@@ -192,6 +196,21 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         if (roles is not null)
         {
             policyBuilder = policyBuilder.RequireRole(roles);
+        }
+
+        var requirementData = metadata?.OfType<IAuthorizationRequirementData>()?.ToList() ?? [];
+        if (requirementData.Count > 0)
+        {
+            var reqPolicy = new AuthorizationPolicyBuilder();
+            foreach (var rd in requirementData)
+            {
+                foreach (var r in rd.GetRequirements())
+                {
+                    reqPolicy.AddRequirements(r);
+                }
+            }
+
+            policyBuilder = policyBuilder.Combine(reqPolicy.Build());
         }
 
         return policyBuilder.Build();
