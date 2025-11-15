@@ -33,14 +33,10 @@ public static partial class RequestExecutorBuilderExtensions
 
         return ConfigureSchemaServices(
             builder,
-            services =>
+            static services =>
             {
-                // we remove all handlers from the schema DI
-                services.RemoveAll(typeof(ITransactionScopeHandler));
-
-                // and then reference the transaction scope handler from the global DI.
-                services.AddSingleton<ITransactionScopeHandler>(
-                    s => s.GetRootServiceProvider().GetRequiredService<T>());
+                services.RemoveAll<ITransactionScopeHandler>();
+                services.AddSingleton<ITransactionScopeHandler, T>();
             });
     }
 
@@ -50,7 +46,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="builder">
     /// The request executor builder.
     /// </param>
-    /// <param name="create">
+    /// <param name="factory">
     /// A factory to create the transaction scope.
     /// </param>
     /// <returns>
@@ -59,17 +55,17 @@ public static partial class RequestExecutorBuilderExtensions
     /// <exception cref="ArgumentNullException"></exception>
     public static IRequestExecutorBuilder AddTransactionScopeHandler(
         this IRequestExecutorBuilder builder,
-        Func<IServiceProvider, ITransactionScopeHandler> create)
+        Func<IServiceProvider, ITransactionScopeHandler> factory)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(create);
+        ArgumentNullException.ThrowIfNull(factory);
 
         return ConfigureSchemaServices(
             builder,
             services =>
             {
-                services.RemoveAll(typeof(ITransactionScopeHandler));
-                services.AddSingleton(sp => create(sp.GetCombinedServices()));
+                services.RemoveAll<ITransactionScopeHandler>();
+                services.AddSingleton(factory);
             });
     }
 
@@ -101,10 +97,7 @@ public static partial class RequestExecutorBuilderExtensions
 
         return ConfigureSchemaServices(
             builder,
-            services =>
-            {
-                services.TryAddSingleton<ITransactionScopeHandler>(
-                    sp => sp.GetRootServiceProvider().GetRequiredService<NoOpTransactionScopeHandler>());
-            });
+            static services =>
+                services.TryAddSingleton<ITransactionScopeHandler, NoOpTransactionScopeHandler>());
     }
 }

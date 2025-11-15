@@ -95,15 +95,16 @@ public abstract class SortProvider<TContext>
                 context.Scope);
         }
 
-        var services = new CombinedServiceProvider(
-            new DictionaryServiceProvider(
-                (typeof(ISortProvider), this),
-                (typeof(IConventionContext), context),
-                (typeof(IDescriptorContext), context.DescriptorContext),
-                (typeof(ISortConvention), _sortConvention),
-                (typeof(InputParser), context.DescriptorContext.InputParser),
-                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
-            context.Services);
+        var services = context.Services;
+        // var services = new CombinedServiceProvider(
+        //     new DictionaryServiceProvider(
+        //         (typeof(ISortProvider), this),
+        //         (typeof(IConventionContext), context),
+        //         (typeof(IDescriptorContext), context.DescriptorContext),
+        //         (typeof(ISortConvention), _sortConvention),
+        //         (typeof(InputParser), context.DescriptorContext.InputParser),
+        //         (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
+        //     context.Services);
 
         foreach (var (handler, handlerInstance) in Configuration.Handlers)
         {

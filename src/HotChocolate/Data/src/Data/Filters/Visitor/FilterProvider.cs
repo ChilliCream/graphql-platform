@@ -82,17 +82,18 @@ public abstract class FilterProvider<TContext>
                 context.Scope);
         }
 
-        var services = new CombinedServiceProvider(
-            new DictionaryServiceProvider(
-                (typeof(IFilterProvider), this),
-                (typeof(IConventionContext), context),
-                (typeof(IDescriptorContext), context.DescriptorContext),
-                (typeof(IFilterConvention), _filterConvention),
-                (typeof(ITypeConverter), context.DescriptorContext.TypeConverter),
-                (typeof(InputParser), context.DescriptorContext.InputParser),
-                (typeof(InputFormatter), context.DescriptorContext.InputFormatter),
-                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
-            context.Services);
+        var services = context.Services;
+        // var services = new CombinedServiceProvider(
+        //     new DictionaryServiceProvider(
+        //         (typeof(IFilterProvider), this),
+        //         (typeof(IConventionContext), context),
+        //         (typeof(IDescriptorContext), context.DescriptorContext),
+        //         (typeof(IFilterConvention), _filterConvention),
+        //         (typeof(ITypeConverter), context.DescriptorContext.TypeConverter),
+        //         (typeof(InputParser), context.DescriptorContext.InputParser),
+        //         (typeof(InputFormatter), context.DescriptorContext.InputFormatter),
+        //         (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
+        //     context.Services);
 
         foreach (var (type, instance) in Configuration.Handlers)
         {
@@ -104,6 +105,8 @@ public abstract class FilterProvider<TContext>
 
             try
             {
+                // Can we pass it as parameters?
+                // What happens when concerete type is requested?
                 var optimizers = (IFilterFieldHandler<TContext>)ActivatorUtilities.GetServiceOrCreateInstance(services, type);
                 _fieldHandlers.Add(optimizers);
             }

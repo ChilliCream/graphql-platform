@@ -1,7 +1,6 @@
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Configuration;
 
@@ -15,7 +14,6 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
     private readonly TypeInterceptor _interceptor;
     private readonly IServiceProvider _schemaServices;
     private readonly IServiceProvider? _applicationServices;
-    private readonly IServiceProvider _combinedServices;
 
     public TypeRegistrar(IDescriptorContext context,
         TypeRegistry typeRegistry,
@@ -32,10 +30,6 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
             throw new ArgumentNullException(nameof(typeInterceptor));
         _schemaServices = context.Services;
         _applicationServices = context.Services.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
-
-        _combinedServices = _applicationServices is null
-            ? _schemaServices
-            : new CombinedServiceProvider(_schemaServices, _applicationServices);
     }
 
     public ISet<string> Scalars { get; } = new HashSet<string>();
