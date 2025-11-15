@@ -52,14 +52,22 @@ internal static class QueryHelpers
                 body = unaryExpr.Operand;
             }
 
-            // extract navigation properties by traversing the member expression chain.
-            // for example, "e => e.Parent.Id" extracts "e.Parent"
-            // and "e => e.GrandParent.Parent.Id" extracts both "e.GrandParent.Parent" and "e.GrandParent"
-            var current = body as MemberExpression;
-            while (current?.Expression is MemberExpression parentMember)
+            if (body is not MemberExpression memberExpr)
+            {
+                return properties;
+            }
+
+            // traverse the member expression chain to extract properties required for grouping
+            while (memberExpr.Expression is MemberExpression parentMember)
             {
                 properties.Add(parentMember);
-                current = parentMember;
+                memberExpr = parentMember;
+            }
+
+            // if no navigation properties are found, and we have a root-level property
+            if (properties.Count == 0 && memberExpr.Expression is ParameterExpression)
+            {
+                properties.Add(memberExpr);
             }
 
             return properties;

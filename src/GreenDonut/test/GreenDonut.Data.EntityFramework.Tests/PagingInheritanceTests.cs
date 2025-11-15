@@ -60,7 +60,7 @@ public class PagingInheritanceTests(PostgreSqlResource resource)
         var result = await context
             .Entries
             .AsNoTracking()
-            .Where(x => x.ParentId != null && parentIds.Contains(x.ParentId.Value))
+            .Where(x => x.ParentId.HasValue && parentIds.Contains(x.ParentId.Value))
             .With(query, x => x.AddAscending(y => y.Id))
             .ToBatchPageAsync(
                 keySelector: x => x.ParentId!.Value,
