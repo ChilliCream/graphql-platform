@@ -82,9 +82,9 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
     private sealed class InternalActivityEnricher : ActivityEnricher
     {
         public InternalActivityEnricher(
-            ObjectPool<StringBuilder> stringBuilderPoolPool,
+            ObjectPool<StringBuilder> stringBuilderPool,
             InstrumentationOptions options)
-            : base(stringBuilderPoolPool, options)
+            : base(stringBuilderPool, options)
         {
         }
     }
