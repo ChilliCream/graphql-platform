@@ -1361,19 +1361,16 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 using (Writer.IncreaseIndent())
                 {
                     Writer.WriteIndentedLine(
-                        "typeInspector.GetTypeRef(typeof({0}), {1}.Output),",
+                        "typeInspector.GetTypeRef(typeof({0}), {1}.{2}),",
                         typeReference.TypeDefinitionString,
-                        WellKnownTypes.TypeContext);
+                        WellKnownTypes.TypeContext,
+                        context);
                     Writer.WriteIndentedLine(
                         "{0},",
                         typeReference.TypeString);
                     Writer.WriteIndentedLine(
-                        "\"{0}\",",
-                        typeReference.TypeKey);
-                    Writer.WriteIndentedLine(
-                        "{0}.{1}){2}",
-                        WellKnownTypes.TypeContext,
-                        context,
+                        "\"{0}\"){1}",
+                        typeReference.TypeKey,
                         lineEnd);
                 }
                 break;

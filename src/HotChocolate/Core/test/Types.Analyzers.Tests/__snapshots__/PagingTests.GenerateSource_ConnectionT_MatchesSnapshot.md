@@ -46,7 +46,11 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::HotChocolate.Types.Pagination.Connection<global::TestNamespace.Author>>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.Pagination.Connection<global::TestNamespace.Author>), HotChocolate.Types.TypeContext.Output),
+                        static (_, type) => new global::HotChocolate.Types.NonNullType(type),
+                        "global::HotChocolate.Types.Pagination.Connection<global::TestNamespace.Author>!",
+                        HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.Connection<global::TestNamespace.Author>);
 
                     configuration.SetSourceGeneratorFlags();

@@ -32,8 +32,7 @@ public class SourceGeneratorFactoryTypeReferenceTests
                         TypeReference.Create(
                             extension.Context.TypeInspector.GetTypeRef(typeof(string), TypeContext.Output),
                             static (_, typeDef) => new NonNullType(new ListType(new NonNullType(typeDef))),
-                            "[String!]!",
-                            TypeContext.Output);
+                            "[String!]!");
                 });
         }
     }

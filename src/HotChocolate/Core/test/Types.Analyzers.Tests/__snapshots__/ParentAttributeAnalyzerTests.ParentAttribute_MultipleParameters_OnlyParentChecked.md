@@ -77,7 +77,11 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Brand>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Brand), HotChocolate.Types.TypeContext.Output),
+                        static (_, type) => type,
+                        "global::TestNamespace.Brand",
+                        HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.Brand);
 
                     configuration.SetSourceGeneratorFlags();
@@ -91,7 +95,11 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("otherBrand", global::HotChocolate.Types.MemberKind.Argument),
-                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Brand>>>), HotChocolate.Types.TypeContext.Input),
+                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                                typeInspector.GetTypeRef(typeof(global::TestNamespace.Brand), HotChocolate.Types.TypeContext.Output),
+                                static (_, type) => new global::HotChocolate.Types.NonNullType(type),
+                                "global::TestNamespace.Brand!",
+                                HotChocolate.Types.TypeContext.Input),
                             RuntimeType = typeof(global::TestNamespace.Brand)
                         };
 
@@ -106,7 +114,11 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("brandService", global::HotChocolate.Types.MemberKind.Argument),
-                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.BrandService>>>), HotChocolate.Types.TypeContext.Input),
+                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                                typeInspector.GetTypeRef(typeof(global::TestNamespace.BrandService), HotChocolate.Types.TypeContext.Output),
+                                static (_, type) => new global::HotChocolate.Types.NonNullType(type),
+                                "global::TestNamespace.BrandService!",
+                                HotChocolate.Types.TypeContext.Input),
                             RuntimeType = typeof(global::TestNamespace.BrandService)
                         };
 

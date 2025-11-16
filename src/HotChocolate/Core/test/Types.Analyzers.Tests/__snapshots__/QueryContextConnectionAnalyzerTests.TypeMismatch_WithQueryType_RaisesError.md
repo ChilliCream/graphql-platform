@@ -108,7 +108,11 @@ namespace HotChocolate.Types.Pagination
                     var naming = field.Context.Naming;
 
                     configuration.Description = "A flattened list of the nodes";
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Product>>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
+                        static (_, type) => new global::HotChocolate.Types.ListType(new global::HotChocolate.Types.NonNullType(type)),
+                        "[global::TestNamespace.Product!]",
+                        HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::System.Collections.Generic.IReadOnlyList<global::TestNamespace.Product>);
 
                     configuration.SetSourceGeneratorFlags();
@@ -128,7 +132,11 @@ namespace HotChocolate.Types.Pagination
                     var naming = field.Context.Naming;
 
                     configuration.Description = "Information to aid in pagination.";
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::HotChocolate.Types.Pagination.PageInfo>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.Pagination.PageInfo), HotChocolate.Types.TypeContext.Output),
+                        static (_, type) => new global::HotChocolate.Types.NonNullType(type),
+                        "global::HotChocolate.Types.Pagination.PageInfo!",
+                        HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.PageInfo);
 
                     configuration.SetSourceGeneratorFlags();
@@ -147,7 +155,11 @@ namespace HotChocolate.Types.Pagination
                     var naming = field.Context.Naming;
 
                     configuration.Description = "Identifies the total count of items in the connection.";
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<int>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
+                        static (_, type) => new global::HotChocolate.Types.NonNullType(type),
+                        "int!",
+                        HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(int);
 
                     configuration.SetSourceGeneratorFlags();
@@ -252,7 +264,11 @@ namespace HotChocolate.Types.Pagination
                     var naming = field.Context.Naming;
 
                     configuration.Description = "The item at the end of the edge.";
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Product>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
+                        static (_, type) => new global::HotChocolate.Types.NonNullType(type),
+                        "global::TestNamespace.Product!",
+                        HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.Product);
 
                     configuration.SetSourceGeneratorFlags();
@@ -271,7 +287,11 @@ namespace HotChocolate.Types.Pagination
                     var naming = field.Context.Naming;
 
                     configuration.Description = "A cursor for use in pagination.";
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<string>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
+                        static (_, type) => new global::HotChocolate.Types.NonNullType(type),
+                        "string!",
+                        HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
 
                     configuration.SetSourceGeneratorFlags();
@@ -371,7 +391,11 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("productService", global::HotChocolate.Types.MemberKind.Argument),
-                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.ProductService>>>), HotChocolate.Types.TypeContext.Input),
+                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                                typeInspector.GetTypeRef(typeof(global::TestNamespace.ProductService), HotChocolate.Types.TypeContext.Output),
+                                static (_, type) => new global::HotChocolate.Types.NonNullType(type),
+                                "global::TestNamespace.ProductService!",
+                                HotChocolate.Types.TypeContext.Input),
                             RuntimeType = typeof(global::TestNamespace.ProductService)
                         };
 

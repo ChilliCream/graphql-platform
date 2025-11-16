@@ -70,7 +70,11 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<int>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
+                        static (_, type) => new global::HotChocolate.Types.NonNullType(type),
+                        "int!",
+                        HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(int);
 
                     configuration.SetSourceGeneratorFlags();
@@ -84,7 +88,11 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("test", global::HotChocolate.Types.MemberKind.Argument),
-                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<int>>>), HotChocolate.Types.TypeContext.Input),
+                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                                typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
+                                static (_, type) => new global::HotChocolate.Types.NonNullType(type),
+                                "int!",
+                                HotChocolate.Types.TypeContext.Input),
                             RuntimeType = typeof(int)
                         };
 

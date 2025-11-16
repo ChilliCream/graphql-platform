@@ -79,6 +79,13 @@ internal sealed class TypeLookup
                     return true;
                 }
                 break;
+
+            case FactoryTypeReference factoryRef:
+                if (TryNormalizeReference(factoryRef.TypeDefinition, out namedTypeRef))
+                {
+                    return true;
+                }
+                break;
         }
 
         namedTypeRef = null;

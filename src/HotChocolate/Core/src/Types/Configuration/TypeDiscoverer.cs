@@ -133,8 +133,7 @@ DISCOVER:
 
         if (_errors.Count == 0 && _unregistered.Count == 0)
         {
-            foreach (var typeReference in
-                _interceptor.RegisterMoreTypes(_typeRegistry.Types))
+            foreach (var typeReference in _interceptor.RegisterMoreTypes(_typeRegistry.Types))
             {
                 if (processed.Add(typeReference))
                 {

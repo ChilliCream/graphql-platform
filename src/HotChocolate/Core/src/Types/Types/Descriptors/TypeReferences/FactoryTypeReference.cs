@@ -1,3 +1,5 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>
@@ -22,15 +24,11 @@ public sealed class FactoryTypeReference : TypeReference
     /// <param name="typeKey">
     /// A key used to express uniqueness.
     /// </param>
-    /// <param name="context">
-    ///
-    /// </param>
     public FactoryTypeReference(
         ExtendedTypeReference typeDefinition,
         Func<IDescriptorContext, ITypeDefinition, IType> factory,
-        string typeKey,
-        TypeContext context)
-        : base(TypeReferenceKind.SourceGeneratorFactory, context, null)
+        string typeKey)
+        : base(TypeReferenceKind.SourceGeneratorFactory, typeDefinition.Context, null)
     {
         ArgumentNullException.ThrowIfNull(typeDefinition);
         ArgumentNullException.ThrowIfNull(factory);
@@ -46,6 +44,25 @@ public sealed class FactoryTypeReference : TypeReference
     public Func<IDescriptorContext, ITypeDefinition, IType> Factory { get; }
 
     public string Key { get; }
+
+    public FactoryTypeReference WithTypeDefinition(ExtendedTypeReference typeDefinition, string typeName)
+    {
+        ArgumentNullException.ThrowIfNull(typeDefinition);
+
+        var type = Rewrite(Utf8GraphQLParser.Syntax.ParseTypeReference(Key), typeName);
+        return new FactoryTypeReference(typeDefinition, Factory, type.ToString(indented: false));
+
+        static ITypeNode Rewrite(ITypeNode typeNode, string typeName)
+        {
+            return typeNode switch
+            {
+                NonNullTypeNode nnt => Rewrite(nnt.Type, typeName),
+                ListTypeNode lt => Rewrite(lt.Type, typeName),
+                NamedTypeNode => new NamedTypeNode(typeName),
+                _ => throw new NotSupportedException()
+            };
+        }
+    }
 
     public override bool Equals(TypeReference? other)
     {
@@ -64,10 +81,15 @@ public sealed class FactoryTypeReference : TypeReference
             return false;
         }
 
+        if (!IsEqual(other))
+        {
+            return false;
+        }
+
         return Key.Equals(typeRef.Key, StringComparison.Ordinal)
             && typeRef.TypeDefinition.Equals(TypeDefinition);
     }
 
     public override int GetHashCode()
-        => HashCode.Combine(Key, TypeDefinition);
+        => HashCode.Combine(base.GetHashCode(), Key, TypeDefinition);
 }
