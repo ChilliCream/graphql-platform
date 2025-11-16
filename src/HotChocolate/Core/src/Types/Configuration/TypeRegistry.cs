@@ -12,7 +12,7 @@ internal sealed class TypeRegistry
     private readonly Dictionary<ExtendedTypeReference, TypeReference> _runtimeTypeRefs =
         new(new ExtendedTypeRefEqualityComparer());
     private readonly Dictionary<string, TypeReference> _nameRefs = new(StringComparer.Ordinal);
-    private readonly Dictionary<TypeReference, TypeReference> _lookups = new(new TypeRefEqualityComparer());
+    private readonly Dictionary<FactoryTypeReference, TypeReference> _lookups = new(new TypeRefEqualityComparer());
     private readonly List<RegisteredType> _types = [];
     private readonly TypeInterceptor _typeRegistryInterceptor;
 
@@ -29,6 +29,8 @@ internal sealed class TypeRegistry
 
     public IReadOnlyDictionary<ExtendedTypeReference, TypeReference> RuntimeTypeRefs
         => _runtimeTypeRefs;
+
+    public IReadOnlyDictionary<FactoryTypeReference, TypeReference> Lookups => _lookups;
 
     public IReadOnlyDictionary<string, TypeReference> NameRefs => _nameRefs;
 
@@ -188,19 +190,12 @@ internal sealed class TypeRegistry
         _nameRefs[typeName] = registeredType.References[0];
     }
 
-    public void RegisterLookup(TypeReference from, TypeReference to)
+    public void Register(FactoryTypeReference factoryRef, TypeReference typeDefRef)
     {
-        ArgumentNullException.ThrowIfNull(from);
-        ArgumentNullException.ThrowIfNull(to);
+        ArgumentNullException.ThrowIfNull(factoryRef);
+        ArgumentNullException.ThrowIfNull(typeDefRef);
 
-        if (_typeRegister.TryGetValue(to, out var type))
-        {
-            _typeRegister.TryAdd(to, type);
-        }
-        else
-        {
-            _lookups.TryAdd(from, to);
-        }
+        _lookups.TryAdd(factoryRef, typeDefRef);
     }
 
     public void CompleteDiscovery()
@@ -216,25 +211,6 @@ internal sealed class TypeRegistry
                 reference = TypeReference.Create(registeredType.Type, s);
                 registeredType.References.TryAdd(reference);
                 _typeRegister[reference] = registeredType;
-            }
-        }
-
-        // if we have unresolved lookups, we will create for each
-        // of them a direct reference to the type on the register.
-        if (_lookups.Count > 0)
-        {
-            foreach (var (from, to) in _lookups)
-            {
-                if (_typeRegister.TryGetValue(to, out var type))
-                {
-                    _typeRegister.TryAdd(from, type);
-                }
-                else if (to is ExtendedTypeReference extendedTypeRef
-                    && _runtimeTypeRefs.TryGetValue(extendedTypeRef, out var typeRef)
-                    && _typeRegister.TryGetValue(typeRef, out type))
-                {
-                    _typeRegister.TryAdd(from, type);
-                }
             }
         }
     }

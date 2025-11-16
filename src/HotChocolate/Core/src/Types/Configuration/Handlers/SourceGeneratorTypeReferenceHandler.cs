@@ -19,7 +19,7 @@ internal sealed class SourceGeneratorTypeReferenceHandler(
 
         if (_handled.Add(typeRef.Key))
         {
-            typeRegistry.RegisterLookup(typeRef, typeRef.TypeDefinition);
+            typeRegistry.Register(typeRef, typeRef.TypeDefinition);
             _innerHandler.Handle(typeRegistrar, typeRef.TypeDefinition);
         }
     }

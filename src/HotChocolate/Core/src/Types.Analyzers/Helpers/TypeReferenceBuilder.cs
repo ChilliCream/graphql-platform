@@ -71,13 +71,20 @@ public static class TypeReferenceBuilder
         // First, we unwrap any non-essential wrapper types and IFieldResult implementations.
         var unwrapped = UnwrapNonEssentialTypes(member.GetReturnType()!, compilation);
 
-        // Then we build the GraphQL type string.
+        // Next, we create a key that describes the type and ensures we are only executing the type factory once.
+        var (typeKey, typeDefinition) = CreateTypeKey(unwrapped);
+
+        // Next, we create  the factory delegate
+        var typeFactor = CreateFactory(unwrapped);
+
         return new SchemaTypeReference(
-            SchemaTypeReferenceKind.ExtendedTypeReference,
-            $"global::HotChocolate.Internal.SourceGeneratedType<{BuildTypeCore(unwrapped)}>");
+            SchemaTypeReferenceKind.FactoryTypeReference,
+            typeFactor,
+            typeKey,
+            typeDefinition);
     }
 
-    private static string CreateTypeKey(ITypeSymbol unwrappedType)
+    private static (string Key, string TypeDefinition) CreateTypeKey(ITypeSymbol unwrappedType)
     {
         bool isNullable;
         ITypeSymbol underlyingType;
@@ -106,12 +113,12 @@ public static class TypeReferenceBuilder
         if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
         {
             var elementType = namedType.TypeArguments[0];
-            var innerTypeString = CreateTypeKey(elementType);
-            return isNullable ? $"[{innerTypeString}]" : $"[{innerTypeString}]!";
+            var (typeString, typeDefinition) = CreateTypeKey(elementType);
+            return (isNullable ? $"[{typeString}]" : $"[{typeString}]!", typeDefinition);
         }
 
         var typeName = GetFullyQualifiedTypeName(underlyingType);
-        return isNullable ? typeName : $"{typeName}!";
+        return (isNullable ? typeName : $"{typeName}!", typeName);
     }
 
     private static string CreateFactory(ITypeSymbol unwrappedType)
@@ -147,10 +154,10 @@ public static class TypeReferenceBuilder
             if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
             {
                 var elementType = namedType.TypeArguments[0];
-                var innerTypeString = CreateTypeKey(elementType);
+                var typeString = Build(elementType);
                 return isNullable
-                    ? $"new global::{WellKnownTypes.ListType}({innerTypeString})"
-                    : $"new global::{WellKnownTypes.NonNullType}(new global::{WellKnownTypes.ListType}({innerTypeString}))";
+                    ? $"new global::{WellKnownTypes.ListType}({typeString})"
+                    : $"new global::{WellKnownTypes.NonNullType}(new global::{WellKnownTypes.ListType}({typeString}))";
             }
 
             return isNullable ? "type" : $"new global::{WellKnownTypes.NonNullType}(type)";
@@ -199,47 +206,6 @@ public static class TypeReferenceBuilder
         }
 
         return false;
-    }
-
-    private static string BuildTypeCore(ITypeSymbol typeSymbol)
-    {
-        bool isNullable;
-        ITypeSymbol underlyingType;
-
-        // We first check if the type is a nullable value type (int?, Guid?, etc.).
-        if (typeSymbol is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } valueType)
-        {
-            underlyingType = valueType.TypeArguments[0];
-            isNullable = true;
-        }
-
-        // For reference types we check NullableAnnotation.
-        else if (typeSymbol.IsReferenceType)
-        {
-            underlyingType = typeSymbol;
-            isNullable = typeSymbol.NullableAnnotation == NullableAnnotation.Annotated;
-        }
-
-        // In all other cases we expect it to be non-null
-        else
-        {
-            underlyingType = typeSymbol;
-            isNullable = false;
-        }
-
-        if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
-        {
-            var elementType = namedType.TypeArguments[0];
-            var innerTypeString = BuildTypeCore(elementType);
-            return isNullable
-                ? $"global::HotChocolate.Types.ListType<{innerTypeString}>"
-                : $"global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<{innerTypeString}>>";
-        }
-
-        var typeName = GetFullyQualifiedTypeName(underlyingType);
-        return isNullable
-            ? $"global::HotChocolate.Internal.NamedRuntimeType<{typeName}>"
-            : $"global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<{typeName}>>";
     }
 
     private static bool IsListType(INamedTypeSymbol namedType)
