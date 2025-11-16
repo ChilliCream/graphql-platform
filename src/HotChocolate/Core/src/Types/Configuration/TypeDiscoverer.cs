@@ -89,8 +89,9 @@ internal sealed class TypeDiscoverer
             new ExtendedTypeReferenceHandler(context.TypeInspector),
             new SchemaTypeReferenceHandler(),
             new SyntaxTypeReferenceHandler(context),
-            new FactoryTypeReferenceHandler(context),
+            new SyntaxFactoryTypeReferenceHandler(context),
             new DependantFactoryTypeReferenceHandler(context),
+            new SourceGeneratorTypeReferenceHandler(context, _typeRegistry),
             new ExtendedTypeDirectiveReferenceHandler(context.TypeInspector)
         ];
 

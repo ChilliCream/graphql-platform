@@ -77,6 +77,86 @@ public static class TypeReferenceBuilder
             $"global::HotChocolate.Internal.SourceGeneratedType<{BuildTypeCore(unwrapped)}>");
     }
 
+    private static string CreateTypeKey(ITypeSymbol unwrappedType)
+    {
+        bool isNullable;
+        ITypeSymbol underlyingType;
+
+        // We first check if the type is a nullable value type (int?, Guid?, etc.).
+        if (unwrappedType is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } vt)
+        {
+            underlyingType = vt.TypeArguments[0];
+            isNullable = true;
+        }
+
+        // For reference types we check NullableAnnotation.
+        else if (unwrappedType.IsReferenceType)
+        {
+            underlyingType = unwrappedType;
+            isNullable = unwrappedType.NullableAnnotation == NullableAnnotation.Annotated;
+        }
+
+        // In all other cases we expect it to be non-null
+        else
+        {
+            underlyingType = unwrappedType;
+            isNullable = false;
+        }
+
+        if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
+        {
+            var elementType = namedType.TypeArguments[0];
+            var innerTypeString = CreateTypeKey(elementType);
+            return isNullable ? $"[{innerTypeString}]" : $"[{innerTypeString}]!";
+        }
+
+        var typeName = GetFullyQualifiedTypeName(underlyingType);
+        return isNullable ? typeName : $"{typeName}!";
+    }
+
+    private static string CreateFactory(ITypeSymbol unwrappedType)
+    {
+        return $"static (_, type) => {Build(unwrappedType)}";
+
+        static string Build(ITypeSymbol unwrappedType)
+        {
+            bool isNullable;
+            ITypeSymbol underlyingType;
+
+            // We first check if the type is a nullable value type (int?, Guid?, etc.).
+            if (unwrappedType is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } vt)
+            {
+                underlyingType = vt.TypeArguments[0];
+                isNullable = true;
+            }
+
+            // For reference types we check NullableAnnotation.
+            else if (unwrappedType.IsReferenceType)
+            {
+                underlyingType = unwrappedType;
+                isNullable = unwrappedType.NullableAnnotation == NullableAnnotation.Annotated;
+            }
+
+            // In all other cases we expect it to be non-null
+            else
+            {
+                underlyingType = unwrappedType;
+                isNullable = false;
+            }
+
+            if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
+            {
+                var elementType = namedType.TypeArguments[0];
+                var innerTypeString = CreateTypeKey(elementType);
+                return isNullable
+                    ? $"new global::{WellKnownTypes.ListType}({innerTypeString})"
+                    : $"new global::{WellKnownTypes.NonNullType}(new global::{WellKnownTypes.ListType}({innerTypeString}))";
+            }
+
+            return isNullable ? "type" : $"new global::{WellKnownTypes.NonNullType}(type)";
+        }
+    }
+
     private static ITypeSymbol UnwrapNonEssentialTypes(ITypeSymbol typeSymbol, Compilation compilation)
     {
         var fieldResultInterface = compilation.GetFieldResultInterface();

@@ -2,9 +2,9 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration;
 
-internal sealed class ExtendedTypeRefEqualityComparer : IEqualityComparer<ExtendedTypeReference>
+internal sealed class TypeRefEqualityComparer : IEqualityComparer<TypeReference>
 {
-    public bool Equals(ExtendedTypeReference? x, ExtendedTypeReference? y)
+    public bool Equals(TypeReference? x, TypeReference? y)
     {
         if (ReferenceEquals(x, y))
         {
@@ -19,6 +19,6 @@ internal sealed class ExtendedTypeRefEqualityComparer : IEqualityComparer<Extend
         return x.Equals(y);
     }
 
-    public int GetHashCode(ExtendedTypeReference obj)
+    public int GetHashCode(TypeReference obj)
         => obj.GetHashCode();
 }
