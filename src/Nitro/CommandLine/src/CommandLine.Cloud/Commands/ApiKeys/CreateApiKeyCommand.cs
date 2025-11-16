@@ -43,6 +43,11 @@ internal sealed class CreateApiKeyCommand : Command
 
         if (workspaceId is null && apiId is null)
         {
+            if (!console.IsHumanReadable())
+            {
+                throw Exit("The workspace id or api id is required in non-interactive mode.");
+            }
+
             var choice = await new SelectionPrompt<string>()
                 .Title("Do you want to create the api key scoped to an api or the whole workspace?")
                 .AddChoices("Api", "Workspace")
