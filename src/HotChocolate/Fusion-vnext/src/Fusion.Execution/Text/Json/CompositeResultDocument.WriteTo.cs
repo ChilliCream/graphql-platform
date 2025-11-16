@@ -14,30 +14,13 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
         formatter.Write();
     }
 
-    private ref struct RawJsonFormatter(CompositeResultDocument document, IBufferWriter<byte> writer, bool indented)
+    internal ref struct RawJsonFormatter(CompositeResultDocument document, IBufferWriter<byte> writer, bool indented)
     {
-        private const byte StartObject = (byte)'{';
-        private const byte EndObject = (byte)'}';
-        private const byte StartArray = (byte)'[';
-        private const byte EndArray = (byte)']';
-        private const byte Quote = (byte)'"';
-        private const byte Colon = (byte)':';
-        private const byte Comma = (byte)',';
-        private const byte Space = (byte)' ';
-        private const byte NewLine = (byte)'\n';
-
-        private static ReadOnlySpan<byte> Data => "data"u8;
-        private static ReadOnlySpan<byte> Errors => "errors"u8;
-        private static ReadOnlySpan<byte> Extensions => "extensions"u8;
-        private static ReadOnlySpan<byte> True => "true"u8;
-        private static ReadOnlySpan<byte> False => "false"u8;
-        private static ReadOnlySpan<byte> Null => "null"u8;
-
         private int _indentLevel = 0;
 
         public void Write()
         {
-            WriteByte(StartObject);
+            WriteByte(JsonConstants.OpenBrace);
 
             if (indented)
             {
@@ -52,22 +35,26 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                     WriteIndent();
                 }
 
-                WriteByte(Quote);
-                writer.Write(Errors);
-                WriteByte(Quote);
-                WriteByte(Colon);
+                WriteByte(JsonConstants.Quote);
+                writer.Write(JsonConstants.Errors);
+                WriteByte(JsonConstants.Quote);
+                WriteByte(JsonConstants.Colon);
 
                 if (indented)
                 {
-                    WriteByte(Space);
+                    WriteByte(JsonConstants.Space);
                 }
 
                 var options = new JsonWriterOptions { Indented = indented };
                 using var jsonWriter = new Utf8JsonWriter(writer, options);
-                JsonValueFormatter.WriteErrors(jsonWriter, document._errors, new JsonSerializerOptions(JsonSerializerDefaults.Web), default);
+                JsonValueFormatter.WriteErrors(
+                    jsonWriter,
+                    document._errors,
+                    new JsonSerializerOptions(JsonSerializerDefaults.Web),
+                    default);
                 jsonWriter.Flush();
 
-                WriteByte(Comma);
+                WriteByte(JsonConstants.Comma);
             }
 
             // Write "data":
@@ -79,20 +66,20 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                 WriteIndent();
             }
 
-            WriteByte(Quote);
-            writer.Write(Data);
-            WriteByte(Quote);
-            WriteByte(Colon);
+            WriteByte(JsonConstants.Quote);
+            writer.Write(JsonConstants.Data);
+            WriteByte(JsonConstants.Quote);
+            WriteByte(JsonConstants.Colon);
 
             if (indented)
             {
-                WriteByte(Space);
+                WriteByte(JsonConstants.Space);
             }
 
             if (row.TokenType is ElementTokenType.Null
                 || (ElementFlags.Invalidated & row.Flags) == ElementFlags.Invalidated)
             {
-                writer.Write(Null);
+                writer.Write(JsonConstants.NullValue);
             }
             else
             {
@@ -101,26 +88,30 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
 
             if (document._extensions?.Count > 0)
             {
-                WriteByte(Comma);
+                WriteByte(JsonConstants.Comma);
 
                 if (indented)
                 {
                     WriteIndent();
                 }
 
-                WriteByte(Quote);
-                writer.Write(Extensions);
-                WriteByte(Quote);
-                WriteByte(Colon);
+                WriteByte(JsonConstants.Quote);
+                writer.Write(JsonConstants.Extensions);
+                WriteByte(JsonConstants.Quote);
+                WriteByte(JsonConstants.Colon);
 
                 if (indented)
                 {
-                    WriteByte(Space);
+                    WriteByte(JsonConstants.Space);
                 }
 
                 var options = new JsonWriterOptions { Indented = indented };
                 using var jsonWriter = new Utf8JsonWriter(writer, options);
-                JsonValueFormatter.WriteDictionary(jsonWriter, document._extensions, new JsonSerializerOptions(JsonSerializerDefaults.Web), default);
+                JsonValueFormatter.WriteDictionary(
+                    jsonWriter,
+                    document._extensions,
+                    new JsonSerializerOptions(JsonSerializerDefaults.Web),
+                    default);
                 jsonWriter.Flush();
             }
 
@@ -131,10 +122,10 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                 WriteIndent();
             }
 
-            WriteByte(EndObject);
+            WriteByte(JsonConstants.CloseBrace);
         }
 
-        private void WriteValue(Cursor cursor, DbRow row)
+        public void WriteValue(Cursor cursor, DbRow row)
         {
             var tokenType = row.TokenType;
 
@@ -152,29 +143,31 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
 
             switch (tokenType)
             {
-                case ElementTokenType.StartObject:
+                case ElementTokenType.StartObject
+                    when (ElementFlags.SourceResult & row.Flags) != ElementFlags.SourceResult:
                     WriteObject(cursor, row);
                     break;
 
-                case ElementTokenType.StartArray:
+                case ElementTokenType.StartArray
+                    when (ElementFlags.SourceResult & row.Flags) != ElementFlags.SourceResult:
                     WriteArray(cursor, row);
                     break;
 
                 case ElementTokenType.None:
                 case ElementTokenType.Null:
-                    writer.Write(Null);
+                    writer.Write(JsonConstants.NullValue);
                     break;
 
                 case ElementTokenType.True:
-                    writer.Write(True);
+                    writer.Write(JsonConstants.TrueValue);
                     break;
 
                 case ElementTokenType.False:
-                    writer.Write(False);
+                    writer.Write(JsonConstants.FalseValue);
                     break;
 
                 default:
-                    writer.Write(document.ReadRawValue(row));
+                    document.WriteRawValueTo(writer, row, _indentLevel, indented);
                     break;
             }
         }
@@ -186,7 +179,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             var current = start + 1;
             var end = start + startRow.NumberOfRows;
 
-            WriteByte(StartObject);
+            WriteByte(JsonConstants.OpenBrace);
 
             if (indented && current < end)
             {
@@ -209,7 +202,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
 
                 if (!first)
                 {
-                    WriteByte(Comma);
+                    WriteByte(JsonConstants.Comma);
                 }
                 first = false;
 
@@ -220,14 +213,14 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                 }
 
                 // property name (quoted)
-                WriteByte(Quote);
+                WriteByte(JsonConstants.Quote);
                 writer.Write(document.ReadRawValue(row));
-                WriteByte(Quote);
-                WriteByte(Colon);
+                WriteByte(JsonConstants.Quote);
+                WriteByte(JsonConstants.Colon);
 
                 if (indented)
                 {
-                    WriteByte(Space);
+                    WriteByte(JsonConstants.Space);
                 }
 
                 // property value
@@ -246,7 +239,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                 WriteIndent();
             }
 
-            WriteByte(EndObject);
+            WriteByte(JsonConstants.CloseBrace);
         }
 
         private void WriteArray(Cursor start, DbRow startRow)
@@ -256,7 +249,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             var current = start + 1;
             var end = start + startRow.NumberOfRows;
 
-            WriteByte(StartArray);
+            WriteByte(JsonConstants.OpenBracket);
 
             if (indented && current < end)
             {
@@ -268,7 +261,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             {
                 if (!first)
                 {
-                    WriteByte(Comma);
+                    WriteByte(JsonConstants.Comma);
                 }
                 first = false;
 
@@ -291,25 +284,26 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                 WriteIndent();
             }
 
-            WriteByte(EndArray);
+            WriteByte(JsonConstants.CloseBracket);
         }
 
-        private void WriteNewLine() => WriteByte(NewLine);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private readonly void WriteNewLine() => WriteByte(JsonConstants.NewLineLineFeed);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void WriteIndent()
+        private readonly void WriteIndent()
         {
             var indentSize = _indentLevel * 2;
             if (indentSize > 0)
             {
                 var span = writer.GetSpan(indentSize);
-                span[..indentSize].Fill(Space);
+                span[..indentSize].Fill(JsonConstants.Space);
                 writer.Advance(indentSize);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void WriteByte(byte value)
+        private readonly void WriteByte(byte value)
         {
             var span = writer.GetSpan(1);
             span[0] = value;

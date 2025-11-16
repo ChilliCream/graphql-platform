@@ -247,4 +247,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor WrongAuthorizeAttribute =
+        new(
+            id: "HC0106",
+            title: "Microsoft Authorization Attribute Not Allowed",
+            messageFormat: "Use HotChocolate.Authorization.{0} instead",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }

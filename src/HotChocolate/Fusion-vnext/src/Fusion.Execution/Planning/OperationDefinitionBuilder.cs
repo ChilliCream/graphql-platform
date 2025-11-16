@@ -76,6 +76,14 @@ internal sealed class OperationDefinitionBuilder
 
         if (_lookup is not null && _lookupArguments is not null && _typeToLookup is not null)
         {
+            if (!_lookup.Path.IsEmpty)
+            {
+                foreach (var fieldName in _lookup.Path)
+                {
+                    selectionPathBuilder.AppendField(fieldName);
+                }
+            }
+
             selectionPathBuilder.AppendField(_lookup.FieldName);
 
             var lookupSelectionSet = selectionSet;
@@ -110,6 +118,17 @@ internal sealed class OperationDefinitionBuilder
                 [],
                 _lookupArguments,
                 lookupSelectionSet);
+
+            if (!_lookup.Path.IsEmpty)
+            {
+                for (var i = _lookup.Path.Length - 1; i >= 0; i--)
+                {
+                    var fieldName = _lookup.Path[i];
+                    var fieldSelectionSet = new SelectionSetNode(null, [lookupField]);
+                    lookupField = new FieldNode(fieldName, fieldSelectionSet);
+                    indexBuilder.Register(fieldSelectionSet);
+                }
+            }
 
             selectionSet = new SelectionSetNode(null, [lookupField]);
         }

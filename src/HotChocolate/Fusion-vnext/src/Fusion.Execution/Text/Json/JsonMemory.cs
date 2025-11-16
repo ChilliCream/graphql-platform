@@ -11,7 +11,7 @@ public static class JsonMemory
 {
     public const int BufferSize = 1 << 17;
 
-    private static readonly FixedSizeArrayPool s_pool = new(1, BufferSize, 128, preAllocate: true);
+    private static readonly FixedSizeArrayPool s_pool = new(1, BufferSize, 128 * 6, preAllocate: true);
     private static readonly ArrayPool<byte[]> s_chunkPool = ArrayPool<byte[]>.Shared;
 
     public static byte[] Rent()

@@ -1,5 +1,3 @@
-using HotChocolate.Resolvers;
-
 namespace HotChocolate.Types;
 
 public class ParentMethodAnalyzerTests

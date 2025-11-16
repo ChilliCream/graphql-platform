@@ -1,4 +1,6 @@
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
@@ -28,9 +30,8 @@ public abstract partial class ScalarType
     protected ScalarType(string name, BindingBehavior bind = BindingBehavior.Explicit)
     {
         Name = name.EnsureGraphQLName();
-        Bind = bind;
-
         Directives = null!;
+        Bind = bind;
     }
 
     protected override ScalarTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
@@ -48,11 +49,20 @@ public abstract partial class ScalarType
     {
         base.OnRegisterDependencies(context, configuration);
 
+        var inspector = context.TypeInspector;
+        var options = context.DescriptorContext.Options;
+
         if (SpecifiedBy is not null)
         {
-            var inspector = context.TypeInspector;
             var specifiedByTypeRef = inspector.GetTypeRef(typeof(SpecifiedByDirectiveType));
             context.Dependencies.Add(new TypeDependency(specifiedByTypeRef));
+        }
+
+        if (options.ApplySerializeAsToScalars && SerializationType is not ScalarSerializationType.Undefined)
+        {
+            var serializedAsTypeRef = inspector.GetTypeRef(typeof(SerializeAs));
+            context.Dependencies.Add(new TypeDependency(serializedAsTypeRef));
+            configuration.AddDirective(new SerializeAs(SerializationType, Pattern), inspector);
         }
 
         if (configuration.HasDirectives)

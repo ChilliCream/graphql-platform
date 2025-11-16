@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  hotchocolate-core:
-    name: "HotChocolate Core Benchmarks"
+  fusion-gateway:
+    name: "Fusion Gateway Benchmarks"
     if: github.event_name == 'push' || github.event.pull_request.draft == false
     runs-on: benchmarking
     permissions:
@@ -39,62 +39,50 @@ jobs:
           fetch-depth: 0
           show-progress: false
 
-      - name: Restore dependencies
-        run: dotnet restore src/HotChocolate/AspNetCore/benchmarks/k6/eShop.slnx
-
-      - name: Start AppHost and wait for readiness
-        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6/Catalog.AppHost
+      - name: Install k6
         run: |
-          echo "Starting AppHost..."
-          dotnet run > /tmp/apphost.log 2>&1 &
-          APPHOST_PID=$!
-          echo "APPHOST_PID=$APPHOST_PID" >> $GITHUB_ENV
+          if ! command -v k6 &> /dev/null; then
+            echo "Installing k6..."
+            sudo gpg -k
+            sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+            echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+            sudo apt-get update
+            sudo apt-get install k6 -y
+          fi
+          k6 version
 
-          echo "Waiting for server to be ready..."
-          for i in {1..15}; do
-            if curl -s -o /dev/null -w "%{http_code}" http://localhost:5224/graphql -X POST \
-              -H "Content-Type: application/json" \
-              -d '{"query": "{ __typename }"}' | grep -q "200"; then
-              echo "Server is ready!"
-              break
-            fi
-            echo "Waiting... ($i/15)"
-            sleep 2
-          done
+      - name: Install jq for result parsing
+        run: |
+          if ! command -v jq &> /dev/null; then
+            sudo apt-get install jq -y
+          fi
+
+      - name: Make scripts executable
+        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
+        run: chmod +x *.sh
 
       - name: Run performance tests and collect data
-        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
-        run: |
-          chmod +x run-and-collect.sh
-          ./run-and-collect.sh hotchocolate-core-performance-data-current.json
-
-      - name: Stop AppHost
-        if: always()
-        run: |
-          if [ -n "$APPHOST_PID" ]; then
-            kill $APPHOST_PID 2>/dev/null || true
-            wait $APPHOST_PID 2>/dev/null || true
-          fi
+        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
+        run: ./run-and-collect-gateway.sh fusion-gateway-performance-data-current.json
 
       - name: Fetch baseline performance data from external repo
         if: github.event_name == 'pull_request'
         run: |
-          if [ -f performance-data-repo/hotchocolate-core-performance-data.json ]; then
+          if [ -f performance-data-repo/fusion-gateway-performance-data.json ]; then
             echo "Baseline data fetched successfully from performance data repository"
-            cp performance-data-repo/hotchocolate-core-performance-data.json baseline-performance.json
+            cp performance-data-repo/fusion-gateway-performance-data.json baseline-performance.json
             cat baseline-performance.json
           else
             echo "No baseline data found in performance data repository"
-            # Don't create the file - let the comparison script handle missing baseline
             rm -f baseline-performance.json
           fi
 
       - name: Compare performance and generate report
         if: github.event_name == 'pull_request'
-        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
+        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
         run: |
-          chmod +x compare-performance.sh
-          ./compare-performance.sh hotchocolate-core-performance-data-current.json ../../../../../baseline-performance.json performance-report.md
+          chmod +x compare-gateway-performance.sh
+          ./compare-gateway-performance.sh fusion-gateway-performance-data-current.json ../../../../../baseline-performance.json performance-report.md
 
       - name: Comment PR with performance report
         if: github.event_name == 'pull_request'
@@ -103,7 +91,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const reportPath = 'src/HotChocolate/AspNetCore/benchmarks/k6/performance-report.md';
+            const reportPath = 'src/HotChocolate/Fusion-vnext/benchmarks/k6/performance-report.md';
 
             let report;
             try {
@@ -113,14 +101,12 @@ jobs:
               return;
             }
 
-            // Add timestamp and commit info to the report
             const timestamp = new Date().toUTCString();
             const commitSha = context.sha.substring(0, 7);
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
             const commentBody = `${report}\n\n---\n*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`;
 
-            // Always create a new comment
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -132,41 +118,33 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: performance-data
+          name: fusion-gateway-performance-data
           path: |
-            src/HotChocolate/AspNetCore/benchmarks/k6/hotchocolate-core-performance-data-current.json
-            src/HotChocolate/AspNetCore/benchmarks/k6/performance-report.md
-            /tmp/apphost.log
+            src/HotChocolate/Fusion-vnext/benchmarks/k6/fusion-gateway-performance-data-current.json
+            src/HotChocolate/Fusion-vnext/benchmarks/k6/performance-report.md
           retention-days: 30
 
       - name: Check for performance regression
         if: github.event_name == 'pull_request'
-        working-directory: src/HotChocolate/AspNetCore/benchmarks/k6
+        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
         run: |
-          # Fail the build if there's a significant performance regression
           if grep -q "⚠️ \*\*Performance regression detected" performance-report.md; then
             echo "::warning::Performance regression detected! Please review the performance report."
-            # Uncomment the next line to fail the build on regression
-            # exit 1
           fi
 
       - name: Store performance data to external repository
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: performance-data-repo
         run: |
-          # Copy the new performance data
-          cp ../src/HotChocolate/AspNetCore/benchmarks/k6/hotchocolate-core-performance-data-current.json hotchocolate-core-performance-data.json
+          cp ../src/HotChocolate/Fusion-vnext/benchmarks/k6/fusion-gateway-performance-data-current.json fusion-gateway-performance-data.json
 
-          # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Add and commit the performance data
-          git add hotchocolate-core-performance-data.json
+          git add fusion-gateway-performance-data.json
 
-          # Only commit if there are changes
           if ! git diff --staged --quiet; then
-            git commit -m "Update HotChocolate core performance data from ${{ github.sha }}"
+            git commit -m "Update Fusion Gateway performance data from ${{ github.sha }}"
             git push
           else
             echo "No changes to performance data"

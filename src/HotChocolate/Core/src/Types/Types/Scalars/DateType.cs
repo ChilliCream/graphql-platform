@@ -21,6 +21,8 @@ public class DateType : ScalarType<DateOnly, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.String;
+        Pattern = @"^\d{4}-\d{2}-\d{2}$";
         _enforceSpecFormat = !disableFormatCheck;
     }
 

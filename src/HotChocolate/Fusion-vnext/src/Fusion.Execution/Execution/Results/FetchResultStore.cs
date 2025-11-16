@@ -53,6 +53,8 @@ internal sealed class FetchResultStore : IDisposable
             _errorHandler,
             _errorHandlingMode,
             maxDepth: 32);
+
+        _memory.Push(_result);
     }
 
     public void Reset()
@@ -67,6 +69,8 @@ internal sealed class FetchResultStore : IDisposable
             _errorHandler,
             _errorHandlingMode,
             maxDepth: 32);
+
+        _memory.Push(_result);
     }
 
     public CompositeResultDocument Result => _result;

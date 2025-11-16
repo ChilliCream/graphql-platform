@@ -33,7 +33,10 @@ namespace HotChocolate.Types.Composite;
 /// </para>
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Method | AttributeTargets.Property)]
+    AttributeTargets.Class
+    | AttributeTargets.Struct
+    | AttributeTargets.Method
+    | AttributeTargets.Property)]
 public sealed class ShareableAttribute : DescriptorAttribute
 {
     public ShareableAttribute()

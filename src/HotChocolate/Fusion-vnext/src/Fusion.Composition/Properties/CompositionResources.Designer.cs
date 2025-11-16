@@ -762,6 +762,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The input type &apos;{0}&apos; in schema &apos;{1}&apos; must be annotated with the &apos;@oneOf` directive, since the same type has been annotated with it in schema &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputWithMissingOneOf {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputWithMissingOneOf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The input type &apos;{0}&apos; in schema &apos;{1}&apos; must define the required field &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_InputWithMissingRequiredFields {
@@ -1343,6 +1352,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ShareableMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("ShareableMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @tag directive must have a &apos;name&apos; argument of type String..
+        /// </summary>
+        internal static string TagDirective_NameArgument_Invalid {
+            get {
+                return ResourceManager.GetString("TagDirective_NameArgument_Invalid", resourceCulture);
             }
         }
         

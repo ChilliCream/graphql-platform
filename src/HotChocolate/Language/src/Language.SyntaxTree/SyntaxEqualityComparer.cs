@@ -1,6 +1,6 @@
 namespace HotChocolate.Language;
 
-internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
+internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : IEqualityComparer<ISyntaxNode>
 {
     public bool Equals(ISyntaxNode? x, ISyntaxNode? y)
     {
@@ -171,7 +171,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(DirectiveDefinitionNode x, DirectiveDefinitionNode y)
         => Equals(x.Name, y.Name)
-            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && (ignoreDescriptions || SyntaxComparer.BySyntax.Equals(x.Description, y.Description))
             && x.IsRepeatable.Equals(y.IsRepeatable)
             && Equals(x.Arguments, y.Arguments)
             && Equals(x.Locations, y.Locations);
@@ -184,7 +184,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(EnumTypeDefinitionNode x, EnumTypeDefinitionNode y)
         => Equals(x.Name, y.Name)
-            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && (ignoreDescriptions || SyntaxComparer.BySyntax.Equals(x.Description, y.Description))
             && Equals(x.Directives, y.Directives)
             && Equals(x.Values, y.Values);
 
@@ -195,14 +195,14 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(EnumValueDefinitionNode x, EnumValueDefinitionNode y)
         => Equals(x.Name, y.Name)
-            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description);
+            && (ignoreDescriptions || SyntaxComparer.BySyntax.Equals(x.Description, y.Description));
 
     private bool Equals(EnumValueNode x, EnumValueNode y)
         => x.AsSpan().SequenceEqual(y.AsSpan());
 
     private bool Equals(FieldDefinitionNode x, FieldDefinitionNode y)
         => Equals(x.Name, y.Name)
-            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && (ignoreDescriptions || SyntaxComparer.BySyntax.Equals(x.Description, y.Description))
             && Equals(x.Directives, y.Directives)
             && Equals(x.Arguments, y.Arguments)
             && Equals(x.Type, y.Type);
@@ -235,7 +235,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(InputObjectTypeDefinitionNode x, InputObjectTypeDefinitionNode y)
         => Equals(x.Name, y.Name)
-            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && (ignoreDescriptions || SyntaxComparer.BySyntax.Equals(x.Description, y.Description))
             && Equals(x.Directives, y.Directives)
             && Equals(x.Fields, y.Fields);
 
@@ -246,14 +246,14 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(InputValueDefinitionNode x, InputValueDefinitionNode y)
         => Equals(x.Name, y.Name)
-            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && (ignoreDescriptions || SyntaxComparer.BySyntax.Equals(x.Description, y.Description))
             && Equals(x.Type, y.Type)
             && Equals(x.DefaultValue, y.DefaultValue)
             && Equals(x.Directives, y.Directives);
 
     private bool Equals(InterfaceTypeDefinitionNode x, InterfaceTypeDefinitionNode y)
         => Equals(x.Name, y.Name)
-            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && (ignoreDescriptions || SyntaxComparer.BySyntax.Equals(x.Description, y.Description))
             && Equals(x.Directives, y.Directives)
             && Equals(x.Interfaces, y.Interfaces)
             && Equals(x.Fields, y.Fields);
@@ -308,7 +308,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(ObjectTypeDefinitionNode x, ObjectTypeDefinitionNode y)
         => Equals(x.Name, y.Name)
-            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && (ignoreDescriptions || SyntaxComparer.BySyntax.Equals(x.Description, y.Description))
             && Equals(x.Directives, y.Directives)
             && Equals(x.Interfaces, y.Interfaces)
             && Equals(x.Fields, y.Fields);
@@ -335,7 +335,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(ScalarTypeDefinitionNode x, ScalarTypeDefinitionNode y)
         => Equals(x.Name, y.Name)
-            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && (ignoreDescriptions || SyntaxComparer.BySyntax.Equals(x.Description, y.Description))
             && Equals(x.Directives, y.Directives);
 
     private bool Equals(ScalarTypeExtensionNode x, ScalarTypeExtensionNode y)
@@ -349,7 +349,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             && SyntaxComparer.BySyntax.Equals(x.ArgumentName, y.ArgumentName);
 
     private bool Equals(SchemaDefinitionNode x, SchemaDefinitionNode y)
-        => SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+        => (ignoreDescriptions || SyntaxComparer.BySyntax.Equals(x.Description, y.Description))
             && Equals(x.Directives, y.Directives)
             && Equals(x.OperationTypes, y.OperationTypes);
 
@@ -365,7 +365,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(UnionTypeDefinitionNode x, UnionTypeDefinitionNode y)
         => Equals(x.Name, y.Name)
-            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && (ignoreDescriptions || SyntaxComparer.BySyntax.Equals(x.Description, y.Description))
             && Equals(x.Directives, y.Directives)
             && Equals(x.Types, y.Types);
 
@@ -545,7 +545,10 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
         hashCode.Add(GetHashCode(node.Name));
-        hashCode.Add(GetHashCode(node.Description));
+        if (!ignoreDescriptions)
+        {
+            hashCode.Add(GetHashCode(node.Description));
+        }
         hashCode.Add(node.IsRepeatable);
 
         for (var i = 0; i < node.Arguments.Count; i++)
@@ -597,7 +600,10 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
         hashCode.Add(GetHashCode(node.Name));
-        hashCode.Add(GetHashCode(node.Description));
+        if (!ignoreDescriptions)
+        {
+            hashCode.Add(GetHashCode(node.Description));
+        }
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
@@ -636,7 +642,9 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
     }
 
     private int GetHashCode(EnumValueDefinitionNode node)
-        => HashCode.Combine(node.Kind, GetHashCode(node.Name), GetHashCode(node.Description));
+        => ignoreDescriptions
+            ? HashCode.Combine(node.Kind, GetHashCode(node.Name))
+            : HashCode.Combine(node.Kind, GetHashCode(node.Name), GetHashCode(node.Description));
 
     private int GetHashCode(EnumValueNode node)
         => HashCode.Combine(node.Kind, node.Value);
@@ -646,7 +654,10 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
         hashCode.Add(GetHashCode(node.Name));
-        hashCode.Add(GetHashCode(node.Description));
+        if (!ignoreDescriptions)
+        {
+            hashCode.Add(GetHashCode(node.Description));
+        }
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
@@ -765,7 +776,10 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
         hashCode.Add(GetHashCode(node.Name));
-        hashCode.Add(GetHashCode(node.Description));
+        if (!ignoreDescriptions)
+        {
+            hashCode.Add(GetHashCode(node.Description));
+        }
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
@@ -808,7 +822,10 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
         hashCode.Add(GetHashCode(node.Name));
-        hashCode.Add(GetHashCode(node.Description));
+        if (!ignoreDescriptions)
+        {
+            hashCode.Add(GetHashCode(node.Description));
+        }
         hashCode.Add(GetHashCode(node.Type));
         hashCode.Add(GetHashCode(node.DefaultValue));
 
@@ -826,7 +843,10 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
         hashCode.Add(GetHashCode(node.Name));
-        hashCode.Add(GetHashCode(node.Description));
+        if (!ignoreDescriptions)
+        {
+            hashCode.Add(GetHashCode(node.Description));
+        }
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
@@ -947,7 +967,10 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
         hashCode.Add(GetHashCode(node.Name));
-        hashCode.Add(GetHashCode(node.Description));
+        if (!ignoreDescriptions)
+        {
+            hashCode.Add(GetHashCode(node.Description));
+        }
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
@@ -1043,7 +1066,10 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
         hashCode.Add(GetHashCode(node.Name));
-        hashCode.Add(GetHashCode(node.Description));
+        if (!ignoreDescriptions)
+        {
+            hashCode.Add(GetHashCode(node.Description));
+        }
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
@@ -1081,7 +1107,10 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
     {
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
-        hashCode.Add(GetHashCode(node.Description));
+        if (!ignoreDescriptions)
+        {
+            hashCode.Add(GetHashCode(node.Description));
+        }
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
@@ -1158,7 +1187,10 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
         hashCode.Add(GetHashCode(node.Name));
-        hashCode.Add(GetHashCode(node.Description));
+        if (!ignoreDescriptions)
+        {
+            hashCode.Add(GetHashCode(node.Description));
+        }
 
         for (var i = 0; i < node.Directives.Count; i++)
         {

@@ -226,10 +226,23 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         IOutputTypeInfo type,
         Resolver resolver)
     {
-        Writer.WriteIndentedLine(
-            "configuration.Type = typeInspector.GetTypeRef(typeof({0}), {1}.Output);",
-            resolver.SchemaTypeName,
-            WellKnownTypes.TypeContext);
+        switch (resolver.SchemaTypeRef.Kind)
+        {
+            case SchemaTypeReferenceKind.ExtendedTypeReference:
+                Writer.WriteIndentedLine(
+                    "configuration.Type = typeInspector.GetTypeRef(typeof({0}), {1}.Output);",
+                    resolver.SchemaTypeRef.TypeString,
+                    WellKnownTypes.TypeContext);
+                break;
+            case SchemaTypeReferenceKind.SyntaxTypeReference:
+                Writer.WriteIndentedLine(
+                    "configuration.Type = TypeReference.Create(\"{0}\", {1}.Output));",
+                    resolver.SchemaTypeRef.TypeString,
+                    WellKnownTypes.TypeContext);
+                break;
+            default:
+                throw new NotSupportedException();
+        }
     }
 
     private void WriteResolverBindingExtendsWith(
@@ -246,13 +259,13 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         var description = resolver.Description;
         if (!string.IsNullOrEmpty(description))
         {
-            Writer.WriteIndentedLine("configuration.Description = \"{0}\";", description);
+            Writer.WriteIndentedLine("configuration.Description = \"{0}\";", GeneratorUtils.EscapeForStringLiteral(description));
         }
 
         var deprecationReason = resolver.DeprecationReason;
         if (!string.IsNullOrEmpty(deprecationReason))
         {
-            Writer.WriteIndentedLine("configuration.DeprecationReason = \"{0}\";", deprecationReason);
+            Writer.WriteIndentedLine("configuration.DeprecationReason = \"{0}\";", GeneratorUtils.EscapeForStringLiteral(deprecationReason));
         }
 
         WriteResolverBindingDescriptor(type, resolver);
@@ -271,10 +284,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             Writer.WriteIndentedLine("configuration.Features.Set(pagingOptions);");
         }
 
-        if (resolver.Parameters.Any(p => p.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
+        if (!resolver.Parameters.IsEmpty)
         {
-            var firstParameter = true;
-
             var parentInfo = resolver.Parameters.GetParentInfo();
             if (parentInfo.HasValue)
             {
@@ -283,10 +294,16 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     SymbolDisplay.FormatLiteral(parentInfo.Value.Requirements ?? "", quote: true),
                     parentInfo.Value.Type);
             }
+        }
 
+        if (resolver.Parameters.Any(p => p.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
+        {
+            var resolverMethod = (IMethodSymbol)resolver.Member;
+            var firstParameter = true;
             foreach (var parameter in resolver.Parameters)
             {
-                if (parameter.Kind is not (ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
+                if (parameter.Type.TypeKind is TypeKind.Error
+                    || parameter.Kind is not (ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
                 {
                     continue;
                 }
@@ -320,6 +337,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 using (Writer.WriteIfClause(
                     "parameterInfo.Kind is global::HotChocolate.Internal.ArgumentKind.Argument"))
                 {
+                    var parameterTypeString = ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup);
+
                     Writer.WriteIndentedLine(
                         "var argumentConfiguration = new global::{0}",
                         WellKnownTypes.ArgumentConfiguration);
@@ -333,28 +352,49 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         description = parameter.Description;
                         if (!string.IsNullOrEmpty(description))
                         {
-                            Writer.WriteIndentedLine("Description = \"{0}\",", description);
+                            Writer.WriteIndentedLine(
+                                "Description = \"{0}\",",
+                                GeneratorUtils.EscapeForStringLiteral(description));
                         }
 
                         deprecationReason = parameter.DeprecationReason;
                         if (!string.IsNullOrEmpty(deprecationReason))
                         {
-                            Writer.WriteIndentedLine("DeprecationReason = \"{0}\",", deprecationReason);
+                            Writer.WriteIndentedLine("DeprecationReason = \"{0}\",", GeneratorUtils.EscapeForStringLiteral(deprecationReason));
                         }
 
-                        Writer.WriteIndentedLine(
-                            "Type = typeInspector.GetTypeRef(typeof({0}), {1}.Input),",
-                            parameter.SchemaTypeName,
-                            WellKnownTypes.TypeContext);
+                        if (parameter.Parameter.HasExplicitDefaultValue)
+                        {
+                            var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(
+                                parameter.Parameter.ExplicitDefaultValue,
+                                parameter.Type);
+                            Writer.WriteIndentedLine("RuntimeDefaultValue = {0},", defaultValueString);
+                        }
 
-                        Writer.WriteIndentedLine(
-                            "RuntimeType = typeof({0})",
-                            parameter.Parameter.Type.ToClassNonNullableFullyQualifiedWithNullRefQualifier());
+                        switch (parameter.SchemaTypeRef.Kind)
+                        {
+                            case SchemaTypeReferenceKind.ExtendedTypeReference:
+                                Writer.WriteIndentedLine(
+                                    "Type = typeInspector.GetTypeRef(typeof({0}), {1}.Input),",
+                                    parameter.SchemaTypeRef.TypeString,
+                                    WellKnownTypes.TypeContext);
+                                break;
+                            case SchemaTypeReferenceKind.SyntaxTypeReference:
+                                Writer.WriteIndentedLine(
+                                    "Type = TypeReference.Create(\"{0}\", {1}.Input)),",
+                                    parameter.SchemaTypeRef.TypeString,
+                                    WellKnownTypes.TypeContext);
+                                break;
+                            default:
+                                throw new NotSupportedException();
+                        }
+
+                        Writer.WriteIndentedLine("RuntimeType = typeof({0})", parameterTypeString);
                     }
 
                     Writer.WriteIndentedLine("};");
 
-                    if (parameter.Attributes.Length > 0)
+                    if (parameter.DescriptorAttributes.Length > 0)
                     {
                         Writer.WriteLine();
                         Writer.WriteIndentedLine(
@@ -370,7 +410,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                             Writer.WriteIndentedLine("null,");
 
                             var first = true;
-                            foreach (var attribute in parameter.Attributes)
+                            foreach (var attribute in parameter.DescriptorAttributes)
                             {
                                 if (!first)
                                 {
@@ -395,7 +435,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             }
         }
 
-        if (resolver.Attributes.Length > 0 || resolver.IsNodeResolver)
+        if (resolver.DescriptorAttributes.Length > 0 || resolver.IsNodeResolver)
         {
             Writer.WriteLine();
             Writer.WriteIndentedLine("configuration.Member = context.ThisType.GetMethod(");
@@ -443,7 +483,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             }
         }
 
-        if (resolver.Attributes.Length > 0)
+        if (resolver.DescriptorAttributes.Length > 0)
         {
             Writer.WriteLine();
             Writer.WriteIndentedLine(
@@ -459,7 +499,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 Writer.WriteIndentedLine("configuration.Member,");
 
                 var first = true;
-                foreach (var attribute in resolver.Attributes)
+                foreach (var attribute in resolver.DescriptorAttributes)
                 {
                     if (!first)
                     {
@@ -636,7 +676,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             return;
         }
 
-        foreach (var parameter in  resolver.Parameters)
+        foreach (var parameter in resolver.Parameters)
         {
             if (parameter.Kind is ResolverParameterKind.Unknown)
             {
@@ -686,7 +726,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                             Writer.WriteIndentedLine("\"{0}\",", parameter.Name);
                             Writer.WriteIndentedLine(
                                 "typeof({0}),",
-                                parameter.Type.ToClassNonNullableFullyQualifiedWithNullRefQualifier());
+                                ToFullyQualifiedString(parameter.Type, (IMethodSymbol)resolver.Member, typeLookup));
                             Writer.WriteIndentedLine(
                                 parameter.Type.IsNullableType()
                                     ? "isNullable: true,"

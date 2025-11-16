@@ -5,6 +5,7 @@
     "EditorConfig.EditorConfig",
     "dbaeumer.vscode-eslint",
     "streetsidesoftware.code-spell-checker",
-    "graphql.vscode-graphql"
+    "graphql.vscode-graphql",
+    "ms-dotnettools.csharp",
   ]
 }

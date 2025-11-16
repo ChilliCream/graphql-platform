@@ -46,21 +46,23 @@ internal sealed class SourceSchemaPreprocessor(
         foreach (var lookupFieldDefinition in lookupFieldDefinitions)
         {
             var fieldType = lookupFieldDefinition.Type.AsTypeDefinition();
-            var possibleTypes = schema.GetPossibleTypes(fieldType);
-            var lookupMap = lookupFieldDefinition.GetFusionLookupMap();
+            var possibleTypes = schema.GetPossibleTypes(fieldType).ToArray();
 
             try
             {
-                var keyFields = lookupFieldDefinition.GetKeyFields(lookupMap, schema);
-
-                foreach (var possibleType in possibleTypes)
+                foreach (var valueSelectionGroup in lookupFieldDefinition.GetValueSelectionGroups())
                 {
-                    possibleType.ApplyKeyDirective(keyFields);
-                }
+                    var keyFields = lookupFieldDefinition.GetKeyFields(valueSelectionGroup, schema);
 
-                if (fieldType is MutableInterfaceTypeDefinition interfaceType)
-                {
-                    interfaceType.ApplyKeyDirective(keyFields);
+                    foreach (var possibleType in possibleTypes)
+                    {
+                        possibleType.ApplyKeyDirective(keyFields);
+                    }
+
+                    if (fieldType is MutableInterfaceTypeDefinition interfaceType)
+                    {
+                        interfaceType.ApplyKeyDirective(keyFields);
+                    }
                 }
             }
             catch (FieldSelectionMapSyntaxException)

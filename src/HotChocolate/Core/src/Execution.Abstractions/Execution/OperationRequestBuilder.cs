@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
 
@@ -184,6 +185,66 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// <returns>
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
+    public OperationRequestBuilder SetVariableValuesJson(
+        [StringSyntax("json")] string variableValues)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(variableValues);
+
+        using var document = JsonDocument.Parse(variableValues);
+        return SetVariableValuesJson(document);
+    }
+
+    /// <summary>
+    /// Sets the variable values for the GraphQL request.
+    /// </summary>
+    /// <param name="variableValues">
+    /// The variable values for the GraphQL request.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
+    public OperationRequestBuilder SetVariableValuesJson(
+        JsonDocument variableValues)
+    {
+        ArgumentNullException.ThrowIfNull(variableValues);
+
+        if (variableValues.RootElement.ValueKind is not (JsonValueKind.Null or JsonValueKind.Object))
+        {
+            throw new ArgumentException(
+                "The JSON document must be either null or an array of variable sets.",
+                nameof(variableValues));
+        }
+
+        if (variableValues.RootElement.ValueKind is JsonValueKind.Null)
+        {
+            _variableValues = null;
+            _readOnlyVariableValues = null;
+            return this;
+        }
+
+        var parser = new JsonValueParser();
+        var objectValue = (ObjectValueNode)parser.Parse(variableValues.RootElement);
+        var values = new Dictionary<string, object?>();
+
+        foreach (var field in objectValue.Fields)
+        {
+            values[field.Name.Value] = field.Value;
+        }
+
+        _variableValues = [values];
+        _readOnlyVariableValues = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the variable values for the GraphQL request.
+    /// </summary>
+    /// <param name="variableValues">
+    /// The variable values for the GraphQL request.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
     public OperationRequestBuilder SetVariableValuesSet(
         IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableValues)
     {
@@ -197,6 +258,78 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             _variableValues = null;
             _readOnlyVariableValues = variableValues;
         }
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the variable values for the GraphQL request.
+    /// </summary>
+    /// <param name="variableValues">
+    /// The variable values for the GraphQL request.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
+    public OperationRequestBuilder SetVariableValuesSetJson([StringSyntax("json")] string variableValues)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(variableValues);
+
+        using var document = JsonDocument.Parse(variableValues);
+        return SetVariableValuesSetJson(document);
+    }
+
+    /// <summary>
+    /// Sets the variable values for the GraphQL request.
+    /// </summary>
+    /// <param name="variableValues">
+    /// The variable values for the GraphQL request.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
+    public OperationRequestBuilder SetVariableValuesSetJson(JsonDocument variableValues)
+    {
+        ArgumentNullException.ThrowIfNull(variableValues);
+
+        if (variableValues.RootElement.ValueKind is not (JsonValueKind.Null or JsonValueKind.Array))
+        {
+            throw new ArgumentException(
+                "The JSON document must be either null or an array of variable sets.",
+                nameof(variableValues));
+        }
+
+        if (variableValues.RootElement.ValueKind is JsonValueKind.Null)
+        {
+            _variableValues = null;
+            _readOnlyVariableValues = null;
+            return this;
+        }
+
+        var parser = new JsonValueParser();
+        var sets = new List<IReadOnlyDictionary<string, object?>>();
+
+        foreach (var element in variableValues.RootElement.EnumerateArray())
+        {
+            if (element.ValueKind != JsonValueKind.Object)
+            {
+                throw new ArgumentException(
+                    "Each variable set must be a JSON object.",
+                    nameof(variableValues));
+            }
+
+            var objectValue = (ObjectValueNode)parser.Parse(element);
+            var values = new Dictionary<string, object?>();
+
+            foreach (var field in objectValue.Fields)
+            {
+                values[field.Name.Value] = field.Value;
+            }
+
+            sets.Add(values);
+        }
+
+        _variableValues = sets;
+        _readOnlyVariableValues = null;
         return this;
     }
 

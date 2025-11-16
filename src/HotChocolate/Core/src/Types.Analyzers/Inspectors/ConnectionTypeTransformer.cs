@@ -261,9 +261,11 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                 owner.ReplaceResolver(
                     connectionResolver,
                     connectionResolver.WithSchemaTypeName(
-                        connectionResolver.ReturnType.IsNullableType()
-                            ? $"global::{connectionTypeInfo.Namespace}.{connectionTypeInfo.Name}"
-                            : $"global::{WellKnownTypes.NonNullType}<global::{connectionTypeInfo.Namespace}.{connectionTypeInfo.Name}>"));
+                        new SchemaTypeReference(
+                            SchemaTypeReferenceKind.ExtendedTypeReference,
+                            connectionResolver.ReturnType.IsNullableType()
+                                ? $"global::{connectionTypeInfo.Namespace}.{connectionTypeInfo.Name}"
+                                : $"global::{WellKnownTypes.NonNullType}<global::{connectionTypeInfo.Namespace}.{connectionTypeInfo.Name}>")));
             }
 
             if (connectionTypeInfos is not null)

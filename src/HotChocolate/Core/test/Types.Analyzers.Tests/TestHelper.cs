@@ -102,7 +102,13 @@ internal static partial class TestHelper
             MetadataReference.CreateFromFile(typeof(WebApplication).Assembly.Location),
 
             // Microsoft.Extensions.DependencyInjection.Abstractions
-            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
+
+            // Microsoft.AspNetCore.Authorization
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute).Assembly.Location),
+
+            // HotChocolate.Authorization
+            MetadataReference.CreateFromFile(typeof(Authorization.AuthorizeAttribute).Assembly.Location)
         ];
 
         // Create a Roslyn compilation for the syntax tree.
@@ -138,6 +144,7 @@ internal static partial class TestHelper
             driver.GetRunResult()
                 .Results
                 .SelectMany(r => r.GeneratedSources)
+                .OrderBy(gs => gs.HintName)
                 .Select(gs => CSharpSyntaxTree.ParseText(gs.SourceText, parseOptions, path: gs.HintName))
         );
 
@@ -205,7 +212,8 @@ internal static partial class TestHelper
                 new ShareableInterfaceTypeAnalyzer(),
                 new ShareableScopedOnMemberAnalyzer(),
                 new DataAttributeOrderAnalyzer(),
-                new IdAttributeOnRecordParameterAnalyzer());
+                new IdAttributeOnRecordParameterAnalyzer(),
+                new WrongAuthorizationAttributeAnalyzer());
 
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
             var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;

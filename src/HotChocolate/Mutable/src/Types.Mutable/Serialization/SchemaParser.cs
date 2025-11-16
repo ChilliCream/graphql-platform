@@ -104,7 +104,7 @@ public static class SchemaParser
                         schema.Types.Add(
                             new MutableScalarTypeDefinition(typeDef.Name.Value)
                             {
-                                IsSpecScalar = BuiltIns.IsBuiltInScalar(typeDef.Name.Value)
+                                IsSpecScalar = SpecScalarNames.IsSpecScalar(typeDef.Name.Value)
                             });
                         break;
 
@@ -137,7 +137,7 @@ public static class SchemaParser
                 schema.DirectiveDefinitions.Add(
                     new MutableDirectiveDefinition(directiveDef.Name.Value)
                     {
-                        IsSpecDirective = BuiltIns.IsBuiltInDirective(directiveDef.Name.Value)
+                        IsSpecDirective = DirectiveNames.IsSpecDirective(directiveDef.Name.Value)
                     });
             }
         }
@@ -505,7 +505,7 @@ public static class SchemaParser
         InputObjectTypeDefinitionNode node)
     {
         type.Description = node.Description?.Value;
-        type.IsOneOf = node.Directives.Any(d => d.Name.Value == BuiltIns.OneOf.Name);
+        type.IsOneOf = node.Directives.Any(d => d.Name.Value == DirectiveNames.OneOf.Name);
         ExtendInputObjectType(schema, type, node);
     }
 
@@ -643,6 +643,44 @@ public static class SchemaParser
     {
         type.Description = node.Description?.Value;
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
+
+        var serializeAs = type.Directives.FirstOrDefault(BuiltIns.SerializeAs.Name);
+        if (serializeAs is not null)
+        {
+            if (serializeAs.Arguments.TryGetValue(BuiltIns.SerializeAs.Type, out var typeArg)
+                && typeArg is { Kind: SyntaxKind.ListValue or SyntaxKind.EnumValue })
+            {
+                var serializationType = ScalarSerializationType.Undefined;
+
+                if (typeArg is EnumValueNode enumValue
+                    && Enum.TryParse(enumValue.Value, ignoreCase: true, out ScalarSerializationType parsedValue))
+                {
+                    serializationType |= parsedValue;
+                }
+                else if (typeArg is ListValueNode listValue
+                    && listValue.Items.All(t => t.Kind is SyntaxKind.EnumValue))
+                {
+                    foreach (var item in listValue.Items.Cast<EnumValueNode>())
+                    {
+                        if (Enum.TryParse(item.Value, ignoreCase: true, out parsedValue))
+                        {
+                            serializationType |= parsedValue;
+                        }
+                    }
+                }
+
+                if (serializationType is not ScalarSerializationType.Undefined)
+                {
+                    type.SerializationType = serializationType;
+
+                    if (serializeAs.Arguments.TryGetValue(BuiltIns.SerializeAs.Pattern, out var patternArg)
+                        && patternArg is StringValueNode patternValue)
+                    {
+                        type.Pattern = patternValue.Value;
+                    }
+                }
+            }
+        }
     }
 
     private static void ExtendScalarType(
@@ -776,9 +814,9 @@ public static class SchemaParser
             {
                 directiveType = directiveNode.Name.Value switch
                 {
-                    BuiltIns.Deprecated.Name => BuiltIns.Deprecated.Create(schema),
-                    BuiltIns.OneOf.Name => BuiltIns.OneOf.Create(),
-                    BuiltIns.SpecifiedBy.Name => BuiltIns.SpecifiedBy.Create(schema),
+                    DirectiveNames.Deprecated.Name => BuiltIns.Deprecated.Create(schema),
+                    DirectiveNames.OneOf.Name => BuiltIns.OneOf.Create(),
+                    DirectiveNames.SpecifiedBy.Name => BuiltIns.SpecifiedBy.Create(schema),
                     _ =>
                         new MutableDirectiveDefinition(directiveNode.Name.Value)
                         {
@@ -801,12 +839,12 @@ public static class SchemaParser
     {
         reason = null;
 
-        var deprecated = directives.FirstOrDefault(BuiltIns.Deprecated.Name);
+        var deprecated = directives.FirstOrDefault(DirectiveNames.Deprecated.Name);
 
         if (deprecated is not null)
         {
             var reasonArg = deprecated.Arguments.FirstOrDefault(
-                t => t.Name.Equals(BuiltIns.Deprecated.Reason, StringComparison.Ordinal));
+                t => t.Name.Equals(DirectiveNames.Deprecated.Arguments.Reason, StringComparison.Ordinal));
 
             if (reasonArg?.Value is StringValueNode reasonVal)
             {
@@ -842,7 +880,7 @@ file static class SchemaParserExtensions
                     return type;
                 }
 
-                if (BuiltIns.IsBuiltInScalar(namedTypeRef.Name.Value))
+                if (SpecScalarNames.IsSpecScalar(namedTypeRef.Name.Value))
                 {
                     var scalar = new MutableScalarTypeDefinition(namedTypeRef.Name.Value) { IsSpecScalar = true };
                     typesDefinition.Add(scalar);

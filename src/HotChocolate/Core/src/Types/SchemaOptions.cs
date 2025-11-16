@@ -186,6 +186,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToNodeFields"/>
     public bool ApplyShareableToNodeFields { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplySerializeAsToScalars"/>
+    public bool ApplySerializeAsToScalars { get; set; }
+
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
@@ -226,6 +229,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             OperationDocumentCacheSize = options.OperationDocumentCacheSize,
             ApplyShareableToPageInfo = options.ApplyShareableToPageInfo,
             ApplyShareableToConnections = options.ApplyShareableToConnections,
-            ApplyShareableToNodeFields =  options.ApplyShareableToNodeFields
+            ApplyShareableToNodeFields = options.ApplyShareableToNodeFields,
+            ApplySerializeAsToScalars = options.ApplySerializeAsToScalars
         };
 }

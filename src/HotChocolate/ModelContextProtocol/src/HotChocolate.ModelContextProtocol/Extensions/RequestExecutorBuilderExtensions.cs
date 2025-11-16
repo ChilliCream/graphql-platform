@@ -1,11 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.ModelContextProtocol.Diagnostics;
+using HotChocolate.ModelContextProtocol.Directives;
 using HotChocolate.ModelContextProtocol.Handlers;
 using HotChocolate.ModelContextProtocol.Proxies;
 using HotChocolate.ModelContextProtocol.Storage;
-using HotChocolate.ModelContextProtocol.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -110,29 +109,6 @@ public static class RequestExecutorBuilderExtensions
                 var storageObserver = schema.Services.GetRequiredService<ToolStorageObserver>();
                 await storageObserver.StartAsync(cancellationToken);
             });
-
-        return builder;
-    }
-
-    public static IRequestExecutorBuilder AddMcpDiagnosticEventListener(
-        this IRequestExecutorBuilder builder,
-        IMcpDiagnosticEventListener listener)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(listener);
-
-        builder.ConfigureSchemaServices(s => s.AddSingleton(listener));
-
-        return builder;
-    }
-
-    public static IRequestExecutorBuilder AddMcpDiagnosticEventListener<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
-        this IRequestExecutorBuilder builder) where T : class, IMcpDiagnosticEventListener
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        builder.ConfigureSchemaServices(s => s.AddSingleton<IMcpDiagnosticEventListener, T>());
 
         return builder;
     }

@@ -1,0 +1,97 @@
+schema {
+  query: Query
+}
+
+type Query {
+  productById(id: ID!): Product
+  productBySlug(slug: String!): Product
+  products(after: String before: String first: Int last: Int): ProductConnection
+  reviewById(id: ID!): Review
+  viewer: Viewer
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Product {
+  averageRating: Int!
+  description: String
+  dimension: ProductDimension!
+  estimatedDelivery(postCode: String): Int!
+  id: ID!
+  name: Custom!
+  price: Float!
+  reviews(after: String before: String first: Int last: Int): ProductReviewConnection
+}
+
+type ProductConnection {
+  edges: [ProductEdge!]
+  nodes: [Product!]
+  pageInfo: PageInfo!
+}
+
+type ProductDimension {
+  height: Int!
+  width: Int!
+}
+
+type ProductEdge {
+  cursor: String!
+  node: Product!
+}
+
+type ProductReviewConnection {
+  edges: [ProductReviewEdge!]
+  nodes: [Review!]
+  pageInfo: PageInfo!
+}
+
+type ProductReviewEdge {
+  cursor: String!
+  node: Review!
+}
+
+type Review {
+  author: UserProfile
+  body: String!
+  id: ID!
+  product: Product
+  stars: Int!
+}
+
+type UserProfile {
+  displayName: String!
+  id: ID!
+  reviews(after: String before: String first: Int last: Int): UserProfileReviewConnection
+}
+
+type UserProfileReviewConnection {
+  edges: [UserProfileReviewEdge!]
+  nodes: [Review!]
+  pageInfo: PageInfo!
+}
+
+type UserProfileReviewEdge {
+  cursor: String!
+  node: Review!
+}
+
+type Viewer {
+  displayName: String!
+  reviews(after: String before: String first: Int last: Int): ProductReviewConnection
+}
+
+enum ScalarSerializationType {
+  BOOLEAN
+  FLOAT
+  INT
+  LIST
+  OBJECT
+  STRING
+}
+
+scalar Custom

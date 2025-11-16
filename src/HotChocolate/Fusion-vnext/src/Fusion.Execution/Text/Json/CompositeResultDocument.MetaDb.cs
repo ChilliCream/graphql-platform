@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using static HotChocolate.Fusion.Text.Json.MetaDbEventSource;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -10,6 +11,7 @@ public sealed partial class CompositeResultDocument
     internal struct MetaDb : IDisposable
     {
         private const int TokenTypeOffset = 8;
+        private static readonly ArrayPool<byte[]> s_arrayPool = ArrayPool<byte[]>.Shared;
 
         private byte[][] _chunks;
         private Cursor _next;
@@ -18,10 +20,14 @@ public sealed partial class CompositeResultDocument
         internal static MetaDb CreateForEstimatedRows(int estimatedRows)
         {
             var chunksNeeded = Math.Max(4, (estimatedRows / Cursor.RowsPerChunk) + 1);
-            var chunks = ArrayPool<byte[]>.Shared.Rent(chunksNeeded);
+            var chunks = s_arrayPool.Rent(chunksNeeded);
+            var log = Log;
+
+            log.MetaDbCreated(2, estimatedRows, 1);
 
             // Rent the first chunk now to avoid branching on first append
             chunks[0] = MetaDbMemory.Rent();
+            log.ChunkAllocated(2, 0);
 
             for (var i = 1; i < chunks.Length; i++)
             {
@@ -49,6 +55,7 @@ public sealed partial class CompositeResultDocument
             int numberOfRows = 0,
             ElementFlags flags = ElementFlags.None)
         {
+            var log = Log;
             var next = _next;
             var chunkIndex = next.Chunk;
             var byteOffset = next.ByteOffset;
@@ -69,8 +76,10 @@ public sealed partial class CompositeResultDocument
                 // if we do not have enough space we will double the size we have for
                 // chunks of memory.
                 var nextChunksLength = chunksLength * 2;
-                var newChunks = ArrayPool<byte[]>.Shared.Rent(nextChunksLength);
+                var newChunks = s_arrayPool.Rent(nextChunksLength);
+                log.ChunksExpanded(2, chunksLength, nextChunksLength);
 
+                // copy chunks to new buffer
                 Array.Copy(_chunks, newChunks, chunksLength);
 
                 for (var i = chunksLength; i < nextChunksLength; i++)
@@ -78,6 +87,11 @@ public sealed partial class CompositeResultDocument
                     newChunks[i] = [];
                 }
 
+                // clear and return old chunks buffer
+                chunks.Clear();
+                s_arrayPool.Return(_chunks);
+
+                // assign new chunks buffer
                 _chunks = newChunks;
                 chunks = newChunks.AsSpan();
             }
@@ -88,6 +102,7 @@ public sealed partial class CompositeResultDocument
             if (chunk.Length == 0)
             {
                 chunk = chunks[chunkIndex] = MetaDbMemory.Rent();
+                log.ChunkAllocated(2, chunkIndex);
             }
 
             var row = new DbRow(
@@ -167,7 +182,6 @@ public sealed partial class CompositeResultDocument
                 span = chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + TokenTypeOffset);
                 union = MemoryMarshal.Read<uint>(span);
                 tokenType = (ElementTokenType)(union >> 28);
-                return (cursor, tokenType);
             }
 
             return (cursor, tokenType);
@@ -332,7 +346,7 @@ public sealed partial class CompositeResultDocument
             Debug.Assert(_chunks[cursor.Chunk].Length > 0, "Accessing unallocated chunk");
 
             var maxExclusive = _next.Chunk * Cursor.RowsPerChunk + _next.Row;
-            var absoluteIndex = cursor.Chunk * Cursor.RowsPerChunk + cursor.Row;
+            var absoluteIndex = (cursor.Chunk * Cursor.RowsPerChunk) + cursor.Row;
 
             Debug.Assert(absoluteIndex >= 0 && absoluteIndex < maxExclusive,
                 $"Cursor points to row {absoluteIndex}, but only {maxExclusive} rows are valid.");
@@ -344,7 +358,9 @@ public sealed partial class CompositeResultDocument
             if (!_disposed)
             {
                 var cursor = _next;
-                var chunks = _chunks.AsSpan(0, cursor.Chunk + 1);
+                var chunksLength = cursor.Chunk + 1;
+                var chunks = _chunks.AsSpan(0, chunksLength);
+                Log.MetaDbDisposed(2, chunksLength, cursor.Row);
 
                 foreach (var chunk in chunks)
                 {
@@ -357,7 +373,7 @@ public sealed partial class CompositeResultDocument
                 }
 
                 chunks.Clear();
-                ArrayPool<byte[]>.Shared.Return(_chunks);
+                s_arrayPool.Return(_chunks);
 
                 _chunks = [];
                 _disposed = true;

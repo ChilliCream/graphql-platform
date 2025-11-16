@@ -1740,6 +1740,68 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
+    public void OneOf()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                schema {
+                    query: Query
+                }
+
+                type Query {
+                    brand(by: BrandByInput @is(field: "{ id } | { key }")): Brand @lookup
+                }
+
+                type Brand @key(fields: "id") {
+                    id: Int!
+                    key: String!
+                    name: String!
+                }
+
+                input BrandByInput @oneOf {
+                    id: Int
+                    key: String
+                }
+                """,
+                """
+                # Schema B
+                schema {
+                    query: Query
+                }
+
+                type Query {
+                    products: [Product]
+                }
+
+                type Brand @key(fields: "id") {
+                    id: Int!
+                }
+
+                type Product @key(fields: "id") {
+                    id: Int!
+                    name: String!
+                    brand: Brand
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
     public void SplitCompositeKey()
     {
         // arrange

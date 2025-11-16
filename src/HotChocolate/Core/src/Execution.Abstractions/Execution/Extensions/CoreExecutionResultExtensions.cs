@@ -41,8 +41,8 @@ public static class CoreExecutionResultExtensions
     public static void RegisterForCleanup(this IExecutionResult result, IDisposable disposable)
     {
         ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(disposable);
-
+        ArgumentNullException.ThrowIfNull(disposable)
+;
         result.RegisterForCleanup(disposable.Dispose);
     }
 

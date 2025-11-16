@@ -1,8 +1,8 @@
 using System.Buffers;
-using static HotChocolate.Buffers.PooledArrayWriterEventSource;
 #if NET8_0_OR_GREATER
 using System.Runtime.InteropServices;
 #endif
+using static HotChocolate.Buffers.PooledArrayWriterEventSource;
 using static HotChocolate.Buffers.Properties.BuffersResources;
 
 namespace HotChocolate.Buffers;
@@ -46,12 +46,13 @@ public sealed class PooledArrayWriter : IWritableMemory
         _capacity = _buffer.Length;
         _start = 0;
         _resizeCount = 0;
+        var log = Log;
 
-        Log.WriterCreated(initialBufferSize, _capacity);
+        log.WriterCreated(initialBufferSize, _capacity);
 
         if (initialBufferSize > LargeAllocationThreshold)
         {
-            Log.LargeAllocation(initialBufferSize, LargeAllocationThreshold);
+            log.LargeAllocation(initialBufferSize, LargeAllocationThreshold);
         }
     }
 
@@ -165,10 +166,11 @@ public sealed class PooledArrayWriter : IWritableMemory
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentOutOfRangeException.ThrowIfNegative(count);
 #endif
+        var log = Log;
 
         if (count > _capacity)
         {
-            Log.BufferOverflow(count, _capacity);
+            log.BufferOverflow(count, _capacity);
             throw new ArgumentOutOfRangeException(
                 nameof(count),
                 count,
@@ -178,7 +180,7 @@ public sealed class PooledArrayWriter : IWritableMemory
         _start += count;
         _capacity -= count;
 
-        Log.WriterAdvanced(count, _start, _capacity);
+        log.WriterAdvanced(count, _start, _capacity);
     }
 
     /// <summary>
@@ -307,11 +309,12 @@ public sealed class PooledArrayWriter : IWritableMemory
             _resizeCount++;
 
             // Log the resize operation
-            Log.BufferResize(oldSize, actualNewSize, _start, neededCapacity, _resizeCount);
+            var log = Log;
+            log.BufferResize(oldSize, actualNewSize, _start, neededCapacity, _resizeCount);
 
             if (actualNewSize > LargeAllocationThreshold)
             {
-                Log.LargeAllocation(actualNewSize, LargeAllocationThreshold);
+                log.LargeAllocation(actualNewSize, LargeAllocationThreshold);
             }
         }
     }

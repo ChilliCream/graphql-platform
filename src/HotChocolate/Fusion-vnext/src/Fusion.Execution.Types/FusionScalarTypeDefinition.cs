@@ -47,6 +47,10 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
 
     public Uri? SpecifiedBy { get; private set; }
 
+    public ScalarSerializationType SerializationType { get; private set; }
+
+    public string? Pattern { get; private set; }
+
     public ScalarValueKind ValueKind { get; private set; }
 
     public IFeatureCollection Features
@@ -80,6 +84,9 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
                 _ => ScalarValueKind.Any
             };
         }
+
+        SerializationType = context.SerializationType;
+        Pattern = context.Pattern;
 
         _completed = true;
     }

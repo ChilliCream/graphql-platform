@@ -7,7 +7,6 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Internal;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -213,6 +212,11 @@ internal static class InternalServiceCollectionExtensions
             if (!obj.IsInitialized)
             {
                 return true;
+            }
+
+            if (obj.IsSharedScheduler)
+            {
+                obj.ResetScheduler();
             }
 
             // if work related to the operation context has completed we can

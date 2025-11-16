@@ -1,6 +1,7 @@
+using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
-using HotChocolate.Types.Mutable.Definitions;
 
 namespace HotChocolate.Fusion;
 
@@ -466,7 +467,7 @@ public sealed class SourceSchemaMergerCacheControlDirectiveTests : SourceSchemaM
     private static readonly Action<MutableSchemaDefinition> s_removeCacheControlDirective
         = schema =>
         {
-            schema.DirectiveDefinitions.Remove(WellKnownDirectiveNames.CacheControl);
+            schema.DirectiveDefinitions.Remove(DirectiveNames.CacheControl.Name);
             schema.Types.Remove(WellKnownTypeNames.CacheControlScope);
         };
 }
