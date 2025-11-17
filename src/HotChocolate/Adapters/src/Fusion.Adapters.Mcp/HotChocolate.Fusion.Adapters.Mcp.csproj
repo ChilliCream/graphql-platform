@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Adapters.Mcp</AssemblyName>
+    <RootNamespace>HotChocolate.Adapters.Mcp</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+    <ProjectReference Include="..\Adapters.Mcp.Core\HotChocolate.Adapters.Mcp.Core.csproj" />
+  </ItemGroup>
+
+</Project>
