@@ -44,7 +44,7 @@ type AuthorsConnection {
   "A list of edges."
   edges: [AuthorsEdge!]
   "A flattened list of the nodes."
-  nodes: [Author!]
+  nodes: [Author]
 }
 
 "An edge in a connection."
@@ -52,7 +52,7 @@ type AuthorsEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
-  node: Author!
+  node: Author
 }
 
 type Book implements Node & Entity @shareable {
@@ -100,7 +100,7 @@ type ChapterConnection {
   "A list of edges."
   edges: [ChapterEdge!]
   "A flattened list of the nodes."
-  nodes: [Chapter!]
+  nodes: [Chapter]
 }
 
 "An edge in a connection."
@@ -108,7 +108,7 @@ type ChapterEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
-  node: Chapter!
+  node: Chapter
 }
 
 type CreateBookPayload {

@@ -71,9 +71,9 @@ namespace TestNamespace
                     var naming = field.Context.Naming;
 
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                        typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.Pagination.Connection<global::TestNamespace.Product>), HotChocolate.Types.TypeContext.Output),
-                        static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                        "global__HotChocolate_Types_Pagination_ConnectionOfglobal__TestNamespace_Product!");
+                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
+                        static (_, type) => new global::HotChocolate.Types.NonNullType(new global::HotChocolate.Types.ListType(new global::HotChocolate.Types.NonNullType(type))),
+                        "[global__TestNamespace_Product!]!");
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.Connection<global::TestNamespace.Product>);
 
                     configuration.SetSourceGeneratorFlags();
