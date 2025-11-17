@@ -327,6 +327,7 @@ namespace TestNamespace.Types.Nodes
                     configuration.Features.Set(pagingOptions);
 
                     configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
+                    configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Author>.Default;
                 },
                 (Resolvers: resolvers, ThisType: thisType));
 
@@ -443,6 +444,7 @@ namespace TestNamespace.Types.Root
                     configuration.Features.Set(pagingOptions);
 
                     configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
+                    configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Author>.Default;
                 },
                 (Resolvers: resolvers, ThisType: thisType));
 
@@ -465,6 +467,7 @@ namespace TestNamespace.Types.Root
                     configuration.Features.Set(pagingOptions);
 
                     configuration.Resolvers = context.Resolvers.GetAuthors2Async();
+                    configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Author>.Default;
                 },
                 (Resolvers: resolvers, ThisType: thisType));
 

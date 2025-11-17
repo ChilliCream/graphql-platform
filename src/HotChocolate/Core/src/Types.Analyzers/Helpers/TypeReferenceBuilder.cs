@@ -226,30 +226,57 @@ public static class TypeReferenceBuilder
         }
 
         var originalDefinition = namedType.OriginalDefinition;
-        var fullName = originalDefinition.ToDisplayString();
+        var typeDefinition = GetGenericTypeDefinition(originalDefinition);
 
-        return fullName == "System.Collections.Generic.IEnumerable<T>"
-            || fullName == "System.Collections.Generic.IReadOnlyCollection<T>"
-            || fullName == "System.Collections.Generic.IReadOnlyList<T>"
-            || fullName == "System.Collections.Generic.ICollection<T>"
-            || fullName == "System.Collections.Generic.IList<T>"
-            || fullName == "System.Collections.Generic.ISet<T>"
-            || fullName == "System.Linq.IQueryable<T>"
-            || fullName == "System.Collections.Generic.IAsyncEnumerable<T>"
-            || fullName == "System.IObservable<T>"
-            || fullName == "System.Collections.Generic.List<T>"
-            || fullName == "System.Collections.ObjectModel.Collection<T>"
-            || fullName == "System.Collections.Generic.Stack<T>"
-            || fullName == "System.Collections.Generic.HashSet<T>"
-            || fullName == "System.Collections.Generic.Queue<T>"
-            || fullName == "System.Collections.Concurrent.ConcurrentBag<T>"
-            || fullName == "System.Collections.Immutable.ImmutableArray<T>"
-            || fullName == "System.Collections.Immutable.ImmutableList<T>"
-            || fullName == "System.Collections.Immutable.ImmutableQueue<T>"
-            || fullName == "System.Collections.Immutable.ImmutableStack<T>"
-            || fullName == "System.Collections.Immutable.ImmutableHashSet<T>"
-            || fullName == "HotChocolate.Execution.ISourceStream<T>"
-            || fullName == "HotChocolate.IExecutable<T>";
+        // Check if the type itself is one of the known list interfaces or classes
+        if (WellKnownTypes.ListInterfaceTypes.Contains(typeDefinition)
+            || WellKnownTypes.ListClassTypes.Contains(typeDefinition))
+        {
+            return true;
+        }
+
+        // Check if the type implements any of the known list interfaces
+        foreach (var interfaceType in namedType.AllInterfaces)
+        {
+            if (!interfaceType.IsGenericType)
+            {
+                continue;
+            }
+
+            var interfaceDefinition = GetGenericTypeDefinition(interfaceType.OriginalDefinition);
+            if (WellKnownTypes.ListInterfaceTypes.Contains(interfaceDefinition))
+            {
+                return true;
+            }
+        }
+
+        // Check if the type or any of its base types is one of the known list classes
+        var currentType = namedType.BaseType;
+        while (currentType is not null)
+        {
+            if (!currentType.IsGenericType)
+            {
+                currentType = currentType.BaseType;
+                continue;
+            }
+
+            var baseDefinition = GetGenericTypeDefinition(currentType.OriginalDefinition);
+            if (WellKnownTypes.ListClassTypes.Contains(baseDefinition))
+            {
+                return true;
+            }
+
+            currentType = currentType.BaseType;
+        }
+
+        return false;
+    }
+
+    private static string GetGenericTypeDefinition(INamedTypeSymbol typeSymbol)
+    {
+        // Convert a generic type like "System.Collections.Generic.List<T>"
+        // to the definition format "System.Collections.Generic.List<>"
+        return typeSymbol.ConstructUnboundGenericType().ToDisplayString();
     }
 
     private static string GetFullyQualifiedTypeName(ITypeSymbol typeSymbol)

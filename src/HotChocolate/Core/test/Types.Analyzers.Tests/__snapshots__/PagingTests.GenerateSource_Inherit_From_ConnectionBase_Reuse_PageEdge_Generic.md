@@ -336,6 +336,7 @@ namespace TestNamespace.Types.Root
                     configuration.Features.Set(pagingOptions);
 
                     configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
+                    configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Author>.Default;
                 },
                 (Resolvers: resolvers, ThisType: thisType));
 

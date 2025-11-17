@@ -898,7 +898,7 @@ public static class SymbolExtensions
     {
         typeSymbol = UnwrapWrapperTypes(typeSymbol);
 
-        if (typeSymbol is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
+        if (typeSymbol is INamedTypeSymbol { IsGenericType: true } namedTypeSymbol)
         {
             var typeDefinition = namedTypeSymbol.ConstructUnboundGenericType().ToDisplayString();
 

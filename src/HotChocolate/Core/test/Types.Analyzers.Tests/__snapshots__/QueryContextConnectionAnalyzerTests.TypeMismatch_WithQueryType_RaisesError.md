@@ -397,6 +397,7 @@ namespace TestNamespace
                     }
 
                     configuration.Resolvers = context.Resolvers.GetProductsAsync();
+                    configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Product>.Default;
                 },
                 (Resolvers: resolvers, ThisType: thisType));
 
