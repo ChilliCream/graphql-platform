@@ -119,8 +119,6 @@ public sealed class OperationExecutionNode : ExecutionNode
             RequiresFileUpload = _requiresFileUpload
         };
 
-        var client = context.GetClient(schemaName, _operation.Type);
-
         var index = 0;
         var bufferLength = 0;
         SourceSchemaResult[]? buffer = null;
@@ -128,6 +126,8 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         try
         {
+            var client = context.GetClient(schemaName, _operation.Type);
+
             // we execute the GraphQL request against a source schema
             var response = await client.ExecuteAsync(context, this, request, cancellationToken);
             context.TrackSourceSchemaClientResponse(this, response);
