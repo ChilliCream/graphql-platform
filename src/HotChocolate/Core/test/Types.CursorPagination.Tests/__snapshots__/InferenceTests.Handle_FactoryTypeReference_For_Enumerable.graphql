@@ -29,7 +29,7 @@ type ProductsConnection {
   "A list of edges."
   edges: [ProductsEdge!]
   "A flattened list of the nodes."
-  nodes: [ProductBase]
+  nodes: [ProductBase!]
 }
 
 "An edge in a connection."
@@ -37,7 +37,7 @@ type ProductsEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
-  node: ProductBase
+  node: ProductBase!
 }
 
 type Query1 {
