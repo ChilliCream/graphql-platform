@@ -223,12 +223,13 @@ public sealed class OperationExecutionNode : ExecutionNode
             OperationSourceText = _operation.SourceText,
             Variables = variables
         };
-
-        var client = context.GetClient(schemaName, _operation.Type);
+        
         var subscriptionId = SubscriptionId.Next();
 
         try
         {
+            var client = context.GetClient(schemaName, _operation.Type);
+
             var response = await client.ExecuteAsync(context, this, request, cancellationToken);
 
             var stream = new SubscriptionEnumerable(
