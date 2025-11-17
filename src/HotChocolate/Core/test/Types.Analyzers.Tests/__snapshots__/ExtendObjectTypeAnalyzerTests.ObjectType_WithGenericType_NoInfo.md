@@ -73,8 +73,7 @@ namespace TestNamespace
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
                         static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                        "string!",
-                        HotChocolate.Types.TypeContext.Output);
+                        "string!");
                     configuration.ResultType = typeof(string);
 
                     configuration.SetSourceGeneratorFlags();
@@ -89,10 +88,9 @@ namespace TestNamespace
                         {
                             Name = naming.GetMemberName("product", global::HotChocolate.Types.MemberKind.Argument),
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                                typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
+                                typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Input),
                                 static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "global::TestNamespace.Product!",
-                                HotChocolate.Types.TypeContext.Input),
+                                "global__TestNamespace_Product!"),
                             RuntimeType = typeof(global::TestNamespace.Product)
                         };
 

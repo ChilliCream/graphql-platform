@@ -86,8 +86,7 @@ namespace TestNamespace
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
                         static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                        "int!",
-                        HotChocolate.Types.TypeContext.Output);
+                        "int!");
                     configuration.ResultType = typeof(int);
 
                     configuration.SetSourceGeneratorFlags();

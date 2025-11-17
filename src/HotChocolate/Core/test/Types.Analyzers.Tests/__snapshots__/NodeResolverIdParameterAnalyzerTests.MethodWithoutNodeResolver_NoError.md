@@ -73,8 +73,7 @@ namespace TestNamespace
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
                         static (_, type) => type,
-                        "global::TestNamespace.Product",
-                        HotChocolate.Types.TypeContext.Output);
+                        "global__TestNamespace_Product");
                     configuration.ResultType = typeof(global::TestNamespace.Product);
 
                     configuration.SetSourceGeneratorFlags();
@@ -89,10 +88,9 @@ namespace TestNamespace
                         {
                             Name = naming.GetMemberName("productService", global::HotChocolate.Types.MemberKind.Argument),
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                                typeInspector.GetTypeRef(typeof(global::TestNamespace.ProductService), HotChocolate.Types.TypeContext.Output),
+                                typeInspector.GetTypeRef(typeof(global::TestNamespace.ProductService), HotChocolate.Types.TypeContext.Input),
                                 static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "global::TestNamespace.ProductService!",
-                                HotChocolate.Types.TypeContext.Input),
+                                "global__TestNamespace_ProductService!"),
                             RuntimeType = typeof(global::TestNamespace.ProductService)
                         };
 
@@ -108,10 +106,9 @@ namespace TestNamespace
                         {
                             Name = naming.GetMemberName("nodeId", global::HotChocolate.Types.MemberKind.Argument),
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                                typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
+                                typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
                                 static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "int!",
-                                HotChocolate.Types.TypeContext.Input),
+                                "int!"),
                             RuntimeType = typeof(int)
                         };
 

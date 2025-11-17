@@ -86,8 +86,7 @@ namespace TestNamespace
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
                         static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                        "string!",
-                        HotChocolate.Types.TypeContext.Output);
+                        "string!");
                     configuration.ResultType = typeof(string);
 
                     configuration.SetSourceGeneratorFlags();
@@ -103,10 +102,9 @@ namespace TestNamespace
                             Name = naming.GetMemberName("query", global::HotChocolate.Types.MemberKind.Argument),
                             Description = "SQL query like: SELECT * FROM \"Users\" WHERE name = 'John'",
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                                typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
+                                typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Input),
                                 static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "string!",
-                                HotChocolate.Types.TypeContext.Input),
+                                "string!"),
                             RuntimeType = typeof(string)
                         };
 
@@ -124,10 +122,9 @@ namespace TestNamespace
                             Description = "Timeout in ms (default: 30000)",
                             RuntimeDefaultValue = 30000,
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                                typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
+                                typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
                                 static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "int!",
-                                HotChocolate.Types.TypeContext.Input),
+                                "int!"),
                             RuntimeType = typeof(int)
                         };
 

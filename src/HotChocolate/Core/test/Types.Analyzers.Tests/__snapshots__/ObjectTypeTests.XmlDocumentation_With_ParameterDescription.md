@@ -86,8 +86,7 @@ namespace TestNamespace
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
                         static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                        "string!",
-                        HotChocolate.Types.TypeContext.Output);
+                        "string!");
                     configuration.ResultType = typeof(string);
 
                     configuration.SetSourceGeneratorFlags();
@@ -103,10 +102,9 @@ namespace TestNamespace
                             Name = naming.GetMemberName("userId", global::HotChocolate.Types.MemberKind.Argument),
                             Description = "The user's unique identifier with \"quotes\"",
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                                typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
+                                typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
                                 static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "int!",
-                                HotChocolate.Types.TypeContext.Input),
+                                "int!"),
                             RuntimeType = typeof(int)
                         };
 
@@ -124,10 +122,9 @@ namespace TestNamespace
                             Description = "Include deleted users (default: false)",
                             RuntimeDefaultValue = false,
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                                typeInspector.GetTypeRef(typeof(bool), HotChocolate.Types.TypeContext.Output),
+                                typeInspector.GetTypeRef(typeof(bool), HotChocolate.Types.TypeContext.Input),
                                 static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "bool!",
-                                HotChocolate.Types.TypeContext.Input),
+                                "bool!"),
                             RuntimeType = typeof(bool)
                         };
 

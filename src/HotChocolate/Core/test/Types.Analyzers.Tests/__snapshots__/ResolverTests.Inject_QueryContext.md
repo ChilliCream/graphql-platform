@@ -73,8 +73,7 @@ namespace TestNamespace
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Entity), HotChocolate.Types.TypeContext.Output),
                         static (_, type) => new global::HotChocolate.Types.NonNullType(new global::HotChocolate.Types.ListType(new global::HotChocolate.Types.NonNullType(type))),
-                        "[global::TestNamespace.Entity!]!",
-                        HotChocolate.Types.TypeContext.Output);
+                        "[global__TestNamespace_Entity!]!");
                     configuration.ResultType = typeof(global::System.Linq.IQueryable<global::TestNamespace.Entity>);
 
                     configuration.SetSourceGeneratorFlags();
