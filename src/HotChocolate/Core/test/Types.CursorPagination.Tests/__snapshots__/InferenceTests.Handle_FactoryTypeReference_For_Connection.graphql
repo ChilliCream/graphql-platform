@@ -1,5 +1,5 @@
 schema {
-  query: Query
+  query: Query1
 }
 
 interface ProductBase {
@@ -40,7 +40,7 @@ type ProductsEdge {
   node: ProductBase
 }
 
-type Query {
+type Query1 {
   products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ProductsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
 }
 

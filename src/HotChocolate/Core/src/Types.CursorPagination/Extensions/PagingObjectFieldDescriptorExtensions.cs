@@ -158,19 +158,16 @@ public static class PagingObjectFieldDescriptorExtensions
                 // but instead defer that decision to the type initialization.
                 if (typeRef is null)
                 {
-                    var currentTypeRef = d.Type;
-
-                    if (currentTypeRef is FactoryTypeReference factoryTypeRef)
+                    typeRef = d.Type switch
                     {
-                        currentTypeRef = factoryTypeRef.TypeDefinition;
-                    }
-
-                    if (currentTypeRef is ExtendedTypeReference extendedTypeRef
-                        && c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
-                        && GetElementType(typeInfo) is { } elementType)
-                    {
-                        typeRef = TypeReference.Create(elementType, TypeContext.Output);
-                    }
+                        FactoryTypeReference factoryTypeRef
+                            => factoryTypeRef.TypeDefinition,
+                        ExtendedTypeReference extendedTypeRef when
+                            c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
+                                && GetElementType(typeInfo) is { } elementType
+                            => TypeReference.Create(elementType, TypeContext.Output),
+                        _ => typeRef
+                    };
                 }
 
                 var resolverMember = d.ResolverMember ?? d.Member;
@@ -246,6 +243,24 @@ public static class PagingObjectFieldDescriptorExtensions
                     && syntaxTypeRef.Type.IsListType())
                 {
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
+                }
+
+                // if the type reference is based on an extended type,
+                // we will try to create an element type reference from it.
+                // This will ensure that we are not inferring an actual schema type
+                // but instead defer that decision to the type initialization.
+                if (typeRef is null)
+                {
+                    typeRef = d.Type switch
+                    {
+                        FactoryTypeReference factoryTypeRef
+                            => factoryTypeRef.TypeDefinition,
+                        ExtendedTypeReference extendedTypeRef when
+                            c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
+                            && GetElementType(typeInfo) is { } elementType
+                            => TypeReference.Create(elementType, TypeContext.Output),
+                        _ => typeRef
+                    };
                 }
 
                 d.Type = CreateConnectionTypeRef(c, d.Member, connectionName, typeRef, options);
