@@ -3,7 +3,6 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="AlterNats.Hosting" Version="1.0.6" />
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.4.1" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="9.4.1" />
     <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="9.4.1" />
@@ -39,6 +38,8 @@
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.1.0" />
     <PackageVersion Include="MongoDB.Driver" Version="3.0.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
+    <PackageVersion Include="NATS.Client.Core" Version="2.3.3" />
+    <PackageVersion Include="NATS.Extensions.Microsoft.DependencyInjection" Version="2.3.3" />
     <PackageVersion Include="NetTopologySuite" Version="2.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="NodaTime" Version="3.2.2" />
