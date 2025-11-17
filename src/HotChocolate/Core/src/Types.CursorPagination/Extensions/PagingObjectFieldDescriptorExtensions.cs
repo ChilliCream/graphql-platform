@@ -152,12 +152,25 @@ public static class PagingObjectFieldDescriptorExtensions
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
 
-                if (typeRef is null
-                    && d.Type is ExtendedTypeReference extendedTypeRef
-                    && c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
-                    && GetElementType(typeInfo) is { } elementType)
+                // if the type reference is based on an extended type,
+                // we will try to create an element type reference from it.
+                // This will ensure that we are not inferring an actual schema type
+                // but instead defer that decision to the type initialization.
+                if (typeRef is null)
                 {
-                    typeRef = TypeReference.Create(elementType, TypeContext.Output);
+                    var currentTypeRef = d.Type;
+
+                    if (currentTypeRef is FactoryTypeReference factoryTypeRef)
+                    {
+                        currentTypeRef = factoryTypeRef.TypeDefinition;
+                    }
+
+                    if (currentTypeRef is ExtendedTypeReference extendedTypeRef
+                        && c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
+                        && GetElementType(typeInfo) is { } elementType)
+                    {
+                        typeRef = TypeReference.Create(elementType, TypeContext.Output);
+                    }
                 }
 
                 var resolverMember = d.ResolverMember ?? d.Member;
@@ -398,7 +411,7 @@ public static class PagingObjectFieldDescriptorExtensions
             // in this case we will ignore the exception and return the default provider.
         }
 
-        // if no provider was added we will fallback to the queryable paging provider.
+        // if no provider was added we will fall back to the queryable paging provider.
         return new QueryableCursorPagingProvider();
     }
 

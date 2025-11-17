@@ -74,7 +74,14 @@ public static class TypeReferenceBuilder
         var unwrapped = UnwrapNonEssentialTypes(member.GetReturnType()!, compilation);
 
         // Next, we create a key that describes the type and ensures we are only executing the type factory once.
-        var (typeKey, typeDefinition) = CreateTypeKey(unwrapped);
+        var (typeKey, typeDefinition, isSimpleType) = CreateTypeKey(unwrapped);
+
+        if (isSimpleType)
+        {
+            return new SchemaTypeReference(
+                SchemaTypeReferenceKind.ExtendedTypeReference,
+                typeDefinition);
+        }
 
         // Next, we create  the factory delegate
         var typeFactor = CreateFactory(unwrapped);
@@ -86,7 +93,7 @@ public static class TypeReferenceBuilder
             typeDefinition);
     }
 
-    private static (string Key, string TypeDefinition) CreateTypeKey(ITypeSymbol unwrappedType)
+    private static (string Key, string TypeDefinition, bool IsSimpleType) CreateTypeKey(ITypeSymbol unwrappedType)
     {
         bool isNullable;
         ITypeSymbol underlyingType;
@@ -115,13 +122,13 @@ public static class TypeReferenceBuilder
         if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
         {
             var elementType = namedType.TypeArguments[0];
-            var (typeString, typeDefinition) = CreateTypeKey(elementType);
-            return (isNullable ? $"[{typeString}]" : $"[{typeString}]!", typeDefinition);
+            var (typeString, typeDefinition, _) = CreateTypeKey(elementType);
+            return (isNullable ? $"[{typeString}]" : $"[{typeString}]!", typeDefinition, false);
         }
 
         var typeName = GetFullyQualifiedTypeName(underlyingType);
         var compliantTypeName = MakeGraphQLCompliant(typeName);
-        return (isNullable ? compliantTypeName : $"{compliantTypeName}!", typeName);
+        return (isNullable ? compliantTypeName : $"{compliantTypeName}!", typeName, isNullable);
     }
 
     private static string CreateFactory(ITypeSymbol unwrappedType)
