@@ -1,6 +1,5 @@
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
-using HotChocolate.Types;
 using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
 

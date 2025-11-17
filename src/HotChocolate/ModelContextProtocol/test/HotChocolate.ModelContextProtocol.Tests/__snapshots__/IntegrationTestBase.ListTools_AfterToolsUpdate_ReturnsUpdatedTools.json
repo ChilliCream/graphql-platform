@@ -1,8 +1,8 @@
 [
   {
-    "Name": "get_single_field",
-    "Title": "Get Single Field",
-    "Description": "GetSingleField description",
+    "Name": "get_books_with_title1",
+    "Title": "Get Books With Title1",
+    "Description": "GetBooksWithTitle1 description",
     "JsonSchema": {
       "type": "object",
       "properties": {},
@@ -17,14 +17,25 @@
             "null"
           ],
           "properties": {
-            "field": {
-              "type": "integer",
-              "description": "Field description 0."
+            "books": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "additionalProperties": false
+              }
             }
           },
           "additionalProperties": false,
           "required": [
-            "field"
+            "books"
           ]
         },
         "errors": {
@@ -84,9 +95,9 @@
     }
   },
   {
-    "Name": "get_single_field",
-    "Title": "Get Single Field",
-    "Description": "GetSingleField description",
+    "Name": "get_books_with_title1",
+    "Title": "Get Books With Title1",
+    "Description": "GetBooksWithTitle1 description",
     "JsonSchema": {
       "type": "object",
       "properties": {},
@@ -101,14 +112,25 @@
             "null"
           ],
           "properties": {
-            "field": {
-              "type": "integer",
-              "description": "Field description 0."
+            "books": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "additionalProperties": false
+              }
             }
           },
           "additionalProperties": false,
           "required": [
-            "field"
+            "books"
           ]
         },
         "errors": {
@@ -168,9 +190,9 @@
     }
   },
   {
-    "Name": "get_single_field_with_alias",
-    "Title": "Get Single Field With Alias",
-    "Description": "GetSingleField description",
+    "Name": "get_books_with_title2",
+    "Title": "Get Books With Title2",
+    "Description": "GetBooksWithTitle2 description",
     "JsonSchema": {
       "type": "object",
       "properties": {},
@@ -185,14 +207,25 @@
             "null"
           ],
           "properties": {
-            "b": {
-              "type": "integer",
-              "description": "Field description 0."
+            "books": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "additionalProperties": false
+              }
             }
           },
           "additionalProperties": false,
           "required": [
-            "b"
+            "books"
           ]
         },
         "errors": {

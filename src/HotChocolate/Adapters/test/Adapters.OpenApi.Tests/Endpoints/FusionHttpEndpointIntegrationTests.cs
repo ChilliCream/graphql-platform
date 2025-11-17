@@ -57,7 +57,7 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
         OpenApiDiagnosticEventListener? eventListener)
     {
         services.AddHttpClient("A")
-            .ConfigurePrimaryHttpMessageHandler(() => _subgraph.CreateHandler())
+            .ConfigurePrimaryHttpMessageHandler(_subgraph.CreateHandler)
             .AddHeaderPropagation();
 
         var builder = services.AddGraphQLGatewayServer()

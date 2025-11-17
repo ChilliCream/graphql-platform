@@ -50,10 +50,26 @@ internal sealed class SourceSchemaMerger
         _directiveMergers =
             new Dictionary<string, IDirectiveMerger>
             {
-                { DirectiveNames.CacheControl, new CacheControlDirectiveMerger(_options.CacheControlMergeBehavior) },
-                { DirectiveNames.OneOf, new OneOfDirectiveMerger(DirectiveMergeBehavior.Include) },
-                { DirectiveNames.SerializeAs, new SerializeAsDirectiveMerger(DirectiveMergeBehavior.Include) },
-                { DirectiveNames.Tag, new TagDirectiveMerger(_options.TagMergeBehavior) }
+                {
+                    DirectiveNames.CacheControl,
+                    new CacheControlDirectiveMerger(_options.CacheControlMergeBehavior)
+                },
+                {
+                    DirectiveNames.McpToolAnnotations,
+                    new McpToolAnnotationsDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
+                    DirectiveNames.OneOf,
+                    new OneOfDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
+                    DirectiveNames.SerializeAs,
+                    new SerializeAsDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
+                    DirectiveNames.Tag,
+                    new TagDirectiveMerger(_options.TagMergeBehavior)
+                }
             }.ToFrozenDictionary();
     }
 
@@ -163,29 +179,36 @@ internal sealed class SourceSchemaMerger
 
             foreach (var (typeName, lookupFieldGroup) in lookupFieldGroupByTypeName)
             {
-                if (mergedSchema.Types.TryGetType<IMutableTypeDefinition>(
+                if (!mergedSchema.Types.TryGetType<IMutableTypeDefinition>(
                     typeName,
                     out var mergedType))
                 {
-                    foreach (var (sourceField, sourcePath, sourceSchema) in lookupFieldGroup)
-                    {
-                        var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema]);
-                        var lookupMap = sourceField.GetFusionLookupMap();
-                        var keyArgument = sourceField.GetKeyFields(lookupMap, sourceSchema);
+                    continue;
+                }
 
-                        var fieldArgument =
-                            s_fieldDefinitionRewriter
-                                .Rewrite(sourceField.ToSyntaxNode())!
-                                .ToString(indented: false);
+                foreach (var (sourceField, sourcePath, sourceSchema) in lookupFieldGroup)
+                {
+                    var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema]);
+
+                    var fieldArgument =
+                        s_fieldDefinitionRewriter
+                            .Rewrite(sourceField.ToSyntaxNode())!
+                            .ToString(indented: false);
+
+                    IValueNode pathArgument = sourcePath is null
+                        ? NullValueNode.Default
+                        : new StringValueNode(sourcePath);
+
+                    var @internal = sourceField.IsInternal;
+
+                    foreach (var valueSelectionGroup in sourceField.GetValueSelectionGroups())
+                    {
+                        var keyArgument = sourceField.GetKeyFields(valueSelectionGroup, sourceSchema);
 
                         var mapArgument =
-                            new ListValueNode(lookupMap.ConvertAll(a => new StringValueNode(a)));
-
-                        IValueNode pathArgument = sourcePath is null
-                            ? NullValueNode.Default
-                            : new StringValueNode(sourcePath);
-
-                        var @internal = sourceField.IsInternal;
+                            new ListValueNode(
+                                valueSelectionGroup.ConvertAll(
+                                    a => new StringValueNode(a.ToString(indented: false))));
 
                         mergedType.Directives.Add(
                             new Directive(
@@ -791,8 +814,12 @@ internal sealed class SourceSchemaMerger
 
         // Merge directives.
         var memberDefinitions = fieldGroup.Select(g => g.Field).ToImmutableArray<IDirectivesProvider>();
-        _directiveMergers[DirectiveNames.CacheControl].MergeDirectives(outputField, memberDefinitions, mergedSchema);
-        _directiveMergers[DirectiveNames.Tag].MergeDirectives(outputField, memberDefinitions, mergedSchema);
+        _directiveMergers[DirectiveNames.CacheControl]
+            .MergeDirectives(outputField, memberDefinitions, mergedSchema);
+        _directiveMergers[DirectiveNames.McpToolAnnotations]
+            .MergeDirectives(outputField, memberDefinitions, mergedSchema);
+        _directiveMergers[DirectiveNames.Tag]
+            .MergeDirectives(outputField, memberDefinitions, mergedSchema);
 
         AddFusionFieldDirectives(outputField, fieldGroup);
 

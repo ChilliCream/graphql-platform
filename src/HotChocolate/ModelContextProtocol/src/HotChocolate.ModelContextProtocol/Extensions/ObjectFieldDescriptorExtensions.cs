@@ -1,5 +1,6 @@
 using HotChocolate.ModelContextProtocol.Directives;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.ModelContextProtocol.Extensions;
 
@@ -18,6 +19,12 @@ public static class ObjectFieldDescriptorExtensions
         bool? openWorldHint = null)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
+
+        descriptor.ExtendWith(extension =>
+        {
+            var typeRef = extension.Context.TypeInspector.GetTypeRef(typeof(McpToolAnnotationsDirectiveType));
+            extension.Configuration.Dependencies.Add(new TypeDependency(typeRef));
+        });
 
         return descriptor.Directive(
             new McpToolAnnotationsDirective

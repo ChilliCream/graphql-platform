@@ -1,3 +1,5 @@
+using HotChocolate.Types;
+
 namespace HotChocolate.ModelContextProtocol.Directives;
 
 /// <summary>
@@ -23,4 +25,21 @@ public sealed class McpToolAnnotationsDirective
     /// search tool is open, whereas that of a memory tool is not.
     /// </summary>
     public bool? OpenWorldHint { get; init; }
+
+    public static McpToolAnnotationsDirective From(IDirective directive)
+    {
+        var destructiveHint =
+            (bool?)directive.Arguments.GetValueOrDefault(WellKnownArgumentNames.DestructiveHint)?.Value;
+        var idempotentHint =
+            (bool?)directive.Arguments.GetValueOrDefault(WellKnownArgumentNames.IdempotentHint)?.Value;
+        var openWorldHint =
+            (bool?)directive.Arguments.GetValueOrDefault(WellKnownArgumentNames.OpenWorldHint)?.Value;
+
+        return new McpToolAnnotationsDirective()
+        {
+            DestructiveHint = destructiveHint,
+            IdempotentHint = idempotentHint,
+            OpenWorldHint = openWorldHint
+        };
+    }
 }

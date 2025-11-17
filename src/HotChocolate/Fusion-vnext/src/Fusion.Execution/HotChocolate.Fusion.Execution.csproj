@@ -154,6 +154,9 @@
     <Compile Update="Text\Json\SourceResultElementBuilder.ArrayEnumerator.cs">
       <DependentUpon>SourceResultDocumentBuilder.cs</DependentUpon>
     </Compile>
+    <Compile Update="Text\Json\SourceResultDocument.WriteTo.cs">
+      <DependentUpon>SourceResultDocument.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

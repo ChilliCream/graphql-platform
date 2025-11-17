@@ -36,17 +36,17 @@ public sealed class OpenApiParseResult
     /// Creates a successful parse result.
     /// </summary>
     public static OpenApiParseResult Success(IOpenApiDocument document)
-        => new(true, document, ImmutableArray<OpenApiParsingError>.Empty);
+        => new(true, document, []);
 
     /// <summary>
     /// Creates a parse result with errors.
     /// </summary>
     public static OpenApiParseResult Failure(params OpenApiParsingError[] errors)
-        => new(false, null, [..errors]);
+        => new(false, null, [.. errors]);
 
     /// <summary>
     /// Creates a parse result with errors.
     /// </summary>
     public static OpenApiParseResult Failure(IEnumerable<OpenApiParsingError> errors)
-        => new(false, null, [..errors]);
+        => new(false, null, [.. errors]);
 }

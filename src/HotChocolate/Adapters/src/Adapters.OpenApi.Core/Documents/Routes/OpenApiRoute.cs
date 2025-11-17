@@ -6,7 +6,7 @@ namespace HotChocolate.Adapters.OpenApi;
 public sealed record OpenApiRoute(ImmutableArray<IOpenApiRouteSegment> Segments)
 {
     public ImmutableArray<OpenApiRouteSegmentParameter> Parameters { get; }
-        = [..Segments.OfType<OpenApiRouteSegmentParameter>()];
+        = [.. Segments.OfType<OpenApiRouteSegmentParameter>()];
 
     public override string ToString()
     {

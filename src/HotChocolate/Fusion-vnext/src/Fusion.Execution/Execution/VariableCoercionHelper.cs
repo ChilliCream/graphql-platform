@@ -310,7 +310,7 @@ internal static class VariableCoercionHelper
 
         if (type is IEnumTypeDefinition enumType)
         {
-            if (value is not StringValueNode stringValue)
+            if (value is not (StringValueNode or EnumValueNode))
             {
                 error = ErrorBuilder.New()
                     .SetMessage("The value `{0}` is not an enum value.", value.Value ?? "null")
@@ -319,7 +319,7 @@ internal static class VariableCoercionHelper
                 return false;
             }
 
-            if (!enumType.Values.ContainsName(stringValue.Value))
+            if (!enumType.Values.ContainsName((string)value.Value!))
             {
                 error = ErrorBuilder.New()
                     .SetMessage("The value `{0}` is not a valid value for the enum type `{1}`.", value.Value ?? "null", enumType.Name)
