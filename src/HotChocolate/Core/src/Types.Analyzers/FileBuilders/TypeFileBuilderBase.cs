@@ -226,23 +226,11 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         IOutputTypeInfo type,
         Resolver resolver)
     {
-        switch (resolver.SchemaTypeRef.Kind)
-        {
-            case SchemaTypeReferenceKind.ExtendedTypeReference:
-                Writer.WriteIndentedLine(
-                    "configuration.Type = typeInspector.GetTypeRef(typeof({0}), {1}.Output);",
-                    resolver.SchemaTypeRef.TypeString,
-                    WellKnownTypes.TypeContext);
-                break;
-            case SchemaTypeReferenceKind.SyntaxTypeReference:
-                Writer.WriteIndentedLine(
-                    "configuration.Type = TypeReference.Create(\"{0}\", {1}.Output));",
-                    resolver.SchemaTypeRef.TypeString,
-                    WellKnownTypes.TypeContext);
-                break;
-            default:
-                throw new NotSupportedException();
-        }
+        WriteAssignTypeRef(
+            resolver.SchemaTypeRef,
+            "configuration.Type",
+            "Output",
+            ";");
     }
 
     private void WriteResolverBindingExtendsWith(
@@ -371,23 +359,11 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                             Writer.WriteIndentedLine("RuntimeDefaultValue = {0},", defaultValueString);
                         }
 
-                        switch (parameter.SchemaTypeRef.Kind)
-                        {
-                            case SchemaTypeReferenceKind.ExtendedTypeReference:
-                                Writer.WriteIndentedLine(
-                                    "Type = typeInspector.GetTypeRef(typeof({0}), {1}.Input),",
-                                    parameter.SchemaTypeRef.TypeString,
-                                    WellKnownTypes.TypeContext);
-                                break;
-                            case SchemaTypeReferenceKind.SyntaxTypeReference:
-                                Writer.WriteIndentedLine(
-                                    "Type = TypeReference.Create(\"{0}\", {1}.Input)),",
-                                    parameter.SchemaTypeRef.TypeString,
-                                    WellKnownTypes.TypeContext);
-                                break;
-                            default:
-                                throw new NotSupportedException();
-                        }
+                        WriteAssignTypeRef(
+                            parameter.SchemaTypeRef,
+                            "Type",
+                            "Input",
+                            ",");
 
                         Writer.WriteIndentedLine("RuntimeType = typeof({0})", parameterTypeString);
                     }
@@ -1345,6 +1321,62 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+    }
+
+    private void WriteAssignTypeRef(
+        SchemaTypeReference typeReference,
+        string propertyName,
+        string context,
+        string lineEnd)
+    {
+        switch (typeReference.Kind)
+        {
+            case SchemaTypeReferenceKind.ExtendedTypeReference:
+                Writer.WriteIndentedLine(
+                    "{0} = typeInspector.GetTypeRef(typeof({1}), {2}.{3}){4}",
+                    propertyName,
+                    typeReference.TypeString,
+                    WellKnownTypes.TypeContext,
+                    context,
+                    lineEnd);
+                break;
+
+            case SchemaTypeReferenceKind.SyntaxTypeReference:
+                Writer.WriteIndentedLine(
+                    "{0} = global::{1}.Create(\"{2}\", {3}.{4})){5}",
+                    propertyName,
+                    WellKnownTypes.TypeReference,
+                    typeReference.TypeString,
+                    WellKnownTypes.TypeContext,
+                    context,
+                    lineEnd);
+                break;
+
+            case SchemaTypeReferenceKind.FactoryTypeReference:
+                Writer.WriteIndentedLine(
+                    "{0} = global::{1}.Create(",
+                    propertyName,
+                    WellKnownTypes.TypeReference);
+                using (Writer.IncreaseIndent())
+                {
+                    Writer.WriteIndentedLine(
+                        "typeInspector.GetTypeRef(typeof({0}), {1}.{2}),",
+                        typeReference.TypeDefinitionString,
+                        WellKnownTypes.TypeContext,
+                        context);
+                    Writer.WriteIndentedLine(
+                        "{0},",
+                        typeReference.TypeString);
+                    Writer.WriteIndentedLine(
+                        "\"{0}\"){1}",
+                        typeReference.TypeKey,
+                        lineEnd);
+                }
+                break;
+
+            default:
+                throw new NotSupportedException();
         }
     }
 

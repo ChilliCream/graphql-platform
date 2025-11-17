@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Security.Cryptography;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
@@ -71,10 +73,98 @@ public static class TypeReferenceBuilder
         // First, we unwrap any non-essential wrapper types and IFieldResult implementations.
         var unwrapped = UnwrapNonEssentialTypes(member.GetReturnType()!, compilation);
 
-        // Then we build the GraphQL type string.
+        // Next, we create a key that describes the type and ensures we are only executing the type factory once.
+        var (typeKey, typeDefinition) = CreateTypeKey(unwrapped);
+
+        // Next, we create  the factory delegate
+        var typeFactor = CreateFactory(unwrapped);
+
         return new SchemaTypeReference(
-            SchemaTypeReferenceKind.ExtendedTypeReference,
-            $"global::HotChocolate.Internal.SourceGeneratedType<{BuildTypeCore(unwrapped)}>");
+            SchemaTypeReferenceKind.FactoryTypeReference,
+            typeFactor,
+            typeKey,
+            typeDefinition);
+    }
+
+    private static (string Key, string TypeDefinition) CreateTypeKey(ITypeSymbol unwrappedType)
+    {
+        bool isNullable;
+        ITypeSymbol underlyingType;
+
+        // We first check if the type is a nullable value type (int?, Guid?, etc.).
+        if (unwrappedType is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } vt)
+        {
+            underlyingType = vt.TypeArguments[0];
+            isNullable = true;
+        }
+
+        // For reference types we check NullableAnnotation.
+        else if (unwrappedType.IsReferenceType)
+        {
+            underlyingType = unwrappedType;
+            isNullable = unwrappedType.NullableAnnotation == NullableAnnotation.Annotated;
+        }
+
+        // In all other cases we expect it to be non-null
+        else
+        {
+            underlyingType = unwrappedType;
+            isNullable = false;
+        }
+
+        if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
+        {
+            var elementType = namedType.TypeArguments[0];
+            var (typeString, typeDefinition) = CreateTypeKey(elementType);
+            return (isNullable ? $"[{typeString}]" : $"[{typeString}]!", typeDefinition);
+        }
+
+        var typeName = GetFullyQualifiedTypeName(underlyingType);
+        var compliantTypeName = MakeGraphQLCompliant(typeName);
+        return (isNullable ? compliantTypeName : $"{compliantTypeName}!", typeName);
+    }
+
+    private static string CreateFactory(ITypeSymbol unwrappedType)
+    {
+        return $"static (_, type) => {Build(unwrappedType)}";
+
+        static string Build(ITypeSymbol unwrappedType)
+        {
+            bool isNullable;
+            ITypeSymbol underlyingType;
+
+            // We first check if the type is a nullable value type (int?, Guid?, etc.).
+            if (unwrappedType is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } vt)
+            {
+                underlyingType = vt.TypeArguments[0];
+                isNullable = true;
+            }
+
+            // For reference types we check NullableAnnotation.
+            else if (unwrappedType.IsReferenceType)
+            {
+                underlyingType = unwrappedType;
+                isNullable = unwrappedType.NullableAnnotation == NullableAnnotation.Annotated;
+            }
+
+            // In all other cases we expect it to be non-null
+            else
+            {
+                underlyingType = unwrappedType;
+                isNullable = false;
+            }
+
+            if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
+            {
+                var elementType = namedType.TypeArguments[0];
+                var typeString = Build(elementType);
+                return isNullable
+                    ? $"new global::{WellKnownTypes.ListType}({typeString})"
+                    : $"new global::{WellKnownTypes.NonNullType}(new global::{WellKnownTypes.ListType}({typeString}))";
+            }
+
+            return isNullable ? "type" : $"new global::{WellKnownTypes.NonNullType}(type)";
+        }
     }
 
     private static ITypeSymbol UnwrapNonEssentialTypes(ITypeSymbol typeSymbol, Compilation compilation)
@@ -121,47 +211,6 @@ public static class TypeReferenceBuilder
         return false;
     }
 
-    private static string BuildTypeCore(ITypeSymbol typeSymbol)
-    {
-        bool isNullable;
-        ITypeSymbol underlyingType;
-
-        // We first check if the type is a nullable value type (int?, Guid?, etc.).
-        if (typeSymbol is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } valueType)
-        {
-            underlyingType = valueType.TypeArguments[0];
-            isNullable = true;
-        }
-
-        // For reference types we check NullableAnnotation.
-        else if (typeSymbol.IsReferenceType)
-        {
-            underlyingType = typeSymbol;
-            isNullable = typeSymbol.NullableAnnotation == NullableAnnotation.Annotated;
-        }
-
-        // In all other cases we expect it to be non-null
-        else
-        {
-            underlyingType = typeSymbol;
-            isNullable = false;
-        }
-
-        if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
-        {
-            var elementType = namedType.TypeArguments[0];
-            var innerTypeString = BuildTypeCore(elementType);
-            return isNullable
-                ? $"global::HotChocolate.Types.ListType<{innerTypeString}>"
-                : $"global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<{innerTypeString}>>";
-        }
-
-        var typeName = GetFullyQualifiedTypeName(underlyingType);
-        return isNullable
-            ? $"global::HotChocolate.Internal.NamedRuntimeType<{typeName}>"
-            : $"global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<{typeName}>>";
-    }
-
     private static bool IsListType(INamedTypeSymbol namedType)
     {
         if (!namedType.IsGenericType)
@@ -200,5 +249,116 @@ public static class TypeReferenceBuilder
     {
         var displayFormat = SymbolDisplayFormat.FullyQualifiedFormat;
         return typeSymbol.ToDisplayString(displayFormat);
+    }
+
+    private static string MakeGraphQLCompliant(string typeName)
+    {
+        var sb = PooledObjects.GetStringBuilder();
+        var i = 0;
+
+        while (i < typeName.Length)
+        {
+            var c = typeName[i];
+
+            switch (c)
+            {
+                case '.':
+                case ':':
+                case '+':
+                    sb.Append('_');
+                    i++;
+                    break;
+
+                case '<':
+                    sb.Append("Of");
+                    i++;
+                    break;
+
+                case '>':
+                    i++;
+                    break;
+
+                case ',':
+                    i++;
+                    while (i < typeName.Length && typeName[i] == ' ')
+                    {
+                        i++;
+                    }
+
+                    sb.Append("And");
+                    break;
+
+                case '[':
+                    if (i + 1 < typeName.Length && typeName[i + 1] == ']')
+                    {
+                        sb.Append("Array");
+                        i += 2;
+
+                        var dimensions = 1;
+                        while (i < typeName.Length && typeName[i] == '[')
+                        {
+                            var start = i;
+                            while (i < typeName.Length && typeName[i] != ']')
+                            {
+                                i++;
+                            }
+
+                            if (i < typeName.Length)
+                            {
+                                i++;
+                            }
+
+                            dimensions++;
+                        }
+
+                        if (dimensions > 1)
+                        {
+                            sb.Append(dimensions).Append('D');
+                        }
+                    }
+                    else
+                    {
+                        i++;
+                    }
+
+                    break;
+
+                case ']':
+                    i++;
+                    break;
+
+                case '?':
+                    sb.Append("Nullable");
+                    i++;
+                    break;
+
+                case '*':
+                    sb.Append("Pointer");
+                    i++;
+                    break;
+
+                case '(':
+                case ')':
+                case ' ':
+                    i++;
+                    break;
+
+                case var ch and (>= 'a' and <= 'z'
+                    or >= 'A' and <= 'Z'
+                    or >= '0' and <= '9'
+                    or '_'):
+                    sb.Append(ch);
+                    i++;
+                    break;
+
+                default:
+                    i++;
+                    break;
+            }
+        }
+
+        var normalizedTypeName = sb.ToString();
+        PooledObjects.Return(sb);
+        return normalizedTypeName;
     }
 }

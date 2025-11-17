@@ -2,11 +2,10 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration;
 
-internal sealed class FactoryTypeReferenceHandler(IDescriptorContext context)
+internal sealed class SyntaxFactoryTypeReferenceHandler(IDescriptorContext context)
     : ITypeRegistrarHandler
 {
     private readonly HashSet<string> _handled = [];
-    private readonly IDescriptorContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
     public TypeReferenceKind Kind => TypeReferenceKind.Factory;
 
@@ -16,7 +15,7 @@ internal sealed class FactoryTypeReferenceHandler(IDescriptorContext context)
 
         if (_handled.Add(typeRef.Name))
         {
-            var obj = typeRef.Factory!(_context);
+            var obj = typeRef.Factory!(context);
             typeRegistrar.Register(obj, typeRef.Scope, configure: AddTypeRef);
         }
 

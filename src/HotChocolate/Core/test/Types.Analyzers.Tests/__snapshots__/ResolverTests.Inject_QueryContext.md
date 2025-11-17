@@ -70,7 +70,10 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Entity>>>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Entity), HotChocolate.Types.TypeContext.Output),
+                        static (_, type) => new global::HotChocolate.Types.NonNullType(new global::HotChocolate.Types.ListType(new global::HotChocolate.Types.NonNullType(type))),
+                        "[global__TestNamespace_Entity!]!");
                     configuration.ResultType = typeof(global::System.Linq.IQueryable<global::TestNamespace.Entity>);
 
                     configuration.SetSourceGeneratorFlags();
