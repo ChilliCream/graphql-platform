@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>HotChocolate.Adapters.OpenApi</RootNamespace>
-    <PackageId>HotChocolate.Adapters.OpenApi</PackageId>
+    <PackageId>HotChocolate.Fusion.Adapters.OpenApi</PackageId>
     <TargetFrameworks>net10.0; net9.0</TargetFrameworks>
   </PropertyGroup>
 
@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
     <ProjectReference Include="..\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
   </ItemGroup>
 
