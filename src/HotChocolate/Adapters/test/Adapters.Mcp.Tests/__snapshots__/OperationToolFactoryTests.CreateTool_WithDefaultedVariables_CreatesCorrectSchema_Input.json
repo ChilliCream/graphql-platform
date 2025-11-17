@@ -194,6 +194,7 @@
     },
     "uuid": {
       "type": "string",
+      "pattern": "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$",
       "description": "UUID description",
       "default": "00000000-0000-0000-0000-000000000000"
     }

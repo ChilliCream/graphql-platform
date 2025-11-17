@@ -229,6 +229,7 @@
         "string",
         "null"
       ],
+      "pattern": "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$",
       "description": "UUID description"
     }
   },
