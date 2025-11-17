@@ -15,7 +15,7 @@ public sealed class SyntaxTypeReference
         string? scope = null,
         Func<IDescriptorContext, TypeSystemObject>? factory = null)
         : base(
-            factory is null ? TypeReferenceKind.Syntax : TypeReferenceKind.Factory,
+            factory is null ? TypeReferenceKind.Syntax : TypeReferenceKind.SyntaxWithFactory,
             context,
             scope)
     {

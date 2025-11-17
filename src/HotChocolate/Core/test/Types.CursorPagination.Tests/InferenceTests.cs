@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -78,8 +79,7 @@ public class InferenceTests
                     TypeContext.Output);
                 var factoryTypeRef = TypeReference.Create(
                     typeRef,
-                    static (_, type) => new NonNullType(new ListType(new NonNullType(type))),
-                    "SomeKey");
+                    Utf8GraphQLParser.Syntax.ParseTypeReference("[SomeType!]!"));
                 extension.Configuration.Type = factoryTypeRef;
             });
         }

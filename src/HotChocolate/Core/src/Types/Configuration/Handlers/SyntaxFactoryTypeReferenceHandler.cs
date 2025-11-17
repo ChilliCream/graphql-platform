@@ -7,7 +7,7 @@ internal sealed class SyntaxFactoryTypeReferenceHandler(IDescriptorContext conte
 {
     private readonly HashSet<string> _handled = [];
 
-    public TypeReferenceKind Kind => TypeReferenceKind.Factory;
+    public TypeReferenceKind Kind => TypeReferenceKind.SyntaxWithFactory;
 
     public void Handle(ITypeRegistrar typeRegistrar, TypeReference typeReference)
     {

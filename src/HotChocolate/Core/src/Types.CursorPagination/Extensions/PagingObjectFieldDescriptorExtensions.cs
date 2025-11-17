@@ -161,7 +161,7 @@ public static class PagingObjectFieldDescriptorExtensions
                     typeRef = d.Type switch
                     {
                         FactoryTypeReference factoryTypeRef
-                            => factoryTypeRef.TypeDefinition,
+                            => factoryTypeRef.GetElementType(),
                         ExtendedTypeReference extendedTypeRef when
                             c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
                                 && GetElementType(typeInfo) is { } elementType
@@ -254,7 +254,7 @@ public static class PagingObjectFieldDescriptorExtensions
                     typeRef = d.Type switch
                     {
                         FactoryTypeReference factoryTypeRef
-                            => factoryTypeRef.TypeDefinition,
+                            => factoryTypeRef.GetElementType(),
                         ExtendedTypeReference extendedTypeRef when
                             c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
                             && GetElementType(typeInfo) is { } elementType

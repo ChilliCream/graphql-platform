@@ -74,7 +74,7 @@ public static class TypeReferenceBuilder
         var unwrapped = UnwrapNonEssentialTypes(member.GetReturnType()!, compilation);
 
         // Next, we create a key that describes the type and ensures we are only executing the type factory once.
-        var (typeKey, typeDefinition, isSimpleType) = CreateTypeKey(unwrapped);
+        var (typeStructure, typeDefinition, isSimpleType) = CreateTypeKey(unwrapped);
 
         if (isSimpleType)
         {
@@ -83,17 +83,13 @@ public static class TypeReferenceBuilder
                 typeDefinition);
         }
 
-        // Next, we create  the factory delegate
-        var typeFactor = CreateFactory(unwrapped);
-
         return new SchemaTypeReference(
             SchemaTypeReferenceKind.FactoryTypeReference,
-            typeFactor,
-            typeKey,
-            typeDefinition);
+            typeDefinition,
+            typeStructure);
     }
 
-    private static (string Key, string TypeDefinition, bool IsSimpleType) CreateTypeKey(ITypeSymbol unwrappedType)
+    private static (string TypeStructure, string TypeDefinition, bool IsSimpleType) CreateTypeKey(ITypeSymbol unwrappedType)
     {
         bool isNullable;
         ITypeSymbol underlyingType;
@@ -122,55 +118,46 @@ public static class TypeReferenceBuilder
         if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
         {
             var elementType = namedType.TypeArguments[0];
-            var (typeString, typeDefinition, _) = CreateTypeKey(elementType);
-            return (isNullable ? $"[{typeString}]" : $"[{typeString}]!", typeDefinition, false);
+            var (typeStructure, typeDefinition, _) = CreateTypeKey(elementType);
+
+            if (isNullable)
+            {
+                typeStructure = string.Format(
+                    "new global::{0}({1})",
+                    WellKnownTypes.ListTypeNode,
+                    typeStructure);
+            }
+            else
+            {
+                typeStructure = string.Format(
+                    "new global::{0}(new global::{1}({2}))",
+                    WellKnownTypes.NonNullTypeNode,
+                    WellKnownTypes.ListTypeNode,
+                    typeStructure);
+            }
+
+            return (typeStructure, typeDefinition, false);
         }
 
         var typeName = GetFullyQualifiedTypeName(underlyingType);
         var compliantTypeName = MakeGraphQLCompliant(typeName);
-        return (isNullable ? compliantTypeName : $"{compliantTypeName}!", typeName, isNullable);
-    }
 
-    private static string CreateFactory(ITypeSymbol unwrappedType)
-    {
-        return $"static (_, type) => {Build(unwrappedType)}";
-
-        static string Build(ITypeSymbol unwrappedType)
+        if (isNullable)
         {
-            bool isNullable;
-            ITypeSymbol underlyingType;
-
-            // We first check if the type is a nullable value type (int?, Guid?, etc.).
-            if (unwrappedType is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } vt)
-            {
-                underlyingType = vt.TypeArguments[0];
-                isNullable = true;
-            }
-
-            // For reference types we check NullableAnnotation.
-            else if (unwrappedType.IsReferenceType)
-            {
-                underlyingType = unwrappedType;
-                isNullable = unwrappedType.NullableAnnotation == NullableAnnotation.Annotated;
-            }
-
-            // In all other cases we expect it to be non-null
-            else
-            {
-                underlyingType = unwrappedType;
-                isNullable = false;
-            }
-
-            if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
-            {
-                var elementType = namedType.TypeArguments[0];
-                var typeString = Build(elementType);
-                return isNullable
-                    ? $"new global::{WellKnownTypes.ListType}({typeString})"
-                    : $"new global::{WellKnownTypes.NonNullType}(new global::{WellKnownTypes.ListType}({typeString}))";
-            }
-
-            return isNullable ? "type" : $"new global::{WellKnownTypes.NonNullType}(type)";
+            var typeStructure = string.Format(
+                "new global::{0}(\"{1}\")",
+                WellKnownTypes.NamedTypeNode,
+                compliantTypeName);
+            return (typeStructure, typeName, IsSimpleType: true);
+        }
+        else
+        {
+            var typeStructure = string.Format(
+                "new global::{0}(new global::{1}(\"{2}\"))",
+                WellKnownTypes.NonNullTypeNode,
+                WellKnownTypes.NamedTypeNode,
+                compliantTypeName);
+            return (typeStructure, typeName, IsSimpleType: false);
         }
     }
 
