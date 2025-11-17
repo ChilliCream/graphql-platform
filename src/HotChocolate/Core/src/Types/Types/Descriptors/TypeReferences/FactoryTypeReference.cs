@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -18,46 +20,84 @@ public sealed class FactoryTypeReference : TypeReference
     /// <param name="typeDefinition">
     /// The type reference that represents the actual type definition.
     /// </param>
-    /// <param name="factory">
-    /// The factory to create the actual type structure required for a type system member.
-    /// </param>
-    /// <param name="typeKey">
-    /// A key used to express uniqueness.
+    /// <param name="typeStructure">
+    /// The GraphQL type structure created by this factory reference.
     /// </param>
     public FactoryTypeReference(
         ExtendedTypeReference typeDefinition,
-        Func<IDescriptorContext, ITypeDefinition, IType> factory,
-        string typeKey)
-        : base(TypeReferenceKind.SourceGeneratorFactory, typeDefinition.Context, null)
+        ITypeNode typeStructure)
+        : base(TypeReferenceKind.Factory, typeDefinition.Context, null)
     {
         ArgumentNullException.ThrowIfNull(typeDefinition);
-        ArgumentNullException.ThrowIfNull(factory);
-        ArgumentException.ThrowIfNullOrWhiteSpace(typeKey);
+        ArgumentNullException.ThrowIfNull(typeStructure);
 
         TypeDefinition = typeDefinition;
-        Factory = factory;
-        Key = typeKey;
+        TypeStructure = typeStructure;
     }
 
     public ExtendedTypeReference TypeDefinition { get; }
 
-    public Func<IDescriptorContext, ITypeDefinition, IType> Factory { get; }
+    public ITypeNode TypeStructure { get; }
 
-    public string Key { get; }
+    [field: AllowNull]
+    public string Key
+    {
+        get
+        {
+            field ??= TypeStructure.ToString(indented: false);
+            return field;
+        }
+    }
+
+    public IType Create(ITypeDefinition typeDefinition)
+    {
+        return CreateType(TypeStructure, typeDefinition);
+
+        static IType CreateType(ITypeNode typeNode, ITypeDefinition typeDefinition)
+        {
+            return typeNode switch
+            {
+                NonNullTypeNode nnt => new NonNullType(CreateType(nnt.Type, typeDefinition)),
+                ListTypeNode lt => new ListType(CreateType(lt.Type, typeDefinition)),
+                NamedTypeNode => typeDefinition,
+                _ => throw new NotSupportedException()
+            };
+        }
+    }
+
+    public FactoryTypeReference GetElementType()
+    {
+        var typeStructure = TypeStructure;
+
+        if (typeStructure is NonNullTypeNode nnt)
+        {
+            typeStructure = nnt.Type;
+        }
+
+        if (typeStructure is not ListTypeNode lt)
+        {
+            throw new InvalidOperationException(
+                string.Format(
+                    "This type reference `{0}` does not represent a list type and thus has no element type.",
+                    TypeStructure.ToString(indented: false)));
+        }
+
+        return new FactoryTypeReference(TypeDefinition, lt.Type);
+    }
 
     public FactoryTypeReference WithTypeDefinition(ExtendedTypeReference typeDefinition, string typeName)
     {
         ArgumentNullException.ThrowIfNull(typeDefinition);
 
-        var type = Rewrite(Utf8GraphQLParser.Syntax.ParseTypeReference(Key), typeName);
-        return new FactoryTypeReference(typeDefinition, Factory, type.ToString(indented: false));
+        var type = Rewrite(TypeStructure, typeName.EnsureGraphQLName());
+        return new FactoryTypeReference(typeDefinition, type);
 
         static ITypeNode Rewrite(ITypeNode typeNode, string typeName)
         {
             return typeNode switch
             {
-                NonNullTypeNode nnt => Rewrite(nnt.Type, typeName),
-                ListTypeNode lt => Rewrite(lt.Type, typeName),
+                NonNullTypeNode nnt => new NonNullTypeNode(null, (INullableTypeNode)Rewrite(nnt.Type, typeName)),
+                ListTypeNode lt => new ListTypeNode(Rewrite(lt.Type, typeName)),
                 NamedTypeNode => new NamedTypeNode(typeName),
                 _ => throw new NotSupportedException()
             };
@@ -86,10 +126,10 @@ public sealed class FactoryTypeReference : TypeReference
             return false;
         }
 
-        return Key.Equals(typeRef.Key, StringComparison.Ordinal)
+        return SyntaxComparer.BySyntax.Equals(TypeStructure, typeRef.TypeStructure)
             && typeRef.TypeDefinition.Equals(TypeDefinition);
     }
 
     public override int GetHashCode()
-        => HashCode.Combine(base.GetHashCode(), Key, TypeDefinition);
+        => HashCode.Combine(base.GetHashCode(), TypeStructure, TypeDefinition);
 }

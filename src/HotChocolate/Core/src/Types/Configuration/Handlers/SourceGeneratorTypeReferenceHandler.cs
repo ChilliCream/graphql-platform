@@ -11,7 +11,7 @@ internal sealed class SourceGeneratorTypeReferenceHandler(
 
     private readonly HashSet<string> _handled = [];
 
-    public TypeReferenceKind Kind => TypeReferenceKind.SourceGeneratorFactory;
+    public TypeReferenceKind Kind => TypeReferenceKind.Factory;
 
     public void Handle(ITypeRegistrar typeRegistrar, TypeReference typeReference)
     {

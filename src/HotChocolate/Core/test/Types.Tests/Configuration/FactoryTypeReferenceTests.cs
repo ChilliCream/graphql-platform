@@ -1,11 +1,12 @@
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Configuration;
 
-public class SourceGeneratorFactoryTypeReferenceTests
+public class FactoryTypeReferenceTests
 {
     [Fact]
     public async Task FactoryTypeReference_Is_Handled()
@@ -31,8 +32,7 @@ public class SourceGeneratorFactoryTypeReferenceTests
                     extension.Configuration.Type =
                         TypeReference.Create(
                             extension.Context.TypeInspector.GetTypeRef(typeof(string), TypeContext.Output),
-                            static (_, typeDef) => new NonNullType(new ListType(new NonNullType(typeDef))),
-                            "[String!]!");
+                            Utf8GraphQLParser.Syntax.ParseTypeReference("[String!]!"));
                 });
         }
     }

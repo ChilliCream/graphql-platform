@@ -85,8 +85,7 @@ namespace TestNamespace
                     configuration.Description = "Executes a complex query with:\n- Multiple lines\n- Special chars: \"quotes\", 'apostrophes', `backticks`\n- Paths: C:\\Program Files\\App\n- Tab\tseparated\tvalues";
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
-                        static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                        "string!");
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
                     configuration.ResultType = typeof(string);
 
                     configuration.SetSourceGeneratorFlags();
@@ -103,8 +102,7 @@ namespace TestNamespace
                             Description = "SQL query like: SELECT * FROM \"Users\" WHERE name = 'John'",
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Input),
-                                static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "string!"),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string"))),
                             RuntimeType = typeof(string)
                         };
 
@@ -123,8 +121,7 @@ namespace TestNamespace
                             RuntimeDefaultValue = 30000,
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
-                                static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "int!"),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int"))),
                             RuntimeType = typeof(int)
                         };
 

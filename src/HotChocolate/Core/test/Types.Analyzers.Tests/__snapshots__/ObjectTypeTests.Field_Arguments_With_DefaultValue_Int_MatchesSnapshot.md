@@ -1,4 +1,4 @@
-# CustomAttribute_On_Parameter_MatchesSnapshot
+# Field_Arguments_With_DefaultValue_Int_MatchesSnapshot
 
 ## BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs
 
@@ -46,7 +46,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::TestNamespace.Author), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.StringType), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.Author);
 
                     configuration.SetSourceGeneratorFlags();
@@ -60,9 +60,8 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("version", global::HotChocolate.Types.MemberKind.Argument),
-                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                                typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
-                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int"))),
+                            RuntimeDefaultValue = 1,
+                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.StringType), HotChocolate.Types.TypeContext.Input),
                             RuntimeType = typeof(int)
                         };
 
@@ -112,7 +111,7 @@ namespace TestNamespace
                     typeof(int),
                     isNullable: false,
                     [
-                        new global::TestNamespace.FooAttribute()
+                        new global::HotChocolate.GraphQLTypeAttribute<global::HotChocolate.Types.StringType>()
                     ]);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetAuthorAsync()

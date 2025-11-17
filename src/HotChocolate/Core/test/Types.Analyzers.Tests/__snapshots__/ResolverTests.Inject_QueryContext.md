@@ -72,8 +72,7 @@ namespace TestNamespace
 
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Entity), HotChocolate.Types.TypeContext.Output),
-                        static (_, type) => new global::HotChocolate.Types.NonNullType(new global::HotChocolate.Types.ListType(new global::HotChocolate.Types.NonNullType(type))),
-                        "[global__TestNamespace_Entity!]!");
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Entity")))));
                     configuration.ResultType = typeof(global::System.Linq.IQueryable<global::TestNamespace.Entity>);
 
                     configuration.SetSourceGeneratorFlags();

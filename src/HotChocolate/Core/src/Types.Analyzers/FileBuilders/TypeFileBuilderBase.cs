@@ -1362,15 +1362,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 {
                     Writer.WriteIndentedLine(
                         "typeInspector.GetTypeRef(typeof({0}), {1}.{2}),",
-                        typeReference.TypeDefinitionString,
+                        typeReference.TypeString,
                         WellKnownTypes.TypeContext,
                         context);
                     Writer.WriteIndentedLine(
-                        "{0},",
-                        typeReference.TypeString);
-                    Writer.WriteIndentedLine(
-                        "\"{0}\"){1}",
-                        typeReference.TypeKey,
+                        "{0}){1}",
+                        typeReference.TypeStructure,
                         lineEnd);
                 }
                 break;
