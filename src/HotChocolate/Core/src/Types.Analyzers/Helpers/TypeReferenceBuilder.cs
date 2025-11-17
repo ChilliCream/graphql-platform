@@ -74,19 +74,22 @@ public static class TypeReferenceBuilder
         var unwrapped = UnwrapNonEssentialTypes(member.GetReturnType()!, compilation);
 
         // Next, we create a key that describes the type and ensures we are only executing the type factory once.
-        var (typeKey, typeDefinition) = CreateTypeKey(unwrapped);
+        var (typeStructure, typeDefinition, isSimpleType) = CreateTypeKey(unwrapped);
 
-        // Next, we create  the factory delegate
-        var typeFactor = CreateFactory(unwrapped);
+        if (isSimpleType)
+        {
+            return new SchemaTypeReference(
+                SchemaTypeReferenceKind.ExtendedTypeReference,
+                typeDefinition);
+        }
 
         return new SchemaTypeReference(
             SchemaTypeReferenceKind.FactoryTypeReference,
-            typeFactor,
-            typeKey,
-            typeDefinition);
+            typeDefinition,
+            typeStructure);
     }
 
-    private static (string Key, string TypeDefinition) CreateTypeKey(ITypeSymbol unwrappedType)
+    private static (string TypeStructure, string TypeDefinition, bool IsSimpleType) CreateTypeKey(ITypeSymbol unwrappedType)
     {
         bool isNullable;
         ITypeSymbol underlyingType;
@@ -115,55 +118,46 @@ public static class TypeReferenceBuilder
         if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
         {
             var elementType = namedType.TypeArguments[0];
-            var (typeString, typeDefinition) = CreateTypeKey(elementType);
-            return (isNullable ? $"[{typeString}]" : $"[{typeString}]!", typeDefinition);
+            var (typeStructure, typeDefinition, _) = CreateTypeKey(elementType);
+
+            if (isNullable)
+            {
+                typeStructure = string.Format(
+                    "new global::{0}({1})",
+                    WellKnownTypes.ListTypeNode,
+                    typeStructure);
+            }
+            else
+            {
+                typeStructure = string.Format(
+                    "new global::{0}(new global::{1}({2}))",
+                    WellKnownTypes.NonNullTypeNode,
+                    WellKnownTypes.ListTypeNode,
+                    typeStructure);
+            }
+
+            return (typeStructure, typeDefinition, false);
         }
 
         var typeName = GetFullyQualifiedTypeName(underlyingType);
         var compliantTypeName = MakeGraphQLCompliant(typeName);
-        return (isNullable ? compliantTypeName : $"{compliantTypeName}!", typeName);
-    }
 
-    private static string CreateFactory(ITypeSymbol unwrappedType)
-    {
-        return $"static (_, type) => {Build(unwrappedType)}";
-
-        static string Build(ITypeSymbol unwrappedType)
+        if (isNullable)
         {
-            bool isNullable;
-            ITypeSymbol underlyingType;
-
-            // We first check if the type is a nullable value type (int?, Guid?, etc.).
-            if (unwrappedType is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } vt)
-            {
-                underlyingType = vt.TypeArguments[0];
-                isNullable = true;
-            }
-
-            // For reference types we check NullableAnnotation.
-            else if (unwrappedType.IsReferenceType)
-            {
-                underlyingType = unwrappedType;
-                isNullable = unwrappedType.NullableAnnotation == NullableAnnotation.Annotated;
-            }
-
-            // In all other cases we expect it to be non-null
-            else
-            {
-                underlyingType = unwrappedType;
-                isNullable = false;
-            }
-
-            if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
-            {
-                var elementType = namedType.TypeArguments[0];
-                var typeString = Build(elementType);
-                return isNullable
-                    ? $"new global::{WellKnownTypes.ListType}({typeString})"
-                    : $"new global::{WellKnownTypes.NonNullType}(new global::{WellKnownTypes.ListType}({typeString}))";
-            }
-
-            return isNullable ? "type" : $"new global::{WellKnownTypes.NonNullType}(type)";
+            var typeStructure = string.Format(
+                "new global::{0}(\"{1}\")",
+                WellKnownTypes.NamedTypeNode,
+                compliantTypeName);
+            return (typeStructure, typeName, IsSimpleType: true);
+        }
+        else
+        {
+            var typeStructure = string.Format(
+                "new global::{0}(new global::{1}(\"{2}\"))",
+                WellKnownTypes.NonNullTypeNode,
+                WellKnownTypes.NamedTypeNode,
+                compliantTypeName);
+            return (typeStructure, typeName, IsSimpleType: false);
         }
     }
 
@@ -219,30 +213,57 @@ public static class TypeReferenceBuilder
         }
 
         var originalDefinition = namedType.OriginalDefinition;
-        var fullName = originalDefinition.ToDisplayString();
+        var typeDefinition = GetGenericTypeDefinition(originalDefinition);
 
-        return fullName == "System.Collections.Generic.IEnumerable<T>"
-            || fullName == "System.Collections.Generic.IReadOnlyCollection<T>"
-            || fullName == "System.Collections.Generic.IReadOnlyList<T>"
-            || fullName == "System.Collections.Generic.ICollection<T>"
-            || fullName == "System.Collections.Generic.IList<T>"
-            || fullName == "System.Collections.Generic.ISet<T>"
-            || fullName == "System.Linq.IQueryable<T>"
-            || fullName == "System.Collections.Generic.IAsyncEnumerable<T>"
-            || fullName == "System.IObservable<T>"
-            || fullName == "System.Collections.Generic.List<T>"
-            || fullName == "System.Collections.ObjectModel.Collection<T>"
-            || fullName == "System.Collections.Generic.Stack<T>"
-            || fullName == "System.Collections.Generic.HashSet<T>"
-            || fullName == "System.Collections.Generic.Queue<T>"
-            || fullName == "System.Collections.Concurrent.ConcurrentBag<T>"
-            || fullName == "System.Collections.Immutable.ImmutableArray<T>"
-            || fullName == "System.Collections.Immutable.ImmutableList<T>"
-            || fullName == "System.Collections.Immutable.ImmutableQueue<T>"
-            || fullName == "System.Collections.Immutable.ImmutableStack<T>"
-            || fullName == "System.Collections.Immutable.ImmutableHashSet<T>"
-            || fullName == "HotChocolate.Execution.ISourceStream<T>"
-            || fullName == "HotChocolate.IExecutable<T>";
+        // Check if the type itself is one of the known list interfaces or classes
+        if (WellKnownTypes.ListInterfaceTypes.Contains(typeDefinition)
+            || WellKnownTypes.ListClassTypes.Contains(typeDefinition))
+        {
+            return true;
+        }
+
+        // Check if the type implements any of the known list interfaces
+        foreach (var interfaceType in namedType.AllInterfaces)
+        {
+            if (!interfaceType.IsGenericType)
+            {
+                continue;
+            }
+
+            var interfaceDefinition = GetGenericTypeDefinition(interfaceType.OriginalDefinition);
+            if (WellKnownTypes.ListInterfaceTypes.Contains(interfaceDefinition))
+            {
+                return true;
+            }
+        }
+
+        // Check if the type or any of its base types is one of the known list classes
+        var currentType = namedType.BaseType;
+        while (currentType is not null)
+        {
+            if (!currentType.IsGenericType)
+            {
+                currentType = currentType.BaseType;
+                continue;
+            }
+
+            var baseDefinition = GetGenericTypeDefinition(currentType.OriginalDefinition);
+            if (WellKnownTypes.ListClassTypes.Contains(baseDefinition))
+            {
+                return true;
+            }
+
+            currentType = currentType.BaseType;
+        }
+
+        return false;
+    }
+
+    private static string GetGenericTypeDefinition(INamedTypeSymbol typeSymbol)
+    {
+        // Convert a generic type like "System.Collections.Generic.List<T>"
+        // to the definition format "System.Collections.Generic.List<>"
+        return typeSymbol.ConstructUnboundGenericType().ToDisplayString();
     }
 
     private static string GetFullyQualifiedTypeName(ITypeSymbol typeSymbol)

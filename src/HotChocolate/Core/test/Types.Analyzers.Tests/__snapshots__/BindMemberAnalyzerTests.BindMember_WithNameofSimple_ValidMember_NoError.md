@@ -77,10 +77,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Brand), HotChocolate.Types.TypeContext.Output),
-                        static (_, type) => type,
-                        "global__TestNamespace_Brand");
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::TestNamespace.Brand), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.Brand);
 
                     configuration.SetSourceGeneratorFlags();
@@ -96,8 +93,7 @@ namespace TestNamespace
                             Name = naming.GetMemberName("product", global::HotChocolate.Types.MemberKind.Argument),
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Input),
-                                static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "global__TestNamespace_Product!"),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product"))),
                             RuntimeType = typeof(global::TestNamespace.Product)
                         };
 
@@ -136,8 +132,7 @@ namespace TestNamespace
 
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
-                        static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                        "int!");
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int")));
                     configuration.ResultType = typeof(int);
 
                     configuration.SetSourceGeneratorFlags();

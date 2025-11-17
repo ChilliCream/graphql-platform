@@ -285,7 +285,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         }
 
         // before starting to build the payload type we first will look for error definitions
-        // an the mutation.
+        // and the mutation.
         var errorDefinitions = _errorTypeHelper.GetErrorConfigurations(mutation);
         FieldDef? errorField = null;
         var errorInterfaceIsRegistered = false;
@@ -328,7 +328,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         // errors field to it.
         if (registration.Type.Name.EqualsOrdinal(payloadTypeName))
         {
-            if (errorDefinitions.Count <= 0)
+            if (errorDefinitions.Count == 0)
             {
                 return;
             }

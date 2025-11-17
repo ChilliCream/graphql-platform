@@ -69,7 +69,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
         descriptor
             .Argument(t => t.RequireOneSlicingArgument)
             .Name(RequireOneSlicingArgument)
-            .Type<NonNullType<BooleanType>>()
+            .Type<BooleanType>()
             .DefaultValue(true)
             .Description(
                 "The `requireOneSlicingArgument` argument can be used to inform the static "
@@ -170,7 +170,10 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
             arguments.Add(new ArgumentNode(SizedFields, directive.SizedFields.ToListValueNode()));
         }
 
-        arguments.Add(new ArgumentNode(RequireOneSlicingArgument, directive.RequireOneSlicingArgument));
+        if (directive.RequireOneSlicingArgument is not null)
+        {
+            arguments.Add(new ArgumentNode(RequireOneSlicingArgument, directive.RequireOneSlicingArgument.Value));
+        }
 
         return new DirectiveNode(DirectiveName, arguments.ToImmutableArray());
     }

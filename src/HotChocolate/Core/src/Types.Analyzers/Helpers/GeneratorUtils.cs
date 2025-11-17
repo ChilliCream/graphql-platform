@@ -106,6 +106,23 @@ internal static class GeneratorUtils
             return $"{defaultValue}L";
         }
 
+        if (type.TypeKind == TypeKind.Enum && type is INamedTypeSymbol namedTypeSymbol)
+        {
+            var enumType = namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+            // Find the enum member that matches the default value
+            foreach (var member in namedTypeSymbol.GetMembers())
+            {
+                if (member is IFieldSymbol field && field.HasConstantValue && Equals(field.ConstantValue, defaultValue))
+                {
+                    return $"{enumType}.{field.Name}";
+                }
+            }
+
+            // Fallback to integer value if no matching member found
+            return defaultValue.ToString()!;
+        }
+
         return defaultValue.ToString()!;
     }
 

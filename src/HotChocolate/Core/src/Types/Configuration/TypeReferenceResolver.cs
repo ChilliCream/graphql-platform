@@ -10,23 +10,19 @@ internal sealed class TypeReferenceResolver
 {
     private readonly Dictionary<TypeId, IType> _typeCache = [];
     private readonly Dictionary<string, IType> _factoryCache = [];
-    private readonly IDescriptorContext _context;
     private readonly ITypeInspector _typeInspector;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
 
     public TypeReferenceResolver(
-        IDescriptorContext context,
         ITypeInspector typeInspector,
         TypeRegistry typeRegistry,
         TypeLookup typeLookup)
     {
-        ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(typeInspector);
         ArgumentNullException.ThrowIfNull(typeRegistry);
         ArgumentNullException.ThrowIfNull(typeLookup);
 
-        _context = context;
         _typeInspector = typeInspector;
         _typeRegistry = typeRegistry;
         _typeLookup = typeLookup;
@@ -67,7 +63,7 @@ internal sealed class TypeReferenceResolver
                 if (_typeLookup.TryNormalizeReference(factoryTypeRef.TypeDefinition, out var typeDefRef)
                     && TryGetType(typeDefRef, out var typeDef))
                 {
-                    type = factoryTypeRef.Factory(_context, (ITypeDefinition)typeDef);
+                    type = factoryTypeRef.Create((ITypeDefinition)typeDef);
                     _factoryCache[factoryTypeRef.Key] = type;
                     return true;
                 }

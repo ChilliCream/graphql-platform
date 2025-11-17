@@ -3,6 +3,7 @@
   <PropertyGroup>
     <RootNamespace>HotChocolate.Adapters.OpenApi</RootNamespace>
     <PackageId>HotChocolate.Adapters.OpenApi</PackageId>
+    <TargetFrameworks>net10.0; net9.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

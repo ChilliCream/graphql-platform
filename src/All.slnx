@@ -183,11 +183,15 @@
   </Folder>
   <Folder Name="/HotChocolate/Adapters/" />
   <Folder Name="/HotChocolate/Adapters/src/">
+    <Project Path="HotChocolate/Adapters/src/Adapters.Mcp/HotChocolate.Adapters.Mcp.csproj" />
+    <Project Path="HotChocolate/Adapters/src/Adapters.Mcp.Core/HotChocolate.Adapters.Mcp.Core.csproj" />
     <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi/HotChocolate.Adapters.OpenApi.csproj" />
     <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi.Core/HotChocolate.Adapters.OpenApi.Core.csproj" />
-    <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi.Fusion/HotChocolate.Fusion.Adapters.OpenApi.csproj" />
+    <Project Path="HotChocolate/Adapters/src/Fusion.Adapters.Mcp/HotChocolate.Fusion.Adapters.Mcp.csproj" />
+    <Project Path="HotChocolate/Adapters/src/Fusion.Adapters.OpenApi/HotChocolate.Fusion.Adapters.OpenApi.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Adapters/test/">
+    <Project Path="HotChocolate/Adapters/test/Adapters.Mcp.Tests/HotChocolate.Adapters.Mcp.Tests.csproj" />
     <Project Path="HotChocolate/Adapters/test/Adapters.OpenApi.Tests/HotChocolate.Adapters.OpenApi.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/" />
@@ -250,15 +254,6 @@
   <Folder Name="/HotChocolate/Marten/test/">
     <Project Path="HotChocolate/Marten/test/Data.Marten.Filters.Tests/Data.Marten.Filters.Tests.csproj" />
     <Project Path="HotChocolate/Marten/test/Data.Marten.Sorting.Tests/Data.Marten.Sorting.Tests.csproj" />
-  </Folder>
-  <Folder Name="/HotChocolate/ModelContextProtocol/" />
-  <Folder Name="/HotChocolate/ModelContextProtocol/src/">
-    <Project Path="HotChocolate/ModelContextProtocol/src/HotChocolate.Fusion.ModelContextProtocol/HotChocolate.Fusion.ModelContextProtocol.csproj" />
-    <Project Path="HotChocolate/ModelContextProtocol/src/HotChocolate.ModelContextProtocol/HotChocolate.ModelContextProtocol.csproj" />
-    <Project Path="HotChocolate/ModelContextProtocol/src/HotChocolate.ModelContextProtocol.Core/HotChocolate.ModelContextProtocol.Core.csproj" />
-  </Folder>
-  <Folder Name="/HotChocolate/ModelContextProtocol/test/">
-    <Project Path="HotChocolate/ModelContextProtocol/test/HotChocolate.ModelContextProtocol.Tests/HotChocolate.ModelContextProtocol.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/MongoDb/" />
   <Folder Name="/HotChocolate/MongoDb/src/">
