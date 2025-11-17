@@ -4,6 +4,7 @@
   <PropertyGroup>
     <RootNamespace>HotChocolate.Adapters.OpenApi</RootNamespace>
     <PackageId>HotChocolate.Adapters.OpenApi.Tests</PackageId>
+    <TargetFrameworks>net10.0; net9.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,7 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Adapters.OpenApi\HotChocolate.Adapters.OpenApi.csproj" />
-    <ProjectReference Include="..\..\src\Adapters.OpenApi.Fusion\HotChocolate.Fusion.Adapters.OpenApi.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Adapters.OpenApi\HotChocolate.Fusion.Adapters.OpenApi.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj" />
     <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
