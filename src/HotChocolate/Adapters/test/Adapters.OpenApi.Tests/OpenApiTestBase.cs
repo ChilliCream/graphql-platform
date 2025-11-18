@@ -107,7 +107,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             }
             """,
             """
-            query ComplexObjectQuery($input: ComplexObjectInput! @body) @http(method: GET, route: "/complex") {
+            query ComplexObjectQuery($input: ComplexObjectInput! @body) @http(method: POST, route: "/complex") {
               complexObject(input: $input) {
                 any
                 boolean

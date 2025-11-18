@@ -6,7 +6,7 @@
   },
   "paths": {
     "/complex": {
-      "get": {
+      "post": {
         "operationId": "complexObjectQuery",
         "requestBody": {
           "content": {

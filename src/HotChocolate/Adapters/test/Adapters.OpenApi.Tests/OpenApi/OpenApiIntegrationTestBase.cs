@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-// TODO: @skip and such needs to be treated as optional
 public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
 {
     [Fact]

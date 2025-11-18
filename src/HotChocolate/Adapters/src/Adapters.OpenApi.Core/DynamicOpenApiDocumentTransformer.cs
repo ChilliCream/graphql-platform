@@ -125,22 +125,25 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         var operationType = schema.GetOperationType(operationDocument.OperationDefinition.Operation);
 
-        if (operationDocument.OperationDefinition.SelectionSet.Selections is not
-            [FieldNode { SelectionSet: not null } rootField])
+        if (operationDocument.OperationDefinition.SelectionSet.Selections is not [FieldNode rootField])
         {
             throw new InvalidOperationException("Expected to have a single field selection on the root");
         }
 
         var fieldType = operationType.Fields[rootField.Name.Value].Type;
 
-        var responseBody = new OpenApiMediaType
-        {
-            Schema = CreateOpenApiSchemaForSelectionSet(
+        var responseSchema = rootField.SelectionSet is not null
+            ? CreateOpenApiSchemaForSelectionSet(
                 rootField.SelectionSet,
                 fieldType,
                 schema,
                 operationDocument.LocalFragmentLookup,
                 operationDocument.ExternalFragmentReferences)
+            : CreateOpenApiSchemaForType(fieldType, schema);
+
+        var responseBody = new OpenApiMediaType
+        {
+            Schema = responseSchema
         };
 
         operation.Responses["200"] = new OpenApiResponse

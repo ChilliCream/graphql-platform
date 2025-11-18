@@ -207,14 +207,14 @@ public ref struct JsonValueParser
         }
     }
 
-    private IValueNode Parse(ref Utf8JsonReader reader, int depth)
+    private IValueNode Parse(ref Utf8JsonReader reader, int depth, bool skipReading = false)
     {
         if (depth > _maxAllowedDepth)
         {
             throw new InvalidOperationException("Max allowed depth reached.");
         }
 
-        if (!reader.Read())
+        if (!skipReading && !reader.Read())
         {
             throw new JsonException("Unexpected end of JSON.");
         }
@@ -276,7 +276,7 @@ public ref struct JsonValueParser
                             ArrayPool<IValueNode>.Shared.Return(temp);
                         }
 
-                        buffer[count++] = Parse(ref reader, depth + 1);
+                        buffer[count++] = Parse(ref reader, depth + 1, true);
                     }
 
                     return new ListValueNode(buffer.AsSpan(0, count).ToArray());

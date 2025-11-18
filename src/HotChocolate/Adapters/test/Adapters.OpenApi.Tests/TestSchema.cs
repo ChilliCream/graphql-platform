@@ -45,6 +45,10 @@ public sealed class TestSchema
         [GraphQLType("PetUnion!")]
         public IPet GetWithUnionType() => new Cat(Name: "Whiskers", IsPurring: true);
 
+        public List<string> GetList(List<string> input) => input;
+
+        public JsonElement GetJson(JsonElement input) => input;
+
         public ComplexObject GetComplexObject(ComplexObjectInput input)
         {
             return new ComplexObject(
