@@ -14,15 +14,11 @@ public class DiagnosticEventSourceAttribute : Attribute
     /// <param name="listener">
     /// The listener interface.
     /// </param>
-    /// <param name="isSchemaService">
-    /// Defines if this listener is a schema service.
-    /// </param>
-    public DiagnosticEventSourceAttribute(Type listener, bool isSchemaService = true)
+    public DiagnosticEventSourceAttribute(Type listener)
     {
-        ArgumentNullException.ThrowIfNull(listener, nameof(listener));
+        ArgumentNullException.ThrowIfNull(listener);
 
         Listener = listener;
-        IsSchemaService = isSchemaService;
     }
 
     /// <summary>

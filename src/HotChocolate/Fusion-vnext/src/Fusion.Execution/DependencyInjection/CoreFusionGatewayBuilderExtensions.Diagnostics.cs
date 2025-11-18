@@ -21,7 +21,8 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// The fusion gateway builder.
     /// </returns>
     public static IFusionGatewayBuilder AddDiagnosticEventListener<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+        T>(
         this IFusionGatewayBuilder builder)
         where T : class
     {
@@ -69,7 +70,8 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <returns>
     /// The fusion gateway builder.
     /// </returns>
-    public static IFusionGatewayBuilder AddDiagnosticEventListener<T>(
+    public static IFusionGatewayBuilder AddDiagnosticEventListener<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, T> factory)
         where T : class
@@ -84,24 +86,13 @@ public static partial class CoreFusionGatewayBuilderExtensions
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
-            var attribute =
-                (DiagnosticEventSourceAttribute)typeof(T)
-                    .GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true)
-                    .First();
+            builder.ConfigureSchemaServices((_, s) =>
+            {
+                var attribute = typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
+                var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
 
-            if (attribute.IsSchemaService)
-            {
-                builder.ConfigureSchemaServices((_, s) =>
-                {
-                    var listener = attribute.Listener;
-                    s.AddSingleton(listener, factory);
-                });
-            }
-            else
-            {
-                var listener = attribute.Listener;
-                builder.Services.AddSingleton(listener, factory);
-            }
+                s.AddSingleton(listener, factory);
+            });
         }
         else
         {

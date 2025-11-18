@@ -69,25 +69,13 @@ public static partial class RequestExecutorBuilderExtensions
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
-            var attribute =
-                (DiagnosticEventSourceAttribute)typeof(T)
-                    .GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true)
-                    .First();
+            builder.ConfigureSchemaServices(s =>
+            {
+                var attribute = typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
+                var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
 
-            // TODO: Do we need this?
-            if (attribute.IsSchemaService)
-            {
-                builder.ConfigureSchemaServices(s =>
-                {
-                    var listener = attribute.Listener;
-                    s.AddSingleton(listener, factory);
-                });
-            }
-            else
-            {
-                var listener = attribute.Listener;
-                builder.Services.AddSingleton(listener, factory);
-            }
+                s.AddSingleton(listener, factory);
+            });
         }
         else
         {
