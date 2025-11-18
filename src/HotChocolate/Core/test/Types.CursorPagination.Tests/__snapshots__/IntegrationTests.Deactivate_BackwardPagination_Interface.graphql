@@ -1,9 +1,9 @@
-﻿schema {
+schema {
   query: QueryAttr
 }
 
 interface ISome {
-  explicitType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ExplicitTypeConnection
+  explicitType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ExplicitTypeConnection
 }
 
 "A connection to a list of items."
@@ -79,7 +79,7 @@ type PageInfo {
 }
 
 type QueryAttr {
-  nestedObjectList("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): NestedObjectListConnection
-  letters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): LettersConnection
-  explicitType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ExplicitTypeConnection
+  nestedObjectList("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): NestedObjectListConnection
+  letters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): LettersConnection
+  explicitType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ExplicitTypeConnection
 }

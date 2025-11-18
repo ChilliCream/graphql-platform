@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
 }
 
@@ -8,8 +8,6 @@ type ExplicitTypeConnection {
   pageInfo: PageInfo!
   "A list of edges."
   edges: [ExplicitTypeEdge!]
-  "A flattened list of the nodes."
-  nodes: [String!]
 }
 
 "An edge in a connection."
@@ -26,8 +24,6 @@ type ExtendedTypeRefConnection {
   pageInfo: PageInfo!
   "A list of edges."
   edges: [ExtendedTypeRefEdge!]
-  "A flattened list of the nodes."
-  nodes: [String]
 }
 
 "An edge in a connection."
@@ -44,8 +40,6 @@ type ExtendedTypeRefNestedConnection {
   pageInfo: PageInfo!
   "A list of edges."
   edges: [ExtendedTypeRefNestedEdge!]
-  "A flattened list of the nodes."
-  nodes: [[String]]
 }
 
 "An edge in a connection."
@@ -66,8 +60,6 @@ type LettersConnection {
   pageInfo: PageInfo!
   "A list of edges."
   edges: [LettersEdge!]
-  "A flattened list of the nodes."
-  nodes: [String!]
 }
 
 "An edge in a connection."
@@ -84,8 +76,6 @@ type NestedObjectListConnection {
   pageInfo: PageInfo!
   "A list of edges."
   edges: [NestedObjectListEdge!]
-  "A flattened list of the nodes."
-  nodes: [[Foo!]!]
   "Identifies the total count of items in the connection."
   totalCount: Int!
 }
@@ -111,9 +101,9 @@ type PageInfo {
 }
 
 type Query {
-  letters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): LettersConnection
-  explicitType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ExplicitTypeConnection
-  nestedObjectList("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): NestedObjectListConnection
-  extendedTypeRef("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ExtendedTypeRefConnection
-  extendedTypeRefNested("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): ExtendedTypeRefNestedConnection
+  letters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): LettersConnection
+  explicitType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ExplicitTypeConnection
+  nestedObjectList("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): NestedObjectListConnection
+  extendedTypeRef("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ExtendedTypeRefConnection
+  extendedTypeRefNested("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ExtendedTypeRefNestedConnection
 }

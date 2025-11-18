@@ -1,4 +1,4 @@
-﻿{
+{
   "errors": [
     {
       "message": "You must provide a `first` or `last` value to properly paginate the `LettersConnection`.",

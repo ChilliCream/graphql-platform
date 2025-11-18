@@ -1,5 +1,9 @@
-﻿schema {
-  query: Query
+schema {
+  query: QueryAttr
+}
+
+interface ISome2 {
+  explicitType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ExplicitTypeConnection
 }
 
 "A connection to a list of items."
@@ -8,6 +12,8 @@ type ExplicitTypeConnection {
   pageInfo: PageInfo!
   "A list of edges."
   edges: [ExplicitTypeEdge!]
+  "A flattened list of the nodes."
+  nodes: [String!]
 }
 
 "An edge in a connection."
@@ -16,38 +22,6 @@ type ExplicitTypeEdge {
   cursor: String!
   "The item at the end of the edge."
   node: String!
-}
-
-"A connection to a list of items."
-type ExtendedTypeRefConnection {
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
-  "A list of edges."
-  edges: [ExtendedTypeRefEdge!]
-}
-
-"An edge in a connection."
-type ExtendedTypeRefEdge {
-  "A cursor for use in pagination."
-  cursor: String!
-  "The item at the end of the edge."
-  node: String
-}
-
-"A connection to a list of items."
-type ExtendedTypeRefNestedConnection {
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
-  "A list of edges."
-  edges: [ExtendedTypeRefNestedEdge!]
-}
-
-"An edge in a connection."
-type ExtendedTypeRefNestedEdge {
-  "A cursor for use in pagination."
-  cursor: String!
-  "The item at the end of the edge."
-  node: [String]
 }
 
 type Foo {
@@ -60,6 +34,8 @@ type LettersConnection {
   pageInfo: PageInfo!
   "A list of edges."
   edges: [LettersEdge!]
+  "A flattened list of the nodes."
+  nodes: [String!]
 }
 
 "An edge in a connection."
@@ -76,6 +52,8 @@ type NestedObjectListConnection {
   pageInfo: PageInfo!
   "A list of edges."
   edges: [NestedObjectListEdge!]
+  "A flattened list of the nodes."
+  nodes: [[Foo!]!]
   "Identifies the total count of items in the connection."
   totalCount: Int!
 }
@@ -100,10 +78,8 @@ type PageInfo {
   endCursor: String
 }
 
-type Query {
+type QueryAttr {
+  nestedObjectList("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): NestedObjectListConnection
   letters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): LettersConnection
   explicitType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ExplicitTypeConnection
-  nestedObjectList("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): NestedObjectListConnection
-  extendedTypeRef("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ExtendedTypeRefConnection
-  extendedTypeRefNested("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ExtendedTypeRefNestedConnection
 }
