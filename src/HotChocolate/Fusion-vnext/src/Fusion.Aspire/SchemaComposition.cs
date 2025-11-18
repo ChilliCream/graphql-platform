@@ -237,7 +237,7 @@ internal sealed class SchemaComposition(
             Name = sourceSchemaName,
             ResourceName = resource.Name,
             HttpEndpointUrl = new Uri(schemaUrl),
-            Schema = new SourceSchemaText(resource.Name, schemaText),
+            Schema = new SourceSchemaText(sourceSchemaName, schemaText),
             SchemaSettings = schemaSettings.Value
         };
     }
@@ -247,6 +247,8 @@ internal sealed class SchemaComposition(
         GraphQLSourceSchemaAnnotation annotation,
         CancellationToken cancellationToken)
     {
+        var sourceSchemaName = resource.GetGraphQLSourceSchemaName() ?? resource.Name;
+
         var schemaFromFile = await ReadSchemaFromProjectDirectoryAsync(resource, annotation.SchemaPath, cancellationToken);
         if (schemaFromFile == null)
         {
@@ -266,10 +268,10 @@ internal sealed class SchemaComposition(
 
         return new SourceSchemaInfo
         {
-            Name = resource.Name,
+            Name = sourceSchemaName,
             ResourceName = resource.Name,
             HttpEndpointUrl = null, // No HTTP endpoint for file-based schemas
-            Schema = new SourceSchemaText(resource.Name, schemaFromFile),
+            Schema = new SourceSchemaText(sourceSchemaName, schemaFromFile),
             SchemaSettings = schemaSettings.Value
         };
     }

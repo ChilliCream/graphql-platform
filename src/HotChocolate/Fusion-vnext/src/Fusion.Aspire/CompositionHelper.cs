@@ -22,12 +22,12 @@ internal static class CompositionHelper
             ? FusionArchive.Open(fusionArchivePath, FusionArchiveMode.Update)
             : FusionArchive.Create(fusionArchivePath);
 
-        var sourceSchemaNames = new SortedSet<string>(
+        var existingSourceSchemaName = new SortedSet<string>(
             await archive.GetSourceSchemaNamesAsync(cancellationToken),
             StringComparer.Ordinal);
 
         var normalizedToRealExistingSchemaNameLookup =
-            sourceSchemaNames.ToDictionary(StringUtilities.ToConstantCase, s => s);
+            existingSourceSchemaName.ToDictionary(StringUtilities.ToConstantCase, s => s);
 
         // During the schema merging process, schema names are converted to upper-case,
         // before being inserted into the fusion__Schema enum.
@@ -50,16 +50,16 @@ internal static class CompositionHelper
             }
         }
 
-        var sourceSchemas = newSourceSchemas.ToDictionary(s => s.Name, StringComparer.Ordinal);
+        var newSourceSchemaLookup = newSourceSchemas.ToDictionary(s => s.Name, StringComparer.Ordinal);
 
-        foreach (var schemaName in sourceSchemaNames)
+        foreach (var existingSchemaName in existingSourceSchemaName)
         {
-            if (sourceSchemas.ContainsKey(schemaName))
+            if (newSourceSchemaLookup.ContainsKey(existingSchemaName))
             {
                 continue;
             }
 
-            var configuration = await archive.TryGetSourceSchemaConfigurationAsync(schemaName, cancellationToken);
+            var configuration = await archive.TryGetSourceSchemaConfigurationAsync(existingSchemaName, cancellationToken);
             if (configuration is null)
             {
                 continue;
@@ -67,30 +67,19 @@ internal static class CompositionHelper
 
             var sourceText = await ReadSchemaSourceTextAsync(configuration, cancellationToken);
 
-            sourceSchemas.Add(schemaName, new SourceSchemaInfo
+            newSourceSchemaLookup.Add(existingSchemaName, new SourceSchemaInfo
             {
-                Name = schemaName,
-                Schema = new SourceSchemaText(schemaName, sourceText),
+                Name = existingSchemaName,
+                Schema = new SourceSchemaText(existingSchemaName, sourceText),
                 SchemaSettings = configuration.Settings.RootElement.Clone()
             });
         }
 
-        foreach (var schema in newSourceSchemas)
-        {
-            if (!sourceSchemaNames.Add(schema.Name))
-            {
-                sourceSchemas[schema.Name] = new SourceSchemaInfo
-                {
-                    Name = schema.Name,
-                    Schema = schema.Schema,
-                    SchemaSettings = schema.SchemaSettings
-                };
-            }
-        }
+        var newSourceSchemaNames = new SortedSet<string>(newSourceSchemaLookup.Keys);
 
         var compositionLog = new CompositionLog();
         var schemaComposer = new SchemaComposer(
-            sourceSchemas.Values.Select(t => t.Schema),
+            newSourceSchemaLookup.Values.Select(t => t.Schema),
             new SchemaComposerOptions
             {
                 Merger =
@@ -121,18 +110,18 @@ internal static class CompositionHelper
             var settingsComposer = new SettingsComposer();
             settingsComposer.Compose(
                 buffer,
-                sourceSchemas.Values.Select(t => t.SchemaSettings).ToArray(),
+                newSourceSchemaLookup.Values.Select(t => t.SchemaSettings).ToArray(),
                 settings.EnvironmentName ?? "Aspire");
 
             var metadata = new ArchiveMetadata
             {
                 SupportedGatewayFormats = [new Version(2, 0, 0)],
-                SourceSchemas = [.. sourceSchemaNames]
+                SourceSchemas = [.. newSourceSchemaNames]
             };
 
             await archive.SetArchiveMetadataAsync(metadata, cancellationToken);
 
-            foreach (var sourceSchema in sourceSchemas.Values)
+            foreach (var sourceSchema in newSourceSchemaLookup.Values)
             {
                 await archive.SetSourceSchemaConfigurationAsync(
                     sourceSchema.Name,
