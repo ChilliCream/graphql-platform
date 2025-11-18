@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Sorting;
 /// </summary>
 /// <typeparam name="TContext">The type of the context</typeparam>
 public abstract class SortProvider<TContext>
-    : Convention<SortProviderConfiguration>
+    : Convention<SortProviderConfiguration<TContext>>
     , ISortProvider
     , ISortProviderConvention
     where TContext : ISortVisitorContext
@@ -35,7 +35,7 @@ public abstract class SortProvider<TContext>
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new SortProviderConfiguration? Configuration => base.Configuration;
+    internal new SortProviderConfiguration<TContext>? Configuration => base.Configuration;
 
     /// <inheritdoc />
     public IReadOnlyCollection<ISortFieldHandler> FieldHandlers => _fieldHandlers;
@@ -49,7 +49,7 @@ public abstract class SortProvider<TContext>
     }
 
     /// <inheritdoc />
-    protected override SortProviderConfiguration CreateConfiguration(IConventionContext context)
+    protected override SortProviderConfiguration<TContext> CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -78,12 +78,12 @@ public abstract class SortProvider<TContext>
     /// <inheritdoc />
     protected internal override void Complete(IConventionContext context)
     {
-        if (Configuration!.Handlers.Count == 0)
+        if (Configuration!.HandlerFactories.Count == 0)
         {
             throw SortProvider_NoFieldHandlersConfigured(this);
         }
 
-        if (Configuration.OperationHandlers.Count == 0)
+        if (Configuration.OperationHandlerFactories.Count == 0)
         {
             throw SortProvider_NoOperationHandlersConfigured(this);
         }
@@ -95,52 +95,44 @@ public abstract class SortProvider<TContext>
                 context.Scope);
         }
 
-        var services = context.Services;
-        // var services = new CombinedServiceProvider(
-        //     new DictionaryServiceProvider(
-        //         (typeof(ISortProvider), this),
-        //         (typeof(IConventionContext), context),
-        //         (typeof(IDescriptorContext), context.DescriptorContext),
-        //         (typeof(ISortConvention), _sortConvention),
-        //         (typeof(InputParser), context.DescriptorContext.InputParser),
-        //         (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
-        //     context.Services);
+        var providerContext = new SortProviderContext(
+            context.Services,
+            this,
+            context,
+            context.DescriptorContext,
+            _sortConvention,
+            context.DescriptorContext.TypeInspector,
+            context.DescriptorContext.InputParser);
 
-        foreach (var (handler, handlerInstance) in Configuration.Handlers)
+        foreach (var factory in Configuration.HandlerFactories)
         {
-            if (handlerInstance is ISortFieldHandler<TContext> field)
-            {
-                _fieldHandlers.Add(field);
-                continue;
-            }
-
             try
             {
-                field = (ISortFieldHandler<TContext>)GetServiceOrCreateInstance(services, handler);
-                _fieldHandlers.Add(field);
+                var handler = factory(providerContext);
+
+                _fieldHandlers.Add(handler);
             }
             catch
             {
-                throw SortProvider_UnableToCreateFieldHandler(this, handler);
+                // TODO: Proper exception
+                throw new InvalidOperationException();
+                // throw SortProvider_UnableToCreateFieldHandler(this, type);
             }
         }
 
-        foreach (var (handler, handlerInstance) in Configuration.OperationHandlers)
+        foreach (var factory in Configuration.OperationHandlerFactories)
         {
-            if (handlerInstance is ISortOperationHandler<TContext> op)
-            {
-                _operationHandlers.Add(op);
-                continue;
-            }
-
             try
             {
-                op = (ISortOperationHandler<TContext>)GetServiceOrCreateInstance(services, handler);
-                _operationHandlers.Add(op);
+                var handler = factory(providerContext);
+
+                _operationHandlers.Add(handler);
             }
             catch
             {
-                throw SortProvider_UnableToCreateOperationHandler(this, handler);
+                // TODO: Proper exception
+                throw new InvalidOperationException();
+                // throw SortProvider_UnableToCreateOperationHandler(this, type);
             }
         }
     }

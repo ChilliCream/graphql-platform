@@ -8,14 +8,15 @@ public class SortProviderDescriptor<TContext>
     {
     }
 
-    protected SortProviderConfiguration Configuration { get; } = new();
+    protected SortProviderConfiguration<TContext> Configuration { get; } = new();
 
-    public SortProviderConfiguration CreateConfiguration() => Configuration;
+    public SortProviderConfiguration<TContext> CreateConfiguration() => Configuration;
 
-    public ISortProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>()
+    public ISortProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>(
+        Func<SortProviderContext, TFieldHandler> factory)
         where TFieldHandler : ISortFieldHandler<TContext>
     {
-        Configuration.Handlers.Add((typeof(TFieldHandler), null));
+        Configuration.HandlerFactories.Add(ctx => factory(ctx));
         return this;
     }
 
@@ -23,14 +24,17 @@ public class SortProviderDescriptor<TContext>
         TFieldHandler fieldHandler)
         where TFieldHandler : ISortFieldHandler<TContext>
     {
-        Configuration.Handlers.Add((typeof(TFieldHandler), fieldHandler));
+        // TODO: Find a better way
+        Configuration.HandlerFactories.Add(_ => fieldHandler);
         return this;
     }
 
-    public ISortProviderDescriptor<TContext> AddOperationHandler<TOperationHandler>()
+    public ISortProviderDescriptor<TContext> AddOperationHandler<TOperationHandler>(
+        Func<SortProviderContext, TOperationHandler> factory)
         where TOperationHandler : ISortOperationHandler<TContext>
     {
-        Configuration.OperationHandlers.Add((typeof(TOperationHandler), null));
+        // TODO: Find a better way
+        Configuration.OperationHandlerFactories.Add(ctx => factory(ctx));
         return this;
     }
 
@@ -38,10 +42,10 @@ public class SortProviderDescriptor<TContext>
         TOperationHandler operationHandler)
         where TOperationHandler : ISortOperationHandler<TContext>
     {
-        Configuration.OperationHandlers.Add((typeof(TOperationHandler), operationHandler));
+        // TODO: Find a better way
+        Configuration.OperationHandlerFactories.Add(_ => operationHandler);
         return this;
     }
 
-    public static SortProviderDescriptor<TContext> New() =>
-        new SortProviderDescriptor<TContext>();
+    public static SortProviderDescriptor<TContext> New() => new();
 }
