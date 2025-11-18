@@ -89,9 +89,10 @@ public static class TypeReferenceBuilder
             typeStructure);
     }
 
-    private static (string TypeStructure, string TypeDefinition, bool IsSimpleType) CreateTypeKey(ITypeSymbol unwrappedType)
+    private static (string TypeStructure, string TypeDefinition, bool IsSimpleType) CreateTypeKey(
+        ITypeSymbol unwrappedType)
     {
-        bool isNullable;
+        bool isNullable;;
         ITypeSymbol underlyingType;
 
         // We first check if the type is a nullable value type (int?, Guid?, etc.).
@@ -148,7 +149,7 @@ public static class TypeReferenceBuilder
                 "new global::{0}(\"{1}\")",
                 WellKnownTypes.NamedTypeNode,
                 compliantTypeName);
-            return (typeStructure, typeName, IsSimpleType: true);
+            return (typeStructure, typeName, IsSimpleType: unwrappedType.IsReferenceType);
         }
         else
         {
