@@ -41,7 +41,6 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
     /// <returns>
     /// Returns the GraphQL configuration builder.
     /// </returns>
-    // TODO: Also for Fusion
     public static IRequestExecutorBuilder AddInstrumentation(
         this IRequestExecutorBuilder builder,
         Action<IServiceProvider, InstrumentationOptions> options)
@@ -49,15 +48,17 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(options);
 
-        builder.Services.TryAddSingleton(
-            sp =>
-            {
-                var optionInst = new InstrumentationOptions();
-                options(sp, optionInst);
-                return optionInst;
-            });
-
+        // TODO: This must be scoped globally because of DataLoader
+        builder.Services.TryAddSingleton(sp =>
+        {
+            var optionInst = new InstrumentationOptions();
+            options(sp, optionInst);
+            return optionInst;
+        });
         builder.Services.TryAddSingleton<InternalActivityEnricher>();
+
+        builder.AddApplicationService<InstrumentationOptions>();
+        builder.AddApplicationService<InternalActivityEnricher>();
 
         builder.AddDiagnosticEventListener(
             sp => new ActivityExecutionDiagnosticListener(
@@ -83,9 +84,9 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
     private sealed class InternalActivityEnricher : ActivityEnricher
     {
         public InternalActivityEnricher(
-            ObjectPool<StringBuilder> stringBuilderPoolPool,
+            ObjectPool<StringBuilder> stringBuilderPool,
             InstrumentationOptions options)
-            : base(stringBuilderPoolPool, options)
+            : base(stringBuilderPool, options)
         {
         }
     }

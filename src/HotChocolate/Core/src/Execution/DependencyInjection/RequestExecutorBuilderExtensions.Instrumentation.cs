@@ -17,10 +17,12 @@ public static partial class RequestExecutorBuilderExtensions
 
         if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
-            builder.Services.TryAddSingleton<T>();
             builder.ConfigureSchemaServices(
-                static s => s.AddSingleton(
-                    static sp => (IExecutionDiagnosticEventListener)sp.GetRequiredService<T>()));
+                static s =>
+                {
+                    s.TryAddSingleton<T>();
+                    s.AddSingleton(static sp => (IExecutionDiagnosticEventListener)sp.GetRequiredService<T>());
+                });
         }
         else if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
@@ -30,12 +32,12 @@ public static partial class RequestExecutorBuilderExtensions
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
-            builder.Services.TryAddSingleton<T>();
-
             builder.ConfigureSchemaServices(static s =>
             {
                 var attribute = typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
                 var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
+
+                s.TryAddSingleton<T>();
                 s.AddSingleton(listener, sp => sp.GetRequiredService<T>());
             });
         }
@@ -72,6 +74,7 @@ public static partial class RequestExecutorBuilderExtensions
                     .GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true)
                     .First();
 
+            // TODO: Do we need this?
             if (attribute.IsSchemaService)
             {
                 builder.ConfigureSchemaServices(s =>

@@ -77,6 +77,8 @@ public static class HotChocolateRedisPersistedOperationsRequestExecutorBuilderEx
     {
         ArgumentNullException.ThrowIfNull(builder);
 
+        builder.AddApplicationService<IConnectionMultiplexer>();
+
         return builder.AddRedisOperationDocumentStorage(
             sp => sp.GetRequiredService<IConnectionMultiplexer>(),
             queryExpiration);

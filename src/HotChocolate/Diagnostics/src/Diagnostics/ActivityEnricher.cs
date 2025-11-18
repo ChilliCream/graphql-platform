@@ -31,13 +31,13 @@ public class ActivityEnricher
     /// <summary>
     /// Initializes a new instance of <see cref="ActivityEnricher"/>.
     /// </summary>
-    /// <param name="stringBuilderPoolPool"></param>
+    /// <param name="stringBuilderPool"></param>
     /// <param name="options"></param>
     protected ActivityEnricher(
-        ObjectPool<StringBuilder> stringBuilderPoolPool,
+        ObjectPool<StringBuilder> stringBuilderPool,
         InstrumentationOptions options)
     {
-        StringBuilderPool = stringBuilderPoolPool;
+        StringBuilderPool = stringBuilderPool;
         _options = options;
     }
 
