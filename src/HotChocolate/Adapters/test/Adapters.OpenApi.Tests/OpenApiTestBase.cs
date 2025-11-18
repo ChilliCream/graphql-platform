@@ -78,6 +78,33 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             fragment UserAddress on Address {
               street
             }
+            """,
+            """
+            query UnionQuery @http(method: GET, route: "/union") {
+              withUnionType {
+                petType: __typename
+                ... on Cat {
+                  isPurring
+                }
+                ... on Dog {
+                  isBarking
+                }
+              }
+            }
+            """,
+            """
+            query InterfaceQuery @http(method: GET, route: "/interface") {
+              withInterfaceType {
+                petType: __typename
+                name
+                ... on Cat {
+                  isPurring
+                }
+                ... on Dog {
+                  isBarking
+                }
+              }
+            }
             """);
     }
 

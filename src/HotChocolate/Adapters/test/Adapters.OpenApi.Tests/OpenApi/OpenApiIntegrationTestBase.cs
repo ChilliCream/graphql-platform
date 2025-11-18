@@ -2,9 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-// TODO: Test with arrays, custom scalars, enum, interface, union, etc., introspection fields
 // TODO: @skip and such needs to be treated as optional
-// TODO: Test different serialization types, patterns and formats of scalars
 public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
 {
     [Fact]

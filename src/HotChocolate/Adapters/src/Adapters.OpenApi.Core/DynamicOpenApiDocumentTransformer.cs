@@ -597,7 +597,6 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     }
 #endif
 
-    // TODO: We need to handle introspection fields here
     private static OpenApiSchemaAbstraction CreateOpenApiSchemaForSelectionSet(
         SelectionSetNode selectionSet,
         IOutputType typeDefinition,
@@ -620,7 +619,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             return CreateArraySchema(itemSchema);
         }
 
-        var complexType = typeDefinition.NamedType<IComplexTypeDefinition>();
+        var namedType = typeDefinition.NamedType();
 
         OpenApiSchema? fieldSchema = null;
         List<OpenApiSchemaAbstraction>? fragmentSchemas = null;
@@ -634,7 +633,9 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 var fieldName = field.Name.Value;
                 var responseName = field.Alias?.Value ?? fieldName;
 
-                var fieldType = complexType.Fields[fieldName].Type;
+                var fieldType = fieldName == IntrospectionFieldNames.TypeName ?
+                    new NonNullType(schemaDefinition.Types["String"]) :
+                    ((IComplexTypeDefinition)namedType).Fields[fieldName].Type;
 
                 OpenApiSchemaAbstraction typeSchema;
                 if (field.SelectionSet is not null)
@@ -665,9 +666,9 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             else if (selection is InlineFragmentNode inlineFragment)
             {
                 var typeCondition = inlineFragment.TypeCondition is null
-                    ? complexType
+                    ? namedType
                     : schemaDefinition.Types[inlineFragment.TypeCondition.Name.Value];
-                var isDifferentType = !typeCondition.IsAssignableFrom(complexType);
+                var isDifferentType = !typeCondition.IsAssignableFrom(namedType);
 
                 var typeConditionSchema = CreateOpenApiSchemaForSelectionSet(
                     inlineFragment.SelectionSet,
@@ -707,7 +708,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 {
                     var fragment = fragmentLookup[fragmentName];
                     var typeCondition = schemaDefinition.Types[fragment.TypeCondition.Name.Value];
-                    var isDifferentType = !typeCondition.IsAssignableFrom(complexType);
+                    var isDifferentType = !typeCondition.IsAssignableFrom(namedType);
 
                     var typeConditionSchema = CreateOpenApiSchemaForSelectionSet(
                         fragment.SelectionSet,

@@ -335,6 +335,100 @@
           }
         }
       }
+    },
+    "/interface": {
+      "get": {
+        "operationId": "interfaceQuery",
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "required": [
+                        "petType",
+                        "name"
+                      ],
+                      "type": "object",
+                      "properties": {
+                        "petType": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "isPurring": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "isBarking": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/union": {
+      "get": {
+        "operationId": "unionQuery",
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "required": [
+                        "petType"
+                      ],
+                      "type": "object",
+                      "properties": {
+                        "petType": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "isPurring": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "isBarking": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
