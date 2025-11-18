@@ -35,7 +35,6 @@ internal sealed class SourceSchemaMerger
     private readonly Dictionary<string, ValueSelectionToSelectionSetRewriter>
         _selectedValueToSelectionSetRewriters = [];
     private readonly Dictionary<string, MergeSelectionSetRewriter> _mergeSelectionSetRewriters = [];
-    private readonly HashSet<string> _requireInputTypeNames = [];
     private readonly FrozenDictionary<string, IDirectiveMerger> _directiveMergers;
 
     public SourceSchemaMerger(
@@ -89,7 +88,7 @@ internal sealed class SourceSchemaMerger
         // Remove unreferenced definitions.
         if (_options.RemoveUnreferencedDefinitions)
         {
-            mergedSchema.RemoveUnreferencedDefinitions(_requireInputTypeNames);
+            mergedSchema.RemoveUnreferencedDefinitions(GetPreservedInputTypeNames());
         }
 
         // Add Fusion definitions.
@@ -253,6 +252,37 @@ internal sealed class SourceSchemaMerger
                 queryType.Fields.Add(canonicalNodeField);
             }
         }
+    }
+
+    /// <summary>
+    /// Returns a list of input type names for types that must be preserved in the merged schema
+    /// even if they are not directly referenced.
+    /// </summary>
+    private HashSet<string> GetPreservedInputTypeNames()
+    {
+        var preservedInputTypeNames = new HashSet<string>();
+
+        foreach (var schema in _schemas)
+        {
+            foreach (var type in schema.Types.OfType<IObjectTypeDefinition>())
+            {
+                foreach (var field in type.Fields)
+                {
+                    foreach (var argument in field.Arguments)
+                    {
+                        var argumentInnerType = argument.Type.InnerType();
+
+                        if (argumentInnerType is IInputObjectTypeDefinition inputObjectType
+                            && (argument.HasRequireDirective || field.IsLookup))
+                        {
+                            preservedInputTypeNames.Add(inputObjectType.Name);
+                        }
+                    }
+                }
+            }
+        }
+
+        return preservedInputTypeNames;
     }
 
     /// <summary>
@@ -781,15 +811,6 @@ internal sealed class SourceSchemaMerger
                 .ReplaceNamedType(_ => GetOrCreateType(mergedSchema, fieldType))
                 .ExpectOutputType()
         };
-
-        // Keep track of input object types that are referenced by field arguments with @require.
-        _requireInputTypeNames.UnionWith(
-            fieldGroup
-                .SelectMany(i => i.Field.Arguments.AsEnumerable())
-                .Where(a => a.HasRequireDirective)
-                .Select(a => a.Type.InnerType())
-                .OfType<IInputObjectTypeDefinition>()
-                .Select(t => t.Name));
 
         // [ArgumentName: [{Argument, Field, Type, Schema}, ...], ...].
         var argumentGroupByName = fieldGroup
