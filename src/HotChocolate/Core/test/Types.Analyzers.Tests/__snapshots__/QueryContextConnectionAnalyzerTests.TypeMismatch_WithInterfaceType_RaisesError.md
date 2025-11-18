@@ -71,9 +71,8 @@ namespace TestNamespace
                     var naming = field.Context.Naming;
 
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                        typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.Pagination.PageConnection<global::TestNamespace.Product>), HotChocolate.Types.TypeContext.Output),
-                        static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                        "global__HotChocolate_Types_Pagination_PageConnectionOfglobal__TestNamespace_Product!");
+                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product")))));
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.PageConnection<global::TestNamespace.Product>);
 
                     configuration.SetSourceGeneratorFlags();
@@ -89,8 +88,7 @@ namespace TestNamespace
                             Name = naming.GetMemberName("productService", global::HotChocolate.Types.MemberKind.Argument),
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(global::TestNamespace.ProductService), HotChocolate.Types.TypeContext.Input),
-                                static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "global__TestNamespace_ProductService!"),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_ProductService"))),
                             RuntimeType = typeof(global::TestNamespace.ProductService)
                         };
 
@@ -98,6 +96,7 @@ namespace TestNamespace
                     }
 
                     configuration.Resolvers = context.Resolvers.GetProductsAsync();
+                    configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Product>.Default;
                 },
                 (Resolvers: resolvers, ThisType: thisType));
 

@@ -102,8 +102,7 @@ namespace TestNamespace
                             Name = naming.GetMemberName("id", global::HotChocolate.Types.MemberKind.Argument),
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
-                                static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "int!"),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int"))),
                             RuntimeType = typeof(int)
                         };
 

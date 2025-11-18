@@ -5,20 +5,16 @@ public readonly struct SchemaTypeReference
     public SchemaTypeReference(
         SchemaTypeReferenceKind kind,
         string typeString,
-        string? typeKey = null,
-        string? typeDefinitionString = null)
+        string? typeStructure = null)
     {
         Kind = kind;
         TypeString = typeString;
-        TypeKey = typeKey;
-        TypeDefinitionString = typeDefinitionString;
+        TypeStructure = typeStructure;
     }
 
     public SchemaTypeReferenceKind Kind { get; }
 
     public string TypeString { get; }
 
-    public string? TypeKey { get; }
-
-    public string? TypeDefinitionString { get; }
+    public string? TypeStructure { get; }
 }

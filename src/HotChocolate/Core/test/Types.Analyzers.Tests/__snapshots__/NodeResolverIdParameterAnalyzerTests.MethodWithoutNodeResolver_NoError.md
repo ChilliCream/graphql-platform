@@ -86,8 +86,7 @@ namespace TestNamespace
                             Name = naming.GetMemberName("productService", global::HotChocolate.Types.MemberKind.Argument),
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(global::TestNamespace.ProductService), HotChocolate.Types.TypeContext.Input),
-                                static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "global__TestNamespace_ProductService!"),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_ProductService"))),
                             RuntimeType = typeof(global::TestNamespace.ProductService)
                         };
 
@@ -104,8 +103,7 @@ namespace TestNamespace
                             Name = naming.GetMemberName("nodeId", global::HotChocolate.Types.MemberKind.Argument),
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
-                                static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "int!"),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int"))),
                             RuntimeType = typeof(int)
                         };
 

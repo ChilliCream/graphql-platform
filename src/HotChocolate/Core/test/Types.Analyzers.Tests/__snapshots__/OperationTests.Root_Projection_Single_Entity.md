@@ -84,8 +84,7 @@ namespace TestNamespace
 
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Foo), HotChocolate.Types.TypeContext.Output),
-                        static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                        "global__TestNamespace_Foo!");
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Foo")));
                     configuration.ResultType = typeof(global::TestNamespace.Foo);
 
                     configuration.SetSourceGeneratorFlags();

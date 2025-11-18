@@ -1,4 +1,4 @@
-# CustomAttribute_On_Parameter_MatchesSnapshot
+# Field_Arguments_With_DefaultValue_Enum_MatchesSnapshot
 
 ## BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs
 
@@ -46,7 +46,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::TestNamespace.Author), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.StringType), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.Author);
 
                     configuration.SetSourceGeneratorFlags();
@@ -60,10 +60,9 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("version", global::HotChocolate.Types.MemberKind.Argument),
-                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                                typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
-                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int"))),
-                            RuntimeType = typeof(int)
+                            RuntimeDefaultValue = global::TestNamespace.Foo.Bar,
+                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.StringType), HotChocolate.Types.TypeContext.Input),
+                            RuntimeType = typeof(global::TestNamespace.Foo)
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -75,7 +74,7 @@ namespace TestNamespace
                         new global::System.Type[]
                         {
                             typeof(global::TestNamespace.Book),
-                            typeof(int),
+                            typeof(global::TestNamespace.Foo),
                             typeof(global::System.Threading.CancellationToken)
                         })!;
 
@@ -109,10 +108,10 @@ namespace TestNamespace
             public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetAuthorAsync_version()
                 => new HotChocolate.Internal.ParameterDescriptor(
                     "version",
-                    typeof(int),
+                    typeof(global::TestNamespace.Foo),
                     isNullable: false,
                     [
-                        new global::TestNamespace.FooAttribute()
+                        new global::HotChocolate.GraphQLTypeAttribute<global::HotChocolate.Types.StringType>()
                     ]);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetAuthorAsync()
@@ -121,7 +120,7 @@ namespace TestNamespace
             private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetAuthorAsync(global::HotChocolate.Resolvers.IResolverContext context)
             {
                 var args0 = context.Parent<global::TestNamespace.Book>();
-                var args1 = _binding_GetAuthorAsync_version.Execute<int>(context);
+                var args1 = _binding_GetAuthorAsync_version.Execute<global::TestNamespace.Foo>(context);
                 var args2 = context.RequestAborted;
                 var result = await global::TestNamespace.BookNode.GetAuthorAsync(args0, args1, args2);
                 return result;

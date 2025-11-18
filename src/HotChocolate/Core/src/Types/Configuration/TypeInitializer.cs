@@ -53,7 +53,6 @@ internal sealed class TypeInitializer
         var typeInspector = descriptorContext.TypeInspector;
         _typeLookup = new TypeLookup(typeInspector, _typeRegistry);
         _typeReferenceResolver = new TypeReferenceResolver(
-            descriptorContext,
             typeInspector,
             _typeRegistry,
             _typeLookup);

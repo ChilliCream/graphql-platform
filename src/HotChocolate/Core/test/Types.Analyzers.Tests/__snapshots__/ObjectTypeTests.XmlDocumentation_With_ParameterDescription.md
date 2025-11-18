@@ -85,8 +85,7 @@ namespace TestNamespace
                     configuration.Description = "Gets a user by ID.\nReturns null if not found.";
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
-                        static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                        "string!");
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
                     configuration.ResultType = typeof(string);
 
                     configuration.SetSourceGeneratorFlags();
@@ -103,8 +102,7 @@ namespace TestNamespace
                             Description = "The user's unique identifier with \"quotes\"",
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
-                                static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "int!"),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int"))),
                             RuntimeType = typeof(int)
                         };
 
@@ -123,8 +121,7 @@ namespace TestNamespace
                             RuntimeDefaultValue = false,
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(bool), HotChocolate.Types.TypeContext.Input),
-                                static (_, type) => new global::HotChocolate.Types.NonNullType(type),
-                                "bool!"),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("bool"))),
                             RuntimeType = typeof(bool)
                         };
 

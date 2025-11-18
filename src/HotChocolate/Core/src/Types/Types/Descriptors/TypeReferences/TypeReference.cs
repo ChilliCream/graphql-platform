@@ -156,7 +156,6 @@ public abstract class TypeReference : IEquatable<TypeReference>
 
     public static FactoryTypeReference Create(
         ExtendedTypeReference typeDefinition,
-        Func<IDescriptorContext, ITypeDefinition, IType> factory,
-        string typeKey)
-        => new(typeDefinition, factory, typeKey);
+        ITypeNode typeStructure)
+        => new(typeDefinition, typeStructure);
 }

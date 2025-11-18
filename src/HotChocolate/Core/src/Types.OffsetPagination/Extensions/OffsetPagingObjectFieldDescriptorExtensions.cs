@@ -249,7 +249,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
 
                     if (currentTypeRef is FactoryTypeReference factoryTypeRef)
                     {
-                        currentTypeRef = factoryTypeRef.TypeDefinition;
+                        currentTypeRef = factoryTypeRef.GetElementType();
                     }
 
                     if (currentTypeRef is ExtendedTypeReference extendedTypeRef
