@@ -7,4 +7,6 @@ public class QueryableFirstOrDefaultInterceptor : QueryableTakeHandlerIntercepto
         : base(SelectionFlags.FirstOrDefault, 1)
     {
     }
+
+    public static QueryableFirstOrDefaultInterceptor Create(ProjectionProviderContext context) => new();
 }

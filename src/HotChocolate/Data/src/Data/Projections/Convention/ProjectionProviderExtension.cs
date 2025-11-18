@@ -59,9 +59,9 @@ public class ProjectionProviderExtension
             // Provider extensions should be applied by default before the default handlers, as
             // the interceptor picks up the first handler. A provider extension should adds more
             // specific handlers than the default providers
-            for (var i = Configuration.Handlers.Count - 1; i >= 0; i--)
+            for (var i = Configuration.HandlerFactories.Count - 1; i >= 0; i--)
             {
-                target.Handlers.Insert(0, Configuration.Handlers[i]);
+                target.HandlerFactories.Insert(0, Configuration.HandlerFactories[i]);
             }
         }
     }

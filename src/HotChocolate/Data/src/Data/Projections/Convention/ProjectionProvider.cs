@@ -1,10 +1,7 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
-using static HotChocolate.Data.ErrorHelper;
 using static HotChocolate.Data.ThrowHelper;
-using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 
 namespace HotChocolate.Data.Projections;
 
@@ -20,7 +17,7 @@ public abstract class ProjectionProvider
     private Action<IProjectionProviderDescriptor>? _configure;
     private readonly IList<IProjectionFieldHandler> _fieldHandlers = [];
     private readonly IList<IProjectionFieldInterceptor> _fieldInterceptors = [];
-    private readonly IList<IProjectionOptimizer> _optimizer = [];
+    private readonly IList<IProjectionOptimizer> _optimizers = [];
 
     protected ProjectionProvider()
     {
@@ -74,76 +71,65 @@ public abstract class ProjectionProvider
 
     protected internal override void Complete(IConventionContext context)
     {
-        if (Configuration!.Handlers.Count == 0)
+        if (Configuration!.HandlerFactories.Count == 0)
         {
             throw ProjectionProvider_NoHandlersConfigured(this);
         }
 
-        var services = context.Services;
-        // var services = new CombinedServiceProvider(
-        //     new DictionaryServiceProvider(
-        //         (typeof(IConventionContext), context),
-        //         (typeof(IDescriptorContext), context.DescriptorContext),
-        //         (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
-        //     context.Services);
+        var providerContext = new ProjectionProviderContext(
+            context.Services,
+            context,
+            context.DescriptorContext,
+            context.DescriptorContext.TypeInspector);
 
-        foreach (var (type, instance) in Configuration.Handlers)
+        foreach (var factory in Configuration.HandlerFactories)
         {
-            if (instance is not null)
-            {
-                _fieldHandlers.Add(instance);
-                continue;
-            }
-
             try
             {
-                var field = (IProjectionFieldHandler)GetServiceOrCreateInstance(services, type);
-                _fieldHandlers.Add(field);
+                var handler = factory(providerContext);
+
+                _fieldHandlers.Add(handler);
             }
             catch
             {
-                throw new SchemaException(
-                    ProjectionConvention_UnableToCreateFieldHandler(this, type));
+                // TODO: Proper exception
+                throw new InvalidOperationException();
+                // throw new SchemaException(
+                //     ProjectionConvention_UnableToCreateFieldHandler(this, type));
             }
         }
 
-        foreach (var (type, instance) in Configuration.Interceptors)
+        foreach (var factory in Configuration.InterceptorFactories)
         {
-            if (instance is not null)
-            {
-                _fieldInterceptors.Add(instance);
-                continue;
-            }
-
             try
             {
-                var field = (IProjectionFieldInterceptor)GetServiceOrCreateInstance(services, type);
-                _fieldInterceptors.Add(field);
+                var interceptor = factory(providerContext);
+
+                _fieldInterceptors.Add(interceptor);
             }
             catch
             {
-                throw new SchemaException(
-                    ProjectionConvention_UnableToCreateFieldHandler(this, type));
+                // TODO: Proper exception
+                throw new InvalidOperationException();
+                // throw new SchemaException(
+                //     ProjectionConvention_UnableToCreateFieldHandler(this, type));
             }
         }
 
-        foreach (var (type, instance) in Configuration.Optimizers)
+        foreach (var factory in Configuration.OptimizerFactories)
         {
-            if (instance is not null)
-            {
-                _optimizer.Add(instance);
-                continue;
-            }
-
             try
             {
-                var optimizers = (IProjectionOptimizer)GetServiceOrCreateInstance(services, type);
-                _optimizer.Add(optimizers);
+                var optimizer = factory(providerContext);
+
+                _optimizers.Add(optimizer);
             }
             catch
             {
-                throw new SchemaException(
-                    ProjectionConvention_UnableToCreateFieldHandler(this, type));
+                // TODO: Proper exception
+                throw new InvalidOperationException();
+                // throw new SchemaException(
+                //     ProjectionConvention_UnableToCreateFieldHandler(this, type));
             }
         }
     }
@@ -152,11 +138,11 @@ public abstract class ProjectionProvider
         SelectionSetOptimizerContext context,
         Selection selection)
     {
-        for (var i = 0; i < _optimizer.Count; i++)
+        for (var i = 0; i < _optimizers.Count; i++)
         {
-            if (_optimizer[i].CanHandle(selection))
+            if (_optimizers[i].CanHandle(selection))
             {
-                selection = _optimizer[i].RewriteSelection(context, selection);
+                selection = _optimizers[i].RewriteSelection(context, selection);
             }
         }
 

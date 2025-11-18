@@ -35,4 +35,6 @@ public class MongoDbProjectionFieldHandler
         action = SelectionVisitor.Continue;
         return true;
     }
+
+    public static MongoDbProjectionFieldHandler Create(ProjectionProviderContext context) => new();
 }

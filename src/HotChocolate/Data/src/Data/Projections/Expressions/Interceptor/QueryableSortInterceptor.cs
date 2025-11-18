@@ -54,4 +54,6 @@ public class QueryableSortInterceptor : IProjectionFieldInterceptor<QueryablePro
     public void AfterProjection(QueryableProjectionContext context, ISelection selection)
     {
     }
+
+    public static QueryableSortInterceptor Create(ProjectionProviderContext context) => new();
 }

@@ -16,6 +16,7 @@ public class SortProviderDescriptor<TContext>
         Func<SortProviderContext, TFieldHandler> factory)
         where TFieldHandler : ISortFieldHandler<TContext>
     {
+        // TODO: Find a better way
         Configuration.HandlerFactories.Add(ctx => factory(ctx));
         return this;
     }

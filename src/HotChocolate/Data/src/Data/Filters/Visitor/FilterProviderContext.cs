@@ -16,21 +16,21 @@ public readonly struct FilterProviderContext(
     InputFormatter inputFormatter)
 
 {
-    public IServiceProvider SchemaServices => schemaServices;
+    public IServiceProvider SchemaServices { get; } = schemaServices;
 
-    public IFilterProvider FilterProvider => filterProvider;
+    public IFilterProvider FilterProvider { get; } = filterProvider;
 
-    public IConventionContext ConventionContext => conventionContext;
+    public IConventionContext ConventionContext { get; } = conventionContext;
 
-    public IDescriptorContext DescriptorContext => descriptorContext;
+    public IDescriptorContext DescriptorContext { get; } = descriptorContext;
 
-    public IFilterConvention FilterConvention => filterConvention;
+    public IFilterConvention FilterConvention { get; } = filterConvention;
 
-    public ITypeConverter TypeConverter => typeConverter;
+    public ITypeConverter TypeConverter { get; } = typeConverter;
 
-    public ITypeInspector TypeInspector => typeInspector;
+    public ITypeInspector TypeInspector { get; } = typeInspector;
 
-    public InputParser InputParser => inputParser;
-
-    public InputFormatter InputFormatter => inputFormatter;
+    public InputParser InputParser { get; } = inputParser;
+    
+    public InputFormatter InputFormatter { get; } = inputFormatter;
 }

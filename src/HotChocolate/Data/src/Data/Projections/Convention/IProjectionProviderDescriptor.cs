@@ -12,7 +12,8 @@ public interface IProjectionProviderDescriptor
     /// </summary>
     /// <typeparam name="THandler">The type of the field handler</typeparam>
     /// <returns>The descriptor that this methods was called on</returns>
-    IProjectionProviderDescriptor RegisterFieldHandler<THandler>()
+    IProjectionProviderDescriptor RegisterFieldHandler<THandler>(
+        Func<ProjectionProviderContext, THandler> factory)
         where THandler : IProjectionFieldHandler;
 
     /// <summary>
@@ -31,7 +32,8 @@ public interface IProjectionProviderDescriptor
     /// </summary>
     /// <typeparam name="THandler">The type of the field interceptor</typeparam>
     /// <returns>The descriptor that this methods was called on</returns>
-    IProjectionProviderDescriptor RegisterFieldInterceptor<THandler>()
+    IProjectionProviderDescriptor RegisterFieldInterceptor<THandler>(
+        Func<ProjectionProviderContext, THandler> factory)
         where THandler : IProjectionFieldInterceptor;
 
     /// <summary>
@@ -52,7 +54,8 @@ public interface IProjectionProviderDescriptor
     /// </summary>
     /// <typeparam name="THandler">The type of the field optimizer</typeparam>
     /// <returns>The descriptor that this methods was called on</returns>
-    IProjectionProviderDescriptor RegisterOptimizer<THandler>()
+    IProjectionProviderDescriptor RegisterOptimizer<THandler>(
+        Func<ProjectionProviderContext, THandler> factory)
         where THandler : IProjectionOptimizer;
 
     /// <summary>
