@@ -1,12 +1,12 @@
 using HotChocolate.Features;
 using HotChocolate.Fusion.Features;
-using HotChocolate.Types.Mutable;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Extensions;
 
-internal static class MutableEnumValueDefinitionExtensions
+internal static class EnumValueExtensions
 {
-    extension(MutableEnumValue enumValue)
+    extension(IEnumValue enumValue)
     {
         /// <summary>
         /// Gets a value indicating whether the enum value or its declaring type is marked as
