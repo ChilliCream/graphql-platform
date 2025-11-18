@@ -13,6 +13,8 @@ public class FusionOpenApiIntegrationTests : OpenApiIntegrationTestBase
 {
     private DocumentNode _compositeSchema = null!;
 
+    protected override string SnapshotSuffix => "Fusion";
+
     protected override async Task InitializeAsync(TestServerSession serverSession)
     {
         var server = CreateSourceSchema();
