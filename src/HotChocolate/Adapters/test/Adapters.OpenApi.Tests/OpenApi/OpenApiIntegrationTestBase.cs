@@ -4,6 +4,8 @@ namespace HotChocolate.Adapters.OpenApi;
 
 public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
 {
+    protected virtual string? SnapshotSuffix => null;
+
     [Fact]
     public async Task OpenApi_Includes_Initial_Routes()
     {
@@ -15,8 +17,15 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         // act
         var openApiDocument = await GetOpenApiDocumentAsync(client);
 
+        var postFix = TestEnvironment.TargetFramework;
+
+        if (!string.IsNullOrEmpty(SnapshotSuffix))
+        {
+            postFix = $"{postFix}_{SnapshotSuffix}";
+        }
+
         // assert
-        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument.MatchSnapshot(postFix: postFix, extension: ".json");
     }
 
     [Fact]
