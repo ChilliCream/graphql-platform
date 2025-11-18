@@ -105,6 +105,42 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                 }
               }
             }
+            """,
+            """
+            query ComplexObjectQuery($input: ComplexObjectInput! @body) @http(method: GET, route: "/complex") {
+              complexObject(input: $input) {
+                any
+                boolean
+                byte
+                byteArray
+                date
+                dateTime
+                decimal
+                enum
+                float
+                id
+                int
+                json
+                list
+                localDate
+                localDateTime
+                localTime
+                long
+                object {
+                  field1A {
+                    field1B {
+                      field1C
+                    }
+                  }
+                }
+                short
+                string
+                timeSpan
+                unknown
+                url
+                uuid
+              }
+            }
             """);
     }
 

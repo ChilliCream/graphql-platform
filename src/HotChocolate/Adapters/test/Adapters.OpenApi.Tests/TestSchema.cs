@@ -44,6 +44,35 @@ public sealed class TestSchema
 
         [GraphQLType("PetUnion!")]
         public IPet GetWithUnionType() => new Cat(Name: "Whiskers", IsPurring: true);
+
+        public ComplexObject GetComplexObject(ComplexObjectInput input)
+        {
+            return new ComplexObject(
+                input.Any,
+                input.Boolean,
+                input.Byte,
+                input.ByteArray,
+                input.Date,
+                input.DateTime,
+                input.Decimal,
+                input.Enum,
+                input.Float,
+                input.Id,
+                input.Int,
+                input.Json,
+                input.List,
+                input.LocalDate,
+                input.LocalDateTime,
+                input.LocalTime,
+                input.Long,
+                new Object1Nullable(new Object2Nullable(new Object3Nullable(input.Object.Field1A.Field1B.Field1C))),
+                input.Short,
+                input.String,
+                input.TimeSpan,
+                input.Unknown,
+                input.Url,
+                input.Uuid);
+        }
     }
 
     public class Mutation
@@ -103,48 +132,17 @@ public sealed class TestSchema
     public sealed record Object3Nullable(
         [property: GraphQLDescription("field1C description")] TimeOnly? Field1C);
 
+    [OneOf]
+    public sealed record OneOf(
+        [property: GraphQLDescription("field1 description")] int? Field1,
+        [property: GraphQLDescription("field2 description")] string? Field2);
+
     public sealed record Object1NonNullable(
         [property: GraphQLDescription("field1A description")] Object2NonNullable Field1A);
     public sealed record Object2NonNullable(
         [property: GraphQLDescription("field1B description")] Object3NonNullable Field1B);
     public sealed record Object3NonNullable(
         [property: GraphQLDescription("field1C description")] TimeOnly Field1C);
-
-    public sealed record Object1Defaulted(
-        [property: GraphQLDescription("field1A description")]
-        [property: DefaultValueSyntax("""{ field1B: { field1C: "12:00:00" } }""")]
-        Object2Defaulted Field1A);
-    public sealed record Object2Defaulted(
-        [property: GraphQLDescription("field1B description")]
-        [property: DefaultValueSyntax("""{ field1C: "12:00:00" }""")]
-        Object3Defaulted Field1B);
-    public sealed record Object3Defaulted(
-        [property: GraphQLDescription("field1C description")]
-        [property: DefaultValueSyntax("\"12:00:00\"")]
-        TimeOnly Field1C);
-
-    public sealed record Object1Complex(
-        [property: GraphQLDescription("field1A description")]
-        [property: DefaultValueSyntax("""{ field1B: [{ field1C: "12:00:00" }] }""")]
-        Object2Complex Field1A);
-    public sealed record Object2Complex(
-        [property: GraphQLDescription("field1B description")]
-        [property: DefaultValueSyntax("""[{ field1C: "12:00:00" }]""")]
-        Object3Complex[] Field1B);
-    public sealed record Object3Complex(
-        [property: GraphQLDescription("field1C description")]
-        [property: DefaultValueSyntax("\"12:00:00\"")]
-        TimeOnly? Field1C);
-
-    [OneOf]
-    public sealed record OneOf(
-        [property: GraphQLDescription("field1 description")] int? Field1,
-        [property: GraphQLDescription("field2 description")] string? Field2);
-
-    public sealed record ObjectWithOneOfField(
-        [property: GraphQLDescription("field description")]
-        [property: DefaultValueSyntax("{ field1: 1 }")]
-        OneOf Field);
 
     public sealed record ComplexObject(
         [property: GraphQLType<AnyType>] object? Any,
@@ -172,7 +170,7 @@ public sealed class TestSchema
         Uri? Url,
         Guid? Uuid);
 
-    public sealed record ResultNonNullable(
+    public sealed record ComplexObjectInput(
         [property: GraphQLType<NonNullType<AnyType>>] object Any,
         bool Boolean,
         byte Byte,
@@ -197,43 +195,6 @@ public sealed class TestSchema
         [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
         Uri Url,
         Guid Uuid);
-
-    public sealed record ResultDefaulted(
-        [property: GraphQLType<NonNullType<AnyType>>] object Any,
-        bool Boolean,
-        byte Byte,
-        [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
-        [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
-        DateTimeOffset DateTime,
-        decimal Decimal,
-        TestEnum Enum,
-        float Float,
-        [property: GraphQLType<NonNullType<IdType>>] string Id,
-        int Int,
-        JsonElement Json,
-        string[] List,
-        DateOnly LocalDate,
-        [property: GraphQLType<NonNullType<LocalDateTimeType>>] DateTime LocalDateTime,
-        TimeOnly LocalTime,
-        long Long,
-        Object1Defaulted Object,
-        short Short,
-        string String,
-        TimeSpan TimeSpan,
-        [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
-        Uri Url,
-        Guid Uuid);
-
-    public sealed record ResultComplex(
-        Object1Complex[] List,
-        Object1Complex Object,
-        string? NullDefault,
-        string?[]? ListWithNullDefault,
-        Object1Complex? ObjectWithNullDefault,
-        OneOf OneOf,
-        OneOf[] OneOfList,
-        ObjectWithOneOfField ObjectWithOneOfField,
-        TimeSpan TimeSpanDotNet);
 
     [UnionType(name: "PetUnion")]
     public interface IPet
