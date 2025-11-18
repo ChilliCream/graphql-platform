@@ -305,35 +305,43 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
         IOpenApiDiagnosticEvents events,
         CancellationToken cancellationToken)
     {
-        if (document is OpenApiOperationDocument operation && _operationsById.ContainsKey(document.Id))
+        if (document is OpenApiOperationDocument operation)
         {
-            var newOperations = _operationsById.SetItem(operation.Id, operation);
+            if (_operationsById.ContainsKey(document.Id))
+            {
+                var newOperations = _operationsById.SetItem(operation.Id, operation);
 
-            await UpdateAllDocumentsInternalAsync(
-                newOperations.Values,
-                _fragmentsById.Values,
-                schema,
-                events,
-                cancellationToken).ConfigureAwait(false);
+                await UpdateAllDocumentsInternalAsync(
+                    newOperations.Values,
+                    _fragmentsById.Values,
+                    schema,
+                    events,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await AddDocumentAsync(document, schema, events, cancellationToken).ConfigureAwait(false);
+            }
         }
-        else if (document is OpenApiFragmentDocument fragment && _fragmentsById.ContainsKey(document.Id))
+        else if (document is OpenApiFragmentDocument fragment)
         {
-            var newFragments = _fragmentsById.SetItem(fragment.Id, fragment);
+            if (_fragmentsById.ContainsKey(document.Id))
+            {
+                var newFragments = _fragmentsById.SetItem(fragment.Id, fragment);
 
-            await UpdateAllDocumentsInternalAsync(
-                _operationsById.Values,
-                newFragments.Values,
-                schema,
-                events,
-                cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            var error = new OpenApiValidationError(
-                $"Could not find a document with Id '{document.Id}' to update.",
-                document);
+                await UpdateAllDocumentsInternalAsync(
+                    _operationsById.Values,
+                    newFragments.Values,
+                    schema,
+                    events,
+                    cancellationToken).ConfigureAwait(false);
 
-            events.ValidationErrors([error]);
+                await AddDocumentAsync(document, schema, events, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await AddDocumentAsync(document, schema, events, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 

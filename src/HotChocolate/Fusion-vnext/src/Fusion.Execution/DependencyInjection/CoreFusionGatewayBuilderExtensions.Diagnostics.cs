@@ -29,17 +29,20 @@ public static partial class CoreFusionGatewayBuilderExtensions
 
         if (typeof(IFusionExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
-            builder.Services.TryAddSingleton<T>();
             builder.ConfigureSchemaServices(static (_, s) =>
-                s.AddSingleton(static sp => (IFusionExecutionDiagnosticEventListener)sp.GetRequiredService<T>()));
+            {
+                s.TryAddSingleton<T>();
+                s.AddSingleton(static sp => (IFusionExecutionDiagnosticEventListener)sp.GetRequiredService<T>());
+            });
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
-            builder.Services.TryAddSingleton<T>();
             builder.ConfigureSchemaServices(static (_, s) =>
             {
                 var attribute = typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
                 var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
+
+                s.TryAddSingleton<T>();
                 s.AddSingleton(listener, sp => sp.GetRequiredService<T>());
             });
         }

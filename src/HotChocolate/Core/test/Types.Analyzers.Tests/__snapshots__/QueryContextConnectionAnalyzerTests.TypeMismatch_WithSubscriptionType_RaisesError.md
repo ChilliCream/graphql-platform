@@ -108,7 +108,9 @@ namespace HotChocolate.Types.Pagination
                     var naming = field.Context.Naming;
 
                     configuration.Description = "A flattened list of the nodes";
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Product>>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product"))));
                     configuration.ResultType = typeof(global::System.Collections.Generic.IReadOnlyList<global::TestNamespace.Product>);
 
                     configuration.SetSourceGeneratorFlags();
@@ -128,7 +130,9 @@ namespace HotChocolate.Types.Pagination
                     var naming = field.Context.Naming;
 
                     configuration.Description = "Information to aid in pagination.";
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::HotChocolate.Types.Pagination.PageInfo>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.Pagination.PageInfo), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__HotChocolate_Types_Pagination_PageInfo")));
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.PageInfo);
 
                     configuration.SetSourceGeneratorFlags();
@@ -147,7 +151,9 @@ namespace HotChocolate.Types.Pagination
                     var naming = field.Context.Naming;
 
                     configuration.Description = "Identifies the total count of items in the connection.";
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<int>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int")));
                     configuration.ResultType = typeof(int);
 
                     configuration.SetSourceGeneratorFlags();
@@ -252,7 +258,9 @@ namespace HotChocolate.Types.Pagination
                     var naming = field.Context.Naming;
 
                     configuration.Description = "The item at the end of the edge.";
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Product>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product")));
                     configuration.ResultType = typeof(global::TestNamespace.Product);
 
                     configuration.SetSourceGeneratorFlags();
@@ -271,7 +279,9 @@ namespace HotChocolate.Types.Pagination
                     var naming = field.Context.Naming;
 
                     configuration.Description = "A cursor for use in pagination.";
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<string>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
                     configuration.ResultType = typeof(string);
 
                     configuration.SetSourceGeneratorFlags();
@@ -371,7 +381,9 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("productService", global::HotChocolate.Types.MemberKind.Argument),
-                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.ProductService>>>), HotChocolate.Types.TypeContext.Input),
+                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                                typeInspector.GetTypeRef(typeof(global::TestNamespace.ProductService), HotChocolate.Types.TypeContext.Input),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_ProductService"))),
                             RuntimeType = typeof(global::TestNamespace.ProductService)
                         };
 
@@ -379,6 +391,7 @@ namespace TestNamespace
                     }
 
                     configuration.Resolvers = context.Resolvers.OnProductAddedAsync();
+                    configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Product>.Default;
                 },
                 (Resolvers: resolvers, ThisType: thisType));
 

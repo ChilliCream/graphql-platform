@@ -39,7 +39,7 @@ public interface ITypeCompletionContext : ITypeSystemObjectContext
     bool TryGetType<T>(TypeReference typeRef, [NotNullWhen(true)] out T? type) where T : IType;
 
     /// <summary>
-    /// Gets a type by it's type reference.
+    /// Gets a type by its type reference.
     /// </summary>
     /// <param name="typeRef">
     /// The type reference representing the type.
@@ -54,22 +54,6 @@ public interface ITypeCompletionContext : ITypeSystemObjectContext
     /// The type could not be resolved for the given <paramref name="typeRef" />.
     /// </exception>
     T GetType<T>(TypeReference typeRef) where T : IType;
-
-    /// <summary>
-    /// Rewrites a type reference to a named type reference.
-    /// </summary>
-    /// <param name="typeRef">
-    /// A reference to a type.
-    /// </param>
-    /// <returns>
-    /// Returns a direct reference to a named type.
-    /// </returns>
-    TypeReference GetNamedTypeReference(TypeReference typeRef);
-
-    /// <summary>
-    /// Gets all registered types of <typeparamref name="T"/>.
-    /// </summary>
-    IEnumerable<T> GetTypes<T>() where T : IType;
 
     /// <summary>
     /// Tries to resolve a directive type by its <paramref name="directiveRef" />.

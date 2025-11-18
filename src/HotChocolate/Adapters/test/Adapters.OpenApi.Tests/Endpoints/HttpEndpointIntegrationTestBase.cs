@@ -218,6 +218,119 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
+    public async Task Http_Post_Complex_Object()
+    {
+        // arrange
+        var storage = CreateBasicTestDocumentStorage();
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var content = new StringContent(
+            """
+            {
+                "any": {
+                  "key": "value"
+                },
+                "boolean": true,
+                "byte": 1,
+                "byteArray": "dGVzdA==",
+                "date": "2000-01-01",
+                "dateTime": "2000-01-01T12:00:00.000Z",
+                "decimal": 79228162514264337593543950335,
+                "enum": "VALUE1",
+                "float": 1.5,
+                "id": "test",
+                "int": 1,
+                "json": {
+                  "key": "value"
+                },
+                "list": [
+                  "test"
+                ],
+                "localDate": "2000-01-01",
+                "localDateTime": "2000-01-01T12:00:00",
+                "localTime": "12:00:00",
+                "long": 9223372036854775807,
+                "object": {
+                  "field1A": {
+                    "field1B": {
+                      "field1C": "12:00:00"
+                    }
+                  }
+                },
+                "short": 1,
+                "string": "test",
+                "timeSpan": "PT5M",
+                "unknown": "test",
+                "url": "https://example.com/",
+                "uuid": "00000000-0000-0000-0000-000000000000"
+            }
+            """,
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await client.PostAsync("/complex", content);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Post_Empty_List()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query TestQuery($input: [String!]! @body) @http(method: POST, route: "/example") {
+              list(input: $input)
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var content = new StringContent(
+            """
+            []
+            """,
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await client.PostAsync("/example", content);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Post_Empty_Object()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query TestQuery($input: JSON! @body) @http(method: POST, route: "/example") {
+              json(input: $input)
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var content = new StringContent(
+            """
+            {}
+            """,
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await client.PostAsync("/example", content);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Http_Post_Invalid_ContentType()
     {
         // arrange

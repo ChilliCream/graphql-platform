@@ -7,67 +7,70 @@ namespace HotChocolate.Fusion.Extensions;
 
 internal static class DirectivesProviderExtensions
 {
-    public static void AddDirective(this IDirectivesProvider member, Directive directive)
+    extension(IDirectivesProvider member)
     {
-        switch (member)
+        public void AddDirective(Directive directive)
         {
-            case IMutableFieldDefinition field:
-                field.Directives.Add(directive);
-                break;
-            case IMutableTypeDefinition type:
-                type.Directives.Add(directive);
-                break;
-            case MutableEnumValue enumValue:
-                enumValue.Directives.Add(directive);
-                break;
-            case MutableSchemaDefinition schema:
-                schema.Directives.Add(directive);
-                break;
-            default:
-                throw new InvalidOperationException();
-        }
-    }
-
-    public static string? GetIsFieldSelectionMap(this IDirectivesProvider type)
-    {
-        var isDirective = type.Directives.FirstOrDefault(d => d.Name == WellKnownDirectiveNames.Is);
-
-        if (isDirective?.Arguments[ArgumentNames.Field] is StringValueNode fieldArgument)
-        {
-            return fieldArgument.Value;
+            switch (member)
+            {
+                case IMutableFieldDefinition field:
+                    field.Directives.Add(directive);
+                    break;
+                case IMutableTypeDefinition type:
+                    type.Directives.Add(directive);
+                    break;
+                case MutableEnumValue enumValue:
+                    enumValue.Directives.Add(directive);
+                    break;
+                case MutableSchemaDefinition schema:
+                    schema.Directives.Add(directive);
+                    break;
+                default:
+                    throw new InvalidOperationException();
+            }
         }
 
-        return null;
-    }
-
-    public static string? GetProvidesSelectionSet(this IDirectivesProvider type)
-    {
-        var providesDirective =
-            type.Directives.FirstOrDefault(d => d.Name == WellKnownDirectiveNames.Provides);
-
-        if (providesDirective?.Arguments[ArgumentNames.Fields] is StringValueNode fieldsArgument)
+        public string? GetIsFieldSelectionMap()
         {
-            return fieldsArgument.Value;
+            var isDirective = member.Directives.FirstOrDefault(d => d.Name == WellKnownDirectiveNames.Is);
+
+            if (isDirective?.Arguments[ArgumentNames.Field] is StringValueNode fieldArgument)
+            {
+                return fieldArgument.Value;
+            }
+
+            return null;
         }
 
-        return null;
-    }
+        public string? GetProvidesSelectionSet()
+        {
+            var providesDirective =
+                member.Directives.FirstOrDefault(d => d.Name == WellKnownDirectiveNames.Provides);
 
-    public static bool ExistsInSchema(this IDirectivesProvider type, string schemaName)
-    {
-        return type.Directives.AsEnumerable().Any(
-            d =>
-                d.Name == WellKnownDirectiveNames.FusionType
-                && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
-    }
+            if (providesDirective?.Arguments[ArgumentNames.Fields] is StringValueNode fieldsArgument)
+            {
+                return fieldsArgument.Value;
+            }
 
-    public static bool HasFusionInaccessibleDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.FusionInaccessible);
-    }
+            return null;
+        }
 
-    public static bool HasInaccessibleDirective(this IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);
+        public bool ExistsInSchema(string schemaName)
+        {
+            return member.Directives.AsEnumerable().Any(
+                d =>
+                    d.Name == WellKnownDirectiveNames.FusionType
+                    && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
+        }
+
+        public bool HasFusionInaccessibleDirective()
+        {
+            return member.Directives.ContainsName(WellKnownDirectiveNames.FusionInaccessible);
+        }
+
+        public bool HasInaccessibleDirective()
+        {
+            return member.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);
+        }
     }
 }

@@ -46,7 +46,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Author>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::TestNamespace.Author), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.Author);
 
                     configuration.SetSourceGeneratorFlags();
@@ -60,7 +60,7 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("version", global::HotChocolate.Types.MemberKind.Argument),
-                            Type = TypeReference.Create("[String]", HotChocolate.Types.TypeContext.Input)),
+                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create("[String]", HotChocolate.Types.TypeContext.Input)),
                             RuntimeType = typeof(int)
                         };
 
@@ -183,27 +183,11 @@ namespace Microsoft.Extensions.DependencyInjection
     ]
   },
   {
-    "Id": "CS0103",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (57,35)-(57,48)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
-    "MessageFormat": "The name '{0}' does not exist in the current context",
-    "Message": "The name 'TypeReference' does not exist in the current context",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
     "Id": "CS1513",
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (57,105)-(57,106)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (57,144)-(57,145)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1513)",
     "MessageFormat": "} expected",
     "Message": "} expected",
@@ -219,7 +203,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (57,105)-(57,106)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (57,144)-(57,145)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1002)",
     "MessageFormat": "; expected",
     "Message": "; expected",
@@ -235,7 +219,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (57,105)-(57,106)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (57,144)-(57,145)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1513)",
     "MessageFormat": "} expected",
     "Message": "} expected",
@@ -251,7 +235,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (57,105)-(57,106)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (57,144)-(57,145)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1513)",
     "MessageFormat": "} expected",
     "Message": "} expected",
@@ -267,7 +251,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (57,106)-(57,107)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (57,145)-(57,146)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1002)",
     "MessageFormat": "; expected",
     "Message": "; expected",
@@ -283,7 +267,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (57,106)-(57,107)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (57,145)-(57,146)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1513)",
     "MessageFormat": "} expected",
     "Message": "} expected",
