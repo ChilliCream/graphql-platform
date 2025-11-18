@@ -14,8 +14,9 @@ internal sealed class CreateApiKeyCommand : Command
         Description = "Creates a new api key";
 
         AddOption(Opt<ApiKeyNameOption>.Instance);
-        AddOption(Opt<WorkspaceIdOption>.Instance);
         AddOption(Opt<OptionalApiIdOption>.Instance);
+        AddOption(Opt<OptionalWorkspaceIdOption>.Instance);
+        AddOption(Opt<OptionalApiKeyStageConditionOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -29,28 +30,81 @@ internal sealed class CreateApiKeyCommand : Command
         InvocationContext context,
         IAnsiConsole console,
         IApiClient client,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         console.WriteLine();
         console.WriteLine("Creating a api key...");
         console.WriteLine();
 
-        const string apiMessage = "For which api do you want to create a api key?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        var workspaceId = context.ParseResult
+            .GetValueForOption(Opt<OptionalWorkspaceIdOption>.Instance);
+        var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
+
+        if (workspaceId is null && apiId is null)
+        {
+            if (!console.IsHumanReadable())
+            {
+                throw Exit("The workspace id or api id is required in non-interactive mode.");
+            }
+
+            var choice = await new SelectionPrompt<string>()
+                .Title("Do you want to create the api key scoped to an api or the whole workspace?")
+                .AddChoices("Api", "Workspace")
+                .ShowAsync(console, cancellationToken);
+
+            if (choice == "Api")
+            {
+                apiId = await context
+                    .GetOrSelectApiId("For which api do you want to create a api key?");
+            }
+            else
+            {
+                workspaceId = context.RequireWorkspaceId();
+            }
+        }
+
+        // we use the signed in workspace by default if no workspace id is provided
+        workspaceId ??= context.RequireWorkspaceId();
+
         var name = await context
             .OptionOrAskAsync("Name", Opt<ApiKeyNameOption>.Instance, cancellationToken);
 
-        var input = new CreateApiKeyForApiInput { ApiId = apiId, Name = name };
-        var result =
-            await client.CreateApiKeyCommandMutation.ExecuteAsync(input, cancellationToken);
+        RoleAssigmentConditionInput? condition = null;
+
+        var stageConditionName = context.ParseResult
+            .GetValueForOption(Opt<OptionalApiKeyStageConditionOption>.Instance);
+
+        if (stageConditionName is not null)
+        {
+            condition = new RoleAssigmentConditionInput
+            {
+                StageAuthorizationCondition = new RoleAssignmentStageAuthorizationConditionInput
+                {
+                    Name = stageConditionName
+                }
+            };
+        }
+
+        var input = new CreateApiKeyInput
+        {
+            Name = name,
+            PermissionScope = apiId is not null
+                ? new ApiKeyPermissionScopeInput { ApiId = apiId }
+                : new ApiKeyPermissionScopeInput { WorkspaceId = workspaceId },
+            WorkspaceId = workspaceId,
+            RoleAssigmentCondition = condition
+        };
+        var result = await client.CreateApiKeyCommandMutation
+            .ExecuteAsync(input, cancellationToken);
 
         console.EnsureNoErrors(result);
 
         var data = console.EnsureData(result);
 
-        console.PrintErrorsAndExit(data.CreateApiKeyForApi.Errors);
+        console.PrintErrorsAndExit(data.CreateApiKey.Errors);
 
-        var changeResult = data.CreateApiKeyForApi.Result;
+        var changeResult = data.CreateApiKey.Result;
         if (changeResult is null)
         {
             throw Exit("Could not create api.");
