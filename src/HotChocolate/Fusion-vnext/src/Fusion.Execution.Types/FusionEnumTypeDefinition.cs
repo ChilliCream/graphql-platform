@@ -12,7 +12,7 @@ namespace HotChocolate.Fusion.Types;
 /// <summary>
 /// Represents a GraphQL enum type definition in a fusion schema.
 /// </summary>
-public sealed class FusionEnumTypeDefinition : IEnumTypeDefinition, IInaccessibleProvider
+public sealed class FusionEnumTypeDefinition : IEnumTypeDefinition, IFusionTypeDefinition
 {
     private bool _completed;
 

@@ -1,37 +1,15 @@
-title: Inaccessible_Fields_Cannot_Be_Queried
+title: Field_With_Inaccessible_Argument_Can_Be_Queried
 request:
   document: |
     {
-      bookById(id: 1) {
-        author {
-          id
-        }
-      }
+      inaccessibleText
     }
 response:
   body: |
     {
-      "errors": [
-        {
-          "message": "The field \u0060id\u0060 does not exist on the type \u0060Author\u0060.",
-          "locations": [
-            {
-              "line": 4,
-              "column": 7
-            }
-          ],
-          "path": [
-            "bookById",
-            "author"
-          ],
-          "extensions": {
-            "type": "Author",
-            "field": "id",
-            "responseName": "id",
-            "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-          }
-        }
-      ]
+      "data": {
+        "inaccessibleText": "This is the default!"
+      }
     }
 sourceSchemas:
   - name: a
@@ -55,6 +33,20 @@ sourceSchemas:
         inaccessibleText(text: String! = "This is the default!" @inaccessible): String!
         books: [Book!]!
       }
+    interactions:
+      - request:
+          document: |
+            query Op_7f497f67_1 {
+              inaccessibleText
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "inaccessibleText": "This is the default!"
+                }
+              }
   - name: b
     schema: |
       schema {
@@ -81,3 +73,19 @@ sourceSchemas:
         ITEM1 @inaccessible
         ITEM2
       }
+operationPlan:
+  operation:
+    - document: |
+        {
+          inaccessibleText
+        }
+      hash: 7f497f67f4aa63e45ea60ae5a20e9b84
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_7f497f67_1 {
+          inaccessibleText
+        }

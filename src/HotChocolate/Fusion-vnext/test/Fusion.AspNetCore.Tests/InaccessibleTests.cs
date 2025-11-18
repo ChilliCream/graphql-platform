@@ -1,5 +1,6 @@
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -127,6 +128,222 @@ public class InaccessibleTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Field_With_Inaccessible_Argument_Can_Be_Queried()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<InaccessibleField.SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<InaccessibleField.SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              inaccessibleText
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Field_With_Inaccessible_Argument_Cannot_Be_Passed_In()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<InaccessibleField.SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<InaccessibleField.SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              inaccessibleText(text: "foo")
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Enum_With_Inaccessible_Value_When_Accessible_Value_Is_Used()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<InaccessibleField.SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<InaccessibleField.SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              enumField(value: ITEM2)
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Enum_With_Inaccessible_Value_When_Inaccessible_Value_Is_Used()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<InaccessibleField.SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<InaccessibleField.SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              enumField(value: ITEM1)
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Input_With_Inaccessible_Field_When_Accessible_Field_Is_Passed()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<InaccessibleField.SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<InaccessibleField.SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              shareable(input: { a: "Hello" })
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Input_With_Inaccessible_Field_When_Inaccessible_Field_Is_Not_Passed()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<InaccessibleField.SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<InaccessibleField.SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              shareable(input: { b: "Hello" })
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     public static class InaccessibleField
     {
         public static class SourceSchema1
@@ -151,6 +368,11 @@ public class InaccessibleTests : FusionTestBase
                 public Book GetBookById(int id)
                     => _books[id];
 
+                public string GetInaccessibleText(
+                    [Inaccessible]
+                    string text = "This is the default!")
+                    => text;
+
                 public IEnumerable<Book> GetBooks()
                     => _books.Values;
             }
@@ -172,7 +394,25 @@ public class InaccessibleTests : FusionTestBase
                 [Lookup]
                 public Author GetAuthorById(int id)
                     => _authors[id];
+
+                public SomeEnum GetEnumField(SomeEnum value)
+                    => value;
+
+                public string GetShareable(SomeInput input)
+                    => $"A: {input.A}, B: {input.B}";
             }
+
+            public enum SomeEnum
+            {
+                [Inaccessible] Item1,
+                Item2
+            }
+
+            public record SomeInput(
+                string A,
+                [property: Inaccessible]
+                [property: DefaultValue("ABC")]
+                string B);
         }
     }
 }

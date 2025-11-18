@@ -12,7 +12,7 @@ namespace HotChocolate.Fusion.Types;
 /// <summary>
 /// Represents a GraphQL input object type definition in a fusion schema.
 /// </summary>
-public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition, IInaccessibleProvider
+public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition, IFusionTypeDefinition
 {
     private InputObjectFlags _flags;
     private bool _completed;

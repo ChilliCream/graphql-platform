@@ -1,37 +1,15 @@
-title: Inaccessible_Fields_Cannot_Be_Queried
+title: Input_With_Inaccessible_Field_When_Accessible_Field_Is_Passed
 request:
   document: |
     {
-      bookById(id: 1) {
-        author {
-          id
-        }
-      }
+      shareable(input: { a: "Hello" })
     }
 response:
   body: |
     {
-      "errors": [
-        {
-          "message": "The field \u0060id\u0060 does not exist on the type \u0060Author\u0060.",
-          "locations": [
-            {
-              "line": 4,
-              "column": 7
-            }
-          ],
-          "path": [
-            "bookById",
-            "author"
-          ],
-          "extensions": {
-            "type": "Author",
-            "field": "id",
-            "responseName": "id",
-            "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-          }
-        }
-      ]
+      "data": {
+        "shareable": "A: Hello, B: ABC"
+      }
     }
 sourceSchemas:
   - name: a
@@ -81,3 +59,33 @@ sourceSchemas:
         ITEM1 @inaccessible
         ITEM2
       }
+    interactions:
+      - request:
+          document: |
+            query Op_8f2de74d_1 {
+              shareable(input: { a: "Hello" })
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "shareable": "A: Hello, B: ABC"
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          shareable(input: { a: "Hello" })
+        }
+      hash: 8f2de74d9defdb645d7a602b2dfeb0c2
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: b
+      operation: |
+        query Op_8f2de74d_1 {
+          shareable(input: { a: "Hello" })
+        }

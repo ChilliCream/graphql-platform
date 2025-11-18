@@ -1,34 +1,29 @@
-title: Inaccessible_Fields_Cannot_Be_Queried
+title: Enum_With_Inaccessible_Value_When_Inaccessible_Value_Is_Used
 request:
   document: |
     {
-      bookById(id: 1) {
-        author {
-          id
-        }
-      }
+      enumField(value: ITEM1)
     }
 response:
   body: |
     {
       "errors": [
         {
-          "message": "The field \u0060id\u0060 does not exist on the type \u0060Author\u0060.",
+          "message": "The specified argument value does not match the argument type.",
           "locations": [
             {
-              "line": 4,
-              "column": 7
+              "line": 2,
+              "column": 20
             }
           ],
           "path": [
-            "bookById",
-            "author"
+            "enumField"
           ],
           "extensions": {
-            "type": "Author",
-            "field": "id",
-            "responseName": "id",
-            "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+            "argument": "value",
+            "argumentValue": "ITEM1",
+            "locationType": "SomeEnum!",
+            "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
           }
         }
       ]

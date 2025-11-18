@@ -1,34 +1,26 @@
-title: Inaccessible_Fields_Cannot_Be_Queried
+title: Field_With_Inaccessible_Argument_Cannot_Be_Passed_In
 request:
   document: |
     {
-      bookById(id: 1) {
-        author {
-          id
-        }
-      }
+      inaccessibleText(text: "foo")
     }
 response:
   body: |
     {
       "errors": [
         {
-          "message": "The field \u0060id\u0060 does not exist on the type \u0060Author\u0060.",
+          "message": "The argument \u0060text\u0060 does not exist.",
           "locations": [
             {
-              "line": 4,
-              "column": 7
+              "line": 2,
+              "column": 20
             }
           ],
-          "path": [
-            "bookById",
-            "author"
-          ],
           "extensions": {
-            "type": "Author",
-            "field": "id",
-            "responseName": "id",
-            "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+            "type": "Query",
+            "field": "inaccessibleText",
+            "argument": "text",
+            "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
           }
         }
       ]

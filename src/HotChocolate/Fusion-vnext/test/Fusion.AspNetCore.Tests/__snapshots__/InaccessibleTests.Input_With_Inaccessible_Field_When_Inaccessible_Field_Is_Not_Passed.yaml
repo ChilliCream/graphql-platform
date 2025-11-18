@@ -1,34 +1,27 @@
-title: Inaccessible_Fields_Cannot_Be_Queried
+title: Input_With_Inaccessible_Field_When_Inaccessible_Field_Is_Not_Passed
 request:
   document: |
     {
-      bookById(id: 1) {
-        author {
-          id
-        }
-      }
+      shareable(input: { b: "Hello" })
     }
 response:
   body: |
     {
       "errors": [
         {
-          "message": "The field \u0060id\u0060 does not exist on the type \u0060Author\u0060.",
+          "message": "The specified input object field \u0060b\u0060 does not exist.",
           "locations": [
             {
-              "line": 4,
-              "column": 7
+              "line": 2,
+              "column": 22
             }
           ],
           "path": [
-            "bookById",
-            "author"
+            "shareable"
           ],
           "extensions": {
-            "type": "Author",
-            "field": "id",
-            "responseName": "id",
-            "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+            "field": "b",
+            "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
           }
         }
       ]

@@ -185,9 +185,12 @@ internal static class CompositeSchemaBuilder
     private static FusionUnionTypeDefinition CreateUnionType(
         UnionTypeDefinitionNode definition)
     {
+        var isInaccessible = InaccessibleDirectiveParser.Parse(definition.Directives);
+
         return new FusionUnionTypeDefinition(
             definition.Name.Value,
-            definition.Description?.Value);
+            definition.Description?.Value,
+            isInaccessible);
     }
 
     private static FusionInputObjectTypeDefinition CreateInputObjectType(
@@ -598,7 +601,7 @@ internal static class CompositeSchemaBuilder
         {
             CompleteInputField(
                 fieldDefinition,
-                fieldDefinition.Arguments[argumentDef.Name.Value],
+                fieldDefinition.Arguments.GetField(argumentDef.Name.Value, allowInaccessibleFields: true),
                 argumentDef,
                 context);
         }

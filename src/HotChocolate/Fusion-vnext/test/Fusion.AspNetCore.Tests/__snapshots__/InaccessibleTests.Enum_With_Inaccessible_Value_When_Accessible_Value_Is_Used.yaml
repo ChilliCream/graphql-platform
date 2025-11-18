@@ -1,37 +1,15 @@
-title: Inaccessible_Fields_Cannot_Be_Queried
+title: Enum_With_Inaccessible_Value_When_Accessible_Value_Is_Used
 request:
   document: |
     {
-      bookById(id: 1) {
-        author {
-          id
-        }
-      }
+      enumField(value: ITEM2)
     }
 response:
   body: |
     {
-      "errors": [
-        {
-          "message": "The field \u0060id\u0060 does not exist on the type \u0060Author\u0060.",
-          "locations": [
-            {
-              "line": 4,
-              "column": 7
-            }
-          ],
-          "path": [
-            "bookById",
-            "author"
-          ],
-          "extensions": {
-            "type": "Author",
-            "field": "id",
-            "responseName": "id",
-            "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-          }
-        }
-      ]
+      "data": {
+        "enumField": "ITEM2"
+      }
     }
 sourceSchemas:
   - name: a
@@ -81,3 +59,33 @@ sourceSchemas:
         ITEM1 @inaccessible
         ITEM2
       }
+    interactions:
+      - request:
+          document: |
+            query Op_4d7bd59e_1 {
+              enumField(value: ITEM2)
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "enumField": "ITEM2"
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          enumField(value: ITEM2)
+        }
+      hash: 4d7bd59eb4043620a9ba134c8b646067
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: b
+      operation: |
+        query Op_4d7bd59e_1 {
+          enumField(value: ITEM2)
+        }

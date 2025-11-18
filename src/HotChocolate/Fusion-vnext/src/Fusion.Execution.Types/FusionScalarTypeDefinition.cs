@@ -11,7 +11,7 @@ namespace HotChocolate.Fusion.Types;
 /// <summary>
 /// Represents a GraphQL scalar type definition in a fusion schema.
 /// </summary>
-public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IInaccessibleProvider
+public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionTypeDefinition
 {
     private FusionDirectiveCollection _directives = null!;
     private bool _completed;
