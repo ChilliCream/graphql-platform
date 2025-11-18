@@ -29,4 +29,6 @@ public class QueryableStringContainsHandler : QueryableStringOperationHandler
 
         return FilterExpressionBuilder.Contains(property, parsedValue);
     }
+
+    public static QueryableStringContainsHandler Create(FilterProviderContext context) => new(context.InputParser);
 }

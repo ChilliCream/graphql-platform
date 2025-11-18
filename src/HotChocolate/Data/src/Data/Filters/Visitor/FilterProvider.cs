@@ -14,9 +14,9 @@ namespace HotChocolate.Data.Filters;
 /// </summary>
 /// <typeparam name="TContext">The type of the context</typeparam>
 public abstract class FilterProvider<TContext>
-    : Convention<FilterProviderConfiguration>
-    , IFilterProvider
-    , IFilterProviderConvention
+    : Convention<FilterProviderConfiguration<TContext>>
+        , IFilterProvider
+        , IFilterProviderConvention
     where TContext : IFilterVisitorContext
 {
     private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers = [];
@@ -33,13 +33,13 @@ public abstract class FilterProvider<TContext>
     protected FilterProvider(Action<IFilterProviderDescriptor<TContext>> configure)
         => _configure = configure ?? throw new ArgumentNullException(nameof(configure));
 
-    internal new FilterProviderConfiguration? Configuration => base.Configuration;
+    internal new FilterProviderConfiguration<TContext>? Configuration => base.Configuration;
 
     /// <inheritdoc />
     public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers => _fieldHandlers;
 
     /// <inheritdoc />
-    protected override FilterProviderConfiguration CreateConfiguration(IConventionContext context)
+    protected override FilterProviderConfiguration<TContext> CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -70,7 +70,7 @@ public abstract class FilterProvider<TContext>
     /// <inheritdoc />
     protected internal override void Complete(IConventionContext context)
     {
-        if (Configuration!.Handlers.Count == 0)
+        if (Configuration!.HandlerFactories.Count == 0)
         {
             throw FilterProvider_NoHandlersConfigured(this);
         }
@@ -82,37 +82,31 @@ public abstract class FilterProvider<TContext>
                 context.Scope);
         }
 
-        var services = context.Services;
-        // var services = new CombinedServiceProvider(
-        //     new DictionaryServiceProvider(
-        //         (typeof(IFilterProvider), this),
-        //         (typeof(IConventionContext), context),
-        //         (typeof(IDescriptorContext), context.DescriptorContext),
-        //         (typeof(IFilterConvention), _filterConvention),
-        //         (typeof(ITypeConverter), context.DescriptorContext.TypeConverter),
-        //         (typeof(InputParser), context.DescriptorContext.InputParser),
-        //         (typeof(InputFormatter), context.DescriptorContext.InputFormatter),
-        //         (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
-        //     context.Services);
+        var providerContext = new FilterProviderContext(
+            context.Services,
+            this,
+            context,
+            context.DescriptorContext,
+            _filterConvention,
+            context.DescriptorContext.TypeConverter,
+            context.DescriptorContext.TypeInspector,
+            context.DescriptorContext.InputParser,
+            context.DescriptorContext.InputFormatter
+        );
 
-        foreach (var (type, instance) in Configuration.Handlers)
+        foreach (var factory in Configuration.HandlerFactories)
         {
-            if (instance is IFilterFieldHandler<TContext> casted)
-            {
-                _fieldHandlers.Add(casted);
-                continue;
-            }
-
             try
             {
-                // Can we pass it as parameters?
-                // What happens when concerete type is requested?
-                var optimizers = (IFilterFieldHandler<TContext>)ActivatorUtilities.GetServiceOrCreateInstance(services, type);
-                _fieldHandlers.Add(optimizers);
+                var handler = factory(providerContext);
+
+                _fieldHandlers.Add(handler);
             }
             catch
             {
-                throw FilterProvider_UnableToCreateFieldHandler(this, type);
+                // TODO: Proper exception
+                throw new InvalidOperationException();
+                // throw FilterProvider_UnableToCreateFieldHandler(this, type);
             }
         }
     }

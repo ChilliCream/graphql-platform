@@ -10,7 +10,8 @@ public interface IFilterProviderDescriptor<out TContext> : IFluent
     /// </summary>
     /// <typeparam name="TFieldHandler">The type of the field handler</typeparam>
     /// <returns>The descriptor that this methods was called on</returns>
-    IFilterProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>()
+    IFilterProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>(
+        Func<FilterProviderContext, TFieldHandler> factory)
         where TFieldHandler : IFilterFieldHandler<TContext>;
 
     /// <summary>

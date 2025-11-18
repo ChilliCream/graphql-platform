@@ -4,7 +4,7 @@ using static HotChocolate.Data.DataResources;
 namespace HotChocolate.Data.Filters;
 
 public abstract class FilterProviderExtensions<TContext>
-    : ConventionExtension<FilterProviderConfiguration>,
+    : ConventionExtension<FilterProviderConfiguration<TContext>>,
       IFilterProviderExtension,
       IFilterProviderConvention
     where TContext : IFilterVisitorContext
@@ -34,7 +34,7 @@ public abstract class FilterProviderExtensions<TContext>
         Complete(context);
     }
 
-    protected override FilterProviderConfiguration CreateConfiguration(IConventionContext context)
+    protected override FilterProviderConfiguration<TContext> CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -60,9 +60,9 @@ public abstract class FilterProviderExtensions<TContext>
             // Provider extensions should be applied by default before the default handlers, as
             // the interceptor picks up the first handler. A provider extension should adds more
             // specific handlers than the default providers
-            for (var i = Configuration.Handlers.Count - 1; i >= 0; i--)
+            for (var i = Configuration.HandlerFactories.Count - 1; i >= 0; i--)
             {
-                target.Handlers.Insert(0, Configuration.Handlers[i]);
+                target.HandlerFactories.Insert(0, Configuration.HandlerFactories[i]);
             }
         }
     }

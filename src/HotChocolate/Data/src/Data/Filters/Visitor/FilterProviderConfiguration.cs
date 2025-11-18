@@ -1,6 +1,6 @@
 namespace HotChocolate.Data.Filters;
 
-public class FilterProviderConfiguration
+public class FilterProviderConfiguration<TContext> where TContext : IFilterVisitorContext
 {
-    public IList<(Type Handler, IFilterFieldHandler? HandlerInstance)> Handlers { get; } = [];
+    public IList<Func<FilterProviderContext, IFilterFieldHandler<TContext>>> HandlerFactories { get; } = [];
 }

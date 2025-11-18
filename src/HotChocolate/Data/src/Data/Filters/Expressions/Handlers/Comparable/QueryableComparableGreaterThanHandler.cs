@@ -34,4 +34,7 @@ public class QueryableComparableGreaterThanHandler
 
         return FilterExpressionBuilder.GreaterThan(property, parsedValue);
     }
+
+    public static QueryableComparableGreaterThanHandler Create(FilterProviderContext context)
+        => new(context.TypeConverter, context.InputParser);
 }

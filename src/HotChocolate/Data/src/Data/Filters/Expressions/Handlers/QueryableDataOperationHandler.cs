@@ -16,4 +16,6 @@ public class QueryableDataOperationHandler
         return fieldConfiguration is FilterOperationFieldConfiguration def
             && def.Id == Operation;
     }
+
+    public static QueryableDataOperationHandler Create(FilterProviderContext context) => new();
 }

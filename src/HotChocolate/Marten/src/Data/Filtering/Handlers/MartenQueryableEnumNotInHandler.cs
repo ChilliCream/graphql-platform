@@ -23,6 +23,9 @@ public class MartenQueryableEnumNotInHandler : MartenQueryableComparableNotInHan
     {
     }
 
+    public new static MartenQueryableEnumNotInHandler Create(FilterProviderContext context)
+        => new(context.TypeConverter, context.InputParser);
+
     /// <inheritdoc cref="QueryableComparableOperationHandler"/>
     public override bool CanHandle(
         ITypeCompletionContext context,
