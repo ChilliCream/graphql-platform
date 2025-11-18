@@ -78,6 +78,69 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             fragment UserAddress on Address {
               street
             }
+            """,
+            """
+            query UnionQuery @http(method: GET, route: "/union") {
+              withUnionType {
+                petType: __typename
+                ... on Cat {
+                  isPurring
+                }
+                ... on Dog {
+                  isBarking
+                }
+              }
+            }
+            """,
+            """
+            query InterfaceQuery @http(method: GET, route: "/interface") {
+              withInterfaceType {
+                petType: __typename
+                name
+                ... on Cat {
+                  isPurring
+                }
+                ... on Dog {
+                  isBarking
+                }
+              }
+            }
+            """,
+            """
+            query ComplexObjectQuery($input: ComplexObjectInput! @body) @http(method: POST, route: "/complex") {
+              complexObject(input: $input) {
+                any
+                boolean
+                byte
+                byteArray
+                date
+                dateTime
+                decimal
+                enum
+                float
+                id
+                int
+                json
+                list
+                localDate
+                localDateTime
+                localTime
+                long
+                object {
+                  field1A {
+                    field1B {
+                      field1C
+                    }
+                  }
+                }
+                short
+                string
+                timeSpan
+                unknown
+                url
+                uuid
+              }
+            }
             """);
     }
 

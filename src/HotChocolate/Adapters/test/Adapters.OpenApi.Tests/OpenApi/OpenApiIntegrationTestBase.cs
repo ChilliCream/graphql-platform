@@ -2,11 +2,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-// TODO: Test with arrays, custom scalars, enum, interface, union, etc., introspection fields
-// TODO: @skip and such needs to be treated as optional
-// TODO: Test different serialization types, patterns and formats of scalars
 public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
 {
+    protected virtual string? SnapshotSuffix => null;
+
     [Fact]
     public async Task OpenApi_Includes_Initial_Routes()
     {
@@ -18,8 +17,15 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         // act
         var openApiDocument = await GetOpenApiDocumentAsync(client);
 
+        var postFix = TestEnvironment.TargetFramework;
+
+        if (!string.IsNullOrEmpty(SnapshotSuffix))
+        {
+            postFix = $"{postFix}_{SnapshotSuffix}";
+        }
+
         // assert
-        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument.MatchSnapshot(postFix: postFix, extension: ".json");
     }
 
     [Fact]

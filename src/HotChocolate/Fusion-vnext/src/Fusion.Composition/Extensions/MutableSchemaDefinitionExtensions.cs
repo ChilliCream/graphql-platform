@@ -136,7 +136,7 @@ internal static class MutableSchemaDefinitionExtensions
 
     public static void RemoveUnreferencedDefinitions(
         this MutableSchemaDefinition schema,
-        HashSet<string> requireInputTypeNames)
+        HashSet<string> preserveInputTypeNames)
     {
         var touchedDefinitions = new HashSet<ITypeSystemMember>();
         var backlog = new Stack<ITypeSystemMember>();
@@ -192,7 +192,7 @@ internal static class MutableSchemaDefinitionExtensions
         var definitionsToRemove = new HashSet<ITypeSystemMember>();
         foreach (var type in schema.Types)
         {
-            if (touchedDefinitions.Contains(type) || requireInputTypeNames.Contains(type.NamedType().Name))
+            if (touchedDefinitions.Contains(type) || preserveInputTypeNames.Contains(type.NamedType().Name))
             {
                 continue;
             }

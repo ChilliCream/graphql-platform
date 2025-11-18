@@ -46,54 +46,29 @@
                 "type": "object",
                 "properties": {
                   "any": {
-                    "oneOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "boolean"
-                      },
-                      {
-                        "type": "integer"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "object"
-                      },
-                      {
-                        "type": "array"
-                      }
-                    ]
+                    "type": "string"
                   },
                   "boolean": {
                     "type": "boolean"
                   },
                   "byte": {
-                    "type": "integer",
-                    "description": "The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255.",
-                    "format": "int32"
+                    "type": "string",
+                    "description": "The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255."
                   },
                   "byteArray": {
-                    "pattern": "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=)?$",
                     "type": "string"
                   },
                   "date": {
-                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
                     "type": "string",
                     "description": "The `Date` scalar represents an ISO-8601 compliant date type."
                   },
                   "dateTime": {
-                    "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,7})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
                     "type": "string",
-                    "description": "The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone.",
-                    "format": "date-time"
+                    "description": "The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
                   },
                   "decimal": {
-                    "type": "number",
-                    "description": "The `Decimal` scalar type represents a decimal floating-point number.",
-                    "format": "float"
+                    "type": "string",
+                    "description": "The `Decimal` scalar type represents a decimal floating-point number."
                   },
                   "enum": {
                     "enum": [
@@ -121,26 +96,7 @@
                     "format": "int32"
                   },
                   "json": {
-                    "oneOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "boolean"
-                      },
-                      {
-                        "type": "integer"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "object"
-                      },
-                      {
-                        "type": "array"
-                      }
-                    ]
+                    "type": "string"
                   },
                   "list": {
                     "type": "array",
@@ -149,25 +105,20 @@
                     }
                   },
                   "localDate": {
-                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
                     "type": "string",
-                    "description": "The `LocalDate` scalar represents a date without a time-zone in the ISO-8601 calendar system.",
-                    "format": "date"
+                    "description": "The `LocalDate` scalar represents a date without a time-zone in the ISO-8601 calendar system."
                   },
                   "localDateTime": {
-                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$",
                     "type": "string",
                     "description": "The `LocalDateTime` scalar type is a local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`."
                   },
                   "localTime": {
-                    "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
                     "type": "string",
                     "description": "The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss."
                   },
                   "long": {
-                    "type": "integer",
-                    "description": "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1.",
-                    "format": "int32"
+                    "type": "string",
+                    "description": "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
                   },
                   "object": {
                     "required": [
@@ -188,7 +139,6 @@
                             "type": "object",
                             "properties": {
                               "field1C": {
-                                "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
                                 "type": "string",
                                 "description": "field1C description"
                               }
@@ -201,15 +151,13 @@
                     }
                   },
                   "short": {
-                    "type": "integer",
-                    "description": "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1.",
-                    "format": "int32"
+                    "type": "string",
+                    "description": "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
                   },
                   "string": {
                     "type": "string"
                   },
                   "timeSpan": {
-                    "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
                     "type": "string",
                     "description": "The `TimeSpan` scalar represents an ISO-8601 compliant duration type."
                   },
@@ -220,7 +168,6 @@
                     "type": "string"
                   },
                   "uuid": {
-                    "pattern": "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$",
                     "type": "string"
                   }
                 }
@@ -264,25 +211,9 @@
                   "type": "object",
                   "properties": {
                     "any": {
-                      "oneOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "boolean"
-                        },
-                        {
-                          "type": "integer"
-                        },
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "object"
-                        },
-                        {
-                          "type": "array"
-                        }
+                      "type": [
+                        "null",
+                        "string"
                       ]
                     },
                     "boolean": {
@@ -294,20 +225,17 @@
                     "byte": {
                       "type": [
                         "null",
-                        "integer"
+                        "string"
                       ],
-                      "description": "The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255.",
-                      "format": "int32"
+                      "description": "The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255."
                     },
                     "byteArray": {
-                      "pattern": "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=)?$",
                       "type": [
                         "null",
                         "string"
                       ]
                     },
                     "date": {
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
                       "type": [
                         "null",
                         "string"
@@ -315,21 +243,18 @@
                       "description": "The `Date` scalar represents an ISO-8601 compliant date type."
                     },
                     "dateTime": {
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,7})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
                       "type": [
                         "null",
                         "string"
                       ],
-                      "description": "The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone.",
-                      "format": "date-time"
+                      "description": "The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
                     },
                     "decimal": {
                       "type": [
                         "null",
-                        "number"
+                        "string"
                       ],
-                      "description": "The `Decimal` scalar type represents a decimal floating-point number.",
-                      "format": "float"
+                      "description": "The `Decimal` scalar type represents a decimal floating-point number."
                     },
                     "enum": {
                       "enum": [
@@ -366,25 +291,9 @@
                       "format": "int32"
                     },
                     "json": {
-                      "oneOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "boolean"
-                        },
-                        {
-                          "type": "integer"
-                        },
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "object"
-                        },
-                        {
-                          "type": "array"
-                        }
+                      "type": [
+                        "null",
+                        "string"
                       ]
                     },
                     "list": {
@@ -397,16 +306,13 @@
                       }
                     },
                     "localDate": {
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
                       "type": [
                         "null",
                         "string"
                       ],
-                      "description": "The `LocalDate` scalar represents a date without a time-zone in the ISO-8601 calendar system.",
-                      "format": "date"
+                      "description": "The `LocalDate` scalar represents a date without a time-zone in the ISO-8601 calendar system."
                     },
                     "localDateTime": {
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$",
                       "type": [
                         "null",
                         "string"
@@ -414,7 +320,6 @@
                       "description": "The `LocalDateTime` scalar type is a local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`."
                     },
                     "localTime": {
-                      "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
                       "type": [
                         "null",
                         "string"
@@ -424,10 +329,9 @@
                     "long": {
                       "type": [
                         "null",
-                        "integer"
+                        "string"
                       ],
-                      "description": "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1.",
-                      "format": "int32"
+                      "description": "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
                     },
                     "object": {
                       "required": [
@@ -457,7 +361,6 @@
                               ],
                               "properties": {
                                 "field1C": {
-                                  "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
                                   "type": [
                                     "null",
                                     "string"
@@ -473,10 +376,9 @@
                     "short": {
                       "type": [
                         "null",
-                        "integer"
+                        "string"
                       ],
-                      "description": "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1.",
-                      "format": "int32"
+                      "description": "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
                     },
                     "string": {
                       "type": [
@@ -485,7 +387,6 @@
                       ]
                     },
                     "timeSpan": {
-                      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
                       "type": [
                         "null",
                         "string"
@@ -505,7 +406,6 @@
                       ]
                     },
                     "uuid": {
-                      "pattern": "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$",
                       "type": [
                         "null",
                         "string"
