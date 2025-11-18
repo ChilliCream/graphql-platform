@@ -38,6 +38,47 @@ builder.Services.AddGraphQLServer()
     .ModifyOptions(options => options.LazyInitialization = true);
 ```
 
+## Clearer separation between schema and application services
+
+Hot Chocolate has long maintained two `IServiceProvider` instances: the application service provider where you register your services and configuration, and the schema service provider that is scoped to a particular schema and contains all of Hot Chocolate's internal services.
+
+To access application services within schema services like diagnostic event listeners or error filters, we previously used a combined service provider for activating various Hot Chocolate components. However, this approach made it difficult to track service origins and created challenges for AOT compatibility.
+
+Starting with v16, we're introducing a more explicit model where Hot Chocolate configuration is instantiated exclusively through the internal schema service provider. Application services must now be explicitly cross-registered in the schema service provider to be accessible.
+
+```diff
+builder.Services.AddSingleton<MyService>();
+builder.Services.AddGraphQLServer()
++   .AddApplicationService<MyService>()
+    .AddDiagnosticEventListener<MyDiagnosticEventListener>()
+    // or
+    .AddDiagnosticEventListener(sp => new MyService(sp.GetRequiredService<MyService>()));
+
+public class MyDiagnosticEventListener(MyService service) : ExecutionDiagnosticEventListener;
+```
+
+Services registered via `AddApplicationService<T>()` are resolved once during schema initialization from the application service provider and registered as singletons in the schema service provider.
+
+If you're using any of the following configuration APIs, ensure that the application services required for their activation are registered via `AddApplicationService<T>()`:
+
+- `AddHttpRequestInterceptor`
+- `AddSocketSessionInterceptor`
+- `AddErrorFilter`
+- `AddDiagnosticEventListener`
+- `AddOperationCompilerOptimizer`
+- `AddTransactionScopeHandler`
+- `AddRedisOperationDocumentStorage`
+- `AddAzureBlobStorageOperationDocumentStorage`
+- `AddInstrumentation` with a custom `ActivityEnricher`
+
+**Note:** Service injection into resolvers is not affected by this change.
+
+If you need to access the application service provider from within the schema service provider, you can use:
+
+```csharp
+IServiceProvider applicationServices = schemaServices.GetRootServiceProvider();
+```
+
 ## Cache size configuration
 
 Previously, document and operation cache sizes were globally configured through the `IServiceCollection`. In an effort to align and properly scope our configuration APIs, we've moved the configuration of these caches to the `IRequestExecutorBuilder`. If you're currently calling `AddDocumentCache` or `AddOperationCache` directly on the `IServiceCollection`, move the configuration to `ModifyOptions` on the `IRequestExecutorBuilder`:
