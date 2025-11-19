@@ -1,6 +1,4 @@
 using System.Collections.Immutable;
-using HotChocolate.Features;
-using HotChocolate.Fusion.Features;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
@@ -79,16 +77,20 @@ internal static class MutableOutputFieldDefinitionExtensions
         return ParseSelectionSet($"{{ {requirements} }}");
     }
 
+    /// <summary>
+    /// Rewrites the provided value selections into a selection set string that can be used in a key
+    /// directive.
+    /// <example>["a", "b.c"] -> "a b { c }"</example>
+    /// </summary>
     public static string GetKeyFields(
         this MutableOutputFieldDefinition field,
-        List<string> lookupMap,
+        List<IValueSelectionNode> valueSelections,
         MutableSchemaDefinition schema)
     {
-        var selectedValues = lookupMap.Select(a => new FieldSelectionMapParser(a).Parse());
         var valueSelectionToSelectionSetRewriter =
             new ValueSelectionToSelectionSetRewriter(schema, ignoreMissingTypeSystemMembers: true);
         var fieldType = field.Type.AsTypeDefinition();
-        var selectionSets = selectedValues
+        var selectionSets = valueSelections
             .Select(s => valueSelectionToSelectionSetRewriter.Rewrite(s, fieldType))
             .ToImmutableArray();
         var mergedSelectionSet = selectionSets.Length == 1
@@ -104,6 +106,35 @@ internal static class MutableOutputFieldDefinitionExtensions
             field.Directives.AsEnumerable().SingleOrDefault(d => d.Name == DirectiveNames.Override);
 
         return (string?)overrideDirective?.Arguments[ArgumentNames.From].Value;
+    }
+
+    /// <summary>
+    /// Gets all combinations of value selections after splitting choice nodes.
+    /// <example>["a", "{ b } | { c }"] -> [["a", "b"], ["a", "c"]]</example>
+    /// </summary>
+    public static List<List<IValueSelectionNode>> GetValueSelectionGroups(
+        this MutableOutputFieldDefinition field)
+    {
+        var lookupMap = field.GetFusionLookupMap();
+        var valueSelections = lookupMap.Select(a => new FieldSelectionMapParser(a).Parse());
+
+        var valueSelectionGroups = valueSelections.Select(v =>
+        {
+            List<IValueSelectionNode> items = [];
+
+            if (v is ChoiceValueSelectionNode choiceValueSelectionNode)
+            {
+                items.AddRange(choiceValueSelectionNode.Branches.ToArray());
+            }
+            else
+            {
+                items.Add(v);
+            }
+
+            return items.ToArray();
+        });
+
+        return GetAllCombinations(valueSelectionGroups.ToArray());
     }
 
     public static bool IsPartial(this MutableOutputFieldDefinition field, string schemaName)
@@ -127,48 +158,31 @@ internal static class MutableOutputFieldDefinitionExtensions
         return false;
     }
 
-    extension(MutableOutputFieldDefinition outputField)
+    private static List<List<T>> GetAllCombinations<T>(params T[][] arrays)
     {
-        public bool HasExternalDirective
-            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().HasExternalDirective;
+        if (arrays.Length == 0)
+        {
+            return [[]];
+        }
 
-        public bool HasInternalDirective
-            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().HasInternalDirective;
+        var result = new List<List<T>> { new() };
 
-        public bool HasOverrideDirective
-            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().HasOverrideDirective;
+        foreach (var array in arrays)
+        {
+            var temp = new List<List<T>>();
 
-        public bool HasProvidesDirective
-            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().HasProvidesDirective;
+            foreach (var item in array)
+            {
+                foreach (var combination in result)
+                {
+                    var newCombination = new List<T>(combination) { item };
+                    temp.Add(newCombination);
+                }
+            }
 
-        public bool HasShareableDirective
-            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().HasShareableDirective;
+            result = temp;
+        }
 
-        public bool IsExternal
-            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().IsExternal;
-
-        /// <summary>
-        /// Gets a value indicating whether the field or its declaring type is marked as inaccessible.
-        /// </summary>
-        public bool IsInaccessible
-            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().IsInaccessible;
-
-        /// <summary>
-        /// Gets a value indicating whether the field or its declaring type is marked as internal.
-        /// </summary>
-        public bool IsInternal
-            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().IsInternal;
-
-        public bool IsLookup
-            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().IsLookup;
-
-        public bool IsOverridden
-            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().IsOverridden;
-
-        public bool IsShareable
-            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().IsShareable;
-
-        public ProvidesInfo? ProvidesInfo
-            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().ProvidesInfo;
+        return result;
     }
 }

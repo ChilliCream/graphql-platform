@@ -15,10 +15,11 @@ internal sealed class TypeLookup
         ITypeInspector typeInspector,
         TypeRegistry typeRegistry)
     {
-        _typeInspector = typeInspector ??
-            throw new ArgumentNullException(nameof(typeInspector));
-        _typeRegistry = typeRegistry ??
-            throw new ArgumentNullException(nameof(typeRegistry));
+        ArgumentNullException.ThrowIfNull(typeInspector);
+        ArgumentNullException.ThrowIfNull(typeRegistry);
+
+        _typeInspector = typeInspector;
+        _typeRegistry = typeRegistry;
     }
 
     public bool TryNormalizeReference(
@@ -27,7 +28,7 @@ internal sealed class TypeLookup
     {
         ArgumentNullException.ThrowIfNull(typeRef);
 
-        // if we already created a lookup for this type reference we can just return the
+        // if we already created a lookup for this type reference we can just return
         // the type reference to the named type.
         if (_refs.TryGetValue(typeRef, out namedTypeRef))
         {
@@ -78,6 +79,13 @@ internal sealed class TypeLookup
                     return true;
                 }
                 break;
+
+            case FactoryTypeReference factoryRef:
+                if (TryNormalizeReference(factoryRef.TypeDefinition, out namedTypeRef))
+                {
+                    return true;
+                }
+                break;
         }
 
         namedTypeRef = null;
@@ -108,7 +116,7 @@ internal sealed class TypeLookup
         }
 
         // we check each component layer since there could be a binding on a list type,
-        // eg list<byte> to ByteArray.
+        // e.g. list<byte> to ByteArray.
         for (var i = 0; i < typeInfo.Components.Count; i++)
         {
             var componentType = typeInfo.Components[i].Type;

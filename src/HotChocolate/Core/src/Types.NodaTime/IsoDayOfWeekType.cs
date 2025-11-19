@@ -17,6 +17,7 @@ public class IsoDayOfWeekType : IntToStructBaseType<IsoDayOfWeek>
     public IsoDayOfWeekType() : base("IsoDayOfWeek")
     {
         Description = NodaTimeResources.IsoDayOfWeekType_Description;
+        SerializationType = ScalarSerializationType.Int;
     }
 
     /// <inheritdoc />

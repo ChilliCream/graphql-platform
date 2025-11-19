@@ -25,11 +25,13 @@ public sealed class EdgeTypeInfo
         RuntimeTypeFullName = runtimeType.ToDisplayString();
         RuntimeType = runtimeType;
         Namespace = @namespace;
+        Description = description;
         ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
+        Attributes = attributes;
         Shareable = attributes.GetShareableScope();
         Inaccessible = attributes.GetInaccessibleScope();
-        Attributes = attributes.GetUserAttributes();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string Name { get; }
@@ -63,6 +65,8 @@ public sealed class EdgeTypeInfo
     public DirectiveScope Inaccessible { get; private set; }
 
     public ImmutableArray<AttributeData> Attributes { get; }
+
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
 
     public override string OrderByKey => RuntimeTypeFullName;
 
@@ -167,11 +171,12 @@ public sealed class EdgeTypeInfo
                         new Resolver(
                             edgeName,
                             property,
+                            compilation.GetDescription(property, []),
+                            compilation.GetDeprecationReason(property),
                             ResolverResultKind.Pure,
                             [],
                             ObjectTypeInspector.GetMemberBindings(member),
-                            GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
-                            compilation,
+                            compilation.CreateTypeReference(property),
                             flags: FieldFlags.None));
                     break;
             }

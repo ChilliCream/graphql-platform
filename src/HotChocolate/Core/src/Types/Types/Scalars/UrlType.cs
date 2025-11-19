@@ -18,6 +18,8 @@ public class UrlType : ScalarType<Uri, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.String;
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>
@@ -27,7 +29,6 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     public UrlType()
         : this(ScalarNames.URL, bind: BindingBehavior.Implicit)
     {
-        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     protected override bool IsInstanceOfType(StringValueNode valueSyntax)

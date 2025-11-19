@@ -1,0 +1,6 @@
+Headers:
+Content-Type: application/problem+json
+-------------------------->
+Status Code: UnsupportedMediaType
+-------------------------->
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.16","title":"Unsupported Media Type","status":415,"detail":"Content-Type must be application/json"}

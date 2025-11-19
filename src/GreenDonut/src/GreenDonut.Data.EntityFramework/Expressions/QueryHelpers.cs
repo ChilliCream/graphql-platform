@@ -33,17 +33,18 @@ internal static class QueryHelpers
             return query;
         }
 
-        var body = GetMemberExpression(keySelector);
-        if (body is null)
+        var properties = GetMemberExpressions(keySelector);
+        if (properties.Count == 0)
         {
             return query;
         }
 
-        var updatedSelector = AddPropertiesInSelector(selector, [body]);
+        var updatedSelector = AddPropertiesInSelector(selector, properties);
         return ReplaceSelector(query, updatedSelector);
 
-        static MemberExpression? GetMemberExpression(Expression<Func<T, TKey>> keySelector)
+        static List<MemberExpression> GetMemberExpressions(Expression<Func<T, TKey>> keySelector)
         {
+            var properties = new List<MemberExpression>();
             var body = keySelector.Body;
 
             if (body is UnaryExpression unaryExpr)
@@ -51,7 +52,25 @@ internal static class QueryHelpers
                 body = unaryExpr.Operand;
             }
 
-            return body as MemberExpression;
+            if (body is not MemberExpression memberExpr)
+            {
+                return properties;
+            }
+
+            // traverse the member expression chain to extract properties required for grouping
+            while (memberExpr.Expression is MemberExpression parentMember)
+            {
+                properties.Add(parentMember);
+                memberExpr = parentMember;
+            }
+
+            // if no navigation properties are found, and we have a root-level property
+            if (properties.Count == 0 && memberExpr.Expression is ParameterExpression)
+            {
+                properties.Add(memberExpr);
+            }
+
+            return properties;
         }
     }
 

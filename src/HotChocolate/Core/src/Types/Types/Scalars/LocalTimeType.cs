@@ -25,6 +25,8 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.String;
+        Pattern = @"^\d{2}:\d{2}:\d{2}$";
         _enforceSpecFormat = !disableFormatCheck;
     }
 

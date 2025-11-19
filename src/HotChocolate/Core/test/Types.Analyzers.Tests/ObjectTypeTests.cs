@@ -393,4 +393,427 @@ public class ObjectTypeTests
             }
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task CustomAttribute_On_Parameter_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class FooAttribute : Attribute;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Book
+            {
+                public int Id { get; set; }
+                public string Title { get; set; }
+                public int AuthorId { get; set; }
+            }
+
+            [ObjectType<Book>]
+            internal static partial class BookNode
+            {
+                [BindMember(nameof(Book.AuthorId))]
+                public static Task<Author?> GetAuthorAsync(
+                    [Parent] Book book,
+                    [Foo] int version,
+                    CancellationToken cancellationToken)
+                    => default;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GraphQLType_On_Parameter_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Book
+            {
+                public int Id { get; set; }
+                public string Title { get; set; }
+                public int AuthorId { get; set; }
+            }
+
+            [ObjectType<Book>]
+            internal static partial class BookNode
+            {
+                [BindMember(nameof(Book.AuthorId))]
+                public static Task<Author?> GetAuthorAsync(
+                    [Parent] Book book,
+                    [GraphQLType<StringType>] int version,
+                    CancellationToken cancellationToken)
+                    => default;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GraphQLType_String_On_Parameter_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Book
+            {
+                public int Id { get; set; }
+                public string Title { get; set; }
+                public int AuthorId { get; set; }
+            }
+
+            [ObjectType<Book>]
+            internal static partial class BookNode
+            {
+                [BindMember(nameof(Book.AuthorId))]
+                public static Task<Author?> GetAuthorAsync(
+                    [Parent] Book book,
+                    [GraphQLType("[String]")] int version,
+                    CancellationToken cancellationToken)
+                    => default;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GraphQLType_NonGeneric_On_Parameter_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Book
+            {
+                public int Id { get; set; }
+                public string Title { get; set; }
+                public int AuthorId { get; set; }
+            }
+
+            [ObjectType<Book>]
+            internal static partial class BookNode
+            {
+                [BindMember(nameof(Book.AuthorId))]
+                public static Task<Author?> GetAuthorAsync(
+                    [Parent] Book book,
+                    [GraphQLType(typeof(StringType))] int version,
+                    CancellationToken cancellationToken)
+                    => default;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GraphQLType_On_Resolver_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Book
+            {
+                public int Id { get; set; }
+                public string Title { get; set; }
+                public int AuthorId { get; set; }
+            }
+
+            [ObjectType<Book>]
+            internal static partial class BookNode
+            {
+                [GraphQLType<StringType>]
+                [BindMember(nameof(Book.AuthorId))]
+                public static Task<Author?> GetAuthorAsync(
+                    [Parent] Book book,
+                    [GraphQLType<StringType>] int version,
+                    CancellationToken cancellationToken)
+                    => default;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Field_Arguments_With_DefaultValue_Int_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Book
+            {
+                public int Id { get; set; }
+                public string Title { get; set; }
+                public int AuthorId { get; set; }
+            }
+
+            [ObjectType<Book>]
+            internal static partial class BookNode
+            {
+                [GraphQLType<StringType>]
+                [BindMember(nameof(Book.AuthorId))]
+                public static Task<Author?> GetAuthorAsync(
+                    [Parent] Book book,
+                    [GraphQLType<StringType>] int version = 1,
+                    CancellationToken cancellationToken = default)
+                    => default;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Field_Arguments_With_DefaultValue_String_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Book
+            {
+                public int Id { get; set; }
+                public string Title { get; set; }
+                public int AuthorId { get; set; }
+            }
+
+            [ObjectType<Book>]
+            internal static partial class BookNode
+            {
+                [GraphQLType<StringType>]
+                [BindMember(nameof(Book.AuthorId))]
+                public static Task<Author?> GetAuthorAsync(
+                    [Parent] Book book,
+                    [GraphQLType<StringType>] string version = "Test",
+                    CancellationToken cancellationToken = default)
+                    => default;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Field_Arguments_With_DefaultValue_Enum_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Book
+            {
+                public int Id { get; set; }
+                public string Title { get; set; }
+                public int AuthorId { get; set; }
+            }
+
+            public enum Foo
+            {
+                Bar
+            }
+
+            [ObjectType<Book>]
+            internal static partial class BookNode
+            {
+                [GraphQLType<StringType>]
+                [BindMember(nameof(Book.AuthorId))]
+                public static Task<Author?> GetAuthorAsync(
+                    [Parent] Book book,
+                    [GraphQLType<StringType>] Foo version = Foo.Bar,
+                    CancellationToken cancellationToken = default)
+                    => default;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Field_Nullable_Enum_Arguments_Nullability_Is_Honored_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Book
+            {
+                public int Id { get; set; }
+                public string Title { get; set; }
+                public int AuthorId { get; set; }
+            }
+
+            public enum Foo
+            {
+                Bar
+            }
+
+            [ObjectType<Book>]
+            internal static partial class BookNode
+            {
+                [GraphQLType<StringType>]
+                [BindMember(nameof(Book.AuthorId))]
+                public static Task<Author?> GetAuthorAsync(
+                    [Parent] Book book,
+                    Foo? version = Foo.Bar,
+                    CancellationToken cancellationToken = default)
+                    => default;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Field_Nullable_RefType_Arguments_Nullability_Is_Honored_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Book
+            {
+                public int Id { get; set; }
+                public string Title { get; set; }
+                public int AuthorId { get; set; }
+            }
+
+            public enum Foo
+            {
+                Bar
+            }
+
+            [ObjectType<Book>]
+            internal static partial class BookNode
+            {
+                [GraphQLType<StringType>]
+                [BindMember(nameof(Book.AuthorId))]
+                public static Task<Author?> GetAuthorAsync(
+                    [Parent] Book book,
+                    string? version = "hello",
+                    CancellationToken cancellationToken = default)
+                    => default;
+            }
+            """).MatchMarkdownAsync();
+    }
 }

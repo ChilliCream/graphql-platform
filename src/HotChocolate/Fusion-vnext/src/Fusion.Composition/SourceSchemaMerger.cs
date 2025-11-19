@@ -35,7 +35,6 @@ internal sealed class SourceSchemaMerger
     private readonly Dictionary<string, ValueSelectionToSelectionSetRewriter>
         _selectedValueToSelectionSetRewriters = [];
     private readonly Dictionary<string, MergeSelectionSetRewriter> _mergeSelectionSetRewriters = [];
-    private readonly HashSet<string> _requireInputTypeNames = [];
     private readonly FrozenDictionary<string, IDirectiveMerger> _directiveMergers;
 
     public SourceSchemaMerger(
@@ -50,10 +49,26 @@ internal sealed class SourceSchemaMerger
         _directiveMergers =
             new Dictionary<string, IDirectiveMerger>
             {
-                { DirectiveNames.CacheControl, new CacheControlDirectiveMerger(_options.CacheControlMergeBehavior) },
-                { DirectiveNames.OneOf, new OneOfDirectiveMerger(DirectiveMergeBehavior.Include) },
-                { DirectiveNames.SerializeAs, new SerializeAsDirectiveMerger(DirectiveMergeBehavior.Include) },
-                { DirectiveNames.Tag, new TagDirectiveMerger(_options.TagMergeBehavior) }
+                {
+                    DirectiveNames.CacheControl,
+                    new CacheControlDirectiveMerger(_options.CacheControlMergeBehavior)
+                },
+                {
+                    DirectiveNames.McpToolAnnotations,
+                    new McpToolAnnotationsDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
+                    DirectiveNames.OneOf,
+                    new OneOfDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
+                    DirectiveNames.SerializeAs,
+                    new SerializeAsDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
+                    DirectiveNames.Tag,
+                    new TagDirectiveMerger(_options.TagMergeBehavior)
+                }
             }.ToFrozenDictionary();
     }
 
@@ -73,7 +88,7 @@ internal sealed class SourceSchemaMerger
         // Remove unreferenced definitions.
         if (_options.RemoveUnreferencedDefinitions)
         {
-            mergedSchema.RemoveUnreferencedDefinitions(_requireInputTypeNames);
+            mergedSchema.RemoveUnreferencedDefinitions(GetPreservedInputTypeNames());
         }
 
         // Add Fusion definitions.
@@ -163,29 +178,36 @@ internal sealed class SourceSchemaMerger
 
             foreach (var (typeName, lookupFieldGroup) in lookupFieldGroupByTypeName)
             {
-                if (mergedSchema.Types.TryGetType<IMutableTypeDefinition>(
+                if (!mergedSchema.Types.TryGetType<IMutableTypeDefinition>(
                     typeName,
                     out var mergedType))
                 {
-                    foreach (var (sourceField, sourcePath, sourceSchema) in lookupFieldGroup)
-                    {
-                        var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema]);
-                        var lookupMap = sourceField.GetFusionLookupMap();
-                        var keyArgument = sourceField.GetKeyFields(lookupMap, sourceSchema);
+                    continue;
+                }
 
-                        var fieldArgument =
-                            s_fieldDefinitionRewriter
-                                .Rewrite(sourceField.ToSyntaxNode())!
-                                .ToString(indented: false);
+                foreach (var (sourceField, sourcePath, sourceSchema) in lookupFieldGroup)
+                {
+                    var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema]);
+
+                    var fieldArgument =
+                        s_fieldDefinitionRewriter
+                            .Rewrite(sourceField.ToSyntaxNode())!
+                            .ToString(indented: false);
+
+                    IValueNode pathArgument = sourcePath is null
+                        ? NullValueNode.Default
+                        : new StringValueNode(sourcePath);
+
+                    var @internal = sourceField.IsInternal;
+
+                    foreach (var valueSelectionGroup in sourceField.GetValueSelectionGroups())
+                    {
+                        var keyArgument = sourceField.GetKeyFields(valueSelectionGroup, sourceSchema);
 
                         var mapArgument =
-                            new ListValueNode(lookupMap.ConvertAll(a => new StringValueNode(a)));
-
-                        IValueNode pathArgument = sourcePath is null
-                            ? NullValueNode.Default
-                            : new StringValueNode(sourcePath);
-
-                        var @internal = sourceField.IsInternal;
+                            new ListValueNode(
+                                valueSelectionGroup.ConvertAll(
+                                    a => new StringValueNode(a.ToString(indented: false))));
 
                         mergedType.Directives.Add(
                             new Directive(
@@ -230,6 +252,37 @@ internal sealed class SourceSchemaMerger
                 queryType.Fields.Add(canonicalNodeField);
             }
         }
+    }
+
+    /// <summary>
+    /// Returns a list of input type names for types that must be preserved in the merged schema
+    /// even if they are not directly referenced.
+    /// </summary>
+    private HashSet<string> GetPreservedInputTypeNames()
+    {
+        var preservedInputTypeNames = new HashSet<string>();
+
+        foreach (var schema in _schemas)
+        {
+            foreach (var type in schema.Types.OfType<IObjectTypeDefinition>())
+            {
+                foreach (var field in type.Fields)
+                {
+                    foreach (var argument in field.Arguments)
+                    {
+                        var argumentInnerType = argument.Type.InnerType();
+
+                        if (argumentInnerType is IInputObjectTypeDefinition inputObjectType
+                            && (argument.HasRequireDirective || field.IsLookup))
+                        {
+                            preservedInputTypeNames.Add(inputObjectType.Name);
+                        }
+                    }
+                }
+            }
+        }
+
+        return preservedInputTypeNames;
     }
 
     /// <summary>
@@ -759,15 +812,6 @@ internal sealed class SourceSchemaMerger
                 .ExpectOutputType()
         };
 
-        // Keep track of input object types that are referenced by field arguments with @require.
-        _requireInputTypeNames.UnionWith(
-            fieldGroup
-                .SelectMany(i => i.Field.Arguments.AsEnumerable())
-                .Where(a => a.HasRequireDirective)
-                .Select(a => a.Type.InnerType())
-                .OfType<IInputObjectTypeDefinition>()
-                .Select(t => t.Name));
-
         // [ArgumentName: [{Argument, Field, Type, Schema}, ...], ...].
         var argumentGroupByName = fieldGroup
             .SelectMany(
@@ -791,8 +835,12 @@ internal sealed class SourceSchemaMerger
 
         // Merge directives.
         var memberDefinitions = fieldGroup.Select(g => g.Field).ToImmutableArray<IDirectivesProvider>();
-        _directiveMergers[DirectiveNames.CacheControl].MergeDirectives(outputField, memberDefinitions, mergedSchema);
-        _directiveMergers[DirectiveNames.Tag].MergeDirectives(outputField, memberDefinitions, mergedSchema);
+        _directiveMergers[DirectiveNames.CacheControl]
+            .MergeDirectives(outputField, memberDefinitions, mergedSchema);
+        _directiveMergers[DirectiveNames.McpToolAnnotations]
+            .MergeDirectives(outputField, memberDefinitions, mergedSchema);
+        _directiveMergers[DirectiveNames.Tag]
+            .MergeDirectives(outputField, memberDefinitions, mergedSchema);
 
         AddFusionFieldDirectives(outputField, fieldGroup);
 

@@ -1,0 +1,16 @@
+{
+  "errors": [
+    {
+      "message": "The current user is not authorized to access this resource.",
+      "path": [
+        "withAuth"
+      ],
+      "extensions": {
+        "code": "AUTH_NOT_AUTHENTICATED"
+      }
+    }
+  ],
+  "data": {
+    "withAuth": null
+  }
+}

@@ -158,6 +158,11 @@ internal static class RelayIdFieldHelpers
             var type = RewriteType(context.TypeInspector, typeInfo);
             configuration.Type = typeReference.WithType(type);
         }
+        else if (configuration.Type is FactoryTypeReference factoryTypeReference)
+        {
+            var typeRef = context.TypeInspector.GetTypeRef(typeof(IdType));
+            configuration.Type = factoryTypeReference.WithTypeDefinition(typeRef, "ID");
+        }
         else
         {
             throw ThrowHelper.RelayIdFieldHelpers_NoFieldType(configuration.Name);

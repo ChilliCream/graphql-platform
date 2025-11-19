@@ -30,6 +30,7 @@ public class DurationType : StringToStructBaseType<Duration>
             allowedPatterns,
             NodaTimeResources.DurationType_Description,
             NodaTimeResources.DurationType_Description_Extended);
+        SerializationType = ScalarSerializationType.String;
     }
 
     /// <summary>

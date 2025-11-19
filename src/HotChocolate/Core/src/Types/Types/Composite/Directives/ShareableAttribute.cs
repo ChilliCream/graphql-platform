@@ -56,23 +56,13 @@ public sealed class ShareableAttribute : DescriptorAttribute
         IDescriptor descriptor,
         ICustomAttributeProvider? attributeProvider)
     {
-        switch (descriptor)
+        if (descriptor is IObjectTypeDescriptor objectType)
         {
-            case IObjectTypeDescriptor desc:
-                desc.Shareable(IsScoped);
-                break;
-
-            case IObjectFieldDescriptor desc:
-                desc.Shareable();
-                break;
-
-            default:
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage("Shareable directive is only supported on object types and object fields.")
-                        .SetExtension("member", attributeProvider)
-                        .SetExtension("descriptor", descriptor)
-                        .Build());
+            objectType.Shareable(IsScoped);
+        }
+        else if (descriptor is IObjectFieldDescriptor objectField)
+        {
+            objectField.Shareable();
         }
     }
 }
