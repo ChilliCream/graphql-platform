@@ -1,0 +1,90 @@
+title: Inaccessible_Enum_Value_Not_In_Enum_Introspection
+request:
+  document: |
+    {
+      __type(name: "SomeEnum") {
+        enumValues {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "__type": {
+          "enumValues": [
+            {
+              "name": "ITEM2"
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author @key(fields: "id") {
+        id: Int! @inaccessible
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+        author: Author!
+      }
+
+      type Query {
+        bookById(id: Int!): Book! @lookup
+        inaccessibleText(text: String! = "This is the default!" @inaccessible): String!
+        books: [Book!]!
+      }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: Int!
+        name: String!
+      }
+
+      type Query {
+        authorById(id: Int!): Author! @internal @lookup
+        enumField(value: SomeEnum!): SomeEnum!
+        shareable(input: SomeInput!): String!
+      }
+
+      input SomeInput {
+        a: String!
+        b: String = "ABC" @inaccessible
+      }
+
+      enum SomeEnum {
+        ITEM1 @inaccessible
+        ITEM2
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          __type(name: "SomeEnum") {
+            enumValues {
+              name
+            }
+          }
+        }
+      hash: b2b3486f9e6237d4b22c422f0f4ea63c
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: __type
+          fieldName: __type

@@ -24,7 +24,7 @@ internal sealed class NodeFallbackLookup : INeedsCompletion
     void INeedsCompletion.Complete(FusionSchemaDefinition schema, CompositeSchemaBuilderContext context)
     {
         if (!schema.Types.TryGetType<IInterfaceTypeDefinition>("Node", out var nodeType)
-            || !schema.QueryType.Fields.TryGetField("node", out var nodeField)
+            || !schema.QueryType.Fields.TryGetField("node", allowInaccessibleFields: true, out var nodeField)
             || nodeField.Type != nodeType)
         {
             return;

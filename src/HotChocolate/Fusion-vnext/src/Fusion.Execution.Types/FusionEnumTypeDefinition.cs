@@ -4,21 +4,37 @@ using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using static HotChocolate.Fusion.Types.ThrowHelper;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class FusionEnumTypeDefinition : IEnumTypeDefinition
+/// <summary>
+/// Represents a GraphQL enum type definition in a fusion schema.
+/// </summary>
+public sealed class FusionEnumTypeDefinition : IEnumTypeDefinition, IFusionTypeDefinition
 {
     private bool _completed;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="FusionEnumTypeDefinition"/>.
+    /// </summary>
+    /// <param name="name">The name of the enum type.</param>
+    /// <param name="description">The description of the enum type.</param>
+    /// <param name="isInaccessible">A value indicating whether the enum type is marked as inaccessible.</param>
+    /// <param name="values">The collection of enum values.</param>
     public FusionEnumTypeDefinition(
         string name,
         string? description,
+        bool isInaccessible,
         FusionEnumValueCollection values)
     {
+        name.EnsureGraphQLName();
+        ArgumentNullException.ThrowIfNull(values);
+
         Name = name;
         Description = description;
+        IsInaccessible = isInaccessible;
         Values = values;
 
         // these properties are initialized
@@ -27,18 +43,41 @@ public sealed class FusionEnumTypeDefinition : IEnumTypeDefinition
         Features = null!;
     }
 
+    /// <summary>
+    /// Gets the name of this enum type.
+    /// </summary>
     public string Name { get; }
 
+    /// <summary>
+    /// Gets the description of this enum type.
+    /// </summary>
     public string? Description { get; }
 
+    /// <summary>
+    /// Gets the kind of this type.
+    /// </summary>
     public TypeKind Kind => TypeKind.Enum;
 
+    /// <summary>
+    /// Gets the schema coordinate of this enum type.
+    /// </summary>
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    /// <summary>
+    /// Gets a value indicating whether this enum type is marked as inaccessible.
+    /// </summary>
+    public bool IsInaccessible { get; }
+
+    /// <summary>
+    /// Gets the collection of enum values for this enum type.
+    /// </summary>
     public FusionEnumValueCollection Values { get; }
 
     IReadOnlyEnumValueCollection IEnumTypeDefinition.Values => Values;
 
+    /// <summary>
+    /// Gets the directives applied to this enum type.
+    /// </summary>
     public FusionDirectiveCollection Directives
     {
         get;
@@ -52,6 +91,9 @@ public sealed class FusionEnumTypeDefinition : IEnumTypeDefinition
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives
         => Directives;
 
+    /// <summary>
+    /// Gets the feature collection associated with this enum type.
+    /// </summary>
     public IFeatureCollection Features
     {
         get;
@@ -66,6 +108,11 @@ public sealed class FusionEnumTypeDefinition : IEnumTypeDefinition
     {
         EnsureNotSealed(_completed);
 
+        if (context.Directives is null || context.Features is null)
+        {
+            InvalidCompletionContext();
+        }
+
         Directives = context.Directives;
         Features = context.Features;
 
@@ -73,17 +120,17 @@ public sealed class FusionEnumTypeDefinition : IEnumTypeDefinition
     }
 
     /// <summary>
-    /// Get the string representation of the union type definition.
+    /// Gets the string representation of this enum type definition.
     /// </summary>
     /// <returns>
-    /// Returns the string representation of the union type definition.
+    /// The string representation of this enum type definition.
     /// </returns>
     public override string ToString()
         => SchemaDebugFormatter.Format(this).ToString(true);
 
     /// <summary>
-    /// Creates a <see cref="UnionTypeDefinitionNode"/>
-    /// from a <see cref="FusionUnionTypeDefinition"/>.
+    /// Creates a <see cref="EnumTypeDefinitionNode"/> from a
+    /// <see cref="FusionEnumTypeDefinition"/>.
     /// </summary>
     public EnumTypeDefinitionNode ToSyntaxNode()
         => SchemaDebugFormatter.Format(this);
@@ -95,6 +142,7 @@ public sealed class FusionEnumTypeDefinition : IEnumTypeDefinition
     public bool Equals(IType? other)
         => Equals(other, TypeComparison.Reference);
 
+    /// <inheritdoc />
     public bool Equals(IType? other, TypeComparison comparison)
     {
         if (comparison is TypeComparison.Reference)

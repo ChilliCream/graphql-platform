@@ -1,0 +1,72 @@
+title: Inaccessible_Scalar_Type_Cannot_Be_Queried_Via_Introspection
+request:
+  document: |
+    {
+      __type(name: "InternalScalar") {
+        name
+        kind
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "__type": null
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type InternalMetadata @inaccessible {
+        version: String!
+        buildNumber: String!
+      }
+
+      type Query {
+        metadata: InternalMetadata! @inaccessible
+        statusField(status: InternalStatus! = ACTIVE @inaccessible): String!
+        filterData(filter: InternalFilterInput @inaccessible): String!
+      }
+
+      input InternalFilterInput @inaccessible {
+        includeInternal: Boolean!
+      }
+
+      enum InternalStatus @inaccessible {
+        ACTIVE
+        INACTIVE
+        PENDING
+      }
+
+      scalar InternalScalar @inaccessible
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        dummy: String!
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          __type(name: "InternalScalar") {
+            name
+            kind
+          }
+        }
+      hash: b576313111e524015fb2d30e28b8ae2e
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: __type
+          fieldName: __type

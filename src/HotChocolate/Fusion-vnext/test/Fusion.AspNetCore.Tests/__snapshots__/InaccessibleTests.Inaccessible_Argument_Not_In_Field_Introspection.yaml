@@ -1,0 +1,125 @@
+title: Inaccessible_Argument_Not_In_Field_Introspection
+request:
+  document: |
+    {
+      __type(name: "Query") {
+        fields {
+          name
+          args {
+            name
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "__type": {
+          "fields": [
+            {
+              "name": "bookById",
+              "args": [
+                {
+                  "name": "id"
+                }
+              ]
+            },
+            {
+              "name": "books",
+              "args": []
+            },
+            {
+              "name": "enumField",
+              "args": [
+                {
+                  "name": "value"
+                }
+              ]
+            },
+            {
+              "name": "inaccessibleText",
+              "args": []
+            },
+            {
+              "name": "shareable",
+              "args": [
+                {
+                  "name": "input"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author @key(fields: "id") {
+        id: Int! @inaccessible
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+        author: Author!
+      }
+
+      type Query {
+        bookById(id: Int!): Book! @lookup
+        inaccessibleText(text: String! = "This is the default!" @inaccessible): String!
+        books: [Book!]!
+      }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: Int!
+        name: String!
+      }
+
+      type Query {
+        authorById(id: Int!): Author! @internal @lookup
+        enumField(value: SomeEnum!): SomeEnum!
+        shareable(input: SomeInput!): String!
+      }
+
+      input SomeInput {
+        a: String!
+        b: String = "ABC" @inaccessible
+      }
+
+      enum SomeEnum {
+        ITEM1 @inaccessible
+        ITEM2
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          __type(name: "Query") {
+            fields {
+              name
+              args {
+                name
+              }
+            }
+          }
+        }
+      hash: 2f709cf8ae966bb22f9ce4d12c81757e
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: __type
+          fieldName: __type

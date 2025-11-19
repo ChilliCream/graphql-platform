@@ -1,0 +1,76 @@
+title: Input_With_Inaccessible_Field_When_Inaccessible_Field_Is_Not_Passed
+request:
+  document: |
+    {
+      shareable(input: { b: "Hello" })
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "The specified input object field \u0060b\u0060 does not exist.",
+          "locations": [
+            {
+              "line": 2,
+              "column": 22
+            }
+          ],
+          "path": [
+            "shareable"
+          ],
+          "extensions": {
+            "field": "b",
+            "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author @key(fields: "id") {
+        id: Int! @inaccessible
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+        author: Author!
+      }
+
+      type Query {
+        bookById(id: Int!): Book! @lookup
+        inaccessibleText(text: String! = "This is the default!" @inaccessible): String!
+        books: [Book!]!
+      }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: Int!
+        name: String!
+      }
+
+      type Query {
+        authorById(id: Int!): Author! @internal @lookup
+        enumField(value: SomeEnum!): SomeEnum!
+        shareable(input: SomeInput!): String!
+      }
+
+      input SomeInput {
+        a: String!
+        b: String = "ABC" @inaccessible
+      }
+
+      enum SomeEnum {
+        ITEM1 @inaccessible
+        ITEM2
+      }

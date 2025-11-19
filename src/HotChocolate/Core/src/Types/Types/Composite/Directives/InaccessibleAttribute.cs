@@ -92,6 +92,10 @@ public sealed class InaccessibleAttribute : DescriptorAttribute
                 unionTypeDescriptor.Inaccessible();
                 break;
 
+            case IScalarTypeDescriptor scalarTypeDescriptor:
+                scalarTypeDescriptor.Inaccessible();
+                break;
+
             default:
                 throw new NotSupportedException(
                     $"The {descriptor.GetType().Name} descriptor is not supported.");
