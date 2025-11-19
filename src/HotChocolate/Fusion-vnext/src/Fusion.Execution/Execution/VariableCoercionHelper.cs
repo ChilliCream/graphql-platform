@@ -51,7 +51,8 @@ internal static class VariableCoercionHelper
                     continue;
                 }
 
-                coercedVariableValues[variableName] = new(variableName, variableType, NullValueNode.Default);
+                coercedVariableValues[variableName] =
+                    new VariableValue(variableName, variableType, NullValueNode.Default);
             }
             else if (value is IValueNode valueLiteral)
             {
@@ -217,7 +218,7 @@ internal static class VariableCoercionHelper
                 for (var i = 0; i < objectValue.Fields.Count; i++)
                 {
                     var field = objectValue.Fields[i];
-                    if (!inputObjectType.Fields.TryGetField(field.Name.Value, allowInaccessibleFields: true, out var fieldDefinition))
+                    if (!inputObjectType.Fields.TryGetField(field.Name.Value, out var fieldDefinition))
                     {
                         error = ErrorBuilder.New()
                             .SetMessage(
@@ -319,7 +320,7 @@ internal static class VariableCoercionHelper
                 return false;
             }
 
-            if (!enumType.Values.ContainsName((string)value.Value!), allowInaccessibleFields: true))
+            if (!enumType.Values.ContainsName((string)value.Value!))
             {
                 error = ErrorBuilder.New()
                     .SetMessage("The value `{0}` is not a valid value for the enum type `{1}`.", value.Value ?? "null", enumType.Name)
