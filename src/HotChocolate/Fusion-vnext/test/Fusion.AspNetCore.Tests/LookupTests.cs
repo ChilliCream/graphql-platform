@@ -49,7 +49,7 @@ public class LookupTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Fetch_OneOf_Lookup()
+    public async Task Fetch_OneOf_Lookup_With_Name()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -80,6 +80,52 @@ public class LookupTests : FusionTestBase
               topAuthor {
                 id
                 name
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Fetch_OneOf_Lookup_With_Id()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<OneOfLookups.SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<OneOfLookups.SourceSchema2.Query>());
+
+        using var server3 = CreateSourceSchema(
+            "c",
+            b => b.AddQueryType<OneOfLookups.SourceSchema3.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2),
+            ("c", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                author {
+                  id
+                  name
+                }
               }
             }
             """);
@@ -198,7 +244,7 @@ public class LookupTests : FusionTestBase
                 {
                     if (by.Id is not null)
                     {
-                        return _authors[int.Parse(by.Id)];
+                        return _authors[by.Id.Value];
                     }
 
                     return _authors.Values.First(a => a.Name == by.Name);
@@ -212,7 +258,7 @@ public class LookupTests : FusionTestBase
             }
 
             [OneOf]
-            public record AuthorByInput(string? Id, string? Name);
+            public record AuthorByInput(int? Id, string? Name);
         }
 
         public static class SourceSchema3
