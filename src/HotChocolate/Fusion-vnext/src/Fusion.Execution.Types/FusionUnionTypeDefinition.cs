@@ -4,18 +4,29 @@ using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using static HotChocolate.Fusion.Types.ThrowHelper;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition
+/// <summary>
+/// Represents a GraphQL union type definition in a fusion schema.
+/// </summary>
+public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition, IFusionTypeDefinition
 {
     private bool _completed;
 
-    public FusionUnionTypeDefinition(string name, string? description)
+    /// <summary>
+    /// Initializes a new instance of <see cref="FusionUnionTypeDefinition"/>.
+    /// </summary>
+    /// <param name="name">The name of the union type.</param>
+    /// <param name="description">The description of the union type.</param>
+    /// <param name="isInaccessible">A value indicating whether the union type is marked as inaccessible.</param>
+    public FusionUnionTypeDefinition(string name, string? description, bool isInaccessible)
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Description = description;
+        IsInaccessible = isInaccessible;
 
         // these properties are initialized
         // in the type complete step.
@@ -24,20 +35,36 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition
         Features = null!;
     }
 
+    /// <summary>
+    /// Gets the name of this union type.
+    /// </summary>
     public string Name { get; }
 
+    /// <summary>
+    /// Gets the description of this union type.
+    /// </summary>
     public string? Description { get; }
 
+    /// <summary>
+    /// Gets the kind of this type.
+    /// </summary>
     public TypeKind Kind => TypeKind.Union;
 
+    /// <summary>
+    /// Gets the schema coordinate of this union type.
+    /// </summary>
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
     /// <summary>
-    /// Gets the source type definition of this type.
+    /// Gets a value indicating whether this union type is marked as inaccessible.
     /// </summary>
-    /// <value>
-    /// The source type definition of this type.
-    /// </value>
+    public bool IsInaccessible { get; }
+
+    /// <summary>
+    /// Gets metadata about this union type in its source schemas.
+    /// Each entry in the collection provides information about this union type
+    /// that is specific to the source schemas the type was composed of.
+    /// </summary>
     public SourceUnionTypeCollection Sources
     {
         get;
@@ -49,6 +76,9 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition
         }
     } = null!;
 
+    /// <summary>
+    /// Gets the collection of object types that are members of this union.
+    /// </summary>
     public FusionObjectTypeDefinitionCollection Types
     {
         get;
@@ -61,6 +91,9 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition
 
     IReadOnlyObjectTypeDefinitionCollection IUnionTypeDefinition.Types => Types;
 
+    /// <summary>
+    /// Gets the directives applied to this union type.
+    /// </summary>
     public FusionDirectiveCollection Directives
     {
         get;
@@ -74,6 +107,9 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives
         => Directives;
 
+    /// <summary>
+    /// Gets the feature collection associated with this union type.
+    /// </summary>
     public IFeatureCollection Features
     {
         get;
@@ -84,9 +120,23 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition
         }
     }
 
+    /// <summary>
+    /// Completes the initialization of this union type by setting properties
+    /// that are populated during the schema completion phase.
+    /// </summary>
+    /// <param name="context">The completion context containing required properties.</param>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the context has an invalid state (required properties are null).
+    /// </exception>
     internal void Complete(CompositeUnionTypeCompletionContext context)
     {
         EnsureNotSealed(_completed);
+
+        if (context.Directives is null || context.Types is null
+            || context.Sources is null || context.Features is null)
+        {
+            InvalidCompletionContext();
+        }
 
         Directives = context.Directives;
         Types = context.Types;
@@ -111,6 +161,7 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition
         return other is FusionUnionTypeDefinition otherUnion && otherUnion.Name.Equals(Name, StringComparison.Ordinal);
     }
 
+    /// <inheritdoc />
     public bool IsAssignableFrom(ITypeDefinition type)
     {
         switch (type.Kind)
@@ -127,18 +178,21 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition
     }
 
     /// <summary>
-    /// Get the string representation of the union type definition.
+    /// Gets the string representation of this union type definition.
     /// </summary>
     /// <returns>
-    /// Returns the string representation of the union type definition.
+    /// The string representation of this union type definition.
     /// </returns>
     public override string ToString()
         => SchemaDebugFormatter.Format(this).ToString(true);
 
     /// <summary>
-    /// Creates a <see cref="UnionTypeDefinitionNode"/>
-    /// from a <see cref="FusionUnionTypeDefinition"/>.
+    /// Creates a <see cref="UnionTypeDefinitionNode"/> from this
+    /// <see cref="FusionUnionTypeDefinition"/>.
     /// </summary>
+    /// <returns>
+    /// A <see cref="UnionTypeDefinitionNode"/> representing this union type.
+    /// </returns>
     public UnionTypeDefinitionNode ToSyntaxNode()
         => SchemaDebugFormatter.Format(this);
 

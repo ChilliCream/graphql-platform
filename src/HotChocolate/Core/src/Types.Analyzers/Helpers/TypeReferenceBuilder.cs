@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
@@ -89,9 +90,10 @@ public static class TypeReferenceBuilder
             typeStructure);
     }
 
-    private static (string TypeStructure, string TypeDefinition, bool IsSimpleType) CreateTypeKey(ITypeSymbol unwrappedType)
+    private static (string TypeStructure, string TypeDefinition, bool IsSimpleType) CreateTypeKey(
+        ITypeSymbol unwrappedType)
     {
-        bool isNullable;
+        bool isNullable;;
         ITypeSymbol underlyingType;
 
         // We first check if the type is a nullable value type (int?, Guid?, etc.).
@@ -117,8 +119,31 @@ public static class TypeReferenceBuilder
 
         if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
         {
-            var elementType = namedType.TypeArguments[0];
-            var (typeStructure, typeDefinition, _) = CreateTypeKey(elementType);
+            var listElementType = namedType.TypeArguments[0];
+            var (typeStructure, typeDefinition, _) = CreateTypeKey(listElementType);
+
+            if (isNullable)
+            {
+                typeStructure = string.Format(
+                    "new global::{0}({1})",
+                    WellKnownTypes.ListTypeNode,
+                    typeStructure);
+            }
+            else
+            {
+                typeStructure = string.Format(
+                    "new global::{0}(new global::{1}({2}))",
+                    WellKnownTypes.NonNullTypeNode,
+                    WellKnownTypes.ListTypeNode,
+                    typeStructure);
+            }
+
+            return (typeStructure, typeDefinition, false);
+        }
+
+        if (IsArrayType(unwrappedType, out var arrayElementType))
+        {
+            var (typeStructure, typeDefinition, _) = CreateTypeKey(arrayElementType);
 
             if (isNullable)
             {
@@ -148,7 +173,7 @@ public static class TypeReferenceBuilder
                 "new global::{0}(\"{1}\")",
                 WellKnownTypes.NamedTypeNode,
                 compliantTypeName);
-            return (typeStructure, typeName, IsSimpleType: true);
+            return (typeStructure, typeName, IsSimpleType: unwrappedType.IsReferenceType);
         }
         else
         {
@@ -202,6 +227,18 @@ public static class TypeReferenceBuilder
             }
         }
 
+        return false;
+    }
+
+    private static bool IsArrayType(ITypeSymbol namedType, [NotNullWhen(true)] out ITypeSymbol? elementType)
+    {
+        if (namedType is IArrayTypeSymbol arrayType)
+        {
+            elementType = arrayType.ElementType;
+            return true;
+        }
+
+        elementType = null;
         return false;
     }
 

@@ -16,5 +16,5 @@ For more details look at the `Errors` property.
    at HotChocolate.Types.Descriptors.DescriptorBase`1.CreateConfiguration() in DescriptorBase~1.cs:line 45
    at HotChocolate.Types.ObjectType.CreateConfiguration(ITypeDiscoveryContext context) in ObjectType.Initialization.cs:line 37
    at HotChocolate.Types.TypeSystemObject`1.Initialize(ITypeDiscoveryContext context) in TypeSystemObjectBase~1.cs:line 29
-   at HotChocolate.Configuration.TypeRegistrar.InitializeType(TypeSystemObject typeSystemObject, String scope, Boolean isInferred) in TypeRegistrar.cs:line 177
+   at HotChocolate.Configuration.TypeRegistrar.InitializeType(TypeSystemObject typeSystemObject, String scope, Boolean isInferred) in TypeRegistrar.cs:line 171
 

@@ -29,4 +29,6 @@ public class QueryableStringNotEndsWithHandler : QueryableStringOperationHandler
         return FilterExpressionBuilder.Not(
             FilterExpressionBuilder.EndsWith(property, parsedValue));
     }
+
+    public static QueryableStringNotEndsWithHandler Create(FilterProviderContext context) => new(context.InputParser);
 }

@@ -1,0 +1,83 @@
+title: Inaccessible_Fields_Cannot_Be_Queried
+request:
+  document: |
+    {
+      bookById(id: 1) {
+        author {
+          id
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "The field \u0060id\u0060 does not exist on the type \u0060Author\u0060.",
+          "locations": [
+            {
+              "line": 4,
+              "column": 7
+            }
+          ],
+          "path": [
+            "bookById",
+            "author"
+          ],
+          "extensions": {
+            "type": "Author",
+            "field": "id",
+            "responseName": "id",
+            "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author @key(fields: "id") {
+        id: Int! @inaccessible
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+        author: Author!
+      }
+
+      type Query {
+        bookById(id: Int!): Book! @lookup
+        inaccessibleText(text: String! = "This is the default!" @inaccessible): String!
+        books: [Book!]!
+      }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: Int!
+        name: String!
+      }
+
+      type Query {
+        authorById(id: Int!): Author! @internal @lookup
+        enumField(value: SomeEnum!): SomeEnum!
+        shareable(input: SomeInput!): String!
+      }
+
+      input SomeInput {
+        a: String!
+        b: String = "ABC" @inaccessible
+      }
+
+      enum SomeEnum {
+        ITEM1 @inaccessible
+        ITEM2
+      }

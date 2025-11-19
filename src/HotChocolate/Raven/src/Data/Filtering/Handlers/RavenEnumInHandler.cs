@@ -14,6 +14,9 @@ public class RavenEnumInHandler : RavenComparableInHandler
     {
     }
 
+    public new static RavenEnumInHandler Create(FilterProviderContext context)
+        => new(context.TypeConverter, context.InputParser);
+
     public override bool CanHandle(
         ITypeCompletionContext context,
         IFilterInputTypeConfiguration typeConfiguration,

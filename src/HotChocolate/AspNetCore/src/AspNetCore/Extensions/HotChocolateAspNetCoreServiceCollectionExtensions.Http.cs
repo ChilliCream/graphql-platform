@@ -31,8 +31,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 
         return builder.ConfigureSchemaServices(s => s
             .RemoveAll<IHttpRequestInterceptor>()
-            .AddSingleton<IHttpRequestInterceptor, T>(sp =>
-                ActivatorUtilities.GetServiceOrCreateInstance<T>(sp.GetCombinedServices())));
+            .AddSingleton<IHttpRequestInterceptor, T>());
     }
 
     /// <summary>
@@ -60,7 +59,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 
         return builder.ConfigureSchemaServices(s => s
             .RemoveAll<IHttpRequestInterceptor>()
-            .AddSingleton<IHttpRequestInterceptor, T>(sp => factory(sp.GetCombinedServices())));
+            .AddSingleton<IHttpRequestInterceptor, T>(factory));
     }
 
     /// <summary>

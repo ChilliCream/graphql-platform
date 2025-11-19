@@ -28,8 +28,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         where T : class, ISocketSessionInterceptor =>
         builder.ConfigureSchemaServices(s => s
             .RemoveAll<ISocketSessionInterceptor>()
-            .AddSingleton<ISocketSessionInterceptor, T>(
-                sp => ActivatorUtilities.GetServiceOrCreateInstance<T>(sp.GetCombinedServices())));
+            .AddSingleton<ISocketSessionInterceptor, T>());
 
     /// <summary>
     /// Adds an interceptor for GraphQL socket sessions to the GraphQL configuration.
@@ -52,7 +51,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         where T : class, ISocketSessionInterceptor =>
         builder.ConfigureSchemaServices(s => s
             .RemoveAll<ISocketSessionInterceptor>()
-            .AddSingleton<ISocketSessionInterceptor, T>(sp => factory(sp.GetCombinedServices())));
+            .AddSingleton<ISocketSessionInterceptor, T>(factory));
 
     private static IRequestExecutorBuilder AddSubscriptionServices(
         this IRequestExecutorBuilder builder)

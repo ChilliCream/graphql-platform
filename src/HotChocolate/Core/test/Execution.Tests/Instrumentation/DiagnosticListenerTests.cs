@@ -34,6 +34,7 @@ public class DiagnosticListenerTests
         var services = new ServiceCollection()
             .AddSingleton<Touched>()
             .AddGraphQL()
+            .AddApplicationService<Touched>()
             .AddDiagnosticEventListener<TouchedListener>()
             .AddStarWars()
             .Services

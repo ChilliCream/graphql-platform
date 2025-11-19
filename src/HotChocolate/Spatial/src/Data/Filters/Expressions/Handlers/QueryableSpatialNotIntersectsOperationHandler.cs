@@ -17,4 +17,7 @@ public class QueryableSpatialNotIntersectsOperationHandler
     protected override int Operation => SpatialFilterOperations.NotIntersects;
 
     protected override bool IsTrue => false;
+
+    public static QueryableSpatialNotIntersectsOperationHandler Create(FilterProviderContext context) =>
+        new(context.FilterConvention, context.TypeInspector, context.InputParser);
 }

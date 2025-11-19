@@ -51,7 +51,8 @@ internal static class VariableCoercionHelper
                     continue;
                 }
 
-                coercedVariableValues[variableName] = new(variableName, variableType, NullValueNode.Default);
+                coercedVariableValues[variableName] =
+                    new VariableValue(variableName, variableType, NullValueNode.Default);
             }
             else if (value is IValueNode valueLiteral)
             {
@@ -308,7 +309,7 @@ internal static class VariableCoercionHelper
             return true;
         }
 
-        if (type is IEnumTypeDefinition enumType)
+        if (type is FusionEnumTypeDefinition enumType)
         {
             if (value is not (StringValueNode or EnumValueNode))
             {

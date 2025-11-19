@@ -1,0 +1,91 @@
+title: Field_With_Inaccessible_Argument_Can_Be_Queried
+request:
+  document: |
+    {
+      inaccessibleText
+    }
+response:
+  body: |
+    {
+      "data": {
+        "inaccessibleText": "This is the default!"
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author @key(fields: "id") {
+        id: Int! @inaccessible
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+        author: Author!
+      }
+
+      type Query {
+        bookById(id: Int!): Book! @lookup
+        inaccessibleText(text: String! = "This is the default!" @inaccessible): String!
+        books: [Book!]!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_7f497f67_1 {
+              inaccessibleText
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "inaccessibleText": "This is the default!"
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: Int!
+        name: String!
+      }
+
+      type Query {
+        authorById(id: Int!): Author! @internal @lookup
+        enumField(value: SomeEnum!): SomeEnum!
+        shareable(input: SomeInput!): String!
+      }
+
+      input SomeInput {
+        a: String!
+        b: String = "ABC" @inaccessible
+      }
+
+      enum SomeEnum {
+        ITEM1 @inaccessible
+        ITEM2
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          inaccessibleText
+        }
+      hash: 7f497f67f4aa63e45ea60ae5a20e9b84
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_7f497f67_1 {
+          inaccessibleText
+        }

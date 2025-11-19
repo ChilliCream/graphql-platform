@@ -167,4 +167,6 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             n => n.Kind is SyntaxKind.SelectionSet
                 ? new SelectionSetNode(((SelectionSetNode)n).Selections)
                 : n);
+
+    public static QueryablePagingProjectionOptimizer Create(ProjectionProviderContext context) => new();
 }

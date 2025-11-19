@@ -21,4 +21,6 @@ public class QueryableStringEqualsHandler : QueryableStringOperationHandler
         var property = context.GetInstance();
         return FilterExpressionBuilder.Equals(property, parsedValue);
     }
+
+    public static QueryableStringEqualsHandler Create(FilterProviderContext context) => new(context.InputParser);
 }
