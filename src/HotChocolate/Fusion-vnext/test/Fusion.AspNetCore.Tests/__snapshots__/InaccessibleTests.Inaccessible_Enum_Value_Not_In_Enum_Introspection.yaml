@@ -1,9 +1,9 @@
-title: Inaccessible_Fields_Cannot_Be_Queried_Via_Introspection
+title: Inaccessible_Enum_Value_Not_In_Enum_Introspection
 request:
   document: |
     {
-      __type(name: "Author") {
-        fields {
+      __type(name: "SomeEnum") {
+        enumValues {
           name
         }
       }
@@ -13,9 +13,9 @@ response:
     {
       "data": {
         "__type": {
-          "fields": [
+          "enumValues": [
             {
-              "name": "name"
+              "name": "ITEM2"
             }
           ]
         }
@@ -73,13 +73,13 @@ operationPlan:
   operation:
     - document: |
         {
-          __type(name: "Author") {
-            fields {
+          __type(name: "SomeEnum") {
+            enumValues {
               name
             }
           }
         }
-      hash: 2786e1aea90d29982bc53df69741f161
+      hash: b2b3486f9e6237d4b22c422f0f4ea63c
       searchSpace: 1
   nodes:
     - id: 1

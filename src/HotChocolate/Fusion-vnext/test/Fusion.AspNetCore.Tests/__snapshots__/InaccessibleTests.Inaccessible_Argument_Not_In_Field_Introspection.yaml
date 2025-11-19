@@ -1,10 +1,13 @@
-title: Inaccessible_Fields_Cannot_Be_Queried_Via_Introspection
+title: Inaccessible_Argument_Not_In_Field_Introspection
 request:
   document: |
     {
-      __type(name: "Author") {
+      __type(name: "Query") {
         fields {
           name
+          args {
+            name
+          }
         }
       }
     }
@@ -15,7 +18,36 @@ response:
         "__type": {
           "fields": [
             {
-              "name": "name"
+              "name": "bookById",
+              "args": [
+                {
+                  "name": "id"
+                }
+              ]
+            },
+            {
+              "name": "books",
+              "args": []
+            },
+            {
+              "name": "enumField",
+              "args": [
+                {
+                  "name": "value"
+                }
+              ]
+            },
+            {
+              "name": "inaccessibleText",
+              "args": []
+            },
+            {
+              "name": "shareable",
+              "args": [
+                {
+                  "name": "input"
+                }
+              ]
             }
           ]
         }
@@ -73,13 +105,16 @@ operationPlan:
   operation:
     - document: |
         {
-          __type(name: "Author") {
+          __type(name: "Query") {
             fields {
               name
+              args {
+                name
+              }
             }
           }
         }
-      hash: 2786e1aea90d29982bc53df69741f161
+      hash: 2f709cf8ae966bb22f9ce4d12c81757e
       searchSpace: 1
   nodes:
     - id: 1

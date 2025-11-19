@@ -1,0 +1,70 @@
+title: Inaccessible_Input_Object_Type_Cannot_Be_Queried_Via_Introspection
+request:
+  document: |
+    {
+      __type(name: "InternalFilter") {
+        name
+        kind
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "__type": null
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type InternalMetadata @inaccessible {
+        version: String!
+        buildNumber: String!
+      }
+
+      type Query {
+        metadata: InternalMetadata! @inaccessible
+        statusField(status: InternalStatus! = ACTIVE @inaccessible): String!
+        filterData(filter: InternalFilterInput @inaccessible): String!
+      }
+
+      input InternalFilterInput @inaccessible {
+        includeInternal: Boolean!
+      }
+
+      enum InternalStatus @inaccessible {
+        ACTIVE
+        INACTIVE
+        PENDING
+      }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        dummy: String!
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          __type(name: "InternalFilter") {
+            name
+            kind
+          }
+        }
+      hash: 7ea6386b63aa248eec4b0433932145b7
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: __type
+          fieldName: __type

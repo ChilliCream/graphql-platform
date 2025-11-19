@@ -1,9 +1,9 @@
-title: Inaccessible_Fields_Cannot_Be_Queried_Via_Introspection
+title: Inaccessible_Input_Field_Not_In_Input_Object_Introspection
 request:
   document: |
     {
-      __type(name: "Author") {
-        fields {
+      __type(name: "SomeInput") {
+        inputFields {
           name
         }
       }
@@ -13,9 +13,9 @@ response:
     {
       "data": {
         "__type": {
-          "fields": [
+          "inputFields": [
             {
-              "name": "name"
+              "name": "a"
             }
           ]
         }
@@ -73,13 +73,13 @@ operationPlan:
   operation:
     - document: |
         {
-          __type(name: "Author") {
-            fields {
+          __type(name: "SomeInput") {
+            inputFields {
               name
             }
           }
         }
-      hash: 2786e1aea90d29982bc53df69741f161
+      hash: 629c8c531dafc21b2bfa2349088f6933
       searchSpace: 1
   nodes:
     - id: 1

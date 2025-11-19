@@ -28,6 +28,8 @@ public abstract class FusionFieldDefinitionCollection<TField>
     /// </param>
     protected FusionFieldDefinitionCollection(TField[] fields)
     {
+        ArgumentNullException.ThrowIfNull(fields);
+
         _map = fields.ToFrozenDictionary(t => t.Name);
         _fields = fields;
         _fields.PartitionByAccessibility(out _length);
@@ -269,7 +271,9 @@ public abstract class FusionFieldDefinitionCollection<TField>
     /// A <see cref="FieldEnumerator"/> for the fields.
     /// </returns>
     public FieldEnumerator AsEnumerable(bool allowInaccessibleFields)
-        => allowInaccessibleFields ? new(_fields, _fields.Length) : new(_fields, _length);
+        => allowInaccessibleFields
+            ? new FieldEnumerator(_fields, _fields.Length)
+            : new FieldEnumerator(_fields, _length);
 
     /// <summary>
     /// Returns an enumerator that iterates through the fields in the collection.

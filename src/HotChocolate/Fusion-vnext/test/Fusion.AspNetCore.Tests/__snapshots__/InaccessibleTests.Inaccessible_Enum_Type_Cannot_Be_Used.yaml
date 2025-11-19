@@ -1,0 +1,63 @@
+title: Inaccessible_Enum_Type_Cannot_Be_Used
+request:
+  document: |
+    {
+      statusField(status: ACTIVE)
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "The argument \u0060status\u0060 does not exist.",
+          "locations": [
+            {
+              "line": 2,
+              "column": 15
+            }
+          ],
+          "extensions": {
+            "type": "Query",
+            "field": "statusField",
+            "argument": "status",
+            "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type InternalMetadata @inaccessible {
+        version: String!
+        buildNumber: String!
+      }
+
+      type Query {
+        metadata: InternalMetadata! @inaccessible
+        statusField(status: InternalStatus! = ACTIVE @inaccessible): String!
+        filterData(filter: InternalFilterInput @inaccessible): String!
+      }
+
+      input InternalFilterInput @inaccessible {
+        includeInternal: Boolean!
+      }
+
+      enum InternalStatus @inaccessible {
+        ACTIVE
+        INACTIVE
+        PENDING
+      }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        dummy: String!
+      }

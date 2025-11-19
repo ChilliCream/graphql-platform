@@ -15,7 +15,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
     private readonly DocumentNode _document;
 #pragma warning restore IDE0052
     private readonly Dictionary<ITypeNode, IType> _compositeTypes = new(SyntaxComparer.BySyntax);
-    private readonly Dictionary<string, ITypeDefinition> _typeDefinitionLookup;
+    private readonly Dictionary<string, IFusionTypeDefinition> _typeDefinitionLookup;
     private ImmutableDictionary<string, ITypeDefinitionNode> _typeDefinitionNodeLookup;
     private readonly Dictionary<string, FusionDirectiveDefinition> _directiveDefinitionLookup;
     private ImmutableDictionary<string, DirectiveDefinitionNode> _directiveDefinitionNodeLookup;
@@ -31,7 +31,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         string? mutationType,
         string? subscriptionType,
         ImmutableArray<DirectiveNode> directives,
-        ImmutableArray<ITypeDefinition> typeDefinitions,
+        ImmutableArray<IFusionTypeDefinition> typeDefinitions,
         ImmutableDictionary<string, ITypeDefinitionNode> typeDefinitionNodeLookup,
         ImmutableArray<FusionDirectiveDefinition> directiveDefinitions,
         ImmutableDictionary<string, DirectiveDefinitionNode> directiveDefinitionNodeLookup,
@@ -77,7 +77,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
 
     public string? SubscriptionType { get; }
 
-    public ImmutableArray<ITypeDefinition> TypeDefinitions { get; private set; }
+    public ImmutableArray<IFusionTypeDefinition> TypeDefinitions { get; private set; }
 
     public ImmutableArray<DirectiveNode> Directives { get; }
 

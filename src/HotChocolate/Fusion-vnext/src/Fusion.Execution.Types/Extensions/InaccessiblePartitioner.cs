@@ -3,9 +3,9 @@ namespace HotChocolate.Fusion.Types.Collections;
 internal static class InaccessiblePartitioner
 {
     public static void PartitionByAccessibility<T>(this T[] array, out int length)
-    where T : IInaccessibleProvider
+        where T : IInaccessibleProvider
     {
-        if (array.Length <= 1)
+        if (array.Length == 0)
         {
             length = 0;
             return;

@@ -41,7 +41,7 @@ internal static class CompositeSchemaBuilder
         string? mutationType = null;
         string? subscriptionType = null;
         var directives = ImmutableArray<DirectiveNode>.Empty;
-        var types = ImmutableArray.CreateBuilder<ITypeDefinition>();
+        var types = ImmutableArray.CreateBuilder<IFusionTypeDefinition>();
         var typeDefinitions = ImmutableDictionary.CreateBuilder<string, ITypeDefinitionNode>();
         var directiveTypes = ImmutableArray.CreateBuilder<FusionDirectiveDefinition>();
         var directiveDefinitions = ImmutableDictionary.CreateBuilder<string, DirectiveDefinitionNode>();
