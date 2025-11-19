@@ -1,0 +1,171 @@
+title: Fetch_OneOf_Lookup_With_Name
+request:
+  document: |
+    {
+      topAuthor {
+        id
+        name
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "topAuthor": {
+          "id": 1,
+          "name": "Jon Skeet"
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author @key(fields: "id") {
+        id: Int!
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+        author: Author! @shareable
+      }
+
+      type Query {
+        books: [Book!]!
+      }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: Int!
+        name: String!
+      }
+
+      type InternalLookups @internal {
+        author(by: AuthorByInput! @is(field: "{\n  id\n} | {\n  name\n}")): Author! @lookup @internal
+      }
+
+      type Query {
+        lookups: InternalLookups! @internal
+      }
+
+      input AuthorByInput @oneOf {
+        id: Int
+        name: String
+      }
+
+      "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
+      directive @oneOf on INPUT_OBJECT
+    interactions:
+      - request:
+          document: |
+            query Op_54ef22d5_2(
+              $__fusion_1_by: AuthorByInput!
+            ) {
+              lookups {
+                author(by: $__fusion_1_by) {
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_by": {
+                "name": "Jon Skeet"
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "lookups": {
+                    "author": {
+                      "id": 1
+                    }
+                  }
+                }
+              }
+  - name: c
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        name: String! @shareable
+      }
+
+      type Query {
+        topAuthor: Author!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_54ef22d5_1 {
+              topAuthor {
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "topAuthor": {
+                    "name": "Jon Skeet"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          topAuthor {
+            id
+            name
+            name @fusion__requirement
+          }
+        }
+      hash: 54ef22d59545e000e9ff58880edc64cd
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: c
+      operation: |
+        query Op_54ef22d5_1 {
+          topAuthor {
+            name
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: b
+      operation: |
+        query Op_54ef22d5_2(
+          $__fusion_1_by: AuthorByInput!
+        ) {
+          lookups {
+            author(by: $__fusion_1_by) {
+              id
+            }
+          }
+        }
+      source: $.lookups.author
+      target: $.topAuthor
+      requirements:
+        - name: __fusion_1_by
+          selectionMap: >-
+            {
+              name
+            }
+      dependencies:
+        - id: 1
